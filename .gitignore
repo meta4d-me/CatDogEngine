@@ -1,0 +1,6 @@
+.vs
+*.sln
+/Config.bat
+Engine/Binaries
+Engine/Intermediate
+Engine/ThirdPartyProjects

@@ -1,0 +1,15 @@
+[submodule "Engine/Source/ThirdParty/bimg"]
+	path = Engine/Source/ThirdParty/bimg
+	url = https://github.com/CatDogEngine/bimg
+[submodule "Engine/Source/ThirdParty/bx"]
+	path = Engine/Source/ThirdParty/bx
+	url = https://github.com/CatDogEngine/bx
+[submodule "Engine/Source/ThirdParty/bgfx"]
+	path = Engine/Source/ThirdParty/bgfx
+	url = https://github.com/CatDogEngine/bgfx
+[submodule "Engine/Source/ThirdParty/AssetPipeline"]
+	path = Engine/Source/ThirdParty/AssetPipeline
+	url = https://github.com/CatDogEngine/AssetPipeline
+[submodule "Engine/Source/ThirdParty/sdl"]
+	path = Engine/Source/ThirdParty/sdl
+	url = https://github.com/CatDogEngine/sdl
