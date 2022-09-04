@@ -32,19 +32,16 @@ workspace(EngineName)
 	-- location specifies the path for workspace project file, .sln for Visual Studio.
 	location(RootPath)
 	
+	architecture "x64"
+	
 	-- Set build configs
-	configurations { "Debug", "Develop", "Release" }
+	configurations { "Debug", "Release" }
 	
 	-- Debug is a strict debug mode. No optimization will be performed.
 	filter "configurations:Debug"
 		defines { "_DEBUG" }
 		symbols("On")
 		optimize("Off")
-	-- Develop is a normal debug mode. Optimization with some debugger step-through support.
-	filter "configurations:Develop"
-		defines { "_DEBUG" }
-		symbols("On")
-		optimize("Debug")
 	-- Full optimization.
 	filter "configurations:Release"
 		defines { "NDEBUG" }
@@ -55,11 +52,6 @@ workspace(EngineName)
 	filter "system:Windows"
 		-- For Windows OS, we want to use latest Windows SDK installed in the PC.
 		systemversion("latest")
-	filter {}
-
-	platforms { "x64" }
-	filter "platforms:x64"
-		architecture "x64"
 	filter {}
 
 -- utils

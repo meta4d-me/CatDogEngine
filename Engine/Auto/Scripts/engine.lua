@@ -6,8 +6,8 @@ project("Engine")
 	kind("SharedLib")
 	language("C++")
 	cppdialect("C++latest")
-	--dependson { "SDL2" }
-
+	dependson { "bgfx" }
+	
 	location(path.join(IntermediatePath, "Engine/Runtime"))
 	targetdir(BinariesPath)
 
@@ -39,7 +39,7 @@ project("Engine")
 	local platformDefines = nil
 	local platformIncludeDirs = nil
 
-	filter "system:windows"
+	filter { "system:windows", "configurations:Debug" }
 		platformDefines = {
 			"_CRT_SECURE_NO_WARNINGS"
 		}
@@ -47,6 +47,30 @@ project("Engine")
 		platformIncludeDirs = { 
 			path.join(ThirdPartySourcePath, "bx/include/compat/msvc")
 		}
+		
+		local bgfxBuildBinPath = ThirdPartySourcePath.."\\bgfx\\.build\\win64_"..IDEConfigs.BuildIDEName.."\\bin"
+		prebuildcommands { 
+			"xcopy /c /f /y \""..bgfxBuildBinPath.."\\bgfxDebug.lib*\" \""..BinariesPath.."\\bgfx\\bgfxDebug.lib*".."\"",
+			"xcopy /c /f /y \""..bgfxBuildBinPath.."\\bimgDebug.lib*\" \""..BinariesPath.."\\bgfx\\bimgDebug.lib*".."\"",
+			"xcopy /c /f /y \""..bgfxBuildBinPath.."\\bxDebug.lib*\" \""..BinariesPath.."\\bgfx\\bxDebug.lib*".."\"",
+			"xcopy /c /f /y \""..bgfxBuildBinPath.."\\bimg_decodeDebug.lib*\" \""..BinariesPath.."\\bgfx\\bimg_decodeDebug.lib*".."\"",
+		}
+	filter { "system:windows", "configurations:Release" }
+		platformDefines = {
+			"_CRT_SECURE_NO_WARNINGS"
+		}
+
+		platformIncludeDirs = { 
+			path.join(ThirdPartySourcePath, "bx/include/compat/msvc")
+		}
+		
+		local bgfxBuildBinPath = ThirdPartySourcePath.."\\bgfx\\.build\\win64_"..IDEConfigs.BuildIDEName.."\\bin"
+		prebuildcommands { 
+			"xcopy /c /f /y \""..bgfxBuildBinPath.."\\bgfx.lib*\" \""..BinariesPath.."\\bgfx\\bgfx.lib*".."\"",
+			"xcopy /c /f /y \""..bgfxBuildBinPath.."\\bimg.lib*\" \""..BinariesPath.."\\bgfx\\bimg.lib*".."\"",
+			"xcopy /c /f /y \""..bgfxBuildBinPath.."\\bx.lib*\" \""..BinariesPath.."\\bgfx\\bx.lib*".."\"",
+			"xcopy /c /f /y \""..bgfxBuildBinPath.."\\bimg_decode.lib*\" \""..BinariesPath.."\\bgfx\\bimg_decode.lib*".."\"",
+		}		
 	filter {}
 
 	includedirs {
@@ -67,10 +91,7 @@ project("Engine")
 		}
 		libdirs {
 			--path.join(ThirdPartyProjectPath, "sdl2/Debug"),
-			path.join(ThirdPartyProjectPath, "openal"),
-			path.join(ThirdPartyProjectPath, "libsndfile"),
-			path.join(ThirdPartyProjectPath, "spdlog"),
-			path.join(ThirdPartySourcePathPath, "bgfx/build/win64_"..IDEConfigs.BuildIDEName.."/bin"),
+			path.join(BinariesPath, "bgfx"),
 		}
 		links {
 			--"sdl2d", "sdl2maind",
@@ -79,10 +100,7 @@ project("Engine")
 	filter { "configurations:Release" }
 		libdirs {
 			--path.join(ThirdPartyProjectPath, "sdl2/Release"),
-			path.join(ThirdPartyProjectPath, "openal"),
-			path.join(ThirdPartyProjectPath, "libsndfile"),
-			path.join(ThirdPartyProjectPath, "spdlog"),
-			path.join(ThirdPartySourcePathPath, "bgfx/build/win64_"..IDEConfigs.BuildIDEName.."/bin"),
+			path.join(BinariesPath, "bgfx"),
 		}
 		links {
 			--"sdl2", "sdl2main",
@@ -107,8 +125,6 @@ project("Engine")
 	staticruntime "on"
 	filter { "configurations:Debug" }
 		runtime "Debug" -- /MTd
-	filter { "configurations:Develop" }
-		runtime "Debug" -- /MTd
 	filter { "configurations:Release" }
 		runtime "Release" -- /MT
 	filter {}
@@ -130,14 +146,3 @@ project("Engine")
 		"FatalWarnings", -- treat warnings as errors
 		"MultiProcessorCompile", -- compiler uses multiple thread
 	}
-
-	-- copy dll into binary folder automatically.
-	local sourceEngineDllPath = path.join(BinariesPath, "Engine.dll*")
-	local EditorBinPath = path.join(CurrentWorkingDirectory, "CatDogEditor")
-	if os.isdir(EditorBinPath) then
-		local targetEngineDllPath = path.join(EditorBinPath, "Debug/NativePlugin/x64", "Engine.dll*")
-		filter { "system:windows" }
-			postbuildcommands { 
-				"xcopy /c /f /y \""..sourceEngineDllPath.."\" \""..targetEngineDllPath.."\"",
-			}
-	end

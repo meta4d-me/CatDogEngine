@@ -7,7 +7,7 @@
 -- 	DeclareExternalProject("SDL2main", "StaticLib", "sdl2")
 -- 	DeclareExternalProject("SDL2-static", "StaticLib", "sdl2")
 
-local bgfxProjectsPath = path.join(ThirdPartySourcePathPath, "bgfx/build/projects/"..IDEConfigs.BuildIDEName)
+local bgfxProjectsPath = path.join(ThirdPartySourcePath, "bgfx/.build/projects/"..IDEConfigs.BuildIDEName)
 group "ThirdParty/bgfx"
 	externalproject("bgfx")
 		kind("StaticLib")
