@@ -9,10 +9,7 @@ EngineName = "CatDogEngine"
 PlatformName = "Win64"
 
 -- Ignore case to find the root folder path's start index from current working directory
-local startIndex = string.find(CurrentWorkingDirectory, EngineName) or string.find(CurrentWorkingDirectory, "catdogengine")
-local rootFolderNameIndex = startIndex + string.len(EngineName) - 1
-
-RootPath = string.sub(CurrentWorkingDirectory, 0, rootFolderNameIndex)
+RootPath = string.sub(CurrentWorkingDirectory, 0, string.len(CurrentWorkingDirectory) - string.len("Engine/Auto/Scripts") - 1)
 EnginePath = path.join(RootPath, "Engine")
 BinariesPath = path.join(EnginePath, "Binaries/"..PlatformName)
 IntermediatePath = path.join(EnginePath, "Intermediate/"..PlatformName)
