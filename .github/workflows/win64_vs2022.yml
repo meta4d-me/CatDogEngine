@@ -20,17 +20,11 @@ jobs:
     - name: Make 3rdParty
       run: ${{github.workspace}}/MakeThirdParty_vs2022.bat
 
-    - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.2
-
-    - name: Build bgfx Debugx64
-      run: msbuild ${{github.workspace}}/Engine/Source/ThirdParty/bgfx/.build/projects/vs2022/bgfx.sln /p:Configuration=Debug /p:Platform=x64
-
-    - name: Build bgfx Releasex64
-      run: msbuild ${{github.workspace}}/Engine/Source/ThirdParty/bgfx/.build/projects/vs2022/bgfx.sln /p:Configuration=Release /p:Platform=x64
-
     - name: Make Engine
       run: ${{github.workspace}}/MakeEngine_vs2022.bat
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
 
     - name: Build Debugx64
       run: msbuild ${{github.workspace}}/CatDogEngine.sln /p:Configuration=Debug /p:Platform=x64

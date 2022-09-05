@@ -6,7 +6,7 @@ project("Engine")
 	kind("SharedLib")
 	language("C++")
 	cppdialect("C++latest")
-	dependson { "bgfx" }
+	dependson { "bgfx", "sdl2" }
 	
 	location(path.join(IntermediatePath, "Engine/Runtime"))
 	targetdir(BinariesPath)
@@ -80,7 +80,7 @@ project("Engine")
 		path.join(ThirdPartySourcePath, "bimg/include"),
 		path.join(ThirdPartySourcePath, "bimg/3rdparty"),
 		path.join(ThirdPartySourcePath, "bx/include"),
-		--path.join(ThirdPartySourcePath, "sdl2/include"),
+		path.join(ThirdPartySourcePath, "sdl/include"),
 		table.unpack(platformIncludeDirs),
 	}
 
@@ -90,26 +90,26 @@ project("Engine")
 			"BX_CONFIG_DEBUG",
 		}
 		libdirs {
-			--path.join(ThirdPartyProjectPath, "sdl2/Debug"),
+			path.join(ThirdPartyProjectPath, "sdl/Debug"),
 			path.join(BinariesPath, "bgfx"),
 		}
 		links {
-			--"sdl2d", "sdl2maind",
+			"sdl2d", "sdl2maind",
 			"bgfxDebug", "bimgDebug", "bxDebug", "bimg_decodeDebug"
 		}
 	filter { "configurations:Release" }
 		libdirs {
-			--path.join(ThirdPartyProjectPath, "sdl2/Release"),
+			path.join(ThirdPartyProjectPath, "sdl/Release"),
 			path.join(BinariesPath, "bgfx"),
 		}
 		links {
-			--"sdl2", "sdl2main",
+			"sdl2", "sdl2main",
 			"bgfx", "bimg", "bx", "bimg_decode"
 		}
 	filter {}
 
 	defines {
-		--"SDL_MAIN_HANDLED",
+		"SDL_MAIN_HANDLED",
 		"__STDC_LIMIT_MACROS", "__STDC_FORMAT_MACROS", "__STDC_CONSTANT_MACROS",
 		"STB_IMAGE_STATIC",
 		table.unpack(configurationDefines),

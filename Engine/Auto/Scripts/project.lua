@@ -43,14 +43,14 @@ function MakeProject(projectName)
 		}
 
 		-- copy dll into binary folder automatically.
-		local sourceSDL2DllPath = path.join(ThirdPartyProjectPath, "sdl2/Debug/SDL2d.dll*")
-		local targetSDL2DllPath = path.join(projectBinaryPath, "SDL2d.dll*")
+		local sourceSDLDllPath = path.join(ThirdPartyProjectPath, "sdl/Debug/SDL2d.dll*")
+		local targetSDLDllPath = path.join(projectBinaryPath, "SDL2d.dll*")
 
 		local sourceEngineDllPath = path.join(BinariesPath, "Engine.dll*")
 		local targetEngineDllPath = path.join(projectBinaryPath, "Engine.dll*")
 		filter { "system:windows" }
 			postbuildcommands { 
-				"xcopy /c /f /y \""..sourceSDL2DllPath.."\" \""..targetSDL2DllPath.."\"",
+				"xcopy /c /f /y \""..sourceSDLDllPath.."\" \""..targetSDLDllPath.."\"",
 				"xcopy /c /f /y \""..sourceEngineDllPath.."\" \""..targetEngineDllPath.."\"",
 			}
 end

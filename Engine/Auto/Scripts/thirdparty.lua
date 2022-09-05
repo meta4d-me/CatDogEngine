@@ -1,11 +1,12 @@
 --------------------------------------------------------------
 -- @Description : Makefile of CatDog Engine's dependencies
 --------------------------------------------------------------
--- group "ThirdParty/sdl2"
--- 	DeclareExternalProject("SDL2", "SharedLib")
--- 		dependson { "SDL2main", "SDL2-static" }
--- 	DeclareExternalProject("SDL2main", "StaticLib", "sdl2")
--- 	DeclareExternalProject("SDL2-static", "StaticLib", "sdl2")
+group "ThirdParty/sdl"
+	DeclareExternalProject("SDL2", "SharedLib", "sdl")
+		dependson { "SDL2main", "SDL2-static" }
+	DeclareExternalProject("SDL2main", "StaticLib", "sdl")
+	DeclareExternalProject("SDL2-static", "StaticLib", "sdl")
+	DeclareExternalProject("sdl_headers_copy", "Utility", "sdl")
 
 local bgfxProjectsPath = path.join(ThirdPartySourcePath, "bgfx/.build/projects/"..IDEConfigs.BuildIDEName)
 group "ThirdParty/bgfx"
