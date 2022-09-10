@@ -2,7 +2,7 @@
 
 #include "Renderer.h"
 
-namespace engine::Rendering
+namespace engine
 {
 
 class UIRenderer final : public Renderer

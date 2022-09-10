@@ -2,33 +2,26 @@
 
 #include <bgfx/platform.h>
 
-namespace engine::Rendering
+namespace engine
 {
-
-RenderContext::RenderContext(uint16_t width, uint16_t height, void* pWindowPtr)
-{
-	bgfx::PlatformData pd;
-	pd.nwh = pWindowPtr;
-	bgfx::setPlatformData(pd);
-	bgfx::renderFrame();
-
-	m_backBufferWidth = width;
-	m_backBufferHeight = height;
-}
 
 RenderContext::~RenderContext()
 {
 	bgfx::shutdown();
 }
 
-void RenderContext::Init()
+void RenderContext::Init(uint16_t width, uint16_t height, void* pWindowPtr)
 {
-	bgfx::Init bgfxInit;
-	bgfxInit.type = bgfx::RendererType::Direct3D11;
-	bgfxInit.resolution.width = m_backBufferWidth;
-	bgfxInit.resolution.height = m_backBufferHeight;
-	bgfxInit.resolution.reset = BGFX_RESET_VSYNC;
-	bgfx::init(bgfxInit);
+	m_backBufferWidth = width;
+	m_backBufferHeight = height;
+
+	bgfx::Init initDesc;
+	initDesc.type = bgfx::RendererType::Direct3D11;
+	initDesc.platformData.nwh = pWindowPtr;
+	initDesc.resolution.width = width;
+	initDesc.resolution.height = height;
+	initDesc.resolution.reset = BGFX_RESET_VSYNC;
+	bgfx::init(initDesc);
 
 	bgfx::setDebug(BGFX_DEBUG_TEXT);
 }

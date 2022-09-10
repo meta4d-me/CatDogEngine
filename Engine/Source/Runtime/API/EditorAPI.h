@@ -1,19 +1,9 @@
 #pragma once
 
-#include <inttypes.h>
-
-#ifdef ENGINE_BUILD_SHARED
-#define ENGINE_API __declspec(dllexport)
-#else
-#define ENGINE_API __declspec(dllimport)
-#endif
-
-typedef unsigned __int64 ObjectGUID;
-typedef unsigned __int32 ObjectTypeGUID;
-typedef unsigned __int32 ObjectPropertyUID;
-typedef unsigned __int32 ObjectListUID;
+#include "Core/EngineDefines.h"
 
 typedef void(__stdcall* LogCallbackType)(int messageType, wchar_t* text);
+typedef void(__stdcall* InvalidateViewsCallbackType)(void);
 
 struct HitRecord;
 struct FrameTime;
@@ -28,8 +18,9 @@ typedef unsigned int FontStyleFlags;
 extern "C"
 {
 
-ENGINE_API void __stdcall LvEd_Initialize();
-ENGINE_API void __stdcall LvEd_InitView(void* windowHandle);
+// These APIs are copied from LevelEditor project. And we will leave the implementation empty at first to make level editor can work without crash.
+// Then we need to implement necessary APIs for editor needs.
+ENGINE_API void __stdcall LvEd_Initialize(LogCallbackType logCallback, InvalidateViewsCallbackType invalidateCallback, const wchar_t** outEngineInfo);
 ENGINE_API void __stdcall LvEd_Shutdown();
 ENGINE_API void __stdcall LvEd_Clear();
 ENGINE_API ObjectTypeGUID __stdcall LvEd_GetObjectTypeId(char* className);

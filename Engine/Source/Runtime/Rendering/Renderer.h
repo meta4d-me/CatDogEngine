@@ -4,7 +4,7 @@
 
 #include <string>
 
-namespace engine::Rendering
+namespace engine
 {
 
 class RenderContext;

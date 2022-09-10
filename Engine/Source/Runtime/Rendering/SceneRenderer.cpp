@@ -76,7 +76,7 @@ static bgfx::ProgramHandle s_ph;
 
 }
 
-namespace engine::Rendering
+namespace engine
 {
 
 void SceneRenderer::LoadSceneData(std::string sceneFilePath)
@@ -108,8 +108,6 @@ void SceneRenderer::Init()
 
 void SceneRenderer::Render(float deltaTime)
 {
-	SetViewID(0);
-
 	bgfx::touch(GetViewID());
 
 	const bx::Vec3 at = { 0.0f, 0.0f,   0.0f };
@@ -120,7 +118,7 @@ void SceneRenderer::Render(float deltaTime)
 	float proj[16];
 	bx::mtxProj(proj, 60.0f, float(m_viewWidth) / float(m_viewHeight), 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
 	bgfx::setViewTransform(0, view, proj);
-	bgfx::setViewRect(GetViewID(), 0, 0, 1280, 720);
+	bgfx::setViewRect(GetViewID(), 0, 0, m_viewWidth, m_viewHeight);
 	bgfx::setViewClear(GetViewID(), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, MakeRBGA(128, 0, 0, 255), 1.0f, 0);
 
 	uint64_t state = 0

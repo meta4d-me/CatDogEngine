@@ -22,7 +22,7 @@
 //}
 
 
-namespace engine::Rendering
+namespace engine
 {
 
 void UIRenderer::Init()

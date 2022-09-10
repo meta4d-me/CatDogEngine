@@ -2,17 +2,16 @@
 
 #include <inttypes.h>
 
-namespace engine::Rendering
+namespace engine
 {
 
 class RenderContext
 {
 public:
-	RenderContext() = delete;
-	RenderContext(uint16_t width, uint16_t height, void* pWindowPtr);
+	RenderContext() = default;
 	~RenderContext();
 
-	void Init();
+	void Init(uint16_t width, uint16_t height, void* pWindowPtr);
 	void BeginFrame();
 	void EndFrame();
 

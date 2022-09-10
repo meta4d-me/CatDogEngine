@@ -92,7 +92,7 @@ void ScreenSpaceQuad(float _textureWidth, float _textureHeight, bool _originBott
 
 }
 
-namespace engine::Rendering
+namespace engine
 {
 
 void SkyRenderer::Init()

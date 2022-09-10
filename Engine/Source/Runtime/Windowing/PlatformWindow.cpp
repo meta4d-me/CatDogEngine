@@ -9,19 +9,19 @@
 namespace engine
 {
 
-PlatformWindow::PlatformWindow(const WindowCreateDescriptor& createDescriptor)
+PlatformWindow::PlatformWindow(const char* pTitle, uint16_t width, uint16_t height)
 {
 	m_Nwh = nullptr;
 	m_Ndt = nullptr;
-	m_Width = createDescriptor.width;
-	m_Height = createDescriptor.height;
-	m_LastWidth = createDescriptor.width;
-	m_LastHeight = createDescriptor.height;
+	m_Width = width;
+	m_Height = height;
+	m_LastWidth = width;
+	m_LastHeight = height;
 
 	SDL_Init(SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
 
-	m_Window = SDL_CreateWindow(createDescriptor.title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, createDescriptor.width, createDescriptor.height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-	SDL_WarpMouseInWindow(m_Window, static_cast<int>(createDescriptor.width * 0.5f), static_cast<int>(createDescriptor.height * 0.5f));
+	m_Window = SDL_CreateWindow(pTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+	SDL_WarpMouseInWindow(m_Window, static_cast<int>(width * 0.5f), static_cast<int>(height * 0.5f));
 
 	SDL_SysWMinfo wmi;
 	SDL_VERSION(&wmi.version);

@@ -41,18 +41,19 @@ function MakeProject(projectName)
 		links {
 			"Engine"
 		}
+		
+	-- copy dll into binary folder automatically.
+	local projectBinaryPath = path.join(BinariesPath, "Projects/", projectBinaryPath)
+	local sourceSDLDllPath = path.join(ThirdPartyProjectPath, "sdl/Debug/SDL2d.dll*")
+	local targetSDLDllPath = path.join(projectBinaryPath, "SDL2d.dll*")
 
-		-- copy dll into binary folder automatically.
-		local sourceSDLDllPath = path.join(ThirdPartyProjectPath, "sdl/Debug/SDL2d.dll*")
-		local targetSDLDllPath = path.join(projectBinaryPath, "SDL2d.dll*")
-
-		local sourceEngineDllPath = path.join(BinariesPath, "Engine.dll*")
-		local targetEngineDllPath = path.join(projectBinaryPath, "Engine.dll*")
-		filter { "system:windows" }
-			postbuildcommands { 
-				"xcopy /c /f /y \""..sourceSDLDllPath.."\" \""..targetSDLDllPath.."\"",
-				"xcopy /c /f /y \""..sourceEngineDllPath.."\" \""..targetEngineDllPath.."\"",
-			}
+	local sourceEngineDllPath = path.join(BinariesPath, "Engine.*")
+	local targetEngineDllPath = path.join(projectBinaryPath, "Engine.*")
+	filter { "system:windows" }
+		postbuildcommands {
+			"xcopy /c /f /y \""..sourceSDLDllPath.."\" \""..targetSDLDllPath.."\"",
+			"xcopy /c /f /y \""..sourceEngineDllPath.."\" \""..targetEngineDllPath.."\"",
+		}			
 end
 
 group "Projects"

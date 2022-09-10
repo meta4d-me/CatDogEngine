@@ -26,7 +26,7 @@ static std::string projectResourcePath = "D:/catdogengine/Engine/Source/ThirdPar
 
 }
 
-namespace engine::Rendering
+namespace engine
 {
 
 Renderer::Renderer(RenderContext* pRenderContext) :

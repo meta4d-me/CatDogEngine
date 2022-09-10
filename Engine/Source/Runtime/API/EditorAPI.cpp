@@ -1,52 +1,27 @@
 #include "EditorAPI.h"
-#include "../Application.h"
 
-class Editor : public engine::IGame
+#include "Engine.h"
+
+static engine::Engine* s_pEngineInstance = nullptr;
+
+ENGINE_API void __stdcall LvEd_Initialize(LogCallbackType logCallback, InvalidateViewsCallbackType invalidateCallback, const wchar_t** outEngineInfo)
 {
-public:
-	virtual void Init() override
-	{
-
-	}
-
-	virtual void Update(float deltaTime) override
-	{
-
-	}
-
-	virtual void Shutdown() override
-	{
-
-	}
-};
-
-static engine::Application* s_editorApp = nullptr;
-
-
-ENGINE_API void __stdcall LvEd_Initialize()
-{
-	if(s_editorApp)
+	if(s_pEngineInstance)
 	{
 		return;
 	}
 
-	s_editorApp = new engine::Application(std::make_unique<Editor>());
+	s_pEngineInstance = new engine::Engine();
 	
-	//s_editorApp->Execute();
-}
-
-ENGINE_API void __stdcall LvEd_InitView(void* windowHandle)
-{
-	s_editorApp->Init(&windowHandle);
-	s_editorApp->Execute();
+	//s_pEngineInstance->Execute();
 }
 
 ENGINE_API void __stdcall LvEd_Shutdown()
 {
-	if (s_editorApp)
+	if (s_pEngineInstance)
 	{
-		delete s_editorApp;
-		s_editorApp = nullptr;
+		delete s_pEngineInstance;
+		s_pEngineInstance = nullptr;
 	}
 }
 

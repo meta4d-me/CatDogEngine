@@ -5,7 +5,7 @@
 
 #include <string>
 
-namespace engine::Rendering
+namespace engine
 {
 
 class SceneRenderer final : public Renderer
