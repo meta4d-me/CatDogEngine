@@ -68,3 +68,16 @@ end
 dofile("thirdparty.lua")
 dofile("engine.lua")
 dofile("project.lua")
+
+project("AutoMake")
+	kind("Utility")
+	location(path.join(IntermediatePath, "Engine/Misc"))
+	targetdir(BinariesPath)	
+	
+	filter { "system:windows" }
+		local bgfxBuildBinPath = ThirdPartySourcePath.."\\bgfx\\.build\\win64_"..IDEConfigs.BuildIDEName.."\\bin"
+		prebuildcommands {
+			"cd "..RootPath,
+			"MakeEngine_"..IDEConfigs.BuildIDEName..".bat",
+		}		
+	filter {}

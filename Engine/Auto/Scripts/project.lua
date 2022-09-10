@@ -63,4 +63,6 @@ for _, v in ipairs(allProjects) do
 	print("Make project : "..projectName)
 	MakeProject(projectName)
 end
+
+group ""
 print("================================================================")

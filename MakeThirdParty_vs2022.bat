@@ -1,8 +1,8 @@
 @echo off
 
-Set CURRENT_WORK_DIRECTORY=%~dp0
-Set PREMAKE_EXE="%CURRENT_WORK_DIRECTORY%/Engine/Auto/Programs/premake5.exe"
-Set CMAKE_EXE="%CURRENT_WORK_DIRECTORY%/Engine/Auto/Programs/CMake/bin/cmake.exe"
+Set ROOT_PATH=%~dp0
+Set PREMAKE_EXE="%ROOT_PATH%/Engine/Auto/Programs/premake5.exe"
+Set CMAKE_EXE="%ROOT_PATH%/Engine/Auto/Programs/CMake/bin/cmake.exe"
 
 rem set variables
 call ./Engine/Auto/Configs/vs2022/Config.bat

@@ -6,7 +6,7 @@ project("Engine")
 	kind("SharedLib")
 	language("C++")
 	cppdialect("C++latest")
-	dependson { "bgfx", "sdl2" }
+	dependson { "bgfx", "sdl2", "AutoMake" }
 	
 	location(path.join(IntermediatePath, "Engine/Runtime"))
 	targetdir(BinariesPath)
@@ -74,6 +74,7 @@ project("Engine")
 	filter {}
 
 	includedirs {
+		RuntimeSourcePath,
 		path.join(ThirdPartySourcePath, "AssetPipeline/public"),
 		path.join(ThirdPartySourcePath, "bgfx/include"),
 		path.join(ThirdPartySourcePath, "bgfx/3rdparty"),
