@@ -2,6 +2,8 @@
 
 #include "Core/EngineDefines.h"
 
+#include <vector>
+
 namespace engine
 {
 
@@ -9,9 +11,12 @@ class CSharpBridge;
 class PlatformWindow;
 class RenderContext;
 class SceneRenderer;
+class SkyRenderer;
+class UIRenderer;
 
 class Engine
 {
+
 public:
 	Engine() = default;
 	Engine(const Engine&) = delete;
@@ -53,11 +58,13 @@ public:
 	ENGINE_API void InitPlatformWindow(const char* pTitle, uint16_t width, uint16_t height);
 
 private:
-	RenderContext* m_pRenderContext = nullptr;
-	SceneRenderer* m_pSceneRenderer = nullptr;
+	RenderContext*			m_pRenderContext = nullptr;
+	SceneRenderer*			m_pSceneRenderer = nullptr;
+	SkyRenderer*			m_pSkyRenderer = nullptr;
+	UIRenderer*				m_pUIRenderer = nullptr;
 
-	CSharpBridge* m_pCSharpBridge = nullptr;
-	PlatformWindow* m_pPlatformWindow = nullptr;
+	CSharpBridge*			m_pCSharpBridge = nullptr;
+	PlatformWindow*			m_pPlatformWindow = nullptr;
 };
 
 }

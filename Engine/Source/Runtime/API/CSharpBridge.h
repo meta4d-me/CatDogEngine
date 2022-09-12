@@ -7,12 +7,10 @@
 namespace engine
 {
 
-class Object;
-
 class CSharpBridge
 {
 public:
-	using ObjectCreatorFunction = Object* (ObjectTypeGUID, void*, int);
+	using ObjectCreatorFunction = void (ObjectTypeGUID, void*, int);
 	using ObjectPropertySetFunction = void (ObjectGUID, void*, int);
 	using ObjectPropertyGetFunction = void (ObjectGUID, void**, int*);
 
@@ -28,8 +26,8 @@ public:
 	CSharpBridge& operator=(CSharpBridge&&) = delete;
 	~CSharpBridge() = default;
 
-	void RegisterObjectType(const char* pTypeName, ObjectCreatorFunction creatorFunc);
-	void RegisterObjectTypeProperty(const char* pTypeName, const char* pPropertyName, ObjectPropertySetFunction setFunc, ObjectPropertyGetFunction getFunc);
+	void RegisterObjectType(const char* pTypeName, ObjectCreatorFunction* pCreatorFunc);
+	void RegisterObjectTypeProperty(const char* pTypeName, const char* pPropertyName, ObjectPropertySetFunction* pSetFunc, ObjectPropertyGetFunction* pGetFunc);
 	ObjectTypeGUID GetObjectTypeId(const char* pTypeName) const;
 	ObjectPropertyUID GetObjectPropertyId(ObjectTypeGUID tid, const char* pPropertyName) const;
 

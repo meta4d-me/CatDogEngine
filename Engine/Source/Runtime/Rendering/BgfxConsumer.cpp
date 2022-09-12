@@ -69,26 +69,26 @@ namespace cdtools
 			// 1. vertices
 			for (uint32_t i = 0; i < mesh.GetVertexCount(); ++i) {
 				PNTBUV vertexData;
-				vertexData.x = mesh.GetVertexPosition(i).x();
-				vertexData.y = mesh.GetVertexPosition(i).y();
-				vertexData.z = mesh.GetVertexPosition(i).z();
+				vertexData.x = static_cast<float>(mesh.GetVertexPosition(i).x());
+				vertexData.y = static_cast<float>(mesh.GetVertexPosition(i).y());
+				vertexData.z = static_cast<float>(mesh.GetVertexPosition(i).z());
 				vertexData.normal = encodeNormalRgba8(
-					mesh.GetVertexNormal(i)[0],
-					mesh.GetVertexNormal(i)[1],
-					mesh.GetVertexNormal(i)[2]
+					static_cast<float>(mesh.GetVertexNormal(i)[0]),
+					static_cast<float>(mesh.GetVertexNormal(i)[1]),
+					static_cast<float>(mesh.GetVertexNormal(i)[2])
 				);
 				vertexData.tangent = encodeNormalRgba8(
-					mesh.GetVertexTangent(i)[0],
-					mesh.GetVertexTangent(i)[1],
-					mesh.GetVertexTangent(i)[2]
+					static_cast<float>(mesh.GetVertexTangent(i)[0]),
+					static_cast<float>(mesh.GetVertexTangent(i)[1]),
+					static_cast<float>(mesh.GetVertexTangent(i)[2])
 				);
 				vertexData.bitangent = encodeNormalRgba8(
-					mesh.GetVertexBiTangent(i)[0],
-					mesh.GetVertexBiTangent(i)[1],
-					mesh.GetVertexBiTangent(i)[2]
+					static_cast<float>(mesh.GetVertexBiTangent(i)[0]),
+					static_cast<float>(mesh.GetVertexBiTangent(i)[1]),
+					static_cast<float>(mesh.GetVertexBiTangent(i)[2])
 				);
-				vertexData.u = mesh.GetVertexUV(0)[i].x();
-				vertexData.v = mesh.GetVertexUV(0)[i].y();
+				vertexData.u =static_cast<float>(mesh.GetVertexUV(0)[i].x());
+				vertexData.v =static_cast<float>(mesh.GetVertexUV(0)[i].y());
 
 				meshData.vertices.emplace_back(std::move(vertexData));
 			}

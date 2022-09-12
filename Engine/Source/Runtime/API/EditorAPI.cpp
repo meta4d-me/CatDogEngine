@@ -1,15 +1,40 @@
 #include "EditorAPI.h"
 
+#include "CSharpBridge.h"
 #include "Engine.h"
+#include "Rendering/RenderContext.h"
 
 #include "rapidxml/rapidxml.hpp"
 #include "rapidxml/rapidxml_print.hpp"
 using XmlDocument = rapidxml::xml_document<wchar_t>;
 using XmlNode = rapidxml::xml_node<wchar_t>;
 using XmlAttribute = rapidxml::xml_attribute<wchar_t>;
-
 static std::wstring s_engineInfoXml;
+
+
 static engine::Engine* s_pEngineInstance = nullptr;
+
+namespace SwapChainBridge
+{
+
+struct SwapChainDescriptor
+{
+	void*	 nwh;
+	uint16_t width;
+	uint16_t height;
+};
+
+static void CreateIntance(ObjectTypeGUID tid, void* data, int size)
+{
+	assert(size == sizeof(SwapChainDescriptor));
+	SwapChainDescriptor* pScd = static_cast<SwapChainDescriptor*>(data);
+	engine::RenderContext* pRenderContext = s_pEngineInstance->GetRenderContext();
+	uint8_t swapChainID = pRenderContext->CreateSwapChain(pScd->nwh, pScd->width, pScd->height);
+	// pRenderContext->GetSwapChain(swapChainID);
+}
+
+}
+
 EDITOR_API void __stdcall LvEd_Initialize(LogCallbackType logCallback, InvalidateViewsCallbackType invalidateCallback, const wchar_t** outEngineInfo)
 {
 	if(s_pEngineInstance)
@@ -21,20 +46,29 @@ EDITOR_API void __stdcall LvEd_Initialize(LogCallbackType logCallback, Invalidat
 	s_pEngineInstance->InitCSharpBridge();
 	s_pEngineInstance->Init();
 
+	// Pass xml formated engine information to editor
 	XmlDocument doc;
-	XmlNode* pDecl = doc.allocate_node(rapidxml::node_declaration);
-	pDecl->append_attribute(doc.allocate_attribute(L"version", L"1.0"));
-	pDecl->append_attribute(doc.allocate_attribute(L"encoding", L"utf-8"));
-	pDecl->append_attribute(doc.allocate_attribute(L"standalone", L"yes"));
-	doc.append_node(pDecl);
+	if(XmlNode* pDecl = doc.allocate_node(rapidxml::node_declaration))
+	{
+		pDecl->append_attribute(doc.allocate_attribute(L"version", L"1.0"));
+		pDecl->append_attribute(doc.allocate_attribute(L"encoding", L"utf-8"));
+		doc.append_node(pDecl);
+	}
 
-	XmlNode* pRoot = doc.allocate_node(rapidxml::node_element, L"EngineInfo");
-	pRoot->append_attribute(doc.allocate_attribute(L"version", L"1.0"));
-	doc.append_node(pRoot);
+	if(XmlNode* pRoot = doc.allocate_node(rapidxml::node_element, L"EngineInfo"))
+	{
+		pRoot->append_attribute(doc.allocate_attribute(L"name", L"CatDogEngine"));
+		doc.append_node(pRoot);
+	}
 
-	// print to string.
 	rapidxml::print(std::back_inserter(s_engineInfoXml), doc, 0);
 	*outEngineInfo = s_engineInfoXml.c_str();
+
+	// Binding runtime engine classes to C# environment.
+	if(engine::CSharpBridge* pBridge = s_pEngineInstance->GetCSharpBridge())
+	{
+		pBridge->RegisterObjectType("SwapChain", &SwapChainBridge::CreateIntance);
+	}
 }
 
 EDITOR_API void __stdcall LvEd_Shutdown()

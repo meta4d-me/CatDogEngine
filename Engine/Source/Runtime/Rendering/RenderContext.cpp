@@ -1,6 +1,10 @@
 #include "RenderContext.h"
 
-#include <bgfx/platform.h>
+#include "SwapChain.h"
+
+#include <bgfx/bgfx.h>
+
+#include <cassert>
 
 namespace engine
 {
@@ -10,35 +14,53 @@ RenderContext::~RenderContext()
 	bgfx::shutdown();
 }
 
-void RenderContext::Init(uint16_t width, uint16_t height, void* pWindowPtr)
+void RenderContext::Init()
 {
-	m_backBufferWidth = width;
-	m_backBufferHeight = height;
-
 	bgfx::Init initDesc;
 	initDesc.type = bgfx::RendererType::Direct3D11;
-	initDesc.platformData.nwh = pWindowPtr;
-	initDesc.resolution.width = width;
-	initDesc.resolution.height = height;
-	initDesc.resolution.reset = BGFX_RESET_VSYNC;
 	bgfx::init(initDesc);
 
-	bgfx::setDebug(BGFX_DEBUG_TEXT);
+	bgfx::setDebug(BGFX_DEBUG_PROFILER);
 }
 
-void RenderContext::ResizeSwapChain(uint16_t width, uint16_t height)
+void RenderContext::Shutdown()
 {
-	bgfx::reset(width, height, BGFX_RESET_VSYNC);
+	for(uint8_t swapChainIndex = 0; swapChainIndex < MaxSwapChainCount; ++swapChainIndex)
+	{
+		if(SwapChain* pSwapChain = m_swapChains[swapChainIndex])
+		{
+			delete pSwapChain;
+			m_swapChains[swapChainIndex] = nullptr;
+		}
+	}
 }
 
 void RenderContext::BeginFrame()
 {
-
 }
 
 void RenderContext::EndFrame()
 {
 	bgfx::frame();
+}
+
+uint16_t RenderContext::CreateView()
+{
+	assert(m_currentViewCount < MaxViewCount && "Overflow the max count of views.");
+	return m_currentViewCount++;
+}
+
+uint8_t RenderContext::CreateSwapChain(void* pWindowHandle, uint16_t width, uint16_t height)
+{
+	assert(m_currentSwapChainCount < MaxSwapChainCount && "Overflow the max count of swap chains.");
+	m_swapChains[m_currentSwapChainCount] = new SwapChain(pWindowHandle, width, height);
+	return m_currentSwapChainCount++;
+}
+
+SwapChain* RenderContext::GetSwapChain(uint8_t swapChainID) const
+{
+	assert(m_swapChains[swapChainID] != nullptr && "Invalid swap chain.");
+	return m_swapChains[swapChainID];
 }
 
 }

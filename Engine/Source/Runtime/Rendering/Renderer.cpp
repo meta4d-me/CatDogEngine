@@ -1,6 +1,7 @@
 #include "Renderer.h"
-#include "RenderContext.h"
+#include "SwapChain.h"
 
+#include "bgfx/bgfx.h"
 #include <bimg/decode.h>
 #include <bx/allocator.h>
 
@@ -29,11 +30,17 @@ static std::string projectResourcePath = "D:/catdogengine/Engine/Source/ThirdPar
 namespace engine
 {
 
-Renderer::Renderer(RenderContext* pRenderContext) :
-	m_pRenderContext(pRenderContext)
+Renderer::Renderer(uint16_t viewID, SwapChain* pSwapChain) :
+	m_viewID(viewID),
+	m_pSwapChain(pSwapChain)
 {
-	m_viewWidth = pRenderContext->GetWidth();
-	m_viewHeight = pRenderContext->GetHeight();
+}
+
+void Renderer::Render(float deltaTime)
+{
+	const bgfx::FrameBufferHandle* pFrameBufferHandle = m_pSwapChain->GetFrameBuffer();
+	bgfx::setViewFrameBuffer(GetViewID(), *pFrameBufferHandle);
+	bgfx::touch(GetViewID());
 }
 
 bgfx::TextureHandle Renderer::LoadTexture(std::string filePath)

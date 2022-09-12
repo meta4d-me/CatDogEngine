@@ -17,14 +17,14 @@ uint64_t MakeU64(uint32_t p1, uint32_t p2)
 namespace engine
 {
 
-void CSharpBridge::RegisterObjectType(const char* pTypeName, ObjectCreatorFunction creatorFunc)
+void CSharpBridge::RegisterObjectType(const char* pTypeName, ObjectCreatorFunction* pCreatorFunc)
 {
 	ObjectTypeGUID tid = Hasher::Hash32(pTypeName);
 	assert(m_mapObjectCreatorFunctions.find(tid) == m_mapObjectCreatorFunctions.end() && "Don't allow to register duplicated object type.");
-	m_mapObjectCreatorFunctions[tid] = creatorFunc;
+	m_mapObjectCreatorFunctions[tid] = pCreatorFunc;
 }
 
-void CSharpBridge::RegisterObjectTypeProperty(const char* pTypeName, const char* pPropertyName, ObjectPropertySetFunction setFunc, ObjectPropertyGetFunction getFunc)
+void CSharpBridge::RegisterObjectTypeProperty(const char* pTypeName, const char* pPropertyName, ObjectPropertySetFunction* pSetFunc, ObjectPropertyGetFunction* pGetFunc)
 {
 	ObjectTypeGUID tid = Hasher::Hash32(pTypeName);
 	assert(m_mapObjectCreatorFunctions.find(tid) != m_mapObjectCreatorFunctions.end() && "The object type should be registered firstly.");
@@ -32,7 +32,7 @@ void CSharpBridge::RegisterObjectTypeProperty(const char* pTypeName, const char*
 	ObjectPropertyUID pid = Hasher::Hash32(pPropertyName);
 	uint64_t tpid = MakeU64(tid, pid);
 	assert(m_mapObjectPropertyFunctions.find(tpid) == m_mapObjectPropertyFunctions.end() && "Don't allow to register duplicated object property.");
-	m_mapObjectPropertyFunctions[tpid] = ObjectPropertyFunctions(setFunc, getFunc);
+	m_mapObjectPropertyFunctions[tpid] = ObjectPropertyFunctions(pSetFunc, pGetFunc);
 }
 
 ObjectTypeGUID CSharpBridge::GetObjectTypeId(const char* pTypeName) const
@@ -56,10 +56,12 @@ ObjectGUID CSharpBridge::CreateObject(ObjectTypeGUID tid, void* pData, int size)
     if (auto it = m_mapObjectCreatorFunctions.find(tid); it != m_mapObjectCreatorFunctions.end())
     {
 		ObjectCreatorFunction* pCreatorFunc = it->second;
-        if (Object* pObject = pCreatorFunc(tid, pData, size))
-        {
-            instanceId = 1UL; //pObject->GetInstanceId();
-        }
+        pCreatorFunc(tid, pData, size);
+        instanceId = 1UL;
+        //if (Object* pObject = pCreatorFunc(tid, pData, size))
+        //{
+        //    instanceId = 1UL; //pObject->GetInstanceId();
+        //}
     }
 
     return instanceId;

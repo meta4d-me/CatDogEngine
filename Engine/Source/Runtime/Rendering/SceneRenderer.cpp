@@ -4,13 +4,10 @@
 #include "Producer/CatDogProducer.h"
 #include "Processor/Processor.h"
 #include "Scene/Texture.h"
+#include "SwapChain.h"
 
 #include <bgfx/bgfx.h>
 #include <bx/math.h>
-#include <bx/timer.h>
-
-#include <format>
-#include <fstream>
 
 namespace
 {
@@ -108,7 +105,9 @@ void SceneRenderer::Init()
 
 void SceneRenderer::Render(float deltaTime)
 {
-	bgfx::touch(GetViewID());
+	Renderer::Render(deltaTime);
+
+	const SwapChain* pSwapChain = GetSwapChain();
 
 	const bx::Vec3 at = { 0.0f, 0.0f,   0.0f };
 	const bx::Vec3 eye = { 0.0f, 0.0f, -35.0f };
@@ -116,9 +115,9 @@ void SceneRenderer::Render(float deltaTime)
 	bx::mtxLookAt(view, eye, at);
 
 	float proj[16];
-	bx::mtxProj(proj, 60.0f, float(m_viewWidth) / float(m_viewHeight), 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
+	bx::mtxProj(proj, 60.0f, pSwapChain->GetAspect(), 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
 	bgfx::setViewTransform(0, view, proj);
-	bgfx::setViewRect(GetViewID(), 0, 0, m_viewWidth, m_viewHeight);
+	bgfx::setViewRect(GetViewID(), 0, 0, pSwapChain->GetWidth(), pSwapChain->GetHeight());
 	bgfx::setViewClear(GetViewID(), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, MakeRBGA(128, 0, 0, 255), 1.0f, 0);
 
 	uint64_t state = 0
