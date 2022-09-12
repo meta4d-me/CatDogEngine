@@ -15,6 +15,7 @@ project("Engine")
 		"*.lua", -- not compiled, just convenient to edit in IDE
 		path.join(RuntimeSourcePath, "**.*"),
 		path.join(ThirdPartySourcePath, "AssetPipeline/public/**.*"),
+		path.join(ThirdPartySourcePath, "rapidxml/**.hpp"),
 		--path.join(ThirdPartySourcePath, "bgfx/3rdparty/dear-imgui/**.*"),
 	}
 	
@@ -70,6 +71,7 @@ project("Engine")
 
 	includedirs {
 		RuntimeSourcePath,
+		ThirdPartySourcePath,
 		path.join(ThirdPartySourcePath, "AssetPipeline/public"),
 		path.join(ThirdPartySourcePath, "bgfx/include"),
 		path.join(ThirdPartySourcePath, "bgfx/3rdparty"),
@@ -147,11 +149,14 @@ project("Engine")
 	local projectBinaryPath = path.join(BinariesPath, "Projects/SponzaBaseScene")
 	local sourceSDLDllPath = path.join(ThirdPartyProjectPath, "sdl/Debug/SDL2d.dll*")
 	local targetSDLDllPath = path.join(projectBinaryPath, "SDL2d.dll*")
-
 	local sourceEngineDllPath = path.join(BinariesPath, "Engine.*")
 	local targetEngineDllPath = path.join(projectBinaryPath, "Engine.*")
+	local editorBinPath = path.join(RootPath, "../CatDogEditor/bin/Debug")
+	local editorDllPath = path.join(RootPath, "../CatDogEditor/bin/Debug/NativePlugin/x64")
 	filter { "system:windows" }
 		postbuildcommands {
 			"xcopy /c /f /y \""..sourceSDLDllPath.."\" \""..targetSDLDllPath.."\"",
 			"xcopy /c /f /y \""..sourceEngineDllPath.."\" \""..targetEngineDllPath.."\"",
-		}	
+			"xcopy /c /f /y \""..sourceSDLDllPath.."\" \""..editorBinPath.."\"",
+			"xcopy /c /f /y \""..sourceEngineDllPath.."\" \""..editorDllPath.."\"",
+		}

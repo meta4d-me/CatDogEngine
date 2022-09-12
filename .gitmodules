@@ -13,3 +13,6 @@
 [submodule "Engine/Source/ThirdParty/sdl"]
 	path = Engine/Source/ThirdParty/sdl
 	url = https://github.com/CatDogEngine/sdl
+[submodule "Engine/Source/ThirdParty/rapidxml"]
+	path = Engine/Source/ThirdParty/rapidxml
+	url = https://github.com/CatDogEngine/rapidxml.git

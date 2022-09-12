@@ -79,5 +79,5 @@ project("AutoMake")
 		prebuildcommands {
 			"cd "..RootPath,
 			"MakeEngine_"..IDEConfigs.BuildIDEName..".bat",
-		}		
+		}
 	filter {}

@@ -10,5 +10,11 @@ using ObjectListUID = uint32_t;
 #ifdef ENGINE_BUILD_SHARED
 #define ENGINE_API __declspec(dllexport)
 #else
-#define ENGINE_API __declspec(dllimport)
+#define ENGINE_API
+#endif
+
+#ifdef ENGINE_BUILD_SHARED
+#define EDITOR_API __declspec(dllexport)
+#else
+#define EDITOR_API __declspec(dllimport)
 #endif
