@@ -86,12 +86,14 @@ EDITOR_API void __stdcall LvEd_Clear()
 
 EDITOR_API ObjectTypeGUID __stdcall LvEd_GetObjectTypeId(char* className)
 {
-	return 0U;
+	engine::CSharpBridge* pBridge = s_pEngineInstance->GetCSharpBridge();
+	return pBridge->GetObjectTypeID(className);
 }
 
 EDITOR_API ObjectPropertyUID __stdcall LvEd_GetObjectPropertyId(ObjectTypeGUID id, char* propertyName)
 {
-	return 0U;
+	engine::CSharpBridge* pBridge = s_pEngineInstance->GetCSharpBridge();
+	return pBridge->GetObjectPropertyID(id, propertyName);
 }
 
 EDITOR_API ObjectPropertyUID __stdcall LvEd_GetObjectChildListId(ObjectTypeGUID id, char* listName)
@@ -101,11 +103,14 @@ EDITOR_API ObjectPropertyUID __stdcall LvEd_GetObjectChildListId(ObjectTypeGUID 
 
 EDITOR_API ObjectGUID  __stdcall LvEd_CreateObject(ObjectTypeGUID typeId, void* data, int size)
 {
-	return 0U;
+	engine::CSharpBridge* pBridge = s_pEngineInstance->GetCSharpBridge();
+	return pBridge->CreateObject(typeId, data, size);
 }
 
 EDITOR_API void __stdcall LvEd_DestroyObject(ObjectTypeGUID typeId, ObjectGUID instanceId)
 {
+	engine::CSharpBridge* pBridge = s_pEngineInstance->GetCSharpBridge();
+	return pBridge->DestroyObject(typeId, instanceId);
 }
 
 EDITOR_API void __stdcall LvEd_InvokeMemberFn(ObjectGUID instanceId, wchar_t* fn, const void* arg, void** retVal)

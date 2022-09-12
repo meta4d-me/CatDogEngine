@@ -35,14 +35,14 @@ void CSharpBridge::RegisterObjectTypeProperty(const char* pTypeName, const char*
 	m_mapObjectPropertyFunctions[tpid] = ObjectPropertyFunctions(pSetFunc, pGetFunc);
 }
 
-ObjectTypeGUID CSharpBridge::GetObjectTypeId(const char* pTypeName) const
+ObjectTypeGUID CSharpBridge::GetObjectTypeID(const char* pTypeName) const
 {
 	ObjectTypeGUID tid = Hasher::Hash32(pTypeName);
 	assert(m_mapObjectCreatorFunctions.find(tid) != m_mapObjectCreatorFunctions.end() && "Failed to get unregistered object type id.");
 	return tid;
 }
 
-ObjectPropertyUID CSharpBridge::GetObjectPropertyId(ObjectTypeGUID tid, const char* pPropertyName) const
+ObjectPropertyUID CSharpBridge::GetObjectPropertyID(ObjectTypeGUID tid, const char* pPropertyName) const
 {
 	ObjectPropertyUID pid = Hasher::Hash32(pPropertyName);
 	uint64_t tpid = MakeU64(tid, pid);

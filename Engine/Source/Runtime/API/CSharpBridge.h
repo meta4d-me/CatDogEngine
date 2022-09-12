@@ -28,8 +28,8 @@ public:
 
 	void RegisterObjectType(const char* pTypeName, ObjectCreatorFunction* pCreatorFunc);
 	void RegisterObjectTypeProperty(const char* pTypeName, const char* pPropertyName, ObjectPropertySetFunction* pSetFunc, ObjectPropertyGetFunction* pGetFunc);
-	ObjectTypeGUID GetObjectTypeId(const char* pTypeName) const;
-	ObjectPropertyUID GetObjectPropertyId(ObjectTypeGUID tid, const char* pPropertyName) const;
+	ObjectTypeGUID GetObjectTypeID(const char* pTypeName) const;
+	ObjectPropertyUID GetObjectPropertyID(ObjectTypeGUID tid, const char* pPropertyName) const;
 
 	ObjectGUID CreateObject(ObjectTypeGUID tid, void* pData, int size);
 	void DestroyObject(ObjectTypeGUID tid, ObjectGUID instanceId);

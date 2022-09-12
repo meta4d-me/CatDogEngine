@@ -19,13 +19,13 @@ Engine::~Engine()
 
 void Engine::Init()
 {
+	m_pRenderContext = new RenderContext();
+	m_pRenderContext->Init();
+
 	// If engine already set up an OS's target native window, then it should be game mode with only one swap chain.
 	// If not, it should be editor mode with multiple swap chains binding with different views.
 	if(m_pPlatformWindow)
 	{
-		m_pRenderContext = new RenderContext();
-		m_pRenderContext->Init();
-
 		uint8_t swapChainID = m_pRenderContext->CreateSwapChain(m_pPlatformWindow->GetNativeWindow(), m_pPlatformWindow->GetWidth(), m_pPlatformWindow->GetHeight());
 		SwapChain* pSwapChain = m_pRenderContext->GetSwapChain(swapChainID);
 		

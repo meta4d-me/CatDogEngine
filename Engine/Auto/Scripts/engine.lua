@@ -151,12 +151,23 @@ project("Engine")
 	local targetSDLDllPath = path.join(projectBinaryPath, "SDL2d.dll*")
 	local sourceEngineDllPath = path.join(BinariesPath, "Engine.*")
 	local targetEngineDllPath = path.join(projectBinaryPath, "Engine.*")
+	local postBuildCmds = {
+		"xcopy /c /f /y \""..sourceSDLDllPath.."\" \""..targetSDLDllPath.."\"",
+		"xcopy /c /f /y \""..sourceEngineDllPath.."\" \""..targetEngineDllPath.."\""
+	}
+	
 	local editorBinPath = path.join(RootPath, "../CatDogEditor/bin/Debug")
-	local editorDllPath = path.join(RootPath, "../CatDogEditor/bin/Debug/NativePlugin/x64")
+	if os.isdir(editorBinPath) then
+		table.insert(postBuildCmds, "xcopy /c /f /y \""..sourceSDLDllPath.."\" \""..editorBinPath.."\"")
+	end
+	
+	local editorDllPath = path.join(RootPath, "../CatDogEditor/bin/Debug/NativePlugin/x64")	
+	if os.isdir(editorDllPath) then
+		table.insert(postBuildCmds, "xcopy /c /f /y \""..sourceEngineDllPath.."\" \""..editorDllPath.."\"")
+	end
+	
 	filter { "system:windows" }
 		postbuildcommands {
-			"xcopy /c /f /y \""..sourceSDLDllPath.."\" \""..targetSDLDllPath.."\"",
-			"xcopy /c /f /y \""..sourceEngineDllPath.."\" \""..targetEngineDllPath.."\"",
-			"xcopy /c /f /y \""..sourceSDLDllPath.."\" \""..editorBinPath.."\"",
-			"xcopy /c /f /y \""..sourceEngineDllPath.."\" \""..editorDllPath.."\"",
+			table.unpack(postBuildCmds)
 		}
+	filter {}
