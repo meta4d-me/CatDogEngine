@@ -31,7 +31,6 @@ void UIRenderer::Init()
 
 void UIRenderer::Render(float deltaTime)
 {
-	Renderer::Render(deltaTime);
 }
 
 }

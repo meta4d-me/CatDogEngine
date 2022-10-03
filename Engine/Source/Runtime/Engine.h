@@ -9,14 +9,11 @@ namespace engine
 
 class CSharpBridge;
 class PlatformWindow;
+class Renderer;
 class RenderContext;
-class SceneRenderer;
-class SkyRenderer;
-class UIRenderer;
 
 class Engine
 {
-
 public:
 	Engine() = default;
 	Engine(const Engine&) = delete;
@@ -59,12 +56,10 @@ public:
 
 private:
 	RenderContext*			m_pRenderContext = nullptr;
-	SceneRenderer*			m_pSceneRenderer = nullptr;
-	SkyRenderer*			m_pSkyRenderer = nullptr;
-	UIRenderer*				m_pUIRenderer = nullptr;
-
 	CSharpBridge*			m_pCSharpBridge = nullptr;
 	PlatformWindow*			m_pPlatformWindow = nullptr;
+
+	std::vector<Renderer*>  m_pRenderers;
 };
 
 }

@@ -9,8 +9,10 @@ class SkyRenderer final : public Renderer
 {
 public:
 	using Renderer::Renderer;
+	virtual ~SkyRenderer();
 
 	virtual void Init() override;
+	virtual void UpdateView() override;
 	virtual void Render(float deltaTime) override;
 
 private:

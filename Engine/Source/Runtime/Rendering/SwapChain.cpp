@@ -9,6 +9,7 @@ SwapChain::SwapChain(void* pWindowHandle, uint16_t width, uint16_t height)
 {
 	m_frameBufferWidth = width;
 	m_frameBufferHeight = height;
+
 	m_pFrameBufferHandle = new bgfx::FrameBufferHandle();
 	*m_pFrameBufferHandle = bgfx::createFrameBuffer(pWindowHandle, width, height);
 }
