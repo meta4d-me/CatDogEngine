@@ -1,6 +1,8 @@
 #include "Engine.h"
 
 #include "API/CSharpBridge.h"
+#include "Rendering/GBuffer.h"
+#include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/SceneRenderer.h"
 #include "Rendering/SkyRenderer.h"
@@ -26,17 +28,19 @@ void Engine::Init()
 	// If not, it should be editor mode with multiple swap chains binding with different views.
 	if(m_pPlatformWindow)
 	{
-		uint8_t swapChainID = m_pRenderContext->CreateSwapChain(m_pPlatformWindow->GetNativeWindow(), m_pPlatformWindow->GetWidth(), m_pPlatformWindow->GetHeight());
+		uint16_t width = m_pPlatformWindow->GetWidth();
+		uint16_t height = m_pPlatformWindow->GetHeight();
+		uint8_t swapChainID = m_pRenderContext->CreateSwapChain(m_pPlatformWindow->GetNativeWindow(), width, height);
 		SwapChain* pSwapChain = m_pRenderContext->GetSwapChain(swapChainID);
-		
-		m_pSceneRenderer = new SceneRenderer(m_pRenderContext->CreateView(), pSwapChain);
-		m_pSceneRenderer->Init();
+		m_pRenderContext->InitGBuffer(width, height);		
 
-		//m_pSkyRenderer = new SkyRenderer(m_pRenderContext->CreateView(), pSwapChain);
-		//m_pSkyRenderer->Init();
-		//
-		//m_pUIRenderer = new UIRenderer(m_pRenderContext->CreateView(), pSwapChain);
-		//m_pUIRenderer->Init();
+		m_pRenderers.push_back(new SkyRenderer(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer()));
+		//m_pRenderers.push_back(new SceneRenderer(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer()));
+		m_pRenderers.push_back(new PostProcessRenderer(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer()));
+		for (Renderer* pRenderer : m_pRenderers)
+		{
+			pRenderer->Init();
+		}
 	}
 }
 
@@ -57,7 +61,11 @@ void Engine::MainLoop()
 			}
 
 			m_pRenderContext->BeginFrame();
-			m_pSceneRenderer->Render(clock.GetDeltaTime());
+			for (Renderer* pRenderer : m_pRenderers)
+			{
+				pRenderer->UpdateView();
+				pRenderer->Render(clock.GetDeltaTime());
+			}
 			m_pRenderContext->EndFrame();
 		}
 	}

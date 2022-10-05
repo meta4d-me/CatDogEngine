@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Renderer.h"
+#include "Uniforms.h"
 
 namespace engine
 {
@@ -9,11 +10,15 @@ class SkyRenderer final : public Renderer
 {
 public:
 	using Renderer::Renderer;
+	virtual ~SkyRenderer();
 
 	virtual void Init() override;
+	virtual void UpdateView() override;
 	virtual void Render(float deltaTime) override;
 
 private:
+	Uniforms m_uniforms;
+
 	bgfx::UniformHandle m_uniformTexCube;
 	bgfx::UniformHandle m_uniformTexCubeIrr;
 	bgfx::ProgramHandle m_programSky;

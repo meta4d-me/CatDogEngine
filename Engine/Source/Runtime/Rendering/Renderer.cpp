@@ -1,7 +1,8 @@
 #include "Renderer.h"
+
 #include "SwapChain.h"
 
-#include "bgfx/bgfx.h"
+#include <bgfx/bgfx.h>
 #include <bimg/decode.h>
 #include <bx/allocator.h>
 
@@ -23,29 +24,24 @@ static void imageReleaseCb(void* _ptr, void* _userData)
 	bimg::imageFree(imageContainer);
 }
 
-static std::string projectResourcePath = "D:/catdogengine/Engine/Source/ThirdParty/bgfx/examples/runtime/";
-
 }
 
 namespace engine
 {
 
-Renderer::Renderer(uint16_t viewID, SwapChain* pSwapChain) :
+Renderer::Renderer(uint16_t viewID, SwapChain* pSwapChain, GBuffer* pGBuffer) :
 	m_viewID(viewID),
-	m_pSwapChain(pSwapChain)
+	m_pSwapChain(pSwapChain),
+	m_pGBuffer(pGBuffer)
 {
 }
 
 void Renderer::Render(float deltaTime)
 {
-	const bgfx::FrameBufferHandle* pFrameBufferHandle = m_pSwapChain->GetFrameBuffer();
-	bgfx::setViewFrameBuffer(GetViewID(), *pFrameBufferHandle);
-	bgfx::touch(GetViewID());
 }
 
-bgfx::TextureHandle Renderer::LoadTexture(std::string filePath)
+bgfx::TextureHandle Renderer::LoadTexture(std::string filePath, uint64_t flags)
 {
-	filePath = projectResourcePath + "textures/" + filePath;
 	std::ifstream fin(filePath, std::ios::in | std::ios::binary);
 	if (!fin.is_open())
 	{
@@ -58,8 +54,6 @@ bgfx::TextureHandle Renderer::LoadTexture(std::string filePath)
 	uint8_t* pRawData = new uint8_t[fileSize];
 	fin.read(reinterpret_cast<char*>(pRawData), fileSize);
 	fin.close();
-
-	uint64_t _flags = BGFX_TEXTURE_NONE | BGFX_SAMPLER_NONE;
 
 	bimg::ImageContainer* imageContainer = bimg::imageParse(GetResourceAllocator(), pRawData, static_cast<uint32_t>(fileSize));
 	const bgfx::Memory* mem = bgfx::makeRef(
@@ -80,7 +74,7 @@ bgfx::TextureHandle Renderer::LoadTexture(std::string filePath)
 			, 1 < imageContainer->m_numMips
 			, imageContainer->m_numLayers
 			, bgfx::TextureFormat::Enum(imageContainer->m_format)
-			, _flags
+			, flags
 			, mem
 		);
 	}
@@ -92,11 +86,11 @@ bgfx::TextureHandle Renderer::LoadTexture(std::string filePath)
 			, uint16_t(imageContainer->m_depth)
 			, 1 < imageContainer->m_numMips
 			, bgfx::TextureFormat::Enum(imageContainer->m_format)
-			, _flags
+			, flags
 			, mem
 		);
 	}
-	else if (bgfx::isTextureValid(0, false, imageContainer->m_numLayers, bgfx::TextureFormat::Enum(imageContainer->m_format), _flags))
+	else if (bgfx::isTextureValid(0, false, imageContainer->m_numLayers, bgfx::TextureFormat::Enum(imageContainer->m_format), flags))
 	{
 		handle = bgfx::createTexture2D(
 			uint16_t(imageContainer->m_width)
@@ -104,7 +98,7 @@ bgfx::TextureHandle Renderer::LoadTexture(std::string filePath)
 			, 1 < imageContainer->m_numMips
 			, imageContainer->m_numLayers
 			, bgfx::TextureFormat::Enum(imageContainer->m_format)
-			, _flags
+			, flags
 			, mem
 		);
 	}
@@ -117,32 +111,9 @@ bgfx::TextureHandle Renderer::LoadTexture(std::string filePath)
 	return handle;
 }
 
-bgfx::ShaderHandle Renderer::LoadShader(std::string fileName)
+bgfx::ShaderHandle Renderer::LoadShader(std::string filePath)
 {
-	std::string shaderPath;
-	switch (bgfx::getRendererType())
-	{
-		case bgfx::RendererType::Noop:
-		case bgfx::RendererType::Direct3D9:  shaderPath = "shaders/dx9/";   break;
-		case bgfx::RendererType::Direct3D11:
-		case bgfx::RendererType::Direct3D12: shaderPath = "shaders/dx11/";  break;
-		case bgfx::RendererType::Agc:
-		case bgfx::RendererType::Gnm:        shaderPath = "shaders/pssl/";  break;
-		case bgfx::RendererType::Metal:      shaderPath = "shaders/metal/"; break;
-		case bgfx::RendererType::Nvn:        shaderPath = "shaders/nvn/";   break;
-		case bgfx::RendererType::OpenGL:     shaderPath = "shaders/glsl/";  break;
-		case bgfx::RendererType::OpenGLES:   shaderPath = "shaders/essl/";  break;
-		case bgfx::RendererType::Vulkan:     shaderPath = "shaders/spirv/"; break;
-		case bgfx::RendererType::WebGPU:     shaderPath = "shaders/spirv/"; break;
-
-		case bgfx::RendererType::Count:
-			break;
-	}
-
-	shaderPath = projectResourcePath + shaderPath + fileName + ".bin";
-
-	// Test so that I don't write release function
-	std::ifstream fin(shaderPath, std::ios::in | std::ios::binary);
+	std::ifstream fin(filePath, std::ios::in | std::ios::binary);
 	if (!fin.is_open())
 	{
 		return bgfx::ShaderHandle(bgfx::kInvalidHandle);
@@ -157,9 +128,94 @@ bgfx::ShaderHandle Renderer::LoadShader(std::string fileName)
 
 	const bgfx::Memory* pMemory = bgfx::makeRef(pRawData, static_cast<uint32_t>(fileSize));
 	bgfx::ShaderHandle handle = bgfx::createShader(pMemory);
-	bgfx::setName(handle, fileName.c_str());
+	bgfx::setName(handle, filePath.c_str());
 
 	return handle;
+}
+
+struct PosColorTexCoord0Vertex
+{
+	float m_x;
+	float m_y;
+	float m_z;
+	uint32_t m_rgba;
+	float m_u;
+	float m_v;
+
+	static void init() {
+		ms_layout
+			.begin()
+			.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
+			.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
+			.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
+			.end();
+	}
+
+	static bgfx::VertexLayout ms_layout;
+};
+
+static bool bInitScreenSpaceQuadVertexLayout = false;
+bgfx::VertexLayout PosColorTexCoord0Vertex::ms_layout;
+
+void Renderer::ScreenSpaceQuad(float _textureWidth, float _textureHeight, bool _originBottomLeft, float _width, float _height)
+{
+	if (!bInitScreenSpaceQuadVertexLayout)
+	{
+		PosColorTexCoord0Vertex::init();
+		bInitScreenSpaceQuadVertexLayout = true;
+	}
+
+	if (3 == bgfx::getAvailTransientVertexBuffer(3, PosColorTexCoord0Vertex::ms_layout)) {
+		bgfx::TransientVertexBuffer vb;
+		bgfx::allocTransientVertexBuffer(&vb, 3, PosColorTexCoord0Vertex::ms_layout);
+		PosColorTexCoord0Vertex* vertex = (PosColorTexCoord0Vertex*)vb.data;
+
+		const float zz = 0.0f;
+
+		const float minx = -_width;
+		const float maxx = _width;
+		const float miny = 0.0f;
+		const float maxy = _height * 2.0f;
+
+		static float s_texelHalf = 0.0f;
+
+		const float texelHalfW = s_texelHalf / _textureWidth;
+		const float texelHalfH = s_texelHalf / _textureHeight;
+		const float minu = -1.0f + texelHalfW;
+		const float maxu = 1.0f + texelHalfW;
+
+		float minv = texelHalfH;
+		float maxv = 2.0f + texelHalfH;
+
+		if (_originBottomLeft) {
+			std::swap(minv, maxv);
+			minv -= 1.0f;
+			maxv -= 1.0f;
+		}
+
+		vertex[0].m_x = minx;
+		vertex[0].m_y = miny;
+		vertex[0].m_z = zz;
+		vertex[0].m_rgba = 0xffffffff;
+		vertex[0].m_u = minu;
+		vertex[0].m_v = minv;
+
+		vertex[1].m_x = maxx;
+		vertex[1].m_y = miny;
+		vertex[1].m_z = zz;
+		vertex[1].m_rgba = 0xffffffff;
+		vertex[1].m_u = maxu;
+		vertex[1].m_v = minv;
+
+		vertex[2].m_x = maxx;
+		vertex[2].m_y = maxy;
+		vertex[2].m_z = zz;
+		vertex[2].m_rgba = 0xffffffff;
+		vertex[2].m_u = maxu;
+		vertex[2].m_v = maxv;
+
+		bgfx::setVertexBuffer(0, &vb);
+	}
 }
 
 }

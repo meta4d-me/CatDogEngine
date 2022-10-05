@@ -1,6 +1,7 @@
 #include "SceneRenderer.h"
 
 #include "BgfxConsumer.h"
+#include "GBuffer.h"
 #include "Producer/CatDogProducer.h"
 #include "Processor/Processor.h"
 #include "Scene/Texture.h"
@@ -87,7 +88,6 @@ void SceneRenderer::LoadSceneData(std::string sceneFilePath)
 
 	// Start creating bgfx resources from RenderDataContext
 	RenderDataContext renderDataContext = bgfxConsumer.GetRenderDataContext();
-
 }
 
 void SceneRenderer::Init()
@@ -97,17 +97,20 @@ void SceneRenderer::Init()
 	s_vbh = bgfx::createVertexBuffer(bgfx::makeRef(s_cubeVertices, sizeof(s_cubeVertices)), PosColorVertex::ms_layout);
 	s_ibh = bgfx::createIndexBuffer(bgfx::makeRef(s_cubeTriList, sizeof(s_cubeTriList)));
 
-	s_vsh = Renderer::LoadShader("vs_cubes");
-	s_fsh = Renderer::LoadShader("fs_cubes");
+	// Loading resources
+	std::string resourceRootPath = "S:/CatDogEngine/Projects/SponzaBaseScene/Resources";
+	std::string texturePath = resourceRootPath + "/Textures/";
+	std::string shaderPath = resourceRootPath + "/Shaders/";
+
+	s_vsh = Renderer::LoadShader(shaderPath + "vs_cubes.bin");
+	s_fsh = Renderer::LoadShader(shaderPath + "fs_cubes.bin");
 
 	s_ph = bgfx::createProgram(s_vsh, s_fsh, true);
 }
 
-void SceneRenderer::Render(float deltaTime)
+void SceneRenderer::UpdateView()
 {
-	Renderer::Render(deltaTime);
-
-	const SwapChain* pSwapChain = GetSwapChain();
+	bgfx::setViewFrameBuffer(GetViewID(), *m_pGBuffer->GetFrameBuffer());
 
 	const bx::Vec3 at = { 0.0f, 0.0f,   0.0f };
 	const bx::Vec3 eye = { 0.0f, 0.0f, -35.0f };
@@ -115,11 +118,15 @@ void SceneRenderer::Render(float deltaTime)
 	bx::mtxLookAt(view, eye, at);
 
 	float proj[16];
-	bx::mtxProj(proj, 60.0f, pSwapChain->GetAspect(), 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
+	bx::mtxProj(proj, 60.0f, m_pSwapChain->GetAspect(), 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
 	bgfx::setViewTransform(0, view, proj);
-	bgfx::setViewRect(GetViewID(), 0, 0, pSwapChain->GetWidth(), pSwapChain->GetHeight());
+	bgfx::setViewRect(GetViewID(), 0, 0, m_pSwapChain->GetWidth(), m_pSwapChain->GetHeight());
 	bgfx::setViewClear(GetViewID(), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, MakeRBGA(128, 0, 0, 255), 1.0f, 0);
+}
 
+
+void SceneRenderer::Render(float deltaTime)
+{
 	uint64_t state = 0
 		| BGFX_STATE_WRITE_R
 		| BGFX_STATE_WRITE_G

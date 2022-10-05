@@ -6,6 +6,7 @@
 namespace engine
 {
 
+class GBuffer;
 class SwapChain;
 
 constexpr uint8_t MaxViewCount = 255;
@@ -31,10 +32,15 @@ public:
 	uint8_t CreateSwapChain(void* pWindowHandle, uint16_t width, uint16_t height);
 	SwapChain* GetSwapChain(uint8_t swapChainID) const;
 
+	void InitGBuffer(uint16_t width, uint16_t height);
+	GBuffer* GetGBuffer() const;
+
 private:
 	uint8_t m_currentViewCount = 0;
 	uint8_t m_currentSwapChainCount = 0;
-	SwapChain* m_swapChains[MaxSwapChainCount];
+	SwapChain* m_pSwapChains[MaxSwapChainCount];
+
+	GBuffer* m_pGBuffer = nullptr;
 };
 
 }
