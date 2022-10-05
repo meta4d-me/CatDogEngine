@@ -10,6 +10,7 @@ namespace engine
 
 void SkyRenderer::Init()
 {
+	m_uniforms.Init();
 	m_uniformTexCube = bgfx::createUniform("s_texCube", bgfx::UniformType::Sampler);
 	m_uniformTexCubeIrr = bgfx::createUniform("s_texCubeIrr", bgfx::UniformType::Sampler);
 
@@ -40,7 +41,8 @@ SkyRenderer::~SkyRenderer()
 void SkyRenderer::UpdateView()
 {
 	bgfx::setViewFrameBuffer(GetViewID(), *m_pGBuffer->GetFrameBuffer());
-
+	bgfx::setViewRect(GetViewID(), 0, 0, m_pGBuffer->GetWidth(), m_pGBuffer->GetHeight());
+	
 	float proj[16];
 	const bgfx::Caps* caps = bgfx::getCaps();
 	bx::mtxOrtho(proj, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 100.0f, 0.0, caps->homogeneousDepth);
@@ -49,6 +51,8 @@ void SkyRenderer::UpdateView()
 
 void SkyRenderer::Render(float deltaTime)
 {
+	m_uniforms.Submit();
+
 	bgfx::setTexture(0, m_uniformTexCube, m_lightProbeTex);
 	bgfx::setTexture(1, m_uniformTexCubeIrr, m_lightProbeTexIrr);
 	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);

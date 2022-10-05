@@ -21,7 +21,7 @@ void RenderContext::Init()
 	initDesc.type = bgfx::RendererType::Direct3D11;
 	bgfx::init(initDesc);
 
-	bgfx::setDebug(BGFX_DEBUG_TEXT);
+	bgfx::setDebug(BGFX_DEBUG_NONE);
 }
 
 void RenderContext::Shutdown()
@@ -75,6 +75,7 @@ SwapChain* RenderContext::GetSwapChain(uint8_t swapChainID) const
 void RenderContext::InitGBuffer(uint16_t width, uint16_t height)
 {
 	m_pGBuffer = new GBuffer(width, height);
+	bgfx::reset(m_pGBuffer->GetWidth(), m_pGBuffer->GetHeight(), BGFX_RESET_MSAA_X16 | BGFX_RESET_VSYNC);
 }
 
 GBuffer* RenderContext::GetGBuffer() const

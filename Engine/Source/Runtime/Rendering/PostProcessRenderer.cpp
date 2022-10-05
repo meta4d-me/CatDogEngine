@@ -11,7 +11,6 @@ namespace engine
 void PostProcessRenderer::Init()
 {
 	// Uniforms
-	m_uniforms.Init();
 	s_lightingResult = bgfx::createUniform("s_lightingColor", bgfx::UniformType::Sampler);
 
 	// Loading resources
@@ -32,17 +31,16 @@ PostProcessRenderer::~PostProcessRenderer()
 
 void PostProcessRenderer::UpdateView()
 {
+	bgfx::setViewRect(GetViewID(), 0, 0, m_pGBuffer->GetWidth(), m_pGBuffer->GetHeight());
+
 	float proj[16];
 	const bgfx::Caps* caps = bgfx::getCaps();
 	bx::mtxOrtho(proj, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 100.0f, 0.0f, caps->homogeneousDepth);
-	bgfx::setViewRect(GetViewID(), 0, 0, m_pGBuffer->GetWidth(), m_pGBuffer->GetHeight());
 	bgfx::setViewTransform(GetViewID(), NULL, proj);
 }
 
 void PostProcessRenderer::Render(float deltaTime)
 {
-	m_uniforms.Submit();
-
 	// Output to swap chain
 	bgfx::setViewFrameBuffer(GetViewID(), *GetSwapChain()->GetFrameBuffer());
 

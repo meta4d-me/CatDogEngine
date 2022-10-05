@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Renderer.h"
+#include "Uniforms.h"
 
 namespace engine
 {
@@ -16,6 +17,8 @@ public:
 	virtual void Render(float deltaTime) override;
 
 private:
+	Uniforms m_uniforms;
+
 	bgfx::UniformHandle m_uniformTexCube;
 	bgfx::UniformHandle m_uniformTexCubeIrr;
 	bgfx::ProgramHandle m_programSky;
