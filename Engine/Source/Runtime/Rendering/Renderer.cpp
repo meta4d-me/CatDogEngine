@@ -42,7 +42,7 @@ void Renderer::Render(float deltaTime)
 
 bgfx::TextureHandle Renderer::LoadTexture(std::string filePath, uint64_t flags)
 {
-	std::ifstream fin(filePath, std::ios::in | std::ios::binary);
+	std::ifstream fin(CDENGINE_RESOURCES_ROOT_PATH + filePath, std::ios::in | std::ios::binary);
 	if (!fin.is_open())
 	{
 		return bgfx::TextureHandle(bgfx::kInvalidHandle);
@@ -113,7 +113,7 @@ bgfx::TextureHandle Renderer::LoadTexture(std::string filePath, uint64_t flags)
 
 bgfx::ShaderHandle Renderer::LoadShader(std::string filePath)
 {
-	std::ifstream fin(filePath, std::ios::in | std::ios::binary);
+	std::ifstream fin(CDENGINE_RESOURCES_ROOT_PATH + filePath, std::ios::in | std::ios::binary);
 	if (!fin.is_open())
 	{
 		return bgfx::ShaderHandle(bgfx::kInvalidHandle);

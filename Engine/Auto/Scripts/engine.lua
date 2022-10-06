@@ -6,13 +6,12 @@ project("Engine")
 	kind("SharedLib")
 	language("C++")
 	cppdialect("C++latest")
-	dependson { "bgfx", "sdl2", "AutoMake" }
+	dependson { "bgfx", "sdl2" }
 	
 	location(path.join(IntermediatePath, "Engine/Runtime"))
 	targetdir(BinariesPath)
 
 	files {
-		"*.lua", -- not compiled, just convenient to edit in IDE
 		path.join(RuntimeSourcePath, "**.*"),
 		path.join(ThirdPartySourcePath, "AssetPipeline/public/**.*"),
 		path.join(ThirdPartySourcePath, "rapidxml/**.hpp"),
@@ -106,6 +105,7 @@ project("Engine")
 		}
 	filter {}
 
+	projectResourcesPath = RootPath.."/Projects/SponzaBaseScene/Resources/"
 	defines {
 		"SDL_MAIN_HANDLED",
 		"__STDC_LIMIT_MACROS", "__STDC_FORMAT_MACROS", "__STDC_CONSTANT_MACROS",
@@ -114,6 +114,7 @@ project("Engine")
 		table.unpack(platformDefines),
 
 		"ENGINE_BUILD_SHARED",
+		"CDENGINE_RESOURCES_ROOT_PATH=\""..projectResourcesPath.."\""
 	}
 
 	-- put all runtime dlls into this folder
@@ -146,6 +147,9 @@ project("Engine")
 	}
 	
 	-- copy dll into binary folder automatically.
+	-- The target positions are :
+	-- 1.Project binary folder
+	-- 2.Editor binary folder
 	local projectBinaryPath = path.join(BinariesPath, "Projects/SponzaBaseScene")
 	local sourceSDLDllPath = path.join(ThirdPartyProjectPath, "sdl/Debug/SDL2d.dll*")
 	local targetSDLDllPath = path.join(projectBinaryPath, "SDL2d.dll*")

@@ -14,18 +14,13 @@ void SkyRenderer::Init()
 	m_uniformTexCube = bgfx::createUniform("s_texCube", bgfx::UniformType::Sampler);
 	m_uniformTexCubeIrr = bgfx::createUniform("s_texCubeIrr", bgfx::UniformType::Sampler);
 
-	// Loading resources
-	std::string resourceRootPath = "S:/CatDogEngine/Projects/SponzaBaseScene/Resources";
-	std::string texturePath = resourceRootPath + "/Textures/";
-	std::string shaderPath = resourceRootPath + "/Shaders/";
-
-	bgfx::ShaderHandle vsh = Renderer::LoadShader(shaderPath + "vs_PBR_skybox.bin");
-	bgfx::ShaderHandle fsh = Renderer::LoadShader(shaderPath + "fs_PBR_skybox.bin");
+	bgfx::ShaderHandle vsh = Renderer::LoadShader("Shaders/vs_PBR_skybox.bin");
+	bgfx::ShaderHandle fsh = Renderer::LoadShader("Shaders/fs_PBR_skybox.bin");
 	m_programSky = bgfx::createProgram(vsh, fsh, true);
 
 	uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
-	m_lightProbeTex = Renderer::LoadTexture(texturePath + "bolonga_lod.dds", samplerFlags);
-	m_lightProbeTexIrr = Renderer::LoadTexture(texturePath + "bolonga_irr.dds", samplerFlags);
+	m_lightProbeTex = Renderer::LoadTexture("Textures/bolonga_lod.dds", samplerFlags);
+	m_lightProbeTexIrr = Renderer::LoadTexture("Textures/bolonga_irr.dds", samplerFlags);
 	m_lightProbeEV100 = -2.0f;
 }
 

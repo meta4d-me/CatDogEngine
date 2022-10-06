@@ -97,14 +97,8 @@ void SceneRenderer::Init()
 	s_vbh = bgfx::createVertexBuffer(bgfx::makeRef(s_cubeVertices, sizeof(s_cubeVertices)), PosColorVertex::ms_layout);
 	s_ibh = bgfx::createIndexBuffer(bgfx::makeRef(s_cubeTriList, sizeof(s_cubeTriList)));
 
-	// Loading resources
-	std::string resourceRootPath = "S:/CatDogEngine/Projects/SponzaBaseScene/Resources";
-	std::string texturePath = resourceRootPath + "/Textures/";
-	std::string shaderPath = resourceRootPath + "/Shaders/";
-
-	s_vsh = Renderer::LoadShader(shaderPath + "vs_cubes.bin");
-	s_fsh = Renderer::LoadShader(shaderPath + "fs_cubes.bin");
-
+	s_vsh = Renderer::LoadShader("Shaders/vs_cubes.bin");
+	s_fsh = Renderer::LoadShader("Shaders/fs_cubes.bin");
 	s_ph = bgfx::createProgram(s_vsh, s_fsh, true);
 }
 

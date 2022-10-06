@@ -10,16 +10,10 @@ namespace engine
 
 void PostProcessRenderer::Init()
 {
-	// Uniforms
 	s_lightingResult = bgfx::createUniform("s_lightingColor", bgfx::UniformType::Sampler);
 
-	// Loading resources
-	std::string resourceRootPath = "S:/CatDogEngine/Projects/SponzaBaseScene/Resources";
-	std::string texturePath = resourceRootPath + "/Textures/";
-	std::string shaderPath = resourceRootPath + "/Shaders/";
-
-	bgfx::ShaderHandle vsh = Renderer::LoadShader(shaderPath + "vs_fullscreen.bin");
-	bgfx::ShaderHandle fsh = Renderer::LoadShader(shaderPath + "fs_PBR_postProcessing.bin");
+	bgfx::ShaderHandle vsh = Renderer::LoadShader("Shaders/vs_fullscreen.bin");
+	bgfx::ShaderHandle fsh = Renderer::LoadShader("Shaders/fs_PBR_postProcessing.bin");
 	m_programPostProcessing = bgfx::createProgram(vsh, fsh, true);
 }
 
