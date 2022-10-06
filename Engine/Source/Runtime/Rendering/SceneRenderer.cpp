@@ -10,145 +10,136 @@
 #include <bgfx/bgfx.h>
 #include <bx/math.h>
 
-namespace
-{
-
-constexpr uint32_t MakeRBGA(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha)
-{
-	return (red << 24) + (green << 16) + (blue << 8) + alpha;
-}
-
-struct PosColorVertex
-{
-	float m_x;
-	float m_y;
-	float m_z;
-	uint32_t m_abgr;
-
-	static void init()
-	{
-		ms_layout
-			.begin()
-			.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
-			.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
-			.end();
-	};
-
-	static bgfx::VertexLayout ms_layout;
-};
-
-static PosColorVertex s_cubeVertices[] =
-{
-	{-1.0f,  1.0f,  1.0f, 0xff000000 },
-	{ 1.0f,  1.0f,  1.0f, 0xff0000ff },
-	{-1.0f, -1.0f,  1.0f, 0xff00ff00 },
-	{ 1.0f, -1.0f,  1.0f, 0xff00ffff },
-	{-1.0f,  1.0f, -1.0f, 0xffff0000 },
-	{ 1.0f,  1.0f, -1.0f, 0xffff00ff },
-	{-1.0f, -1.0f, -1.0f, 0xffffff00 },
-	{ 1.0f, -1.0f, -1.0f, 0xffffffff },
-};
-
-static const uint16_t s_cubeTriList[] =
-{
-	0, 1, 2, // 0
-	1, 3, 2,
-	4, 6, 5, // 2
-	5, 6, 7,
-	0, 2, 4, // 4
-	4, 2, 6,
-	1, 5, 3, // 6
-	5, 7, 3,
-	0, 4, 1, // 8
-	4, 5, 1,
-	2, 3, 6, // 10
-	6, 3, 7,
-};
-
-bgfx::VertexLayout PosColorVertex::ms_layout;
-static bgfx::VertexBufferHandle s_vbh;
-static bgfx::IndexBufferHandle s_ibh;
-static bgfx::ShaderHandle s_vsh;
-static bgfx::ShaderHandle s_fsh;
-static bgfx::ProgramHandle s_ph;
-
-}
+#include <format>
 
 namespace engine
 {
 
-void SceneRenderer::LoadSceneData(std::string sceneFilePath)
+void SceneRenderer::Init()
 {
 	// CatDogProducer can parse .catdog.bin format file to SceneDatabase in memory.
 	// BgfxConsumer is used to translate SceneDatabase to data which bgfx api can use directly.
-	cdtools::CatDogProducer cdProducer(std::move(sceneFilePath));
+	std::string sceneModelFilePath = "Models/scene.cdbin";
+	cdtools::CatDogProducer cdProducer(CDENGINE_RESOURCES_ROOT_PATH + sceneModelFilePath);
 	cdtools::BgfxConsumer bgfxConsumer("");
 	cdtools::Processor processor(&cdProducer, &bgfxConsumer);
 	processor.Run();
 
+	m_vertexLayout
+		.begin()
+		.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
+		.add(bgfx::Attrib::Normal, 3, bgfx::AttribType::Float)
+		.add(bgfx::Attrib::Tangent, 3, bgfx::AttribType::Float)
+		.add(bgfx::Attrib::Bitangent, 3, bgfx::AttribType::Float)
+		.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
+		.add(bgfx::Attrib::Color1, 3, bgfx::AttribType::Float)
+		.end();
+
 	// Start creating bgfx resources from RenderDataContext
-	RenderDataContext renderDataContext = bgfxConsumer.GetRenderDataContext();
-}
+	m_renderDataContext = bgfxConsumer.GetRenderDataContext();
+	m_meshHandles.reserve(m_renderDataContext.meshRenderDataArray.size());
+	for (const MeshRenderData& meshRenderData : m_renderDataContext.meshRenderDataArray)
+	{
+		MeshHandle meshHandle;
+		const bgfx::Memory* pVBMemory = bgfx::makeRef(meshRenderData.vertices.data(), meshRenderData.GetVerticesBufferLength());
+		meshHandle.vbh = bgfx::createVertexBuffer(pVBMemory, m_vertexLayout);
+		
+		const bgfx::Memory* pIBMemory = bgfx::makeRef(meshRenderData.indices.data(), meshRenderData.GetIndicesBufferLength());
+		meshHandle.ibh = bgfx::createIndexBuffer(pIBMemory, BGFX_BUFFER_INDEX32);
 
-void SceneRenderer::Init()
-{
-	PosColorVertex::init();
+		m_meshHandles.emplace_back(std::move(meshHandle));
+	}
 
-	s_vbh = bgfx::createVertexBuffer(bgfx::makeRef(s_cubeVertices, sizeof(s_cubeVertices)), PosColorVertex::ms_layout);
-	s_ibh = bgfx::createIndexBuffer(bgfx::makeRef(s_cubeTriList, sizeof(s_cubeTriList)));
+	m_materialHandles.reserve(m_renderDataContext.materialRenderDataArray.size());
+	int materialIndex = 0;
+	uint64_t textureSamplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
+	for (const MaterialRenderData& materialRenderData : m_renderDataContext.materialRenderDataArray)
+	{
+		PBRMaterialHandle materialHandle;
 
-	s_vsh = Renderer::LoadShader("Shaders/vs_cubes.bin");
-	s_fsh = Renderer::LoadShader("Shaders/fs_cubes.bin");
-	s_ph = bgfx::createProgram(s_vsh, s_fsh, true);
+		const std::optional<std::string>& optBaseColor = materialRenderData.GetTextureName(cdtools::MaterialTextureType::BaseColor);
+		if (optBaseColor.has_value())
+		{
+			TextureHandle textureHandle;
+			textureHandle.sampler = bgfx::createUniform(std::format("s_textureBaseColor{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
+			textureHandle.texture = Renderer::LoadTexture("Textures/" + optBaseColor.value() + ".dds", textureSamplerFlags | BGFX_TEXTURE_SRGB);
+			materialHandle.baseColor = std::move(textureHandle);
+		}
+		
+		const std::optional<std::string>& optNormal = materialRenderData.GetTextureName(cdtools::MaterialTextureType::Normal);
+		if (optNormal.has_value())
+		{
+			TextureHandle textureHandle;
+			textureHandle.sampler = bgfx::createUniform(std::format("s_textureNormal{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
+			textureHandle.texture = Renderer::LoadTexture("Textures/" + optNormal.value() + ".dds", textureSamplerFlags);
+			materialHandle.normal = std::move(textureHandle);
+		}
+
+		const std::optional<std::string>& optRoughness = materialRenderData.GetTextureName(cdtools::MaterialTextureType::Unknown);
+		if (optRoughness.has_value())
+		{
+			TextureHandle textureHandle;
+			textureHandle.sampler = bgfx::createUniform(std::format("s_textureORM{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
+			textureHandle.texture = Renderer::LoadTexture("Textures/" + optRoughness.value() + ".dds", textureSamplerFlags);
+			materialHandle.orm = std::move(textureHandle);
+		}
+
+		m_materialHandles.emplace_back(std::move(materialHandle));
+		++materialIndex;
+	}
+
+	m_programPBR = bgfx::createProgram(Renderer::LoadShader("Shaders/vs_PBR.bin"),
+		Renderer::LoadShader("Shaders/fs_PBR_0.bin"), true);
 }
 
 void SceneRenderer::UpdateView()
 {
 	bgfx::setViewFrameBuffer(GetViewID(), *m_pGBuffer->GetFrameBuffer());
+	bgfx::setViewRect(GetViewID(), 0, 0, m_pGBuffer->GetWidth(), m_pGBuffer->GetHeight());
 
-	const bx::Vec3 at = { 0.0f, 0.0f,   0.0f };
-	const bx::Vec3 eye = { 0.0f, 0.0f, -35.0f };
 	float view[16];
-	bx::mtxLookAt(view, eye, at);
+	int index = 0;
+	view[index++] = 0.894427240f;
+	view[index++] = 0.00000000f;
+	view[index++] = -0.447213560f;
+	view[index++] = 0.00000000f;
+	view[index++] = -0.00000000f;
+	view[index++] = 0.999999940f;
+	view[index++] = 0.00000000f;
+	view[index++] = 0.00000000f;
+	view[index++] = 0.447213620f;
+	view[index++] = 0.00000000f;
+	view[index++] = 0.894427121f;
+	view[index++] = 0.00000000f;
+	view[index++] = -0.334079325f;
+	view[index++] = -0.887852609f;
+	view[index++] = 1.81061506f;
+	view[index++] = 1.00000000f;
 
 	float proj[16];
-	bx::mtxProj(proj, 60.0f, m_pSwapChain->GetAspect(), 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
-	bgfx::setViewTransform(0, view, proj);
-	bgfx::setViewRect(GetViewID(), 0, 0, m_pSwapChain->GetWidth(), m_pSwapChain->GetHeight());
-	bgfx::setViewClear(GetViewID(), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, MakeRBGA(128, 0, 0, 255), 1.0f, 0);
+	bx::mtxProj(proj, 45.0f, m_pGBuffer->GetAspect(), 0.1f, 1000.0f, bgfx::getCaps()->homogeneousDepth);
+	bgfx::setViewTransform(GetViewID(), view, proj);
 }
-
 
 void SceneRenderer::Render(float deltaTime)
 {
-	uint64_t state = 0
-		| BGFX_STATE_WRITE_R
-		| BGFX_STATE_WRITE_G
-		| BGFX_STATE_WRITE_B
-		| BGFX_STATE_WRITE_A
-		| BGFX_STATE_WRITE_Z
-		| BGFX_STATE_DEPTH_TEST_LESS
-		| BGFX_STATE_CULL_CW
-		| BGFX_STATE_MSAA
-		;
-
-	for (uint32_t yy = 0; yy < 11; ++yy)
+	for (size_t meshIndex = 0; meshIndex < m_meshHandles.size(); ++meshIndex)
 	{
-		for (uint32_t xx = 0; xx < 11; ++xx)
-		{
-			float mtx[16];
-			bx::mtxRotateXY(mtx, xx * 0.21f, yy * 0.37f);
-			mtx[12] = -15.0f + float(xx) * 3.0f;
-			mtx[13] = -15.0f + float(yy) * 3.0f;
-			mtx[14] = 0.0f;
-
-			// Set model matrix for rendering.
-			bgfx::setTransform(mtx);
-			bgfx::setVertexBuffer(0, s_vbh);
-			bgfx::setIndexBuffer(s_ibh);
-			bgfx::setState(state);
-			bgfx::submit(0, s_ph);
-		}
+		const MeshHandle& meshHandle = m_meshHandles[meshIndex];
+		const PBRMaterialHandle& materialHandle = m_materialHandles[0];
+	
+		bgfx::setVertexBuffer(0, meshHandle.vbh);
+		bgfx::setIndexBuffer(meshHandle.ibh);
+	
+		bgfx::setTexture(2, materialHandle.baseColor.sampler, materialHandle.baseColor.texture);
+		bgfx::setTexture(3, materialHandle.normal.sampler, materialHandle.normal.texture);
+		bgfx::setTexture(4, materialHandle.orm.sampler, materialHandle.orm.texture);
+	
+		uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA;
+		state |= BGFX_STATE_DEPTH_TEST_LESS;
+		bgfx::setState(state);
+	
+		bgfx::submit(GetViewID(), m_programPBR);
 	}
 }
 

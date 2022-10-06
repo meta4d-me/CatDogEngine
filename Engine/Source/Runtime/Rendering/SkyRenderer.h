@@ -19,10 +19,12 @@ public:
 private:
 	Uniforms m_uniforms;
 
+	bgfx::UniformHandle m_uniformTexLUT;
 	bgfx::UniformHandle m_uniformTexCube;
 	bgfx::UniformHandle m_uniformTexCubeIrr;
 	bgfx::ProgramHandle m_programSky;
 
+	bgfx::TextureHandle m_iblLUTTex;
 	bgfx::TextureHandle m_lightProbeTex;
 	bgfx::TextureHandle m_lightProbeTexIrr;
 	float m_lightProbeEV100 = 0.0f;

@@ -25,19 +25,17 @@ PostProcessRenderer::~PostProcessRenderer()
 
 void PostProcessRenderer::UpdateView()
 {
+	// Output to swap chain
+	bgfx::setViewFrameBuffer(GetViewID(), *GetSwapChain()->GetFrameBuffer());
 	bgfx::setViewRect(GetViewID(), 0, 0, m_pGBuffer->GetWidth(), m_pGBuffer->GetHeight());
 
 	float proj[16];
-	const bgfx::Caps* caps = bgfx::getCaps();
-	bx::mtxOrtho(proj, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 100.0f, 0.0f, caps->homogeneousDepth);
-	bgfx::setViewTransform(GetViewID(), NULL, proj);
+	bx::mtxOrtho(proj, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 100.0f, 0.0f, bgfx::getCaps()->homogeneousDepth);
+	bgfx::setViewTransform(GetViewID(), nullptr, proj);
 }
 
 void PostProcessRenderer::Render(float deltaTime)
 {
-	// Output to swap chain
-	bgfx::setViewFrameBuffer(GetViewID(), *GetSwapChain()->GetFrameBuffer());
-
 	// Get input texture from GBuffer
 	bgfx::setTexture(0, s_lightingResult, bgfx::getTexture(*m_pGBuffer->GetFrameBuffer()));
 	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
