@@ -73,7 +73,10 @@ project("AutoMake")
 	kind("Utility")
 	location(path.join(IntermediatePath, "Engine/Misc"))
 	targetdir(BinariesPath)	
-	
+	files {
+		path.join(EnginePath, "Auto/Scripts/**.*")
+	}
+
 	filter { "system:windows" }
 		local bgfxBuildBinPath = ThirdPartySourcePath.."\\bgfx\\.build\\win64_"..IDEConfigs.BuildIDEName.."\\bin"
 		prebuildcommands {

@@ -31,7 +31,7 @@ public:
 
 public:
 	static bgfx::ShaderHandle LoadShader(std::string fileName);
-	static bgfx::TextureHandle LoadTexture(std::string filePath, uint64_t flags);
+	static bgfx::TextureHandle LoadTexture(std::string filePath, uint64_t flags = 0UL);
 	static void ScreenSpaceQuad(float _textureWidth, float _textureHeight, bool _originBottomLeft = false, float _width = 1.0f, float _height = 1.0f);
 
 protected:
