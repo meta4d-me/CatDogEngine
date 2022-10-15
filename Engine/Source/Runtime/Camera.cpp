@@ -37,37 +37,13 @@ void Camera::SetHomogeneousNdc(bool homogeneousNdc)
 	m_homogeneousNdc = homogeneousNdc;
 }
 
-void Camera::SetEyePosition(bx::Vec3 eye)
-{
-	Dirty();
-	m_eye = std::move(eye);
-}
-
-void Camera::SetLookTargetPosition(bx::Vec3 lookAt)
-{
-	Dirty();
-	m_lookTarget = std::move(lookAt);
-}
-
-void Camera::SetUpDirection(bx::Vec3 up)
-{
-	Dirty();
-	m_up = std::move(up);
-}
-
 void Camera::Update()
 {
 	if (!m_dirty) return;
 
-	m_dirty = false;
-
-	bx::mtxLookAt(m_viewMatrix, m_eye, m_lookTarget, m_up);
 	bx::mtxProj(m_projectionMatrix, m_fov, m_aspect, m_near, m_far, m_homogeneousNdc);
-}
 
-const float* Camera::GetViewMatrix() const
-{
-	return m_viewMatrix;
+	m_dirty = false;
 }
 
 const float* Camera::GetProjectionMatrix() const
