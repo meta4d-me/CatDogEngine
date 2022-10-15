@@ -9,6 +9,8 @@ class FlybyCamera : public Camera
 {
 public:
 	FlybyCamera();
+	FlybyCamera(const bx::Vec3& position);
+	FlybyCamera(const bx::Vec3& position, const bx::Quaternion& orientation);
 	~FlybyCamera() = default;
 
 	FlybyCamera(const FlybyCamera&) = delete;

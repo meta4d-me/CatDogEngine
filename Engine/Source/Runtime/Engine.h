@@ -11,6 +11,7 @@ class CSharpBridge;
 class PlatformWindow;
 class Renderer;
 class RenderContext;
+class FlybyCamera;
 
 class Engine
 {
@@ -58,6 +59,7 @@ private:
 	RenderContext*			m_pRenderContext = nullptr;
 	CSharpBridge*			m_pCSharpBridge = nullptr;
 	PlatformWindow*			m_pPlatformWindow = nullptr;
+	FlybyCamera*			m_pFlybyCamera = nullptr;
 
 	std::vector<Renderer*>  m_pRenderers;
 };

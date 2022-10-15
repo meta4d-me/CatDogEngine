@@ -1,6 +1,7 @@
 #include "Engine.h"
 
 #include "API/CSharpBridge.h"
+#include "FlybyCamera.h"
 #include "Rendering/GBuffer.h"
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
@@ -24,12 +25,15 @@ void Engine::Init()
 	m_pRenderContext = new RenderContext();
 	m_pRenderContext->Init();
 
+	// Default values
+	uint16_t width = 1200;
+	uint16_t height = 900;
 	// If engine already set up an OS's target native window, then it should be game mode with only one swap chain.
 	// If not, it should be editor mode with multiple swap chains binding with different views.
 	if(m_pPlatformWindow)
 	{
-		uint16_t width = m_pPlatformWindow->GetWidth();
-		uint16_t height = m_pPlatformWindow->GetHeight();
+		width = m_pPlatformWindow->GetWidth();
+		height = m_pPlatformWindow->GetHeight();
 		uint8_t swapChainID = m_pRenderContext->CreateSwapChain(m_pPlatformWindow->GetNativeWindow(), width, height);
 		SwapChain* pSwapChain = m_pRenderContext->GetSwapChain(swapChainID);
 		m_pRenderContext->InitGBuffer(width, height);		
@@ -42,6 +46,12 @@ void Engine::Init()
 			pRenderer->Init();
 		}
 	}
+
+	// Initialize Camera
+	if (!m_pFlybyCamera) {
+		m_pFlybyCamera = new FlybyCamera(bx::Vec3(0.0f, 30.0f, 0.0f));
+	}
+	m_pFlybyCamera->Pitch(-30.0f);
 }
 
 void Engine::MainLoop()
@@ -68,6 +78,11 @@ void Engine::MainLoop()
 			}
 			m_pRenderContext->EndFrame();
 		}
+
+		if (m_pFlybyCamera)
+		{
+			m_pFlybyCamera->Update();
+		}
 	}
 }
 
@@ -84,6 +99,12 @@ void Engine::Shutdown()
 		delete m_pPlatformWindow;
 		m_pPlatformWindow = nullptr;
 	}
+
+	if (m_pFlybyCamera)
+	{
+		delete m_pFlybyCamera;
+		m_pFlybyCamera = nullptr;
+	}
 }
 
 void Engine::InitCSharpBridge()
@@ -91,6 +112,7 @@ void Engine::InitCSharpBridge()
 	m_pCSharpBridge = new CSharpBridge();
 }
 
+// TODO make this platform generic init
 void Engine::InitPlatformWindow(const char* pTitle, uint16_t width, uint16_t height)
 {
 	m_pPlatformWindow = new PlatformWindow(pTitle, width, height);

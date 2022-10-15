@@ -13,6 +13,22 @@ FlybyCamera::FlybyCamera()
 	memset(m_viewMatrix, 0, 16 * sizeof(float));
 }
 
+FlybyCamera::FlybyCamera(const bx::Vec3& position)
+	: Camera()
+	, m_position(position)
+	, m_orientation(bx::init::Identity)
+{
+	memset(m_viewMatrix, 0, 16 * sizeof(float));
+}
+
+FlybyCamera::FlybyCamera(const bx::Vec3& position, const bx::Quaternion& orientation)
+	: Camera()
+	, m_position(position)
+	, m_orientation(orientation)
+{
+	memset(m_viewMatrix, 0, 16 * sizeof(float));
+}
+
 void FlybyCamera::Translate(const bx::Vec3& v)
 {
 	m_position = bx::add(m_position, bx::mul(v, m_orientation));
