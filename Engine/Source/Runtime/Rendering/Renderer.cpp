@@ -30,11 +30,10 @@ static void imageReleaseCb(void* _ptr, void* _userData)
 namespace engine
 {
 
-Renderer::Renderer(uint16_t viewID, SwapChain* pSwapChain, GBuffer* pGBuffer, FlybyCamera* pCamera) :
-	m_viewID(viewID),
-	m_pSwapChain(pSwapChain),
-	m_pGBuffer(pGBuffer),
-	m_pFlybyCamera(pCamera)
+Renderer::Renderer(uint16_t viewID, SwapChain* pSwapChain, GBuffer* pGBuffer) 
+	: m_viewID(viewID)
+	, m_pSwapChain(pSwapChain)
+	, m_pGBuffer(pGBuffer)
 {
 }
 

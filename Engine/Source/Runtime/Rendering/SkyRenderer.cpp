@@ -39,7 +39,7 @@ SkyRenderer::~SkyRenderer()
 	bgfx::destroy(m_programSky);
 }
 
-void SkyRenderer::UpdateView()
+void SkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
 	bgfx::setViewFrameBuffer(GetViewID(), *m_pGBuffer->GetFrameBuffer());
 	bgfx::setViewRect(GetViewID(), 0, 0, m_pGBuffer->GetWidth(), m_pGBuffer->GetHeight());

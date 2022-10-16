@@ -1,7 +1,6 @@
 #include "SceneRenderer.h"
 
 #include "BgfxConsumer.h"
-#include "FlybyCamera.h"
 #include "GBuffer.h"
 #include "Producer/CatDogProducer.h"
 #include "Processor/Processor.h"
@@ -93,11 +92,11 @@ void SceneRenderer::Init()
 		Renderer::LoadShader("Shaders/fs_PBR_0.bin"), true);
 }
 
-void SceneRenderer::UpdateView()
+void SceneRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
 	bgfx::setViewFrameBuffer(GetViewID(), *m_pGBuffer->GetFrameBuffer());
 	bgfx::setViewRect(GetViewID(), 0, 0, m_pGBuffer->GetWidth(), m_pGBuffer->GetHeight());
-	bgfx::setViewTransform(GetViewID(), m_pFlybyCamera->GetViewMatrix(), m_pFlybyCamera->GetProjectionMatrix());
+	bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
 }
 
 void SceneRenderer::Render(float deltaTime)

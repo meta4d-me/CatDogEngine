@@ -46,9 +46,9 @@ void Engine::Init()
 		SwapChain* pSwapChain = m_pRenderContext->GetSwapChain(swapChainID);
 		m_pRenderContext->InitGBuffer(width, height);
 
-		m_pRenderers.push_back(new SkyRenderer(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer(), m_pFlybyCamera));
-		m_pRenderers.push_back(new SceneRenderer(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer(), m_pFlybyCamera));
-		m_pRenderers.push_back(new PostProcessRenderer(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer(), m_pFlybyCamera));
+		m_pRenderers.push_back(new SkyRenderer(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer()));
+		m_pRenderers.push_back(new SceneRenderer(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer()));
+		m_pRenderers.push_back(new PostProcessRenderer(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer()));
 		for (Renderer* pRenderer : m_pRenderers)
 		{
 			pRenderer->Init();
@@ -69,13 +69,12 @@ void Engine::MainLoop()
 			m_pCameraController->Update(clock.GetDeltaTime());
 		}
 
-		if (m_pFlybyCamera)
+		if (m_pPlatformWindow && m_pFlybyCamera)
 		{
+			// Update in case of resize happened
+			m_pFlybyCamera->SetAspect(static_cast<float>(m_pPlatformWindow->GetWidth()) / m_pPlatformWindow->GetHeight());
 			m_pFlybyCamera->Update();
-		}
 
-		if(m_pPlatformWindow)
-		{
 			m_pPlatformWindow->Update();
 			if(m_pPlatformWindow->ShouldClose())
 			{
@@ -85,7 +84,7 @@ void Engine::MainLoop()
 			m_pRenderContext->BeginFrame();
 			for (Renderer* pRenderer : m_pRenderers)
 			{
-				pRenderer->UpdateView();
+				pRenderer->UpdateView(m_pFlybyCamera->GetViewMatrix(), m_pFlybyCamera->GetProjectionMatrix());
 				pRenderer->Render(clock.GetDeltaTime());
 			}
 			m_pRenderContext->EndFrame();

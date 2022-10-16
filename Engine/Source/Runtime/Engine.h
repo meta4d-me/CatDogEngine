@@ -3,26 +3,28 @@
 #include "Core/EngineDefines.h"
 
 #include <vector>
+#include <memory>
 
 namespace engine
 {
 
 class CSharpBridge;
-class PlatformWindow;
-class Renderer;
-class RenderContext;
 class FirstPersonCameraController;
 class FlybyCamera;
+class PlatformWindow;
+class RenderContext;
+class Renderer;
 
 class Engine
 {
 public:
-	Engine() = default;
+	explicit Engine() = default;
+	~Engine();
+
 	Engine(const Engine&) = delete;
 	Engine& operator=(const Engine&) = delete;
 	Engine(Engine&&) = delete;
 	Engine& operator=(Engine&&) = delete;
-	~Engine();
 
 	//
 	// Init all basic modules, other optional modules should init by hand. 
@@ -57,11 +59,11 @@ public:
 	ENGINE_API void InitPlatformWindow(const char* pTitle, uint16_t width, uint16_t height);
 
 private:
-	RenderContext*					m_pRenderContext = nullptr;
-	CSharpBridge*					m_pCSharpBridge = nullptr;
-	PlatformWindow*					m_pPlatformWindow = nullptr;
-	FlybyCamera*					m_pFlybyCamera = nullptr;
-	FirstPersonCameraController*	m_pCameraController = nullptr;
+	RenderContext* m_pRenderContext = nullptr;
+	CSharpBridge* m_pCSharpBridge = nullptr;
+	PlatformWindow* m_pPlatformWindow = nullptr;
+	FlybyCamera* m_pFlybyCamera = nullptr;
+	FirstPersonCameraController* m_pCameraController = nullptr;
 
 	std::vector<Renderer*>  m_pRenderers;
 };

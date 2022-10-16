@@ -23,7 +23,7 @@ PostProcessRenderer::~PostProcessRenderer()
 	bgfx::destroy(m_programPostProcessing);
 }
 
-void PostProcessRenderer::UpdateView()
+void PostProcessRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
 	// Output to swap chain
 	bgfx::setViewFrameBuffer(GetViewID(), *GetSwapChain()->GetFrameBuffer());

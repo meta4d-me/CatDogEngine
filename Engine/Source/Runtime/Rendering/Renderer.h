@@ -9,13 +9,12 @@ namespace engine
 
 class GBuffer;
 class SwapChain;
-class FlybyCamera;
 
 class Renderer
 {
 public:
 	Renderer() = delete;
-	explicit Renderer(uint16_t viewID, SwapChain* pSwapChain, GBuffer* pGBuffer, FlybyCamera* pCamera);
+	explicit Renderer(uint16_t viewID, SwapChain* pSwapChain, GBuffer* pGBuffer);
 	Renderer(const Renderer&) = delete;
 	Renderer& operator=(const Renderer&) = delete;
 	Renderer(Renderer&&) = delete;
@@ -23,7 +22,7 @@ public:
 	virtual ~Renderer() = default;
 
 	virtual void Init() = 0;
-	virtual void UpdateView() = 0;
+	virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) = 0;
 	virtual void Render(float deltaTime);
 
 	uint16_t GetViewID() const { return m_viewID; }
@@ -39,7 +38,6 @@ protected:
 	uint16_t		m_viewID = 0;
 	SwapChain*		m_pSwapChain = nullptr;
 	GBuffer*		m_pGBuffer = nullptr;
-	FlybyCamera*	m_pFlybyCamera = nullptr;
 };
 
 }

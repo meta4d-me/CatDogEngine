@@ -97,9 +97,11 @@ void PlatformWindow::Update()
 
 		case SDL_MOUSEMOTION:
 		{
+			const SDL_MouseMotionEvent& mouseMotionEvent = sdlEvent.motion;
+
 			if (m_CameraController)
 			{
-				m_CameraController->SetMousePosition(sdlEvent.motion.x, sdlEvent.motion.y);
+				m_CameraController->SetMousePosition(mouseMotionEvent.x, mouseMotionEvent.y);
 			}
 
 			//OnMouseMove.Invoke(sdlEvent.motion);

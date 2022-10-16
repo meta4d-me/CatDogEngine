@@ -57,8 +57,10 @@ void FirstPersonCameraController::Update(const float dt)
 	{
 		const float mouse_dx = static_cast<float>(m_mouseX) - m_mousePrevX;
 		const float mouse_dy = static_cast<float>(m_mouseY) - m_mousePrevY;
-		m_pFlybyCamera->PitchLocal(m_mouseSensitivity * mouse_dx * dt);
-		m_pFlybyCamera->Yaw(m_mouseSensitivity * mouse_dy * dt);
+		m_mousePrevX = m_mouseX;
+		m_mousePrevY = m_mouseY;
+		m_pFlybyCamera->Pitch(m_mouseSensitivity * mouse_dx * dt);
+		m_pFlybyCamera->YawLocal(m_mouseSensitivity * mouse_dy * dt);
 	}
 }
 
@@ -142,8 +144,6 @@ void FirstPersonCameraController::OnMouseRelease(const uint8_t button, const uin
 
 void FirstPersonCameraController::SetMousePosition(const int32_t win_x, const int32_t win_y)
 {
-	m_mousePrevX = m_mouseX;
-	m_mousePrevY = m_mouseY;
 	m_mouseX = win_x;
 	m_mouseY = win_y;
 }
