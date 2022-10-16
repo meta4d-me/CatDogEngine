@@ -16,6 +16,8 @@ public:
 	virtual void UpdateView() override;
 	virtual void Render(float deltaTime) override;
 
+	void RenderForOtherView() const;
+
 private:
 	Uniforms m_uniforms;
 

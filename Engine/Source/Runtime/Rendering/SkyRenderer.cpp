@@ -59,8 +59,10 @@ void SkyRenderer::Render(float deltaTime)
 	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 	Renderer::ScreenSpaceQuad(static_cast<float>(m_pGBuffer->GetWidth()), static_cast<float>(m_pGBuffer->GetHeight()), true);
 	bgfx::submit(GetViewID(), m_programSky);
+}
 
-	// TODO : prepare for scene renderer
+void SkyRenderer::RenderForOtherView() const
+{
 	bgfx::setTexture(0, m_uniformTexCube, m_lightProbeTex);
 	bgfx::setTexture(1, m_uniformTexCubeIrr, m_lightProbeTexIrr);
 	bgfx::setTexture(5, m_uniformTexLUT, m_iblLUTTex);

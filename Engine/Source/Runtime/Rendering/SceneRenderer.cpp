@@ -6,6 +6,7 @@
 #include "Processor/Processor.h"
 #include "Scene/Texture.h"
 #include "SwapChain.h"
+#include "SkyRenderer.h"
 
 #include <bgfx/bgfx.h>
 #include <bx/math.h>
@@ -126,11 +127,12 @@ void SceneRenderer::Render(float deltaTime)
 	for (size_t meshIndex = 0; meshIndex < m_meshHandles.size(); ++meshIndex)
 	{
 		const MeshHandle& meshHandle = m_meshHandles[meshIndex];
-		const PBRMaterialHandle& materialHandle = m_materialHandles[0];
+		const PBRMaterialHandle& materialHandle = m_materialHandles[meshIndex];
 	
 		bgfx::setVertexBuffer(0, meshHandle.vbh);
 		bgfx::setIndexBuffer(meshHandle.ibh);
 	
+		m_pSkyRenderer->RenderForOtherView();
 		bgfx::setTexture(2, materialHandle.baseColor.sampler, materialHandle.baseColor.texture);
 		bgfx::setTexture(3, materialHandle.normal.sampler, materialHandle.normal.texture);
 		bgfx::setTexture(4, materialHandle.orm.sampler, materialHandle.orm.texture);
