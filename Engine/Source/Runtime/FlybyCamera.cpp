@@ -7,8 +7,8 @@ namespace engine
 
 FlybyCamera::FlybyCamera() 
 	: Camera()
-	, m_position(0.0f, 0.0f, 0.0f)
-	, m_orientation(bx::init::Identity)
+	, m_position(0.0f, 0.0f, 10.0f)
+	, m_orientation(bx::fromAxisAngle(bx::Vec3(0.0f, 1.0f, 0.0), 0.0f))
 {
 	memset(m_viewMatrix, 0, 16 * sizeof(float));
 }
@@ -16,7 +16,7 @@ FlybyCamera::FlybyCamera()
 FlybyCamera::FlybyCamera(const bx::Vec3& position)
 	: Camera()
 	, m_position(position)
-	, m_orientation(bx::init::Identity)
+	, m_orientation(bx::fromAxisAngle(bx::Vec3(0.0f, 1.0f, 0.0), 0.0f))
 {
 	memset(m_viewMatrix, 0, 16 * sizeof(float));
 }

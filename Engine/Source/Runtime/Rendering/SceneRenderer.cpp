@@ -1,6 +1,7 @@
 #include "SceneRenderer.h"
 
 #include "BgfxConsumer.h"
+#include "FlybyCamera.h"
 #include "GBuffer.h"
 #include "Producer/CatDogProducer.h"
 #include "Processor/Processor.h"
@@ -96,29 +97,7 @@ void SceneRenderer::UpdateView()
 {
 	bgfx::setViewFrameBuffer(GetViewID(), *m_pGBuffer->GetFrameBuffer());
 	bgfx::setViewRect(GetViewID(), 0, 0, m_pGBuffer->GetWidth(), m_pGBuffer->GetHeight());
-
-	float view[16];
-	int index = 0;
-	view[index++] = 0.894427240f;
-	view[index++] = 0.00000000f;
-	view[index++] = -0.447213560f;
-	view[index++] = 0.00000000f;
-	view[index++] = -0.00000000f;
-	view[index++] = 0.999999940f;
-	view[index++] = 0.00000000f;
-	view[index++] = 0.00000000f;
-	view[index++] = 0.447213620f;
-	view[index++] = 0.00000000f;
-	view[index++] = 0.894427121f;
-	view[index++] = 0.00000000f;
-	view[index++] = -0.334079325f;
-	view[index++] = -0.887852609f;
-	view[index++] = 1.81061506f;
-	view[index++] = 1.00000000f;
-
-	float proj[16];
-	bx::mtxProj(proj, 45.0f, m_pGBuffer->GetAspect(), 0.1f, 1000.0f, bgfx::getCaps()->homogeneousDepth);
-	bgfx::setViewTransform(GetViewID(), view, proj);
+	bgfx::setViewTransform(GetViewID(), m_pFlybyCamera->GetViewMatrix(), m_pFlybyCamera->GetProjectionMatrix());
 }
 
 void SceneRenderer::Render(float deltaTime)
