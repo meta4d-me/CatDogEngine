@@ -11,6 +11,7 @@ class CSharpBridge;
 class PlatformWindow;
 class Renderer;
 class RenderContext;
+class FirstPersonCameraController;
 class FlybyCamera;
 
 class Engine
@@ -56,10 +57,11 @@ public:
 	ENGINE_API void InitPlatformWindow(const char* pTitle, uint16_t width, uint16_t height);
 
 private:
-	RenderContext*			m_pRenderContext = nullptr;
-	CSharpBridge*			m_pCSharpBridge = nullptr;
-	PlatformWindow*			m_pPlatformWindow = nullptr;
-	FlybyCamera*			m_pFlybyCamera = nullptr;
+	RenderContext*					m_pRenderContext = nullptr;
+	CSharpBridge*					m_pCSharpBridge = nullptr;
+	PlatformWindow*					m_pPlatformWindow = nullptr;
+	FlybyCamera*					m_pFlybyCamera = nullptr;
+	FirstPersonCameraController*	m_pCameraController = nullptr;
 
 	std::vector<Renderer*>  m_pRenderers;
 };

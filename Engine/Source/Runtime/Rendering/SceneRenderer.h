@@ -8,6 +8,8 @@
 namespace engine
 {
 
+class FlybyCamera;
+
 class SceneRenderer final : public Renderer
 {
 private:

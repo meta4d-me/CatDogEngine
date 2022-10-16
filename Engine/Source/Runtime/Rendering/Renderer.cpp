@@ -1,5 +1,6 @@
 #include "Renderer.h"
 
+#include "Camera.h"
 #include "SwapChain.h"
 
 #include <bgfx/bgfx.h>
@@ -29,10 +30,11 @@ static void imageReleaseCb(void* _ptr, void* _userData)
 namespace engine
 {
 
-Renderer::Renderer(uint16_t viewID, SwapChain* pSwapChain, GBuffer* pGBuffer) :
+Renderer::Renderer(uint16_t viewID, SwapChain* pSwapChain, GBuffer* pGBuffer, FlybyCamera* pCamera) :
 	m_viewID(viewID),
 	m_pSwapChain(pSwapChain),
-	m_pGBuffer(pGBuffer)
+	m_pGBuffer(pGBuffer),
+	m_pFlybyCamera(pCamera)
 {
 }
 

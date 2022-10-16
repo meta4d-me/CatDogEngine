@@ -6,15 +6,18 @@
 #include <SDL_joystick.h>
 #include <SDL_gamecontroller.h>
 
+#include "FirstPersonCameraController.h"
+
 namespace engine
 {
 
-PlatformWindow::PlatformWindow(const char* pTitle, uint16_t width, uint16_t height)
+PlatformWindow::PlatformWindow(const char* pTitle, uint16_t width, uint16_t height, FirstPersonCameraController* pCameraController)
+	: m_Width(width)
+	, m_Height(height)
+	, m_CameraController(pCameraController)
 {
 	m_Nwh = nullptr;
 	m_Ndt = nullptr;
-	m_Width = width;
-	m_Height = height;
 	m_LastWidth = width;
 	m_LastHeight = height;
 
@@ -94,18 +97,33 @@ void PlatformWindow::Update()
 
 		case SDL_MOUSEMOTION:
 		{
+			if (m_CameraController)
+			{
+				m_CameraController->SetMousePosition(sdlEvent.motion.x, sdlEvent.motion.y);
+			}
+
 			//OnMouseMove.Invoke(sdlEvent.motion);
 		}
 		break;
 
 		case SDL_MOUSEBUTTONDOWN:
 		{
+			if (m_CameraController)
+			{
+				m_CameraController->OnMousePress(sdlEvent.button.button, sdlEvent.button.clicks);
+			}
+
 			//OnMouseDown.Invoke(sdlEvent.button);
 		}
 		break;
 
 		case SDL_MOUSEBUTTONUP:
 		{
+			if (m_CameraController)
+			{
+				m_CameraController->OnMouseRelease(sdlEvent.button.button, sdlEvent.button.clicks);
+			}
+
 			//OnMouseUp.Invoke(sdlEvent.button);
 		}
 		break;
@@ -129,12 +147,22 @@ void PlatformWindow::Update()
 				Closed();
 			}
 
+			if (m_CameraController)
+			{
+				m_CameraController->OnKeyPress(sdlEvent.key.keysym.sym, sdlEvent.key.keysym.mod);
+			}
+
 			//OnKeyDown.Invoke(sdlEvent.key);
 		}
 		break;
 
 		case SDL_KEYUP:
 		{
+			if (m_CameraController)
+			{
+				m_CameraController->OnKeyRelease(sdlEvent.key.keysym.sym, sdlEvent.key.keysym.mod);
+			}
+
 			//OnKeyUp.Invoke(sdlEvent.key);
 		}
 		break;
