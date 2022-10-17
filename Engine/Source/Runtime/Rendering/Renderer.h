@@ -19,10 +19,10 @@ public:
 	Renderer& operator=(const Renderer&) = delete;
 	Renderer(Renderer&&) = delete;
 	Renderer& operator=(Renderer&&) = delete;
-	virtual ~Renderer() {}
+	virtual ~Renderer() = default;
 
 	virtual void Init() = 0;
-	virtual void UpdateView() = 0;
+	virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) = 0;
 	virtual void Render(float deltaTime);
 
 	uint16_t GetViewID() const { return m_viewID; }
