@@ -101,7 +101,7 @@ void PlatformWindow::Update()
 
 			if (m_CameraController)
 			{
-				m_CameraController->SetMousePosition(mouseMotionEvent.x, mouseMotionEvent.y);
+				m_CameraController->SetMousePosition(mouseMotionEvent.xrel, mouseMotionEvent.yrel);
 			}
 
 			//OnMouseMove.Invoke(sdlEvent.motion);

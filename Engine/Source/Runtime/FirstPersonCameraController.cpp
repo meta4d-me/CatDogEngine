@@ -16,8 +16,6 @@ FirstPersonCameraController::FirstPersonCameraController(FlybyCamera* camera, co
 	, m_isRightMouseDown(false)
 	, m_mouseX(0)
 	, m_mouseY(0)
-	, m_mousePrevX(0)
-	, m_mousePrevY(0)
 	, m_mouseSensitivity(mouse_sensitivity)
 	, m_movementSpeed(movement_speed)
 {}
@@ -31,36 +29,32 @@ void FirstPersonCameraController::Update(const float dt)
 
 	if (m_isWKeyDown)
 	{
-		m_pFlybyCamera->Translate(0.0f, 0.0f, m_movementSpeed * dt);
+		m_pFlybyCamera->MoveForward(m_movementSpeed * dt);
 	}
 	if (m_isAKeyDown)
 	{
-		m_pFlybyCamera->Translate(-m_movementSpeed * dt, 0.0f, 0.0f);
+		m_pFlybyCamera->MoveLeft(m_movementSpeed * dt);
 	}
 	if (m_isSKeyDown)
 	{
-		m_pFlybyCamera->Translate(0.0f, 0.0f, -m_movementSpeed * dt);
+		m_pFlybyCamera->MoveBackward(m_movementSpeed * dt);
 	}
 	if (m_isDKeyDown)
 	{
-		m_pFlybyCamera->Translate(m_movementSpeed * dt, 0.0f, 0.0f);
+		m_pFlybyCamera->MoveRight(m_movementSpeed * dt);
 	}
 	if (m_isQKeyDown)
 	{
-		m_pFlybyCamera->Translate(0.0f, m_movementSpeed * dt, 0.0f);
+		m_pFlybyCamera->MoveUp(m_movementSpeed * dt);
 	}
 	if (m_isEKeyDown)
 	{
-		m_pFlybyCamera->Translate(0.0f, -m_movementSpeed * dt, 0.0f);
+		m_pFlybyCamera->MoveDown(m_movementSpeed * dt);
 	}
 	if (m_isRightMouseDown)
 	{
-		const float mouse_dx = static_cast<float>(m_mouseX) - m_mousePrevX;
-		const float mouse_dy = static_cast<float>(m_mouseY) - m_mousePrevY;
-		m_mousePrevX = m_mouseX;
-		m_mousePrevY = m_mouseY;
-		m_pFlybyCamera->Pitch(m_mouseSensitivity * mouse_dx * dt);
-		m_pFlybyCamera->YawLocal(m_mouseSensitivity * mouse_dy * dt);
+		m_pFlybyCamera->PitchLocal(m_mouseSensitivity * m_mouseY * dt);
+		m_pFlybyCamera->Yaw(-m_mouseSensitivity * m_mouseX * dt);
 	}
 }
 

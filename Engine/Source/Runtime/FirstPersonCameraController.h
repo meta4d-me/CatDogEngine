@@ -38,8 +38,6 @@ private:
 	bool m_isRightMouseDown;
 	int32_t m_mouseX;
 	int32_t m_mouseY;
-	int32_t m_mousePrevX;
-	int32_t m_mousePrevY;
 	float m_mouseSensitivity;
 	float m_movementSpeed;
 
