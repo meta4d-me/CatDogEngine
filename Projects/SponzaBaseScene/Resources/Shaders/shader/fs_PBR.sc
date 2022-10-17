@@ -86,7 +86,7 @@ vec3 CalcPointLight(int pointer, vec3 worldPos, vec3 viewDir, vec3 normalDir, fl
 	vec3  Fre = FresnelSchlick(HdotV, F0);
 	float NDF = DistributionGGX(NdotH, roughness);
 	float Vis = Visibility(NdotV, NdotL, roughness);
-	vec3 dirCookTorrance = Fre * NDF * Vis * u_doDirSpecular;
+	vec3 dirCookTorrance = Fre * NDF * Vis;
 	
 	vec3 KD = mix(1.0 - Fre, vec3_splat(0.0), metallic);
 	
@@ -127,7 +127,7 @@ vec3 CalcSpotLight(int pointer, vec3 worldPos, vec3 viewDir, vec3 normalDir, flo
 	vec3  Fre = FresnelSchlick(HdotV, F0);
 	float NDF = DistributionGGX(NdotH, roughness);
 	float Vis = Visibility(NdotV, NdotL, roughness);
-	vec3 dirCookTorrance = Fre * NDF * Vis * u_doDirSpecular;
+	vec3 dirCookTorrance = Fre * NDF * Vis;
 	
 	vec3 KD = mix(1.0 - Fre, vec3_splat(0.0), metallic);
 	
@@ -160,7 +160,7 @@ vec3 CalcDirectionalLight(int pointer, vec3 viewDir, vec3 normalDir, float rough
 	vec3  Fre = FresnelSchlick(HdotV, F0);
 	float NDF = DistributionGGX(NdotH, roughness);
 	float Vis = Visibility(NdotV, NdotL, roughness);
-	vec3 dirCookTorrance = Fre * NDF * Vis * u_doDirSpecular;
+	vec3 dirCookTorrance = Fre * NDF * Vis;
 	
 	vec3 KD = mix(1.0 - Fre, vec3_splat(0.0), metallic);
 	
@@ -188,7 +188,7 @@ void main()
 	// ------------------------------------ Directional Light ----------------------------------------
 	
 	// Direct Diffuse BRDF
-	vec3 dirLambert = albedo * INV_PI * u_doDirDiffuse;
+	vec3 dirLambert = albedo * INV_PI;
 	
 	vec3 dirColor = vec3_splat(0.0);
 	
@@ -219,11 +219,11 @@ void main()
 	
 	// Environment Prefiltered Irradiance
 	vec3 cubeNormalDir = normalize(fixCubeLookup(normalDir, mip, 256.0));
-	vec3 envIrradiance = toLinear(textureCube(s_texCubeIrr, cubeNormalDir).xyz) * u_doEnvDiffuse;
+	vec3 envIrradiance = toLinear(textureCube(s_texCubeIrr, cubeNormalDir).xyz);
 	
 	// Environment Specular BRDF
 	vec2 lut = texture2D(s_texLUT, vec2(NdotV, 1.0 - roughness)).xy;
-	vec3 envSpecularBRDF = (F0 * lut.x + lut.y) * u_doEnvSpecular;
+	vec3 envSpecularBRDF = (F0 * lut.x + lut.y);
 	
 	// Environment Specular Radiance
 	vec3 reflectDir = normalize(reflect(-viewDir, normalDir));

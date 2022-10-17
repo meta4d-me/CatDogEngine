@@ -46,8 +46,12 @@ void Engine::Init()
 		SwapChain* pSwapChain = m_pRenderContext->GetSwapChain(swapChainID);
 		m_pRenderContext->InitGBuffer(width, height);
 
-		m_pRenderers.push_back(new SkyRenderer(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer()));
-		m_pRenderers.push_back(new SceneRenderer(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer()));
+		SkyRenderer* pSkyRenderer = new SkyRenderer(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer());
+		m_pRenderers.push_back(pSkyRenderer);
+		SceneRenderer* pSceneRenderer = new SceneRenderer(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer());
+		m_pRenderers.push_back(pSceneRenderer);
+		pSceneRenderer->SetDependentRender(pSkyRenderer);
+
 		m_pRenderers.push_back(new PostProcessRenderer(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer()));
 		for (Renderer* pRenderer : m_pRenderers)
 		{
