@@ -7,10 +7,12 @@ struct SDL_Window;
 namespace engine
 {
 
+class FirstPersonCameraController;
+
 class PlatformWindow
 {
 public:
-    PlatformWindow(const char* pTitle, uint16_t width, uint16_t height);
+    PlatformWindow(const char* pTitle, uint16_t width, uint16_t height, FirstPersonCameraController* pCameraController);
     ~PlatformWindow();
 
     void Update();
@@ -32,6 +34,7 @@ private:
 
     bool m_IsClosed = false;
     SDL_Window* m_Window = nullptr;
+    FirstPersonCameraController* m_CameraController = nullptr;
 };
 
 }
