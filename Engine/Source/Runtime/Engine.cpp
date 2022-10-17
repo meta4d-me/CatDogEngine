@@ -133,8 +133,8 @@ void Engine::InitPlatformWindow(const char* pTitle, uint16_t width, uint16_t hei
 	m_pFlybyCamera = new FlybyCamera(bx::Vec3(0.0f, 0.0f, -50.0f));
 	m_pCameraController = new FirstPersonCameraController(
 		m_pFlybyCamera, 
-		0.8f /* Mouse Sensitivity */, 
-		20.0f /* Movement Speed*/);
+		3.0f /* Mouse Sensitivity */, 
+		10.0f /* Movement Speed*/);
 	m_pPlatformWindow = new PlatformWindow(pTitle, width, height, m_pCameraController);
 }
 
