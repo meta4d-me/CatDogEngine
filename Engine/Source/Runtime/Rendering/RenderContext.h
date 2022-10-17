@@ -1,7 +1,7 @@
 #pragma once
 
 #include <inttypes.h>
-#include <map>
+#include <memory>
 
 namespace engine
 {
@@ -16,7 +16,7 @@ constexpr uint8_t MaxSwapChainCount = 8;
 class RenderContext
 {
 public:
-	RenderContext() = default;
+	explicit RenderContext() = default;
 	RenderContext(const RenderContext&) = delete;
 	RenderContext& operator=(const RenderContext&) = delete;
 	RenderContext(RenderContext&&) = delete;
@@ -38,9 +38,9 @@ public:
 private:
 	uint8_t m_currentViewCount = 0;
 	uint8_t m_currentSwapChainCount = 0;
-	SwapChain* m_pSwapChains[MaxSwapChainCount];
+	std::unique_ptr<SwapChain> m_pSwapChains[MaxSwapChainCount];
 
-	GBuffer* m_pGBuffer = nullptr;
+	std::unique_ptr<GBuffer> m_pGBuffer;
 };
 
 }

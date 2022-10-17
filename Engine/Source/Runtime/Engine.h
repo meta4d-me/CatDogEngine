@@ -9,8 +9,8 @@ namespace engine
 {
 
 class CSharpBridge;
-class FirstPersonCameraController;
 class FlybyCamera;
+class FirstPersonCameraController;
 class PlatformWindow;
 class RenderContext;
 class Renderer;
@@ -18,8 +18,8 @@ class Renderer;
 class Engine
 {
 public:
-	explicit Engine() = default;
-	~Engine();
+	ENGINE_API explicit Engine();
+	ENGINE_API virtual ~Engine();
 
 	Engine(const Engine&) = delete;
 	Engine& operator=(const Engine&) = delete;
@@ -45,27 +45,27 @@ public:
 	// Basic modules
 	//////////////////////////////////////////////////////////////////
 	// RenderContext includes Graphics, Renderers for different features
-	RenderContext* GetRenderContext() const { return m_pRenderContext; }
+	RenderContext* GetRenderContext() const { return m_pRenderContext.get(); }
 
 	//////////////////////////////////////////////////////////////////
 	// Optional modules
 	//////////////////////////////////////////////////////////////////
 	// It will be useful when engine needs to communicate with C#.
-	CSharpBridge* GetCSharpBridge() const { return m_pCSharpBridge; }
+	CSharpBridge* GetCSharpBridge() const { return m_pCSharpBridge.get(); }
 	ENGINE_API void InitCSharpBridge();
 
 	// In editor mode, engine runs without windows so it is also optional.
-	PlatformWindow* GetPlatformWindow() const { return m_pPlatformWindow; }
+	PlatformWindow* GetPlatformWindow() const { return m_pPlatformWindow.get(); }
 	ENGINE_API void InitPlatformWindow(const char* pTitle, uint16_t width, uint16_t height);
 
 private:
-	RenderContext* m_pRenderContext = nullptr;
-	CSharpBridge* m_pCSharpBridge = nullptr;
-	PlatformWindow* m_pPlatformWindow = nullptr;
-	FlybyCamera* m_pFlybyCamera = nullptr;
-	FirstPersonCameraController* m_pCameraController = nullptr;
+	std::unique_ptr<RenderContext> m_pRenderContext;
+	std::unique_ptr<CSharpBridge> m_pCSharpBridge;
+	std::unique_ptr<PlatformWindow> m_pPlatformWindow;
+	std::unique_ptr<FlybyCamera> m_pFlybyCamera;
+	std::unique_ptr<FirstPersonCameraController> m_pCameraController;
 
-	std::vector<Renderer*>  m_pRenderers;
+	std::vector<std::unique_ptr<Renderer>>  m_pRenderers;
 };
 
 }
