@@ -2,6 +2,8 @@
 
 #include "FlybyCamera.h"
 
+#include <sdl.h>
+
 namespace engine
 {
 

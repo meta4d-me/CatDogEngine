@@ -1,7 +1,9 @@
 #pragma once
 
+// C/C++
 #include <inttypes.h>
-#include <sdl.h>
+
+using SDL_Keycode = int32_t;
 
 namespace engine
 {
@@ -11,7 +13,7 @@ class FlybyCamera;
 class FirstPersonCameraController {
 
 public:
-
+	FirstPersonCameraController() = delete;
 	explicit FirstPersonCameraController(FlybyCamera* camera, const float mouse_sensitivity, const float movement_speed);
 	~FirstPersonCameraController() = default;
 

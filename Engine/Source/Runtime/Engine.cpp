@@ -16,6 +16,10 @@
 namespace engine
 {
 
+Engine::Engine()
+{
+}
+
 Engine::~Engine()
 {
 	Shutdown();
@@ -23,7 +27,7 @@ Engine::~Engine()
 
 void Engine::Init()
 {
-	m_pRenderContext = new RenderContext();
+	m_pRenderContext = std::make_unique<RenderContext>();
 	m_pRenderContext->Init();
 
 	// If engine already set up an OS's target native window, then it should be game mode with only one swap chain.
@@ -46,14 +50,14 @@ void Engine::Init()
 		SwapChain* pSwapChain = m_pRenderContext->GetSwapChain(swapChainID);
 		m_pRenderContext->InitGBuffer(width, height);
 
-		SkyRenderer* pSkyRenderer = new SkyRenderer(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer());
-		m_pRenderers.push_back(pSkyRenderer);
-		SceneRenderer* pSceneRenderer = new SceneRenderer(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer());
-		m_pRenderers.push_back(pSceneRenderer);
-		pSceneRenderer->SetDependentRender(pSkyRenderer);
+		std::unique_ptr<SkyRenderer> pSkyRenderer = std::make_unique<SkyRenderer>(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer());
+		std::unique_ptr<SceneRenderer> pSceneRenderer = std::make_unique<SceneRenderer>(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer());
+		pSceneRenderer->SetDependentRender(pSkyRenderer.get());
 
-		m_pRenderers.push_back(new PostProcessRenderer(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer()));
-		for (Renderer* pRenderer : m_pRenderers)
+		m_pRenderers.emplace_back(std::move(pSkyRenderer));
+		m_pRenderers.emplace_back(std::move(pSceneRenderer));
+		m_pRenderers.push_back(std::make_unique<PostProcessRenderer>(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer()));
+		for (std::unique_ptr<Renderer>& pRenderer : m_pRenderers)
 		{
 			pRenderer->Init();
 		}
@@ -86,7 +90,7 @@ void Engine::MainLoop()
 			}
 
 			m_pRenderContext->BeginFrame();
-			for (Renderer* pRenderer : m_pRenderers)
+			for (std::unique_ptr<Renderer>& pRenderer : m_pRenderers)
 			{
 				pRenderer->UpdateView(m_pFlybyCamera->GetViewMatrix(), m_pFlybyCamera->GetProjectionMatrix());
 				pRenderer->Render(clock.GetDeltaTime());
@@ -98,44 +102,19 @@ void Engine::MainLoop()
 
 void Engine::Shutdown()
 {
-	if (m_pCSharpBridge)
-	{
-		delete m_pCSharpBridge;
-		m_pCSharpBridge = nullptr;
-	}
 
-	if (m_pPlatformWindow)
-	{
-		delete m_pPlatformWindow;
-		m_pPlatformWindow = nullptr;
-	}
-
-	if (m_pFlybyCamera)
-	{
-		delete m_pFlybyCamera;
-		m_pFlybyCamera = nullptr;
-	}
-
-	if (m_pCameraController)
-	{
-		delete m_pCameraController;
-		m_pCameraController = nullptr;
-	}
 }
 
 void Engine::InitCSharpBridge()
 {
-	m_pCSharpBridge = new CSharpBridge();
+	m_pCSharpBridge = std::make_unique<CSharpBridge>();
 }
 
 void Engine::InitPlatformWindow(const char* pTitle, uint16_t width, uint16_t height)
 {
-	m_pFlybyCamera = new FlybyCamera(bx::Vec3(0.0f, 0.0f, -50.0f));
-	m_pCameraController = new FirstPersonCameraController(
-		m_pFlybyCamera, 
-		0.8f /* Mouse Sensitivity */, 
-		20.0f /* Movement Speed*/);
-	m_pPlatformWindow = new PlatformWindow(pTitle, width, height, m_pCameraController);
+	m_pFlybyCamera = std::make_unique<FlybyCamera>(bx::Vec3(0.0f, 0.0f, -50.0f));
+	m_pCameraController = std::make_unique<FirstPersonCameraController>(m_pFlybyCamera.get(), 0.8f /* Mouse Sensitivity */, 20.0f /* Movement Speed*/);
+	m_pPlatformWindow = std::make_unique<PlatformWindow>(pTitle, width, height, m_pCameraController.get());
 }
 
 }
