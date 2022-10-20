@@ -6,13 +6,21 @@
 
 #include "rapidxml/rapidxml.hpp"
 #include "rapidxml/rapidxml_print.hpp"
+
+#include <memory>
+
 using XmlDocument = rapidxml::xml_document<wchar_t>;
 using XmlNode = rapidxml::xml_node<wchar_t>;
 using XmlAttribute = rapidxml::xml_attribute<wchar_t>;
 static std::wstring s_engineInfoXml;
 
+namespace
+{
 
-static engine::Engine* s_pEngineInstance = nullptr;
+static std::unique_ptr<engine::Engine> s_pEngineInstance;
+
+}
+
 
 namespace SwapChainBridge
 {
@@ -42,7 +50,7 @@ EDITOR_API void __stdcall LvEd_Initialize(LogCallbackType logCallback, Invalidat
 		return;
 	}
 
-	s_pEngineInstance = new engine::Engine();
+	s_pEngineInstance = std::make_unique<engine::Engine>();
 	s_pEngineInstance->InitCSharpBridge();
 	s_pEngineInstance->Init();
 
@@ -73,11 +81,6 @@ EDITOR_API void __stdcall LvEd_Initialize(LogCallbackType logCallback, Invalidat
 
 EDITOR_API void __stdcall LvEd_Shutdown()
 {
-	if (s_pEngineInstance)
-	{
-		delete s_pEngineInstance;
-		s_pEngineInstance = nullptr;
-	}
 }
 
 EDITOR_API void __stdcall LvEd_Clear()

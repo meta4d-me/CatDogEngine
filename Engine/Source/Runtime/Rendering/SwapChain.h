@@ -1,6 +1,7 @@
 #pragma once
 
 #include <inttypes.h>
+#include <memory>
 
 namespace bgfx
 {
@@ -23,21 +24,18 @@ public:
 	SwapChain& operator=(const SwapChain&) = delete;
 	SwapChain(SwapChain&&) = delete;
 	SwapChain& operator=(SwapChain&&) = delete;
-	~SwapChain();
+	~SwapChain() = default;
 
 	uint16_t GetWidth() const { return m_frameBufferWidth; }
 	uint16_t GetHeight() const { return m_frameBufferHeight; }
-	const bgfx::FrameBufferHandle* GetFrameBuffer() const { return m_pFrameBufferHandle; }
+	const bgfx::FrameBufferHandle* GetFrameBuffer() const { return m_pFrameBufferHandle.get(); }
 	float GetAspect() const { return static_cast<float>(m_frameBufferWidth) / static_cast<float>(m_frameBufferHeight);}
 	void Resize(uint16_t width, uint16_t height);
 
 private:
-	uint16_t					m_frameBufferWidth;
-	uint16_t					m_frameBufferHeight;
-
-	// Use pointer because I don't want to any files include SwapChain.h to introduce bgfx.h
-	// If you think out a better way, please reach us~
-	bgfx::FrameBufferHandle*	m_pFrameBufferHandle = nullptr;
+	uint16_t m_frameBufferWidth;
+	uint16_t m_frameBufferHeight;
+	std::unique_ptr<bgfx::FrameBufferHandle> m_pFrameBufferHandle;
 };
 
 }
