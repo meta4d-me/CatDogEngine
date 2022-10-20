@@ -114,9 +114,9 @@ void Engine::InitPlatformWindow(const char* pTitle, uint16_t width, uint16_t hei
 {
 	m_pFlybyCamera = std::make_unique<FlybyCamera>(bx::Vec3(0.0f, 0.0f, -50.0f));
 	m_pCameraController = std::make_unique<FirstPersonCameraController>(
-    m_pFlybyCamera.get(), 
-    0.8f /* Mouse Sensitivity */, 
-    20.0f /* Movement Speed*/);
+		m_pFlybyCamera.get(), 
+		0.8f /* Mouse Sensitivity */, 
+		20.0f /* Movement Speed*/);
 	m_pPlatformWindow = std::make_unique<PlatformWindow>(pTitle, width, height, m_pCameraController.get());
 }
 
