@@ -6,6 +6,7 @@
 #include <bgfx/bgfx.h>
 
 #include <cassert>
+#include <memory>
 
 namespace engine
 {
@@ -26,20 +27,6 @@ void RenderContext::Init()
 
 void RenderContext::Shutdown()
 {
-	for(uint8_t swapChainIndex = 0; swapChainIndex < MaxSwapChainCount; ++swapChainIndex)
-	{
-		if(SwapChain* pSwapChain = m_pSwapChains[swapChainIndex])
-		{
-			delete pSwapChain;
-			m_pSwapChains[swapChainIndex] = nullptr;
-		}
-	}
-
-	if (m_pGBuffer)
-	{
-		delete m_pGBuffer;
-		m_pGBuffer = nullptr;
-	}
 }
 
 void RenderContext::BeginFrame()
@@ -62,25 +49,25 @@ uint16_t RenderContext::CreateView()
 uint8_t RenderContext::CreateSwapChain(void* pWindowHandle, uint16_t width, uint16_t height)
 {
 	assert(m_currentSwapChainCount < MaxSwapChainCount && "Overflow the max count of swap chains.");
-	m_pSwapChains[m_currentSwapChainCount] = new SwapChain(pWindowHandle, width, height);
+	m_pSwapChains[m_currentSwapChainCount] = std::make_unique<SwapChain>(pWindowHandle, width, height);
 	return m_currentSwapChainCount++;
 }
 
 SwapChain* RenderContext::GetSwapChain(uint8_t swapChainID) const
 {
 	assert(m_pSwapChains[swapChainID] != nullptr && "Invalid swap chain.");
-	return m_pSwapChains[swapChainID];
+	return m_pSwapChains[swapChainID].get();
 }
 
 void RenderContext::InitGBuffer(uint16_t width, uint16_t height)
 {
-	m_pGBuffer = new GBuffer(width, height);
+	m_pGBuffer = std::make_unique<GBuffer>(width, height);
 	bgfx::reset(m_pGBuffer->GetWidth(), m_pGBuffer->GetHeight(), BGFX_RESET_MSAA_X16 | BGFX_RESET_VSYNC);
 }
 
 GBuffer* RenderContext::GetGBuffer() const
 {
-	return m_pGBuffer;
+	return m_pGBuffer.get();
 }
 
 }
