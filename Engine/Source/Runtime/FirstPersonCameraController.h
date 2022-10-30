@@ -1,7 +1,7 @@
 #pragma once
 
 #include <inttypes.h>
-#include <sdl.h>
+using SDL_Keycode = int32_t;
 
 namespace engine
 {
@@ -21,8 +21,8 @@ public:
 	FirstPersonCameraController& operator=(FirstPersonCameraController&&) = delete;
 
 	void Update(const float dt);
-	void OnKeyPress(const SDL_Keycode& keyCode, const uint16_t mods);
-	void OnKeyRelease(const SDL_Keycode& keyCode, const uint16_t mods);
+	void OnKeyPress(const SDL_Keycode keyCode, const uint16_t mods);
+	void OnKeyRelease(const SDL_Keycode keyCode, const uint16_t mods);
 	void OnMousePress(const uint8_t button, const uint8_t clicks);
 	void OnMouseRelease(const uint8_t button, const uint8_t clicks);
 	void SetMousePosition(const int32_t win_x, const int32_t win_y);

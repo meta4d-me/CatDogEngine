@@ -130,12 +130,16 @@ void Engine::InitCSharpBridge()
 
 void Engine::InitPlatformWindow(const char* pTitle, uint16_t width, uint16_t height)
 {
+	m_pPlatformWindow = new PlatformWindow(pTitle, width, height);
+
+	// Binding camera related event callbacks
 	m_pFlybyCamera = new FlybyCamera(bx::Vec3(0.0f, 0.0f, -50.0f));
-	m_pCameraController = new FirstPersonCameraController(
-		m_pFlybyCamera, 
-		0.8f /* Mouse Sensitivity */, 
-		20.0f /* Movement Speed*/);
-	m_pPlatformWindow = new PlatformWindow(pTitle, width, height, m_pCameraController);
+	m_pCameraController = new FirstPersonCameraController(m_pFlybyCamera, 0.8f/*mouse_sensitivity*/, 20.0f/*movement_speed*/);
+	m_pPlatformWindow->OnMouseDown.Bind<FirstPersonCameraController, &FirstPersonCameraController::OnMousePress>(m_pCameraController);
+	m_pPlatformWindow->OnMouseUp.Bind<FirstPersonCameraController, &FirstPersonCameraController::OnMouseRelease>(m_pCameraController);
+	m_pPlatformWindow->OnMouseMotion.Bind<FirstPersonCameraController, &FirstPersonCameraController::SetMousePosition>(m_pCameraController);
+	m_pPlatformWindow->OnKeyDown.Bind<FirstPersonCameraController, &FirstPersonCameraController::OnKeyPress>(m_pCameraController);
+	m_pPlatformWindow->OnKeyUp.Bind<FirstPersonCameraController, &FirstPersonCameraController::OnKeyRelease>(m_pCameraController);
 }
 
 }
