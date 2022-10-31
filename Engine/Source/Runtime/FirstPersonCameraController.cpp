@@ -60,7 +60,7 @@ void FirstPersonCameraController::Update(const float dt)
 	}
 }
 
-void FirstPersonCameraController::OnKeyPress(const SDL_Keycode& keyCode, const uint16_t mods)
+void FirstPersonCameraController::OnKeyPress(const SDL_Keycode keyCode, const uint16_t mods)
 {
 	switch (keyCode)
 	{
@@ -87,7 +87,7 @@ void FirstPersonCameraController::OnKeyPress(const SDL_Keycode& keyCode, const u
 	}
 }
 
-void FirstPersonCameraController::OnKeyRelease(const SDL_Keycode& keyCode, const uint16_t mods)
+void FirstPersonCameraController::OnKeyRelease(const SDL_Keycode keyCode, const uint16_t mods)
 {
 	switch (keyCode)
 	{

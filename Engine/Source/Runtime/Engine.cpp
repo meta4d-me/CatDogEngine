@@ -112,9 +112,16 @@ void Engine::InitCSharpBridge()
 
 void Engine::InitPlatformWindow(const char* pTitle, uint16_t width, uint16_t height)
 {
+	m_pPlatformWindow = std::make_unique<PlatformWindow>(pTitle, width, height);
+
+	// Binding camera related event callbacks
 	m_pFlybyCamera = std::make_unique<FlybyCamera>(bx::Vec3(0.0f, 0.0f, -50.0f));
 	m_pCameraController = std::make_unique<FirstPersonCameraController>(m_pFlybyCamera.get(), 0.8f /* Mouse Sensitivity */, 20.0f /* Movement Speed*/);
-	m_pPlatformWindow = std::make_unique<PlatformWindow>(pTitle, width, height, m_pCameraController.get());
+	m_pPlatformWindow->OnMouseDown.Bind<FirstPersonCameraController, &FirstPersonCameraController::OnMousePress>(m_pCameraController.get());
+	m_pPlatformWindow->OnMouseUp.Bind<FirstPersonCameraController, &FirstPersonCameraController::OnMouseRelease>(m_pCameraController.get());
+	m_pPlatformWindow->OnMouseMotion.Bind<FirstPersonCameraController, &FirstPersonCameraController::SetMousePosition>(m_pCameraController.get());
+	m_pPlatformWindow->OnKeyDown.Bind<FirstPersonCameraController, &FirstPersonCameraController::OnKeyPress>(m_pCameraController.get());
+	m_pPlatformWindow->OnKeyUp.Bind<FirstPersonCameraController, &FirstPersonCameraController::OnKeyRelease>(m_pCameraController.get());
 }
 
 }
