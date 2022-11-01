@@ -50,13 +50,13 @@ void Engine::Init()
 		SwapChain* pSwapChain = m_pRenderContext->GetSwapChain(swapChainID);
 		m_pRenderContext->InitGBuffer(width, height);
 
-		std::unique_ptr<SkyRenderer> pSkyRenderer = std::make_unique<SkyRenderer>(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer());
-		std::unique_ptr<SceneRenderer> pSceneRenderer = std::make_unique<SceneRenderer>(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer());
+		std::unique_ptr<SkyRenderer> pSkyRenderer = std::make_unique<SkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSwapChain);
+		std::unique_ptr<SceneRenderer> pSceneRenderer = std::make_unique<SceneRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSwapChain);
 		pSceneRenderer->SetDependentRender(pSkyRenderer.get());
 
 		m_pRenderers.emplace_back(std::move(pSkyRenderer));
 		m_pRenderers.emplace_back(std::move(pSceneRenderer));
-		m_pRenderers.push_back(std::make_unique<PostProcessRenderer>(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer()));
+		m_pRenderers.push_back(std::make_unique<PostProcessRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSwapChain));
 		for (std::unique_ptr<Renderer>& pRenderer : m_pRenderers)
 		{
 			pRenderer->Init();

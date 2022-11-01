@@ -1,7 +1,10 @@
 #pragma once
 
+#include <bgfx/bgfx.h>
+
 #include <inttypes.h>
 #include <memory>
+#include <unordered_map>
 
 namespace engine
 {
@@ -35,12 +38,22 @@ public:
 	void InitGBuffer(uint16_t width, uint16_t height);
 	GBuffer* GetGBuffer() const;
 
+	/////////////////////////////////////////////////////////////////////
+	// Resource related apis
+	/////////////////////////////////////////////////////////////////////
+	bgfx::ShaderHandle CreateShader(const char* filePath);
+	bgfx::TextureHandle CreateTexture(const char* filePath, uint64_t flags = 0UL);
+	bgfx::UniformHandle CreateUniform(const char* pName, bgfx::UniformType::Enum uniformType, uint16_t number = 1);
+
 private:
 	uint8_t m_currentViewCount = 0;
 	uint8_t m_currentSwapChainCount = 0;
 	std::unique_ptr<SwapChain> m_pSwapChains[MaxSwapChainCount];
-
 	std::unique_ptr<GBuffer> m_pGBuffer;
+
+	std::unordered_map<size_t, bgfx::ShaderHandle> m_shaderHandleCaches;
+	std::unordered_map<size_t, bgfx::TextureHandle> m_textureHandleCaches;
+	std::unordered_map<size_t, bgfx::UniformHandle> m_uniformHandleCaches;
 };
 
 }

@@ -4,6 +4,7 @@
 #include "GBuffer.h"
 #include "Producer/CatDogProducer.h"
 #include "Processor/Processor.h"
+#include "RenderContext.h"
 #include "Scene/Texture.h"
 #include "SwapChain.h"
 #include "SkyRenderer.h"
@@ -62,8 +63,8 @@ void SceneRenderer::Init()
 		if (optBaseColor.has_value())
 		{
 			TextureHandle textureHandle;
-			textureHandle.sampler = bgfx::createUniform(std::format("s_textureBaseColor{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
-			textureHandle.texture = Renderer::LoadTexture("Textures/" + optBaseColor.value() + ".dds", textureSamplerFlags | BGFX_TEXTURE_SRGB);
+			textureHandle.sampler = m_pRenderContext->CreateUniform(std::format("s_textureBaseColor{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
+			textureHandle.texture = m_pRenderContext->CreateTexture((optBaseColor.value() + ".dds").c_str(), textureSamplerFlags | BGFX_TEXTURE_SRGB);
 			materialHandle.baseColor = std::move(textureHandle);
 		}
 		
@@ -71,8 +72,8 @@ void SceneRenderer::Init()
 		if (optNormal.has_value())
 		{
 			TextureHandle textureHandle;
-			textureHandle.sampler = bgfx::createUniform(std::format("s_textureNormal{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
-			textureHandle.texture = Renderer::LoadTexture("Textures/" + optNormal.value() + ".dds", textureSamplerFlags);
+			textureHandle.sampler = m_pRenderContext->CreateUniform(std::format("s_textureNormal{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
+			textureHandle.texture = m_pRenderContext->CreateTexture((optNormal.value() + ".dds").c_str(), textureSamplerFlags);
 			materialHandle.normal = std::move(textureHandle);
 		}
 
@@ -80,8 +81,8 @@ void SceneRenderer::Init()
 		if (optRoughness.has_value())
 		{
 			TextureHandle textureHandle;
-			textureHandle.sampler = bgfx::createUniform(std::format("s_textureORM{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
-			textureHandle.texture = Renderer::LoadTexture("Textures/" + optRoughness.value() + ".dds", textureSamplerFlags);
+			textureHandle.sampler = m_pRenderContext->CreateUniform(std::format("s_textureORM{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
+			textureHandle.texture = m_pRenderContext->CreateTexture((optRoughness.value() + ".dds").c_str(), textureSamplerFlags);
 			materialHandle.orm = std::move(textureHandle);
 		}
 
@@ -89,8 +90,8 @@ void SceneRenderer::Init()
 		++materialIndex;
 	}
 
-	m_programPBR = bgfx::createProgram(Renderer::LoadShader("Shaders/vs_PBR.bin"),
-		Renderer::LoadShader("Shaders/fs_PBR_0.bin"), true);
+	m_programPBR = bgfx::createProgram(m_pRenderContext->CreateShader("vs_PBR.bin"),
+		m_pRenderContext->CreateShader("fs_PBR_0.bin"), true);
 }
 
 void SceneRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
