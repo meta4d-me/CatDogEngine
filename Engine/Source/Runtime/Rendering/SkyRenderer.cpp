@@ -24,20 +24,11 @@ void SkyRenderer::Init()
 
 	bgfx::ShaderHandle vsh = m_pRenderContext->CreateShader("vs_PBR_skybox.bin");
 	bgfx::ShaderHandle fsh = m_pRenderContext->CreateShader("fs_PBR_skybox.bin");
-	m_programSky = bgfx::createProgram(vsh, fsh, true);
+	m_programSky = m_pRenderContext->CreateProgram(vsh, fsh);
 }
 
 SkyRenderer::~SkyRenderer()
 {
-	bgfx::destroy(m_uniformTexLUT);
-	bgfx::destroy(m_uniformTexCube);
-	bgfx::destroy(m_uniformTexCubeIrr);
-	
-	bgfx::destroy(m_iblLUTTex);
-	bgfx::destroy(m_lightProbeTex);
-	bgfx::destroy(m_lightProbeTexIrr);
-
-	bgfx::destroy(m_programSky);
 }
 
 void SkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

@@ -90,8 +90,9 @@ void SceneRenderer::Init()
 		++materialIndex;
 	}
 
-	m_programPBR = bgfx::createProgram(m_pRenderContext->CreateShader("vs_PBR.bin"),
-		m_pRenderContext->CreateShader("fs_PBR_0.bin"), true);
+	bgfx::ShaderHandle vsh = m_pRenderContext->CreateShader("vs_PBR.bin");
+	bgfx::ShaderHandle fsh = m_pRenderContext->CreateShader("fs_PBR_0.bin");
+	m_programPBR = m_pRenderContext->CreateProgram(vsh, fsh);
 }
 
 void SceneRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

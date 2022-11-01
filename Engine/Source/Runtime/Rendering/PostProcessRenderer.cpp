@@ -15,13 +15,11 @@ void PostProcessRenderer::Init()
 
 	bgfx::ShaderHandle vsh = m_pRenderContext->CreateShader("vs_fullscreen.bin");
 	bgfx::ShaderHandle fsh = m_pRenderContext->CreateShader("fs_PBR_postProcessing.bin");
-	m_programPostProcessing = bgfx::createProgram(vsh, fsh, true);
+	m_programPostProcessing = m_pRenderContext->CreateProgram(vsh, fsh);
 }
 
 PostProcessRenderer::~PostProcessRenderer()
 {
-	bgfx::destroy(s_lightingResult);
-	bgfx::destroy(m_programPostProcessing);
 }
 
 void PostProcessRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

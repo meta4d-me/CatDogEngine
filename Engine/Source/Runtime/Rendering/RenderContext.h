@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/StringCrc.h"
+
 #include <bgfx/bgfx.h>
 
 #include <inttypes.h>
@@ -42,6 +44,7 @@ public:
 	// Resource related apis
 	/////////////////////////////////////////////////////////////////////
 	bgfx::ShaderHandle CreateShader(const char* filePath);
+	bgfx::ProgramHandle CreateProgram(bgfx::ShaderHandle vsh, bgfx::ShaderHandle fsh);
 	bgfx::TextureHandle CreateTexture(const char* filePath, uint64_t flags = 0UL);
 	bgfx::UniformHandle CreateUniform(const char* pName, bgfx::UniformType::Enum uniformType, uint16_t number = 1);
 

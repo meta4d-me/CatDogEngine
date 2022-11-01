@@ -1,6 +1,5 @@
 #include "RenderContext.h"
 
-#include "Core/Hashers/StringHash.hpp"
 #include "GBuffer.h"
 #include "SwapChain.h"
 
@@ -50,6 +49,20 @@ void RenderContext::Init()
 
 void RenderContext::Shutdown()
 {
+	for(auto it : m_shaderHandleCaches)
+	{
+		bgfx::destroy(it.second);
+	}
+
+	for (auto it : m_textureHandleCaches)
+	{
+		bgfx::destroy(it.second);
+	}
+
+	for (auto it : m_uniformHandleCaches)
+	{
+		bgfx::destroy(it.second);
+	}
 }
 
 void RenderContext::BeginFrame()
@@ -95,8 +108,8 @@ GBuffer* RenderContext::GetGBuffer() const
 
 bgfx::ShaderHandle RenderContext::CreateShader(const char* pFilePath)
 {
-	size_t hashValue = Hasher::string_hash(pFilePath);
-	auto itShaderCache = m_shaderHandleCaches.find(hashValue);
+	StringCrc filePath(pFilePath);
+	auto itShaderCache = m_shaderHandleCaches.find(filePath.value());
 	if(itShaderCache != m_shaderHandleCaches.end())
 	{
 		return itShaderCache->second;
@@ -122,16 +135,21 @@ bgfx::ShaderHandle RenderContext::CreateShader(const char* pFilePath)
 	if(bgfx::isValid(handle))
 	{
 		bgfx::setName(handle, pFilePath);
-		m_shaderHandleCaches[hashValue] = handle;
+		m_shaderHandleCaches[filePath.value()] = handle;
 	}
 
 	return handle;
 }
 
+bgfx::ProgramHandle RenderContext::CreateProgram(bgfx::ShaderHandle vsh, bgfx::ShaderHandle fsh)
+{
+	return bgfx::createProgram(vsh, fsh);
+}
+
 bgfx::TextureHandle RenderContext::CreateTexture(const char* pFilePath, uint64_t flags)
 {
-	size_t hashValue = Hasher::string_hash(pFilePath);
-	auto itTextureCache = m_textureHandleCaches.find(hashValue);
+	StringCrc filePath(pFilePath);
+	auto itTextureCache = m_textureHandleCaches.find(filePath.value());
 	if (itTextureCache != m_textureHandleCaches.end())
 	{
 		return itTextureCache->second;
@@ -202,7 +220,7 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pFilePath, uint64_t
 	if (bgfx::isValid(handle))
 	{
 		bgfx::setName(handle, pFilePath);
-		m_textureHandleCaches[hashValue] = handle;
+		m_textureHandleCaches[filePath.value()] = handle;
 	}
 
 	return handle;
@@ -210,8 +228,8 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pFilePath, uint64_t
 
 bgfx::UniformHandle RenderContext::CreateUniform(const char* pName, bgfx::UniformType::Enum uniformType, uint16_t number)
 {
-	size_t hashValue = Hasher::string_hash(pName);
-	auto itUniformCache = m_uniformHandleCaches.find(hashValue);
+	StringCrc uniformName(pName);
+	auto itUniformCache = m_uniformHandleCaches.find(uniformName.value());
 	if (itUniformCache != m_uniformHandleCaches.end())
 	{
 		return itUniformCache->second;
@@ -220,7 +238,7 @@ bgfx::UniformHandle RenderContext::CreateUniform(const char* pName, bgfx::Unifor
 	bgfx::UniformHandle uniformHandle = bgfx::createUniform(pName, uniformType, number);
 	if(bgfx::isValid(uniformHandle))
 	{
-		m_uniformHandleCaches[hashValue] = uniformHandle;
+		m_uniformHandleCaches[uniformName.value()] = uniformHandle;
 	}
 
 	return uniformHandle;
