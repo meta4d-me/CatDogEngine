@@ -52,8 +52,6 @@ void Engine::Init()
 
 		std::unique_ptr<SkyRenderer> pSkyRenderer = std::make_unique<SkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSwapChain);
 		std::unique_ptr<SceneRenderer> pSceneRenderer = std::make_unique<SceneRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSwapChain);
-		pSceneRenderer->SetDependentRender(pSkyRenderer.get());
-
 		m_pRenderers.emplace_back(std::move(pSkyRenderer));
 		m_pRenderers.emplace_back(std::move(pSceneRenderer));
 		m_pRenderers.push_back(std::make_unique<PostProcessRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSwapChain));

@@ -43,10 +43,15 @@ public:
 	/////////////////////////////////////////////////////////////////////
 	// Resource related apis
 	/////////////////////////////////////////////////////////////////////
-	bgfx::ShaderHandle CreateShader(const char* filePath);
-	bgfx::ProgramHandle CreateProgram(bgfx::ShaderHandle vsh, bgfx::ShaderHandle fsh);
-	bgfx::TextureHandle CreateTexture(const char* filePath, uint64_t flags = 0UL);
-	bgfx::UniformHandle CreateUniform(const char* pName, bgfx::UniformType::Enum uniformType, uint16_t number = 1);
+	[[nodiscard]] bgfx::ShaderHandle CreateShader(const char* filePath);
+	[[nodiscard]] bgfx::ProgramHandle CreateProgram(const char* pName, bgfx::ShaderHandle vsh, bgfx::ShaderHandle fsh);
+	[[nodiscard]] bgfx::TextureHandle CreateTexture(const char* filePath, uint64_t flags = 0UL);
+	[[nodiscard]] bgfx::UniformHandle CreateUniform(const char* pName, bgfx::UniformType::Enum uniformType, uint16_t number = 1);
+
+	bgfx::ShaderHandle GetShader(StringCrc resourceCrc) const;
+	bgfx::ProgramHandle GetProgram(StringCrc resourceCrc) const;
+	bgfx::TextureHandle GetTexture(StringCrc resourceCrc) const;
+	bgfx::UniformHandle GetUniform(StringCrc resourceCrc) const;
 
 private:
 	uint8_t m_currentViewCount = 0;
@@ -55,6 +60,7 @@ private:
 	std::unique_ptr<GBuffer> m_pGBuffer;
 
 	std::unordered_map<size_t, bgfx::ShaderHandle> m_shaderHandleCaches;
+	std::unordered_map<size_t, bgfx::ProgramHandle> m_programHandleCaches;
 	std::unordered_map<size_t, bgfx::TextureHandle> m_textureHandleCaches;
 	std::unordered_map<size_t, bgfx::UniformHandle> m_uniformHandleCaches;
 };

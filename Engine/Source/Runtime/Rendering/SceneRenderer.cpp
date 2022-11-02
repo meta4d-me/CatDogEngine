@@ -7,7 +7,6 @@
 #include "RenderContext.h"
 #include "Scene/Texture.h"
 #include "SwapChain.h"
-#include "SkyRenderer.h"
 
 #include <bgfx/bgfx.h>
 #include <bx/math.h>
@@ -92,7 +91,7 @@ void SceneRenderer::Init()
 
 	bgfx::ShaderHandle vsh = m_pRenderContext->CreateShader("vs_PBR.bin");
 	bgfx::ShaderHandle fsh = m_pRenderContext->CreateShader("fs_PBR_0.bin");
-	m_programPBR = m_pRenderContext->CreateProgram(vsh, fsh);
+	m_programPBR = m_pRenderContext->CreateProgram("PBR", vsh, fsh);
 }
 
 void SceneRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -111,8 +110,14 @@ void SceneRenderer::Render(float deltaTime)
 	
 		bgfx::setVertexBuffer(0, meshHandle.vbh);
 		bgfx::setIndexBuffer(meshHandle.ibh);
-	
-		m_pSkyRenderer->RenderForOtherView();
+
+		bgfx::setTexture(0, m_pRenderContext->GetUniform(StringCrc("s_texCube")),
+			m_pRenderContext->GetTexture(StringCrc("bolonga_lod.dds")));
+		bgfx::setTexture(1, m_pRenderContext->GetUniform(StringCrc("s_texCubeIrr")),
+			m_pRenderContext->GetTexture(StringCrc("bolonga_irr.dds")));
+		bgfx::setTexture(5, m_pRenderContext->GetUniform(StringCrc("s_texLUT")),
+			m_pRenderContext->GetTexture(StringCrc("ibl_brdf_lut.dds")));
+
 		bgfx::setTexture(2, materialHandle.baseColor.sampler, materialHandle.baseColor.texture);
 		bgfx::setTexture(3, materialHandle.normal.sampler, materialHandle.normal.texture);
 		bgfx::setTexture(4, materialHandle.orm.sampler, materialHandle.orm.texture);

@@ -15,7 +15,7 @@ void PostProcessRenderer::Init()
 
 	bgfx::ShaderHandle vsh = m_pRenderContext->CreateShader("vs_fullscreen.bin");
 	bgfx::ShaderHandle fsh = m_pRenderContext->CreateShader("fs_PBR_postProcessing.bin");
-	m_programPostProcessing = m_pRenderContext->CreateProgram(vsh, fsh);
+	m_programPostProcessing = m_pRenderContext->CreateProgram("GBufferToScreen", vsh, fsh);
 }
 
 PostProcessRenderer::~PostProcessRenderer()

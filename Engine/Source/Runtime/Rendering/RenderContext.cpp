@@ -49,6 +49,11 @@ void RenderContext::Init()
 
 void RenderContext::Shutdown()
 {
+	for (auto it : m_programHandleCaches)
+	{
+		bgfx::destroy(it.second);
+	}
+
 	for(auto it : m_shaderHandleCaches)
 	{
 		bgfx::destroy(it.second);
@@ -141,9 +146,22 @@ bgfx::ShaderHandle RenderContext::CreateShader(const char* pFilePath)
 	return handle;
 }
 
-bgfx::ProgramHandle RenderContext::CreateProgram(bgfx::ShaderHandle vsh, bgfx::ShaderHandle fsh)
+bgfx::ProgramHandle RenderContext::CreateProgram(const char* pName, bgfx::ShaderHandle vsh, bgfx::ShaderHandle fsh)
 {
-	return bgfx::createProgram(vsh, fsh);
+	StringCrc programName(pName);
+	auto itProgram = m_programHandleCaches.find(programName.value());
+	if (itProgram != m_programHandleCaches.end())
+	{
+		return itProgram->second;
+	}
+
+	bgfx::ProgramHandle program = bgfx::createProgram(vsh, fsh);
+	if(bgfx::isValid(program))
+	{
+		m_programHandleCaches[programName.value()] = program;
+	}
+
+	return program;
 }
 
 bgfx::TextureHandle RenderContext::CreateTexture(const char* pFilePath, uint64_t flags)
@@ -242,6 +260,50 @@ bgfx::UniformHandle RenderContext::CreateUniform(const char* pName, bgfx::Unifor
 	}
 
 	return uniformHandle;
+}
+
+bgfx::ShaderHandle RenderContext::GetShader(StringCrc resourceCrc) const
+{
+	auto itResource = m_shaderHandleCaches.find(resourceCrc.value());
+	if (itResource != m_shaderHandleCaches.end())
+	{
+		return itResource->second;
+	}
+
+	return bgfx::ShaderHandle(bgfx::kInvalidHandle);
+}
+
+bgfx::ProgramHandle RenderContext::GetProgram(StringCrc resourceCrc) const
+{
+	auto itResource = m_programHandleCaches.find(resourceCrc.value());
+	if (itResource != m_programHandleCaches.end())
+	{
+		return itResource->second;
+	}
+
+	return bgfx::ProgramHandle(bgfx::kInvalidHandle);
+}
+
+bgfx::TextureHandle RenderContext::GetTexture(StringCrc resourceCrc) const
+{
+	auto itResource = m_textureHandleCaches.find(resourceCrc.value());
+	if (itResource != m_textureHandleCaches.end())
+	{
+		return itResource->second;
+	}
+
+	return bgfx::TextureHandle(bgfx::kInvalidHandle);
+}
+
+bgfx::UniformHandle RenderContext::GetUniform(StringCrc resourceCrc) const
+{
+	auto itResource = m_uniformHandleCaches.find(resourceCrc.value());
+	if (itResource != m_uniformHandleCaches.end())
+	{
+		return itResource->second;
+	}
+
+	return bgfx::UniformHandle(bgfx::kInvalidHandle);
 }
 
 }
