@@ -2,7 +2,7 @@
 
 #include <inttypes.h>
 
-#include "Core/Delegate.hpp"
+#include "Core/Delegates/Delegate.hpp"
 
 struct SDL_Window;
 

@@ -1,7 +1,12 @@
 #pragma once
 
+#include "Core/StringCrc.h"
+
+#include <bgfx/bgfx.h>
+
 #include <inttypes.h>
 #include <memory>
+#include <unordered_map>
 
 namespace engine
 {
@@ -35,12 +40,29 @@ public:
 	void InitGBuffer(uint16_t width, uint16_t height);
 	GBuffer* GetGBuffer() const;
 
+	/////////////////////////////////////////////////////////////////////
+	// Resource related apis
+	/////////////////////////////////////////////////////////////////////
+	[[nodiscard]] bgfx::ShaderHandle CreateShader(const char* filePath);
+	[[nodiscard]] bgfx::ProgramHandle CreateProgram(const char* pName, bgfx::ShaderHandle vsh, bgfx::ShaderHandle fsh);
+	[[nodiscard]] bgfx::TextureHandle CreateTexture(const char* filePath, uint64_t flags = 0UL);
+	[[nodiscard]] bgfx::UniformHandle CreateUniform(const char* pName, bgfx::UniformType::Enum uniformType, uint16_t number = 1);
+
+	bgfx::ShaderHandle GetShader(StringCrc resourceCrc) const;
+	bgfx::ProgramHandle GetProgram(StringCrc resourceCrc) const;
+	bgfx::TextureHandle GetTexture(StringCrc resourceCrc) const;
+	bgfx::UniformHandle GetUniform(StringCrc resourceCrc) const;
+
 private:
 	uint8_t m_currentViewCount = 0;
 	uint8_t m_currentSwapChainCount = 0;
 	std::unique_ptr<SwapChain> m_pSwapChains[MaxSwapChainCount];
-
 	std::unique_ptr<GBuffer> m_pGBuffer;
+
+	std::unordered_map<size_t, bgfx::ShaderHandle> m_shaderHandleCaches;
+	std::unordered_map<size_t, bgfx::ProgramHandle> m_programHandleCaches;
+	std::unordered_map<size_t, bgfx::TextureHandle> m_textureHandleCaches;
+	std::unordered_map<size_t, bgfx::UniformHandle> m_uniformHandleCaches;
 };
 
 }
