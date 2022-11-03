@@ -46,6 +46,11 @@ RenderDataContext&& BgfxConsumer::GetRenderDataContext() {
 void BgfxConsumer::Execute(const SceneDatabase* pSceneDatabase) {
 	printf("DumpSceneDatabase:\n");
 	printf("SceneName : %s\n", pSceneDatabase->GetName().c_str());
+
+	const cdtools::AABB& sceneAABB = pSceneDatabase->GetAABB();
+	printf("AABB min : (%f, %f, %f)\n", sceneAABB.Min().x(), sceneAABB.Min().y(), sceneAABB.Min().z());
+	printf("AABB max : (%f, %f, %f)\n", sceneAABB.Max().x(), sceneAABB.Max().y(), sceneAABB.Max().z());
+
 	printf("MeshCount : %u\n", pSceneDatabase->GetMeshCount());
 	printf("MaterialCount : %u\n", pSceneDatabase->GetMaterialCount());
 
@@ -89,9 +94,9 @@ void BgfxConsumer::Execute(const SceneDatabase* pSceneDatabase) {
 
 		// 2. indices
 		for (uint32_t i = 0; i < mesh.GetPolygonCount(); ++i) {
-			uint32_t v0 = mesh.GetPolygon(i).v0.Data();
-			uint32_t v1 = mesh.GetPolygon(i).v1.Data();
-			uint32_t v2 = mesh.GetPolygon(i).v2.Data();
+			uint32_t v0 = mesh.GetPolygon(i)[0].Data();
+			uint32_t v1 = mesh.GetPolygon(i)[1].Data();
+			uint32_t v2 = mesh.GetPolygon(i)[2].Data();
 
 			meshData.indices.push_back(v0);
 			meshData.indices.push_back(v1);
