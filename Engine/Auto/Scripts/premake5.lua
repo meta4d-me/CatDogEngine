@@ -78,7 +78,6 @@ project("AutoMake")
 	}
 
 	filter { "system:windows" }
-		local bgfxBuildBinPath = ThirdPartySourcePath.."\\bgfx\\.build\\win64_"..IDEConfigs.BuildIDEName.."\\bin"
 		prebuildcommands {
 			"cd "..RootPath,
 			"MakeEngine_"..IDEConfigs.BuildIDEName..".bat",

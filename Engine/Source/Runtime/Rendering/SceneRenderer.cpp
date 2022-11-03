@@ -20,7 +20,7 @@ void SceneRenderer::Init()
 {
 	// CatDogProducer can parse .catdog.bin format file to SceneDatabase in memory.
 	// BgfxConsumer is used to translate SceneDatabase to data which bgfx api can use directly.
-	std::string sceneModelFilePath = "Models/scene.cdbin";
+	std::string sceneModelFilePath = "Models/kitchen_tools.cdbin";
 	cdtools::CatDogProducer cdProducer(CDENGINE_RESOURCES_ROOT_PATH + sceneModelFilePath);
 	cdtools::BgfxConsumer bgfxConsumer("");
 	cdtools::Processor processor(&cdProducer, &bgfxConsumer);
@@ -112,9 +112,9 @@ void SceneRenderer::Render(float deltaTime)
 		bgfx::setIndexBuffer(meshHandle.ibh);
 
 		bgfx::setTexture(0, m_pRenderContext->GetUniform(StringCrc("s_texCube")),
-			m_pRenderContext->GetTexture(StringCrc("bolonga_lod.dds")));
+			m_pRenderContext->GetTexture(StringCrc("skybox/bolonga_lod.dds")));
 		bgfx::setTexture(1, m_pRenderContext->GetUniform(StringCrc("s_texCubeIrr")),
-			m_pRenderContext->GetTexture(StringCrc("bolonga_irr.dds")));
+			m_pRenderContext->GetTexture(StringCrc("skybox/bolonga_irr.dds")));
 		bgfx::setTexture(5, m_pRenderContext->GetUniform(StringCrc("s_texLUT")),
 			m_pRenderContext->GetTexture(StringCrc("ibl_brdf_lut.dds")));
 
