@@ -1,6 +1,7 @@
 #include "SceneRenderer.h"
 
 #include "BgfxConsumer.h"
+#include "Camera.h"
 #include "GBuffer.h"
 #include "Producer/CatDogProducer.h"
 #include "Processor/Processor.h"
@@ -38,6 +39,7 @@ void SceneRenderer::Init()
 
 	// Start creating bgfx resources from RenderDataContext
 	m_renderDataContext = bgfxConsumer.GetRenderDataContext();
+
 	m_meshHandles.reserve(m_renderDataContext.meshRenderDataArray.size());
 	for (const MeshRenderData& meshRenderData : m_renderDataContext.meshRenderDataArray)
 	{
@@ -92,6 +94,9 @@ void SceneRenderer::Init()
 	bgfx::ShaderHandle vsh = m_pRenderContext->CreateShader("vs_PBR.bin");
 	bgfx::ShaderHandle fsh = m_pRenderContext->CreateShader("fs_PBR_0.bin");
 	m_programPBR = m_pRenderContext->CreateProgram("PBR", vsh, fsh);
+
+	// Let camera focus on the loaded scene by default.
+	m_pRenderContext->GetCamera()->FrameAll(m_renderDataContext.sceneAABB);
 }
 
 void SceneRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
