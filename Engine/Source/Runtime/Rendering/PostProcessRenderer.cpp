@@ -1,6 +1,7 @@
 #include "PostProcessRenderer.h"
 
 #include "GBuffer.h"
+#include "RenderContext.h"
 #include "SwapChain.h"
 
 #include <bx/math.h>
@@ -10,17 +11,15 @@ namespace engine
 
 void PostProcessRenderer::Init()
 {
-	s_lightingResult = bgfx::createUniform("s_lightingColor", bgfx::UniformType::Sampler);
+	s_lightingResult = m_pRenderContext->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
 
-	bgfx::ShaderHandle vsh = Renderer::LoadShader("Shaders/vs_fullscreen.bin");
-	bgfx::ShaderHandle fsh = Renderer::LoadShader("Shaders/fs_PBR_postProcessing.bin");
-	m_programPostProcessing = bgfx::createProgram(vsh, fsh, true);
+	bgfx::ShaderHandle vsh = m_pRenderContext->CreateShader("vs_fullscreen.bin");
+	bgfx::ShaderHandle fsh = m_pRenderContext->CreateShader("fs_PBR_postProcessing.bin");
+	m_programPostProcessing = m_pRenderContext->CreateProgram("GBufferToScreen", vsh, fsh);
 }
 
 PostProcessRenderer::~PostProcessRenderer()
 {
-	bgfx::destroy(s_lightingResult);
-	bgfx::destroy(m_programPostProcessing);
 }
 
 void PostProcessRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

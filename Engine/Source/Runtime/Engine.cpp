@@ -50,13 +50,11 @@ void Engine::Init()
 		SwapChain* pSwapChain = m_pRenderContext->GetSwapChain(swapChainID);
 		m_pRenderContext->InitGBuffer(width, height);
 
-		std::unique_ptr<SkyRenderer> pSkyRenderer = std::make_unique<SkyRenderer>(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer());
-		std::unique_ptr<SceneRenderer> pSceneRenderer = std::make_unique<SceneRenderer>(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer());
-		pSceneRenderer->SetDependentRender(pSkyRenderer.get());
-
+		std::unique_ptr<SkyRenderer> pSkyRenderer = std::make_unique<SkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSwapChain);
+		std::unique_ptr<SceneRenderer> pSceneRenderer = std::make_unique<SceneRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSwapChain);
 		m_pRenderers.emplace_back(std::move(pSkyRenderer));
 		m_pRenderers.emplace_back(std::move(pSceneRenderer));
-		m_pRenderers.push_back(std::make_unique<PostProcessRenderer>(m_pRenderContext->CreateView(), pSwapChain, m_pRenderContext->GetGBuffer()));
+		m_pRenderers.push_back(std::make_unique<PostProcessRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSwapChain));
 		for (std::unique_ptr<Renderer>& pRenderer : m_pRenderers)
 		{
 			pRenderer->Init();
@@ -112,12 +110,16 @@ void Engine::InitCSharpBridge()
 
 void Engine::InitPlatformWindow(const char* pTitle, uint16_t width, uint16_t height)
 {
+	m_pPlatformWindow = std::make_unique<PlatformWindow>(pTitle, width, height);
+
+	// Binding camera related event callbacks
 	m_pFlybyCamera = std::make_unique<FlybyCamera>(bx::Vec3(0.0f, 0.0f, -50.0f));
-	m_pCameraController = std::make_unique<FirstPersonCameraController>(
-		m_pFlybyCamera.get(), 
-		0.8f /* Mouse Sensitivity */, 
-		20.0f /* Movement Speed*/);
-	m_pPlatformWindow = std::make_unique<PlatformWindow>(pTitle, width, height, m_pCameraController.get());
+	m_pCameraController = std::make_unique<FirstPersonCameraController>(m_pFlybyCamera.get(), 0.8f /* Mouse Sensitivity */, 20.0f /* Movement Speed*/);
+	m_pPlatformWindow->OnMouseDown.Bind<FirstPersonCameraController, &FirstPersonCameraController::OnMousePress>(m_pCameraController.get());
+	m_pPlatformWindow->OnMouseUp.Bind<FirstPersonCameraController, &FirstPersonCameraController::OnMouseRelease>(m_pCameraController.get());
+	m_pPlatformWindow->OnMouseMotion.Bind<FirstPersonCameraController, &FirstPersonCameraController::SetMousePosition>(m_pCameraController.get());
+	m_pPlatformWindow->OnKeyDown.Bind<FirstPersonCameraController, &FirstPersonCameraController::OnKeyPress>(m_pCameraController.get());
+	m_pPlatformWindow->OnKeyUp.Bind<FirstPersonCameraController, &FirstPersonCameraController::OnKeyRelease>(m_pCameraController.get());
 }
 
 }

@@ -6,50 +6,37 @@
 #include <SDL_joystick.h>
 #include <SDL_gamecontroller.h>
 
-#include "FirstPersonCameraController.h"
-
 namespace engine
 {
 
-PlatformWindow::PlatformWindow(const char* pTitle, uint16_t width, uint16_t height, FirstPersonCameraController* pCameraController)
-	: m_Width(width)
-	, m_Height(height)
-	, m_CameraController(pCameraController)
+PlatformWindow::PlatformWindow(const char* pTitle, uint16_t width, uint16_t height)
+	: m_width(width)
+	, m_height(height)
 {
-	m_Nwh = nullptr;
-	m_Ndt = nullptr;
-	m_LastWidth = width;
-	m_LastHeight = height;
-
 	SDL_Init(SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
 
-	m_Window = SDL_CreateWindow(pTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-	SDL_WarpMouseInWindow(m_Window, static_cast<int>(width * 0.5f), static_cast<int>(height * 0.5f));
+	m_pSDLWindow = SDL_CreateWindow(pTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+	SDL_WarpMouseInWindow(m_pSDLWindow, static_cast<int>(width * 0.5f), static_cast<int>(height * 0.5f));
 
 	SDL_SysWMinfo wmi;
 	SDL_VERSION(&wmi.version);
-	SDL_GetWindowWMInfo(m_Window, &wmi);
+	SDL_GetWindowWMInfo(m_pSDLWindow, &wmi);
 
 #if PLATFORM_OSX || PLATFORM_IOS
-	m_Nwh = wmi.info.cocoa.window;
+	m_pNativeWindowHandle = wmi.info.cocoa.window;
 #elif PLATFORM_WINDOWS
-	m_Nwh = wmi.info.win.window;
+	m_pNativeWindowHandle = wmi.info.win.window;
 #elif PLATFORM_ANDROID
-	m_Nwh = wmi.info.android.window;
+	m_pNativeWindowHandle = wmi.info.android.window;
 #endif
-	m_Nwh = wmi.info.win.window;
+	m_pNativeWindowHandle = wmi.info.win.window;
 	m_IsClosed = false;
 }
 
 PlatformWindow::~PlatformWindow()
 {
 	SDL_Quit();
-	SDL_DestroyWindow(m_Window);
-}
-
-void* PlatformWindow::GetNativeWindow() const
-{
-	return m_Nwh;
+	SDL_DestroyWindow(m_pSDLWindow);
 }
 
 void PlatformWindow::Closed(bool bPushSdlEvent)
@@ -78,17 +65,14 @@ void PlatformWindow::Update()
 
 		case SDL_WINDOWEVENT:
 		{
-			int windowX = static_cast<int>(m_Width);
-			int windowY = static_cast<int>(m_Height);
-			SDL_GetWindowSize(m_Window, &windowX, &windowY);
-			m_Width = windowX;
-			m_Height = windowY;
-
-			if (m_LastWidth != m_Width || m_LastHeight != m_Height)
+			int currentWindowWidth;
+			int currentWindowHeight;
+			SDL_GetWindowSize(m_pSDLWindow, &currentWindowWidth, &currentWindowHeight);
+			if (currentWindowWidth != m_width || currentWindowHeight != m_height)
 			{
-				m_LastWidth = m_Width;
-				m_LastHeight = m_Height;
-				SDL_SetWindowSize(m_Window, m_Width, m_Height);
+				m_width = currentWindowWidth;
+				m_height = currentWindowHeight;
+				SDL_SetWindowSize(m_pSDLWindow, m_width, m_height);
 
 				//OnResize.Invoke(m_Width, m_Height);
 			}
@@ -98,35 +82,19 @@ void PlatformWindow::Update()
 		case SDL_MOUSEMOTION:
 		{
 			const SDL_MouseMotionEvent& mouseMotionEvent = sdlEvent.motion;
-
-			if (m_CameraController)
-			{
-				m_CameraController->SetMousePosition(mouseMotionEvent.xrel, mouseMotionEvent.yrel);
-			}
-
-			//OnMouseMove.Invoke(sdlEvent.motion);
+			OnMouseMotion.Invoke(mouseMotionEvent.xrel, mouseMotionEvent.yrel);
 		}
 		break;
 
 		case SDL_MOUSEBUTTONDOWN:
 		{
-			if (m_CameraController)
-			{
-				m_CameraController->OnMousePress(sdlEvent.button.button, sdlEvent.button.clicks);
-			}
-
-			//OnMouseDown.Invoke(sdlEvent.button);
+			OnMouseDown.Invoke(sdlEvent.button.button, sdlEvent.button.clicks);
 		}
 		break;
 
 		case SDL_MOUSEBUTTONUP:
 		{
-			if (m_CameraController)
-			{
-				m_CameraController->OnMouseRelease(sdlEvent.button.button, sdlEvent.button.clicks);
-			}
-
-			//OnMouseUp.Invoke(sdlEvent.button);
+			OnMouseUp.Invoke(sdlEvent.button.button, sdlEvent.button.clicks);
 		}
 		break;
 
@@ -149,23 +117,13 @@ void PlatformWindow::Update()
 				Closed();
 			}
 
-			if (m_CameraController)
-			{
-				m_CameraController->OnKeyPress(sdlEvent.key.keysym.sym, sdlEvent.key.keysym.mod);
-			}
-
-			//OnKeyDown.Invoke(sdlEvent.key);
+			OnKeyDown.Invoke(sdlEvent.key.keysym.sym, sdlEvent.key.keysym.mod);
 		}
 		break;
 
 		case SDL_KEYUP:
 		{
-			if (m_CameraController)
-			{
-				m_CameraController->OnKeyRelease(sdlEvent.key.keysym.sym, sdlEvent.key.keysym.mod);
-			}
-
-			//OnKeyUp.Invoke(sdlEvent.key);
+			OnKeyUp.Invoke(sdlEvent.key.keysym.sym, sdlEvent.key.keysym.mod);
 		}
 		break;
 
@@ -290,8 +248,8 @@ bool PlatformWindow::ShouldClose()
 
 void PlatformWindow::SetSize(uint16_t width, uint16_t height)
 {
-	m_Width = width;
-	m_Height = height;
+	m_width = width;
+	m_height = height;
 }
 
 }

@@ -4,9 +4,9 @@
 #include "GBuffer.h"
 #include "Producer/CatDogProducer.h"
 #include "Processor/Processor.h"
+#include "RenderContext.h"
 #include "Scene/Texture.h"
 #include "SwapChain.h"
-#include "SkyRenderer.h"
 
 #include <bgfx/bgfx.h>
 #include <bx/math.h>
@@ -20,7 +20,7 @@ void SceneRenderer::Init()
 {
 	// CatDogProducer can parse .catdog.bin format file to SceneDatabase in memory.
 	// BgfxConsumer is used to translate SceneDatabase to data which bgfx api can use directly.
-	std::string sceneModelFilePath = "Models/scene.cdbin";
+	std::string sceneModelFilePath = "Models/kitchen_tools.cdbin";
 	cdtools::CatDogProducer cdProducer(CDENGINE_RESOURCES_ROOT_PATH + sceneModelFilePath);
 	cdtools::BgfxConsumer bgfxConsumer("");
 	cdtools::Processor processor(&cdProducer, &bgfxConsumer);
@@ -62,8 +62,8 @@ void SceneRenderer::Init()
 		if (optBaseColor.has_value())
 		{
 			TextureHandle textureHandle;
-			textureHandle.sampler = bgfx::createUniform(std::format("s_textureBaseColor{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
-			textureHandle.texture = Renderer::LoadTexture("Textures/" + optBaseColor.value() + ".dds", textureSamplerFlags | BGFX_TEXTURE_SRGB);
+			textureHandle.sampler = m_pRenderContext->CreateUniform(std::format("s_textureBaseColor{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
+			textureHandle.texture = m_pRenderContext->CreateTexture((optBaseColor.value() + ".dds").c_str(), textureSamplerFlags | BGFX_TEXTURE_SRGB);
 			materialHandle.baseColor = std::move(textureHandle);
 		}
 		
@@ -71,8 +71,8 @@ void SceneRenderer::Init()
 		if (optNormal.has_value())
 		{
 			TextureHandle textureHandle;
-			textureHandle.sampler = bgfx::createUniform(std::format("s_textureNormal{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
-			textureHandle.texture = Renderer::LoadTexture("Textures/" + optNormal.value() + ".dds", textureSamplerFlags);
+			textureHandle.sampler = m_pRenderContext->CreateUniform(std::format("s_textureNormal{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
+			textureHandle.texture = m_pRenderContext->CreateTexture((optNormal.value() + ".dds").c_str(), textureSamplerFlags);
 			materialHandle.normal = std::move(textureHandle);
 		}
 
@@ -80,8 +80,8 @@ void SceneRenderer::Init()
 		if (optRoughness.has_value())
 		{
 			TextureHandle textureHandle;
-			textureHandle.sampler = bgfx::createUniform(std::format("s_textureORM{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
-			textureHandle.texture = Renderer::LoadTexture("Textures/" + optRoughness.value() + ".dds", textureSamplerFlags);
+			textureHandle.sampler = m_pRenderContext->CreateUniform(std::format("s_textureORM{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
+			textureHandle.texture = m_pRenderContext->CreateTexture((optRoughness.value() + ".dds").c_str(), textureSamplerFlags);
 			materialHandle.orm = std::move(textureHandle);
 		}
 
@@ -89,8 +89,9 @@ void SceneRenderer::Init()
 		++materialIndex;
 	}
 
-	m_programPBR = bgfx::createProgram(Renderer::LoadShader("Shaders/vs_PBR.bin"),
-		Renderer::LoadShader("Shaders/fs_PBR_0.bin"), true);
+	bgfx::ShaderHandle vsh = m_pRenderContext->CreateShader("vs_PBR.bin");
+	bgfx::ShaderHandle fsh = m_pRenderContext->CreateShader("fs_PBR_0.bin");
+	m_programPBR = m_pRenderContext->CreateProgram("PBR", vsh, fsh);
 }
 
 void SceneRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -109,8 +110,14 @@ void SceneRenderer::Render(float deltaTime)
 	
 		bgfx::setVertexBuffer(0, meshHandle.vbh);
 		bgfx::setIndexBuffer(meshHandle.ibh);
-	
-		m_pSkyRenderer->RenderForOtherView();
+
+		bgfx::setTexture(0, m_pRenderContext->GetUniform(StringCrc("s_texCube")),
+			m_pRenderContext->GetTexture(StringCrc("skybox/bolonga_lod.dds")));
+		bgfx::setTexture(1, m_pRenderContext->GetUniform(StringCrc("s_texCubeIrr")),
+			m_pRenderContext->GetTexture(StringCrc("skybox/bolonga_irr.dds")));
+		bgfx::setTexture(5, m_pRenderContext->GetUniform(StringCrc("s_texLUT")),
+			m_pRenderContext->GetTexture(StringCrc("ibl_brdf_lut.dds")));
+
 		bgfx::setTexture(2, materialHandle.baseColor.sampler, materialHandle.baseColor.texture);
 		bgfx::setTexture(3, materialHandle.normal.sampler, materialHandle.normal.texture);
 		bgfx::setTexture(4, materialHandle.orm.sampler, materialHandle.orm.texture);

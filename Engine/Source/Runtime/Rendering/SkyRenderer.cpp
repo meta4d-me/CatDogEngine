@@ -1,6 +1,7 @@
 #include "SkyRenderer.h"
 
 #include "GBuffer.h"
+#include "RenderContext.h"
 #include "SwapChain.h"
 
 #include <bx/math.h>
@@ -11,32 +12,23 @@ namespace engine
 void SkyRenderer::Init()
 {
 	m_uniforms.Init();
-	m_uniformTexCube = bgfx::createUniform("s_texCube", bgfx::UniformType::Sampler);
-	m_uniformTexCubeIrr = bgfx::createUniform("s_texCubeIrr", bgfx::UniformType::Sampler);
-	m_uniformTexLUT = bgfx::createUniform("s_texLUT", bgfx::UniformType::Sampler);
+	m_uniformTexCube = m_pRenderContext->CreateUniform("s_texCube", bgfx::UniformType::Sampler);
+	m_uniformTexCubeIrr = m_pRenderContext->CreateUniform("s_texCubeIrr", bgfx::UniformType::Sampler);
+	m_uniformTexLUT = m_pRenderContext->CreateUniform("s_texLUT", bgfx::UniformType::Sampler);
 
 	m_lightProbeEV100 = -2.0f;
 	uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
-	m_lightProbeTex = Renderer::LoadTexture("Textures/bolonga_lod.dds", samplerFlags);
-	m_lightProbeTexIrr = Renderer::LoadTexture("Textures/bolonga_irr.dds", samplerFlags);
-	m_iblLUTTex = Renderer::LoadTexture("Textures/ibl_brdf_lut.dds");
+	m_lightProbeTex = m_pRenderContext->CreateTexture("skybox/bolonga_lod.dds", samplerFlags);
+	m_lightProbeTexIrr = m_pRenderContext->CreateTexture("skybox/bolonga_irr.dds", samplerFlags);
+	m_iblLUTTex = m_pRenderContext->CreateTexture("ibl_brdf_lut.dds");
 
-	bgfx::ShaderHandle vsh = Renderer::LoadShader("Shaders/vs_PBR_skybox.bin");
-	bgfx::ShaderHandle fsh = Renderer::LoadShader("Shaders/fs_PBR_skybox.bin");
-	m_programSky = bgfx::createProgram(vsh, fsh, true);
+	bgfx::ShaderHandle vsh = m_pRenderContext->CreateShader("vs_PBR_skybox.bin");
+	bgfx::ShaderHandle fsh = m_pRenderContext->CreateShader("fs_PBR_skybox.bin");
+	m_programSky = m_pRenderContext->CreateProgram("skybox", vsh, fsh);
 }
 
 SkyRenderer::~SkyRenderer()
 {
-	bgfx::destroy(m_uniformTexLUT);
-	bgfx::destroy(m_uniformTexCube);
-	bgfx::destroy(m_uniformTexCubeIrr);
-	
-	bgfx::destroy(m_iblLUTTex);
-	bgfx::destroy(m_lightProbeTex);
-	bgfx::destroy(m_lightProbeTexIrr);
-
-	bgfx::destroy(m_programSky);
 }
 
 void SkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -59,13 +51,6 @@ void SkyRenderer::Render(float deltaTime)
 	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 	Renderer::ScreenSpaceQuad(static_cast<float>(m_pGBuffer->GetWidth()), static_cast<float>(m_pGBuffer->GetHeight()), true);
 	bgfx::submit(GetViewID(), m_programSky);
-}
-
-void SkyRenderer::RenderForOtherView() const
-{
-	bgfx::setTexture(0, m_uniformTexCube, m_lightProbeTex);
-	bgfx::setTexture(1, m_uniformTexCubeIrr, m_lightProbeTexIrr);
-	bgfx::setTexture(5, m_uniformTexLUT, m_iblLUTTex);
 }
 
 }
