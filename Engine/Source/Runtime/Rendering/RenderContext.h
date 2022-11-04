@@ -11,6 +11,7 @@
 namespace engine
 {
 
+class Camera;
 class GBuffer;
 class SwapChain;
 
@@ -40,6 +41,9 @@ public:
 	void InitGBuffer(uint16_t width, uint16_t height);
 	GBuffer* GetGBuffer() const;
 
+	void SetCamera(Camera* pCamera) { m_pCamera = pCamera; }
+	Camera* GetCamera() const { return m_pCamera; }
+
 	/////////////////////////////////////////////////////////////////////
 	// Resource related apis
 	/////////////////////////////////////////////////////////////////////
@@ -56,6 +60,7 @@ public:
 private:
 	uint8_t m_currentViewCount = 0;
 	uint8_t m_currentSwapChainCount = 0;
+	Camera* m_pCamera = nullptr;
 	std::unique_ptr<SwapChain> m_pSwapChains[MaxSwapChainCount];
 	std::unique_ptr<GBuffer> m_pGBuffer;
 

@@ -5,36 +5,10 @@
 namespace engine
 {
 
-FlybyCamera::FlybyCamera() 
-	: Camera()
-	, m_position(0.0f, 0.0f, 0.0f)
-	, m_forwardDirection(0.0f, 0.0f, 1.0f)
-	, m_upDirection(0.0f, 1.0f, 0.0f)
-{
-	memset(m_viewMatrix, 0, 16 * sizeof(float));
-}
-
-FlybyCamera::FlybyCamera(const bx::Vec3& position)
-	: Camera()
-	, m_position(position)
-	, m_forwardDirection(0.0f, 0.0f, 1.0f)
-	, m_upDirection(0.0f, 1.0f, 0.0f)
-{
-	memset(m_viewMatrix, 0, 16 * sizeof(float));
-}
-
-FlybyCamera::FlybyCamera(const bx::Vec3& position, const bx::Vec3& forward, const bx::Vec3& up)
-	: Camera()
-	, m_position(position)
-	, m_forwardDirection(bx::normalize(forward))
-	, m_upDirection(bx::normalize(up))
-{
-	memset(m_viewMatrix, 0, 16 * sizeof(float));
-}
-
 void FlybyCamera::MoveForward(const float amount)
 {
 	m_position = bx::mad(m_forwardDirection, amount, m_position);
+	Dirty();
 }
 
 void FlybyCamera::MoveBackward(const float amount)
@@ -46,6 +20,7 @@ void FlybyCamera::MoveLeft(const float amount)
 {
 	const bx::Vec3 leftAxis = bx::normalize(bx::cross(m_forwardDirection, m_upDirection));
 	m_position = bx::mad(leftAxis, amount, m_position);
+	Dirty();
 }
 
 void FlybyCamera::MoveRight(const float amount)
@@ -56,6 +31,7 @@ void FlybyCamera::MoveRight(const float amount)
 void FlybyCamera::MoveUp(const float amount)
 {
 	m_position = bx::mad(m_upDirection, amount, m_position);
+	Dirty();
 }
 
 void FlybyCamera::MoveDown(const float amount)
@@ -105,23 +81,6 @@ void FlybyCamera::PitchLocal(const float angleDegrees)
 void FlybyCamera::RollLocal(const float angleDegrees)
 {
 	Rotate(m_forwardDirection, angleDegrees);
-}
-
-const float* FlybyCamera::GetViewMatrix() const {
-	return m_viewMatrix;
-}
-
-void FlybyCamera::Update()
-{
-	if (!m_dirty) return;
-
-	// Update NDC
-	Camera::Update();
-
-	// Update view matrix
-	bx::mtxLookAt(m_viewMatrix, m_position, bx::add(m_position, m_forwardDirection), m_upDirection);
-
-	m_dirty = false;
 }
 
 }	// namespace engine
