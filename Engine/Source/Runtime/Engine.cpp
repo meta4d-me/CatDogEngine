@@ -38,14 +38,13 @@ void Engine::Init()
 		uint16_t height = m_pPlatformWindow->GetHeight();
 
 		// Initialize Camera
-		if (m_pFlybyCamera)
-		{
-			m_pFlybyCamera->SetAspect(static_cast<float>(width) / height);
-			m_pFlybyCamera->SetFov(45.0f);
-			m_pFlybyCamera->SetNearPlane(0.1f);
-			m_pFlybyCamera->SetFarPlane(1000.0f);
-		}
-		
+		m_pFlybyCamera->SetAspect(static_cast<float>(width) / height);
+		m_pFlybyCamera->SetFov(45.0f);
+		m_pFlybyCamera->SetNearPlane(0.1f);
+		m_pFlybyCamera->SetFarPlane(1000.0f);
+		m_pFlybyCamera->SetHomogeneousNdc(bgfx::getCaps()->homogeneousDepth);
+		m_pRenderContext->SetCamera(m_pFlybyCamera.get());
+
 		uint8_t swapChainID = m_pRenderContext->CreateSwapChain(m_pPlatformWindow->GetNativeWindow(), width, height);
 		SwapChain* pSwapChain = m_pRenderContext->GetSwapChain(swapChainID);
 		m_pRenderContext->InitGBuffer(width, height);
@@ -75,17 +74,19 @@ void Engine::MainLoop()
 			m_pCameraController->Update(clock.GetDeltaTime());
 		}
 
-		if (m_pPlatformWindow && m_pFlybyCamera)
+		if (m_pPlatformWindow)
 		{
-			// Update in case of resize happened
-			m_pFlybyCamera->SetAspect(static_cast<float>(m_pPlatformWindow->GetWidth()) / m_pPlatformWindow->GetHeight());
-			m_pFlybyCamera->Update();
-
 			m_pPlatformWindow->Update();
 			if(m_pPlatformWindow->ShouldClose())
 			{
 				break;
 			}
+
+			// Update in case of resize happened.
+			// Should move to another place after I add the resize logic for all things.
+			// TODO : Depends on a multiple cast delegate class.
+			// m_pFlybyCamera->SetAspect(static_cast<float>(m_pPlatformWindow->GetWidth()) / m_pPlatformWindow->GetHeight());
+			m_pFlybyCamera->Update();
 
 			m_pRenderContext->BeginFrame();
 			for (std::unique_ptr<Renderer>& pRenderer : m_pRenderers)
@@ -112,9 +113,10 @@ void Engine::InitPlatformWindow(const char* pTitle, uint16_t width, uint16_t hei
 {
 	m_pPlatformWindow = std::make_unique<PlatformWindow>(pTitle, width, height);
 
-	// Binding camera related event callbacks
 	m_pFlybyCamera = std::make_unique<FlybyCamera>(bx::Vec3(0.0f, 0.0f, -50.0f));
 	m_pCameraController = std::make_unique<FirstPersonCameraController>(m_pFlybyCamera.get(), 0.8f /* Mouse Sensitivity */, 20.0f /* Movement Speed*/);
+	
+	// Binding camera related event callbacks
 	m_pPlatformWindow->OnMouseDown.Bind<FirstPersonCameraController, &FirstPersonCameraController::OnMousePress>(m_pCameraController.get());
 	m_pPlatformWindow->OnMouseUp.Bind<FirstPersonCameraController, &FirstPersonCameraController::OnMouseRelease>(m_pCameraController.get());
 	m_pPlatformWindow->OnMouseMotion.Bind<FirstPersonCameraController, &FirstPersonCameraController::SetMousePosition>(m_pCameraController.get());

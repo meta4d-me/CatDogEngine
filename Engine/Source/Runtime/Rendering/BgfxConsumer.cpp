@@ -64,15 +64,10 @@ void BgfxConsumer::Execute(const SceneDatabase* pSceneDatabase) {
 	}
 
 	assert(!meshes.empty() && "Meshes can not be empty.");
-	//AABB sceneAabb;
-
 	for (const cdtools::Mesh& mesh : meshes) {
 		printf("\n\tMeshName : %s\n", mesh.GetName().c_str());
 		printf("\t\tVertexCount : %u\n", mesh.GetVertexCount());
 		printf("\t\tPolygonCount : %u\n", mesh.GetPolygonCount());
-
-		// AABB
-		//sceneAabb.Add(mesh.GetAABB());
 
 		MeshRenderData meshData;
 		meshData.vertices.reserve(mesh.GetVertexCount());
@@ -134,7 +129,7 @@ void BgfxConsumer::Execute(const SceneDatabase* pSceneDatabase) {
 		m_renderDataContext.materialRenderDataArray.emplace_back(std::move(materialData));
 	}
 
-	//m_renderDataContext.sceneAabb = sceneAabb;
+	m_renderDataContext.sceneAABB = sceneAABB;
 }
 
 }
