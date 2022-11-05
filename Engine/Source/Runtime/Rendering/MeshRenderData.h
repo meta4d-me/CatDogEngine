@@ -119,5 +119,5 @@ struct RenderDataContext
 	std::vector<MeshRenderData> meshRenderDataArray;
 	std::vector<MaterialRenderData> materialRenderDataArray;
 
-	//cdtools::AABB sceneAabb;
+	cdtools::AABB sceneAABB;
 };

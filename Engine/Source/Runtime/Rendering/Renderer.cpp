@@ -1,6 +1,5 @@
 #include "Renderer.h"
 
-#include "Camera.h"
 #include "RenderContext.h"
 #include "SwapChain.h"
 
