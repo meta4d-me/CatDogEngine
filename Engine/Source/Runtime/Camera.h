@@ -20,6 +20,7 @@ public:
 	virtual ~Camera() = default;
 
 	void SetAspect(float aspect);
+	void SetAspect(uint16_t width, uint16_t height) { SetAspect(static_cast<float>(width) / height); }
 	float GetAspect() const { return m_aspect; }
 
 	void SetFov(float fov);

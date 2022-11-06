@@ -30,6 +30,9 @@ void Engine::Init()
 	m_pRenderContext = std::make_unique<RenderContext>();
 	m_pRenderContext->Init();
 
+	// Binding render related event callbacks
+	m_pPlatformWindow->OnResize.Bind<RenderContext, &RenderContext::ResizeFrameBuffers>(m_pRenderContext.get());
+
 	// If engine already set up an OS's target native window, then it should be game mode with only one swap chain.
 	// If not, it should be editor mode with multiple swap chains binding with different views.
 	if(m_pPlatformWindow)
@@ -82,10 +85,6 @@ void Engine::MainLoop()
 				break;
 			}
 
-			// Update in case of resize happened.
-			// Should move to another place after I add the resize logic for all things.
-			// TODO : Depends on a multiple cast delegate class.
-			// m_pFlybyCamera->SetAspect(static_cast<float>(m_pPlatformWindow->GetWidth()) / m_pPlatformWindow->GetHeight());
 			m_pFlybyCamera->Update();
 
 			m_pRenderContext->BeginFrame();
@@ -117,6 +116,7 @@ void Engine::InitPlatformWindow(const char* pTitle, uint16_t width, uint16_t hei
 	m_pCameraController = std::make_unique<FirstPersonCameraController>(m_pFlybyCamera.get(), 0.8f /* Mouse Sensitivity */, 20.0f /* Movement Speed*/);
 	
 	// Binding camera related event callbacks
+	m_pPlatformWindow->OnResize.Bind<Camera, &Camera::SetAspect>(m_pFlybyCamera.get());
 	m_pPlatformWindow->OnMouseDown.Bind<FirstPersonCameraController, &FirstPersonCameraController::OnMousePress>(m_pCameraController.get());
 	m_pPlatformWindow->OnMouseUp.Bind<FirstPersonCameraController, &FirstPersonCameraController::OnMouseRelease>(m_pCameraController.get());
 	m_pPlatformWindow->OnMouseMotion.Bind<FirstPersonCameraController, &FirstPersonCameraController::SetMousePosition>(m_pCameraController.get());

@@ -46,8 +46,8 @@ public:
 	explicit Delegate() = default;
 	Delegate(const Delegate&) = delete;
 	Delegate& operator=(const Delegate&) = delete;
-	Delegate(Delegate&&) = delete;
-	Delegate& operator=(Delegate&&) = delete;
+	Delegate(Delegate&&) = default;
+	Delegate& operator=(Delegate&&) = default;
 	~Delegate() = default;
 
 	template<RetVal(*Function)(Args...)>

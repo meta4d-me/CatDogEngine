@@ -2,7 +2,7 @@
 
 #include <inttypes.h>
 
-#include "Core/Delegates/Delegate.hpp"
+#include "Core/Delegates/MulticastDelegate.hpp"
 
 struct SDL_Window;
 
@@ -29,11 +29,12 @@ public:
 	uint16_t GetHeight() const { return m_height; }
 
 public:
-    Delegate<void(const uint8_t, const uint8_t)> OnMouseDown;
-    Delegate<void(const uint8_t, const uint8_t)> OnMouseUp;
-    Delegate<void(const int32_t, const int32_t)> OnMouseMotion;
-    Delegate<void(const int32_t, const uint16_t)> OnKeyDown;
-    Delegate<void(const int32_t, const uint16_t)> OnKeyUp;
+    MulticastDelegate<void(const uint8_t, const uint8_t)> OnMouseDown;
+    MulticastDelegate<void(const uint8_t, const uint8_t)> OnMouseUp;
+    MulticastDelegate<void(const int32_t, const int32_t)> OnMouseMotion;
+    MulticastDelegate<void(const int32_t, const uint16_t)> OnKeyDown;
+    MulticastDelegate<void(const int32_t, const uint16_t)> OnKeyUp;
+    MulticastDelegate<void(const uint16_t, const uint16_t)> OnResize;
 
 private:
     void* m_pNativeWindowHandle = nullptr;
