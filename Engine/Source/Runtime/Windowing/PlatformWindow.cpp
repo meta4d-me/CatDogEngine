@@ -65,16 +65,25 @@ void PlatformWindow::Update()
 
 		case SDL_WINDOWEVENT:
 		{
-			int currentWindowWidth;
-			int currentWindowHeight;
-			SDL_GetWindowSize(m_pSDLWindow, &currentWindowWidth, &currentWindowHeight);
-			if (currentWindowWidth != m_width || currentWindowHeight != m_height)
+			const SDL_WindowEvent& wev = sdlEvent.window;
+			switch (wev.event)
 			{
-				m_width = currentWindowWidth;
-				m_height = currentWindowHeight;
-				SDL_SetWindowSize(m_pSDLWindow, m_width, m_height);
+				case SDL_WINDOWEVENT_RESIZED:
+				case SDL_WINDOWEVENT_SIZE_CHANGED:
+				{
+					int currentWindowWidth;
+					int currentWindowHeight;
+					SDL_GetWindowSize(m_pSDLWindow, &currentWindowWidth, &currentWindowHeight);
+					if (currentWindowWidth != m_width || currentWindowHeight != m_height)
+					{
+						m_width = currentWindowWidth;
+						m_height = currentWindowHeight;
+						SDL_SetWindowSize(m_pSDLWindow, m_width, m_height);
 
-				//OnResize.Invoke(m_Width, m_Height);
+						OnResize.Invoke(m_width, m_height);
+					}
+				}
+				break;
 			}
 		}
 		break;

@@ -30,6 +30,7 @@ public:
 	~RenderContext();
 
 	void Init();
+	void ResizeFrameBuffers(uint16_t width, uint16_t height);
 	void BeginFrame();
 	void EndFrame();
 	void Shutdown();

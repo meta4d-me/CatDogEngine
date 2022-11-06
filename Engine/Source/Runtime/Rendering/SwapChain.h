@@ -30,7 +30,6 @@ public:
 	uint16_t GetHeight() const { return m_frameBufferHeight; }
 	const bgfx::FrameBufferHandle* GetFrameBuffer() const { return m_pFrameBufferHandle.get(); }
 	float GetAspect() const { return static_cast<float>(m_frameBufferWidth) / static_cast<float>(m_frameBufferHeight);}
-	void Resize(uint16_t width, uint16_t height);
 
 private:
 	uint16_t m_frameBufferWidth;

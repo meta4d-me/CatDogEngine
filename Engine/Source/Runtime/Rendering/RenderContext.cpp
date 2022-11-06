@@ -81,6 +81,11 @@ void RenderContext::EndFrame()
 	bgfx::frame();
 }
 
+void RenderContext::ResizeFrameBuffers(uint16_t width, uint16_t height)
+{
+	bgfx::reset(width, height, BGFX_RESET_MSAA_X16 | BGFX_RESET_VSYNC);
+}
+
 uint16_t RenderContext::CreateView()
 {
 	assert(m_currentViewCount < MaxViewCount && "Overflow the max count of views.");
@@ -103,7 +108,6 @@ SwapChain* RenderContext::GetSwapChain(uint8_t swapChainID) const
 void RenderContext::InitGBuffer(uint16_t width, uint16_t height)
 {
 	m_pGBuffer = std::make_unique<GBuffer>(width, height);
-	bgfx::reset(m_pGBuffer->GetWidth(), m_pGBuffer->GetHeight(), BGFX_RESET_MSAA_X16 | BGFX_RESET_VSYNC);
 }
 
 GBuffer* RenderContext::GetGBuffer() const
