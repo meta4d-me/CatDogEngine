@@ -2,9 +2,7 @@
 
 #include "Delegate.hpp"
 
-#include <assert.h>
-#include <functional>
-#include <vector>
+#include <list>
 
 namespace engine
 {
@@ -61,7 +59,7 @@ public:
 	}
 
 private:
-	std::vector<Delegate<RetVal(Args...)>> m_delegates;
+	std::list<Delegate<RetVal(Args...)>> m_delegates;
 };
 
 }
