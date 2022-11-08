@@ -78,7 +78,7 @@ void SceneRenderer::Init()
 			materialHandle.normal = std::move(textureHandle);
 		}
 
-		const std::optional<std::string>& optRoughness = materialRenderData.GetTextureName(cdtools::MaterialTextureType::Unknown);
+		const std::optional<std::string>& optRoughness = materialRenderData.GetTextureName(cdtools::MaterialTextureType::Roughness);
 		if (optRoughness.has_value())
 		{
 			TextureHandle textureHandle;
