@@ -32,9 +32,7 @@ void SceneRenderer::Init()
 		.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
 		.add(bgfx::Attrib::Normal, 3, bgfx::AttribType::Float)
 		.add(bgfx::Attrib::Tangent, 3, bgfx::AttribType::Float)
-		.add(bgfx::Attrib::Bitangent, 3, bgfx::AttribType::Float)
 		.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
-		.add(bgfx::Attrib::Color1, 3, bgfx::AttribType::Float)
 		.end();
 
 	// Start creating bgfx resources from RenderDataContext
@@ -78,7 +76,7 @@ void SceneRenderer::Init()
 			materialHandle.normal = std::move(textureHandle);
 		}
 
-		const std::optional<std::string>& optRoughness = materialRenderData.GetTextureName(cdtools::MaterialTextureType::Unknown);
+		const std::optional<std::string>& optRoughness = materialRenderData.GetTextureName(cdtools::MaterialTextureType::Roughness);
 		if (optRoughness.has_value())
 		{
 			TextureHandle textureHandle;
