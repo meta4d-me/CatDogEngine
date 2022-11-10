@@ -6,16 +6,14 @@
 #include <string>
 #include <vector>
 
-struct PositionNormalTangentBitangentTexCoord0BarycentricCoordinatesVertext
+struct VertextData
 {
 	float m_position_x, m_position_y, m_position_z;
 	float m_normal_x, m_normal_y, m_normal_z;
 	float m_tangent_x, m_tangent_y, m_tangent_z;
-	float m_bitangent_x, m_bitangent_y, m_bitangent_z;
+	//float m_bitangent_x, m_bitangent_y, m_bitangent_z;
 	float m_u, m_v;
-	float m_bc_x, m_bc_y, m_bc_z;
 };
-using VertextData = PositionNormalTangentBitangentTexCoord0BarycentricCoordinatesVertext;
 
 struct PositionBarycentricCoordinatesVertext
 {

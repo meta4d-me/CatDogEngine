@@ -69,6 +69,7 @@ dofile("thirdparty.lua")
 dofile("engine.lua")
 dofile("project.lua")
 
+group("Build")
 project("AutoMake")
 	kind("Utility")
 	location(path.join(IntermediatePath, "Engine/Misc"))
@@ -83,3 +84,5 @@ project("AutoMake")
 			"MakeEngine_"..IDEConfigs.BuildIDEName..".bat",
 		}
 	filter {}
+
+group("")

@@ -53,9 +53,18 @@ void BgfxConsumer::Execute(const SceneDatabase* pSceneDatabase)
 	assert(!meshes.empty() && "Meshes can not be empty.");
 	for (const cdtools::Mesh& mesh : meshes)
 	{
-		printf("\n\tMeshName : %s\n", mesh.GetName().c_str());
+		printf("\tMeshName : %s\n", mesh.GetName().c_str());
 		printf("\t\tVertexCount : %u\n", mesh.GetVertexCount());
 		printf("\t\tPolygonCount : %u\n", mesh.GetPolygonCount());
+
+		const cdtools::VertexFormat& vertexFormat = mesh.GetVertexFormat();
+		for(const auto& vertexAttributeLayout : vertexFormat.GetVertexLayout())
+		{
+			printf("\t\tVertex AttributeType : %u, Vertex AttributeValueType : %u, Vertex AttributeCount : %u\n",
+				vertexAttributeLayout.vertexAttributeType,
+				vertexAttributeLayout.attributeValueType,
+				vertexAttributeLayout.attributeCount);
+		}
 
 		MeshRenderData meshData;
 		meshData.vertices.reserve(mesh.GetVertexCount());
@@ -65,9 +74,8 @@ void BgfxConsumer::Execute(const SceneDatabase* pSceneDatabase)
 			std::memcpy(&vertextData.m_position_x, &mesh.GetVertexPosition(vertexIndex), 3 * sizeof(float));
 			std::memcpy(&vertextData.m_normal_x, &mesh.GetVertexNormal(vertexIndex), 3 * sizeof(float));
 			std::memcpy(&vertextData.m_tangent_x, &mesh.GetVertexTangent(vertexIndex), 3 * sizeof(float));
-			std::memcpy(&vertextData.m_bitangent_x, &mesh.GetVertexBiTangent(vertexIndex), 3 * sizeof(float));
+			//std::memcpy(&vertextData.m_bitangent_x, &mesh.GetVertexBiTangent(vertexIndex), 3 * sizeof(float));
 			std::memcpy(&vertextData.m_u, &mesh.GetVertexUV(0)[vertexIndex], 2 * sizeof(float));
-			//std::memcpy(&vertextData.m_bc_x, &mesh.GetVertexBC(i), 3 * sizeof(float));
 			meshData.vertices.emplace_back(std::move(vertextData));
 		}
 
