@@ -64,25 +64,14 @@ function DeclareExternalProject(projectName, projectKind, projectPath)
 		location(path.join(ThirdPartyProjectPath, projectPath))
 end
 
--- Make projects
+-- thirdparty projects such as sdl
 dofile("thirdparty.lua")
+
+-- engine projects
 dofile("engine.lua")
+
+-- game projects made by engine
 dofile("project.lua")
 
-group("Build")
-project("AutoMake")
-	kind("Utility")
-	location(path.join(IntermediatePath, "Engine/Misc"))
-	targetdir(BinariesPath)	
-	files {
-		path.join(EnginePath, "Auto/Scripts/**.*")
-	}
-
-	filter { "system:windows" }
-		prebuildcommands {
-			"cd "..RootPath,
-			"MakeEngine_"..IDEConfigs.BuildIDEName..".bat",
-		}
-	filter {}
-
-group("")
+-- helper projects to compile shaders/textures, trigger makefiles...
+dofile("utility.lua")
