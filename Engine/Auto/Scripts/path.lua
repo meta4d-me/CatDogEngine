@@ -16,7 +16,6 @@ IntermediatePath = path.join(EnginePath, "Intermediate/"..PlatformName)
 EngineSourcePath = path.join(EnginePath, "Source")
 
 -- ThirdParty
-ThirdPartyProjectPath = path.join(EnginePath, "ThirdPartyProjects")
 ThirdPartySourcePath = path.join(EngineSourcePath, "ThirdParty")
 
 -- Runtime

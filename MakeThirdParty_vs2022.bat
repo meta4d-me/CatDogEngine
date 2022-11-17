@@ -8,24 +8,22 @@ rem set variables
 call ./Engine/Auto/Configs/vs2022/Config.bat
 
 rem generate
-cd Engine
-if not exist ThirdPartyProjects\. mkdir ThirdPartyProjects
-cd ThirdPartyProjects
+cd Engine/Source/ThirdParty
 set ThirdPartyProjectsPath=%cd%
 echo %ThirdPartyProjectsPath%
 
 echo [ BGFX ] Start making project...
-rem TODO : let GENie generate projects under ThirdPartyProjectsPath/bgfx
-cd ../Source/ThirdParty/bgfx
+cd bgfx
 "../bx/tools/bin/windows/genie.exe" --with-windows=10.0 --with-examples --with-tools %BUILD_IDE_NAME%
-rem xcopy ".build" "..\..\..\ThirdPartyProjects\bgfx\build" /E /H /C /I /Y
 cd %ThirdPartyProjectsPath%
 echo\
 
 echo [ SDL ] Start making project...
-if not exist sdl\. mkdir sdl
 cd sdl
-%CMAKE_EXE% ../../Source/ThirdParty/sdl -G %CMAKE_IDE_FULL_NAME% -A x64 -DSDL_FORCE_STATIC_VCRT=ON
+if not exist build mkdir build
+cd build
+%CMAKE_EXE% .. -G %CMAKE_IDE_FULL_NAME% -DSDL_FORCE_STATIC_VCRT=ON
+%CMAKE_EXE% --build .
 cd ..
 echo\
 

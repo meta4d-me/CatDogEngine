@@ -31,6 +31,7 @@ end
 workspace(EngineName)
 	-- location specifies the path for workspace project file, .sln for Visual Studio.
 	location(RootPath)
+	targetdir(BinariesPath)
 	
 	architecture "x64"
 	
@@ -53,16 +54,6 @@ workspace(EngineName)
 		-- For Windows OS, we want to use latest Windows SDK installed in the PC.
 		systemversion("latest")
 	filter {}
-
--- utils
-function DeclareExternalProject(projectName, projectKind, projectPath)
-	-- Same with projectName by default
-	projectPath = projectPath or projectName
-
-	externalproject(projectName)
-		kind(projectKind)
-		location(path.join(ThirdPartyProjectPath, projectPath))
-end
 
 -- thirdparty projects such as sdl
 dofile("thirdparty.lua")

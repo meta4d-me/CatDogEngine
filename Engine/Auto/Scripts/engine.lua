@@ -87,7 +87,7 @@ project("Engine")
 			"BX_CONFIG_DEBUG",
 		}
 		libdirs {
-			path.join(ThirdPartyProjectPath, "sdl/Debug"),
+			path.join(ThirdPartySourcePath, "sdl/build/Debug"),
 			path.join(BinariesPath, "bgfx"),
 		}
 		links {
@@ -96,7 +96,7 @@ project("Engine")
 		}
 	filter { "configurations:Release" }
 		libdirs {
-			path.join(ThirdPartyProjectPath, "sdl/Release"),
+			path.join(ThirdPartySourcePath, "sdl/build/Release"),
 			path.join(BinariesPath, "bgfx"),
 		}
 		links {
@@ -151,7 +151,7 @@ project("Engine")
 	-- 1.Project binary folder
 	-- 2.Editor binary folder
 	local projectBinaryPath = path.join(BinariesPath, "Projects/SponzaBaseScene")
-	local sourceSDLDllPath = path.join(ThirdPartyProjectPath, "sdl/Debug/SDL2d.dll*")
+	local sourceSDLDllPath = path.join(ThirdPartySourcePath, "build/sdl/Debug/SDL2d.dll*")
 	local targetSDLDllPath = path.join(projectBinaryPath, "SDL2d.dll*")
 	local sourceEngineDllPath = path.join(BinariesPath, "Engine.*")
 	local targetEngineDllPath = path.join(projectBinaryPath, "Engine.*")
