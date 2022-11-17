@@ -86,6 +86,8 @@ project("Engine")
 		"SDL_MAIN_HANDLED",
 		"__STDC_LIMIT_MACROS", "__STDC_FORMAT_MACROS", "__STDC_CONSTANT_MACROS",
 		"STB_IMAGE_STATIC",
+		EngineBuildPlatform,
+		EngineGraphicsBackend,
 		table.unpack(platformDefines),
 		"CDENGINE_RESOURCES_ROOT_PATH=\""..projectResourcesPath.."\""
 	}

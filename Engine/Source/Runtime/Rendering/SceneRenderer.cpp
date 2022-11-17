@@ -1,7 +1,7 @@
 #include "SceneRenderer.h"
 
 #include "BgfxConsumer.h"
-#include "Camera.h"
+#include "Display/Camera.h"
 #include "GBuffer.h"
 #include "Producer/CatDogProducer.h"
 #include "Processor/Processor.h"

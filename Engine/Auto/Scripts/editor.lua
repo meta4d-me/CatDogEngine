@@ -13,27 +13,38 @@ project("Editor")
 
 	files {
 		path.join(EditorSourcePath, "**.*"),
+		path.join(ThirdPartySourcePath, "imgui/*.h"),
+		path.join(ThirdPartySourcePath, "imgui/*.cpp"),
+		path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
 	}
 	
 	vpaths {
 		["Source/*"] = { 
 			path.join(EditorSourcePath, "**.*"),
 		},
-		["ThirdParty/ImGui"] = {
-			path.join(ThirdPartySourcePath, "bgfx/3rdparty/dear-imgui/**.*"),
+		["ImGui"] = {
+			path.join(ThirdPartySourcePath, "imgui/*.h"),
+			path.join(ThirdPartySourcePath, "imgui/*.cpp"),
+			path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
 		}
 	}
 
+	defines {
+		"BX_CONFIG_DEBUG",
+	}
+
 	includedirs {
-		EditorSourcePath,
-	}
-
-	libdirs {
-
-	}
-	
-	links {
-
+		path.join(EngineSourcePath, "Runtime/"),
+		path.join(ThirdPartySourcePath, "AssetPipeline/public"),
+		path.join(ThirdPartySourcePath, "imgui"),
+		path.join(ThirdPartySourcePath, "freetype/include"),
+		-- TODO : Editor should not include bgfx files.
+		path.join(ThirdPartySourcePath, "bgfx/include"),
+		path.join(ThirdPartySourcePath, "bimg/include"),
+		path.join(ThirdPartySourcePath, "bimg/3rdparty"),
+		path.join(ThirdPartySourcePath, "bx/include"),
+		path.join(ThirdPartySourcePath, "bx/include/compat/msvc"),
+		ThirdPartySourcePath,
 	}
 
 	defines {
@@ -43,8 +54,28 @@ project("Editor")
 	staticruntime "on"
 	filter { "configurations:Debug" }
 		runtime "Debug" -- /MTd
+		libdirs {
+			BinariesPath,
+			path.join(ThirdPartySourcePath, "freetype/build/Debug"),
+		}
+	
+		links {
+			"Engine",
+			"freetyped"
+		}
+
 	filter { "configurations:Release" }
 		runtime "Release" -- /MT
+		libdirs {
+			BinariesPath,
+			path.join(ThirdPartySourcePath, "freetype/build/Release"),
+		}
+	
+		links {
+			"Engine",
+			"freetype"
+		}
+
 	filter {}
 
 	-- Disable these options can reduce the size of compiled binaries.

@@ -21,7 +21,17 @@ cd build
 %CMAKE_EXE% .. -G %CMAKE_IDE_FULL_NAME% -DSDL_FORCE_STATIC_VCRT=ON -D CMAKE_CONFIGURATION_TYPES="Debug;Release"
 start /b %CMAKE_EXE% --build . --config Debug
 start /b %CMAKE_EXE% --build . --config Release
-cd ..
+cd %ThirdPartyProjectsPath%
+echo\
+
+echo [ FreeType ] Start making project...
+cd freetype
+if not exist build mkdir build
+cd build
+%CMAKE_EXE% .. -G %CMAKE_IDE_FULL_NAME% -DCMAKE_CXX_FLAGS="/MT"
+start /b %CMAKE_EXE% --build . --config Debug
+start /b %CMAKE_EXE% --build . --config Release
+cd %ThirdPartyProjectsPath%
 echo\
 
 pause

@@ -150,6 +150,11 @@ bgfx::ShaderHandle RenderContext::CreateShader(const char* pFilePath)
 	return handle;
 }
 
+bgfx::ProgramHandle RenderContext::CreateProgram(const char* pName, const char* pVSName, const char* pFSName)
+{
+	return CreateProgram(pName, CreateShader(pVSName), CreateShader(pFSName));
+}
+
 bgfx::ProgramHandle RenderContext::CreateProgram(const char* pName, bgfx::ShaderHandle vsh, bgfx::ShaderHandle fsh)
 {
 	StringCrc programName(pName);

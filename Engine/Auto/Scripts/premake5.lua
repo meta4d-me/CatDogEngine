@@ -8,6 +8,10 @@
 -- But it is necessary if you want to combine Engine and applications in other languages, such as C#.
 EngineBuildLibKind = "StaticLib" -- "SharedLib"
 
+-- OS Platform
+EngineBuildPlatform = "PLATFORM_WINDOWS"
+EngineGraphicsBackend = "D3D11"
+
 IDEConfigs = {}
 local buildIDEName = os.getenv("BUILD_IDE_NAME")
 buildIDEName = string.gsub(buildIDEName, "\"", "")

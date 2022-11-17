@@ -33,6 +33,14 @@ function MakeProject(projectName)
 
 		includedirs {
 			path.join(EngineSourcePath, "Runtime/"),
+			path.join(ThirdPartySourcePath, "AssetPipeline/public"),
+			-- TODO : Editor should not include bgfx files.
+			path.join(ThirdPartySourcePath, "bgfx/include"),
+			path.join(ThirdPartySourcePath, "bgfx/3rdparty"),
+			path.join(ThirdPartySourcePath, "bimg/include"),
+			path.join(ThirdPartySourcePath, "bimg/3rdparty"),
+			path.join(ThirdPartySourcePath, "bx/include"),
+			path.join(ThirdPartySourcePath, "bx/include/compat/msvc"),
 		}
 		
 		libdirs {

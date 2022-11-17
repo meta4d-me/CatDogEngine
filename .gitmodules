@@ -19,3 +19,6 @@
 [submodule "Engine/Source/ThirdParty/imgui"]
 	path = Engine/Source/ThirdParty/imgui
 	url = https://github.com/CatDogEngine/imgui.git
+[submodule "Engine/Source/ThirdParty/freetype"]
+	path = Engine/Source/ThirdParty/freetype
+	url = https://github.com/CatDogEngine/freetype.git
