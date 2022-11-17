@@ -16,3 +16,6 @@
 [submodule "Engine/Source/ThirdParty/rapidxml"]
 	path = Engine/Source/ThirdParty/rapidxml
 	url = https://github.com/CatDogEngine/rapidxml.git
+[submodule "Engine/Source/ThirdParty/imgui"]
+	path = Engine/Source/ThirdParty/imgui
+	url = https://github.com/CatDogEngine/imgui.git
