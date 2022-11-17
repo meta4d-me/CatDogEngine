@@ -1,6 +1,5 @@
 #include "Engine.h"
 
-#include "API/CSharpBridge.h"
 #include "FirstPersonCameraController.h"
 #include "FlybyCamera.h"
 #include "Rendering/GBuffer.h"
@@ -101,11 +100,6 @@ void Engine::MainLoop()
 void Engine::Shutdown()
 {
 
-}
-
-void Engine::InitCSharpBridge()
-{
-	m_pCSharpBridge = std::make_unique<CSharpBridge>();
 }
 
 void Engine::InitPlatformWindow(const char* pTitle, uint16_t width, uint16_t height)

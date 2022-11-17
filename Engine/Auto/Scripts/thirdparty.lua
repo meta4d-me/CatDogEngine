@@ -1,5 +1,5 @@
 --------------------------------------------------------------
--- @Description : Makefile of CatDog Engine's dependencies
+-- @Description : Makefile of CatDogEngine's dependencies
 --------------------------------------------------------------
 
 -- SDL caused a strange x64 folder generated in the root folder.

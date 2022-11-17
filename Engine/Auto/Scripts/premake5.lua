@@ -2,17 +2,11 @@
 -- @Description : Makefile of CatDog Engine
 --------------------------------------------------------------
 
--- Parse folder path
-dofile("path.lua")
-print("================================================================")
-print("CurrentWorkingDirectory = "..CurrentWorkingDirectory)
-print("RootPath = "..RootPath)
-print("EnginePath = "..EnginePath)
-print("BinariesPath = "..BinariesPath)
-print("IntermediatePath = "..IntermediatePath)
-print("EngineSourcePath = "..EngineSourcePath)
-print("RuntimeSourcePath = "..RuntimeSourcePath)
-print("================================================================")
+-- Build options
+-- StaticLib is convenient to develop C++ applications which needs to reuse engine codes.
+-- SharedLib needs to export APIs by ENGINE_API macro which needs more efforts to have a good design.
+-- But it is necessary if you want to combine Engine and applications in other languages, such as C#.
+EngineBuildLibKind = "StaticLib" -- "SharedLib"
 
 IDEConfigs = {}
 local buildIDEName = os.getenv("BUILD_IDE_NAME")
@@ -26,6 +20,21 @@ else
 	print(buildIDEName.." : No ide compiler version!")
 	return
 end
+
+-- Parse folder path
+dofile("path.lua")
+print("================================================================")
+print("EngineBuildLibKind = "..EngineBuildLibKind)
+print("CurrentWorkingDirectory = "..CurrentWorkingDirectory)
+print("RootPath = "..RootPath)
+print("EnginePath = "..EnginePath)
+print("BinariesPath = "..BinariesPath)
+print("IntermediatePath = "..IntermediatePath)
+print("EngineSourcePath = "..EngineSourcePath)
+print("RuntimeSourcePath = "..RuntimeSourcePath)
+print("IDEConfigs.BuildIDEName = "..IDEConfigs.BuildIDEName)
+print("IDEConfigs.VCVersion = "..IDEConfigs.VCVersion)
+print("================================================================")
 
 -- workspace means solution in Visual Studio
 workspace(EngineName)
@@ -60,6 +69,9 @@ dofile("thirdparty.lua")
 
 -- engine projects
 dofile("engine.lua")
+
+-- editor projects
+dofile("editor.lua")
 
 -- game projects made by engine
 dofile("project.lua")

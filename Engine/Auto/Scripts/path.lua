@@ -15,8 +15,11 @@ BinariesPath = path.join(EnginePath, "Binaries/"..PlatformName)
 IntermediatePath = path.join(EnginePath, "Intermediate/"..PlatformName)
 EngineSourcePath = path.join(EnginePath, "Source")
 
--- ThirdParty
-ThirdPartySourcePath = path.join(EngineSourcePath, "ThirdParty")
-
 -- Runtime
 RuntimeSourcePath = path.join(EngineSourcePath, "Runtime")
+
+-- Editor
+EditorSourcePath = path.join(EngineSourcePath, "Editor")
+
+-- ThirdParty
+ThirdPartySourcePath = path.join(EngineSourcePath, "ThirdParty")
