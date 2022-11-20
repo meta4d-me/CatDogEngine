@@ -1,5 +1,5 @@
 --------------------------------------------------------------
--- @Description : Makefile of CatDog Engine's example projects
+-- @Description : Makefile of CatDogEngine's example projects
 --------------------------------------------------------------
 
 -- Example Projects
@@ -8,7 +8,6 @@ print("Make example projects : "..ProjectsPath)
 
 function MakeProject(projectName)
 	local projectSourcePath = path.join(ProjectsPath, projectName.."/Source")
-	local projectBinaryPath = path.join(BinariesPath, "Projects/"..projectName)
 
 	project(projectName)
 		kind("ConsoleApp")
@@ -18,7 +17,7 @@ function MakeProject(projectName)
 		dependson { "Engine" }
 
 		location(path.join(IntermediatePath, "Projects/"..projectName))
-		targetdir(projectBinaryPath)
+		targetdir(BinariesPath)
 
 		files {
 			path.join(projectSourcePath, "**.*"),
@@ -34,6 +33,14 @@ function MakeProject(projectName)
 
 		includedirs {
 			path.join(EngineSourcePath, "Runtime/"),
+			path.join(ThirdPartySourcePath, "AssetPipeline/public"),
+			-- TODO : Editor should not include bgfx files.
+			path.join(ThirdPartySourcePath, "bgfx/include"),
+			path.join(ThirdPartySourcePath, "bgfx/3rdparty"),
+			path.join(ThirdPartySourcePath, "bimg/include"),
+			path.join(ThirdPartySourcePath, "bimg/3rdparty"),
+			path.join(ThirdPartySourcePath, "bx/include"),
+			path.join(ThirdPartySourcePath, "bx/include/compat/msvc"),
 		}
 		
 		libdirs {
@@ -42,7 +49,15 @@ function MakeProject(projectName)
 		
 		links {
 			"Engine"
-		}	
+		}
+
+		-- use /MT /MTd, not /MD /MDd
+		staticruntime "on"
+		filter { "configurations:Debug" }
+			runtime "Debug" -- /MTd
+		filter { "configurations:Release" }
+			runtime "Release" -- /MT
+		filter {}
 end
 
 group "Projects"

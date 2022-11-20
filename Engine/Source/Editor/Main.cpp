@@ -1,15 +1,15 @@
+#include "EditorApp.h"
 #include "Application/Engine.h"
-#include "GameApp.h"
 
 int main()
 {
 	using namespace engine;
-	Engine* pEngine = Engine::Create(std::make_unique<game::GameApp>());
+	Engine* pEngine = Engine::Create(std::make_unique<editor::EditorApp>());
 
 	EngineInitArgs initArgs;
-	initArgs.pTitle = "SponzarBaseScene";
-	initArgs.width = 1200;
-	initArgs.height = 900;
+	initArgs.pTitle = "CatDogEditor";
+	initArgs.width = 1920;
+	initArgs.height = 1080;
 	pEngine->Init(std::move(initArgs));
 
 	pEngine->Run();

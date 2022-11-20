@@ -2,17 +2,15 @@
 -- @Description : Makefile of CatDog Engine
 --------------------------------------------------------------
 
--- Parse folder path
-dofile("path.lua")
-print("================================================================")
-print("CurrentWorkingDirectory = "..CurrentWorkingDirectory)
-print("RootPath = "..RootPath)
-print("EnginePath = "..EnginePath)
-print("BinariesPath = "..BinariesPath)
-print("IntermediatePath = "..IntermediatePath)
-print("EngineSourcePath = "..EngineSourcePath)
-print("RuntimeSourcePath = "..RuntimeSourcePath)
-print("================================================================")
+-- Build options
+-- StaticLib is convenient to develop C++ applications which needs to reuse engine codes.
+-- SharedLib needs to export APIs by ENGINE_API macro which needs more efforts to have a good design.
+-- But it is necessary if you want to combine Engine and applications in other languages, such as C#.
+EngineBuildLibKind = "StaticLib" -- "SharedLib"
+
+-- OS Platform
+EngineBuildPlatform = "PLATFORM_WINDOWS"
+EngineGraphicsBackend = "D3D11"
 
 IDEConfigs = {}
 local buildIDEName = os.getenv("BUILD_IDE_NAME")
@@ -27,10 +25,26 @@ else
 	return
 end
 
+-- Parse folder path
+dofile("path.lua")
+print("================================================================")
+print("EngineBuildLibKind = "..EngineBuildLibKind)
+print("CurrentWorkingDirectory = "..CurrentWorkingDirectory)
+print("RootPath = "..RootPath)
+print("EnginePath = "..EnginePath)
+print("BinariesPath = "..BinariesPath)
+print("IntermediatePath = "..IntermediatePath)
+print("EngineSourcePath = "..EngineSourcePath)
+print("RuntimeSourcePath = "..RuntimeSourcePath)
+print("IDEConfigs.BuildIDEName = "..IDEConfigs.BuildIDEName)
+print("IDEConfigs.VCVersion = "..IDEConfigs.VCVersion)
+print("================================================================")
+
 -- workspace means solution in Visual Studio
 workspace(EngineName)
 	-- location specifies the path for workspace project file, .sln for Visual Studio.
 	location(RootPath)
+	targetdir(BinariesPath)
 	
 	architecture "x64"
 	
@@ -54,21 +68,14 @@ workspace(EngineName)
 		systemversion("latest")
 	filter {}
 
--- utils
-function DeclareExternalProject(projectName, projectKind, projectPath)
-	-- Same with projectName by default
-	projectPath = projectPath or projectName
-
-	externalproject(projectName)
-		kind(projectKind)
-		location(path.join(ThirdPartyProjectPath, projectPath))
-end
-
 -- thirdparty projects such as sdl
 dofile("thirdparty.lua")
 
 -- engine projects
 dofile("engine.lua")
+
+-- editor projects
+dofile("editor.lua")
 
 -- game projects made by engine
 dofile("project.lua")

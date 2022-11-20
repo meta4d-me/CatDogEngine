@@ -1,3 +1,7 @@
+--------------------------------------------------------------
+-- @Description : Makefile of CatDogEngine's utility projects
+--------------------------------------------------------------
+
 group("Build")
 project("CompileShaders")
 	kind("Utility")

@@ -48,10 +48,11 @@ public:
 	/////////////////////////////////////////////////////////////////////
 	// Resource related apis
 	/////////////////////////////////////////////////////////////////////
-	[[nodiscard]] bgfx::ShaderHandle CreateShader(const char* filePath);
-	[[nodiscard]] bgfx::ProgramHandle CreateProgram(const char* pName, bgfx::ShaderHandle vsh, bgfx::ShaderHandle fsh);
-	[[nodiscard]] bgfx::TextureHandle CreateTexture(const char* filePath, uint64_t flags = 0UL);
-	[[nodiscard]] bgfx::UniformHandle CreateUniform(const char* pName, bgfx::UniformType::Enum uniformType, uint16_t number = 1);
+	bgfx::ShaderHandle CreateShader(const char* filePath);
+	bgfx::ProgramHandle CreateProgram(const char* pName, const char* pVSName, const char* pFSName);
+	bgfx::ProgramHandle CreateProgram(const char* pName, bgfx::ShaderHandle vsh, bgfx::ShaderHandle fsh);
+	bgfx::TextureHandle CreateTexture(const char* filePath, uint64_t flags = 0UL);
+	bgfx::UniformHandle CreateUniform(const char* pName, bgfx::UniformType::Enum uniformType, uint16_t number = 1);
 
 	bgfx::ShaderHandle GetShader(StringCrc resourceCrc) const;
 	bgfx::ProgramHandle GetProgram(StringCrc resourceCrc) const;

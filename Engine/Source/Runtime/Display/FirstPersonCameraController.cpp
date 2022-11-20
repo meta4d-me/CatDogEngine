@@ -22,7 +22,7 @@ FirstPersonCameraController::FirstPersonCameraController(FlybyCamera* camera, co
 	, m_movementSpeed(movement_speed)
 {}
 
-void FirstPersonCameraController::Update(const float dt)
+void FirstPersonCameraController::Update(float dt)
 {
 	if (!m_pFlybyCamera)
 	{
@@ -60,7 +60,7 @@ void FirstPersonCameraController::Update(const float dt)
 	}
 }
 
-void FirstPersonCameraController::OnKeyPress(const SDL_Keycode keyCode, const uint16_t mods)
+void FirstPersonCameraController::OnKeyPress(int32_t keyCode, uint16_t mods)
 {
 	switch (keyCode)
 	{
@@ -87,7 +87,7 @@ void FirstPersonCameraController::OnKeyPress(const SDL_Keycode keyCode, const ui
 	}
 }
 
-void FirstPersonCameraController::OnKeyRelease(const SDL_Keycode keyCode, const uint16_t mods)
+void FirstPersonCameraController::OnKeyRelease(int32_t keyCode, uint16_t mods)
 {
 	switch (keyCode)
 	{
@@ -114,34 +114,20 @@ void FirstPersonCameraController::OnKeyRelease(const SDL_Keycode keyCode, const 
 	}
 }
 
-void FirstPersonCameraController::OnMousePress(const uint8_t button, const uint8_t clicks)
+void FirstPersonCameraController::OnMouseRBPress()
 {
-	switch (button)
-	{
-	case SDL_BUTTON_RIGHT:
-		m_isRightMouseDown = true;
-		break;
-	default:
-		break;
-	}
+	m_isRightMouseDown = true;
 }
 
-void FirstPersonCameraController::OnMouseRelease(const uint8_t button, const uint8_t clicks)
+void FirstPersonCameraController::OnMouseRBRelease()
 {
-	switch (button)
-	{
-	case SDL_BUTTON_RIGHT:
-		m_isRightMouseDown = false;
-		break;
-	default:
-		break;
-	}
+	m_isRightMouseDown = false;
 }
 
-void FirstPersonCameraController::SetMousePosition(const int32_t win_x, const int32_t win_y)
+void FirstPersonCameraController::SetMousePosition(int32_t x, int32_t y)
 {
-	m_mouseX = win_x;
-	m_mouseY = win_y;
+	m_mouseX = x;
+	m_mouseY = y;
 }
 
 }	// namespace engine

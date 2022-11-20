@@ -51,7 +51,12 @@ public:
 
 	void Invoke(Args... args) const
 	{
-		assert(!m_delegates.empty() && "MulticastDelegate doesn't bind any function calls.");
+		if (m_delegates.empty())
+		{
+			// assert("MulticastDelegate doesn't bind any function calls.");
+			return;
+		}
+
 		for(const auto& delegate : m_delegates)
 		{
 			delegate.Invoke(args...);
