@@ -19,6 +19,10 @@
 [submodule "Engine/Source/ThirdParty/imgui"]
 	path = Engine/Source/ThirdParty/imgui
 	url = https://github.com/CatDogEngine/imgui.git
+	branch = docking
 [submodule "Engine/Source/ThirdParty/freetype"]
 	path = Engine/Source/ThirdParty/freetype
 	url = https://github.com/CatDogEngine/freetype.git
+[submodule "Engine/Source/ThirdParty/stb"]
+	path = Engine/Source/ThirdParty/stb
+	url = https://github.com/CatDogEngine/stb.git

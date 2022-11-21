@@ -10,6 +10,7 @@ int main()
 	initArgs.pTitle = "SponzarBaseScene";
 	initArgs.width = 1200;
 	initArgs.height = 900;
+	initArgs.pIconFilePath = "editor_icon.png";
 	pEngine->Init(std::move(initArgs));
 
 	pEngine->Run();

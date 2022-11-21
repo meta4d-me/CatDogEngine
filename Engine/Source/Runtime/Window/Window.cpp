@@ -1,10 +1,15 @@
-#include "Window.h"
+﻿#include "Window.h"
 
 #include <sdl.h>
 #include <SDL_syswm.h>
 #include <SDL_video.h>
 #include <SDL_joystick.h>
 #include <SDL_gamecontroller.h>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
+
+#include <string>
 
 namespace engine
 {
@@ -13,10 +18,16 @@ Window::Window(const char* pTitle, uint16_t width, uint16_t height)
 	: m_width(width)
 	, m_height(height)
 {
-	SDL_Init(SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
+	// JoyStick : SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER
+	SDL_Init(SDL_INIT_EVENTS);
+	SDL_SetHintWithPriority("SDL_BORDERLESS_RESIZABLE_STYLE", "1", SDL_HINT_OVERRIDE);
+	SDL_SetHintWithPriority("SDL_BORDERLESS_WINDOWED_STYLE", "1", SDL_HINT_OVERRIDE);
 
+	// If you want to implement window like Visual Studio without titlebar provided by system OS, open SDL_WINDOW_BORDERLESS.
+	// But the issue is that you can't drag it unless you provide an implementation about hit test.
+	// Then you also need to simulate minimize and maxmize buttons.
 	m_pSDLWindow = SDL_CreateWindow(pTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+		width, height, SDL_WINDOW_RESIZABLE);
 	SDL_WarpMouseInWindow(m_pSDLWindow, static_cast<int>(width * 0.5f), static_cast<int>(height * 0.5f));
 
 	SDL_SysWMinfo wmi;
@@ -164,15 +175,42 @@ void Window::Update()
 	}
 }
 
-bool Window::ShouldClose()
+void Window::SetWindowIcon(const char* pFilePath) const
 {
-	return m_IsClosed;
-}
+	std::string iconFilePath = CDEDITOR_RESOURCES_ROOT_PATH;
+	iconFilePath += pFilePath;
 
-void Window::SetSize(uint16_t width, uint16_t height)
-{
-	m_width = width;
-	m_height = height;
+	int width, height, originFormat;
+	int depth = 32;
+	int channels = STBI_rgb_alpha;
+	void* pImageData = stbi_load(iconFilePath.c_str(), &width, &height, &originFormat, STBI_rgb_alpha);
+	if (nullptr == pImageData)
+	{
+		return;
+	}
+
+	uint32_t maskR, maskG, maskB, maskA;
+	if constexpr(SDL_BYTEORDER == SDL_BIG_ENDIAN)
+	{
+		maskR = 0xff000000;
+		maskG = 0x00ff0000;
+		maskB = 0x0000ff00;
+		maskA = 0x000000ff;
+	}
+	else
+	{
+		maskR = 0x000000ff;
+		maskG = 0x0000ff00;
+		maskB = 0x00ff0000;
+		maskA = 0xff000000;
+	}
+	
+	SDL_Surface* pSDLSurface = SDL_CreateRGBSurfaceFrom(pImageData, width, height, depth,
+		channels * width, maskR, maskG, maskB, maskA);
+
+	SDL_SetWindowIcon(m_pSDLWindow, pSDLSurface);
+	SDL_FreeSurface(pSDLSurface);
+	stbi_image_free(pImageData);
 }
 
 }

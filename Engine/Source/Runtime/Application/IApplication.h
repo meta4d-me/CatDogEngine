@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Localization.h"
+
 #include <inttypes.h>
 
 namespace engine
@@ -9,10 +11,12 @@ class Engine;
 
 struct EngineInitArgs
 {
-public:
 	const char* pTitle = "Demo";
+	const char* pIconFilePath = nullptr;
 	uint16_t width = 800;
 	uint16_t height = 600;
+
+	Language language = Language::English;
 };
 
 class IApplication

@@ -9,8 +9,11 @@
 EngineBuildLibKind = "StaticLib" -- "SharedLib"
 
 -- OS Platform
+-- PLATFORM_OSX
+-- PLATFORM_IOS
+-- PLATFORM_WINDOWS
+-- PLATFORM_ANDROID
 EngineBuildPlatform = "PLATFORM_WINDOWS"
-EngineGraphicsBackend = "D3D11"
 
 IDEConfigs = {}
 local buildIDEName = os.getenv("BUILD_IDE_NAME")
@@ -66,6 +69,11 @@ workspace(EngineName)
 	filter "system:Windows"
 		-- For Windows OS, we want to use latest Windows SDK installed in the PC.
 		systemversion("latest")
+
+		-- You can use the /utf-8 option to specify both the source and execution character sets as encoded by using UTF-8.
+		-- Avoid compiler warnings about non-utf8 characters which cannot be present.
+		-- https://learn.microsoft.com/en-us/cpp/build/reference/utf-8-set-source-and-executable-character-sets-to-utf-8?view=msvc-170
+		buildoptions { "/utf-8" }
 	filter {}
 
 -- thirdparty projects such as sdl

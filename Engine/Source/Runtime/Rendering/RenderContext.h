@@ -13,6 +13,7 @@ namespace engine
 
 class Camera;
 class GBuffer;
+class Renderer;
 class SwapChain;
 
 constexpr uint8_t MaxViewCount = 255;
@@ -29,10 +30,13 @@ public:
 	RenderContext& operator=(RenderContext&&) = delete;
 	~RenderContext();
 
+	void AddRenderer(std::unique_ptr<Renderer> pRenderer);
+
 	void Init();
 	void ResizeFrameBuffers(uint16_t width, uint16_t height);
 	void BeginFrame();
 	void EndFrame();
+	void Update(float deltaTime);
 	void Shutdown();
 
 	uint16_t CreateView();
@@ -70,6 +74,8 @@ private:
 	std::unordered_map<size_t, bgfx::ProgramHandle> m_programHandleCaches;
 	std::unordered_map<size_t, bgfx::TextureHandle> m_textureHandleCaches;
 	std::unordered_map<size_t, bgfx::UniformHandle> m_uniformHandleCaches;
+
+	std::vector<std::unique_ptr<engine::Renderer>> m_pRenderers;
 };
 
 }

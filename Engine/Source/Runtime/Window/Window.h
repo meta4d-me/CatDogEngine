@@ -19,14 +19,19 @@ public:
     Window(Window&&) = delete;
     Window& operator=(Window&&) = delete;
     ~Window();
-
-    void Update();
-    void* GetNativeWindow() const { return m_pNativeWindowHandle; }
-    bool ShouldClose();
-    void Closed(bool bPushSdlEvent = true);
-    void SetSize(uint16_t p_width, uint16_t p_height);
+    
+    void* GetNativeHandle() const { return m_pNativeWindowHandle; }
+    
 	uint16_t GetWidth() const { return m_width; }
 	uint16_t GetHeight() const { return m_height; }
+    void SetSize(uint16_t width, uint16_t height) { m_width = width; m_height = height; }
+
+    void SetWindowIcon(const char* pFilePath) const;
+
+    void Update();
+
+    bool ShouldClose() const { return m_IsClosed; }
+    void Closed(bool bPushSdlEvent = true);
 
 public:
     // Mouse

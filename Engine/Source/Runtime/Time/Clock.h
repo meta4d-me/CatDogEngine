@@ -1,36 +1,32 @@
 #pragma once
 
-#include <string>
 #include <chrono>
 
-namespace engine::Tools
+namespace engine
 {
 
 class Clock
 {
 public:
+	Clock();
+	Clock(const Clock&) = default;
+	Clock& operator=(const Clock&) = default;
+	Clock(Clock&&) = default;
+	Clock& operator=(Clock&&) = default;
+
 	void Update();
-	float GetFramerate();
-	float GetDeltaTime();
-	float GetDeltaTimeUnscaled();
-	float GetTimeSinceStart();
-	float GetTimeScale();
-	void Scale(float p_coeff);
-	void SetTimeScale(float p_timeScale);
+	float GetFramerate() const { return 1.0f / m_deltaTime; }
+	float GetDeltaTime() const { return m_deltaTime; }
+	float GetTimeSinceStart() const { m_timeSinceStart; }
 
 private:
-	void Initialize();
+	float m_deltaTime = 0.0f;
+	float m_timeSinceStart = 0.0f;
 
-private:
-	bool	m_IsInit = false;
-	float	m_TimeScale = 1.0f;
-	float	m_DeltaTime = 0.0f;
-	float	m_TimeSinceStart = 0.0f;
-
-	std::chrono::duration<double>			m_Elapsed;
-	std::chrono::steady_clock::time_point	m_LastTime;
-	std::chrono::steady_clock::time_point	m_StartTime;
-	std::chrono::steady_clock::time_point	m_CurrentTime;
+	std::chrono::duration<float> m_elapsed;
+	std::chrono::steady_clock::time_point m_lastTime;
+	std::chrono::steady_clock::time_point m_startTime;
+	std::chrono::steady_clock::time_point m_currentTime;
 };
 
 }

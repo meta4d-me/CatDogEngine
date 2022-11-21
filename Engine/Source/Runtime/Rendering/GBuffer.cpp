@@ -16,13 +16,10 @@ GBuffer::GBuffer(uint16_t width, uint16_t height)
 		| BGFX_SAMPLER_U_CLAMP
 		| BGFX_SAMPLER_V_CLAMP;
 
-	bgfx::TextureHandle gbufferTex[] =
-	{
-		bgfx::createTexture2D(width, height, false, 1, bgfx::TextureFormat::RGBA32F, tsFlags),
-		bgfx::createTexture2D(width, height, false, 1, bgfx::TextureFormat::RGBA32F, tsFlags),
-		bgfx::createTexture2D(width, height, false, 1, bgfx::TextureFormat::D32F, tsFlags),
-	};
-	*m_pFrameBufferHandle = bgfx::createFrameBuffer(3, gbufferTex, true);
+	m_backBuffers[0] = bgfx::createTexture2D(width, height, false, 1, bgfx::TextureFormat::RGBA32F, tsFlags);
+	m_backBuffers[1] = bgfx::createTexture2D(width, height, false, 1, bgfx::TextureFormat::RGBA32F, tsFlags);
+	m_backBuffers[2] = bgfx::createTexture2D(width, height, false, 1, bgfx::TextureFormat::D32F, tsFlags);
+	*m_pFrameBufferHandle = bgfx::createFrameBuffer(3, m_backBuffers, true);
 }
 
 }

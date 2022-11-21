@@ -29,8 +29,11 @@ project("Editor")
 		}
 	}
 
+	local editorResourcesPath = RootPath.."/Engine/Source/Editor/Resources/"
 	defines {
 		"BX_CONFIG_DEBUG",
+		"IMGUI_ENABLE_FREETYPE",
+		"CDEDITOR_RESOURCES_ROOT_PATH=\""..editorResourcesPath.."\"",
 	}
 
 	includedirs {

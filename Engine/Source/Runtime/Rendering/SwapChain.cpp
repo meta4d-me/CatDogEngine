@@ -5,11 +5,11 @@
 namespace engine
 {
 
-SwapChain::SwapChain(void* pWindowHandle, uint16_t width, uint16_t height)
+SwapChain::SwapChain(void* pWindowHandle, uint16_t width, uint16_t height) :
+	m_pWindowHandle(pWindowHandle),
+	m_frameBufferWidth(width),
+	m_frameBufferHeight(height)
 {
-	m_frameBufferWidth = width;
-	m_frameBufferHeight = height;
-
 	m_pFrameBufferHandle = std::make_unique<bgfx::FrameBufferHandle>();
 	*m_pFrameBufferHandle = bgfx::createFrameBuffer(pWindowHandle, width, height);
 }

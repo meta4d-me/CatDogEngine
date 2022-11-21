@@ -14,12 +14,15 @@ void EditorRenderer::Init()
 {
 	ImGuiIO& imguiIO = ImGui::GetIO();
 	assert(!imguiIO.BackendPlatformUserData && "Already initialized a platform backend!");
-
-	const engine::SwapChain* pSwapChain = GetSwapChain();
-	imguiIO.DisplaySize = ImVec2(static_cast<float>(pSwapChain->GetWidth()), static_cast<float>(pSwapChain->GetHeight()));
-	imguiIO.DeltaTime = 1.0f / 60.0f;
+	imguiIO.DisplaySize = ImVec2(static_cast<float>(GetSwapChain()->GetWidth()), static_cast<float>(GetSwapChain()->GetHeight()));
+	imguiIO.DeltaTime = 1.0f / 60;
 
 	ImFontAtlas* pFontAtlas = imguiIO.Fonts;
+	for (int fontAtlasIndex = 0; fontAtlasIndex < pFontAtlas->ConfigData.Size; ++fontAtlasIndex)
+	{
+		ImFontConfig& fontConfig = pFontAtlas->ConfigData[fontAtlasIndex];
+		fontConfig.RasterizerMultiply = 1.0f;
+	}
 	pFontAtlas->FontBuilderIO = ImGuiFreeType::GetBuilderForFreeType();
 	pFontAtlas->FontBuilderFlags = 0;
 	pFontAtlas->Build();
@@ -48,6 +51,8 @@ EditorRenderer::~EditorRenderer()
 void EditorRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
 	ImGui::Render();
+	ImGui::UpdatePlatformWindows();
+	ImGui::RenderPlatformWindowsDefault();
 
 	bgfx::setViewName(GetViewID(), "ImGui");
 	bgfx::setViewMode(GetViewID(), bgfx::ViewMode::Sequential);
@@ -148,9 +153,12 @@ void EditorRenderer::Render(float deltaTime)
 					pEncoder->setScissor(xx, yy, uint16_t(bx::min(clipRect.z, 65535.0f) - xx), uint16_t(bx::min(clipRect.w, 65535.0f) - yy));
 
 					pEncoder->setState(state);
+
 					pEncoder->setTexture(0, m_pRenderContext->GetUniform(engine::StringCrc("s_tex")), textureHandle);
+
 					pEncoder->setVertexBuffer(0, &vertexBuffer, cmd->VtxOffset, numVertices);
 					pEncoder->setIndexBuffer(&indexBuffer, cmd->IdxOffset, cmd->ElemCount);
+
 					pEncoder->submit(GetViewID(), m_pRenderContext->GetProgram(engine::StringCrc("ImGui")));
 				}
 			}
