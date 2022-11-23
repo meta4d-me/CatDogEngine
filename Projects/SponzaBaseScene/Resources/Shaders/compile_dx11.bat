@@ -1,5 +1,17 @@
 set SHADER="shader"
-set DX11="../../runtime/shaders/dx11"
+
+rem Precompute
+start /b shaderc --type c --platform windows -p cs_5_0 -O 1 --varyingdef %SHADER%/varying.def.sc -f %SHADER%/cs_ComputeTransmittance.sc -o cs_ComputeTransmittance.bin
+start /b shaderc --type c --platform windows -p cs_5_0 -O 1 --varyingdef %SHADER%/varying.def.sc -f %SHADER%/cs_ComputeDirectIrradiance.sc -o cs_ComputeDirectIrradiance.bin
+start /b shaderc --type c --platform windows -p cs_5_0 -O 1 --varyingdef %SHADER%/varying.def.sc -f %SHADER%/cs_ComputeSingleScattering.sc -o cs_ComputeSingleScattering.bin
+start /b shaderc --type c --platform windows -p cs_5_0 -O 1 --varyingdef %SHADER%/varying.def.sc -f %SHADER%/cs_ComputeScatteringDensity.sc -o cs_ComputeScatteringDensity.bin
+start /b shaderc --type c --platform windows -p cs_5_0 -O 1 --varyingdef %SHADER%/varying.def.sc -f %SHADER%/cs_ComputeIndirectIrradiance.sc -o cs_ComputeIndirectIrradiance.bin
+start /b shaderc --type c --platform windows -p cs_5_0 -O 1 --varyingdef %SHADER%/varying.def.sc -f %SHADER%/cs_ComputeMultipleScattering.sc -o cs_ComputeMultipleScattering.bin
+
+rem AtmosphericScattering
+start /b shaderc --type v --platform windows -p vs_5_0 -O 3 --varyingdef %SHADER%/varying.def.sc -f %SHADER%/vs_atmSkyBox.sc -o vs_atmSkyBox.bin
+start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADER%/varying.def.sc -f %SHADER%/fs_PrecomputedAtmosphericScattering_LUT.sc -o fs_PrecomputedAtmosphericScattering_LUT.bin
+start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADER%/varying.def.sc -f %SHADER%/fs_SingleScattering_RayMarching.sc -o fs_SingleScattering_RayMarching.bin
 
 rem SkyRenderer
 start /b shaderc --type v --platform windows -p vs_5_0 -O 3 --varyingdef %SHADER%/varying.def.sc -f %SHADER%/vs_PBR_skybox.sc -o vs_PBR_skybox.bin
