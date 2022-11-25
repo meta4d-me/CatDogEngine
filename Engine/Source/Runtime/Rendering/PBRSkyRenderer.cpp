@@ -6,8 +6,6 @@
 
 #include <bx/math.h>
 
-#include "AssetPipeline/private/Utilities/PerformanceProfiler.h"
-
 namespace engine
 {
 
@@ -166,6 +164,7 @@ void PBRSkyRenderer::ClearTextureSlots() const {
 		bgfx::setImage(i, BGFX_INVALID_HANDLE, 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
 	}
 }
+
 void PBRSkyRenderer::ReleaseTemporaryTextureResources() {
 	auto SafeDelete = [](bgfx::TextureHandle &_handle) {
 		if (bgfx::isValid(_handle)) {
