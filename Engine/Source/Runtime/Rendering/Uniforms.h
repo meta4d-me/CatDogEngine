@@ -1,3 +1,5 @@
+#pragma once
+
 struct Uniforms {
 	// remember to set the size of array in shader as same as this.
 	static constexpr uint16_t vec4Count = 7;

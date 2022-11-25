@@ -3,6 +3,7 @@
 #include "Application/Engine.h"
 #include "Display/FirstPersonCameraController.h"
 #include "Display/FlybyCamera.h"
+#include "Rendering/PBRSkyRenderer.h"
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/SwapChain.h"
@@ -35,7 +36,8 @@ void GameApp::Init(engine::EngineInitArgs initArgs)
 	uint8_t swapChainID = m_pRenderContext->CreateSwapChain(m_pMainWindow->GetNativeWindow(), width, height);
 	engine::SwapChain* pSwapChain = m_pRenderContext->GetSwapChain(swapChainID);
 	m_pRenderContext->InitGBuffer(width, height);
-	m_pRenderers.push_back(std::make_unique<engine::SkyRenderer>(m_pRenderContext, m_pRenderContext->CreateView(), pSwapChain));
+	//m_pRenderers.push_back(std::make_unique<engine::SkyRenderer>(m_pRenderContext, m_pRenderContext->CreateView(), pSwapChain));
+	m_pRenderers.push_back(std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext, m_pRenderContext->CreateView(), pSwapChain));
 	m_pRenderers.push_back(std::make_unique<engine::SceneRenderer>(m_pRenderContext, m_pRenderContext->CreateView(), pSwapChain));
 	m_pRenderers.push_back(std::make_unique<engine::PostProcessRenderer>(m_pRenderContext, m_pRenderContext->CreateView(), pSwapChain));
 	m_pMainWindow->OnResize.Bind<engine::RenderContext, &engine::RenderContext::ResizeFrameBuffers>(m_pRenderContext);

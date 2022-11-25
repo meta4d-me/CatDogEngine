@@ -14,11 +14,11 @@ namespace engine
 PBRSkyRenderer::~PBRSkyRenderer() {};
 
 void PBRSkyRenderer::Init() {
-	bgfx::ShaderHandle vsh_skyBox = m_pRenderContext->CreateShader("vs_atmSkyBox.bin");
+	bgfx::ShaderHandle vsh_skyBox             = m_pRenderContext->CreateShader("vs_atmSkyBox.bin");
 	bgfx::ShaderHandle fsh_multipleScattering = m_pRenderContext->CreateShader("fs_PrecomputedAtmosphericScattering_LUT.bin");
 	bgfx::ShaderHandle fsh_singleScattering   = m_pRenderContext->CreateShader("fs_SingleScattering_RayMarching.bin");
-	m_programAtmosphericScattering_LUT    = m_pRenderContext->CreateProgram("AtmosphericScattering", vsh_skyBox, fsh_multipleScattering);
-	m_programSingleScattering_RayMarching = m_pRenderContext->CreateProgram("AtmosphericScattering", vsh_skyBox, fsh_singleScattering);
+	m_programAtmosphericScattering_LUT        = m_pRenderContext->CreateProgram("AtmosphericScattering", vsh_skyBox, fsh_multipleScattering);
+	m_programSingleScattering_RayMarching     = m_pRenderContext->CreateProgram("AtmosphericScattering", vsh_skyBox, fsh_singleScattering);
 
 	m_programComputeTransmittance      = m_pRenderContext->CreateProgram("ComputeTransmittance", "cs_ComputeTransmittance.bin");
 	m_programComputeDirectIrradiance   = m_pRenderContext->CreateProgram("ComputeDirectIrradiance", "cs_ComputeDirectIrradiance.bin");
@@ -47,8 +47,8 @@ void PBRSkyRenderer::Init() {
 		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, FLAG3D);
 
 	u_num_scattering_orders = m_pRenderContext->CreateUniform("u_num_scattering_orders", bgfx::UniformType::Enum::Vec4, 1);
-	u_cameraPos = m_pRenderContext->CreateUniform("u_cameraPos", bgfx::UniformType::Enum::Vec4, 1);
-	u_LightDir = m_pRenderContext->CreateUniform("u_LightDir", bgfx::UniformType::Enum::Vec4, 1);
+	u_cameraPos             = m_pRenderContext->CreateUniform("u_cameraPos", bgfx::UniformType::Enum::Vec4, 1);
+	u_LightDir              = m_pRenderContext->CreateUniform("u_LightDir", bgfx::UniformType::Enum::Vec4, 1);
 
 	m_vertexLayoutSkyBox.begin().add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float).end();
 	m_vbhSkybox = bgfx::createVertexBuffer(bgfx::makeRef(ms_skyboxVertices, sizeof(ms_skyboxVertices)), m_vertexLayoutSkyBox);
@@ -57,12 +57,15 @@ void PBRSkyRenderer::Init() {
 
 void PBRSkyRenderer::UpdateView(const float *pViewMatrix, const float *pProjectionMatrix) {
 	// For sky box.
-	float *pView = const_cast<float *>(pViewMatrix);
+	float pView[16];
+	std::memcpy(pView, pViewMatrix, 12 * sizeof(float));
 	pView[12] = pView[13] = pView[14] = 0.0f;
+	pView[15] = 1.0f;
 
 	bgfx::setViewFrameBuffer(GetViewID(), *m_pGBuffer->GetFrameBuffer());
 	bgfx::setViewRect(GetViewID(), 0, 0, m_pGBuffer->GetWidth(), m_pGBuffer->GetHeight());
 	bgfx::setViewTransform(GetViewID(), pView, pProjectionMatrix);
+	bgfx::setViewClear(GetViewID(), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
 }
 
 void PBRSkyRenderer::Render(float deltaTime) {
@@ -77,7 +80,7 @@ void PBRSkyRenderer::Render(float deltaTime) {
 	bgfx::setImage(5, m_textureIrradiance, 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
 	bgfx::setImage(6, m_textureScattering, 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
 
-	// Uniform
+	// Uniform, temporary code, unit: km
 	m_uniformData = cdtools::Vec4f(0.0f, 1.0, -0.5, 1.0f);
 	bgfx::setUniform(u_cameraPos, &m_uniformData.x(), 1);
 	m_uniformData = cdtools::Vec4f(0.0f, -1.0, -1.0, 0.0f);
@@ -152,6 +155,7 @@ void PBRSkyRenderer::Precompute() {
 			bgfx::setImage(9, m_textureScattering, 0, Write, RGBA32F);
 			bgfx::dispatch(viewId, m_programComputeMultipleScattering, SCATTERING_TEXTURE_WIDTH / 8, SCATTERING_TEXTURE_HEIGHT / 8, SCATTERING_TEXTURE_DEPTH / 8);
 		}
+		printf("\nAll compute shader for precompute atmospheric scattering texture dispatched.\nScattering Order : %d\n", NUM_SCATTERING_ORDERS);
 		ClearTextureSlots();
 		ReleaseTemporaryTextureResources();
 	}

@@ -1,25 +1,25 @@
 #pragma once
 
 #include "Renderer.h"
-#include "AssetPipeline/public/Math/VectorDerived.hpp"
+#include "Math/VectorDerived.hpp"
 
 namespace engine
 {
 
-#define TRANSMITTANCE_TEXTURE_WIDTH 256
-#define TRANSMITTANCE_TEXTURE_HEIGHT 64
+static constexpr uint16_t TRANSMITTANCE_TEXTURE_WIDTH = 256;
+static constexpr uint16_t TRANSMITTANCE_TEXTURE_HEIGHT = 64;
 
-#define SCATTERING_TEXTURE_R_SIZE 32
-#define SCATTERING_TEXTURE_MU_SIZE 128
-#define SCATTERING_TEXTURE_MU_S_SIZE 32
-#define SCATTERING_TEXTURE_NU_SIZE 8
+static constexpr uint16_t SCATTERING_TEXTURE_R_SIZE = 32;
+static constexpr uint16_t SCATTERING_TEXTURE_MU_SIZE = 128;
+static constexpr uint16_t SCATTERING_TEXTURE_MU_S_SIZE = 32;
+static constexpr uint16_t SCATTERING_TEXTURE_NU_SIZE = 8;
 
-#define SCATTERING_TEXTURE_WIDTH (SCATTERING_TEXTURE_NU_SIZE * SCATTERING_TEXTURE_MU_S_SIZE)
-#define SCATTERING_TEXTURE_HEIGHT SCATTERING_TEXTURE_MU_SIZE
-#define SCATTERING_TEXTURE_DEPTH SCATTERING_TEXTURE_R_SIZE
+static constexpr uint16_t SCATTERING_TEXTURE_WIDTH = SCATTERING_TEXTURE_NU_SIZE * SCATTERING_TEXTURE_MU_S_SIZE;
+static constexpr uint16_t SCATTERING_TEXTURE_HEIGHT = SCATTERING_TEXTURE_MU_SIZE;
+static constexpr uint16_t SCATTERING_TEXTURE_DEPTH = SCATTERING_TEXTURE_R_SIZE;
 
-#define IRRADIANCE_TEXTURE_WIDTH 64
-#define IRRADIANCE_TEXTURE_HEIGHT 16
+static constexpr uint16_t IRRADIANCE_TEXTURE_WIDTH = 64;
+static constexpr uint16_t IRRADIANCE_TEXTURE_HEIGHT = 16;
 
 class PBRSkyRenderer final : public Renderer
 {
@@ -39,7 +39,7 @@ private:
 	bgfx::ProgramHandle m_programSingleScattering_RayMarching;
 	bgfx::ProgramHandle m_programAtmosphericScattering_LUT;
 
-	// compute shaders
+	// Compute shaders
 	bgfx::ProgramHandle m_programComputeTransmittance;
 	bgfx::ProgramHandle m_programComputeDirectIrradiance;
 	bgfx::ProgramHandle m_programComputeSingleScattering;
@@ -47,7 +47,7 @@ private:
 	bgfx::ProgramHandle m_programComputeIndirectIrradiance;
 	bgfx::ProgramHandle m_programComputeMultipleScattering;
 
-	// precomputed textures
+	// Precompute textures
 	bgfx::TextureHandle m_textureTransmittance;
 	bgfx::TextureHandle m_textureIrradiance;
 	bgfx::TextureHandle m_textureScattering;
@@ -57,7 +57,7 @@ private:
 	bgfx::TextureHandle m_textureDeltaScatteringDensity;
 	bgfx::TextureHandle m_textureDeltaMultipleScattering;
 
-	// uniforms
+	// Uniforms
 	bgfx::UniformHandle u_num_scattering_orders;
 	bgfx::UniformHandle u_cameraPos;
 	bgfx::UniformHandle u_LightDir;
@@ -65,7 +65,7 @@ private:
 
 	bool m_precomputeCache = false;
 
-	// skybox
+	// Skybox
 	bgfx::VertexLayout m_vertexLayoutSkyBox;
 	bgfx::VertexBufferHandle m_vbhSkybox;
 	bgfx::IndexBufferHandle m_ibhSkybox;
