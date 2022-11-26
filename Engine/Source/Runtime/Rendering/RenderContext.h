@@ -51,7 +51,11 @@ public:
 	bgfx::ShaderHandle CreateShader(const char* filePath);
 	bgfx::ProgramHandle CreateProgram(const char* pName, const char* pVSName, const char* pFSName);
 	bgfx::ProgramHandle CreateProgram(const char* pName, bgfx::ShaderHandle vsh, bgfx::ShaderHandle fsh);
+	bgfx::ProgramHandle CreateProgram(const char *pName, const char *pCSName);
+	bgfx::ProgramHandle CreateProgram(const char *pName, bgfx::ShaderHandle csh);
 	bgfx::TextureHandle CreateTexture(const char* filePath, uint64_t flags = 0UL);
+	bgfx::TextureHandle CreateTexture(const char *pName, const uint16_t _width, const uint16_t _height, uint64_t flags = 0UL);
+	bgfx::TextureHandle CreateTexture(const char *pName, const uint16_t _width, const uint16_t _height, const uint16_t _depth, uint64_t flags = 0UL);
 	bgfx::UniformHandle CreateUniform(const char* pName, bgfx::UniformType::Enum uniformType, uint16_t number = 1);
 
 	bgfx::ShaderHandle GetShader(StringCrc resourceCrc) const;

@@ -173,6 +173,29 @@ bgfx::ProgramHandle RenderContext::CreateProgram(const char* pName, bgfx::Shader
 	return program;
 }
 
+bgfx::ProgramHandle RenderContext::CreateProgram(const char *pName, const char *pCSName)
+{
+	return CreateProgram(pName, CreateShader(pCSName));
+}
+
+bgfx::ProgramHandle RenderContext::CreateProgram(const char *pName, bgfx::ShaderHandle csh)
+{
+	StringCrc programName(pName);
+	auto itProgram = m_programHandleCaches.find(programName.value());
+	if (itProgram != m_programHandleCaches.end())
+	{
+		return itProgram->second;
+	}
+
+	bgfx::ProgramHandle program = bgfx::createProgram(csh, true);
+	if (bgfx::isValid(program))
+	{
+		m_programHandleCaches[programName.value()] = program;
+	}
+
+	return program;
+}
+
 bgfx::TextureHandle RenderContext::CreateTexture(const char* pFilePath, uint64_t flags)
 {
 	StringCrc filePath(pFilePath);
@@ -251,6 +274,44 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pFilePath, uint64_t
 	}
 
 	return handle;
+}
+
+bgfx::TextureHandle RenderContext::CreateTexture(const char* pName, const uint16_t _width, const uint16_t _height, uint64_t flags)
+{
+	StringCrc textureName(pName);
+	auto itTextureCache = m_textureHandleCaches.find(textureName.value());
+	if (itTextureCache != m_textureHandleCaches.end())
+	{
+		return itTextureCache->second;
+	}
+
+	bgfx::TextureHandle texture = bgfx::createTexture2D(_width, _height, false, 1, bgfx::TextureFormat::RGBA32F, flags);
+	if (bgfx::isValid(texture))
+	{
+		bgfx::setName(texture, pName);
+		m_textureHandleCaches[textureName.value()] = texture;
+	}
+
+	return texture;
+}
+
+bgfx::TextureHandle RenderContext::CreateTexture(const char *pName, const uint16_t _width, const uint16_t _height, const uint16_t _depth, uint64_t flags)
+{
+	StringCrc textureName(pName);
+	auto itTextureCache = m_textureHandleCaches.find(textureName.value());
+	if (itTextureCache != m_textureHandleCaches.end())
+	{
+		return itTextureCache->second;
+	}
+
+	bgfx::TextureHandle texture = bgfx::createTexture3D(_width, _height, _depth, false, bgfx::TextureFormat::RGBA32F, flags);
+	if (bgfx::isValid(texture))
+	{
+		bgfx::setName(texture, pName);
+		m_textureHandleCaches[textureName.value()] = texture;
+	}
+
+	return texture;
 }
 
 bgfx::UniformHandle RenderContext::CreateUniform(const char* pName, bgfx::UniformType::Enum uniformType, uint16_t number)

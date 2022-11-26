@@ -10,12 +10,12 @@ project("CompileShaders")
 	local shaderFilePath = path.join(ProjectsPath, "SponzaBaseScene/Resources/Shaders")
 	vpaths {
 		["shader"] = path.join(shaderFilePath, "shader/**.*"),
-		[""] = path.join(textureFilePath, "compile_dx11.bat"),
+		[""] = path.join(shaderFilePath, "compile_dx11.bat"),
 	}
 
 	files {
 		path.join(shaderFilePath, "shader/**.*"),
-		path.join(textureFilePath, "compile_dx11.bat"),
+		path.join(shaderFilePath, "compile_dx11.bat"),
 	}
 
 	filter { "system:windows" }

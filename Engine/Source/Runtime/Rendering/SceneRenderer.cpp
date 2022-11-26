@@ -95,6 +95,14 @@ void SceneRenderer::Init()
 
 	// Let camera focus on the loaded scene by default.
 	m_pRenderContext->GetCamera()->FrameAll(m_renderDataContext.sceneAABB);
+
+	m_pRenderContext->CreateUniform("s_texCube", bgfx::UniformType::Sampler);
+	m_pRenderContext->CreateUniform("s_texCubeIrr", bgfx::UniformType::Sampler);
+	m_pRenderContext->CreateUniform("s_texLUT", bgfx::UniformType::Sampler);
+	uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
+	m_pRenderContext->CreateTexture("skybox/bolonga_lod.dds", samplerFlags);
+	m_pRenderContext->CreateTexture("skybox/bolonga_irr.dds", samplerFlags);
+	m_pRenderContext->CreateTexture("ibl_brdf_lut.dds");
 }
 
 void SceneRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
