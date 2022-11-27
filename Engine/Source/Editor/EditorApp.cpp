@@ -1,18 +1,20 @@
 ﻿#include "EditorApp.h"
 
 #include "Application/Engine.h"
-#include "AssetBrowser.h"
-#include "DesignView.h"
 #include "Display/FlybyCamera.h"
 #include "EditorImGuiContext.h"
 #include "EditorImGuiViewport.h"
-#include "EditorRenderer.h"
-#include "MainMenu.h"
+#include "Rendering/EditorRenderer.h"
 #include "Rendering/GBuffer.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/SwapChain.h"
-#include "Rendering/SkyRenderer.h"
-#include "Rendering/SceneRenderer.h"
+#include "UILayers/AssetBrowser.h"
+#include "UILayers/EntityList.h"
+#include "UILayers/GameView.h"
+#include "UILayers/Inspector.h"
+#include "UILayers/MainMenu.h"
+#include "UILayers/OutputLog.h"
+#include "UILayers/SceneView.h"
 #include "Window/Window.h"
 
 #include <imgui/imgui.h>
@@ -35,7 +37,6 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	uint16_t width = initArgs.width;
 	uint16_t height = initArgs.height;
 	AddWindow(std::make_unique<engine::Window>(initArgs.pTitle, width, height));
-
 	GetMainWindow()->SetWindowIcon(initArgs.pIconFilePath);
 
 	InitImGuiContext(initArgs.language);
@@ -43,8 +44,23 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	// EditorImGuiRenderer is based on ImGui, so it should be behind EditorImGuiContext.
 	InitRenderContext();
 
-	// Viewports depend on window and rendering setup.
-	InitImGuiViewports(m_pRenderContext);
+	// Enable multiple viewports which means that we can drop any imgui window outside the main window.
+	// Then the imgui window will become a new standalone window. Drop back to convert it back.
+	// InitImGuiViewports(m_pRenderContext);
+
+	// Init static UI layers which mean they are not dockable and dynamic to move.
+	m_pEditorImGuiContext->AddStaticLayer(std::make_unique<MainMenu>("MainMenu", this));
+
+	// Init dockable layers.
+	m_pEditorImGuiContext->AddDockableLayer(std::make_unique<EntityList>("EntityList", this));
+
+	//m_pEditorImGuiContext->AddDockableLayer(std::make_unique<GameView>("GameView", this));
+	m_pEditorImGuiContext->AddDockableLayer(std::make_unique<SceneView>("SceneView", this));
+
+	m_pEditorImGuiContext->AddDockableLayer(std::make_unique<Inspector>("Inspector", this));
+
+	m_pEditorImGuiContext->AddDockableLayer(std::make_unique<AssetBrowser>("AssetBrowser", this));
+	m_pEditorImGuiContext->AddDockableLayer(std::make_unique<OutputLog>("OutputLog", this));
 }
 
 void EditorApp::Shutdown()
@@ -78,15 +94,6 @@ void EditorApp::InitImGuiContext(engine::Language language)
 	std::vector<std::string> ttfFileNames = { "FanWunMing-SB.ttf" };
 	m_pEditorImGuiContext->LoadFontFiles(ttfFileNames, language);
 
-	// Init child UI components.
-	m_pEditorImGuiContext->AddLayer(std::make_unique<MainMenu>());
-
-	//size_t assetBrowserIndex = AddWindow(std::make_unique<engine::Window>("AssetBrowser", 400, 200));
-	m_pEditorImGuiContext->AddLayer(std::make_unique<AssetBrowser>());
-
-	//size_t designViewIndex = AddWindow(std::make_unique<engine::Window>("DesignView", 300, 300));
-	m_pEditorImGuiContext->AddLayer(std::make_unique<DesignView>());
-
 	GetMainWindow()->OnMouseLBDown.Bind<EditorImGuiContext, &EditorImGuiContext::OnMouseLBDown>(m_pEditorImGuiContext.get());
 	GetMainWindow()->OnMouseLBUp.Bind<EditorImGuiContext, &EditorImGuiContext::OnMouseLBUp>(m_pEditorImGuiContext.get());
 	GetMainWindow()->OnMouseRBDown.Bind<EditorImGuiContext, &EditorImGuiContext::OnMouseRBDown>(m_pEditorImGuiContext.get());
@@ -117,6 +124,16 @@ void EditorApp::InitRenderContext()
 	uint8_t mainViewSwapChainID = m_pRenderContext->CreateSwapChain(GetMainWindow()->GetNativeHandle(), GetMainWindow()->GetWidth(), GetMainWindow()->GetHeight());
 	engine::SwapChain* pMainViewSwapChain = m_pRenderContext->GetSwapChain(mainViewSwapChainID);
 	m_pRenderContext->AddRenderer(std::make_unique<editor::EditorRenderer>(m_pRenderContext, m_pRenderContext->CreateView(), pMainViewSwapChain));
+
+	// Camera is prepared for other renderers except EditorRenderer.
+	m_pCamera = std::make_unique<engine::FlybyCamera>(bx::Vec3(0.0f, 0.0f, -50.0f));
+	m_pCamera->SetAspect(1.0f);
+	m_pCamera->SetFov(45.0f);
+	m_pCamera->SetNearPlane(0.1f);
+	m_pCamera->SetFarPlane(1000.0f);
+	m_pCamera->SetHomogeneousNdc(bgfx::getCaps()->homogeneousDepth);
+	m_pRenderContext->SetCamera(m_pCamera.get());
+	GetMainWindow()->OnResize.Bind<engine::Camera, &engine::Camera::SetAspect>(m_pCamera.get());
 }
 
 bool EditorApp::Update(float deltaTime)
@@ -125,7 +142,12 @@ bool EditorApp::Update(float deltaTime)
 
 	m_pEditorImGuiContext->Update();
 
-	m_pEditorImGuiViewport->Update();
+	//m_pEditorImGuiViewport->Update();
+
+	if (m_pCamera)
+	{
+		m_pCamera->Update();
+	}
 
 	m_pRenderContext->Update(deltaTime);
 	

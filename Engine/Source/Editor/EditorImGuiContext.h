@@ -1,12 +1,9 @@
 #pragma once
 
 #include "Application/Localization.h"
+#include "Preferences/ThemeColor.h"
 
 #include <inttypes.h>
-
-struct ImGuiContext;
-struct ImFont;
-
 #include <memory>
 #include <string>
 #include <vector>
@@ -14,7 +11,7 @@ struct ImFont;
 namespace editor
 {
 
-class IEditorImGuiLayer;
+class EditorImGuiLayer;
 
 class EditorImGuiContext
 {
@@ -26,10 +23,18 @@ public:
 	EditorImGuiContext& operator=(EditorImGuiContext&&) = default;
 	virtual ~EditorImGuiContext();
 
-	void AddLayer(std::unique_ptr<IEditorImGuiLayer> pLayer);
-
 	void SetImGuiStyles();
-	void LoadFontFiles(const std::vector<std::string>& ttfFileNames, engine::Language language);
+	ThemeColor GetImGuiThemeColor() const { return m_themeColor; }
+	void SetImGuiThemeColor(ThemeColor theme);
+	void LoadFontFiles(const std::vector<std::string>& ttfFileNames, engine::Language language) const;
+
+	void AddStaticLayer(std::unique_ptr<EditorImGuiLayer> pLayer);
+
+	std::vector<std::unique_ptr<EditorImGuiLayer>>& GetDockableLayers() { return m_pImGuiDockableLayers; }
+	void AddDockableLayer(std::unique_ptr<EditorImGuiLayer> pLayer);
+	
+	void BeginDockSpace();
+	void EndDockSpace();
 	void Update();
 
 	void OnMouseLBDown();
@@ -44,8 +49,10 @@ public:
 	//void OnKeyRelease(int32_t keyCode, uint16_t mods);
 
 private:
-	ImGuiContext* m_pImGuiContext;
-	std::vector<std::unique_ptr<IEditorImGuiLayer>> m_pImGuiLayers;
+	ThemeColor m_themeColor;
+
+	std::vector<std::unique_ptr<EditorImGuiLayer>> m_pImGuiStaticLayers;
+	std::vector<std::unique_ptr<EditorImGuiLayer>> m_pImGuiDockableLayers;
 };
 
 }

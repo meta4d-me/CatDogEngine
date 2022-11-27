@@ -45,6 +45,9 @@ public:
 	void InitImGuiContext(engine::Language language);
 	void InitImGuiViewports(engine::RenderContext* pRenderContext);
 
+	EditorImGuiContext* GetImGuiContext() const { return m_pEditorImGuiContext.get(); }
+	engine::RenderContext* GetRenderContext() const { return m_pRenderContext; }
+
 private:
 	// Windows
 	std::vector<std::unique_ptr<engine::Window>> m_pAllWindows;

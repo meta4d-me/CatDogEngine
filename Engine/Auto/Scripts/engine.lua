@@ -6,7 +6,7 @@ project("Engine")
 	kind(EngineBuildLibKind)
 	language("C++")
 	cppdialect("C++latest")
-	dependson { "bx", "bimg", "bgfx" } -- sdl is pre-built in makefile.
+	dependson { "bx", "bimg", "bimg_decode", "bgfx" } -- sdl is pre-built in makefile.
 	
 	location(path.join(IntermediatePath, "Engine/Runtime"))
 	targetdir(BinariesPath)

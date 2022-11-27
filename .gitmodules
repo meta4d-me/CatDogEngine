@@ -26,3 +26,6 @@
 [submodule "Engine/Source/ThirdParty/stb"]
 	path = Engine/Source/ThirdParty/stb
 	url = https://github.com/CatDogEngine/stb.git
+[submodule "Engine/Source/ThirdParty/ImGuizmo"]
+	path = Engine/Source/ThirdParty/ImGuizmo
+	url = https://github.com/CatDogEngine/ImGuizmo.git
