@@ -3,6 +3,26 @@
 namespace
 {
 
+constexpr bgfx::Attrib::Enum AllAttribColorTypes[] = {
+	bgfx::Attrib::Enum::Color0,
+	bgfx::Attrib::Enum::Color1,
+	bgfx::Attrib::Enum::Color2,
+	bgfx::Attrib::Enum::Color3
+};
+constexpr uint32_t MAX_COLOR_COUNT = 4;
+
+constexpr bgfx::Attrib::Enum AllAttribUVTypes[] = {
+	bgfx::Attrib::Enum::TexCoord0,
+	bgfx::Attrib::Enum::TexCoord1,
+	bgfx::Attrib::Enum::TexCoord2,
+	bgfx::Attrib::Enum::TexCoord3,
+	bgfx::Attrib::Enum::TexCoord4,
+	bgfx::Attrib::Enum::TexCoord5,
+	bgfx::Attrib::Enum::TexCoord6,
+	bgfx::Attrib::Enum::TexCoord7
+};
+constexpr uint32_t MAX_UV_COUNT = 8;
+
 inline uint32_t toUnorm(float _value, float _scale)
 {
 	return uint32_t(std::round(std::clamp(_value, 0.0f, 1.0f) * _scale));
@@ -32,6 +52,206 @@ uint32_t encodeNormalRgba8(float _x, float _y = 0.0f, float _z = 0.0f, float _w 
 	return dst;
 }
 
+size_t GetSizeFromAttribType(const bgfx::AttribType::Enum attribType)
+{
+	switch (attribType) {
+	case bgfx::AttribType::Enum::Float:
+		return sizeof(float);
+	case bgfx::AttribType::Enum::Half:
+		return sizeof(float) >> 1;	// half the size of float
+	case bgfx::AttribType::Enum::Uint8:
+		return sizeof(uint8_t);
+	case bgfx::AttribType::Enum::Int16:
+		return sizeof(int16_t);
+	case bgfx::AttribType::Enum::Uint10:
+		printf("Uint10 types are not supported!");
+		assert(false);	// not supported
+		return 0;
+	default:
+		printf("Unknown attribute type!");
+		assert(false);	// Unknown type!
+		return 0;
+	}
+}
+
+void ConvertVertexLayout(const cdtools::VertexFormat::VertexAttributeLayout& vertexAttributeLayout, bgfx::VertexLayout& outVertexLayout)
+{
+	bgfx::Attrib::Enum vertexAttrib = bgfx::Attrib::Enum::Count;
+	bgfx::AttribType::Enum vertexAttribValue = bgfx::AttribType::Enum::Count;
+	bool normalized = false;
+
+	// Attribute Type
+	switch (vertexAttributeLayout.vertexAttributeType)
+	{
+	case cdtools::VertexAttributeType::Position :
+		vertexAttrib = bgfx::Attrib::Enum::Position;
+		break;
+	case cdtools::VertexAttributeType::Normal:
+		vertexAttrib = bgfx::Attrib::Enum::Normal;
+		normalized = true;
+		break;
+	case cdtools::VertexAttributeType::Tangent:
+		vertexAttrib = bgfx::Attrib::Enum::Tangent;
+		break;
+	case cdtools::VertexAttributeType::Bitangent:
+		vertexAttrib = bgfx::Attrib::Enum::Bitangent;
+		break;
+	case cdtools::VertexAttributeType::UV:
+		vertexAttrib = bgfx::Attrib::Enum::Count;
+		for (const bgfx::Attrib::Enum& textCoord : AllAttribUVTypes)
+		{
+			if (!outVertexLayout.has(textCoord))
+			{
+				vertexAttrib = textCoord;
+				break;
+			}
+		}
+		break;
+	case cdtools::VertexAttributeType::Color:
+		vertexAttrib = bgfx::Attrib::Enum::Count;
+		for (const bgfx::Attrib::Enum& color : AllAttribColorTypes)
+		{
+			if (!outVertexLayout.has(color))
+			{
+				vertexAttrib = color;
+				break;
+			}
+		}
+		break;
+	default:
+		vertexAttrib = bgfx::Attrib::Enum::Count;
+		break;
+	}
+
+	// Attribute Value
+	switch (vertexAttributeLayout.attributeValueType)
+	{
+	case cdtools::AttributeValueType::Uint8:
+		vertexAttribValue = bgfx::AttribType::Enum::Uint8;
+		break;
+	case cdtools::AttributeValueType::Float:
+		vertexAttribValue = bgfx::AttribType::Enum::Float;
+		break;
+	default:
+		vertexAttribValue = bgfx::AttribType::Enum::Count;
+		break;
+	}
+
+	assert(vertexAttrib != bgfx::Attrib::Enum::Count);
+	assert(vertexAttribValue != bgfx::AttribType::Enum::Count);
+	outVertexLayout.add(vertexAttrib, vertexAttributeLayout.attributeCount, vertexAttribValue, normalized);
+}
+
+std::string VertexAttributeTypeToString(const cdtools::VertexAttributeType& attribType)
+{
+	switch (attribType)
+	{
+		case cdtools::VertexAttributeType::Position:
+			return "Position";
+		case cdtools::VertexAttributeType::Normal:
+			return "Normal";
+		case cdtools::VertexAttributeType::Tangent:
+			return "Tangent";
+		case cdtools::VertexAttributeType::Bitangent:
+			return "Bitangent";
+		case cdtools::VertexAttributeType::UV:
+			return "UV";
+		case cdtools::VertexAttributeType::Color:
+			return "Color";
+		default:
+			return "Invalid Attribute Type!";
+	}
+}
+
+std::string AttributeValueTypeToString(const cdtools::AttributeValueType& attribValueType)
+{
+	switch (attribValueType)
+	{
+		case cdtools::AttributeValueType::Float:
+			return "Float";
+		case cdtools::AttributeValueType::Uint8:
+			return "Uint8";
+		default:
+			return "Invalid Attribute Value Type!";
+	}
+}
+
+std::string MaterialTextureTypeToString(const cdtools::MaterialTextureType& materialType)
+{
+	switch (materialType)
+	{
+	case cdtools::MaterialTextureType::BaseColor:
+		return "BaseColor";
+	case cdtools::MaterialTextureType::Normal:
+		return "Normal";
+	case cdtools::MaterialTextureType::Metalness:
+		return "Metalness";
+	case cdtools::MaterialTextureType::Roughness:
+		return "Roughness";
+	case cdtools::MaterialTextureType::Emissive:
+		return "Emissive";
+	case cdtools::MaterialTextureType::AO:
+		return "AO";
+	default:
+		return "Invalid Material Type!";
+	}
+}
+
+constexpr cdtools::MaterialTextureType PossibleTextureTypes[] = {
+	cdtools::MaterialTextureType::BaseColor,
+	cdtools::MaterialTextureType::Normal,
+	cdtools::MaterialTextureType::Metalness,
+	cdtools::MaterialTextureType::Roughness,
+	cdtools::MaterialTextureType::Emissive,
+	cdtools::MaterialTextureType::AO
+};
+
+float bytesToFloat(const uint8_t* bytes)
+{
+	static bool isBigEndian = std::endian::native == std::endian::big;
+	float result;
+	uint8_t* result_ptr = reinterpret_cast<uint8_t*>(&result);
+	if (isBigEndian)
+	{
+		result_ptr[3] = bytes[0];
+		result_ptr[2] = bytes[1];
+		result_ptr[1] = bytes[2];
+		result_ptr[0] = bytes[3];
+	}
+	else
+	{
+		result_ptr[3] = bytes[3];
+		result_ptr[2] = bytes[2];
+		result_ptr[1] = bytes[1];
+		result_ptr[0] = bytes[0];
+	}
+	return result;
+}
+
+void sanityCheck(const std::byte* dataPtr, const uint16_t offset, const float* inX, const float* inY, const float* inZ, const float* inW)
+{
+	if (inX != nullptr)
+	{
+		const float x = bytesToFloat(reinterpret_cast<const uint8_t*>(&dataPtr[offset + 0]));
+		assert(x == *inX);
+	}
+	if (inY != nullptr)
+	{
+		const float y = bytesToFloat(reinterpret_cast<const uint8_t*>(&dataPtr[offset + 4]));
+		assert(y == *inY);
+	}
+	if (inZ != nullptr)
+	{
+		const float z = bytesToFloat(reinterpret_cast<const uint8_t*>(&dataPtr[offset + 8]));
+		assert(z == *inZ);
+	}
+	if (inW != nullptr)
+	{
+		const float w = bytesToFloat(reinterpret_cast<const uint8_t*>(&dataPtr[offset + 12]));
+		assert(w == *inW);
+	}
+}
+
 }
 
 namespace cdtools
@@ -39,88 +259,177 @@ namespace cdtools
 
 void BgfxConsumer::Execute(const SceneDatabase* pSceneDatabase)
 {
-	printf("DumpSceneDatabase:\n");
-	printf("SceneName : %s\n", pSceneDatabase->GetName().c_str());
+	printf("Loading Scene: %s\n", pSceneDatabase->GetName().c_str());
 	printf("MeshCount : %u\n", pSceneDatabase->GetMeshCount());
 	printf("MaterialCount : %u\n", pSceneDatabase->GetMaterialCount());
 
 	const cdtools::AABB& sceneAABB = pSceneDatabase->GetAABB();
-	printf("AABB min : (%f, %f, %f)\n", sceneAABB.Min().x(), sceneAABB.Min().y(), sceneAABB.Min().z());
-	printf("AABB max : (%f, %f, %f)\n", sceneAABB.Max().x(), sceneAABB.Max().y(), sceneAABB.Max().z());
+	printf("Scene AABB min: (%f, %f, %f), max: (%f, %f, %f)\n",
+		sceneAABB.Min().x(), sceneAABB.Min().y(), sceneAABB.Min().z(),
+		sceneAABB.Max().x(), sceneAABB.Max().y(), sceneAABB.Max().z());
+	m_renderDataContext.sceneAABB = sceneAABB;
 
-	const std::vector<cdtools::Material>& materials = pSceneDatabase->GetMaterials();
-	const std::vector<cdtools::Mesh>& meshes = pSceneDatabase->GetMeshes();
-	assert(!meshes.empty() && "Meshes can not be empty.");
+	ConvertMeshesFromScene(*pSceneDatabase, m_renderDataContext.meshRenderDataArray);
+	GetMaterialsFromScene(*pSceneDatabase, m_renderDataContext.materialRenderDataArray);
+}
+
+void BgfxConsumer::ConvertMeshesFromScene(const SceneDatabase& sceneDatabase, std::vector<MeshRenderData>& outLoadedMeshes) const
+{
+	const std::vector<cdtools::Mesh>& meshes = sceneDatabase.GetMeshes();
+	if (meshes.empty())
+	{
+		printf("No meshes found for scene: %s", sceneDatabase.GetName().c_str());
+		return;
+	}
+	printf("\nLoading %zu meshes\n", meshes.size());
 	for (const cdtools::Mesh& mesh : meshes)
 	{
 		printf("\tMeshName : %s\n", mesh.GetName().c_str());
 		printf("\t\tVertexCount : %u\n", mesh.GetVertexCount());
 		printf("\t\tPolygonCount : %u\n", mesh.GetPolygonCount());
 
-		const cdtools::VertexFormat& vertexFormat = mesh.GetVertexFormat();
-		for(const auto& vertexAttributeLayout : vertexFormat.GetVertexLayout())
-		{
-			printf("\t\tVertex AttributeType : %u, Vertex AttributeValueType : %u, Vertex AttributeCount : %u\n",
-				vertexAttributeLayout.vertexAttributeType,
-				vertexAttributeLayout.attributeValueType,
-				vertexAttributeLayout.attributeCount);
-		}
+		outLoadedMeshes.emplace_back();
+		MeshRenderData& meshData = outLoadedMeshes.back();
 
-		MeshRenderData meshData;
-		meshData.vertices.reserve(mesh.GetVertexCount());
+		// Convert vertex formats
+ 		bgfx::VertexLayout& vertexLayout = meshData.GetVertexLayout();
+		vertexLayout.begin();
+		for (const cdtools::VertexFormat::VertexAttributeLayout& vertexAttributeLayout : mesh.GetVertexFormat().GetVertexLayout())
+		{
+			printf("\t\tVA: (%s, %s, %d)\n",
+				VertexAttributeTypeToString(vertexAttributeLayout.vertexAttributeType).c_str(),
+				AttributeValueTypeToString(vertexAttributeLayout.attributeValueType).c_str(),
+				vertexAttributeLayout.attributeCount);
+			ConvertVertexLayout(vertexAttributeLayout, vertexLayout);
+		}
+		vertexLayout.end();
+
+		// Convert vertices
+		std::vector<std::byte>& rawVertices = meshData.GetRawVertices(); 
+		rawVertices.resize(mesh.GetVertexCount() * vertexLayout.getStride());
+		std::byte* currentDataPtr = rawVertices.data();
+		bgfx::AttribType::Enum attribType = bgfx::AttribType::Enum::Count;
+		uint8_t attribNum = 0;
+		bool normalized = false;
+		bool asInt = false;
+		uint16_t attribOffset = 0;
+		size_t attribTypeSize = 0;
 		for (uint32_t vertexIndex = 0; vertexIndex < mesh.GetVertexCount(); ++vertexIndex)
 		{
-			VertextData vertextData;
-			std::memcpy(&vertextData.m_position_x, &mesh.GetVertexPosition(vertexIndex), 3 * sizeof(float));
-			std::memcpy(&vertextData.m_normal_x, &mesh.GetVertexNormal(vertexIndex), 3 * sizeof(float));
-			std::memcpy(&vertextData.m_tangent_x, &mesh.GetVertexTangent(vertexIndex), 3 * sizeof(float));
-			//std::memcpy(&vertextData.m_bitangent_x, &mesh.GetVertexBiTangent(vertexIndex), 3 * sizeof(float));
-			std::memcpy(&vertextData.m_u, &mesh.GetVertexUV(0)[vertexIndex], 2 * sizeof(float));
-			meshData.vertices.emplace_back(std::move(vertextData));
-		}
+			if (vertexLayout.has(bgfx::Attrib::Enum::Position))
+			{
+				attribOffset = vertexLayout.getOffset(bgfx::Attrib::Enum::Position);
+				vertexLayout.decode(bgfx::Attrib::Enum::Position, attribNum, attribType, normalized, asInt);
+				attribTypeSize = GetSizeFromAttribType(attribType);
+				std::memcpy(&currentDataPtr[attribOffset], mesh.GetVertexPosition(vertexIndex).begin(), attribNum * attribTypeSize);
+				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexPosition(vertexIndex).begin(), mesh.GetVertexPosition(vertexIndex).begin()+1, mesh.GetVertexPosition(vertexIndex).begin()+2, nullptr);
+			}
 
-		meshData.indices.reserve(mesh.GetPolygonCount() * 3);
+			if (vertexLayout.has(bgfx::Attrib::Enum::Normal))
+			{
+				attribOffset = vertexLayout.getOffset(bgfx::Attrib::Enum::Normal);
+				vertexLayout.decode(bgfx::Attrib::Enum::Normal, attribNum, attribType, normalized, asInt);
+				attribTypeSize = GetSizeFromAttribType(attribType);
+				std::memcpy(&currentDataPtr[attribOffset], mesh.GetVertexNormal(vertexIndex).begin(), attribNum * attribTypeSize);
+				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexNormal(vertexIndex).begin(), mesh.GetVertexNormal(vertexIndex).begin() + 1, mesh.GetVertexNormal(vertexIndex).begin() + 2, nullptr);
+			}
+
+			if (vertexLayout.has(bgfx::Attrib::Enum::Tangent))
+			{
+				attribOffset = vertexLayout.getOffset(bgfx::Attrib::Enum::Tangent);
+				vertexLayout.decode(bgfx::Attrib::Enum::Tangent, attribNum, attribType, normalized, asInt);
+				attribTypeSize = GetSizeFromAttribType(attribType);
+				std::memcpy(&currentDataPtr[attribOffset], mesh.GetVertexTangent(vertexIndex).begin(), attribNum * attribTypeSize);
+				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexTangent(vertexIndex).begin(), mesh.GetVertexTangent(vertexIndex).begin() + 1, mesh.GetVertexTangent(vertexIndex).begin() + 2, nullptr);
+			}
+
+			if (vertexLayout.has(bgfx::Attrib::Enum::Bitangent))
+			{
+				attribOffset = vertexLayout.getOffset(bgfx::Attrib::Enum::Bitangent);
+				vertexLayout.decode(bgfx::Attrib::Enum::Bitangent, attribNum, attribType, normalized, asInt);
+				attribTypeSize = GetSizeFromAttribType(attribType);
+				std::memcpy(&currentDataPtr[attribOffset], mesh.GetVertexBiTangent(vertexIndex).begin(), attribNum * attribTypeSize);
+				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexBiTangent(vertexIndex).begin(), mesh.GetVertexBiTangent(vertexIndex).begin() + 1, mesh.GetVertexBiTangent(vertexIndex).begin() + 2, nullptr);
+			}
+
+			assert(MAX_COLOR_COUNT >= Mesh::MaxColorSetNumber);
+			for (uint32_t i = 0; i <  Mesh::MaxColorSetNumber; ++i)
+			{
+				const bgfx::Attrib::Enum color = AllAttribColorTypes[i];
+				if (!vertexLayout.has(color))
+				{
+					continue;
+				}
+				attribOffset = vertexLayout.getOffset(color);
+				vertexLayout.decode(color, attribNum, attribType, normalized, asInt);
+				attribTypeSize = GetSizeFromAttribType(attribType);
+				std::memcpy(&currentDataPtr[attribOffset], mesh.GetVertexColor(i)[vertexIndex].begin(), attribNum * attribTypeSize);
+				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexColor(i)[vertexIndex].begin(), mesh.GetVertexColor(i)[vertexIndex].begin() + 1, mesh.GetVertexColor(i)[vertexIndex].begin() + 2, mesh.GetVertexColor(i)[vertexIndex].begin() + 3);
+			}
+
+			assert(MAX_UV_COUNT >= Mesh::MaxUVSetNumber);
+			for (uint32_t i = 0; i < Mesh::MaxUVSetNumber; ++i)
+			{
+				const bgfx::Attrib::Enum uv = AllAttribUVTypes[i];
+				if (!vertexLayout.has(uv))
+				{
+					continue;
+				}
+				attribOffset = vertexLayout.getOffset(uv);
+				vertexLayout.decode(uv, attribNum, attribType, normalized, asInt);
+				attribTypeSize = GetSizeFromAttribType(attribType);
+				std::memcpy(&currentDataPtr[attribOffset], mesh.GetVertexUV(i)[vertexIndex].begin(), attribNum * attribTypeSize);
+				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexUV(i)[vertexIndex].begin(), mesh.GetVertexUV(i)[vertexIndex].begin() + 1, nullptr, nullptr);
+			}
+
+			// Advance currentDataPtr by stride
+			currentDataPtr += vertexLayout.getStride();
+		}
+		assert(rawVertices.size() == mesh.GetVertexCount() * vertexLayout.getStride());
+
+		meshData.GetIndices().reserve(mesh.GetPolygonCount() * 3);	// We store triangles for polygons
 		for (uint32_t i = 0; i < mesh.GetPolygonCount(); ++i)
 		{
-			meshData.indices.push_back(mesh.GetPolygon(i)[0].Data());
-			meshData.indices.push_back(mesh.GetPolygon(i)[1].Data());
-			meshData.indices.push_back(mesh.GetPolygon(i)[2].Data());
+			meshData.GetIndices().push_back(mesh.GetPolygon(i)[0].Data());
+			meshData.GetIndices().push_back(mesh.GetPolygon(i)[1].Data());
+			meshData.GetIndices().push_back(mesh.GetPolygon(i)[2].Data());
 		}
+	}
+}
 
-		m_renderDataContext.meshRenderDataArray.emplace_back(std::move(meshData));
-
+void BgfxConsumer::GetMaterialsFromScene(const SceneDatabase& sceneDatabase, std::vector<MaterialRenderData>& outLoadedMaterials) const
+{
+	const std::vector<cdtools::Mesh>& meshes = sceneDatabase.GetMeshes();
+	uint32_t index = 0;
+	for (const cdtools::Material& material : sceneDatabase.GetMaterials())
+	{
 		// Materials
-		uint32_t materialID = mesh.GetMaterialID().Data();
-		const cdtools::Material& material = materials[materialID];
-		printf("\t\tUsedMaterialName : %s\n", material.GetName().c_str());
-
-		constexpr MaterialTextureType materialsWillUse[] = {
-			MaterialTextureType::BaseColor,
-			MaterialTextureType::Normal,
-			MaterialTextureType::Roughness,
-		};
-
-		MaterialRenderData materialData;
-		for (const auto& textureType : materialsWillUse)
+		printf("\t\tMaterial Name: %s\n", material.GetName().c_str());
+		outLoadedMaterials.emplace_back();
+		MaterialRenderData& materialData = outLoadedMaterials.back();
+		for (const cdtools::MaterialTextureType& textureType : PossibleTextureTypes)
 		{
-			const auto textureID = material.GetTextureID(textureType);
+			printf("\t\t\tMaterial Type: %s\n", MaterialTextureTypeToString(textureType).c_str());
+			const std::optional<TextureID>& textureID = material.GetTextureID(textureType);
 			if (textureID.has_value())
 			{
-				const std::string& texturePath = pSceneDatabase->GetTexture(textureID->Data()).GetPath();
+				const std::string& texturePath = sceneDatabase.GetTexture(textureID->Data()).GetPath();
 				std::string textureName = texturePath.substr(texturePath.rfind('/') + 1, texturePath.rfind('.') - texturePath.rfind('/') - 1);
-				printf("\t\t\ttextureName : %s\n", textureName.c_str());
+				printf("\t\t\tTexture Name: %s\n\n", textureName.c_str());
 				materialData.SetTextureName(textureType, std::move(textureName));
 			}
 			else
 			{
-				printf("\t\t\ttextureName : UnknownMaterial\n");
+				printf("\t\t\tTexture Name: UnknownMaterial\n\n");
 				materialData.SetTextureName(textureType, std::nullopt);
 			}
 		}
-		m_renderDataContext.materialRenderDataArray.emplace_back(std::move(materialData));
+		assert(index < meshes.size());
+		const cdtools::Mesh& mesh = meshes[index];
+		// Material ID must match mesh's ID
+		assert(mesh.GetMaterialID().Data() == index);
+		++index;
 	}
-
-	m_renderDataContext.sceneAABB = sceneAABB;
 }
 
-}
+} // namespace cdtools

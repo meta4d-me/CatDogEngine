@@ -2,42 +2,107 @@
 
 #include "Scene/SceneDatabase.h"
 
+#include <bgfx/bgfx.h>
 #include <cassert>
 #include <string>
 #include <vector>
 
-struct VertextData
-{
-	float m_position_x, m_position_y, m_position_z;
-	float m_normal_x, m_normal_y, m_normal_z;
-	float m_tangent_x, m_tangent_y, m_tangent_z;
-	//float m_bitangent_x, m_bitangent_y, m_bitangent_z;
-	float m_u, m_v;
-};
-
 struct PositionBarycentricCoordinatesVertext
 {
 	float m_position_x, m_position_y, m_position_z;
-	// If we calculate face normal in fs, this vertext normal attribute is unnecessary.
+	// If we calculate face normal in fs, this vertices normal attribute is unnecessary.
 	float m_normal_x, m_normal_y, m_normal_z;
 	float m_barycentricCoordinates_x, m_barycentricCoordinates_y, m_barycentricCoordinates_z;
 };
 using EditorVertextData = PositionBarycentricCoordinatesVertext;
 
-struct MeshRenderData
+// TODO make this a sub-class of a more generic render data
+class MeshRenderData
 {
-	constexpr uint32_t GetVerticesBufferLength() const
+public:
+	MeshRenderData() = default;
+	MeshRenderData(const MeshRenderData& rhs) = delete;				// Prevent expensive copy
+	MeshRenderData& operator=(const MeshRenderData& rhs) = delete;	// Prevent expensive copy
+	~MeshRenderData() = default;
+
+	MeshRenderData(MeshRenderData&& rhs) noexcept
+		: m_rawVertices(std::move(rhs.m_rawVertices))
+		, m_indices(std::move(rhs.m_indices))
 	{
-		return static_cast<uint32_t>(vertices.size() * sizeof(decltype(vertices[0])));
+		m_vertexLayout.m_hash = rhs.m_vertexLayout.m_hash;
+		m_vertexLayout.m_stride = rhs.m_vertexLayout.m_stride;
+
+		size_t arrayLength = *(&rhs.m_vertexLayout.m_offset + 1) - rhs.m_vertexLayout.m_offset;
+		std::memcpy(m_vertexLayout.m_offset, rhs.m_vertexLayout.m_offset, arrayLength * sizeof(uint16_t));
+
+		arrayLength = *(&rhs.m_vertexLayout.m_attributes + 1) - rhs.m_vertexLayout.m_attributes;
+		std::memcpy(m_vertexLayout.m_attributes, rhs.m_vertexLayout.m_attributes, arrayLength * sizeof(uint16_t));
+
+		rhs.m_vertexLayout.m_stride = 0;
 	}
 
-	constexpr uint32_t GetIndicesBufferLength() const
+	MeshRenderData& operator=(MeshRenderData&& rhs) noexcept
 	{
-		return static_cast<uint32_t>(indices.size() * sizeof(decltype(indices[0])));
+		m_rawVertices = std::move(rhs.m_rawVertices);
+		m_indices = std::move(rhs.m_indices);
+
+		m_vertexLayout.m_hash = rhs.m_vertexLayout.m_hash;
+		m_vertexLayout.m_stride = rhs.m_vertexLayout.m_stride;
+
+		size_t arrayLength = *(&rhs.m_vertexLayout.m_offset + 1) - rhs.m_vertexLayout.m_offset;
+		std::memcpy(m_vertexLayout.m_offset, rhs.m_vertexLayout.m_offset, arrayLength * sizeof(uint16_t));
+
+		arrayLength = *(&rhs.m_vertexLayout.m_attributes + 1) - rhs.m_vertexLayout.m_attributes;
+		std::memcpy(m_vertexLayout.m_attributes, rhs.m_vertexLayout.m_attributes, arrayLength * sizeof(uint16_t));
+
+		rhs.m_vertexLayout.m_stride = 0;
 	}
 
-	std::vector<VertextData> vertices;
-	std::vector<uint32_t> indices;
+	uint32_t GetVerticesBufferLength() const
+	{
+		return static_cast<uint32_t>(m_rawVertices.size() * sizeof(std::byte));
+	}
+
+	uint32_t GetIndicesBufferLength() const
+	{
+		return static_cast<uint32_t>(m_indices.size() * sizeof(uint32_t));
+	}
+
+	bgfx::VertexLayout& GetVertexLayout() 
+	{
+		return m_vertexLayout;
+	}
+
+	const bgfx::VertexLayout& GetVertexLayout() const
+	{
+		return m_vertexLayout;
+	}
+
+	std::vector<std::byte>& GetRawVertices()
+	{
+		return m_rawVertices;
+	}
+
+	const std::vector<std::byte>& GetRawVertices() const
+	{
+		return m_rawVertices;
+	}
+
+	std::vector<uint32_t>& GetIndices()
+	{
+		return m_indices;
+	}
+
+	const std::vector<uint32_t>& GetIndices() const
+	{
+		return m_indices;
+	}
+
+private:
+	bgfx::VertexLayout m_vertexLayout;
+	std::vector<std::byte> m_rawVertices;	// array of structure based on vertexLayout
+	std::vector<uint32_t> m_indices;
+
 };
 
 class MaterialRenderData
@@ -58,8 +123,14 @@ public:
 			return m_baseColorName;
 		case cdtools::MaterialTextureType::Normal:
 			return m_normalName;
+		case cdtools::MaterialTextureType::Metalness:
+			return m_metalnessName;
 		case cdtools::MaterialTextureType::Roughness:
 			return m_ORMName;
+		case cdtools::MaterialTextureType::Emissive:
+			return m_emissiveName;
+		case cdtools::MaterialTextureType::AO:
+			return m_aoName;
 		default:
 			assert("Invalid texture type!");
 			return m_baseColorName;
@@ -71,24 +142,36 @@ public:
 		switch (type)
 		{
 		case cdtools::MaterialTextureType::BaseColor:
-			m_baseColorName = std::move(name); break;
+			m_baseColorName = std::move(name); 
+			break;
 		case cdtools::MaterialTextureType::Normal:
-			m_normalName = std::move(name); break;
+			m_normalName = std::move(name); 
+			break;
+		case cdtools::MaterialTextureType::Metalness:
+			m_metalnessName = std::move(name);
+			break;
 		case cdtools::MaterialTextureType::Roughness:
-			if(!m_ORMName.has_value())
-			{
-				m_ORMName = std::move(name);
-			}
+			m_ORMName = std::move(name);
+			break;
+		case cdtools::MaterialTextureType::Emissive:
+			m_emissiveName = std::move(name);
+			break;
+		case cdtools::MaterialTextureType::AO:
+			m_aoName = std::move(name);
 			break;
 		default:
-			assert("Set invalid texture type!\n"); break;
+			assert("Set invalid texture type!\n"); 
+			break;
 		}
 	}
 
 private:
 	std::optional<std::string> m_baseColorName;
 	std::optional<std::string> m_normalName;
+	std::optional<std::string> m_metalnessName;
 	std::optional<std::string> m_ORMName;
+	std::optional<std::string> m_emissiveName;
+	std::optional<std::string> m_aoName;
 };
 
 struct RenderDataContext

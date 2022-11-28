@@ -36,7 +36,7 @@ void GameApp::Init(engine::EngineInitArgs initArgs)
 	uint8_t swapChainID = m_pRenderContext->CreateSwapChain(m_pMainWindow->GetNativeWindow(), width, height);
 	engine::SwapChain* pSwapChain = m_pRenderContext->GetSwapChain(swapChainID);
 	m_pRenderContext->InitGBuffer(width, height);
-	//m_pRenderers.push_back(std::make_unique<engine::SkyRenderer>(m_pRenderContext, m_pRenderContext->CreateView(), pSwapChain));
+	// m_pRenderers.push_back(std::make_unique<engine::SkyRenderer>(m_pRenderContext, m_pRenderContext->CreateView(), pSwapChain));
 	m_pRenderers.push_back(std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext, m_pRenderContext->CreateView(), pSwapChain));
 	m_pRenderers.push_back(std::make_unique<engine::SceneRenderer>(m_pRenderContext, m_pRenderContext->CreateView(), pSwapChain));
 	m_pRenderers.push_back(std::make_unique<engine::PostProcessRenderer>(m_pRenderContext, m_pRenderContext->CreateView(), pSwapChain));
@@ -51,7 +51,7 @@ void GameApp::Init(engine::EngineInitArgs initArgs)
 	m_pFlybyCamera->SetHomogeneousNdc(bgfx::getCaps()->homogeneousDepth);
 
 	m_pMainWindow->OnResize.Bind<engine::Camera, &engine::Camera::SetAspect>(m_pFlybyCamera.get());
-	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(m_pFlybyCamera.get(), 0.8f /* Mouse Sensitivity */, 20.0f /* Movement Speed*/);
+	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(m_pFlybyCamera.get(), 50.0f /* Mouse Sensitivity */, 80.0f /* Movement Speed*/);
 	m_pMainWindow->OnMouseRBDown.Bind<engine::FirstPersonCameraController, &engine::FirstPersonCameraController::OnMouseRBPress>(m_pCameraController.get());
 	m_pMainWindow->OnMouseRBUp.Bind<engine::FirstPersonCameraController, &engine::FirstPersonCameraController::OnMouseRBRelease>(m_pCameraController.get());
 	m_pMainWindow->OnMouseMoveRelative.Bind<engine::FirstPersonCameraController, &engine::FirstPersonCameraController::SetMousePosition>(m_pCameraController.get());
