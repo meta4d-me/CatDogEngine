@@ -29,6 +29,9 @@ public:
 private:
 	std::string m_filePath;
 	RenderDataContext m_renderDataContext;
+
+	void ConvertMeshesFromScene(const SceneDatabase& sceneDatabase, std::vector<MeshRenderData>& outLoadedMeshes) const;
+	void GetMaterialsFromScene(const SceneDatabase& sceneDatabase, std::vector<MaterialRenderData>& outLoadedMaterials) const;
 };
 
 }

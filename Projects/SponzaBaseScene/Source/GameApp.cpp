@@ -46,7 +46,7 @@ void GameApp::Init(engine::EngineInitArgs initArgs)
 	m_pMainWindow->OnResize.Bind<engine::Camera, &engine::Camera::SetAspect>(m_pFlybyCamera.get());
 
 	// Camera controller
-	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(m_pFlybyCamera.get(), 0.8f /* Mouse Sensitivity */, 20.0f /* Movement Speed*/);
+	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(m_pFlybyCamera.get(), 50.0f /* Mouse Sensitivity */, 80.0f /* Movement Speed*/);
 	m_pMainWindow->OnMouseRBDown.Bind<engine::FirstPersonCameraController, &engine::FirstPersonCameraController::OnMouseRBPress>(m_pCameraController.get());
 	m_pMainWindow->OnMouseRBUp.Bind<engine::FirstPersonCameraController, &engine::FirstPersonCameraController::OnMouseRBRelease>(m_pCameraController.get());
 	m_pMainWindow->OnMouseMoveRelative.Bind<engine::FirstPersonCameraController, &engine::FirstPersonCameraController::SetMousePosition>(m_pCameraController.get());
