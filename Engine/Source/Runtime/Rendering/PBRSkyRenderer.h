@@ -6,21 +6,6 @@
 namespace engine
 {
 
-static constexpr uint16_t TRANSMITTANCE_TEXTURE_WIDTH = 256;
-static constexpr uint16_t TRANSMITTANCE_TEXTURE_HEIGHT = 64;
-
-static constexpr uint16_t SCATTERING_TEXTURE_R_SIZE = 32;
-static constexpr uint16_t SCATTERING_TEXTURE_MU_SIZE = 128;
-static constexpr uint16_t SCATTERING_TEXTURE_MU_S_SIZE = 32;
-static constexpr uint16_t SCATTERING_TEXTURE_NU_SIZE = 8;
-
-static constexpr uint16_t SCATTERING_TEXTURE_WIDTH = SCATTERING_TEXTURE_NU_SIZE * SCATTERING_TEXTURE_MU_S_SIZE;
-static constexpr uint16_t SCATTERING_TEXTURE_HEIGHT = SCATTERING_TEXTURE_MU_SIZE;
-static constexpr uint16_t SCATTERING_TEXTURE_DEPTH = SCATTERING_TEXTURE_R_SIZE;
-
-static constexpr uint16_t IRRADIANCE_TEXTURE_WIDTH = 64;
-static constexpr uint16_t IRRADIANCE_TEXTURE_HEIGHT = 16;
-
 class PBRSkyRenderer final : public Renderer
 {
 public:
