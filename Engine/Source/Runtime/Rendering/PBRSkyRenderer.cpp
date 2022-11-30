@@ -9,6 +9,30 @@
 namespace engine
 {
 
+namespace
+{
+	constexpr uint16_t TRANSMITTANCE_TEXTURE_WIDTH = 256;
+	constexpr uint16_t TRANSMITTANCE_TEXTURE_HEIGHT = 64;
+	
+	constexpr uint16_t SCATTERING_TEXTURE_R_SIZE = 32;
+	constexpr uint16_t SCATTERING_TEXTURE_MU_SIZE = 128;
+	constexpr uint16_t SCATTERING_TEXTURE_MU_S_SIZE = 32;
+	constexpr uint16_t SCATTERING_TEXTURE_NU_SIZE = 8;
+	
+	constexpr uint16_t SCATTERING_TEXTURE_WIDTH = SCATTERING_TEXTURE_NU_SIZE * SCATTERING_TEXTURE_MU_S_SIZE;
+	constexpr uint16_t SCATTERING_TEXTURE_HEIGHT = SCATTERING_TEXTURE_MU_SIZE;
+	constexpr uint16_t SCATTERING_TEXTURE_DEPTH = SCATTERING_TEXTURE_R_SIZE;
+	
+	constexpr uint16_t IRRADIANCE_TEXTURE_WIDTH = 64;
+	constexpr uint16_t IRRADIANCE_TEXTURE_HEIGHT = 16;
+	
+	constexpr uint64_t FLAG_2DTEXTURE = BGFX_TEXTURE_COMPUTE_WRITE | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
+	constexpr uint64_t FLAG_3DTEXTURE = BGFX_TEXTURE_COMPUTE_WRITE | BGFX_SAMPLER_UVW_CLAMP;
+	constexpr uint64_t RENDERING_STATE = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LEQUAL;
+	
+	constexpr uint16_t SCATTERING_ORDERS = 6;
+}
+
 PBRSkyRenderer::~PBRSkyRenderer() {};
 
 void PBRSkyRenderer::Init() {
@@ -25,24 +49,23 @@ void PBRSkyRenderer::Init() {
 	m_programComputeIndirectIrradiance = m_pRenderContext->CreateProgram("ComputeIndirectIrradiance", "cs_ComputeIndirectIrradiance.bin");
 	m_programComputeMultipleScattering = m_pRenderContext->CreateProgram("ComputeMultipleScattering", "cs_ComputeMultipleScattering.bin");
 
-	static constexpr uint64_t FLAG2D = BGFX_TEXTURE_COMPUTE_WRITE | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
-	static constexpr uint64_t FLAG3D = BGFX_TEXTURE_COMPUTE_WRITE | BGFX_SAMPLER_UVW_CLAMP;
+
 	m_textureTransmittance = m_pRenderContext->CreateTexture("m_textureTransmittance",
-		TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT, FLAG2D);
+		TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT, FLAG_2DTEXTURE);
 	m_textureIrradiance = m_pRenderContext->CreateTexture("m_textureIrradiance",
-		IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT, FLAG2D);
+		IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT, FLAG_2DTEXTURE);
 	m_textureDeltaIrradiance = m_pRenderContext->CreateTexture("m_textureDeltaIrradiance",
-		IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT, FLAG2D);
+		IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT, FLAG_2DTEXTURE);
 	m_textureDeltaRayleighScattering = m_pRenderContext->CreateTexture("m_textureDeltaRayleighScattering",
-		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, FLAG3D);
+		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, FLAG_3DTEXTURE);
 	m_textureDeltaMieScattering = m_pRenderContext->CreateTexture("m_textureDeltaMieScattering",
-		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, FLAG3D);
+		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, FLAG_3DTEXTURE);
 	m_textureScattering = m_pRenderContext->CreateTexture("m_textureScattering",
-		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, FLAG3D);
+		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, FLAG_3DTEXTURE);
 	m_textureDeltaScatteringDensity = m_pRenderContext->CreateTexture("m_textureDeltaScatteringDensity",
-		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, FLAG3D);
+		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, FLAG_3DTEXTURE);
 	m_textureDeltaMultipleScattering = m_pRenderContext->CreateTexture("m_textureDeltaMultipleScattering",
-		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, FLAG3D);
+		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, FLAG_3DTEXTURE);
 
 	u_num_scattering_orders = m_pRenderContext->CreateUniform("u_num_scattering_orders", bgfx::UniformType::Enum::Vec4, 1);
 	u_cameraPos             = m_pRenderContext->CreateUniform("u_cameraPos", bgfx::UniformType::Enum::Vec4, 1);
@@ -54,7 +77,10 @@ void PBRSkyRenderer::Init() {
 }
 
 void PBRSkyRenderer::UpdateView(const float *pViewMatrix, const float *pProjectionMatrix) {
-	// For sky box.
+	// We want the skybox to be centered around the player
+	// so that no matter how far the player moves, the skybox won't get any closer.
+	// Remove the translation part of the view matrix
+	// so only rotation will affect the skybox's position vectors.
 	float pView[16];
 	std::memcpy(pView, pViewMatrix, 12 * sizeof(float));
 	pView[12] = pView[13] = pView[14] = 0.0f;
@@ -84,10 +110,7 @@ void PBRSkyRenderer::Render(float deltaTime) {
 	m_uniformData = cdtools::Vec4f(0.0f, -1.0f, -1.0f, 0.0f);
 	bgfx::setUniform(u_LightDir, &m_uniformData.x(), 1);
 
-	// State
-	static constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LEQUAL;
-	bgfx::setState(state);
-
+	bgfx::setState(RENDERING_STATE);
 	bgfx::submit(GetViewID(), m_programAtmosphericScattering_LUT);
 }
 
@@ -103,24 +126,23 @@ void PBRSkyRenderer::Precompute() {
 
 		// Compute Transmittance.
 		bgfx::setImage(8, m_textureTransmittance, 0, Write, RGBA32F);
-		bgfx::dispatch(viewId, m_programComputeTransmittance, TRANSMITTANCE_TEXTURE_WIDTH / 8, TRANSMITTANCE_TEXTURE_HEIGHT / 8, 1);
+		bgfx::dispatch(viewId, m_programComputeTransmittance, TRANSMITTANCE_TEXTURE_WIDTH / 8U, TRANSMITTANCE_TEXTURE_HEIGHT / 8U, 1U);
 
 		// Compute direct Irradiance.
 		bgfx::setImage(0, m_textureTransmittance, 0, Read, RGBA32F);
 		bgfx::setImage(8, m_textureDeltaIrradiance, 0, Write, RGBA32F);
 		bgfx::setImage(9, m_textureIrradiance, 0, Write, RGBA32F);
-		bgfx::dispatch(viewId, m_programComputeDirectIrradiance, IRRADIANCE_TEXTURE_WIDTH / 8, IRRADIANCE_TEXTURE_HEIGHT / 8, 1);
+		bgfx::dispatch(viewId, m_programComputeDirectIrradiance, IRRADIANCE_TEXTURE_WIDTH / 8U, IRRADIANCE_TEXTURE_HEIGHT / 8U, 1U);
 
 		// Compute single Scattering.
 		bgfx::setImage(0, m_textureTransmittance, 0, Read, RGBA32F);
 		bgfx::setImage(8, m_textureDeltaRayleighScattering, 0, Write, RGBA32F);
 		bgfx::setImage(9, m_textureDeltaMieScattering, 0, Write, RGBA32F);
 		bgfx::setImage(10, m_textureScattering, 0, Write, RGBA32F);
-		bgfx::dispatch(viewId, m_programComputeSingleScattering, SCATTERING_TEXTURE_WIDTH / 8, SCATTERING_TEXTURE_HEIGHT / 8, SCATTERING_TEXTURE_DEPTH / 8);
+		bgfx::dispatch(viewId, m_programComputeSingleScattering, SCATTERING_TEXTURE_WIDTH / 8U, SCATTERING_TEXTURE_HEIGHT / 8U, SCATTERING_TEXTURE_DEPTH / 8U);
 
 		// Compute multiple Scattering.
-		static constexpr uint16_t NUM_SCATTERING_ORDERS = 6;
-		for (uint16_t order = 2; order <= NUM_SCATTERING_ORDERS; ++order) {
+		for (uint16_t order = 2; order <= SCATTERING_ORDERS; ++order) {
 
 			// 1. Compute Scattering Density.
 			m_uniformData.x() = static_cast<float>(order);
@@ -132,7 +154,7 @@ void PBRSkyRenderer::Precompute() {
 			bgfx::setImage(3, m_textureDeltaMultipleScattering, 0, Read, RGBA32F);
 			bgfx::setImage(5, m_textureDeltaIrradiance, 0, Read, RGBA32F);
 			bgfx::setImage(8, m_textureDeltaScatteringDensity, 0, Write, RGBA32F);
-			bgfx::dispatch(viewId, m_programComputeScatteringDensity, SCATTERING_TEXTURE_WIDTH / 8, SCATTERING_TEXTURE_HEIGHT / 8, SCATTERING_TEXTURE_DEPTH / 8);
+			bgfx::dispatch(viewId, m_programComputeScatteringDensity, SCATTERING_TEXTURE_WIDTH / 8U, SCATTERING_TEXTURE_HEIGHT / 8U, SCATTERING_TEXTURE_DEPTH / 8U);
 
 			// 2. Compute indirect Irradiance.
 			m_uniformData.x() = static_cast<float>(order - uint16_t(1));
@@ -143,7 +165,7 @@ void PBRSkyRenderer::Precompute() {
 			bgfx::setImage(3, m_textureDeltaMultipleScattering, 0, Read, RGBA32F);
 			bgfx::setImage(8, m_textureDeltaIrradiance, 0, Write, RGBA32F);
 			bgfx::setImage(9, m_textureIrradiance, 0, Write, RGBA32F);
-			bgfx::dispatch(viewId, m_programComputeIndirectIrradiance, IRRADIANCE_TEXTURE_WIDTH / 8, IRRADIANCE_TEXTURE_HEIGHT / 8, 1);
+			bgfx::dispatch(viewId, m_programComputeIndirectIrradiance, IRRADIANCE_TEXTURE_WIDTH / 8U, IRRADIANCE_TEXTURE_HEIGHT / 8U, 1U);
 
 
 			// 3. Compute multiple Scattering.
@@ -151,9 +173,9 @@ void PBRSkyRenderer::Precompute() {
 			bgfx::setImage(4, m_textureDeltaScatteringDensity, 0, Read, RGBA32F);
 			bgfx::setImage(8, m_textureDeltaMultipleScattering, 0, Write, RGBA32F);
 			bgfx::setImage(9, m_textureScattering, 0, Write, RGBA32F);
-			bgfx::dispatch(viewId, m_programComputeMultipleScattering, SCATTERING_TEXTURE_WIDTH / 8, SCATTERING_TEXTURE_HEIGHT / 8, SCATTERING_TEXTURE_DEPTH / 8);
+			bgfx::dispatch(viewId, m_programComputeMultipleScattering, SCATTERING_TEXTURE_WIDTH / 8U, SCATTERING_TEXTURE_HEIGHT / 8U, SCATTERING_TEXTURE_DEPTH / 8U);
 		}
-		printf("\nAll compute shader for precompute atmospheric scattering texture dispatched.\nScattering Order : %d\n", NUM_SCATTERING_ORDERS);
+		printf("\nAll compute shaders for precomputing atmospheric scattering texture dispatched.\nScattering Orders : %d\n", SCATTERING_ORDERS);
 		ClearTextureSlots();
 		ReleaseTemporaryTextureResources();
 	}
