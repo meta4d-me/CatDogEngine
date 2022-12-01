@@ -5,24 +5,27 @@
 namespace engine
 {
 
-class StringCrc final
+template<typename T>
+class TStringCrc final
 {
 public:
-	StringCrc() = default;
-	explicit constexpr StringCrc(std::string_view sv) : m_hashValue(cdtools::StringHash<uint32_t>(sv)) {}
-	explicit constexpr StringCrc(const char* str, std::size_t n) : m_hashValue(cdtools::StringHash<uint32_t>(str, n)) {}
-	StringCrc(const StringCrc&) = default;
-	StringCrc& operator=(const StringCrc&) = default;
-	StringCrc(StringCrc&&) = default;
-	StringCrc& operator=(StringCrc&&) = default;
-	~StringCrc() = default;
+	TStringCrc() = delete;
+	explicit constexpr TStringCrc(std::string_view sv) : m_hashValue(cdtools::StringHash<T>(sv)) {}
+	explicit constexpr TStringCrc(const char* str, std::size_t n) : m_hashValue(cdtools::StringHash<T>(str, n)) {}
+	TStringCrc(const TStringCrc&) = default;
+	TStringCrc& operator=(const TStringCrc&) = default;
+	TStringCrc(TStringCrc&&) = default;
+	TStringCrc& operator=(TStringCrc&&) = default;
+	~TStringCrc() = default;
 
-	constexpr uint32_t value() const { return m_hashValue; }
-	bool operator==(const StringCrc& other) const { return m_hashValue == other.m_hashValue; }
-	bool operator!=(const StringCrc& other) const { return m_hashValue != other.m_hashValue; }
+	constexpr T value() const { return m_hashValue; }
+	bool operator==(const TStringCrc& other) const { return m_hashValue == other.m_hashValue; }
+	bool operator!=(const TStringCrc& other) const { return m_hashValue != other.m_hashValue; }
 
 private:
-	uint32_t m_hashValue;
+	T m_hashValue;
 };
+
+using StringCrc = TStringCrc<uint32_t>;
 
 }

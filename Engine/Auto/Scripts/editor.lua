@@ -29,11 +29,16 @@ project("Editor")
 		}
 	}
 
+	local editorResourcesPath = RootPath.."/Engine/Source/Editor/Resources/"
 	defines {
 		"BX_CONFIG_DEBUG",
+		"IMGUI_DEFINE_MATH_OPERATORS",
+		"IMGUI_ENABLE_FREETYPE",
+		"CDEDITOR_RESOURCES_ROOT_PATH=\""..editorResourcesPath.."\"",
 	}
 
 	includedirs {
+		path.join(EngineSourcePath, "Editor/"),
 		path.join(EngineSourcePath, "Runtime/"),
 		path.join(ThirdPartySourcePath, "AssetPipeline/public"),
 		path.join(ThirdPartySourcePath, "imgui"),

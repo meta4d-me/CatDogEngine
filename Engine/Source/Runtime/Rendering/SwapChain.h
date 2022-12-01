@@ -34,6 +34,7 @@ public:
 private:
 	uint16_t m_frameBufferWidth;
 	uint16_t m_frameBufferHeight;
+	void* m_pWindowHandle;
 	std::unique_ptr<bgfx::FrameBufferHandle> m_pFrameBufferHandle;
 };
 

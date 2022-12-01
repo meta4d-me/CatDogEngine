@@ -1,4 +1,4 @@
-#include "Engine.h"
+﻿#include "Engine.h"
 
 #include "Rendering/GBuffer.h"
 #include "Rendering/RenderContext.h"
@@ -29,7 +29,7 @@ void Engine::Init(EngineInitArgs args)
 
 void Engine::Run()
 {
-	Tools::Clock clock;
+	Clock clock;
 
 	while (true)
 	{

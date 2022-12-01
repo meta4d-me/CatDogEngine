@@ -1,6 +1,8 @@
 #include "RenderContext.h"
 
+#include "Display/Camera.h"
 #include "GBuffer.h"
+#include "Renderer.h"
 #include "SwapChain.h"
 
 #include <bgfx/bgfx.h>
@@ -47,6 +49,13 @@ void RenderContext::Init()
 	bgfx::setDebug(BGFX_DEBUG_NONE);
 }
 
+void RenderContext::AddRenderer(std::unique_ptr<Renderer> pRenderer)
+{
+	pRenderer->Init();
+	pRenderer->SetCamera(GetCamera());
+	m_pRenderers.emplace_back(std::move(pRenderer));
+}
+
 void RenderContext::Shutdown()
 {
 	for (auto it : m_programHandleCaches)
@@ -79,6 +88,25 @@ void RenderContext::EndFrame()
 	// Advance to next frame. Rendering thread will be kicked to
 	// process submitted rendering primitives.
 	bgfx::frame();
+}
+
+void RenderContext::Update(float deltaTime)
+{
+	BeginFrame();
+	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pRenderers)
+	{
+		const float* pViewMatrix = nullptr;
+		const float* pProjectionMatrix = nullptr;
+		if (Camera* pCamera = pRenderer->GetCamera())
+		{
+			pViewMatrix = pCamera->GetViewMatrix();
+			pProjectionMatrix = pCamera->GetProjectionMatrix();
+		}
+
+		pRenderer->UpdateView(pViewMatrix, pProjectionMatrix);
+		pRenderer->Render(deltaTime);
+	}
+	EndFrame();
 }
 
 void RenderContext::ResizeFrameBuffers(uint16_t width, uint16_t height)

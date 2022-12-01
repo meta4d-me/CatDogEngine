@@ -1,11 +1,17 @@
 #pragma once
 
-#include <inttypes.h>
+#include "Application/Localization.h"
+#include "Preferences/ThemeColor.h"
 
-struct ImGuiContext;
+#include <inttypes.h>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace editor
 {
+
+class EditorImGuiLayer;
 
 class EditorImGuiContext
 {
@@ -17,30 +23,36 @@ public:
 	EditorImGuiContext& operator=(EditorImGuiContext&&) = default;
 	virtual ~EditorImGuiContext();
 
+	void SetImGuiStyles();
+	ThemeColor GetImGuiThemeColor() const { return m_themeColor; }
+	void SetImGuiThemeColor(ThemeColor theme);
+	void LoadFontFiles(const std::vector<std::string>& ttfFileNames, engine::Language language) const;
+
+	void AddStaticLayer(std::unique_ptr<EditorImGuiLayer> pLayer);
+
+	std::vector<std::unique_ptr<EditorImGuiLayer>>& GetDockableLayers() { return m_pImGuiDockableLayers; }
+	void AddDockableLayer(std::unique_ptr<EditorImGuiLayer> pLayer);
+	
+	void BeginDockSpace();
+	void EndDockSpace();
 	void Update();
 
-	void OnMouseLBDown() { m_bLeftButtonDown = true; }
-	void OnMouseLBUp() { m_bLeftButtonDown = false; }
-	void OnMouseRBDown() { m_bRightButtonDown = true; }
-	void OnMouseRBUp() { m_bRightButtonDown = false; }
-	void OnMouseMBDown() { m_bMiddleButtonDown = true; }
-	void OnMouseMBUp() { m_bMiddleButtonDown = false; }
-	void OnMouseWheel(float offset) { m_mouseScollY = offset; }
-	void OnMouseMove(int32_t x, int32_t y) { m_mouseX = x; m_mouseY = y; }
-
+	void OnMouseLBDown();
+	void OnMouseLBUp();
+	void OnMouseRBDown();
+	void OnMouseRBUp();
+	void OnMouseMBDown();
+	void OnMouseMBUp();
+	void OnMouseWheel(float offset);
+	void OnMouseMove(int32_t x, int32_t y);
 	//void OnKeyPress(int32_t keyCode, uint16_t mods);
 	//void OnKeyRelease(int32_t keyCode, uint16_t mods);
 
 private:
-	ImGuiContext* m_pImGuiContext;
+	ThemeColor m_themeColor;
 
-	int		m_mouseX = 0;
-	int		m_mouseY = 0;
-	bool	m_bLeftButtonDown = false;
-	bool	m_bRightButtonDown = false;
-	bool	m_bMiddleButtonDown = false;
-	float	m_mouseScollY = 0.0f;
-
+	std::vector<std::unique_ptr<EditorImGuiLayer>> m_pImGuiStaticLayers;
+	std::vector<std::unique_ptr<EditorImGuiLayer>> m_pImGuiDockableLayers;
 };
 
 }

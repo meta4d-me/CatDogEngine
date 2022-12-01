@@ -7,6 +7,7 @@
 namespace engine
 {
 
+class Camera;
 class GBuffer;
 class RenderContext;
 class SwapChain;
@@ -30,6 +31,9 @@ public:
 	const SwapChain* GetSwapChain() const { return m_pSwapChain; } 
 	const GBuffer* GetGBuffer() const { return m_pGBuffer; }
 
+	void SetCamera(Camera* pCamera) { m_pCamera = pCamera; }
+	Camera* GetCamera() const { return m_pCamera; }
+
 public:
 	static void ScreenSpaceQuad(float _textureWidth, float _textureHeight, bool _originBottomLeft = false, float _width = 1.0f, float _height = 1.0f);
 
@@ -38,6 +42,7 @@ protected:
 	RenderContext*	m_pRenderContext = nullptr;
 	SwapChain*		m_pSwapChain = nullptr;
 	GBuffer*		m_pGBuffer = nullptr;
+	Camera*			m_pCamera = nullptr;
 };
 
 }

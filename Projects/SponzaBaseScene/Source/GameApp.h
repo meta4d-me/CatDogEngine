@@ -39,7 +39,6 @@ private:
 	std::unique_ptr<engine::Window> m_pMainWindow;
 
 	engine::RenderContext* m_pRenderContext;
-	std::vector<std::unique_ptr<engine::Renderer>>  m_pRenderers;
 };
 
 }

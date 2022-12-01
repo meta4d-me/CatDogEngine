@@ -9,7 +9,6 @@
 namespace engine
 {
 
-class Window;
 class RenderContext;
 class Renderer;
 

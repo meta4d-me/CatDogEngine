@@ -10,7 +10,7 @@ echo %ThirdPartyProjectsPath%
 
 echo [ BGFX ] Start making project...
 cd bgfx
-start /b ../bx/tools/bin/windows/genie --with-windows=10.0 --with-examples --with-tools %BUILD_IDE_NAME%
+"../bx/tools/bin/windows/genie" --with-windows=10.0 --with-examples --with-tools %BUILD_IDE_NAME%
 cd %ThirdPartyProjectsPath%
 echo\
 

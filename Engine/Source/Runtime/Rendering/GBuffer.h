@@ -3,6 +3,8 @@
 #include <inttypes.h>
 #include <memory>
 
+#include <bgfx/bgfx.h>
+
 namespace bgfx
 {
 
@@ -24,15 +26,19 @@ public:
 	GBuffer& operator=(GBuffer&&) = delete;
 	~GBuffer() = default;
 
-	uint16_t GetWidth() const { return m_frameBufferWidth; }
-	uint16_t GetHeight() const { return m_frameBufferHeight; }
-	float GetAspect() const { return static_cast<float>(m_frameBufferWidth) / static_cast<float>(m_frameBufferHeight); }
+	uint16_t GetWidth() const { return m_width; }
+	uint16_t GetHeight() const { return m_height; }
+	void Resize(uint16_t width, uint16_t height);
+	float GetAspect() const { return static_cast<float>(m_width) / static_cast<float>(m_height); }
 	const bgfx::FrameBufferHandle* GetFrameBuffer() const { return m_pFrameBufferHandle.get(); }
+	bgfx::TextureHandle GetBackBufferTextureHandle(int index) const { return m_backBuffers[index]; }
 
 private:
-	uint16_t m_frameBufferWidth;
-	uint16_t m_frameBufferHeight;
+	uint16_t m_width;
+	uint16_t m_height;
 	std::unique_ptr<bgfx::FrameBufferHandle> m_pFrameBufferHandle;
+
+	bgfx::TextureHandle m_backBuffers[3];
 };
 
 }

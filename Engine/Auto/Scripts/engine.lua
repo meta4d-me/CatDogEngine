@@ -6,7 +6,7 @@ project("Engine")
 	kind(EngineBuildLibKind)
 	language("C++")
 	cppdialect("C++latest")
-	dependson { "bgfx" } -- sdl is pre-built in makefile.
+	dependson { "bx", "bimg", "bimg_decode", "bgfx" } -- sdl is pre-built in makefile.
 	
 	location(path.join(IntermediatePath, "Engine/Runtime"))
 	targetdir(BinariesPath)
@@ -81,15 +81,16 @@ project("Engine")
 		table.insert(platformDefines, "ENGINE_BUILD_SHARED")
 	end
 
-	projectResourcesPath = RootPath.."/Projects/SponzaBaseScene/Resources/"
+	local editorResourcesPath = RootPath.."/Engine/Source/Editor/Resources/"
+	local projectResourcesPath = RootPath.."/Projects/SponzaBaseScene/Resources/"
 	defines {
 		"SDL_MAIN_HANDLED",
 		"__STDC_LIMIT_MACROS", "__STDC_FORMAT_MACROS", "__STDC_CONSTANT_MACROS",
 		"STB_IMAGE_STATIC",
 		EngineBuildPlatform,
-		EngineGraphicsBackend,
 		table.unpack(platformDefines),
-		"CDENGINE_RESOURCES_ROOT_PATH=\""..projectResourcesPath.."\""
+		"CDENGINE_RESOURCES_ROOT_PATH=\""..projectResourcesPath.."\"",
+		"CDEDITOR_RESOURCES_ROOT_PATH=\""..editorResourcesPath.."\"",
 	}
 
 	-- use /MT /MTd, not /MD /MDd
