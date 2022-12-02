@@ -27,28 +27,20 @@ void SceneRenderer::Init()
 	cdtools::Processor processor(&cdProducer, &bgfxConsumer);
 	processor.Run();
 
-	m_vertexLayout
-		.begin()
-		.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
-		.add(bgfx::Attrib::Normal, 3, bgfx::AttribType::Float)
-		.add(bgfx::Attrib::Tangent, 3, bgfx::AttribType::Float)
-		.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
-		.end();
-
 	// Start creating bgfx resources from RenderDataContext
 	m_renderDataContext = bgfxConsumer.GetRenderDataContext();
 
 	m_meshHandles.reserve(m_renderDataContext.meshRenderDataArray.size());
 	for (const MeshRenderData& meshRenderData : m_renderDataContext.meshRenderDataArray)
 	{
-		MeshHandle meshHandle;
-		const bgfx::Memory* pVBMemory = bgfx::makeRef(meshRenderData.vertices.data(), meshRenderData.GetVerticesBufferLength());
-		meshHandle.vbh = bgfx::createVertexBuffer(pVBMemory, m_vertexLayout);
-		
-		const bgfx::Memory* pIBMemory = bgfx::makeRef(meshRenderData.indices.data(), meshRenderData.GetIndicesBufferLength());
-		meshHandle.ibh = bgfx::createIndexBuffer(pIBMemory, BGFX_BUFFER_INDEX32);
+		m_meshHandles.emplace_back();
+		MeshHandle& meshHandle = m_meshHandles.back();
 
-		m_meshHandles.emplace_back(std::move(meshHandle));
+		const bgfx::Memory* pVBMemory = bgfx::makeRef(static_cast<const void*>(meshRenderData.GetRawVertices().data()), meshRenderData.GetVerticesBufferLength());
+		meshHandle.vbh = bgfx::createVertexBuffer(pVBMemory, meshRenderData.GetVertexLayout());
+		
+		const bgfx::Memory* pIBMemory = bgfx::makeRef(static_cast<const void*>(meshRenderData.GetIndices().data()), meshRenderData.GetIndicesBufferLength());
+		meshHandle.ibh = bgfx::createIndexBuffer(pIBMemory, BGFX_BUFFER_INDEX32);
 	}
 
 	m_materialHandles.reserve(m_renderDataContext.materialRenderDataArray.size());
@@ -56,36 +48,30 @@ void SceneRenderer::Init()
 	uint64_t textureSamplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
 	for (const MaterialRenderData& materialRenderData : m_renderDataContext.materialRenderDataArray)
 	{
-		PBRMaterialHandle materialHandle;
+		m_materialHandles.emplace_back();
+		PBRMaterialHandle& materialHandle = m_materialHandles.back();
 
 		const std::optional<std::string>& optBaseColor = materialRenderData.GetTextureName(cdtools::MaterialTextureType::BaseColor);
 		if (optBaseColor.has_value())
 		{
-			TextureHandle textureHandle;
-			textureHandle.sampler = m_pRenderContext->CreateUniform(std::format("s_textureBaseColor{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
-			textureHandle.texture = m_pRenderContext->CreateTexture((optBaseColor.value() + ".dds").c_str(), textureSamplerFlags | BGFX_TEXTURE_SRGB);
-			materialHandle.baseColor = std::move(textureHandle);
+			materialHandle.baseColor.sampler = m_pRenderContext->CreateUniform(std::format("s_textureBaseColor{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
+			materialHandle.baseColor.texture = m_pRenderContext->CreateTexture((optBaseColor.value() + ".dds").c_str(), textureSamplerFlags | BGFX_TEXTURE_SRGB);
 		}
 		
 		const std::optional<std::string>& optNormal = materialRenderData.GetTextureName(cdtools::MaterialTextureType::Normal);
 		if (optNormal.has_value())
 		{
-			TextureHandle textureHandle;
-			textureHandle.sampler = m_pRenderContext->CreateUniform(std::format("s_textureNormal{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
-			textureHandle.texture = m_pRenderContext->CreateTexture((optNormal.value() + ".dds").c_str(), textureSamplerFlags);
-			materialHandle.normal = std::move(textureHandle);
+			materialHandle.normal.sampler = m_pRenderContext->CreateUniform(std::format("s_textureNormal{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
+			materialHandle.normal.texture = m_pRenderContext->CreateTexture((optNormal.value() + ".dds").c_str(), textureSamplerFlags);
 		}
 
 		const std::optional<std::string>& optRoughness = materialRenderData.GetTextureName(cdtools::MaterialTextureType::Roughness);
 		if (optRoughness.has_value())
 		{
-			TextureHandle textureHandle;
-			textureHandle.sampler = m_pRenderContext->CreateUniform(std::format("s_textureORM{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
-			textureHandle.texture = m_pRenderContext->CreateTexture((optRoughness.value() + ".dds").c_str(), textureSamplerFlags);
-			materialHandle.orm = std::move(textureHandle);
+			materialHandle.orm.sampler = m_pRenderContext->CreateUniform(std::format("s_textureORM{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
+			materialHandle.orm.texture = m_pRenderContext->CreateTexture((optRoughness.value() + ".dds").c_str(), textureSamplerFlags);
 		}
 
-		m_materialHandles.emplace_back(std::move(materialHandle));
 		++materialIndex;
 	}
 
@@ -123,7 +109,7 @@ void SceneRenderer::Render(float deltaTime)
 		bgfx::setIndexBuffer(meshHandle.ibh);
 
 		bgfx::setTexture(0, m_pRenderContext->GetUniform(StringCrc("s_texCube")),
-			m_pRenderContext->GetTexture(StringCrc("skybox/bolonga_lod.dds")));
+			m_pRenderContext->GetTexture(StringCrc("skybox/bolonga_lod.dds"))); 
 		bgfx::setTexture(1, m_pRenderContext->GetUniform(StringCrc("s_texCubeIrr")),
 			m_pRenderContext->GetTexture(StringCrc("skybox/bolonga_irr.dds")));
 		bgfx::setTexture(5, m_pRenderContext->GetUniform(StringCrc("s_texLUT")),

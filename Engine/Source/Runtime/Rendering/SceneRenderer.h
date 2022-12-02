@@ -30,6 +30,10 @@ private:
 		TextureHandle baseColor;
 		TextureHandle normal;
 		TextureHandle orm;
+		TextureHandle metalness;
+		TextureHandle roughness;
+		TextureHandle emissive;
+		TextureHandle ao;
 	};
 
 public:
@@ -44,7 +48,6 @@ private:
 
 	RenderDataContext m_renderDataContext;
 
-	bgfx::VertexLayout m_vertexLayout;
 	std::vector<MeshHandle> m_meshHandles;
 	std::vector<PBRMaterialHandle> m_materialHandles;
 };
