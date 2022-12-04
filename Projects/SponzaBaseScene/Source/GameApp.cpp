@@ -6,9 +6,10 @@
 #include "Rendering/PBRSkyRenderer.h"
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
-#include "Rendering/SwapChain.h"
 #include "Rendering/SceneRenderer.h"
 #include "Rendering/SkyRenderer.h"
+#include "Rendering/SwapChain.h"
+#include "Rendering/TerrainRenderer.h"
 #include "Window/Window.h"
 
 namespace game
@@ -40,13 +41,13 @@ void GameApp::Init(engine::EngineInitArgs initArgs)
 	m_pFlybyCamera->SetAspect(aspect);
 	m_pFlybyCamera->SetFov(45.0f);
 	m_pFlybyCamera->SetNearPlane(0.1f);
-	m_pFlybyCamera->SetFarPlane(1000.0f);
+	m_pFlybyCamera->SetFarPlane(2000.0f);
 	m_pFlybyCamera->SetHomogeneousNdc(bgfx::getCaps()->homogeneousDepth);
 	m_pRenderContext->SetCamera(m_pFlybyCamera.get());
 	m_pMainWindow->OnResize.Bind<engine::Camera, &engine::Camera::SetAspect>(m_pFlybyCamera.get());
 
 	// Camera controller
-	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(m_pFlybyCamera.get(), 50.0f /* Mouse Sensitivity */, 80.0f /* Movement Speed*/);
+	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(m_pFlybyCamera.get(), 50.0f /* Mouse Sensitivity */, 160.0f /* Movement Speed*/);
 	m_pMainWindow->OnMouseRBDown.Bind<engine::FirstPersonCameraController, &engine::FirstPersonCameraController::OnMouseRBPress>(m_pCameraController.get());
 	m_pMainWindow->OnMouseRBUp.Bind<engine::FirstPersonCameraController, &engine::FirstPersonCameraController::OnMouseRBRelease>(m_pCameraController.get());
 	m_pMainWindow->OnMouseMoveRelative.Bind<engine::FirstPersonCameraController, &engine::FirstPersonCameraController::SetMousePosition>(m_pCameraController.get());
@@ -59,6 +60,7 @@ void GameApp::Init(engine::EngineInitArgs initArgs)
 	m_pRenderContext->InitGBuffer(width, height);
 	m_pRenderContext->AddRenderer(std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext, m_pRenderContext->CreateView(), pSwapChain));
 	m_pRenderContext->AddRenderer(std::make_unique<engine::SceneRenderer>(m_pRenderContext, m_pRenderContext->CreateView(), pSwapChain));
+	m_pRenderContext->AddRenderer(std::make_unique<engine::TerrainRenderer>(m_pRenderContext, m_pRenderContext->CreateView(), pSwapChain));
 	m_pRenderContext->AddRenderer(std::make_unique<engine::PostProcessRenderer>(m_pRenderContext, m_pRenderContext->CreateView(), pSwapChain));
 	m_pMainWindow->OnResize.Bind<engine::RenderContext, &engine::RenderContext::ResizeFrameBuffers>(m_pRenderContext);
 }
