@@ -28,6 +28,10 @@ start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADER
 start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADER%/varying.def.sc -f %SHADER%/fs_PBR.sc -o fs_PBR_6.bin --define SPOT_LIGHT_LENGTH=48;DIRECTIONAL_LIGHT_LENGTH=32
 start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADER%/varying.def.sc -f %SHADER%/fs_PBR.sc -o fs_PBR_7.bin --define POINT_LIGHT_LENGTH=32;SPOT_LIGHT_LENGTH=48;DIRECTIONAL_LIGHT_LENGTH=32
 
+rem TerrainRenderer
+start /b shaderc --type v --platform windows -p vs_5_0 -O 3 --varyingdef %SHADER%/varying.def.sc -f %SHADER%/vs_terrain.sc -o vs_terrain.bin
+start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADER%/varying.def.sc -f %SHADER%/fs_terrain.sc -o fs_terrain.bin
+
 rem Post
 start /b shaderc --type v --platform windows -p vs_5_0 -O 3 --varyingdef %SHADER%/varying.def.sc -f %SHADER%/vs_fullscreen.sc -o vs_fullscreen.bin
 start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADER%/varying.def.sc -f %SHADER%/fs_PBR_postProcessing.sc -o fs_PBR_postProcessing.bin
