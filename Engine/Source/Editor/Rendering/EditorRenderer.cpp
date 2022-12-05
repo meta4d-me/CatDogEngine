@@ -18,21 +18,17 @@ void EditorRenderer::Init()
 	imguiIO.DeltaTime = 1.0f / 60;
 
 	ImFontAtlas* pFontAtlas = imguiIO.Fonts;
-	for (int fontAtlasIndex = 0; fontAtlasIndex < pFontAtlas->ConfigData.Size; ++fontAtlasIndex)
-	{
-		ImFontConfig& fontConfig = pFontAtlas->ConfigData[fontAtlasIndex];
-		fontConfig.RasterizerMultiply = 1.0f;
-	}
 	pFontAtlas->FontBuilderIO = ImGuiFreeType::GetBuilderForFreeType();
 	pFontAtlas->FontBuilderFlags = 0;
 	pFontAtlas->Build();
 
-	uint8_t* fontAtlasData;
+	uint8_t* pFontAtlasData;
 	int32_t fontAtlasWidth;
 	int32_t fontAtlasHeight;
-	pFontAtlas->GetTexDataAsRGBA32(&fontAtlasData, &fontAtlasWidth, &fontAtlasHeight);
+	pFontAtlas->GetTexDataAsRGBA32(&pFontAtlasData, &fontAtlasWidth, &fontAtlasHeight);
 	m_imguiFontTexture = bgfx::createTexture2D(static_cast<uint16_t>(fontAtlasWidth), static_cast<uint16_t>(fontAtlasHeight), false, 1,
-		bgfx::TextureFormat::BGRA8, 0, bgfx::copy(fontAtlasData, fontAtlasWidth * fontAtlasHeight * 4));
+		bgfx::TextureFormat::BGRA8, 0, bgfx::copy(pFontAtlasData, fontAtlasWidth * fontAtlasHeight * 4));
+	bgfx::setName(m_imguiFontTexture, "font_atlas");
 
 	m_imguiVertexLayout.begin()
 		.add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
