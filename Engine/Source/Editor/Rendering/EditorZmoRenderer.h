@@ -1,15 +1,15 @@
 #pragma once
 
-#include "Renderer.h"
+#include "Rendering/Renderer.h"
 
-namespace engine
+namespace editor
 {
 
-class PostProcessRenderer final : public Renderer
+class EditorZmoRenderer final : public engine::Renderer
 {
 public:
 	using Renderer::Renderer;
-	virtual ~PostProcessRenderer();
+	virtual ~EditorZmoRenderer();
 
 	virtual void Init() override;
 	virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) override;

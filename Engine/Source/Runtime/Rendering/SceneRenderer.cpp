@@ -108,12 +108,17 @@ void SceneRenderer::Render(float deltaTime)
 		bgfx::setVertexBuffer(0, meshHandle.vbh);
 		bgfx::setIndexBuffer(meshHandle.ibh);
 
-		bgfx::setTexture(0, m_pRenderContext->GetUniform(StringCrc("s_texCube")),
-			m_pRenderContext->GetTexture(StringCrc("skybox/bolonga_lod.dds"))); 
-		bgfx::setTexture(1, m_pRenderContext->GetUniform(StringCrc("s_texCubeIrr")),
-			m_pRenderContext->GetTexture(StringCrc("skybox/bolonga_irr.dds")));
-		bgfx::setTexture(5, m_pRenderContext->GetUniform(StringCrc("s_texLUT")),
-			m_pRenderContext->GetTexture(StringCrc("ibl_brdf_lut.dds")));
+		constexpr StringCrc cubeSampler("s_texCube");
+		constexpr StringCrc cubeTexture("skybox/bolonga_lod.dds");
+		bgfx::setTexture(0, m_pRenderContext->GetUniform(cubeSampler), m_pRenderContext->GetTexture(cubeTexture));
+
+		constexpr StringCrc cubeIrrSampler("s_texCubeIrr");
+		constexpr StringCrc cubeIrrTexture("skybox/bolonga_irr.dds");
+		bgfx::setTexture(1, m_pRenderContext->GetUniform(cubeIrrSampler), m_pRenderContext->GetTexture(cubeIrrTexture));
+
+		constexpr StringCrc lutSampler("s_texLUT");
+		constexpr StringCrc lutTexture("ibl_brdf_lut.dds");
+		bgfx::setTexture(5, m_pRenderContext->GetUniform(lutSampler), m_pRenderContext->GetTexture(lutTexture));
 
 		bgfx::setTexture(2, materialHandle.baseColor.sampler, materialHandle.baseColor.texture);
 		bgfx::setTexture(3, materialHandle.normal.sampler, materialHandle.normal.texture);

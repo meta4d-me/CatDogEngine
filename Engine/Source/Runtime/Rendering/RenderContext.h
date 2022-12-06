@@ -62,10 +62,14 @@ public:
 	bgfx::TextureHandle CreateTexture(const char *pName, const uint16_t _width, const uint16_t _height, const uint16_t _depth, uint64_t flags = 0UL);
 	bgfx::UniformHandle CreateUniform(const char* pName, bgfx::UniformType::Enum uniformType, uint16_t number = 1);
 
-	bgfx::ShaderHandle GetShader(StringCrc resourceCrc) const;
-	bgfx::ProgramHandle GetProgram(StringCrc resourceCrc) const;
-	bgfx::TextureHandle GetTexture(StringCrc resourceCrc) const;
-	bgfx::UniformHandle GetUniform(StringCrc resourceCrc) const;
+	void SetVertexLayout(StringCrc resourceCrc, bgfx::VertexLayout textureHandle);
+	void SetTexture(StringCrc resourceCrc, bgfx::TextureHandle textureHandle);
+
+	const bgfx::VertexLayout& GetVertexLayout(StringCrc resourceCrc) const;
+	const bgfx::ShaderHandle& GetShader(StringCrc resourceCrc) const;
+	const bgfx::ProgramHandle& GetProgram(StringCrc resourceCrc) const;
+	const bgfx::TextureHandle& GetTexture(StringCrc resourceCrc) const;
+	const bgfx::UniformHandle& GetUniform(StringCrc resourceCrc) const;
 
 private:
 	uint8_t m_currentViewCount = 0;
@@ -74,6 +78,7 @@ private:
 	std::unique_ptr<SwapChain> m_pSwapChains[MaxSwapChainCount];
 	std::unique_ptr<GBuffer> m_pGBuffer;
 
+	std::unordered_map<size_t, bgfx::VertexLayout> m_vertexLayoutCaches;
 	std::unordered_map<size_t, bgfx::ShaderHandle> m_shaderHandleCaches;
 	std::unordered_map<size_t, bgfx::ProgramHandle> m_programHandleCaches;
 	std::unordered_map<size_t, bgfx::TextureHandle> m_textureHandleCaches;

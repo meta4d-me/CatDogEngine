@@ -3,6 +3,8 @@
 #include "Renderer.h"
 #include "Math/VectorDerived.hpp"
 
+#include <bgfx/bgfx.h>
+
 namespace engine
 {
 

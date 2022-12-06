@@ -7,7 +7,8 @@
 
 #include <bgfx/bgfx.h>
 #include <imgui/imgui.h>
-#include <imgui/imgui_internal.h> // used to customize style colors
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include <imgui/imgui_internal.h>
 #include <ImGuizmo/ImGuizmo.h>
 
 #include <string>
@@ -17,7 +18,8 @@ namespace editor
 
 EditorImGuiContext::EditorImGuiContext()
 {
-	ImGui::CreateContext();
+	m_pImGuiContext = ImGui::CreateContext();
+	ImGui::SetCurrentContext(m_pImGuiContext);
 
 	ImGuiIO& io = ImGui::GetIO();
 	io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
@@ -37,7 +39,7 @@ EditorImGuiContext::EditorImGuiContext()
 
 EditorImGuiContext::~EditorImGuiContext()
 {
-	ImGui::DestroyContext();
+	ImGui::DestroyContext(m_pImGuiContext);
 }
 
 void EditorImGuiContext::AddStaticLayer(std::unique_ptr<EditorImGuiLayer> pLayer)

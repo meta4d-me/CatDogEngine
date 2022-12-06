@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+struct ImGuiContext;
+
 namespace editor
 {
 
@@ -49,6 +51,7 @@ public:
 	//void OnKeyRelease(int32_t keyCode, uint16_t mods);
 
 private:
+	ImGuiContext* m_pImGuiContext;
 	ThemeColor m_themeColor;
 
 	std::vector<std::unique_ptr<EditorImGuiLayer>> m_pImGuiStaticLayers;

@@ -1,13 +1,16 @@
 #include "SceneView.h"
 
+#include "Display/Camera.h"
 #include "EditorApp.h"
 #include "IconFont/IconsMaterialDesignIcons.h"
+#include "Rendering/EditorZmoRenderer.h"
 #include "Rendering/GBuffer.h"
 #include "Rendering/PBRSkyRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/SceneRenderer.h"
 
 #include <imgui/imgui.h>
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui/imgui_internal.h>
 #include <imguizmo/ImGuizmo.h>
 
@@ -56,6 +59,7 @@ void SceneView::Init()
 
 	pRenderContext->InitGBuffer(m_width, m_height);
 	pRenderContext->AddRenderer(std::make_unique<engine::PBRSkyRenderer>(pRenderContext, pRenderContext->CreateView(), nullptr));
+	//pRenderContext->AddRenderer(std::make_unique<EditorZmoRenderer>(pRenderContext, pRenderContext->CreateView(), nullptr));
 	pRenderContext->AddRenderer(std::make_unique<engine::SceneRenderer>(pRenderContext, pRenderContext->CreateView(), nullptr));
 }
 
@@ -163,6 +167,22 @@ void SceneView::Update()
 		ImGui::PopStyleVar();
 		ImGui::End();
 	}
+
+	//ImGui::Text("X: %f Y: %f", io.MousePos.x, io.MousePos.y);
+	//if (ImGuizmo::IsUsing())
+	//{
+	//	ImGui::Text("Using gizmo");
+	//}
+	//else
+	//{
+	//	ImGui::Text(ImGuizmo::IsOver() ? "Over gizmo" : "");
+	//	ImGui::SameLine();
+	//	ImGui::Text(ImGuizmo::IsOver(ImGuizmo::TRANSLATE) ? "Over translate gizmo" : "");
+	//	ImGui::SameLine();
+	//	ImGui::Text(ImGuizmo::IsOver(ImGuizmo::ROTATE) ? "Over rotate gizmo" : "");
+	//	ImGui::SameLine();
+	//	ImGui::Text(ImGuizmo::IsOver(ImGuizmo::SCALE) ? "Over scale gizmo" : "");
+	//}
 }
 
 }

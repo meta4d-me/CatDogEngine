@@ -1,16 +1,16 @@
-#include "EditorRenderer.h"
+#include "ImGuiRenderer.h"
 
 #include "Rendering/RenderContext.h"
 #include "Rendering/SwapChain.h"
 
 #include <bx/math.h>
-#include <imgui.h>
+#include <imgui/imgui.h>
 #include <misc/freetype/imgui_freetype.h>
 
-namespace editor
+namespace engine
 {
 
-void EditorRenderer::Init()
+void ImGuiRenderer::Init()
 {
 	ImGuiIO& imguiIO = ImGui::GetIO();
 	assert(!imguiIO.BackendPlatformUserData && "Already initialized a platform backend!");
@@ -26,25 +26,32 @@ void EditorRenderer::Init()
 	int32_t fontAtlasWidth;
 	int32_t fontAtlasHeight;
 	pFontAtlas->GetTexDataAsRGBA32(&pFontAtlasData, &fontAtlasWidth, &fontAtlasHeight);
-	m_imguiFontTexture = bgfx::createTexture2D(static_cast<uint16_t>(fontAtlasWidth), static_cast<uint16_t>(fontAtlasHeight), false, 1,
+	bgfx::TextureHandle imguiFontTexture = bgfx::createTexture2D(static_cast<uint16_t>(fontAtlasWidth), static_cast<uint16_t>(fontAtlasHeight), false, 1,
 		bgfx::TextureFormat::BGRA8, 0, bgfx::copy(pFontAtlasData, fontAtlasWidth * fontAtlasHeight * 4));
-	bgfx::setName(m_imguiFontTexture, "font_atlas");
+	bgfx::setName(imguiFontTexture, "font_atlas");
 
-	m_imguiVertexLayout.begin()
+	constexpr engine::StringCrc fontAtlasTexture("font_atlas");
+	m_pRenderContext->SetTexture(fontAtlasTexture, imguiFontTexture);
+
+	bgfx::VertexLayout imguiVertexLayout;
+	imguiVertexLayout.begin()
 		.add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
 		.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
 		.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
 		.end();
 
+	constexpr StringCrc imguiVertexLayoutName("imgui_vertex_layout");
+	m_pRenderContext->SetVertexLayout(imguiVertexLayoutName, imguiVertexLayout);
+
 	m_pRenderContext->CreateUniform("s_tex", bgfx::UniformType::Sampler);
-	m_pRenderContext->CreateProgram("ImGui", "vs_imgui.bin", "fs_imgui.bin");
+	m_pRenderContext->CreateProgram("ImGuiProgram", "vs_imgui.bin", "fs_imgui.bin");
 }
 
-EditorRenderer::~EditorRenderer()
+ImGuiRenderer::~ImGuiRenderer()
 {
 }
 
-void EditorRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
+void ImGuiRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
 	ImGui::Render();
 	ImGui::UpdatePlatformWindows();
@@ -67,7 +74,7 @@ void EditorRenderer::UpdateView(const float* pViewMatrix, const float* pProjecti
 	bgfx::setViewClear(GetViewID(), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
 }
 
-void EditorRenderer::Render(float deltaTime)
+void ImGuiRenderer::Render(float deltaTime)
 {
 	ImDrawData* pImGuiDrawData = ImGui::GetDrawData();
 
@@ -82,7 +89,8 @@ void EditorRenderer::Render(float deltaTime)
 
 		uint32_t numVertices = static_cast<uint32_t>(pDrawList->VtxBuffer.size());
 		uint32_t numIndices = static_cast<uint32_t>(pDrawList->IdxBuffer.size());
-		const bool vertexBufferAvaiable = (numVertices == bgfx::getAvailTransientVertexBuffer(numVertices, m_imguiVertexLayout));
+		constexpr StringCrc imguiVertexLayoutName("imgui_vertex_layout");
+		const bool vertexBufferAvaiable = (numVertices == bgfx::getAvailTransientVertexBuffer(numVertices, m_pRenderContext->GetVertexLayout(imguiVertexLayoutName)));
 		const bool indexBufferAvaiable = (0 == numIndices || numIndices == bgfx::getAvailTransientIndexBuffer(numIndices));
 		if (!vertexBufferAvaiable || !indexBufferAvaiable)
 		{
@@ -92,7 +100,7 @@ void EditorRenderer::Render(float deltaTime)
 
 		bgfx::TransientVertexBuffer vertexBuffer;
 		bgfx::TransientIndexBuffer indexBuffer;
-		bgfx::allocTransientVertexBuffer(&vertexBuffer, numVertices, m_imguiVertexLayout);
+		bgfx::allocTransientVertexBuffer(&vertexBuffer, numVertices, m_pRenderContext->GetVertexLayout(imguiVertexLayoutName));
 		bgfx::allocTransientIndexBuffer(&indexBuffer, numIndices, std::is_same<uint32_t, ImDrawIdx>());
 
 		ImDrawVert* pVertices = reinterpret_cast<ImDrawVert*>(vertexBuffer.data);
@@ -112,7 +120,7 @@ void EditorRenderer::Render(float deltaTime)
 			else if (0 != cmd->ElemCount)
 			{
 				uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_MSAA;
-				bgfx::TextureHandle textureHandle = m_imguiFontTexture;
+				bgfx::TextureHandle textureHandle;
 				if (nullptr != cmd->TextureId)
 				{
 					union
@@ -129,6 +137,8 @@ void EditorRenderer::Render(float deltaTime)
 				}
 				else
 				{
+					constexpr engine::StringCrc fontAtlasTexture("font_atlas");
+					textureHandle = m_pRenderContext->GetTexture(fontAtlasTexture);
 					state |= BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
 				}
 
@@ -150,12 +160,14 @@ void EditorRenderer::Render(float deltaTime)
 
 					pEncoder->setState(state);
 
-					pEncoder->setTexture(0, m_pRenderContext->GetUniform(engine::StringCrc("s_tex")), textureHandle);
+					constexpr engine::StringCrc textureSampler("s_tex");
+					pEncoder->setTexture(0, m_pRenderContext->GetUniform(textureSampler), textureHandle);
 
 					pEncoder->setVertexBuffer(0, &vertexBuffer, cmd->VtxOffset, numVertices);
 					pEncoder->setIndexBuffer(&indexBuffer, cmd->IdxOffset, cmd->ElemCount);
 
-					pEncoder->submit(GetViewID(), m_pRenderContext->GetProgram(engine::StringCrc("ImGui")));
+					constexpr engine::StringCrc imguiProgram("ImGuiProgram");
+					pEncoder->submit(GetViewID(), m_pRenderContext->GetProgram(imguiProgram));
 				}
 			}
 		}
