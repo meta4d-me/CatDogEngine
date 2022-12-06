@@ -21,7 +21,7 @@ namespace engine
 	{
 		std::string sceneModelFilePath = "Models/generated_terrain.cdbin";
 		cdtools::CatDogProducer cdProducer(CDENGINE_RESOURCES_ROOT_PATH + sceneModelFilePath);
-		cdtools::BgfxConsumer bgfxConsumer("");
+		BgfxConsumer bgfxConsumer("");
 		cdtools::Processor processor(&cdProducer, &bgfxConsumer);
 		processor.Run();
 

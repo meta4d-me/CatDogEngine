@@ -115,21 +115,21 @@ public:
 	MaterialRenderData& operator=(MaterialRenderData&&) = default;
 	~MaterialRenderData() = default;
 
-	const std::optional<std::string>& GetTextureName(const cdtools::MaterialTextureType type) const
+	const std::optional<std::string>& GetTextureName(const cd::MaterialTextureType type) const
 	{
 		switch (type)
 		{
-		case cdtools::MaterialTextureType::BaseColor:
+		case cd::MaterialTextureType::BaseColor:
 			return m_baseColorName;
-		case cdtools::MaterialTextureType::Normal:
+		case cd::MaterialTextureType::Normal:
 			return m_normalName;
-		case cdtools::MaterialTextureType::Metalness:
+		case cd::MaterialTextureType::Metalness:
 			return m_metalnessName;
-		case cdtools::MaterialTextureType::Roughness:
+		case cd::MaterialTextureType::Roughness:
 			return m_ORMName;
-		case cdtools::MaterialTextureType::Emissive:
+		case cd::MaterialTextureType::Emissive:
 			return m_emissiveName;
-		case cdtools::MaterialTextureType::AO:
+		case cd::MaterialTextureType::AO:
 			return m_aoName;
 		default:
 			assert("Invalid texture type!");
@@ -137,26 +137,26 @@ public:
 		}
 	}
 
-	void SetTextureName(const cdtools::MaterialTextureType type, std::optional<std::string> name)
+	void SetTextureName(const cd::MaterialTextureType type, std::optional<std::string> name)
 	{
 		switch (type)
 		{
-		case cdtools::MaterialTextureType::BaseColor:
+		case cd::MaterialTextureType::BaseColor:
 			m_baseColorName = std::move(name); 
 			break;
-		case cdtools::MaterialTextureType::Normal:
+		case cd::MaterialTextureType::Normal:
 			m_normalName = std::move(name); 
 			break;
-		case cdtools::MaterialTextureType::Metalness:
+		case cd::MaterialTextureType::Metalness:
 			m_metalnessName = std::move(name);
 			break;
-		case cdtools::MaterialTextureType::Roughness:
+		case cd::MaterialTextureType::Roughness:
 			m_ORMName = std::move(name);
 			break;
-		case cdtools::MaterialTextureType::Emissive:
+		case cd::MaterialTextureType::Emissive:
 			m_emissiveName = std::move(name);
 			break;
-		case cdtools::MaterialTextureType::AO:
+		case cd::MaterialTextureType::AO:
 			m_aoName = std::move(name);
 			break;
 		default:
@@ -179,5 +179,5 @@ struct RenderDataContext
 	std::vector<MeshRenderData> meshRenderDataArray;
 	std::vector<MaterialRenderData> materialRenderDataArray;
 
-	cdtools::AABB sceneAABB;
+	cd::AABB sceneAABB;
 };

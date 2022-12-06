@@ -30,7 +30,7 @@ void ImGuiRenderer::Init()
 		bgfx::TextureFormat::BGRA8, 0, bgfx::copy(pFontAtlasData, fontAtlasWidth * fontAtlasHeight * 4));
 	bgfx::setName(imguiFontTexture, "font_atlas");
 
-	constexpr engine::StringCrc fontAtlasTexture("font_atlas");
+	constexpr StringCrc fontAtlasTexture("font_atlas");
 	m_pRenderContext->SetTexture(fontAtlasTexture, imguiFontTexture);
 
 	bgfx::VertexLayout imguiVertexLayout;
@@ -137,7 +137,7 @@ void ImGuiRenderer::Render(float deltaTime)
 				}
 				else
 				{
-					constexpr engine::StringCrc fontAtlasTexture("font_atlas");
+					constexpr StringCrc fontAtlasTexture("font_atlas");
 					textureHandle = m_pRenderContext->GetTexture(fontAtlasTexture);
 					state |= BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
 				}
@@ -160,13 +160,13 @@ void ImGuiRenderer::Render(float deltaTime)
 
 					pEncoder->setState(state);
 
-					constexpr engine::StringCrc textureSampler("s_tex");
+					constexpr StringCrc textureSampler("s_tex");
 					pEncoder->setTexture(0, m_pRenderContext->GetUniform(textureSampler), textureHandle);
 
 					pEncoder->setVertexBuffer(0, &vertexBuffer, cmd->VtxOffset, numVertices);
 					pEncoder->setIndexBuffer(&indexBuffer, cmd->IdxOffset, cmd->ElemCount);
 
-					constexpr engine::StringCrc imguiProgram("ImGuiProgram");
+					constexpr StringCrc imguiProgram("ImGuiProgram");
 					pEncoder->submit(GetViewID(), m_pRenderContext->GetProgram(imguiProgram));
 				}
 			}

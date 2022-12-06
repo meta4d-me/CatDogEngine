@@ -48,7 +48,7 @@ private:
 	bgfx::UniformHandle u_num_scattering_orders;
 	bgfx::UniformHandle u_cameraPos;
 	bgfx::UniformHandle u_LightDir;
-	cdtools::Vec4f m_uniformData;
+	cd::Vec4f m_uniformData;
 
 	bool m_precomputeCache = false;
 
@@ -57,15 +57,15 @@ private:
 	bgfx::VertexBufferHandle m_vbhSkybox;
 	bgfx::IndexBufferHandle m_ibhSkybox;
 
-	static constexpr cdtools::Vec3f ms_skyboxVertices[] = {
-		cdtools::Vec3f(-1.0f,  1.0f,  1.0f),
-		cdtools::Vec3f( 1.0f,  1.0f,  1.0f),
-		cdtools::Vec3f(-1.0f, -1.0f,  1.0f),
-		cdtools::Vec3f( 1.0f, -1.0f,  1.0f),
-		cdtools::Vec3f(-1.0f,  1.0f, -1.0f),
-		cdtools::Vec3f( 1.0f,  1.0f, -1.0f),
-		cdtools::Vec3f(-1.0f, -1.0f, -1.0f),
-		cdtools::Vec3f( 1.0f, -1.0f, -1.0f),
+	static constexpr cd::Vec3f ms_skyboxVertices[] = {
+		cd::Vec3f(-1.0f,  1.0f,  1.0f),
+		cd::Vec3f( 1.0f,  1.0f,  1.0f),
+		cd::Vec3f(-1.0f, -1.0f,  1.0f),
+		cd::Vec3f( 1.0f, -1.0f,  1.0f),
+		cd::Vec3f(-1.0f,  1.0f, -1.0f),
+		cd::Vec3f( 1.0f,  1.0f, -1.0f),
+		cd::Vec3f(-1.0f, -1.0f, -1.0f),
+		cd::Vec3f( 1.0f, -1.0f, -1.0f),
 	};
 
 	static constexpr uint16_t ms_skyBoxIndeces[] = {

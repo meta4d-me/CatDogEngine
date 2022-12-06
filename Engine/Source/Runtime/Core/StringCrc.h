@@ -10,8 +10,8 @@ class TStringCrc final
 {
 public:
 	TStringCrc() = delete;
-	explicit constexpr TStringCrc(std::string_view sv) : m_hashValue(cdtools::StringHash<T>(sv)) {}
-	explicit constexpr TStringCrc(const char* str, std::size_t n) : m_hashValue(cdtools::StringHash<T>(str, n)) {}
+	explicit constexpr TStringCrc(std::string_view sv) : m_hashValue(cd::StringHash<T>(sv)) {}
+	explicit constexpr TStringCrc(const char* str, std::size_t n) : m_hashValue(cd::StringHash<T>(str, n)) {}
 	TStringCrc(const TStringCrc&) = default;
 	TStringCrc& operator=(const TStringCrc&) = default;
 	TStringCrc(TStringCrc&&) = default;
