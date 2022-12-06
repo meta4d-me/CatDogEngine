@@ -1,11 +1,14 @@
 ﻿#include "EditorImGuiContext.h"
 
+#include "IconFont/IconsMaterialDesignIcons.h"
+#include "IconFont/MaterialDesign.inl"
 #include "Preferences/ThemeColor.h"
 #include "UILayers/EditorImGuiLayer.h"
 
 #include <bgfx/bgfx.h>
 #include <imgui/imgui.h>
-#include <imgui/imgui_internal.h> // used to customize style colors
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include <imgui/imgui_internal.h>
 #include <ImGuizmo/ImGuizmo.h>
 
 #include <string>
@@ -15,7 +18,8 @@ namespace editor
 
 EditorImGuiContext::EditorImGuiContext()
 {
-	ImGui::CreateContext();
+	m_pImGuiContext = ImGui::CreateContext();
+	ImGui::SetCurrentContext(m_pImGuiContext);
 
 	ImGuiIO& io = ImGui::GetIO();
 	io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
@@ -35,7 +39,7 @@ EditorImGuiContext::EditorImGuiContext()
 
 EditorImGuiContext::~EditorImGuiContext()
 {
-	ImGui::DestroyContext();
+	ImGui::DestroyContext(m_pImGuiContext);
 }
 
 void EditorImGuiContext::AddStaticLayer(std::unique_ptr<EditorImGuiLayer> pLayer)
@@ -253,7 +257,24 @@ void EditorImGuiContext::LoadFontFiles(const std::vector<std::string>& ttfFileNa
 		io.Fonts->AddFontDefault();
 	}
 
-	// TODO : IconFont
+	// IconFont
+	ImFontConfig iconFontConfig;
+	iconFontConfig.MergeMode = true;
+	iconFontConfig.PixelSnapH = true;
+	iconFontConfig.GlyphOffset.y = 1.0f;
+	iconFontConfig.OversampleH = iconFontConfig.OversampleV = 1;
+	iconFontConfig.GlyphMinAdvanceX = 4.0f;
+	iconFontConfig.SizePixels = 12.0f;
+
+	// MaterialDesignIconFont is from https://materialdesignicons.com/, then generated a c style header file to use in memory without loading from disk.
+	// Note that font glyph range array needs to be persistent until you build the font. So it will be convenient to declare it as static.
+	static ImWchar iconFontGlyphRange[] = { ICON_MIN_MDI, ICON_MAX_MDI, 0 };
+	io.Fonts->AddFontFromMemoryCompressedTTF(MaterialDesign_compressed_data, MaterialDesign_compressed_size, 14.0f, &iconFontConfig, iconFontGlyphRange);
+	io.Fonts->TexGlyphPadding = 1;
+	for (int fontConfigDataIndex = 0; fontConfigDataIndex < io.Fonts->ConfigData.Size; ++fontConfigDataIndex)
+	{
+		io.Fonts->ConfigData[fontConfigDataIndex].RasterizerMultiply = 1.0f;
+	}
 }
 
 void EditorImGuiContext::SetImGuiStyles()

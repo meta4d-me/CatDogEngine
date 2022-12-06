@@ -23,7 +23,7 @@ void SceneRenderer::Init()
 	// BgfxConsumer is used to translate SceneDatabase to data which bgfx api can use directly.
 	std::string sceneModelFilePath = "Models/kitchen_tools.cdbin";
 	cdtools::CatDogProducer cdProducer(CDENGINE_RESOURCES_ROOT_PATH + sceneModelFilePath);
-	cdtools::BgfxConsumer bgfxConsumer("");
+	BgfxConsumer bgfxConsumer("");
 	cdtools::Processor processor(&cdProducer, &bgfxConsumer);
 	processor.Run();
 
@@ -51,21 +51,21 @@ void SceneRenderer::Init()
 		m_materialHandles.emplace_back();
 		PBRMaterialHandle& materialHandle = m_materialHandles.back();
 
-		const std::optional<std::string>& optBaseColor = materialRenderData.GetTextureName(cdtools::MaterialTextureType::BaseColor);
+		const std::optional<std::string>& optBaseColor = materialRenderData.GetTextureName(cd::MaterialTextureType::BaseColor);
 		if (optBaseColor.has_value())
 		{
 			materialHandle.baseColor.sampler = m_pRenderContext->CreateUniform(std::format("s_textureBaseColor{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
 			materialHandle.baseColor.texture = m_pRenderContext->CreateTexture((optBaseColor.value() + ".dds").c_str(), textureSamplerFlags | BGFX_TEXTURE_SRGB);
 		}
 		
-		const std::optional<std::string>& optNormal = materialRenderData.GetTextureName(cdtools::MaterialTextureType::Normal);
+		const std::optional<std::string>& optNormal = materialRenderData.GetTextureName(cd::MaterialTextureType::Normal);
 		if (optNormal.has_value())
 		{
 			materialHandle.normal.sampler = m_pRenderContext->CreateUniform(std::format("s_textureNormal{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
 			materialHandle.normal.texture = m_pRenderContext->CreateTexture((optNormal.value() + ".dds").c_str(), textureSamplerFlags);
 		}
 
-		const std::optional<std::string>& optRoughness = materialRenderData.GetTextureName(cdtools::MaterialTextureType::Roughness);
+		const std::optional<std::string>& optRoughness = materialRenderData.GetTextureName(cd::MaterialTextureType::Roughness);
 		if (optRoughness.has_value())
 		{
 			materialHandle.orm.sampler = m_pRenderContext->CreateUniform(std::format("s_textureORM{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
@@ -108,12 +108,17 @@ void SceneRenderer::Render(float deltaTime)
 		bgfx::setVertexBuffer(0, meshHandle.vbh);
 		bgfx::setIndexBuffer(meshHandle.ibh);
 
-		bgfx::setTexture(0, m_pRenderContext->GetUniform(StringCrc("s_texCube")),
-			m_pRenderContext->GetTexture(StringCrc("skybox/bolonga_lod.dds"))); 
-		bgfx::setTexture(1, m_pRenderContext->GetUniform(StringCrc("s_texCubeIrr")),
-			m_pRenderContext->GetTexture(StringCrc("skybox/bolonga_irr.dds")));
-		bgfx::setTexture(5, m_pRenderContext->GetUniform(StringCrc("s_texLUT")),
-			m_pRenderContext->GetTexture(StringCrc("ibl_brdf_lut.dds")));
+		constexpr StringCrc cubeSampler("s_texCube");
+		constexpr StringCrc cubeTexture("skybox/bolonga_lod.dds");
+		bgfx::setTexture(0, m_pRenderContext->GetUniform(cubeSampler), m_pRenderContext->GetTexture(cubeTexture));
+
+		constexpr StringCrc cubeIrrSampler("s_texCubeIrr");
+		constexpr StringCrc cubeIrrTexture("skybox/bolonga_irr.dds");
+		bgfx::setTexture(1, m_pRenderContext->GetUniform(cubeIrrSampler), m_pRenderContext->GetTexture(cubeIrrTexture));
+
+		constexpr StringCrc lutSampler("s_texLUT");
+		constexpr StringCrc lutTexture("ibl_brdf_lut.dds");
+		bgfx::setTexture(5, m_pRenderContext->GetUniform(lutSampler), m_pRenderContext->GetTexture(lutTexture));
 
 		bgfx::setTexture(2, materialHandle.baseColor.sampler, materialHandle.baseColor.texture);
 		bgfx::setTexture(3, materialHandle.normal.sampler, materialHandle.normal.texture);

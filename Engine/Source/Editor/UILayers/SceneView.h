@@ -2,6 +2,13 @@
 
 #include <inttypes.h>
 
+namespace ImGuizmo
+{
+
+enum OPERATION;
+
+}
+
 namespace editor
 {
 
@@ -14,6 +21,14 @@ public:
 	virtual void Init() override;
 	virtual void Update() override;
 	void OnResize();
+
+private:
+	void UpdateToolMenuButtons();
+
+private:
+	bool m_option1;
+	bool m_option2;
+	ImGuizmo::OPERATION m_currentOperation;
 };
 
 }

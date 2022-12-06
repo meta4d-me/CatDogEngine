@@ -74,7 +74,7 @@ size_t GetSizeFromAttribType(const bgfx::AttribType::Enum attribType)
 	}
 }
 
-void ConvertVertexLayout(const cdtools::VertexFormat::VertexAttributeLayout& vertexAttributeLayout, bgfx::VertexLayout& outVertexLayout)
+void ConvertVertexLayout(const cd::VertexFormat::VertexAttributeLayout& vertexAttributeLayout, bgfx::VertexLayout& outVertexLayout)
 {
 	bgfx::Attrib::Enum vertexAttrib = bgfx::Attrib::Enum::Count;
 	bgfx::AttribType::Enum vertexAttribValue = bgfx::AttribType::Enum::Count;
@@ -83,20 +83,20 @@ void ConvertVertexLayout(const cdtools::VertexFormat::VertexAttributeLayout& ver
 	// Attribute Type
 	switch (vertexAttributeLayout.vertexAttributeType)
 	{
-	case cdtools::VertexAttributeType::Position :
+	case cd::VertexAttributeType::Position :
 		vertexAttrib = bgfx::Attrib::Enum::Position;
 		break;
-	case cdtools::VertexAttributeType::Normal:
+	case cd::VertexAttributeType::Normal:
 		vertexAttrib = bgfx::Attrib::Enum::Normal;
 		normalized = true;
 		break;
-	case cdtools::VertexAttributeType::Tangent:
+	case cd::VertexAttributeType::Tangent:
 		vertexAttrib = bgfx::Attrib::Enum::Tangent;
 		break;
-	case cdtools::VertexAttributeType::Bitangent:
+	case cd::VertexAttributeType::Bitangent:
 		vertexAttrib = bgfx::Attrib::Enum::Bitangent;
 		break;
-	case cdtools::VertexAttributeType::UV:
+	case cd::VertexAttributeType::UV:
 		vertexAttrib = bgfx::Attrib::Enum::Count;
 		for (const bgfx::Attrib::Enum& textCoord : AllAttribUVTypes)
 		{
@@ -107,7 +107,7 @@ void ConvertVertexLayout(const cdtools::VertexFormat::VertexAttributeLayout& ver
 			}
 		}
 		break;
-	case cdtools::VertexAttributeType::Color:
+	case cd::VertexAttributeType::Color:
 		vertexAttrib = bgfx::Attrib::Enum::Count;
 		for (const bgfx::Attrib::Enum& color : AllAttribColorTypes)
 		{
@@ -126,10 +126,10 @@ void ConvertVertexLayout(const cdtools::VertexFormat::VertexAttributeLayout& ver
 	// Attribute Value
 	switch (vertexAttributeLayout.attributeValueType)
 	{
-	case cdtools::AttributeValueType::Uint8:
+	case cd::AttributeValueType::Uint8:
 		vertexAttribValue = bgfx::AttribType::Enum::Uint8;
 		break;
-	case cdtools::AttributeValueType::Float:
+	case cd::AttributeValueType::Float:
 		vertexAttribValue = bgfx::AttribType::Enum::Float;
 		break;
 	default:
@@ -142,68 +142,68 @@ void ConvertVertexLayout(const cdtools::VertexFormat::VertexAttributeLayout& ver
 	outVertexLayout.add(vertexAttrib, vertexAttributeLayout.attributeCount, vertexAttribValue, normalized);
 }
 
-std::string VertexAttributeTypeToString(const cdtools::VertexAttributeType& attribType)
+std::string VertexAttributeTypeToString(const cd::VertexAttributeType& attribType)
 {
 	switch (attribType)
 	{
-		case cdtools::VertexAttributeType::Position:
+		case cd::VertexAttributeType::Position:
 			return "Position";
-		case cdtools::VertexAttributeType::Normal:
+		case cd::VertexAttributeType::Normal:
 			return "Normal";
-		case cdtools::VertexAttributeType::Tangent:
+		case cd::VertexAttributeType::Tangent:
 			return "Tangent";
-		case cdtools::VertexAttributeType::Bitangent:
+		case cd::VertexAttributeType::Bitangent:
 			return "Bitangent";
-		case cdtools::VertexAttributeType::UV:
+		case cd::VertexAttributeType::UV:
 			return "UV";
-		case cdtools::VertexAttributeType::Color:
+		case cd::VertexAttributeType::Color:
 			return "Color";
 		default:
 			return "Invalid Attribute Type!";
 	}
 }
 
-std::string AttributeValueTypeToString(const cdtools::AttributeValueType& attribValueType)
+std::string AttributeValueTypeToString(const cd::AttributeValueType& attribValueType)
 {
 	switch (attribValueType)
 	{
-		case cdtools::AttributeValueType::Float:
+		case cd::AttributeValueType::Float:
 			return "Float";
-		case cdtools::AttributeValueType::Uint8:
+		case cd::AttributeValueType::Uint8:
 			return "Uint8";
 		default:
 			return "Invalid Attribute Value Type!";
 	}
 }
 
-std::string MaterialTextureTypeToString(const cdtools::MaterialTextureType& materialType)
+std::string MaterialTextureTypeToString(const cd::MaterialTextureType& materialType)
 {
 	switch (materialType)
 	{
-	case cdtools::MaterialTextureType::BaseColor:
+	case cd::MaterialTextureType::BaseColor:
 		return "BaseColor";
-	case cdtools::MaterialTextureType::Normal:
+	case cd::MaterialTextureType::Normal:
 		return "Normal";
-	case cdtools::MaterialTextureType::Metalness:
+	case cd::MaterialTextureType::Metalness:
 		return "Metalness";
-	case cdtools::MaterialTextureType::Roughness:
+	case cd::MaterialTextureType::Roughness:
 		return "Roughness";
-	case cdtools::MaterialTextureType::Emissive:
+	case cd::MaterialTextureType::Emissive:
 		return "Emissive";
-	case cdtools::MaterialTextureType::AO:
+	case cd::MaterialTextureType::AO:
 		return "AO";
 	default:
 		return "Invalid Material Type!";
 	}
 }
 
-constexpr cdtools::MaterialTextureType PossibleTextureTypes[] = {
-	cdtools::MaterialTextureType::BaseColor,
-	cdtools::MaterialTextureType::Normal,
-	cdtools::MaterialTextureType::Metalness,
-	cdtools::MaterialTextureType::Roughness,
-	cdtools::MaterialTextureType::Emissive,
-	cdtools::MaterialTextureType::AO
+constexpr cd::MaterialTextureType PossibleTextureTypes[] = {
+	cd::MaterialTextureType::BaseColor,
+	cd::MaterialTextureType::Normal,
+	cd::MaterialTextureType::Metalness,
+	cd::MaterialTextureType::Roughness,
+	cd::MaterialTextureType::Emissive,
+	cd::MaterialTextureType::AO
 };
 
 float bytesToFloat(const uint8_t* bytes)
@@ -254,16 +254,16 @@ void sanityCheck(const std::byte* dataPtr, const uint16_t offset, const float* i
 
 }
 
-namespace cdtools
+namespace engine
 {
 
-void BgfxConsumer::Execute(const SceneDatabase* pSceneDatabase)
+void BgfxConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 {
 	printf("Loading Scene: %s\n", pSceneDatabase->GetName().c_str());
 	printf("MeshCount : %u\n", pSceneDatabase->GetMeshCount());
 	printf("MaterialCount : %u\n", pSceneDatabase->GetMaterialCount());
 
-	const cdtools::AABB& sceneAABB = pSceneDatabase->GetAABB();
+	const cd::AABB& sceneAABB = pSceneDatabase->GetAABB();
 	printf("Scene AABB min: (%f, %f, %f), max: (%f, %f, %f)\n",
 		sceneAABB.Min().x(), sceneAABB.Min().y(), sceneAABB.Min().z(),
 		sceneAABB.Max().x(), sceneAABB.Max().y(), sceneAABB.Max().z());
@@ -273,16 +273,16 @@ void BgfxConsumer::Execute(const SceneDatabase* pSceneDatabase)
 	GetMaterialsFromScene(*pSceneDatabase, m_renderDataContext.materialRenderDataArray);
 }
 
-void BgfxConsumer::ConvertMeshesFromScene(const SceneDatabase& sceneDatabase, std::vector<MeshRenderData>& outLoadedMeshes) const
+void BgfxConsumer::ConvertMeshesFromScene(const cd::SceneDatabase& sceneDatabase, std::vector<MeshRenderData>& outLoadedMeshes) const
 {
-	const std::vector<cdtools::Mesh>& meshes = sceneDatabase.GetMeshes();
+	const std::vector<cd::Mesh>& meshes = sceneDatabase.GetMeshes();
 	if (meshes.empty())
 	{
 		printf("No meshes found for scene: %s", sceneDatabase.GetName().c_str());
 		return;
 	}
 	printf("\nLoading %zu meshes\n", meshes.size());
-	for (const cdtools::Mesh& mesh : meshes)
+	for (const cd::Mesh& mesh : meshes)
 	{
 		printf("\tMeshName : %s\n", mesh.GetName().c_str());
 		printf("\t\tVertexCount : %u\n", mesh.GetVertexCount());
@@ -294,7 +294,7 @@ void BgfxConsumer::ConvertMeshesFromScene(const SceneDatabase& sceneDatabase, st
 		// Convert vertex formats
  		bgfx::VertexLayout& vertexLayout = meshData.GetVertexLayout();
 		vertexLayout.begin();
-		for (const cdtools::VertexFormat::VertexAttributeLayout& vertexAttributeLayout : mesh.GetVertexFormat().GetVertexLayout())
+		for (const cd::VertexFormat::VertexAttributeLayout& vertexAttributeLayout : mesh.GetVertexFormat().GetVertexLayout())
 		{
 			printf("\t\tVA: (%s, %s, %d)\n",
 				VertexAttributeTypeToString(vertexAttributeLayout.vertexAttributeType).c_str(),
@@ -352,8 +352,8 @@ void BgfxConsumer::ConvertMeshesFromScene(const SceneDatabase& sceneDatabase, st
 				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexBiTangent(vertexIndex).begin(), mesh.GetVertexBiTangent(vertexIndex).begin() + 1, mesh.GetVertexBiTangent(vertexIndex).begin() + 2, nullptr);
 			}
 
-			assert(MAX_COLOR_COUNT >= Mesh::MaxColorSetNumber);
-			for (uint32_t i = 0; i <  Mesh::MaxColorSetNumber; ++i)
+			assert(MAX_COLOR_COUNT >= cd::Mesh::MaxColorSetNumber);
+			for (uint32_t i = 0; i < cd::Mesh::MaxColorSetNumber; ++i)
 			{
 				const bgfx::Attrib::Enum color = AllAttribColorTypes[i];
 				if (!vertexLayout.has(color))
@@ -367,8 +367,8 @@ void BgfxConsumer::ConvertMeshesFromScene(const SceneDatabase& sceneDatabase, st
 				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexColor(i)[vertexIndex].begin(), mesh.GetVertexColor(i)[vertexIndex].begin() + 1, mesh.GetVertexColor(i)[vertexIndex].begin() + 2, mesh.GetVertexColor(i)[vertexIndex].begin() + 3);
 			}
 
-			assert(MAX_UV_COUNT >= Mesh::MaxUVSetNumber);
-			for (uint32_t i = 0; i < Mesh::MaxUVSetNumber; ++i)
+			assert(MAX_UV_COUNT >= cd::Mesh::MaxUVSetNumber);
+			for (uint32_t i = 0; i < cd::Mesh::MaxUVSetNumber; ++i)
 			{
 				const bgfx::Attrib::Enum uv = AllAttribUVTypes[i];
 				if (!vertexLayout.has(uv))
@@ -397,20 +397,20 @@ void BgfxConsumer::ConvertMeshesFromScene(const SceneDatabase& sceneDatabase, st
 	}
 }
 
-void BgfxConsumer::GetMaterialsFromScene(const SceneDatabase& sceneDatabase, std::vector<MaterialRenderData>& outLoadedMaterials) const
+void BgfxConsumer::GetMaterialsFromScene(const cd::SceneDatabase& sceneDatabase, std::vector<MaterialRenderData>& outLoadedMaterials) const
 {
-	const std::vector<cdtools::Mesh>& meshes = sceneDatabase.GetMeshes();
+	const std::vector<cd::Mesh>& meshes = sceneDatabase.GetMeshes();
 	uint32_t index = 0;
-	for (const cdtools::Material& material : sceneDatabase.GetMaterials())
+	for (const cd::Material& material : sceneDatabase.GetMaterials())
 	{
 		// Materials
 		printf("\t\tMaterial Name: %s\n", material.GetName().c_str());
 		outLoadedMaterials.emplace_back();
 		MaterialRenderData& materialData = outLoadedMaterials.back();
-		for (const cdtools::MaterialTextureType& textureType : PossibleTextureTypes)
+		for (const cd::MaterialTextureType& textureType : PossibleTextureTypes)
 		{
 			printf("\t\t\tMaterial Type: %s\n", MaterialTextureTypeToString(textureType).c_str());
-			const std::optional<TextureID>& textureID = material.GetTextureID(textureType);
+			const std::optional<cd::TextureID>& textureID = material.GetTextureID(textureType);
 			if (textureID.has_value())
 			{
 				const std::string& texturePath = sceneDatabase.GetTexture(textureID->Data()).GetPath();
@@ -425,7 +425,7 @@ void BgfxConsumer::GetMaterialsFromScene(const SceneDatabase& sceneDatabase, std
 			}
 		}
 		assert(index < meshes.size());
-		const cdtools::Mesh& mesh = meshes[index];
+		const cd::Mesh& mesh = meshes[index];
 		// Material ID must match mesh's ID
 		assert(mesh.GetMaterialID().Data() == index);
 		++index;

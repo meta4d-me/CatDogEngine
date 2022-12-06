@@ -13,27 +13,17 @@ project("Editor")
 
 	files {
 		path.join(EditorSourcePath, "**.*"),
-		path.join(ThirdPartySourcePath, "imgui/*.h"),
-		path.join(ThirdPartySourcePath, "imgui/*.cpp"),
-		path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
 	}
 	
 	vpaths {
 		["Source/*"] = { 
 			path.join(EditorSourcePath, "**.*"),
 		},
-		["ImGui"] = {
-			path.join(ThirdPartySourcePath, "imgui/*.h"),
-			path.join(ThirdPartySourcePath, "imgui/*.cpp"),
-			path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
-		}
 	}
 
 	local editorResourcesPath = RootPath.."/Engine/Source/Editor/Resources/"
 	defines {
 		"BX_CONFIG_DEBUG",
-		"IMGUI_DEFINE_MATH_OPERATORS",
-		"IMGUI_ENABLE_FREETYPE",
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..editorResourcesPath.."\"",
 	}
 
@@ -41,14 +31,13 @@ project("Editor")
 		path.join(EngineSourcePath, "Editor/"),
 		path.join(EngineSourcePath, "Runtime/"),
 		path.join(ThirdPartySourcePath, "AssetPipeline/public"),
-		path.join(ThirdPartySourcePath, "imgui"),
-		path.join(ThirdPartySourcePath, "freetype/include"),
 		-- TODO : Editor should not include bgfx files.
 		path.join(ThirdPartySourcePath, "bgfx/include"),
 		path.join(ThirdPartySourcePath, "bimg/include"),
 		path.join(ThirdPartySourcePath, "bimg/3rdparty"),
 		path.join(ThirdPartySourcePath, "bx/include"),
 		path.join(ThirdPartySourcePath, "bx/include/compat/msvc"),
+		path.join(ThirdPartySourcePath, "imgui"),
 		ThirdPartySourcePath,
 	}
 

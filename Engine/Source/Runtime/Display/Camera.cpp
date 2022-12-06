@@ -54,14 +54,14 @@ void Camera::SetHomogeneousNdc(bool homogeneousNdc)
 	m_homogeneousNdc = homogeneousNdc;
 }
 
-void Camera::FrameAll(const cdtools::AABB& aabb)
+void Camera::FrameAll(const cd::AABB& aabb)
 {
-	cdtools::Point lookAt = aabb.GetCenter();
-	cdtools::Direction lookDirection(-1.0f, 0.0f, 1.0f);
+	cd::Point lookAt = aabb.GetCenter();
+	cd::Direction lookDirection(-1.0f, 0.0f, 1.0f);
 	// Should be calculated at compile time. To verify.
 	lookDirection.Normalize();
 
-	cdtools::Point lookFrom = lookAt - lookDirection * aabb.GetExtents().Length();
+	cd::Point lookFrom = lookAt - lookDirection * aabb.GetExtents().Length();
 
 	m_position.x = lookFrom.x();
 	m_position.y = lookFrom.y();

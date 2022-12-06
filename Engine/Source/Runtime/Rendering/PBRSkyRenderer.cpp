@@ -105,9 +105,9 @@ void PBRSkyRenderer::Render(float deltaTime) {
 	bgfx::setImage(6, m_textureScattering, 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
 
 	// Uniform, temporary code, unit: km
-	m_uniformData = cdtools::Vec4f(0.0f, 1.0f, -0.5f, 1.0f);
+	m_uniformData = cd::Vec4f(0.0f, 1.0f, -0.5f, 1.0f);
 	bgfx::setUniform(u_cameraPos, &m_uniformData.x(), 1);
-	m_uniformData = cdtools::Vec4f(0.0f, -1.0f, -1.0f, 0.0f);
+	m_uniformData = cd::Vec4f(0.0f, -1.0f, -1.0f, 0.0f);
 	bgfx::setUniform(u_LightDir, &m_uniformData.x(), 1);
 
 	bgfx::setState(RENDERING_STATE);

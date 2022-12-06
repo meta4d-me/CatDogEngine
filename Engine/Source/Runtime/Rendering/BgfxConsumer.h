@@ -9,10 +9,10 @@
 #include <set>
 #include <assert.h>
 
-namespace cdtools
+namespace engine
 {
 
-class BgfxConsumer final : public IConsumer
+class BgfxConsumer final : public cdtools::IConsumer
 {
 public:
 	BgfxConsumer() = delete;
@@ -23,15 +23,15 @@ public:
 	BgfxConsumer& operator=(BgfxConsumer&&) = delete;
 	virtual ~BgfxConsumer() = default;
 
-	virtual void Execute(const SceneDatabase* pSceneDatabase) override;
+	virtual void Execute(const cd::SceneDatabase* pSceneDatabase) override;
 	RenderDataContext&& GetRenderDataContext() { return std::move(m_renderDataContext); }
 
 private:
 	std::string m_filePath;
 	RenderDataContext m_renderDataContext;
 
-	void ConvertMeshesFromScene(const SceneDatabase& sceneDatabase, std::vector<MeshRenderData>& outLoadedMeshes) const;
-	void GetMaterialsFromScene(const SceneDatabase& sceneDatabase, std::vector<MaterialRenderData>& outLoadedMaterials) const;
+	void ConvertMeshesFromScene(const cd::SceneDatabase& sceneDatabase, std::vector<MeshRenderData>& outLoadedMeshes) const;
+	void GetMaterialsFromScene(const cd::SceneDatabase& sceneDatabase, std::vector<MaterialRenderData>& outLoadedMaterials) const;
 };
 
 }

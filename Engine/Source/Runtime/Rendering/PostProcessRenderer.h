@@ -14,10 +14,6 @@ public:
 	virtual void Init() override;
 	virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) override;
 	virtual void Render(float deltaTime) override;
-
-private:
-	bgfx::UniformHandle s_lightingResult;
-	bgfx::ProgramHandle m_programPostProcessing;
 };
 
 }

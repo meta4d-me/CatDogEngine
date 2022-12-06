@@ -43,7 +43,7 @@ public:
 
 	void Dirty() const { m_dirty = true; }
 
-	void FrameAll(const cdtools::AABB& aabb);
+	void FrameAll(const cd::AABB& aabb);
 	void UpdateProjectionMatrix();
 	void UpdateViewMatrix();
 	void Update();

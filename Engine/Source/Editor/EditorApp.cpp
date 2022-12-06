@@ -4,7 +4,7 @@
 #include "Display/FlybyCamera.h"
 #include "EditorImGuiContext.h"
 #include "EditorImGuiViewport.h"
-#include "Rendering/EditorRenderer.h"
+#include "Rendering/ImGuiRenderer.h"
 #include "Rendering/GBuffer.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/SwapChain.h"
@@ -123,9 +123,9 @@ void EditorApp::InitRenderContext()
 
 	uint8_t mainViewSwapChainID = m_pRenderContext->CreateSwapChain(GetMainWindow()->GetNativeHandle(), GetMainWindow()->GetWidth(), GetMainWindow()->GetHeight());
 	engine::SwapChain* pMainViewSwapChain = m_pRenderContext->GetSwapChain(mainViewSwapChainID);
-	m_pRenderContext->AddRenderer(std::make_unique<editor::EditorRenderer>(m_pRenderContext, m_pRenderContext->CreateView(), pMainViewSwapChain));
+	m_pRenderContext->AddRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext, m_pRenderContext->CreateView(), pMainViewSwapChain));
 
-	// Camera is prepared for other renderers except EditorRenderer.
+	// Camera is prepared for other renderers except ImGuiRenderer.
 	m_pCamera = std::make_unique<engine::FlybyCamera>(bx::Vec3(0.0f, 0.0f, -50.0f));
 	m_pCamera->SetAspect(1.0f);
 	m_pCamera->SetFov(45.0f);

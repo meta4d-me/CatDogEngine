@@ -15,6 +15,11 @@ project("Engine")
 		path.join(RuntimeSourcePath, "**.*"),
 		path.join(ThirdPartySourcePath, "AssetPipeline/public/**.*"),
 		path.join(ThirdPartySourcePath, "rapidxml/**.hpp"),
+		path.join(ThirdPartySourcePath, "imgui/*.h"),
+		path.join(ThirdPartySourcePath, "imgui/*.cpp"),
+		path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
+		path.join(ThirdPartySourcePath, "imguizmo/*.h"),
+		path.join(ThirdPartySourcePath, "imguizmo/*.cpp"),
 	}
 	
 	vpaths {
@@ -23,7 +28,16 @@ project("Engine")
 		},
 		["AssetPipeline"] = {
 			path.join(ThirdPartySourcePath, "AssetPipeline", "Public/Producer/CatDogProducer.*"),
-		}
+		},
+		["ImGui"] = {
+			path.join(ThirdPartySourcePath, "imgui/*.h"),
+			path.join(ThirdPartySourcePath, "imgui/*.cpp"),
+			path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
+		},
+		["ImGuizmo"] = {
+			path.join(ThirdPartySourcePath, "imguizmo/*.h"),
+			path.join(ThirdPartySourcePath, "imguizmo/*.cpp"),
+		},
 	}
 	
 	local bgfxBuildBinPath = nil
@@ -32,10 +46,6 @@ project("Engine")
 
 	filter { "system:windows" }
 		bgfxBuildBinPath = ThirdPartySourcePath.."/bgfx/.build/win64_"..IDEConfigs.BuildIDEName.."/bin"
-		platformDefines = {
-			"_CRT_SECURE_NO_WARNINGS"
-		}
-
 		platformIncludeDirs = { 
 			path.join(ThirdPartySourcePath, "bx/include/compat/msvc")
 		}
@@ -51,6 +61,9 @@ project("Engine")
 		path.join(ThirdPartySourcePath, "bimg/3rdparty"),
 		path.join(ThirdPartySourcePath, "bx/include"),
 		path.join(ThirdPartySourcePath, "sdl/include"),
+		path.join(ThirdPartySourcePath, "imgui"),
+		path.join(ThirdPartySourcePath, "imguizmo"),
+		path.join(ThirdPartySourcePath, "freetype/include"),
 		table.unpack(platformIncludeDirs),
 	}
 
@@ -87,6 +100,7 @@ project("Engine")
 		"SDL_MAIN_HANDLED",
 		"__STDC_LIMIT_MACROS", "__STDC_FORMAT_MACROS", "__STDC_CONSTANT_MACROS",
 		"STB_IMAGE_STATIC",
+		"IMGUI_ENABLE_FREETYPE",
 		EngineBuildPlatform,
 		table.unpack(platformDefines),
 		"CDENGINE_RESOURCES_ROOT_PATH=\""..projectResourcesPath.."\"",
