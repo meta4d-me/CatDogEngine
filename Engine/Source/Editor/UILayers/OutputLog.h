@@ -1,12 +1,12 @@
-#include "EditorImGuiLayer.h"
+#include "ImGui/ImGuiBaseLayer.h"
 
 namespace editor
 {
 
-class OutputLog : public EditorImGuiLayer
+class OutputLog : public engine::ImGuiBaseLayer
 {
 public:
-	using EditorImGuiLayer::EditorImGuiLayer;
+	using ImGuiBaseLayer::ImGuiBaseLayer;
 	virtual ~OutputLog();
 
 	virtual void Init() override;

@@ -1,8 +1,8 @@
 ﻿#include "MainMenu.h"
 
 #include "EditorApp.h"
-#include "EditorImGuiContext.h"
-#include "Preferences/ThemeColor.h"
+#include "ImGui/ImGuiContextInstance.h"
+#include "ImGui/ThemeColor.h"
 
 #include <imgui/imgui.h>
 
@@ -49,6 +49,8 @@ void MainMenu::FileMenu()
 
 void MainMenu::EditMenu()
 {
+	ImGuiIO& io = ImGui::GetIO();
+
 	if (ImGui::BeginMenu("Edit"))
 	{
 		if (ImGui::MenuItem("Undo", "Ctrl Z"))
@@ -68,12 +70,13 @@ void MainMenu::EditMenu()
 		{
 			// It is not convenient in C++ to loop enum except define an extra array to wrap them.
 			// C++ 20/23 ranges may look better but still needs std::iota inside its implementation.
-			for (ThemeColor theme = ThemeColor::Black; theme < ThemeColor::Count;
-				theme = static_cast<ThemeColor>(static_cast<int>(theme) + 1))
+			for (engine::ThemeColor theme = engine::ThemeColor::Black; theme < engine::ThemeColor::Count;
+				theme = static_cast<engine::ThemeColor>(static_cast<int>(theme) + 1))
 			{
-				if (ImGui::MenuItem(GetThemeColorName(theme), "", m_pEditorApp->GetImGuiContext()->GetImGuiThemeColor() == theme))
+				engine::ImGuiContextInstance* pCurrentImguiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
+				if (ImGui::MenuItem(GetThemeColorName(theme), "", pCurrentImguiContextInstance->GetImGuiThemeColor() == theme))
 				{
-					m_pEditorApp->GetImGuiContext()->SetImGuiThemeColor(theme);
+					pCurrentImguiContextInstance->SetImGuiThemeColor(theme);
 				}
 			}
 
@@ -86,9 +89,12 @@ void MainMenu::EditMenu()
 
 void MainMenu::WindowMenu()
 {
+	ImGuiIO& io = ImGui::GetIO();
+
 	if (ImGui::BeginMenu("Window"))
 	{
-		for (const auto& pDockableLayer : m_pEditorApp->GetImGuiContext()->GetDockableLayers())
+		engine::ImGuiContextInstance* pCurrentImguiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
+		for (const auto& pDockableLayer : pCurrentImguiContextInstance->GetDockableLayers())
 		{
 			if (ImGui::MenuItem(pDockableLayer->GetName(), "", pDockableLayer->IsEnable()))
 			{

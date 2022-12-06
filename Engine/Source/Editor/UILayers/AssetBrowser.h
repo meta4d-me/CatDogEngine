@@ -1,12 +1,12 @@
-#include "EditorImGuiLayer.h"
+#include "ImGui/ImGuiBaseLayer.h"
 
 namespace editor
 {
 
-class AssetBrowser : public EditorImGuiLayer
+class AssetBrowser : public engine::ImGuiBaseLayer
 {
 public:
-	using EditorImGuiLayer::EditorImGuiLayer;
+	using ImGuiBaseLayer::ImGuiBaseLayer;
 	virtual ~AssetBrowser();
 
 	virtual void Init() override;

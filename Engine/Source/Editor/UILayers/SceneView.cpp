@@ -1,13 +1,10 @@
 #include "SceneView.h"
 
 #include "Display/Camera.h"
-#include "EditorApp.h"
-#include "IconFont/IconsMaterialDesignIcons.h"
-#include "Rendering/EditorZmoRenderer.h"
-#include "Rendering/GBuffer.h"
-#include "Rendering/PBRSkyRenderer.h"
+#include "ImGui/ImGuiContextInstance.h"
+#include "ImGui/IconFont/IconsMaterialDesignIcons.h"
 #include "Rendering/RenderContext.h"
-#include "Rendering/SceneRenderer.h"
+#include "Rendering/RenderTarget.h"
 
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -51,24 +48,13 @@ SceneView::~SceneView()
 
 void SceneView::Init()
 {
-	uint16_t m_width = 800;
-	uint16_t m_height = 800;
+	ImGuiIO& io = ImGui::GetIO();
+	engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
+	assert(pCurrentRenderContext && "RenderContext should be initilized at first.");
 
-	engine::RenderContext* pRenderContext = m_pEditorApp->GetRenderContext();
-	assert(pRenderContext && "RenderContext should be initilized at first.");
-
-	pRenderContext->InitGBuffer(m_width, m_height);
-	pRenderContext->AddRenderer(std::make_unique<engine::PBRSkyRenderer>(pRenderContext, pRenderContext->CreateView(), nullptr));
-	//pRenderContext->AddRenderer(std::make_unique<EditorZmoRenderer>(pRenderContext, pRenderContext->CreateView(), nullptr));
-	pRenderContext->AddRenderer(std::make_unique<engine::SceneRenderer>(pRenderContext, pRenderContext->CreateView(), nullptr));
-}
-
-void SceneView::OnResize()
-{
-	ImVec2 regionSize = ImGui::GetContentRegionAvail();
-	uint16_t regionWidth = static_cast<uint16_t>(regionSize.x);
-	uint16_t regionHeight = static_cast<uint16_t>(regionSize.y);
-	m_pEditorApp->GetRenderContext()->GetGBuffer()->Resize(regionWidth, regionHeight);
+	constexpr engine::StringCrc sceneRenderTarget("SceneRenderTarget");
+	engine::RenderTarget* pRenderTarget = pCurrentRenderContext->GetRenderTarget(sceneRenderTarget);
+	OnResize.Bind<engine::RenderTarget, &engine::RenderTarget::Resize>(pRenderTarget);
 }
 
 void SceneView::UpdateToolMenuButtons()
@@ -145,7 +131,10 @@ void SceneView::UpdateToolMenuButtons()
 
 void SceneView::Update()
 {
-	const engine::GBuffer* pRenderTarget = m_pEditorApp->GetRenderContext()->GetGBuffer();
+	ImGuiIO& io = ImGui::GetIO();
+	engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
+	constexpr engine::StringCrc sceneRenderTarget("SceneRenderTarget");
+	engine::RenderTarget* pRenderTarget = pCurrentRenderContext->GetRenderTarget(sceneRenderTarget);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 	auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 	if (ImGui::Begin(GetName(), &m_isEnable, flags))
@@ -153,36 +142,26 @@ void SceneView::Update()
 		// Swicth ImGuizmo operation mode
 		UpdateToolMenuButtons();
 
-		ImVec2 cursorPosition = ImGui::GetCursorPos();
-		ImVec2 sceneViewSize = ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin() - cursorPosition * 0.5f;
-		ImVec2 sceneViewPosition = ImGui::GetWindowPos() + cursorPosition;
-
 		// Inside the implementation, it will check if width or height changes.
-		OnResize();
-
-		const bgfx::FrameBufferHandle* pFrameBufferHandle = pRenderTarget->GetFrameBuffer();
-		ImGui::Image(ImTextureID(pRenderTarget->GetBackBufferTextureHandle(0).idx),
-			ImVec2(pRenderTarget->GetWidth(), pRenderTarget->GetHeight()));
+		ImVec2 regionSize = ImGui::GetContentRegionAvail();
+		uint16_t regionWidth = static_cast<uint16_t>(regionSize.x);
+		uint16_t regionHeight = static_cast<uint16_t>(regionSize.y);
+		if (regionWidth != m_lastContentWidth || regionHeight != m_lastContentHeight)
+		{
+			OnResize.Invoke(regionWidth, regionHeight);
+			m_lastContentWidth = regionWidth;
+			m_lastContentHeight = regionHeight;
+		}
+		
+		//ImVec2 cursorPosition = ImGui::GetCursorPos();
+		//ImVec2 sceneViewSize = ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin() - cursorPosition * 0.5f;
+		//ImVec2 sceneViewPosition = ImGui::GetWindowPos() + cursorPosition;
+		const bgfx::FrameBufferHandle* pFrameBufferHandle = pRenderTarget->GetFrameBufferHandle();
+		ImGui::Image(ImTextureID(pRenderTarget->GetTextureHandle(0).idx), ImVec2(pRenderTarget->GetWidth(), pRenderTarget->GetHeight()));
 
 		ImGui::PopStyleVar();
 		ImGui::End();
 	}
-
-	//ImGui::Text("X: %f Y: %f", io.MousePos.x, io.MousePos.y);
-	//if (ImGuizmo::IsUsing())
-	//{
-	//	ImGui::Text("Using gizmo");
-	//}
-	//else
-	//{
-	//	ImGui::Text(ImGuizmo::IsOver() ? "Over gizmo" : "");
-	//	ImGui::SameLine();
-	//	ImGui::Text(ImGuizmo::IsOver(ImGuizmo::TRANSLATE) ? "Over translate gizmo" : "");
-	//	ImGui::SameLine();
-	//	ImGui::Text(ImGuizmo::IsOver(ImGuizmo::ROTATE) ? "Over rotate gizmo" : "");
-	//	ImGui::SameLine();
-	//	ImGui::Text(ImGuizmo::IsOver(ImGuizmo::SCALE) ? "Over scale gizmo" : "");
-	//}
 }
 
 }

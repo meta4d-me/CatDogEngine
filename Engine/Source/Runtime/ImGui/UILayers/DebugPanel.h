@@ -1,13 +1,13 @@
 #include "ImGui/ImGuiBaseLayer.h"
 
-namespace editor
+namespace engine
 {
 
-class Inspector : public engine::ImGuiBaseLayer
+class DebugPanel : public engine::ImGuiBaseLayer
 {
 public:
 	using ImGuiBaseLayer::ImGuiBaseLayer;
-	virtual ~Inspector();
+	virtual ~DebugPanel();
 
 	virtual void Init() override;
 	virtual void Update() override;

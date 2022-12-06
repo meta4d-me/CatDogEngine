@@ -1,6 +1,6 @@
 #pragma once
 
-namespace editor
+namespace engine
 {
 
 enum class ThemeColor

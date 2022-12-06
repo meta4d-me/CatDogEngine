@@ -41,15 +41,8 @@ public:
 	//
 	ENGINE_API void Shutdown();
 
-	//////////////////////////////////////////////////////////////////
-	// Basic modules
-	//////////////////////////////////////////////////////////////////
-	RenderContext* GetRenderContext() const { return m_pRenderContext.get(); }
-	void InitRenderContext(uint16_t width, uint16_t height);
-
 private:
 	std::unique_ptr<IApplication> m_pApplication;
-	std::unique_ptr<RenderContext> m_pRenderContext;
 };
 
 }

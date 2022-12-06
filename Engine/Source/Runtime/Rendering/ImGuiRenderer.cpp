@@ -1,50 +1,31 @@
 #include "ImGuiRenderer.h"
 
 #include "Rendering/RenderContext.h"
-#include "Rendering/SwapChain.h"
 
 #include <bx/math.h>
 #include <imgui/imgui.h>
-#include <misc/freetype/imgui_freetype.h>
 
 namespace engine
 {
 
 void ImGuiRenderer::Init()
 {
-	ImGuiIO& imguiIO = ImGui::GetIO();
-	assert(!imguiIO.BackendPlatformUserData && "Already initialized a platform backend!");
-	imguiIO.DisplaySize = ImVec2(static_cast<float>(GetSwapChain()->GetWidth()), static_cast<float>(GetSwapChain()->GetHeight()));
-	imguiIO.DeltaTime = 1.0f / 60;
-
-	ImFontAtlas* pFontAtlas = imguiIO.Fonts;
-	pFontAtlas->FontBuilderIO = ImGuiFreeType::GetBuilderForFreeType();
-	pFontAtlas->FontBuilderFlags = 0;
-	pFontAtlas->Build();
-
-	uint8_t* pFontAtlasData;
-	int32_t fontAtlasWidth;
-	int32_t fontAtlasHeight;
-	pFontAtlas->GetTexDataAsRGBA32(&pFontAtlasData, &fontAtlasWidth, &fontAtlasHeight);
-	bgfx::TextureHandle imguiFontTexture = bgfx::createTexture2D(static_cast<uint16_t>(fontAtlasWidth), static_cast<uint16_t>(fontAtlasHeight), false, 1,
-		bgfx::TextureFormat::BGRA8, 0, bgfx::copy(pFontAtlasData, fontAtlasWidth * fontAtlasHeight * 4));
-	bgfx::setName(imguiFontTexture, "font_atlas");
-
-	constexpr StringCrc fontAtlasTexture("font_atlas");
-	m_pRenderContext->SetTexture(fontAtlasTexture, imguiFontTexture);
-
-	bgfx::VertexLayout imguiVertexLayout;
-	imguiVertexLayout.begin()
-		.add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
-		.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
-		.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
-		.end();
-
 	constexpr StringCrc imguiVertexLayoutName("imgui_vertex_layout");
-	m_pRenderContext->SetVertexLayout(imguiVertexLayoutName, imguiVertexLayout);
+	if (0 == m_pRenderContext->GetVertexLayout(imguiVertexLayoutName).m_stride)
+	{
+		bgfx::VertexLayout imguiVertexLayout;
+		imguiVertexLayout.begin()
+			.add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
+			.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
+			.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
+			.end();
+		m_pRenderContext->SetVertexLayout(imguiVertexLayoutName, std::move(imguiVertexLayout));
+	}
 
 	m_pRenderContext->CreateUniform("s_tex", bgfx::UniformType::Sampler);
 	m_pRenderContext->CreateProgram("ImGuiProgram", "vs_imgui.bin", "fs_imgui.bin");
+
+	bgfx::setViewName(GetViewID(), "ImGuiRenderer");
 }
 
 ImGuiRenderer::~ImGuiRenderer()
@@ -53,13 +34,31 @@ ImGuiRenderer::~ImGuiRenderer()
 
 void ImGuiRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
+	// ImGuiRenderer will be used by different ImGuiContext which has different font settings.
+	// Shares the same font atlas now to save memory.
+	// TODO : support different fonts in different ImGuiContext.
+	constexpr StringCrc fontAtlasTexture("font_atlas");
+	if (!bgfx::isValid(m_pRenderContext->GetTexture(fontAtlasTexture)))
+	{
+		ImFontAtlas* pFontAtlas = ImGui::GetIO().Fonts;
+		assert(pFontAtlas->IsBuilt() && "The ImGui font atlas should be already built successfully.");
+		uint8_t* pFontAtlasData;
+		int32_t fontAtlasWidth;
+		int32_t fontAtlasHeight;
+		pFontAtlas->GetTexDataAsRGBA32(&pFontAtlasData, &fontAtlasWidth, &fontAtlasHeight);
+		bgfx::TextureHandle imguiFontTexture = bgfx::createTexture2D(static_cast<uint16_t>(fontAtlasWidth), static_cast<uint16_t>(fontAtlasHeight), false, 1,
+			bgfx::TextureFormat::BGRA8, 0, bgfx::copy(pFontAtlasData, fontAtlasWidth * fontAtlasHeight * 4));
+		bgfx::setName(imguiFontTexture, "font_atlas");
+
+		m_pRenderContext->SetTexture(fontAtlasTexture, std::move(imguiFontTexture));
+	}
+
 	ImGui::Render();
 	ImGui::UpdatePlatformWindows();
 	ImGui::RenderPlatformWindowsDefault();
 
-	bgfx::setViewName(GetViewID(), "ImGui");
 	bgfx::setViewMode(GetViewID(), bgfx::ViewMode::Sequential);
-	bgfx::setViewFrameBuffer(GetViewID(), *GetSwapChain()->GetFrameBuffer());
+	bgfx::setViewFrameBuffer(GetViewID(), *GetRenderTarget()->GetFrameBufferHandle());
 
 	float ortho[16];
 	const ImDrawData* pImGuiDrawData = ImGui::GetDrawData();
@@ -71,7 +70,6 @@ void ImGuiRenderer::UpdateView(const float* pViewMatrix, const float* pProjectio
 	bx::mtxOrtho(ortho, x, x + width, y + height, y, 0.0f, 1000.0f, 0.0f, pCapabilities ? pCapabilities->homogeneousDepth : true);
 	bgfx::setViewRect(GetViewID(), 0, 0, uint16_t(width), uint16_t(height));
 	bgfx::setViewTransform(GetViewID(), nullptr, ortho);
-	bgfx::setViewClear(GetViewID(), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
 }
 
 void ImGuiRenderer::Render(float deltaTime)

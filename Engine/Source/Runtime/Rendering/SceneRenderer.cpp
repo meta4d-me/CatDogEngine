@@ -2,12 +2,10 @@
 
 #include "BgfxConsumer.h"
 #include "Display/Camera.h"
-#include "GBuffer.h"
 #include "Producer/CatDogProducer.h"
 #include "Processor/Processor.h"
 #include "RenderContext.h"
 #include "Scene/Texture.h"
-#include "SwapChain.h"
 
 #include <bgfx/bgfx.h>
 #include <bx/math.h>
@@ -89,12 +87,14 @@ void SceneRenderer::Init()
 	m_pRenderContext->CreateTexture("skybox/bolonga_lod.dds", samplerFlags);
 	m_pRenderContext->CreateTexture("skybox/bolonga_irr.dds", samplerFlags);
 	m_pRenderContext->CreateTexture("ibl_brdf_lut.dds");
+
+	bgfx::setViewName(GetViewID(), "SceneRenderer");
 }
 
 void SceneRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
-	bgfx::setViewFrameBuffer(GetViewID(), *m_pGBuffer->GetFrameBuffer());
-	bgfx::setViewRect(GetViewID(), 0, 0, m_pGBuffer->GetWidth(), m_pGBuffer->GetHeight());
+	bgfx::setViewFrameBuffer(GetViewID(), *GetRenderTarget()->GetFrameBufferHandle());
+	bgfx::setViewRect(GetViewID(), 0, 0, GetRenderTarget()->GetWidth(), GetRenderTarget()->GetHeight());
 	bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
 }
 

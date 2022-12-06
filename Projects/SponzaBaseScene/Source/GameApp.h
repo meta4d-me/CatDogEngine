@@ -33,12 +33,16 @@ public:
 	virtual bool Update(float deltaTime) override;
 	virtual void Shutdown() override;
 
+	void AddRenderer(std::unique_ptr<engine::Renderer> pRenderer);
+
 private:
 	std::unique_ptr<engine::FlybyCamera> m_pFlybyCamera;
 	std::unique_ptr<engine::FirstPersonCameraController> m_pCameraController;
 	std::unique_ptr<engine::Window> m_pMainWindow;
 
-	engine::RenderContext* m_pRenderContext;
+	std::vector<std::unique_ptr<engine::Renderer>> m_pRenderers;
+
+	std::unique_ptr<engine::RenderContext> m_pRenderContext;
 };
 
 }

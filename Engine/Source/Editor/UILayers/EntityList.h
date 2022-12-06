@@ -1,12 +1,12 @@
-#include "EditorImGuiLayer.h"
+#include "ImGui/ImGuiBaseLayer.h"
 
 namespace editor
 {
 
-class EntityList : public EditorImGuiLayer
+class EntityList : public engine::ImGuiBaseLayer
 {
 public:
-	using EditorImGuiLayer::EditorImGuiLayer;
+	using ImGuiBaseLayer::ImGuiBaseLayer;
 	virtual ~EntityList();
 
 	virtual void Init() override;

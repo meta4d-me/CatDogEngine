@@ -1,9 +1,4 @@
 ﻿#include "Engine.h"
-
-#include "Rendering/GBuffer.h"
-#include "Rendering/RenderContext.h"
-#include "Rendering/SwapChain.h"
-#include "Rendering/Renderer.h"
 #include "Time/Clock.h"
 #include "Window/Window.h"
 
@@ -23,7 +18,6 @@ Engine::~Engine()
 
 void Engine::Init(EngineInitArgs args)
 {
-	InitRenderContext(args.width, args.height);
 	m_pApplication->Init(args);
 }
 
@@ -46,12 +40,6 @@ void Engine::Run()
 void Engine::Shutdown()
 {
 
-}
-
-void Engine::InitRenderContext(uint16_t width, uint16_t height)
-{
-	m_pRenderContext = std::make_unique<RenderContext>();
-	m_pRenderContext->Init();
 }
 
 //

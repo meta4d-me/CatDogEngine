@@ -1,9 +1,7 @@
 #include "RenderContext.h"
 
 #include "Display/Camera.h"
-#include "GBuffer.h"
 #include "Renderer.h"
-#include "SwapChain.h"
 
 #include <bgfx/bgfx.h>
 #include <bimg/decode.h>
@@ -49,13 +47,6 @@ void RenderContext::Init()
 	bgfx::setDebug(BGFX_DEBUG_NONE);
 }
 
-void RenderContext::AddRenderer(std::unique_ptr<Renderer> pRenderer)
-{
-	pRenderer->Init();
-	pRenderer->SetCamera(GetCamera());
-	m_pRenderers.emplace_back(std::move(pRenderer));
-}
-
 void RenderContext::Shutdown()
 {
 	for (auto it : m_programHandleCaches)
@@ -90,26 +81,7 @@ void RenderContext::EndFrame()
 	bgfx::frame();
 }
 
-void RenderContext::Update(float deltaTime)
-{
-	BeginFrame();
-	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pRenderers)
-	{
-		const float* pViewMatrix = nullptr;
-		const float* pProjectionMatrix = nullptr;
-		if (Camera* pCamera = pRenderer->GetCamera())
-		{
-			pViewMatrix = pCamera->GetViewMatrix();
-			pProjectionMatrix = pCamera->GetProjectionMatrix();
-		}
-
-		pRenderer->UpdateView(pViewMatrix, pProjectionMatrix);
-		pRenderer->Render(deltaTime);
-	}
-	EndFrame();
-}
-
-void RenderContext::ResizeFrameBuffers(uint16_t width, uint16_t height)
+void RenderContext::OnResize(uint16_t width, uint16_t height)
 {
 	bgfx::reset(width, height, BGFX_RESET_MSAA_X16 | BGFX_RESET_VSYNC);
 }
@@ -120,27 +92,28 @@ uint16_t RenderContext::CreateView()
 	return m_currentViewCount++;
 }
 
-uint8_t RenderContext::CreateSwapChain(void* pWindowHandle, uint16_t width, uint16_t height)
+RenderTarget* RenderContext::CreateRenderTarget(StringCrc resourceCrc, uint16_t width, uint16_t height, std::vector<AttachmentDescriptor> attachmentDescs)
 {
-	assert(m_currentSwapChainCount < MaxSwapChainCount && "Overflow the max count of swap chains.");
-	m_pSwapChains[m_currentSwapChainCount] = std::make_unique<SwapChain>(pWindowHandle, width, height);
-	return m_currentSwapChainCount++;
+	return CreateRenderTarget(resourceCrc, std::make_unique<RenderTarget>(width, height, std::move(attachmentDescs)));
 }
 
-SwapChain* RenderContext::GetSwapChain(uint8_t swapChainID) const
+RenderTarget* RenderContext::CreateRenderTarget(StringCrc resourceCrc, uint16_t width, uint16_t height, void* pWindowHandle)
 {
-	assert(m_pSwapChains[swapChainID] != nullptr && "Invalid swap chain.");
-	return m_pSwapChains[swapChainID].get();
+	return CreateRenderTarget(resourceCrc, std::make_unique<RenderTarget>(width, height, pWindowHandle));
 }
 
-void RenderContext::InitGBuffer(uint16_t width, uint16_t height)
+RenderTarget* RenderContext::CreateRenderTarget(StringCrc resourceCrc, std::unique_ptr<RenderTarget> pRenderTarget)
 {
-	m_pGBuffer = std::make_unique<GBuffer>(width, height);
-}
+	auto itResourceCache = m_renderTargetCaches.find(resourceCrc.value());
+	if (itResourceCache != m_renderTargetCaches.end())
+	{
+		return itResourceCache->second.get();
+	}
 
-GBuffer* RenderContext::GetGBuffer() const
-{
-	return m_pGBuffer.get();
+	assert(m_renderTargetCaches.size() <= MaxRenderTargetCount && "Overflow the max count of render targets.");
+
+	m_renderTargetCaches[resourceCrc.value()] = std::move(pRenderTarget);
+	return m_renderTargetCaches[resourceCrc.value()].get();
 }
 
 bgfx::ShaderHandle RenderContext::CreateShader(const char* pFilePath)
@@ -380,6 +353,17 @@ void RenderContext::SetTexture(StringCrc resourceCrc, bgfx::TextureHandle textur
 	}
 
 	m_textureHandleCaches[resourceCrc.value()] = std::move(textureHandle);
+}
+
+RenderTarget* RenderContext::GetRenderTarget(StringCrc resourceCrc) const
+{
+	auto itResource = m_renderTargetCaches.find(resourceCrc.value());
+	if (itResource != m_renderTargetCaches.end())
+	{
+		return itResource->second.get();
+	}
+
+	return nullptr;
 }
 
 const bgfx::VertexLayout& RenderContext::GetVertexLayout(StringCrc resourceCrc) const

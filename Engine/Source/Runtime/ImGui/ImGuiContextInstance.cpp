@@ -1,27 +1,64 @@
-﻿#include "EditorImGuiContext.h"
+﻿#include "ImGuiContextInstance.h"
 
 #include "IconFont/IconsMaterialDesignIcons.h"
 #include "IconFont/MaterialDesign.inl"
-#include "Preferences/ThemeColor.h"
-#include "UILayers/EditorImGuiLayer.h"
+#include "ImGui/ImGuiBaseLayer.h"
 
 #include <bgfx/bgfx.h>
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui/imgui_internal.h>
-#include <ImGuizmo/ImGuizmo.h>
+#include <misc/freetype/imgui_freetype.h>
 
 #include <string>
 
-namespace editor
+namespace
 {
 
-EditorImGuiContext::EditorImGuiContext()
+class TempSwitchContextScope
+{
+public:
+	TempSwitchContextScope(engine::ImGuiContextInstance* pThis)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		assert(io.UserData != nullptr && "Please set ImGuiContextInstance to io.UserData field.");
+		if (io.UserData != pThis)
+		{
+			pThis->SwitchCurrentContext();
+			pBackContext = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
+		}
+	}
+
+	TempSwitchContextScope(const TempSwitchContextScope&) = delete;
+	TempSwitchContextScope& operator=(const TempSwitchContextScope&) = delete;
+	TempSwitchContextScope(TempSwitchContextScope&&) = delete;
+	TempSwitchContextScope& operator=(TempSwitchContextScope&&) = delete;
+
+	~TempSwitchContextScope()
+	{
+		if (pBackContext)
+		{
+			pBackContext->SwitchCurrentContext();
+		}
+	}
+
+private:
+	engine::ImGuiContextInstance* pBackContext = nullptr;
+};
+
+}
+
+namespace engine
+{
+
+ImGuiContextInstance::ImGuiContextInstance(uint16_t width, uint16_t height)
 {
 	m_pImGuiContext = ImGui::CreateContext();
-	ImGui::SetCurrentContext(m_pImGuiContext);
+	SwitchCurrentContext();
 
 	ImGuiIO& io = ImGui::GetIO();
+	// It will be very useful for UI layers to get/set data in the current ImGuiContext.
+	io.UserData = static_cast<void*>(this);
 	io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
@@ -34,27 +71,36 @@ EditorImGuiContext::EditorImGuiContext()
 	io.IniFilename = nullptr;
 	io.LogFilename = nullptr;
 
+	// TODO : dynamic resize or modify fps.
+	io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
+	io.DeltaTime = 1.0f / 60;
+
 	SetImGuiStyles();
 }
 
-EditorImGuiContext::~EditorImGuiContext()
+ImGuiContextInstance::~ImGuiContextInstance()
 {
 	ImGui::DestroyContext(m_pImGuiContext);
 }
 
-void EditorImGuiContext::AddStaticLayer(std::unique_ptr<EditorImGuiLayer> pLayer)
+void ImGuiContextInstance::SwitchCurrentContext() const
+{
+	ImGui::SetCurrentContext(m_pImGuiContext);
+}
+
+void ImGuiContextInstance::AddStaticLayer(std::unique_ptr<ImGuiBaseLayer> pLayer)
 {
 	pLayer->Init();
 	m_pImGuiStaticLayers.emplace_back(std::move(pLayer));
 }
 
-void EditorImGuiContext::AddDockableLayer(std::unique_ptr<EditorImGuiLayer> pLayer)
+void ImGuiContextInstance::AddDynamicLayer(std::unique_ptr<ImGuiBaseLayer> pLayer)
 {
 	pLayer->Init();
 	m_pImGuiDockableLayers.emplace_back(std::move(pLayer));
 }
 
-void EditorImGuiContext::BeginDockSpace()
+void ImGuiContextInstance::BeginDockSpace()
 {
 	// To create a dock space, we need to create a window to host it at first.
 	constexpr const char* pDockSpaceName = "FullScreenDockSpace";
@@ -127,12 +173,12 @@ void EditorImGuiContext::BeginDockSpace()
 	ImGui::DockSpace(dockSpaceWindowID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoCloseButton);
 }
 
-void EditorImGuiContext::EndDockSpace()
+void ImGuiContextInstance::EndDockSpace()
 {
 	ImGui::End();
 }
 
-void EditorImGuiContext::Update()
+void ImGuiContextInstance::Update()
 {
 	ImGui::NewFrame();
 	
@@ -157,48 +203,69 @@ void EditorImGuiContext::Update()
 	//ImGui::ShowStyleEditor();
 }
 
-void EditorImGuiContext::OnMouseLBDown()
+void ImGuiContextInstance::OnResize(uint16_t width, uint16_t height)
 {
+	// It is a callback method which can happen in another ImGuiContext.
+	// So we hope it switch back after finishing jobs.
+	TempSwitchContextScope tempSwitchScope(this);
+
+	ImGuiIO& io = ImGui::GetIO();
+	io.DisplaySize.x = width;
+	io.DisplaySize.y = height;
+}
+
+void ImGuiContextInstance::OnMouseLBDown()
+{
+	TempSwitchContextScope tempSwitchScope(this);
 	ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left, true);
 }
 
-void EditorImGuiContext::OnMouseLBUp()
+void ImGuiContextInstance::OnMouseLBUp()
 {
+	TempSwitchContextScope tempSwitchScope(this);
 	ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left, false);
 }
 
-void EditorImGuiContext::OnMouseRBDown()
+void ImGuiContextInstance::OnMouseRBDown()
 {
+	TempSwitchContextScope tempSwitchScope(this);
 	ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Right, true);
 }
 
-void EditorImGuiContext::OnMouseRBUp()
+void ImGuiContextInstance::OnMouseRBUp()
 {
+	TempSwitchContextScope tempSwitchScope(this);
 	ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Right, false);
 }
 
-void EditorImGuiContext::OnMouseMBDown()
+void ImGuiContextInstance::OnMouseMBDown()
 {
+	TempSwitchContextScope tempSwitchScope(this);
 	ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Middle, true);
 }
 
-void EditorImGuiContext::OnMouseMBUp()
+void ImGuiContextInstance::OnMouseMBUp()
 {
+	TempSwitchContextScope tempSwitchScope(this);
 	ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Middle, false);
 }
 
-void EditorImGuiContext::OnMouseWheel(float offset)
+void ImGuiContextInstance::OnMouseWheel(float offset)
 {
+	TempSwitchContextScope tempSwitchScope(this);
 	ImGui::GetIO().AddMouseWheelEvent(0.0f, offset);
 }
 
-void EditorImGuiContext::OnMouseMove(int32_t x, int32_t y)
+void ImGuiContextInstance::OnMouseMove(int32_t x, int32_t y)
 {
+	TempSwitchContextScope tempSwitchScope(this);
 	ImGui::GetIO().AddMousePosEvent(static_cast<float>(x), static_cast<float>(y));
 }
 
-void EditorImGuiContext::LoadFontFiles(const std::vector<std::string>& ttfFileNames, engine::Language language) const
+void ImGuiContextInstance::LoadFontFiles(const std::vector<std::string>& ttfFileNames, engine::Language language)
 {
+	TempSwitchContextScope tempSwitchScope(this);
+
 	ImGuiIO& io = ImGui::GetIO();
 	io.FontGlobalScale = 1.0f;
 
@@ -275,10 +342,17 @@ void EditorImGuiContext::LoadFontFiles(const std::vector<std::string>& ttfFileNa
 	{
 		io.Fonts->ConfigData[fontConfigDataIndex].RasterizerMultiply = 1.0f;
 	}
+
+	ImFontAtlas* pFontAtlas = ImGui::GetIO().Fonts;
+	pFontAtlas->FontBuilderIO = ImGuiFreeType::GetBuilderForFreeType();
+	pFontAtlas->FontBuilderFlags = 0;
+	pFontAtlas->Build();
 }
 
-void EditorImGuiContext::SetImGuiStyles()
+void ImGuiContextInstance::SetImGuiStyles()
 {
+	TempSwitchContextScope tempSwitchScope(this);
+
 	ImGuiStyle& style = ImGui::GetStyle();
 	style.WindowPadding = ImVec2(5, 5);
 	style.FramePadding = ImVec2(4, 4);
@@ -311,12 +385,12 @@ void EditorImGuiContext::SetImGuiStyles()
 		style.WindowRounding = roundingAmount;
 		style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 	}
-
-	SetImGuiThemeColor(ThemeColor::Dark);
 }
 
-void EditorImGuiContext::SetImGuiThemeColor(ThemeColor theme)
+void ImGuiContextInstance::SetImGuiThemeColor(ThemeColor theme)
 {
+	TempSwitchContextScope tempSwitchScope(this);
+
 	m_themeColor = theme;
 
 	ImVec4* colours = ImGui::GetStyle().Colors;

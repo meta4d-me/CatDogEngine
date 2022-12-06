@@ -1,18 +1,17 @@
 #include "Renderer.h"
 
 #include "RenderContext.h"
-#include "SwapChain.h"
+#include "RenderTarget.h"
 
 #include <bgfx/bgfx.h>
 
 namespace engine
 {
 
-Renderer::Renderer(RenderContext* pRenderContext, uint16_t viewID, SwapChain* pSwapChain)
+Renderer::Renderer(RenderContext* pRenderContext, uint16_t viewID, RenderTarget* pRenderTarget)
 	: m_pRenderContext(pRenderContext)
 	, m_viewID(viewID)
-	, m_pSwapChain(pSwapChain)
-	, m_pGBuffer(pRenderContext->GetGBuffer())
+	, m_pRenderTarget(pRenderTarget)
 {
 }
 

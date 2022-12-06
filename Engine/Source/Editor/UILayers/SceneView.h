@@ -1,4 +1,5 @@
-#include "EditorImGuiLayer.h"
+#include "Core/Delegates/MulticastDelegate.hpp"
+#include "ImGui/ImGuiBaseLayer.h"
 
 #include <inttypes.h>
 
@@ -12,20 +13,25 @@ enum OPERATION;
 namespace editor
 {
 
-class SceneView : public EditorImGuiLayer
+class SceneView : public engine::ImGuiBaseLayer
 {
 public:
-	using EditorImGuiLayer::EditorImGuiLayer;
+	using ImGuiBaseLayer::ImGuiBaseLayer;
 	virtual ~SceneView();
 
 	virtual void Init() override;
 	virtual void Update() override;
-	void OnResize();
 
 private:
 	void UpdateToolMenuButtons();
 
+public:
+	engine::MulticastDelegate<void(uint16_t, uint16_t)> OnResize;
+
 private:
+	uint16_t m_lastContentWidth = 0;
+	uint16_t m_lastContentHeight = 0;
+
 	bool m_option1;
 	bool m_option2;
 	ImGuizmo::OPERATION m_currentOperation;
