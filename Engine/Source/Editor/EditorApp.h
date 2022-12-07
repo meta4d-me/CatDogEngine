@@ -9,6 +9,7 @@ namespace engine
 {
 
 class FlybyCamera;
+class ImGuiContextInstance;
 class Window;
 class RenderContext;
 class Renderer;
@@ -20,7 +21,6 @@ struct ImGuiContext;
 namespace editor
 {
 
-class EditorImGuiContext;
 class EditorImGuiViewport;
 
 class EditorApp final : public engine::IApplication
@@ -42,22 +42,27 @@ public:
 	size_t AddWindow(std::unique_ptr<engine::Window> pWindow);
 
 	void InitRenderContext();
-	void InitImGuiContext(engine::Language language);
-	void InitImGuiViewports(engine::RenderContext* pRenderContext);
+	void AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer);
+	void AddEngineRenderer(std::unique_ptr<engine::Renderer> pRenderer);
 
-	EditorImGuiContext* GetImGuiContext() const { return m_pEditorImGuiContext.get(); }
-	engine::RenderContext* GetRenderContext() const { return m_pRenderContext; }
+	void InitEditorImGuiContext(engine::Language language);
+	void InitEngineImGuiContext(engine::Language language);
+	void InitImGuiViewports(engine::RenderContext* pRenderContext);
 
 private:
 	// Windows
 	std::vector<std::unique_ptr<engine::Window>> m_pAllWindows;
 
 	// ImGui
-	std::unique_ptr<EditorImGuiContext> m_pEditorImGuiContext;
+	std::unique_ptr<engine::ImGuiContextInstance> m_pEditorImGuiContext;
+	std::unique_ptr<engine::ImGuiContextInstance> m_pEngineImGuiContext;
+
 	std::unique_ptr<EditorImGuiViewport> m_pEditorImGuiViewport;
 
 	// Rendering
-	engine::RenderContext* m_pRenderContext;
+	std::unique_ptr<engine::RenderContext> m_pRenderContext;
+	std::vector<std::unique_ptr<engine::Renderer>> m_pEditorRenderers;
+	std::vector<std::unique_ptr<engine::Renderer>> m_pEngineRenderers;
 
 	// TODO
 	std::unique_ptr<engine::FlybyCamera> m_pCamera;

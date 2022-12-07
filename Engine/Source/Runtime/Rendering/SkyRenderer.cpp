@@ -1,8 +1,6 @@
 #include "SkyRenderer.h"
 
-#include "GBuffer.h"
 #include "RenderContext.h"
-#include "SwapChain.h"
 
 #include <bx/math.h>
 
@@ -25,6 +23,8 @@ void SkyRenderer::Init()
 	bgfx::ShaderHandle vsh = m_pRenderContext->CreateShader("vs_PBR_skybox.bin");
 	bgfx::ShaderHandle fsh = m_pRenderContext->CreateShader("fs_PBR_skybox.bin");
 	m_programSky = m_pRenderContext->CreateProgram("skybox", vsh, fsh);
+
+	bgfx::setViewName(GetViewID(), "SkyRenderer");
 }
 
 SkyRenderer::~SkyRenderer()
@@ -33,13 +33,13 @@ SkyRenderer::~SkyRenderer()
 
 void SkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
-	bgfx::setViewFrameBuffer(GetViewID(), *m_pGBuffer->GetFrameBuffer());
-	bgfx::setViewRect(GetViewID(), 0, 0, m_pGBuffer->GetWidth(), m_pGBuffer->GetHeight());
-	bgfx::setViewClear(GetViewID(), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
+	bgfx::setViewFrameBuffer(GetViewID(), *GetRenderTarget()->GetFrameBufferHandle());
+	bgfx::setViewRect(GetViewID(), 0, 0, GetRenderTarget()->GetWidth(), GetRenderTarget()->GetHeight());
 
 	float proj[16];
 	bx::mtxOrtho(proj, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 100.0f, 0.0, bgfx::getCaps()->homogeneousDepth);
 	bgfx::setViewTransform(GetViewID(), nullptr, proj);
+	bgfx::setViewClear(GetViewID(), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
 }
 
 void SkyRenderer::Render(float deltaTime)
@@ -49,7 +49,7 @@ void SkyRenderer::Render(float deltaTime)
 	bgfx::setTexture(0, m_uniformTexCube, m_lightProbeTex);
 	bgfx::setTexture(1, m_uniformTexCubeIrr, m_lightProbeTexIrr);
 	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
-	Renderer::ScreenSpaceQuad(static_cast<float>(m_pGBuffer->GetWidth()), static_cast<float>(m_pGBuffer->GetHeight()), true);
+	Renderer::ScreenSpaceQuad(static_cast<float>(GetRenderTarget()->GetWidth()), static_cast<float>(GetRenderTarget()->GetHeight()), true);
 	bgfx::submit(GetViewID(), m_programSky);
 }
 

@@ -1,14 +1,14 @@
-#include "EditorImGuiLayer.h"
+#include "ImGui/ImGuiBaseLayer.h"
 
 #include <inttypes.h>
 
 namespace editor
 {
 
-class GameView : public EditorImGuiLayer
+class GameView : public engine::ImGuiBaseLayer
 {
 public:
-	using EditorImGuiLayer::EditorImGuiLayer;
+	using ImGuiBaseLayer::ImGuiBaseLayer;
 	virtual ~GameView();
 
 	virtual void Init() override;

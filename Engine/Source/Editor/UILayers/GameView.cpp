@@ -1,11 +1,5 @@
 #include "GameView.h"
 
-#include "EditorApp.h"
-#include "Rendering/GBuffer.h"
-#include "Rendering/PBRSkyRenderer.h"
-#include "Rendering/RenderContext.h"
-#include "Rendering/SceneRenderer.h"
-
 #include <imgui/imgui.h>
 
 namespace

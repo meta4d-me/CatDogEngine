@@ -1,6 +1,5 @@
 #include "EditorZmoRenderer.h"
 
-#include "Rendering/GBuffer.h"
 #include "Rendering/RenderContext.h"
 
 #include <bx/math.h>

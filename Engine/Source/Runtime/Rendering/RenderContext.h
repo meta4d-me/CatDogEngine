@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/StringCrc.h"
+#include "RenderTarget.h"
 
 #include <bgfx/bgfx.h>
 
@@ -12,14 +13,13 @@ namespace engine
 {
 
 class Camera;
-class GBuffer;
 class Renderer;
-class SwapChain;
 
-constexpr uint8_t MaxViewCount = 255;
-constexpr uint8_t InvalidSwapChainID = 0xff;
-constexpr uint8_t MaxSwapChainCount = 8;
+static constexpr uint8_t MaxViewCount = 255;
+static constexpr uint8_t MaxRenderTargetCount = 255;
 
+// In current design, RenderContext needs to be a singleton.
+// The reason is that it binds to bgfx graphics initialization which should only happen once.
 class RenderContext
 {
 public:
@@ -30,21 +30,13 @@ public:
 	RenderContext& operator=(RenderContext&&) = delete;
 	~RenderContext();
 
-	void AddRenderer(std::unique_ptr<Renderer> pRenderer);
-
 	void Init();
-	void ResizeFrameBuffers(uint16_t width, uint16_t height);
+	void OnResize(uint16_t width, uint16_t height);
 	void BeginFrame();
 	void EndFrame();
-	void Update(float deltaTime);
 	void Shutdown();
 
 	uint16_t CreateView();
-	uint8_t CreateSwapChain(void* pWindowHandle, uint16_t width, uint16_t height);
-	SwapChain* GetSwapChain(uint8_t swapChainID) const;
-
-	void InitGBuffer(uint16_t width, uint16_t height);
-	GBuffer* GetGBuffer() const;
 
 	void SetCamera(Camera* pCamera) { m_pCamera = pCamera; }
 	Camera* GetCamera() const { return m_pCamera; }
@@ -52,6 +44,9 @@ public:
 	/////////////////////////////////////////////////////////////////////
 	// Resource related apis
 	/////////////////////////////////////////////////////////////////////
+	RenderTarget* CreateRenderTarget(StringCrc resourceCrc, uint16_t width, uint16_t height, std::vector<AttachmentDescriptor> attachmentDescs);
+	RenderTarget* CreateRenderTarget(StringCrc resourceCrc, uint16_t width, uint16_t height, void* pWindowHandle);
+	RenderTarget* CreateRenderTarget(StringCrc resourceCrc, std::unique_ptr<RenderTarget> pRenderTarget);
 	bgfx::ShaderHandle CreateShader(const char* filePath);
 	bgfx::ProgramHandle CreateProgram(const char* pName, const char* pVSName, const char* pFSName);
 	bgfx::ProgramHandle CreateProgram(const char* pName, bgfx::ShaderHandle vsh, bgfx::ShaderHandle fsh);
@@ -65,6 +60,7 @@ public:
 	void SetVertexLayout(StringCrc resourceCrc, bgfx::VertexLayout textureHandle);
 	void SetTexture(StringCrc resourceCrc, bgfx::TextureHandle textureHandle);
 
+	RenderTarget* GetRenderTarget(StringCrc resourceCrc) const;
 	const bgfx::VertexLayout& GetVertexLayout(StringCrc resourceCrc) const;
 	const bgfx::ShaderHandle& GetShader(StringCrc resourceCrc) const;
 	const bgfx::ProgramHandle& GetProgram(StringCrc resourceCrc) const;
@@ -73,18 +69,13 @@ public:
 
 private:
 	uint8_t m_currentViewCount = 0;
-	uint8_t m_currentSwapChainCount = 0;
 	Camera* m_pCamera = nullptr;
-	std::unique_ptr<SwapChain> m_pSwapChains[MaxSwapChainCount];
-	std::unique_ptr<GBuffer> m_pGBuffer;
-
+	std::unordered_map<size_t, std::unique_ptr<RenderTarget>> m_renderTargetCaches;
 	std::unordered_map<size_t, bgfx::VertexLayout> m_vertexLayoutCaches;
 	std::unordered_map<size_t, bgfx::ShaderHandle> m_shaderHandleCaches;
 	std::unordered_map<size_t, bgfx::ProgramHandle> m_programHandleCaches;
 	std::unordered_map<size_t, bgfx::TextureHandle> m_textureHandleCaches;
 	std::unordered_map<size_t, bgfx::UniformHandle> m_uniformHandleCaches;
-
-	std::vector<std::unique_ptr<engine::Renderer>> m_pRenderers;
 };
 
 }

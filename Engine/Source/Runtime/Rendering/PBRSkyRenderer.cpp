@@ -1,8 +1,6 @@
 #include "PBRSkyRenderer.h"
 
-#include "GBuffer.h"
 #include "RenderContext.h"
-#include "SwapChain.h"
 
 #include <bx/math.h>
 
@@ -74,6 +72,8 @@ void PBRSkyRenderer::Init() {
 	m_vertexLayoutSkyBox.begin().add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float).end();
 	m_vbhSkybox = bgfx::createVertexBuffer(bgfx::makeRef(ms_skyboxVertices, sizeof(ms_skyboxVertices)), m_vertexLayoutSkyBox);
 	m_ibhSkybox = bgfx::createIndexBuffer(bgfx::makeRef(ms_skyBoxIndeces, sizeof(ms_skyBoxIndeces)));
+
+	bgfx::setViewName(GetViewID(), "PBRSkyRenderer");
 }
 
 void PBRSkyRenderer::UpdateView(const float *pViewMatrix, const float *pProjectionMatrix) {
@@ -86,8 +86,8 @@ void PBRSkyRenderer::UpdateView(const float *pViewMatrix, const float *pProjecti
 	pView[12] = pView[13] = pView[14] = 0.0f;
 	pView[15] = 1.0f;
 
-	bgfx::setViewFrameBuffer(GetViewID(), *m_pGBuffer->GetFrameBuffer());
-	bgfx::setViewRect(GetViewID(), 0, 0, m_pGBuffer->GetWidth(), m_pGBuffer->GetHeight());
+	bgfx::setViewFrameBuffer(GetViewID(), *GetRenderTarget()->GetFrameBufferHandle());
+	bgfx::setViewRect(GetViewID(), 0, 0, GetRenderTarget()->GetWidth(), GetRenderTarget()->GetHeight());
 	bgfx::setViewTransform(GetViewID(), pView, pProjectionMatrix);
 	bgfx::setViewClear(GetViewID(), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
 }

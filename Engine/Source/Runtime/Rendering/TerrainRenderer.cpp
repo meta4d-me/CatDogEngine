@@ -2,12 +2,10 @@
 
 #include "BgfxConsumer.h"
 #include "Display/Camera.h"
-#include "GBuffer.h"
 #include "Producer/CatDogProducer.h"
 #include "Processor/Processor.h"
 #include "RenderContext.h"
 #include "Scene/Texture.h"
-#include "SwapChain.h"
 
 #include <bgfx/bgfx.h>
 #include <bx/math.h>
@@ -59,12 +57,14 @@ namespace engine
 		m_program = m_pRenderContext->CreateProgram("TerrainProgram", vsh, fsh);
 
 		// m_pRenderContext->GetCamera()->FrameAll(m_renderDataContext.sceneAABB);
+
+		bgfx::setViewName(GetViewID(), "TerrainRenderer");
 	}
 
 	void TerrainRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 	{
-		bgfx::setViewFrameBuffer(GetViewID(), *m_pGBuffer->GetFrameBuffer());
-		bgfx::setViewRect(GetViewID(), 0, 0, m_pGBuffer->GetWidth(), m_pGBuffer->GetHeight());
+		bgfx::setViewFrameBuffer(GetViewID(), *GetRenderTarget()->GetFrameBufferHandle());
+		bgfx::setViewRect(GetViewID(), 0, 0, GetRenderTarget()->GetWidth(), GetRenderTarget()->GetHeight());
 		bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
 	}
 
