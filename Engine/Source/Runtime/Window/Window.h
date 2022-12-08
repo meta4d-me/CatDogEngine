@@ -1,8 +1,8 @@
 #pragma once
 
-#include <inttypes.h>
-
 #include "Core/Delegates/MulticastDelegate.hpp"
+
+#include <inttypes.h>
 
 struct SDL_Window;
 
@@ -34,24 +34,9 @@ public:
     void Closed(bool bPushSdlEvent = true);
 
 public:
-    // Mouse
-    MulticastDelegate<void()> OnMouseLBDown;
-    MulticastDelegate<void()> OnMouseLBUp;
-    MulticastDelegate<void()> OnMouseRBDown;
-    MulticastDelegate<void()> OnMouseRBUp;
-    MulticastDelegate<void()> OnMouseMBDown;
-    MulticastDelegate<void()> OnMouseMBUp;
-    MulticastDelegate<void(float)> OnMouseWheel;
-    MulticastDelegate<void(int32_t, int32_t)> OnMouseMove;
-    MulticastDelegate<void(int32_t, int32_t)> OnMouseMoveRelative;
-
-    // Keyboard
-    MulticastDelegate<void(int32_t, uint16_t)> OnKeyDown;
-    MulticastDelegate<void(int32_t, uint16_t)> OnKeyUp;
-
     // Window
-    MulticastDelegate<void(const char*)> OnDropFile;
-    MulticastDelegate<void(uint16_t, uint16_t)> OnResize;
+    Delegate<void(const char*)> OnDropFile;
+    Delegate<void(uint16_t, uint16_t)> OnResize;
 
 private:
     void* m_pNativeWindowHandle = nullptr;

@@ -18,8 +18,6 @@ project("Engine")
 		path.join(ThirdPartySourcePath, "imgui/*.h"),
 		path.join(ThirdPartySourcePath, "imgui/*.cpp"),
 		path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
-		path.join(ThirdPartySourcePath, "imguizmo/*.h"),
-		path.join(ThirdPartySourcePath, "imguizmo/*.cpp"),
 	}
 	
 	vpaths {
@@ -33,10 +31,6 @@ project("Engine")
 			path.join(ThirdPartySourcePath, "imgui/*.h"),
 			path.join(ThirdPartySourcePath, "imgui/*.cpp"),
 			path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
-		},
-		["ImGuizmo"] = {
-			path.join(ThirdPartySourcePath, "imguizmo/*.h"),
-			path.join(ThirdPartySourcePath, "imguizmo/*.cpp"),
 		},
 	}
 	
@@ -62,7 +56,6 @@ project("Engine")
 		path.join(ThirdPartySourcePath, "bx/include"),
 		path.join(ThirdPartySourcePath, "sdl/include"),
 		path.join(ThirdPartySourcePath, "imgui"),
-		path.join(ThirdPartySourcePath, "imguizmo"),
 		path.join(ThirdPartySourcePath, "freetype/include"),
 		table.unpack(platformIncludeDirs),
 	}

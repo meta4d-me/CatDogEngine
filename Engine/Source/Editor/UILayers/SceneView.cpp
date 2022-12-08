@@ -139,25 +139,41 @@ void SceneView::Update()
 	auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 	if (ImGui::Begin(GetName(), &m_isEnable, flags))
 	{
-		// Swicth ImGuizmo operation mode
+		// Draw top menu buttons which include ImGuizmo operation modes, ViewCamera settings.
 		UpdateToolMenuButtons();
 
-		// Inside the implementation, it will check if width or height changes.
+		// Check if need to resize scene view.
 		ImVec2 regionSize = ImGui::GetContentRegionAvail();
 		uint16_t regionWidth = static_cast<uint16_t>(regionSize.x);
 		uint16_t regionHeight = static_cast<uint16_t>(regionSize.y);
 		if (regionWidth != m_lastContentWidth || regionHeight != m_lastContentHeight)
 		{
+			// RenderTarget binds to OnResize delegate so it will resize automatically.
+			// Then RenderTarget will resize ViewCamera/ImGuiContext to let everything go well.
 			OnResize.Invoke(regionWidth, regionHeight);
 			m_lastContentWidth = regionWidth;
 			m_lastContentHeight = regionHeight;
 		}
 		
-		//ImVec2 cursorPosition = ImGui::GetCursorPos();
-		//ImVec2 sceneViewSize = ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin() - cursorPosition * 0.5f;
-		//ImVec2 sceneViewPosition = ImGui::GetWindowPos() + cursorPosition;
-		const bgfx::FrameBufferHandle* pFrameBufferHandle = pRenderTarget->GetFrameBufferHandle();
+		// Check if mouse hover on the area of SceneView so it can control.
+		ImVec2 cursorPosition = ImGui::GetCursorPos();
+		ImVec2 sceneViewSize = ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin() - cursorPosition * 0.5f;
+		ImVec2 sceneViewPosition = ImGui::GetWindowPos() + cursorPosition;
+		m_windowPosX = sceneViewPosition.x;
+		m_windowPosY = sceneViewPosition.y;
+
+		// Draw scene.
 		ImGui::Image(ImTextureID(pRenderTarget->GetTextureHandle(0).idx), ImVec2(pRenderTarget->GetWidth(), pRenderTarget->GetHeight()));
+
+		// Check if there is a file to drop in the scene view to import assets automatically.
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* pPayload = ImGui::AcceptDragDropPayload("AssetFile", ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
+			{
+				std::string filePath(static_cast<const char*>(pPayload->Data));
+			}
+			ImGui::EndDragDropTarget();
+		}
 
 		ImGui::PopStyleVar();
 		ImGui::End();

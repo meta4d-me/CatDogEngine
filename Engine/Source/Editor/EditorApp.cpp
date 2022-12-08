@@ -12,6 +12,7 @@
 #include "UILayers/AssetBrowser.h"
 #include "UILayers/EntityList.h"
 #include "UILayers/GameView.h"
+#include "UILayers/ImGuizmoView.h"
 #include "UILayers/Inspector.h"
 #include "UILayers/MainMenu.h"
 #include "UILayers/OutputLog.h"
@@ -81,24 +82,14 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 {
 	assert(GetMainWindow() && "Init window before imgui context");
 
-	m_pEditorImGuiContext = std::make_unique<engine::ImGuiContextInstance>(GetMainWindow()->GetWidth(), GetMainWindow()->GetHeight());
+	m_pEditorImGuiContext = std::make_unique<engine::ImGuiContextInstance>(GetMainWindow()->GetWidth(), GetMainWindow()->GetHeight(), true/*dockable*/);
 
 	// TODO : more font files to load and switch dynamicly.
 	std::vector<std::string> ttfFileNames = { "FanWunMing-SB.ttf" };
 	m_pEditorImGuiContext->LoadFontFiles(ttfFileNames, language);
 
 	// Bind event callbacks from current available input devices.
-	GetMainWindow()->OnMouseLBDown.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnMouseLBDown>(m_pEditorImGuiContext.get());
-	GetMainWindow()->OnMouseLBUp.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnMouseLBUp>(m_pEditorImGuiContext.get());
-	GetMainWindow()->OnMouseRBDown.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnMouseRBDown>(m_pEditorImGuiContext.get());
-	GetMainWindow()->OnMouseRBUp.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnMouseRBUp>(m_pEditorImGuiContext.get());
-	GetMainWindow()->OnMouseMBDown.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnMouseMBDown>(m_pEditorImGuiContext.get());
-	GetMainWindow()->OnMouseMBUp.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnMouseMBUp>(m_pEditorImGuiContext.get());
-	GetMainWindow()->OnMouseWheel.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnMouseWheel>(m_pEditorImGuiContext.get());
-	GetMainWindow()->OnMouseMove.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnMouseMove>(m_pEditorImGuiContext.get());
 	GetMainWindow()->OnResize.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnResize>(m_pEditorImGuiContext.get());
-	//GetMainWindow()->OnKeyDown.Bind<ImGuiContextInstance, &ImGuiContextInstance::OnKeyPress>(m_pEditorImGuiContext.get());
-	//GetMainWindow()->OnKeyUp.Bind<ImGuiContextInstance, &ImGuiContextInstance::OnKeyRelease>(m_pEditorImGuiContext.get());
 
 	// Set style settings.
 	m_pEditorImGuiContext->SetImGuiThemeColor(engine::ThemeColor::Dark);
@@ -109,7 +100,9 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 	m_pEditorImGuiContext->AddStaticLayer(std::make_unique<MainMenu>("MainMenu"));
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<EntityList>("EntityList"));
 	//m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<GameView>("GameView"));
-	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<SceneView>("SceneView"));
+	auto pSceneView = std::make_unique<SceneView>("SceneView");
+	m_pSceneView = pSceneView.get();
+	m_pEditorImGuiContext->AddDynamicLayer(std::move(pSceneView));
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<AssetBrowser>("AssetBrowser"));
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<OutputLog>("OutputLog"));
@@ -120,7 +113,7 @@ void EditorApp::InitEngineImGuiContext(engine::Language language)
 	constexpr engine::StringCrc sceneRenderTarget("SceneRenderTarget");
 	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->GetRenderTarget(sceneRenderTarget);
 
-	m_pEngineImGuiContext = std::make_unique<engine::ImGuiContextInstance>(pSceneRenderTarget->GetWidth(), pSceneRenderTarget->GetHeight());
+	m_pEngineImGuiContext = std::make_unique<engine::ImGuiContextInstance>(pSceneRenderTarget->GetWidth(), pSceneRenderTarget->GetHeight(), false/*dockable*/);
 
 	std::vector<std::string> ttfFileNames = { "FanWunMing-SB.ttf" };
 	m_pEngineImGuiContext->LoadFontFiles(ttfFileNames, language);
@@ -131,6 +124,7 @@ void EditorApp::InitEngineImGuiContext(engine::Language language)
 	ImGui::GetIO().BackendRendererUserData = m_pRenderContext.get();
 
 	m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<engine::DebugPanel>("DebugPanel"));
+	m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<editor::ImGuizmoView>("ImGuizmoView"));
 
 	pSceneRenderTarget->OnResize.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnResize>(m_pEngineImGuiContext.get());
 }
@@ -198,12 +192,9 @@ void EditorApp::AddEngineRenderer(std::unique_ptr<engine::Renderer> pRenderer)
 
 bool EditorApp::Update(float deltaTime)
 {
-	m_pEditorImGuiContext->SwitchCurrentContext();
-
 	GetMainWindow()->Update();
 
 	m_pEditorImGuiContext->Update();
-
 	m_pRenderContext->BeginFrame();
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEditorRenderers)
 	{
@@ -220,9 +211,8 @@ bool EditorApp::Update(float deltaTime)
 		pRenderer->Render(deltaTime);
 	}
 
-	m_pEngineImGuiContext->SwitchCurrentContext();
+	m_pEngineImGuiContext->SetWindowPosOffset(m_pSceneView->GetWindowPosX(), m_pSceneView->GetWindowPosY());
 	m_pEngineImGuiContext->Update();
-
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
 	{
 		const float* pViewMatrix = nullptr;

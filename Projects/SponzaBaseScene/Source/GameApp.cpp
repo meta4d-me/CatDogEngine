@@ -49,11 +49,6 @@ void GameApp::Init(engine::EngineInitArgs initArgs)
 
 	// Camera controller
 	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(m_pFlybyCamera.get(), 50.0f /* Mouse Sensitivity */, 160.0f /* Movement Speed*/);
-	m_pMainWindow->OnMouseRBDown.Bind<engine::FirstPersonCameraController, &engine::FirstPersonCameraController::OnMouseRBPress>(m_pCameraController.get());
-	m_pMainWindow->OnMouseRBUp.Bind<engine::FirstPersonCameraController, &engine::FirstPersonCameraController::OnMouseRBRelease>(m_pCameraController.get());
-	m_pMainWindow->OnMouseMoveRelative.Bind<engine::FirstPersonCameraController, &engine::FirstPersonCameraController::SetMousePosition>(m_pCameraController.get());
-	m_pMainWindow->OnKeyDown.Bind<engine::FirstPersonCameraController, &engine::FirstPersonCameraController::OnKeyPress>(m_pCameraController.get());
-	m_pMainWindow->OnKeyUp.Bind<engine::FirstPersonCameraController, &engine::FirstPersonCameraController::OnKeyRelease>(m_pCameraController.get());
 
 	// Renderers
 	constexpr engine::StringCrc gameSwapChainName("GameSwapChain");
