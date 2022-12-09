@@ -13,11 +13,17 @@ project("Editor")
 
 	files {
 		path.join(EditorSourcePath, "**.*"),
+		path.join(ThirdPartySourcePath, "imguizmo/*.h"),
+		path.join(ThirdPartySourcePath, "imguizmo/*.cpp"),
 	}
 	
 	vpaths {
 		["Source/*"] = { 
 			path.join(EditorSourcePath, "**.*"),
+		},
+		["ImGuizmo"] = {
+			path.join(ThirdPartySourcePath, "imguizmo/*.h"),
+			path.join(ThirdPartySourcePath, "imguizmo/*.cpp"),
 		},
 	}
 
@@ -38,6 +44,7 @@ project("Editor")
 		path.join(ThirdPartySourcePath, "bx/include"),
 		path.join(ThirdPartySourcePath, "bx/include/compat/msvc"),
 		path.join(ThirdPartySourcePath, "imgui"),
+		path.join(ThirdPartySourcePath, "imguizmo"),
 		ThirdPartySourcePath,
 	}
 

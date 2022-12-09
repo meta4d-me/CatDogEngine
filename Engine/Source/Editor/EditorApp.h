@@ -9,6 +9,7 @@ namespace engine
 {
 
 class FlybyCamera;
+class ImGuiBaseLayer;
 class ImGuiContextInstance;
 class Window;
 class RenderContext;
@@ -54,6 +55,7 @@ private:
 	std::vector<std::unique_ptr<engine::Window>> m_pAllWindows;
 
 	// ImGui
+	const engine::ImGuiBaseLayer* m_pSceneView;
 	std::unique_ptr<engine::ImGuiContextInstance> m_pEditorImGuiContext;
 	std::unique_ptr<engine::ImGuiContextInstance> m_pEngineImGuiContext;
 

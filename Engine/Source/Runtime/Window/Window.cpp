@@ -1,5 +1,7 @@
 ﻿#include "Window.h"
 
+#include "Input.h"
+
 #include <sdl.h>
 #include <SDL_syswm.h>
 #include <SDL_video.h>
@@ -62,6 +64,8 @@ void Window::Closed(bool bPushSdlEvent)
 
 void Window::Update()
 {
+	Input::Get().Reset();
+
 	SDL_Event sdlEvent;
 	while (SDL_PollEvent(&sdlEvent))
 	{
@@ -101,8 +105,10 @@ void Window::Update()
 		case SDL_MOUSEMOTION:
 		{
 			const SDL_MouseMotionEvent& mouseMotionEvent = sdlEvent.motion;
-			OnMouseMove.Invoke(mouseMotionEvent.x, mouseMotionEvent.y);
-			OnMouseMoveRelative.Invoke(mouseMotionEvent.xrel, mouseMotionEvent.yrel);
+			Input::Get().SetMousePositionX(mouseMotionEvent.x);
+			Input::Get().SetMousePositionY(mouseMotionEvent.y);
+			Input::Get().SetMousePositionOffsetX(mouseMotionEvent.xrel);
+			Input::Get().SetMousePositionOffsetY(mouseMotionEvent.yrel);
 		}
 		break;
 
@@ -111,13 +117,13 @@ void Window::Update()
 			switch (sdlEvent.button.button)
 			{
 			case SDL_BUTTON_LEFT:
-				OnMouseLBDown.Invoke();
+				Input::Get().SetMouseLBPressed(true);
 				break;
 			case SDL_BUTTON_RIGHT:
-				OnMouseRBDown.Invoke();
+				Input::Get().SetMouseRBPressed(true);
 				break;
 			case SDL_BUTTON_MIDDLE:
-				OnMouseMBDown.Invoke();
+				Input::Get().SetMouseMBPressed(true);
 				break;
 			}
 		}
@@ -128,13 +134,13 @@ void Window::Update()
 			switch (sdlEvent.button.button)
 			{
 			case SDL_BUTTON_LEFT:
-				OnMouseLBUp.Invoke();
+				Input::Get().SetMouseLBPressed(false);
 				break;
 			case SDL_BUTTON_RIGHT:
-				OnMouseRBUp.Invoke();
+				Input::Get().SetMouseRBPressed(false);
 				break;
 			case SDL_BUTTON_MIDDLE:
-				OnMouseMBUp.Invoke();
+				Input::Get().SetMouseMBPressed(false);
 				break;
 			}
 		}
@@ -142,24 +148,39 @@ void Window::Update()
 
 		case SDL_MOUSEWHEEL:
 		{
-			OnMouseWheel.Invoke(sdlEvent.wheel.preciseY);
+			Input::Get().SetMouseScrollOffsetY(sdlEvent.wheel.preciseY);
 		}
 		break;
 
 		case SDL_KEYDOWN:
 		{
-			if (sdlEvent.key.keysym.sym == SDLK_ESCAPE)
+			Sint32 sdlKeyCode = sdlEvent.key.keysym.sym;
+			if (sdlKeyCode == SDLK_ESCAPE)
 			{
 				Closed();
+				return;
 			}
 
-			OnKeyDown.Invoke(sdlEvent.key.keysym.sym, sdlEvent.key.keysym.mod);
+			if (sdlKeyCode < Input::MaxKeyCode)
+			{
+				Input::Get().SetKeyPressed(static_cast<uint8_t>(sdlKeyCode), true);
+			}
 		}
 		break;
 
 		case SDL_KEYUP:
 		{
-			OnKeyUp.Invoke(sdlEvent.key.keysym.sym, sdlEvent.key.keysym.mod);
+			Sint32 sdlKeyCode = sdlEvent.key.keysym.sym;
+			if (sdlKeyCode == SDLK_ESCAPE)
+			{
+				Closed();
+				return;
+			}
+
+			if (sdlKeyCode < Input::MaxKeyCode)
+			{
+				Input::Get().SetKeyPressed(static_cast<uint8_t>(sdlKeyCode), false);
+			}
 		}
 		break;
 

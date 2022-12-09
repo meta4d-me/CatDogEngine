@@ -3,6 +3,7 @@
 #include "IconFont/IconsMaterialDesignIcons.h"
 #include "IconFont/MaterialDesign.inl"
 #include "ImGui/ImGuiBaseLayer.h"
+#include "Window/Input.h"
 
 #include <bgfx/bgfx.h>
 #include <imgui/imgui.h>
@@ -15,6 +16,19 @@
 namespace
 {
 
+// ImGui has a static global ImGuiContext* which points to current active ImGuiContext.
+// And almost all ImGui apis assume that the api call will affect current active ImGuiContext.
+// 
+// As we have multiple ImGuiContext instances so you need to use ImGui correctly by two solutions:
+// 1. Create a TempSwitchContextScope variable before calling any ImGui API. It will switch context temporarily for you automatically.
+// It is a convenient way to develop features but it will waste a little performance on switching context.
+// 
+// 2. Don't use any ImGui apis to finish your work. Instead, you should use m_pImGuiContext to call API.
+// It is an advance way to save performances but you are easy to cause bugs if you forgot to use ImGui api.
+// For example, ImGui::GetIO() returns current active context's IO. Instead, you should use m_pImGuiContext->IO.
+//
+// I recommend that you use TempSwitchContextScope in some functions which doesn't call frequently or the logic is too complex to write many codes.
+//
 class TempSwitchContextScope
 {
 public:
@@ -29,11 +43,6 @@ public:
 		}
 	}
 
-	TempSwitchContextScope(const TempSwitchContextScope&) = delete;
-	TempSwitchContextScope& operator=(const TempSwitchContextScope&) = delete;
-	TempSwitchContextScope(TempSwitchContextScope&&) = delete;
-	TempSwitchContextScope& operator=(TempSwitchContextScope&&) = delete;
-
 	~TempSwitchContextScope()
 	{
 		if (pBackContext)
@@ -41,6 +50,12 @@ public:
 			pBackContext->SwitchCurrentContext();
 		}
 	}
+
+	// Disable Copy/Move as it is just a simple scope object to switch ImGui contexts.
+	TempSwitchContextScope(const TempSwitchContextScope&) = delete;
+	TempSwitchContextScope& operator=(const TempSwitchContextScope&) = delete;
+	TempSwitchContextScope(TempSwitchContextScope&&) = delete;
+	TempSwitchContextScope& operator=(TempSwitchContextScope&&) = delete;
 
 private:
 	engine::ImGuiContextInstance* pBackContext = nullptr;
@@ -51,7 +66,7 @@ private:
 namespace engine
 {
 
-ImGuiContextInstance::ImGuiContextInstance(uint16_t width, uint16_t height)
+ImGuiContextInstance::ImGuiContextInstance(uint16_t width, uint16_t height, bool enableDock)
 {
 	m_pImGuiContext = ImGui::CreateContext();
 	SwitchCurrentContext();
@@ -60,10 +75,12 @@ ImGuiContextInstance::ImGuiContextInstance(uint16_t width, uint16_t height)
 	// It will be very useful for UI layers to get/set data in the current ImGuiContext.
 	io.UserData = static_cast<void*>(this);
 	io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-	// Avoid moving window too easy to trigger.
 	io.ConfigWindowsMoveFromTitleBarOnly = true;
+
+	if (enableDock)
+	{
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	}
 
 	// TODO
 	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
@@ -71,7 +88,6 @@ ImGuiContextInstance::ImGuiContextInstance(uint16_t width, uint16_t height)
 	io.IniFilename = nullptr;
 	io.LogFilename = nullptr;
 
-	// TODO : dynamic resize or modify fps.
 	io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
 	io.DeltaTime = 1.0f / 60;
 
@@ -86,6 +102,11 @@ ImGuiContextInstance::~ImGuiContextInstance()
 void ImGuiContextInstance::SwitchCurrentContext() const
 {
 	ImGui::SetCurrentContext(m_pImGuiContext);
+}
+
+bool ImGuiContextInstance::IsActive() const
+{
+	return ImGui::GetCurrentContext() == m_pImGuiContext;
 }
 
 void ImGuiContextInstance::AddStaticLayer(std::unique_ptr<ImGuiBaseLayer> pLayer)
@@ -159,6 +180,7 @@ void ImGuiContextInstance::BeginDockSpace()
 		ImGuiID dockSpaceBottomRight = ImGui::DockBuilderSplitNode(dockSpaceBottom, ImGuiDir_Right, 0.5f, nullptr, &dockSpaceBottom);
 
 		// Register dockable layers.
+		// TODO : Place these codes here is not suitable but convenient.
 		ImGui::DockBuilderDockWindow("EntityList", dockSpaceUpLeftLeft);
 		ImGui::DockBuilderDockWindow("GameView", dockSpaceLeftLeft);
 		ImGui::DockBuilderDockWindow("SceneView", dockSpaceLeftRight);
@@ -180,6 +202,10 @@ void ImGuiContextInstance::EndDockSpace()
 
 void ImGuiContextInstance::Update()
 {
+	SwitchCurrentContext();
+
+	AddInputEvent();
+
 	ImGui::NewFrame();
 	
 	for (const auto& pImGuiLayer : m_pImGuiStaticLayers)
@@ -187,7 +213,11 @@ void ImGuiContextInstance::Update()
 		pImGuiLayer->Update();
 	}
 
-	BeginDockSpace();
+	ImGuiIO& io = ImGui::GetIO();
+	if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+	{
+		BeginDockSpace();
+	}
 
 	for (const auto& pImGuiLayer : m_pImGuiDockableLayers)
 	{
@@ -197,69 +227,58 @@ void ImGuiContextInstance::Update()
 		}
 	}
 
-	EndDockSpace();
+	if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+	{
+		EndDockSpace();
+	}
+}
 
-	//ImGui::ShowDemoWindow();
-	//ImGui::ShowStyleEditor();
+// Don't push unnecessary events to ImGui. Or it will overflow its event queue to cause a time delay UI feedback.
+// Why we don't use callback directly from native platform window? Because we have multiple imgui contexts to receive input events.
+// And only the active imgui context can receive window messages. It sounds no problem but imgui context can switch during one frame multiple times.
+// It is not safe to use event callback.
+void ImGuiContextInstance::AddInputEvent()
+{
+	ImGuiIO& io = ImGui::GetIO();
+	if (bool mouseLBPressed = Input::Get().IsMouseLBPressed(); m_lastMouseLBPressed != mouseLBPressed)
+	{
+		io.AddMouseButtonEvent(ImGuiMouseButton_Left, mouseLBPressed);
+		m_lastMouseLBPressed = mouseLBPressed;
+	}
+
+	if (bool mouseRBPressed = Input::Get().IsMouseRBPressed(); m_lastMouseRBPressed != mouseRBPressed)
+	{
+		io.AddMouseButtonEvent(ImGuiMouseButton_Right, mouseRBPressed);
+		m_lastMouseRBPressed = mouseRBPressed;
+	}
+
+	if (bool mouseMBPressed = Input::Get().IsMouseMBPressed(); m_lastMouseMBPressed != mouseMBPressed)
+	{
+		io.AddMouseButtonEvent(ImGuiMouseButton_Middle, mouseMBPressed);
+		m_lastMouseMBPressed = mouseMBPressed;
+	}
+
+	if (float mouseScrollOffsetY = Input::Get().GetMouseScrollOffsetY(); mouseScrollOffsetY != m_lastMouseScrollOffstY)
+	{
+		io.AddMouseWheelEvent(0.0f, mouseScrollOffsetY);
+		m_lastMouseScrollOffstY = mouseScrollOffsetY;
+	}
+
+	float mousePosX = static_cast<float>(Input::Get().GetMousePositionX());
+	float mousePosY = static_cast<float>(Input::Get().GetMousePositionY());
+	if (mousePosX != m_lastMousePositionX || mousePosY != m_lastMousePositionY)
+	{
+		io.AddMousePosEvent(mousePosX - m_windowPosOffsetX, mousePosY - m_windowPosOffsetY);
+		m_lastMousePositionX = mousePosX;
+		m_lastMousePositionY = mousePosY;
+	}
 }
 
 void ImGuiContextInstance::OnResize(uint16_t width, uint16_t height)
 {
-	// It is a callback method which can happen in another ImGuiContext.
-	// So we hope it switch back after finishing jobs.
-	TempSwitchContextScope tempSwitchScope(this);
-
-	ImGuiIO& io = ImGui::GetIO();
+	ImGuiIO& io = m_pImGuiContext->IO;
 	io.DisplaySize.x = width;
 	io.DisplaySize.y = height;
-}
-
-void ImGuiContextInstance::OnMouseLBDown()
-{
-	TempSwitchContextScope tempSwitchScope(this);
-	ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left, true);
-}
-
-void ImGuiContextInstance::OnMouseLBUp()
-{
-	TempSwitchContextScope tempSwitchScope(this);
-	ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left, false);
-}
-
-void ImGuiContextInstance::OnMouseRBDown()
-{
-	TempSwitchContextScope tempSwitchScope(this);
-	ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Right, true);
-}
-
-void ImGuiContextInstance::OnMouseRBUp()
-{
-	TempSwitchContextScope tempSwitchScope(this);
-	ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Right, false);
-}
-
-void ImGuiContextInstance::OnMouseMBDown()
-{
-	TempSwitchContextScope tempSwitchScope(this);
-	ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Middle, true);
-}
-
-void ImGuiContextInstance::OnMouseMBUp()
-{
-	TempSwitchContextScope tempSwitchScope(this);
-	ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Middle, false);
-}
-
-void ImGuiContextInstance::OnMouseWheel(float offset)
-{
-	TempSwitchContextScope tempSwitchScope(this);
-	ImGui::GetIO().AddMouseWheelEvent(0.0f, offset);
-}
-
-void ImGuiContextInstance::OnMouseMove(int32_t x, int32_t y)
-{
-	TempSwitchContextScope tempSwitchScope(this);
-	ImGui::GetIO().AddMousePosEvent(static_cast<float>(x), static_cast<float>(y));
 }
 
 void ImGuiContextInstance::LoadFontFiles(const std::vector<std::string>& ttfFileNames, engine::Language language)
