@@ -3,8 +3,6 @@
 #include "FlybyCamera.h"
 #include "Window/Input.h"
 
-#include <sdl.h>
-
 namespace engine
 {
 

@@ -88,5 +88,8 @@ dofile("editor.lua")
 -- game projects made by engine
 dofile("project.lua")
 
+-- regression tests for engine core modules
+dofile("test.lua")
+
 -- helper projects to compile shaders/textures, trigger makefiles...
 dofile("utility.lua")

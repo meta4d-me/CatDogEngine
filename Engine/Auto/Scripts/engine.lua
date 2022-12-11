@@ -90,7 +90,7 @@ project("Engine")
 	local editorResourcesPath = RootPath.."/Engine/Source/Editor/Resources/"
 	local projectResourcesPath = RootPath.."/Projects/SponzaBaseScene/Resources/"
 	defines {
-		"SDL_MAIN_HANDLED",
+		"SDL_MAIN_HANDLED", -- don't use SDL_main() as entry point
 		"__STDC_LIMIT_MACROS", "__STDC_FORMAT_MACROS", "__STDC_CONSTANT_MACROS",
 		"STB_IMAGE_STATIC",
 		"IMGUI_ENABLE_FREETYPE",
