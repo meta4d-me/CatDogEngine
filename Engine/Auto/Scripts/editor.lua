@@ -57,24 +57,20 @@ project("Editor")
 		runtime "Debug" -- /MTd
 		libdirs {
 			BinariesPath,
-			path.join(ThirdPartySourcePath, "freetype/build/Debug"),
 		}
 	
 		links {
 			"Engine",
-			"freetyped"
 		}
 
 	filter { "configurations:Release" }
 		runtime "Release" -- /MT
 		libdirs {
 			BinariesPath,
-			path.join(ThirdPartySourcePath, "freetype/build/Release"),
 		}
 	
 		links {
 			"Engine",
-			"freetype"
 		}
 
 	filter {}
