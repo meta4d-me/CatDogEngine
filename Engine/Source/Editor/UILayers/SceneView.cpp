@@ -137,7 +137,7 @@ void SceneView::Update()
 	engine::RenderTarget* pRenderTarget = pCurrentRenderContext->GetRenderTarget(sceneRenderTarget);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 	auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
-	if (ImGui::Begin(GetName(), &m_isEnable, flags))
+	ImGui::Begin(GetName(), &m_isEnable, flags);
 	{
 		// Draw top menu buttons which include ImGuizmo operation modes, ViewCamera settings.
 		UpdateToolMenuButtons();
@@ -176,8 +176,8 @@ void SceneView::Update()
 		}
 
 		ImGui::PopStyleVar();
-		ImGui::End();
 	}
+	ImGui::End();
 }
 
 }
