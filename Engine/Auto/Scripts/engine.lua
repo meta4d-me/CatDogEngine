@@ -25,7 +25,7 @@ project("Engine")
 			path.join(RuntimeSourcePath, "**.*"),
 		},
 		["AssetPipeline"] = {
-			path.join(ThirdPartySourcePath, "AssetPipeline", "Public/Producer/CatDogProducer.*"),
+			path.join(ThirdPartySourcePath, "AssetPipeline/public/**.*"),
 		},
 		["ImGui"] = {
 			path.join(ThirdPartySourcePath, "imgui/*.h"),

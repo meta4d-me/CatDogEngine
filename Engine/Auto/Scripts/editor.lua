@@ -7,7 +7,7 @@ project("Editor")
 	language("C++")
 	cppdialect("C++latest")
 	dependson { "Engine" }
-	
+
 	location(path.join(IntermediatePath, "Editor"))
 	targetdir(BinariesPath)
 
@@ -78,7 +78,9 @@ project("Editor")
 	-- Disable these options can reduce the size of compiled binaries.
 	justmycode("Off")
 	editAndContinue("Off")
-	exceptionhandling("Off")
+	-- Sometimes I don't like to use exception because it will need compiler to generate extra codes about deconstructor callback safely.
+	-- Editor application is OK to use as it is in a complex senario which can happen many unexpected user cases.
+	exceptionhandling("On")
 	rtti("Off")	
 		
 	-- Strict.
