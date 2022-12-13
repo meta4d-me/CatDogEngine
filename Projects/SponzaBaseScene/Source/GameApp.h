@@ -10,6 +10,7 @@ namespace engine
 
 class FirstPersonCameraController;
 class FlybyCamera;
+class ImGuiContextInstance;
 class Window;
 class RenderContext;
 class Renderer;
@@ -43,6 +44,7 @@ private:
 	std::vector<std::unique_ptr<engine::Renderer>> m_pRenderers;
 
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;
+	std::unique_ptr<engine::ImGuiContextInstance> m_pImGuiContext;
 };
 
 }

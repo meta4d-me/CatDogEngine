@@ -3,6 +3,8 @@
 #include "Application/Engine.h"
 #include "Display/FirstPersonCameraController.h"
 #include "Display/FlybyCamera.h"
+#include "ImGui/ImGuiContextInstance.h"
+#include "Rendering/ImGuiRenderer.h"
 #include "Rendering/PBRSkyRenderer.h"
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
@@ -10,6 +12,7 @@
 #include "Rendering/SceneRenderer.h"
 #include "Rendering/SkyRenderer.h"
 #include "Rendering/TerrainRenderer.h"
+#include "ImGui/UILayers/DebugPanel.h"
 #include "Window/Window.h"
 
 namespace game
@@ -32,6 +35,14 @@ void GameApp::Init(engine::EngineInitArgs initArgs)
 	float aspect = static_cast<float>(width) / height;
 	m_pMainWindow = std::make_unique<engine::Window>(initArgs.pTitle, width, height);
 	m_pMainWindow->SetWindowIcon(initArgs.pIconFilePath);
+
+	// ImGui
+	m_pImGuiContext = std::make_unique<engine::ImGuiContextInstance>(width, height);
+	std::vector<std::string> ttfFileNames = { "FanWunMing-SB.ttf" };
+	m_pImGuiContext->LoadFontFiles(ttfFileNames, initArgs.language);
+	m_pImGuiContext->SetImGuiThemeColor(engine::ThemeColor::Dark);
+	m_pImGuiContext->AddDynamicLayer(std::make_unique<engine::DebugPanel>("DebugPanel"));
+	m_pMainWindow->OnResize.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnResize>(m_pImGuiContext.get());
 
 	// Rendering
 	m_pRenderContext = std::make_unique<engine::RenderContext>();
@@ -66,6 +77,7 @@ void GameApp::Init(engine::EngineInitArgs initArgs)
 	AddRenderer(std::make_unique<engine::SceneRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pMainRenderTarget));
 	AddRenderer(std::make_unique<engine::TerrainRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pMainRenderTarget));
 	AddRenderer(std::make_unique<engine::PostProcessRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSwapChainRenderTarget));
+	AddRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSwapChainRenderTarget));
 	m_pMainWindow->OnResize.Bind<engine::RenderContext, &engine::RenderContext::OnResize>(m_pRenderContext.get());
 }
 
@@ -84,6 +96,8 @@ void GameApp::AddRenderer(std::unique_ptr<engine::Renderer> pRenderer)
 bool GameApp::Update(float deltaTime)
 {
 	m_pMainWindow->Update();
+
+	m_pImGuiContext->Update();
 
 	m_pCameraController->Update(deltaTime);
 	m_pFlybyCamera->Update();

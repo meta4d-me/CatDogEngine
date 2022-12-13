@@ -66,20 +66,24 @@ project("Engine")
 		}
 		libdirs {
 			path.join(ThirdPartySourcePath, "sdl/build/Debug"),
+			path.join(ThirdPartySourcePath, "freetype/build/Debug"),
 			bgfxBuildBinPath,
 		}
 		links {
 			"sdl2d", "sdl2maind",
-			"bgfxDebug", "bimgDebug", "bxDebug", "bimg_decodeDebug"
+			"bgfxDebug", "bimgDebug", "bxDebug", "bimg_decodeDebug",
+			"freetyped"
 		}
 	filter { "configurations:Release" }
 		libdirs {
 			path.join(ThirdPartySourcePath, "sdl/build/Release"),
+			path.join(ThirdPartySourcePath, "freetype/build/Release"),
 			bgfxBuildBinPath,
 		}
 		links {
 			"sdl2", "sdl2main",
-			"bgfxRelease", "bimgRelease", "bxRelease", "bimg_decodeRelease"
+			"bgfxRelease", "bimgRelease", "bxRelease", "bimg_decodeRelease",
+			"freetype"
 		}
 	filter {}
 
