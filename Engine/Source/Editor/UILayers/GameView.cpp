@@ -27,15 +27,8 @@ void GameView::OnResize()
 void GameView::Update()
 {
 	auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
-	if (ImGui::Begin("GameView", &m_isEnable, flags))
-	{
-		//if (ImGui::Image())
-		//{
-		//
-		//}
-
-		ImGui::End();
-	}
+	ImGui::Begin(GetName(), &m_isEnable, flags);
+	ImGui::End();
 }
 
 }
