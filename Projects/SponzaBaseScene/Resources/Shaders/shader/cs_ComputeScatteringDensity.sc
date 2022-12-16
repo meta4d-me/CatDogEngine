@@ -1,7 +1,7 @@
 #include "../common/bgfx_compute.sh"
 
 #define COMPUTE
-#include "functions.sh"
+#include "atm_functions.sh"
 
 uniform vec4 u_num_scattering_orders[1];
 

@@ -1,7 +1,7 @@
 #include "../common/bgfx_compute.sh"
 
 #define COMPUTE
-#include "functions.sh"
+#include "atm_functions.sh"
 
 IMAGE2D_WR(s_transmittance, rgba32f, 8);
 

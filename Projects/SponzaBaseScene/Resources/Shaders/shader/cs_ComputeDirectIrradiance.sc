@@ -1,7 +1,7 @@
 #include "../common/bgfx_compute.sh"
 
 #define COMPUTE
-#include "functions.sh"
+#include "atm_functions.sh"
 
 IMAGE2D_WR(s_delta_irradiance, rgba32f, 8);
 IMAGE2D_WR(s_irradiance, rgba32f, 9);
