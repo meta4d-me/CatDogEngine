@@ -74,7 +74,7 @@ void SceneRenderer::Init()
 	}
 
 	bgfx::ShaderHandle vsh = m_pRenderContext->CreateShader("vs_PBR.bin");
-	bgfx::ShaderHandle fsh = m_pRenderContext->CreateShader("fs_PBR_0.bin");
+	bgfx::ShaderHandle fsh = m_pRenderContext->CreateShader("fs_PBR.bin");
 	m_programPBR = m_pRenderContext->CreateProgram("PBR", vsh, fsh);
 
 	// Let camera focus on the loaded scene by default.
