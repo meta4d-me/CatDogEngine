@@ -104,7 +104,9 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 	m_pSceneView = pSceneView.get();
 	m_pEditorImGuiContext->AddDynamicLayer(std::move(pSceneView));
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
-	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<AssetBrowser>("AssetBrowser"));
+	auto pAssetBrowser = std::make_unique<AssetBrowser>("AssetBrowser");
+	pAssetBrowser->SetSceneRenderer(m_pSceneRenderer);
+	m_pEditorImGuiContext->AddDynamicLayer(std::move(pAssetBrowser));
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<OutputLog>("OutputLog"));
 }
 
@@ -171,7 +173,9 @@ void EditorApp::InitRenderContext()
 	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->CreateRenderTarget(sceneViewRenderTargetName, width, height, std::move(attachmentDesc));
 	pSceneRenderTarget->OnResize.Bind<engine::Camera, &engine::Camera::SetAspect>(m_pCamera.get());
 	AddEngineRenderer(std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget));
-	AddEngineRenderer(std::make_unique<engine::SceneRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget));
+	auto pSceneRenderer = std::make_unique<engine::SceneRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pSceneRenderer = pSceneRenderer.get();
+	AddEngineRenderer(std::move(pSceneRenderer));
 
 	// Note that if you don't want to use ImGuiRenderer for engine, you should also disable EngineImGuiContext.
 	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget));

@@ -5,9 +5,9 @@
 #include "MeshRenderData.h"
 
 #include <algorithm>
+#include <cassert>
 #include <iterator>
 #include <set>
-#include <assert.h>
 
 namespace engine
 {

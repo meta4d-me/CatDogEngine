@@ -3,8 +3,6 @@
 namespace engine
 {
 
-class EditorApp;
-
 class ImGuiBaseLayer
 {
 public:

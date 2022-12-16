@@ -131,52 +131,58 @@ void SceneView::UpdateToolMenuButtons()
 
 void SceneView::Update()
 {
-	ImGuiIO& io = ImGui::GetIO();
-	engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
-	constexpr engine::StringCrc sceneRenderTarget("SceneRenderTarget");
-	engine::RenderTarget* pRenderTarget = pCurrentRenderContext->GetRenderTarget(sceneRenderTarget);
+	if (nullptr == m_pRenderTarget)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
+		assert(pRenderContext && "SceneView needs to access rendering resource.");
+
+		constexpr engine::StringCrc sceneRenderTarget("SceneRenderTarget");
+		m_pRenderTarget = pRenderContext->GetRenderTarget(sceneRenderTarget);
+	}
+
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 	auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 	ImGui::Begin(GetName(), &m_isEnable, flags);
+
+	// Draw top menu buttons which include ImGuizmo operation modes, ViewCamera settings.
+	UpdateToolMenuButtons();
+
+	// Check if need to resize scene view.
+	ImVec2 regionSize = ImGui::GetContentRegionAvail();
+	uint16_t regionWidth = static_cast<uint16_t>(regionSize.x);
+	uint16_t regionHeight = static_cast<uint16_t>(regionSize.y);
+	if (regionWidth != m_lastContentWidth || regionHeight != m_lastContentHeight)
 	{
-		// Draw top menu buttons which include ImGuizmo operation modes, ViewCamera settings.
-		UpdateToolMenuButtons();
-
-		// Check if need to resize scene view.
-		ImVec2 regionSize = ImGui::GetContentRegionAvail();
-		uint16_t regionWidth = static_cast<uint16_t>(regionSize.x);
-		uint16_t regionHeight = static_cast<uint16_t>(regionSize.y);
-		if (regionWidth != m_lastContentWidth || regionHeight != m_lastContentHeight)
-		{
-			// RenderTarget binds to OnResize delegate so it will resize automatically.
-			// Then RenderTarget will resize ViewCamera/ImGuiContext to let everything go well.
-			OnResize.Invoke(regionWidth, regionHeight);
-			m_lastContentWidth = regionWidth;
-			m_lastContentHeight = regionHeight;
-		}
-		
-		// Check if mouse hover on the area of SceneView so it can control.
-		ImVec2 cursorPosition = ImGui::GetCursorPos();
-		ImVec2 sceneViewSize = ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin() - cursorPosition * 0.5f;
-		ImVec2 sceneViewPosition = ImGui::GetWindowPos() + cursorPosition;
-		m_windowPosX = sceneViewPosition.x;
-		m_windowPosY = sceneViewPosition.y;
-
-		// Draw scene.
-		ImGui::Image(ImTextureID(pRenderTarget->GetTextureHandle(0).idx), ImVec2(pRenderTarget->GetWidth(), pRenderTarget->GetHeight()));
-
-		// Check if there is a file to drop in the scene view to import assets automatically.
-		if (ImGui::BeginDragDropTarget())
-		{
-			if (const ImGuiPayload* pPayload = ImGui::AcceptDragDropPayload("AssetFile", ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
-			{
-				std::string filePath(static_cast<const char*>(pPayload->Data));
-			}
-			ImGui::EndDragDropTarget();
-		}
-
-		ImGui::PopStyleVar();
+		// RenderTarget binds to OnResize delegate so it will resize automatically.
+		// Then RenderTarget will resize ViewCamera/ImGuiContext to let everything go well.
+		OnResize.Invoke(regionWidth, regionHeight);
+		m_lastContentWidth = regionWidth;
+		m_lastContentHeight = regionHeight;
 	}
+		
+	// Check if mouse hover on the area of SceneView so it can control.
+	ImVec2 cursorPosition = ImGui::GetCursorPos();
+	ImVec2 sceneViewPosition = ImGui::GetWindowPos() + cursorPosition;
+	m_windowPosX = sceneViewPosition.x;
+	m_windowPosY = sceneViewPosition.y;
+
+	// Draw scene.
+	ImGui::Image(ImTextureID(m_pRenderTarget->GetTextureHandle(0).idx),
+		ImVec2(m_pRenderTarget->GetWidth(), m_pRenderTarget->GetHeight()));
+
+	// Check if there is a file to drop in the scene view to import assets automatically.
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (const ImGuiPayload* pPayload = ImGui::AcceptDragDropPayload("AssetFile", ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
+		{
+			std::string filePath(static_cast<const char*>(pPayload->Data));
+		}
+		ImGui::EndDragDropTarget();
+	}
+
+	ImGui::PopStyleVar();
+
 	ImGui::End();
 }
 
