@@ -42,7 +42,7 @@ public:
 	std::vector<std::unique_ptr<ImGuiBaseLayer>>& GetDockableLayers() { return m_pImGuiDockableLayers; }
 	void AddDynamicLayer(std::unique_ptr<ImGuiBaseLayer> pLayer);
 	
-	void Update();
+	void Update(float deltaTime);
 
 	void OnResize(uint16_t width, uint16_t height);
 

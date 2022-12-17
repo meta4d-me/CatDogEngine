@@ -89,7 +89,6 @@ ImGuiContextInstance::ImGuiContextInstance(uint16_t width, uint16_t height, bool
 	io.LogFilename = nullptr;
 
 	io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
-	io.DeltaTime = 1.0f / 60;
 
 	SetImGuiStyles();
 }
@@ -200,9 +199,13 @@ void ImGuiContextInstance::EndDockSpace()
 	ImGui::End();
 }
 
-void ImGuiContextInstance::Update()
+void ImGuiContextInstance::Update(float deltaTime)
 {
 	SwitchCurrentContext();
+
+	// It is necessary to pass correct deltaTime to ImGui underlaying framework because it will use the value to check
+	// something such as if mouse button double click happens(Two click event happens in one frame, < deltaTime).
+	ImGui::GetIO().DeltaTime = deltaTime;
 
 	AddInputEvent();
 
