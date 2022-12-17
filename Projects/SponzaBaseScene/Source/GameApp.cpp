@@ -75,7 +75,7 @@ void GameApp::Init(engine::EngineInitArgs initArgs)
 
 	AddRenderer(std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pMainRenderTarget));
 	AddRenderer(std::make_unique<engine::SceneRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pMainRenderTarget));
-	AddRenderer(std::make_unique<engine::TerrainRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pMainRenderTarget));
+	//AddRenderer(std::make_unique<engine::TerrainRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pMainRenderTarget));
 	AddRenderer(std::make_unique<engine::PostProcessRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSwapChainRenderTarget));
 	AddRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSwapChainRenderTarget));
 	m_pMainWindow->OnResize.Bind<engine::RenderContext, &engine::RenderContext::OnResize>(m_pRenderContext.get());

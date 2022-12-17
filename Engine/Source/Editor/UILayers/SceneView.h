@@ -10,6 +10,13 @@ enum OPERATION;
 
 }
 
+namespace engine
+{
+
+class RenderTarget;
+
+}
+
 namespace editor
 {
 
@@ -35,6 +42,8 @@ private:
 	bool m_option1;
 	bool m_option2;
 	ImGuizmo::OPERATION m_currentOperation;
+
+	engine::RenderTarget* m_pRenderTarget = nullptr;
 };
 
 }

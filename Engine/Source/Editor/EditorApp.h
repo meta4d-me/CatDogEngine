@@ -14,6 +14,7 @@ class ImGuiContextInstance;
 class Window;
 class RenderContext;
 class Renderer;
+class SceneRenderer;
 
 }
 
@@ -23,6 +24,7 @@ namespace editor
 {
 
 class EditorImGuiViewport;
+class SceneView;
 
 class EditorApp final : public engine::IApplication
 {
@@ -55,11 +57,14 @@ private:
 	std::vector<std::unique_ptr<engine::Window>> m_pAllWindows;
 
 	// ImGui
-	const engine::ImGuiBaseLayer* m_pSceneView;
 	std::unique_ptr<engine::ImGuiContextInstance> m_pEditorImGuiContext;
 	std::unique_ptr<engine::ImGuiContextInstance> m_pEngineImGuiContext;
 
 	std::unique_ptr<EditorImGuiViewport> m_pEditorImGuiViewport;
+
+	// Scene
+	editor::SceneView* m_pSceneView;
+	engine::SceneRenderer* m_pSceneRenderer;
 
 	// Rendering
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;

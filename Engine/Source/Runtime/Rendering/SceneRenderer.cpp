@@ -17,68 +17,9 @@ namespace engine
 
 void SceneRenderer::Init()
 {
-	// CatDogProducer can parse .catdog.bin format file to SceneDatabase in memory.
-	// BgfxConsumer is used to translate SceneDatabase to data which bgfx api can use directly.
-	std::string sceneModelFilePath = "Models/kitchen_tools.cdbin";
-	cdtools::CatDogProducer cdProducer(CDENGINE_RESOURCES_ROOT_PATH + sceneModelFilePath);
-	BgfxConsumer bgfxConsumer("");
-	cdtools::Processor processor(&cdProducer, &bgfxConsumer);
-	processor.Run();
-
-	// Start creating bgfx resources from RenderDataContext
-	m_renderDataContext = bgfxConsumer.GetRenderDataContext();
-
-	m_meshHandles.reserve(m_renderDataContext.meshRenderDataArray.size());
-	for (const MeshRenderData& meshRenderData : m_renderDataContext.meshRenderDataArray)
-	{
-		m_meshHandles.emplace_back();
-		MeshHandle& meshHandle = m_meshHandles.back();
-
-		const bgfx::Memory* pVBMemory = bgfx::makeRef(static_cast<const void*>(meshRenderData.GetRawVertices().data()), meshRenderData.GetVerticesBufferLength());
-		meshHandle.vbh = bgfx::createVertexBuffer(pVBMemory, meshRenderData.GetVertexLayout());
-		
-		const bgfx::Memory* pIBMemory = bgfx::makeRef(static_cast<const void*>(meshRenderData.GetIndices().data()), meshRenderData.GetIndicesBufferLength());
-		meshHandle.ibh = bgfx::createIndexBuffer(pIBMemory, BGFX_BUFFER_INDEX32);
-	}
-
-	m_materialHandles.reserve(m_renderDataContext.materialRenderDataArray.size());
-	int materialIndex = 0;
-	uint64_t textureSamplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
-	for (const MaterialRenderData& materialRenderData : m_renderDataContext.materialRenderDataArray)
-	{
-		m_materialHandles.emplace_back();
-		PBRMaterialHandle& materialHandle = m_materialHandles.back();
-
-		const std::optional<std::string>& optBaseColor = materialRenderData.GetTextureName(cd::MaterialTextureType::BaseColor);
-		if (optBaseColor.has_value())
-		{
-			materialHandle.baseColor.sampler = m_pRenderContext->CreateUniform(std::format("s_textureBaseColor{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
-			materialHandle.baseColor.texture = m_pRenderContext->CreateTexture((optBaseColor.value() + ".dds").c_str(), textureSamplerFlags | BGFX_TEXTURE_SRGB);
-		}
-		
-		const std::optional<std::string>& optNormal = materialRenderData.GetTextureName(cd::MaterialTextureType::Normal);
-		if (optNormal.has_value())
-		{
-			materialHandle.normal.sampler = m_pRenderContext->CreateUniform(std::format("s_textureNormal{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
-			materialHandle.normal.texture = m_pRenderContext->CreateTexture((optNormal.value() + ".dds").c_str(), textureSamplerFlags);
-		}
-
-		const std::optional<std::string>& optRoughness = materialRenderData.GetTextureName(cd::MaterialTextureType::Roughness);
-		if (optRoughness.has_value())
-		{
-			materialHandle.orm.sampler = m_pRenderContext->CreateUniform(std::format("s_textureORM{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
-			materialHandle.orm.texture = m_pRenderContext->CreateTexture((optRoughness.value() + ".dds").c_str(), textureSamplerFlags);
-		}
-
-		++materialIndex;
-	}
-
 	bgfx::ShaderHandle vsh = m_pRenderContext->CreateShader("vs_PBR.bin");
 	bgfx::ShaderHandle fsh = m_pRenderContext->CreateShader("fs_PBR.bin");
 	m_programPBR = m_pRenderContext->CreateProgram("PBR", vsh, fsh);
-
-	// Let camera focus on the loaded scene by default.
-	m_pRenderContext->GetCamera()->FrameAll(m_renderDataContext.sceneAABB);
 
 	m_pRenderContext->CreateUniform("s_texCube", bgfx::UniformType::Sampler);
 	m_pRenderContext->CreateUniform("s_texCubeIrr", bgfx::UniformType::Sampler);
@@ -130,6 +71,74 @@ void SceneRenderer::Render(float deltaTime)
 	
 		bgfx::submit(GetViewID(), m_programPBR);
 	}
+}
+
+void SceneRenderer::UpdateSceneDatabase(std::string sceneFilePath)
+{
+	// CatDogProducer can parse .cdbin format file to SceneDatabase in memory.
+	// BgfxConsumer is used to translate SceneDatabase to data which bgfx api can use directly.
+	cdtools::CatDogProducer cdProducer(sceneFilePath);
+	BgfxConsumer bgfxConsumer("");
+	cdtools::Processor processor(&cdProducer, &bgfxConsumer);
+	processor.Run();
+
+	// Start creating bgfx resources from RenderDataContext
+	SetRenderDataContext(bgfxConsumer.GetRenderDataContext());
+}
+
+void SceneRenderer::SetRenderDataContext(RenderDataContext renderDataContext)
+{
+	m_renderDataContext = std::move(renderDataContext);
+
+	m_meshHandles.clear();
+	m_meshHandles.reserve(m_renderDataContext.meshRenderDataArray.size());
+	for (const MeshRenderData& meshRenderData : m_renderDataContext.meshRenderDataArray)
+	{
+		m_meshHandles.emplace_back();
+		MeshHandle& meshHandle = m_meshHandles.back();
+
+		const bgfx::Memory* pVBMemory = bgfx::makeRef(static_cast<const void*>(meshRenderData.GetRawVertices().data()), meshRenderData.GetVerticesBufferLength());
+		meshHandle.vbh = bgfx::createVertexBuffer(pVBMemory, meshRenderData.GetVertexLayout());
+
+		const bgfx::Memory* pIBMemory = bgfx::makeRef(static_cast<const void*>(meshRenderData.GetIndices().data()), meshRenderData.GetIndicesBufferLength());
+		meshHandle.ibh = bgfx::createIndexBuffer(pIBMemory, BGFX_BUFFER_INDEX32);
+	}
+
+	m_materialHandles.clear();
+	m_materialHandles.reserve(m_renderDataContext.materialRenderDataArray.size());
+	int materialIndex = 0;
+	uint64_t textureSamplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
+	for (const MaterialRenderData& materialRenderData : m_renderDataContext.materialRenderDataArray)
+	{
+		m_materialHandles.emplace_back();
+		PBRMaterialHandle& materialHandle = m_materialHandles.back();
+
+		const std::optional<std::string>& optBaseColor = materialRenderData.GetTextureName(cd::MaterialTextureType::BaseColor);
+		if (optBaseColor.has_value())
+		{
+			materialHandle.baseColor.sampler = m_pRenderContext->CreateUniform(std::format("s_textureBaseColor{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
+			materialHandle.baseColor.texture = m_pRenderContext->CreateTexture((optBaseColor.value() + ".dds").c_str(), textureSamplerFlags | BGFX_TEXTURE_SRGB);
+		}
+
+		const std::optional<std::string>& optNormal = materialRenderData.GetTextureName(cd::MaterialTextureType::Normal);
+		if (optNormal.has_value())
+		{
+			materialHandle.normal.sampler = m_pRenderContext->CreateUniform(std::format("s_textureNormal{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
+			materialHandle.normal.texture = m_pRenderContext->CreateTexture((optNormal.value() + ".dds").c_str(), textureSamplerFlags);
+		}
+
+		const std::optional<std::string>& optRoughness = materialRenderData.GetTextureName(cd::MaterialTextureType::Roughness);
+		if (optRoughness.has_value())
+		{
+			materialHandle.orm.sampler = m_pRenderContext->CreateUniform(std::format("s_textureORM{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
+			materialHandle.orm.texture = m_pRenderContext->CreateTexture((optRoughness.value() + ".dds").c_str(), textureSamplerFlags);
+		}
+
+		++materialIndex;
+	}
+
+	// Let camera focus on the loaded scene by default.
+	m_pRenderContext->GetCamera()->FrameAll(m_renderDataContext.sceneAABB);
 }
 
 }

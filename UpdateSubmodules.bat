@@ -11,3 +11,5 @@ git submodule foreach "git checkout docking || git checkout master || git checko
 REM now do pull to fast-forward to latest commit
 REM docking is a hack for imgui, need a if condition?
 git submodule foreach "git pull origin docking || git pull origin master || git pull origin main"
+
+pause

@@ -43,6 +43,9 @@ public:
 	virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) override;
 	virtual void Render(float deltaTime) override;
 
+	void UpdateSceneDatabase(std::string sceneFilePath);
+	void SetRenderDataContext(RenderDataContext renderDataContext);
+
 private:
 	bgfx::ProgramHandle m_programPBR;
 
