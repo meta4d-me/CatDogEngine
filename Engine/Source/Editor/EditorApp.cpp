@@ -198,7 +198,7 @@ bool EditorApp::Update(float deltaTime)
 {
 	GetMainWindow()->Update();
 
-	m_pEditorImGuiContext->Update();
+	m_pEditorImGuiContext->Update(deltaTime);
 	m_pRenderContext->BeginFrame();
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEditorRenderers)
 	{
@@ -216,7 +216,7 @@ bool EditorApp::Update(float deltaTime)
 	}
 
 	m_pEngineImGuiContext->SetWindowPosOffset(m_pSceneView->GetWindowPosX(), m_pSceneView->GetWindowPosY());
-	m_pEngineImGuiContext->Update();
+	m_pEngineImGuiContext->Update(deltaTime);
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
 	{
 		const float* pViewMatrix = nullptr;
