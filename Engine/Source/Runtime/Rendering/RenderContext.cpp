@@ -2,6 +2,7 @@
 
 #include "Display/Camera.h"
 #include "Renderer.h"
+#include "Rendering/Utility/VertexLayoutUtility.h"
 
 #include <bgfx/bgfx.h>
 #include <bimg/decode.h>
@@ -331,6 +332,34 @@ bgfx::UniformHandle RenderContext::CreateUniform(const char* pName, bgfx::Unifor
 	}
 
 	return uniformHandle;
+}
+
+bgfx::VertexLayout RenderContext::CreateVertexLayout(StringCrc resourceCrc, const std::vector<cd::VertexFormat::VertexAttributeLayout>& vertexAttributes)
+{
+	auto itVertexLayoutCache = m_vertexLayoutCaches.find(resourceCrc.value());
+	if (itVertexLayoutCache != m_vertexLayoutCaches.end())
+	{
+		return itVertexLayoutCache->second;
+	}
+
+	bgfx::VertexLayout newVertexLayout;
+	VertexLayoutUtility::CreateVertexLayout(newVertexLayout, vertexAttributes);
+	m_vertexLayoutCaches[resourceCrc.value()] = newVertexLayout;
+	return newVertexLayout;
+}
+
+bgfx::VertexLayout RenderContext::CreateVertexLayout(StringCrc resourceCrc, const cd::VertexFormat::VertexAttributeLayout& vertexAttribute)
+{
+	auto itVertexLayoutCache = m_vertexLayoutCaches.find(resourceCrc.value());
+	if (itVertexLayoutCache != m_vertexLayoutCaches.end())
+	{
+		return itVertexLayoutCache->second;
+	}
+
+	bgfx::VertexLayout newVertexLayout;
+	VertexLayoutUtility::CreateVertexLayout(newVertexLayout, vertexAttribute);
+	m_vertexLayoutCaches[resourceCrc.value()] = newVertexLayout;
+	return newVertexLayout;
 }
 
 void RenderContext::SetVertexLayout(StringCrc resourceCrc, bgfx::VertexLayout vertexLayoutHandle)

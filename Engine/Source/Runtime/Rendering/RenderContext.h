@@ -2,6 +2,7 @@
 
 #include "Core/StringCrc.h"
 #include "RenderTarget.h"
+#include "Scene/VertexFormat.h"
 
 #include <bgfx/bgfx.h>
 
@@ -57,6 +58,8 @@ public:
 	bgfx::TextureHandle CreateTexture(const char *pName, const uint16_t _width, const uint16_t _height, const uint16_t _depth, uint64_t flags = 0UL);
 	bgfx::UniformHandle CreateUniform(const char* pName, bgfx::UniformType::Enum uniformType, uint16_t number = 1);
 
+	bgfx::VertexLayout CreateVertexLayout(StringCrc resourceCrc, const std::vector<cd::VertexFormat::VertexAttributeLayout>& vertexAttributes);
+	bgfx::VertexLayout CreateVertexLayout(StringCrc resourceCrc, const cd::VertexFormat::VertexAttributeLayout& vertexAttribute);
 	void SetVertexLayout(StringCrc resourceCrc, bgfx::VertexLayout textureHandle);
 	void SetTexture(StringCrc resourceCrc, bgfx::TextureHandle textureHandle);
 
