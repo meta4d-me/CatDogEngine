@@ -4,13 +4,14 @@
 #include "cassert"
 #include "vector"
 #include "Lights.h"
+#include "UniformDefines/LightLength.sh"
 
 namespace engine
 {
 
-namespace {
+namespace
+{
 	constexpr uint16_t MAX_PUNCTUAL_LIGHT_COUNT = 16;
-	constexpr uint16_t MAX_DIRECTIONAL_LIGHT_COUNT = 16;
 	constexpr uint16_t MAX_AREAL_LIGHT_COUNT = 16;
 }
 
@@ -27,6 +28,7 @@ struct PointLightUniform {
 	static constexpr uint16_t VEC4_COUNT = POINT_LIGHT_STRIDE * MAX_PUNCTUAL_LIGHT_COUNT;
 
 	void Init() {
+		static_assert(VEC4_COUNT == POINT_LIGHT_LENGTH  && "Different light parameters length between CPU and GPU.");
 		u_params = bgfx::createUniform("u_pointLightParams", bgfx::UniformType::Vec4, VEC4_COUNT);
 	}
 
@@ -68,6 +70,7 @@ struct SpotLightUniform {
 	static constexpr uint16_t VEC4_COUNT = SPOT_LIGHT_STRIDE * MAX_PUNCTUAL_LIGHT_COUNT;
 
 	void Init() {
+		static_assert(VEC4_COUNT == SPOT_LIGHT_LENGTH && "Different light parameters length between CPU and GPU.");
 		u_params = bgfx::createUniform("u_spotLightParams", bgfx::UniformType::Vec4, VEC4_COUNT);
 	}
 	void Update(const std::vector<SpotLight> &_lights) {
@@ -110,15 +113,16 @@ struct SpotLightUniform {
 
 struct DirectionalLightUniform {
 	static constexpr uint16_t DIRECTIONAL_LIGHT_STRIDE = MyCeil(sizeof(DirectionalLight) / (4.0f * sizeof(float)));
-	static constexpr uint16_t VEC4_COUNT = DIRECTIONAL_LIGHT_STRIDE * MAX_DIRECTIONAL_LIGHT_COUNT;
+	static constexpr uint16_t VEC4_COUNT = DIRECTIONAL_LIGHT_STRIDE * MAX_PUNCTUAL_LIGHT_COUNT;
 
 	void Init() {
+		static_assert(VEC4_COUNT == DIRECTIONAL_LIGHT_LENGTH && "Different light parameters length between CPU and GPU.");
 		u_params = bgfx::createUniform("u_directionalLightParams", bgfx::UniformType::Vec4, VEC4_COUNT);
 	}
 
 	void Update(const std::vector<DirectionalLight> &_lights) {
 		const size_t realCount = _lights.size();
-		assert(realCount <= MAX_DIRECTIONAL_LIGHT_COUNT && "Directional light count overflow.");
+		assert(realCount <= MAX_PUNCTUAL_LIGHT_COUNT && "Directional light count overflow.");
 		for (uint16_t lightIndex = 0; lightIndex < realCount; ++lightIndex) {
 			auto &lightUniform = m_lights[lightIndex];
 			const auto &lightSource = _lights[lightIndex];
@@ -141,7 +145,7 @@ struct DirectionalLightUniform {
 		struct {
 			/*0*/ struct { vec3 color; float intensity; };
 			/*1*/ struct { vec3 direction; float unused0; };
-		}m_lights[MAX_DIRECTIONAL_LIGHT_COUNT];
+		}m_lights[MAX_PUNCTUAL_LIGHT_COUNT];
 		float m_lightParams[4 * VEC4_COUNT];
 	};
 
@@ -153,6 +157,7 @@ struct SphereLightUniform {
 	static constexpr uint16_t VEC4_COUNT = SPHERE_LIGHT_STRIDE * MAX_AREAL_LIGHT_COUNT;
 
 	void Init() {
+		static_assert(VEC4_COUNT == SPHERE_LIGHT_LENGTH && "Different light parameters length between CPU and GPU.");
 		u_params = bgfx::createUniform("u_sphereLightParams", bgfx::UniformType::Vec4, VEC4_COUNT);
 	}
 
@@ -196,6 +201,7 @@ struct DiskLightUniform {
 	static constexpr uint16_t VEC4_COUNT = DISK_LIGHT_STRIDE * MAX_AREAL_LIGHT_COUNT;
 
 	void Init() {
+		static_assert(VEC4_COUNT == DISK_LIGHT_LENGTH && "Different light parameters length between CPU and GPU.");
 		u_params = bgfx::createUniform("u_diskLightParams", bgfx::UniformType::Vec4, VEC4_COUNT);
 	}
 
@@ -240,6 +246,7 @@ struct RectangleLightUniform {
 	static constexpr uint16_t VEC4_COUNT = RECTANGLE_LIGHT_STRIDE * MAX_AREAL_LIGHT_COUNT;
 
 	void Init() {
+		static_assert(VEC4_COUNT == RECTANGLE_LIGHT_LENGTH && "Different light parameters length between CPU and GPU.");
 		u_params = bgfx::createUniform("u_rectangleLightParams", bgfx::UniformType::Vec4, VEC4_COUNT);
 	}
 
@@ -286,6 +293,7 @@ struct TubeLightUniform {
 	static constexpr uint16_t VEC4_COUNT = TUBE_LIGHT_STRIDE * MAX_AREAL_LIGHT_COUNT;
 
 	void Init() {
+		static_assert(VEC4_COUNT == TUBE_LIGHT_LENGTH && "Different light parameters length between CPU and GPU.");
 		u_params = bgfx::createUniform("u_tubeLightParams", bgfx::UniformType::Vec4, VEC4_COUNT);
 	}
 

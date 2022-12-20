@@ -1,29 +1,14 @@
 #include "PBRSkyRenderer.h"
 
-#include "RenderContext.h"
-
 #include <bx/math.h>
+#include "RenderContext.h"
+#include "UniformDefines/AtmosphericScatteringTextureSize.sh"
 
 namespace engine
 {
 
 namespace
 {
-	constexpr uint16_t TRANSMITTANCE_TEXTURE_WIDTH = 256;
-	constexpr uint16_t TRANSMITTANCE_TEXTURE_HEIGHT = 64;
-	
-	constexpr uint16_t SCATTERING_TEXTURE_R_SIZE = 32;
-	constexpr uint16_t SCATTERING_TEXTURE_MU_SIZE = 128;
-	constexpr uint16_t SCATTERING_TEXTURE_MU_S_SIZE = 32;
-	constexpr uint16_t SCATTERING_TEXTURE_NU_SIZE = 8;
-	
-	constexpr uint16_t SCATTERING_TEXTURE_WIDTH = SCATTERING_TEXTURE_NU_SIZE * SCATTERING_TEXTURE_MU_S_SIZE;
-	constexpr uint16_t SCATTERING_TEXTURE_HEIGHT = SCATTERING_TEXTURE_MU_SIZE;
-	constexpr uint16_t SCATTERING_TEXTURE_DEPTH = SCATTERING_TEXTURE_R_SIZE;
-	
-	constexpr uint16_t IRRADIANCE_TEXTURE_WIDTH = 64;
-	constexpr uint16_t IRRADIANCE_TEXTURE_HEIGHT = 16;
-	
 	constexpr uint64_t FLAG_2DTEXTURE = BGFX_TEXTURE_COMPUTE_WRITE | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
 	constexpr uint64_t FLAG_3DTEXTURE = BGFX_TEXTURE_COMPUTE_WRITE | BGFX_SAMPLER_UVW_CLAMP;
 	constexpr uint64_t RENDERING_STATE = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LEQUAL;
