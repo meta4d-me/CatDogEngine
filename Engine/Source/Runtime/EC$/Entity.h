@@ -11,9 +11,9 @@ namespace engine
 using Entity = uint32_t;
 static constexpr Entity INVALID_ENTITY = static_cast<uint32_t>(-1);
 
-// A wraper of u32 instead of using u32:
+// A wrapper of u32 instead of using u32:
 // 1.Not sure if I should more data fields to Entity class
-// 2.Trival class should be fast nearly zero overhead.
+// 2.Trivial class should be fast nearly zero overhead.
 // 3.Type safe in actual work.
 //class Entity
 //{
