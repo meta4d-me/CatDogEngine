@@ -2,7 +2,7 @@
 
 #include <bx/math.h>
 #include "RenderContext.h"
-#include "UniformDefines/AtmosphericScatteringTextureSize.sh"
+#include "Shaders/UniformDefines/AtmosphericScatteringTextureSize.sh"
 
 namespace engine
 {

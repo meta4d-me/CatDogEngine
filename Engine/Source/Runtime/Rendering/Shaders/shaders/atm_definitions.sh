@@ -1,4 +1,4 @@
-#include "../../../../../Engine/Source/Runtime/Rendering/UniformDefines/AtmosphericScatteringTextureSize.sh"
+#include "../UniformDefines/AtmosphericScatteringTextureSize.sh"
 
 #define Length                  float
 #define Wavelength              float
