@@ -61,7 +61,7 @@ void Camera::FrameAll(const cd::AABB& aabb)
 	// Should be calculated at compile time. To verify.
 	lookDirection.Normalize();
 
-	cd::Point lookFrom = lookAt - lookDirection * aabb.GetExtents().Length();
+	cd::Point lookFrom = lookAt - lookDirection * aabb.GetExtent().Length();
 
 	m_position.x = lookFrom.x();
 	m_position.y = lookFrom.y();
