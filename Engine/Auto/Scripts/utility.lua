@@ -7,20 +7,20 @@ project("CompileShaders")
 	kind("Utility")
 	location(path.join(IntermediatePath, "Engine/Misc"))
 	targetdir(BinariesPath)
-	local shaderFilePath = path.join(ProjectsPath, "SponzaBaseScene/Resources/Shaders")
+	local shadersFilePath = path.join(RuntimeSourcePath, "Rendering/Shaders")
 	vpaths {
-		["shader"] = path.join(shaderFilePath, "shader/**.*"),
-		[""] = path.join(shaderFilePath, "compile_dx11.bat"),
+		["shaders"] = path.join(shadersFilePath, "shaders/**.*"),
+		[""] = path.join(shadersFilePath, "compile_dx11.bat"),
 	}
 
 	files {
-		path.join(shaderFilePath, "shader/**.*"),
-		path.join(shaderFilePath, "compile_dx11.bat"),
+		path.join(shadersFilePath, "shaders/**.*"),
+		path.join(shadersFilePath, "compile_dx11.bat"),
 	}
 
 	filter { "system:windows" }
 		prebuildcommands {
-			"cd "..path.join(ProjectsPath, "SponzaBaseScene/Resources/Shaders"),
+			"cd "..path.join(shadersFilePath),
 			"compile_dx11.bat",
 		}
 	filter {}
