@@ -9,7 +9,7 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 #define INV_PI2 0.1013211836
 
 #if defined(USE_LIGHT)
-	#include "../../../../../Engine/Source/Runtime/Rendering/UniformDefines/LightLength.sh"
+	#include "../UniformDefines/LightLength.sh"
 #endif
 
 uniform vec4 u_pointLightCount[1];
