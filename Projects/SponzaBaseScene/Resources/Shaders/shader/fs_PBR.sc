@@ -3,8 +3,29 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 #include "../common/common.sh"
 #include "uniforms.sh"
 
-#define PI 3.1415926
-#define INV_PI 0.3183091
+#define PI 3.1415926536
+#define PI2 9.8696044011
+#define INV_PI 0.3183098862
+#define INV_PI2 0.1013211836
+
+#if defined(USE_LIGHT)
+	#include "../../../../../Engine/Source/Runtime/Rendering/UniformDefines/LightLength.sh"
+#endif
+
+uniform vec4 u_pointLightCount[1];
+uniform vec4 u_pointLightStride[1];
+uniform vec4 u_spotLightCount[1];
+uniform vec4 u_spotLightStride[1];
+uniform vec4 u_directionalLightCount[1];
+uniform vec4 u_directionalLightStride[1];
+uniform vec4 u_sphereLightCount[1];
+uniform vec4 u_sphereLightStride[1];
+uniform vec4 u_diskLightCount[1];
+uniform vec4 u_diskLightStride[1];
+uniform vec4 u_rectangleLightCount[1];
+uniform vec4 u_rectangleLightStride[1];
+uniform vec4 u_tubeLightCount[1];
+uniform vec4 u_tubeLightStride[1];
 
 SAMPLERCUBE(s_texCube, 0);
 SAMPLERCUBE(s_texCubeIrr, 1);
@@ -13,34 +34,93 @@ SAMPLER2D(s_texNormal, 3);
 SAMPLER2D(s_texORM, 4);
 SAMPLER2D(s_texLUT, 5);
 
+struct Material {
+	vec3 albedo;
+	vec3 normal;
+	float occlusion;
+	float roughness;
+	float metallic;
+	vec3 F0;
+	float opacity;
+	vec3 emissive;
+};
+
+Material CreateMaterial() {
+	Material material;
+	material.albedo = vec3(0.99, 0.98, 0.95);
+	material.normal = vec3(0.0, 1.0, 0.0);
+	material.occlusion = 1.0;
+	material.roughness = 0.9;
+	material.metallic = 0.1;
+	material.F0 = vec3(0.04, 0.04, 0.04);
+	material.opacity = 1.0;
+	material.emissive = vec3_splat(0.0);
+	return material;
+}
+
+vec3 SampleAlbedoTexture(vec2 uv) {
+	// We assume that albedo texture is already in linear space.
+	return texture2D(s_texBaseColor, uv).xyz;
+}
+
+vec3 CalcuateNormal(vec3 worldPos) {
+	vec3 dx = dFdx(worldPos);
+	vec3 dy = dFdy(worldPos);
+	return normalize(cross(dx, dy));
+}
+
+vec3 SampleNormalTexture(vec2 uv, mat3 TBN) {
+	vec3 normalTexture = normalize(texture2D(s_texNormal, uv).xyz * 2.0 - 1.0);
+	return normalize(mul(TBN, normalTexture));
+}
+
+vec3 SampleORMTexture(vec2 uv) {
+	// We assume that ORM texture is already in linear space.
+	vec3 orm = texture2D(s_texORM, uv).xyz;
+	orm.y = clamp(orm.y, 0.04, 1.0); // roughness
+	return orm;
+}
+
+vec3 CalcuateF0(Material material) {
+	return mix(vec3_splat(0.04), material.albedo, material.metallic);
+}
+
 // Distance Attenuation
 float SmoothDistanceAtt(float squaredDistance, float invSqrAttRadius) {
 	float factor = squaredDistance * invSqrAttRadius;
 	float smoothFactor = saturate(1.0 - factor * factor);
-	
 	return smoothFactor * smoothFactor;
 }
 float GetDistanceAtt(float sqrDist, float invSqrAttRadius) {
 	float attenuation = 1.0 / (max(sqrDist , 0.0001));
 	attenuation *= SmoothDistanceAtt(sqrDist, invSqrAttRadius);
+	return attenuation;
+}
 
+// Angle Attenuation
+float GetAngleAtt(vec3 lightDir, vec3 lightForward, float lightAngleScale, float lightAngleOffeset) {
+	// On CPU
+	// float lightAngleScale = 1.0f / max(0.001f, cosInner - cosOuter);
+	// float lightAngleOffeset = -cosOuter * angleScale;
+	
+	float cd = dot(lightDir, lightForward);
+	float attenuation = saturate(cd * lightAngleScale + lightAngleOffeset);
+	attenuation *= attenuation;
 	return attenuation;
 }
 
 // Fresnel
 vec3 FresnelSchlick(float cosTheta, vec3 F0) {
-    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+	return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
 // Distribution
 float DistributionGGX(float NdotH, float rough) {
-    float a  = rough * rough;
-    float a2 = a * a;
-
-    float denom = (NdotH * NdotH * (a2 - 1.0) + 1.0);
-    denom = PI * denom * denom;
-
-    return a2 / denom;
+	float a  = rough * rough;
+	float a2 = a * a;
+	float denom = (NdotH * NdotH * (a2 - 1.0) + 1.0);
+	denom = PI * denom * denom;
+	return a2 / denom;
 }
 
 // Geometry
@@ -52,193 +132,90 @@ float Visibility(float NdotV, float NdotL, float rough) {
 	// Vis = 1 / (NdotV * (1 - K) + K) / (NdotL * (1 - K) + K) / 4
 	
 	float f = rough + 1.0;
-    float k = f * f * 0.125;
-    float ggxV  = 1.0 / (NdotV * (1.0 - k) + k);
-    float ggxL  = 1.0 / (NdotL * (1.0 - k) + k);
-
-    return ggxV * ggxL * 0.25;
+	float k = f * f * 0.125;
+	float ggxV  = 1.0 / (NdotV * (1.0 - k) + k);
+	float ggxL  = 1.0 / (NdotL * (1.0 - k) + k);
+	return ggxV * ggxL * 0.25;
 }
 
-#if defined(POINT_LIGHT_LENGTH)
-vec3 CalcPointLight(int pointer, vec3 worldPos, vec3 viewDir, vec3 normalDir, float roughness, float metallic, vec3 F0, vec3 dirLambert) {
-	// struct {
-	//	struct { float m_lightColor[3], m_intensity; };
-	// 	struct { float m_lightPosition[3], m_radius; };
-	// };
-	 
-	vec3  lightColor = u_pointLightParams[pointer + 0].xyz;
-	float phi        = u_pointLightParams[pointer + 0].w;
-	vec3  lightPos   = u_pointLightParams[pointer + 1].xyz;
-	float radius     = u_pointLightParams[pointer + 1].w;
-	
-	vec3 lightDir = normalize(lightPos - worldPos);
-	vec3 harfDir  = normalize(lightDir + viewDir);
-	
-	float NdotV = max(dot(normalDir, viewDir), 0.0);
-	float NdotL = max(dot(normalDir, lightDir), 0.0);
-	float NdotH = max(dot(normalDir, harfDir), 0.0);
-	float HdotV = max(dot(harfDir, viewDir), 0.0);
-	
-	float distance = length(lightPos - worldPos);
-	float attenuation = GetDistanceAtt(distance * distance, 1.0 / (radius * radius));
-	vec3 radiance = lightColor * phi * 0.25 * INV_PI * attenuation;
-	
-	vec3  Fre = FresnelSchlick(HdotV, F0);
-	float NDF = DistributionGGX(NdotH, roughness);
-	float Vis = Visibility(NdotV, NdotL, roughness);
-	vec3 dirCookTorrance = Fre * NDF * Vis;
-	
-	vec3 KD = mix(1.0 - Fre, vec3_splat(0.0), metallic);
-	
-	return (KD * dirLambert + dirCookTorrance) * radiance * NdotL;
+float RectangleSolidAngle(vec3 worldPos , vec3 p0 , vec3 p1 ,vec3 p2 , vec3 p3) {
+	vec3 v0 = p0 - worldPos;
+	vec3 v1 = p1 - worldPos;
+	vec3 v2 = p2 - worldPos;
+	vec3 v3 = p3 - worldPos;
+	vec3 n0 = normalize(cross(v0, v1));
+	vec3 n1 = normalize(cross(v1, v2));
+	vec3 n2 = normalize(cross(v2, v3));
+	vec3 n3 = normalize(cross(v3, v0));
+	float g0 = acos(dot(-n0, n1));
+	float g1 = acos(dot(-n1, n2));
+	float g2 = acos(dot(-n2, n3));
+	float g3 = acos(dot(-n3, n0));
+	return g0 + g1 + g2 + g3 - 2.0 * PI;
 }
-#endif
 
-#if defined(SPOT_LIGHT_LENGTH)
-vec3 CalcSpotLight(int pointer, vec3 worldPos, vec3 viewDir, vec3 normalDir, float roughness, float metallic, vec3 F0, vec3 dirLambert) {
-	// struct {
-	// 	struct { float m_lightColor[3], m_intensity; };
-	// 	struct { float m_lightPosition[3], m_unused0; };
-	// 	struct { float m_lightDirection[3], m_unused1; };
-	// 	struct { float m_radius, m_innerCutOff, m_outerCutOff, m_unused2; };
-	// };
-	 
-	vec3  lightColor   = u_spotLightParams[pointer + 0].xyz;
-	float phi          = u_spotLightParams[pointer + 0].w;
-	vec3  lightPos     = u_spotLightParams[pointer + 1].xyz;
-	vec3  spotDir      = normalize(u_spotLightParams[pointer + 2].xyz);
-	float radius       = u_spotLightParams[pointer + 3].x;
-	float innerCutOff  = u_spotLightParams[pointer + 3].y;
-	float outerCutOff  = u_spotLightParams[pointer + 3].z;
-	
-	vec3 lightDir = normalize(lightPos - worldPos);
-	vec3 harfDir  = normalize(lightDir + viewDir);
-	
-	float NdotV = max(dot(normalDir, viewDir), 0.0);
-	float NdotL = max(dot(normalDir, lightDir), 0.0);
-	float NdotH = max(dot(normalDir, harfDir), 0.0);
-	float HdotV = max(dot(harfDir, viewDir), 0.0);
-	
-	float distance = length(lightPos - worldPos);
-	
-	float attenuation = GetDistanceAtt(distance * distance, 1.0 / (radius * radius));
-	vec3 radiance = lightColor * phi * INV_PI * attenuation;
-	
-	vec3  Fre = FresnelSchlick(HdotV, F0);
-	float NDF = DistributionGGX(NdotH, roughness);
-	float Vis = Visibility(NdotV, NdotL, roughness);
-	vec3 dirCookTorrance = Fre * NDF * Vis;
-	
-	vec3 KD = mix(1.0 - Fre, vec3_splat(0.0), metallic);
-	
-	float theta = dot(lightDir, normalize(-spotDir));
-	float deno  = innerCutOff - outerCutOff;
-	float spotClamp = saturate((theta - outerCutOff) / deno);
-	
-	return (KD * dirLambert + dirCookTorrance) * radiance * NdotL * spotClamp;
-}
-#endif
-
-#if defined(DIRECTIONAL_LIGHT_LENGTH)
-vec3 CalcDirectionalLight(int pointer, vec3 viewDir, vec3 normalDir, float roughness, float metallic, vec3 F0, vec3 dirLambert) { 
-	// struct {
-	// 	struct { float m_lightColor[3], m_intensity; };
-	// 	struct { float m_lightDirection[3], m_unused0; };
-	// } m_lights[MAX_LIGHT_COUNT];
-	 
-	vec3  lightColor = u_directionalLightParams[pointer + 0].xyz;
-	float intensity  = u_directionalLightParams[pointer + 0].w;
-	vec3  lightDir   = -normalize(u_directionalLightParams[pointer + 1].xyz);
-	
-	vec3 harfDir = normalize(lightDir + viewDir);
-	
-	float NdotV = max(dot(normalDir, viewDir), 0.0);
-	float NdotL = max(dot(normalDir, lightDir), 0.0);
-	float NdotH = max(dot(normalDir, harfDir), 0.0);
-	float HdotV = max(dot(harfDir, viewDir), 0.0);
-	
-	vec3  Fre = FresnelSchlick(HdotV, F0);
-	float NDF = DistributionGGX(NdotH, roughness);
-	float Vis = Visibility(NdotV, NdotL, roughness);
-	vec3 dirCookTorrance = Fre * NDF * Vis;
-	
-	vec3 KD = mix(1.0 - Fre, vec3_splat(0.0), metallic);
-	
-	return (KD * dirLambert + dirCookTorrance) * intensity * NdotL;
-}
-#endif
+#include "lights/pointLight.sh"
+#include "lights/spotLight.sh"
+#include "lights/directionalLight.sh"
+#include "lights/sphereLight.sh"
+#include "lights/diskLight.sh"
+#include "lights/rectangleLight.sh"
+#include "lights/tubeLight.sh"
 
 void main()
 {
-	// normalMap
-	vec3 normalMap = normalize(texture2D(s_texNormal, v_texcoord0).xyz * 2.0 - 1.0);
-	vec3 normalDir = normalize(mul(v_TBN, normalMap));
+	Material material = CreateMaterial();
+	material.albedo = SampleAlbedoTexture(v_texcoord0);
+	material.normal = SampleNormalTexture(v_texcoord0, v_TBN);
+	vec3 orm = SampleORMTexture(v_texcoord0);
+	material.occlusion = orm.x;
+	material.roughness = orm.y;
+	material.metallic = orm.z;
+	material.F0 = CalcuateF0(material);
 	
 	vec3 viewDir  = normalize(u_cameraPos - v_worldPos);
-	float NdotV = max(dot(normalDir, viewDir), 0.0);
+	vec3 diffuseBRDF = material.albedo * INV_PI;
+	float NdotV = max(dot(material.normal, viewDir), 0.0);
+	float mip = clamp(6.0 * material.roughness, 0.1, 6.0);
 	
-	vec3  albedo    = texture2D(s_texBaseColor, v_texcoord0).xyz; // already toLinear in cpu
-	vec3  orm       = texture2D(s_texORM, v_texcoord0).xyz;
-	float occlusion = orm.x;
-	float roughness = clamp(orm.y, 0.04, 1.0);
-	float metallic  = orm.z;
-	
-	vec3 F0 = mix(vec3_splat(0.04), albedo, metallic);
-
 	// ------------------------------------ Directional Light ----------------------------------------
-	
-	// Direct Diffuse BRDF
-	vec3 dirLambert = albedo * INV_PI;
 	
 	vec3 dirColor = vec3_splat(0.0);
 	
-#if defined(POINT_LIGHT_LENGTH)
-	for(int lightIndex = 0; lightIndex < u_pointLightCount; ++lightIndex) {
-		int pointer = int(lightIndex * d_pointLightStride);
-		dirColor += CalcPointLight(pointer, v_worldPos, viewDir, normalDir, roughness, metallic, F0, dirLambert);
-	}
-#endif
-	
-#if defined(SPOT_LIGHT_LENGTH)
-	for(int lightIndex = 0; lightIndex < u_spotLightCount; ++lightIndex) {
-		int pointer = int(lightIndex * d_spotLightStride);
-		dirColor += CalcSpotLight(pointer, v_worldPos, viewDir, normalDir, roughness, metallic, F0, dirLambert);
-	}
-#endif
-	
-#if defined(DIRECTIONAL_LIGHT_LENGTH)
-	for(int lightIndex = 0; lightIndex < u_directionalLightCount; ++lightIndex) {
-		int pointer = int(lightIndex * d_directionalLightStride);
-		dirColor += CalcDirectionalLight(pointer, viewDir, normalDir, roughness, metallic, F0, dirLambert);
-	}
+#if defined(USE_LIGHT)
+	dirColor += CalculatePointLights(material, v_worldPos, viewDir, diffuseBRDF);
+	dirColor += CalculateSpotLights(material, v_worldPos, viewDir, diffuseBRDF);
+	dirColor += CalculateDirectionalLights(material, v_worldPos, viewDir, diffuseBRDF);
+	dirColor += CalculateSphereLights(material, v_worldPos, viewDir, diffuseBRDF);
+	dirColor += CalculateDiskLights(material, v_worldPos, viewDir, diffuseBRDF);
+	dirColor += CalculateRectangleLights(material, v_worldPos, viewDir, diffuseBRDF);
+	dirColor += CalculateTubeLights(material, v_worldPos, viewDir, diffuseBRDF);
 #endif
 	
 	// ----------------------------------- Environment Light ----------------------------------------
 	
-	float mip = clamp(6.0 * roughness, 0.1, 6.0);
-	
 	// Environment Prefiltered Irradiance
-	vec3 cubeNormalDir = normalize(fixCubeLookup(normalDir, mip, 256.0));
+	vec3 cubeNormalDir = normalize(fixCubeLookup(material.normal, mip, 256.0));
 	vec3 envIrradiance = toLinear(textureCube(s_texCubeIrr, cubeNormalDir).xyz);
 	
 	// Environment Specular BRDF
-	vec2 lut = texture2D(s_texLUT, vec2(NdotV, 1.0 - roughness)).xy;
-	vec3 envSpecularBRDF = (F0 * lut.x + lut.y);
+	vec2 lut = texture2D(s_texLUT, vec2(NdotV, 1.0 - material.roughness)).xy;
+	vec3 envSpecularBRDF = (material.F0 * lut.x + lut.y);
 	
 	// Environment Specular Radiance
-	vec3 reflectDir = normalize(reflect(-viewDir, normalDir));
+	vec3 reflectDir = normalize(reflect(-viewDir, material.normal));
 	vec3 cubeReflectDir = normalize(fixCubeLookup(reflectDir, mip, 256.0));
 	vec3 envRadiance = toLinear(textureCubeLod(s_texCube, cubeReflectDir, mip).xyz);
 	
 	// Occlusion
-	float specularOcclusion = lerp(pow(occlusion, 4.0), 1.0, saturate(-0.3 + NdotV * NdotV));
+	float specularOcclusion = lerp(pow(material.occlusion, 4.0), 1.0, saturate(-0.3 + NdotV * NdotV));
 	float horizonOcclusion = saturate(1.0 + 1.2 * dot(reflectDir, v_normal));
 	horizonOcclusion *= horizonOcclusion;
 	
-	vec3 F = FresnelSchlick(NdotV, F0);
-	vec3 KD = mix(1.0 - F, vec3_splat(0.0), metallic);
+	vec3 F = FresnelSchlick(NdotV, material.F0);
+	vec3 KD = mix(1.0 - F, vec3_splat(0.0), material.metallic);
 	
-	vec3 envColor = KD * albedo * envIrradiance * occlusion + envSpecularBRDF * envRadiance * min(specularOcclusion, horizonOcclusion);
+	vec3 envColor = KD * material.albedo * envIrradiance * material.occlusion + envSpecularBRDF * envRadiance * min(specularOcclusion, horizonOcclusion);
 	
 	// ------------------------------------ Fragment Color -----------------------------------------
 	

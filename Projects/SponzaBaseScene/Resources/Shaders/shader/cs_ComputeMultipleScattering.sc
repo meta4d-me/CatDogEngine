@@ -1,7 +1,7 @@
 #include "../common/bgfx_compute.sh"
 
 #define COMPUTE
-#include "functions.sh"
+#include "atm_functions.sh"
 
 IMAGE3D_WR(s_delta_multiple_scattering, rgba32f, 8);
 IMAGE3D_RW(s_scattering, rgba32f, 9);

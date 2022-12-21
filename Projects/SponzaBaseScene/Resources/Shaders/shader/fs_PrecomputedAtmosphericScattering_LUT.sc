@@ -1,7 +1,7 @@
 $input v_worldPos
 
 #include "../common/common.sh"
-#include "functions.sh"
+#include "atm_functions.sh"
 
 uniform vec4 u_cameraPos[1];
 uniform vec4 u_LightDir[1];

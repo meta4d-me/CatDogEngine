@@ -14,7 +14,7 @@
 #define TEMPLATE_ARGUMENT(x)
 #define assert(x)
 
-// TODO : add functions to generate these parameter.
+// TODO : add function to generate these parameters.
 static const AtmosphereParameters ATMOSPHERE = {
 	vec3(10.000000,10.000000,10.000000),
 	0.004675,

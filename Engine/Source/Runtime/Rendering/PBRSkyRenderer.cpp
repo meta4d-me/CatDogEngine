@@ -1,29 +1,14 @@
 #include "PBRSkyRenderer.h"
 
-#include "RenderContext.h"
-
 #include <bx/math.h>
+#include "RenderContext.h"
+#include "UniformDefines/AtmosphericScatteringTextureSize.sh"
 
 namespace engine
 {
 
 namespace
 {
-	constexpr uint16_t TRANSMITTANCE_TEXTURE_WIDTH = 256;
-	constexpr uint16_t TRANSMITTANCE_TEXTURE_HEIGHT = 64;
-	
-	constexpr uint16_t SCATTERING_TEXTURE_R_SIZE = 32;
-	constexpr uint16_t SCATTERING_TEXTURE_MU_SIZE = 128;
-	constexpr uint16_t SCATTERING_TEXTURE_MU_S_SIZE = 32;
-	constexpr uint16_t SCATTERING_TEXTURE_NU_SIZE = 8;
-	
-	constexpr uint16_t SCATTERING_TEXTURE_WIDTH = SCATTERING_TEXTURE_NU_SIZE * SCATTERING_TEXTURE_MU_S_SIZE;
-	constexpr uint16_t SCATTERING_TEXTURE_HEIGHT = SCATTERING_TEXTURE_MU_SIZE;
-	constexpr uint16_t SCATTERING_TEXTURE_DEPTH = SCATTERING_TEXTURE_R_SIZE;
-	
-	constexpr uint16_t IRRADIANCE_TEXTURE_WIDTH = 64;
-	constexpr uint16_t IRRADIANCE_TEXTURE_HEIGHT = 16;
-	
 	constexpr uint64_t FLAG_2DTEXTURE = BGFX_TEXTURE_COMPUTE_WRITE | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
 	constexpr uint64_t FLAG_3DTEXTURE = BGFX_TEXTURE_COMPUTE_WRITE | BGFX_SAMPLER_UVW_CLAMP;
 	constexpr uint64_t RENDERING_STATE = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LEQUAL;
@@ -65,9 +50,9 @@ void PBRSkyRenderer::Init() {
 	m_textureDeltaMultipleScattering = m_pRenderContext->CreateTexture("m_textureDeltaMultipleScattering",
 		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, FLAG_3DTEXTURE);
 
-	u_num_scattering_orders = m_pRenderContext->CreateUniform("u_num_scattering_orders", bgfx::UniformType::Enum::Vec4, 1);
-	u_cameraPos             = m_pRenderContext->CreateUniform("u_cameraPos", bgfx::UniformType::Enum::Vec4, 1);
 	u_LightDir              = m_pRenderContext->CreateUniform("u_LightDir", bgfx::UniformType::Enum::Vec4, 1);
+	u_cameraPos             = m_pRenderContext->CreateUniform("u_cameraPos", bgfx::UniformType::Enum::Vec4, 1);
+	u_num_scattering_orders = m_pRenderContext->CreateUniform("u_num_scattering_orders", bgfx::UniformType::Enum::Vec4, 1);
 
 	m_vertexLayoutSkyBox.begin().add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float).end();
 	m_vbhSkybox = bgfx::createVertexBuffer(bgfx::makeRef(ms_skyboxVertices, sizeof(ms_skyboxVertices)), m_vertexLayoutSkyBox);
@@ -188,17 +173,17 @@ void PBRSkyRenderer::ClearTextureSlots() const {
 }
 
 void PBRSkyRenderer::ReleaseTemporaryTextureResources() {
-	auto SafeDelete = [](bgfx::TextureHandle &_handle) {
+	auto SafeDestroy = [](bgfx::TextureHandle &_handle) {
 		if (bgfx::isValid(_handle)) {
 			bgfx::destroy(_handle);
 			_handle = BGFX_INVALID_HANDLE;
 		}
 	};
-	SafeDelete(m_textureDeltaIrradiance);
-	SafeDelete(m_textureDeltaRayleighScattering);
-	SafeDelete(m_textureDeltaMieScattering);
-	SafeDelete(m_textureDeltaScatteringDensity);
-	SafeDelete(m_textureDeltaMultipleScattering);
+	SafeDestroy(m_textureDeltaIrradiance);
+	SafeDestroy(m_textureDeltaRayleighScattering);
+	SafeDestroy(m_textureDeltaMieScattering);
+	SafeDestroy(m_textureDeltaScatteringDensity);
+	SafeDestroy(m_textureDeltaMultipleScattering);
 }
 
 } // namespace engine
