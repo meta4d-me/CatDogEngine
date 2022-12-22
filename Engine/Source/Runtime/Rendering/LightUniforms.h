@@ -1,10 +1,13 @@
 #pragma once
 
-#include <bgfx/bgfx.h>
-#include "cassert"
-#include "vector"
 #include "Lights.h"
 #include "Shaders/UniformDefines/LightLength.sh"
+
+// TODO : Remove 3rd party dependencies for bgfx
+#include <bgfx/bgfx.h>
+
+#include <cassert>
+#include <vector>
 
 namespace engine
 {

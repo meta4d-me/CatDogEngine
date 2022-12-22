@@ -1,8 +1,13 @@
 #include "PBRSkyRenderer.h"
 
-#include <bx/math.h>
+#include "Math/Box.hpp"
+#include "Math/MeshGenerator.h"
 #include "RenderContext.h"
+#include "Scene/Mesh.h"
+#include "Scene/VertexFormat.h"
 #include "Shaders/UniformDefines/AtmosphericScatteringTextureSize.sh"
+
+#include <bx/math.h>
 
 namespace engine
 {
@@ -54,9 +59,20 @@ void PBRSkyRenderer::Init() {
 	u_cameraPos             = m_pRenderContext->CreateUniform("u_cameraPos", bgfx::UniformType::Enum::Vec4, 1);
 	u_num_scattering_orders = m_pRenderContext->CreateUniform("u_num_scattering_orders", bgfx::UniformType::Enum::Vec4, 1);
 
+	// Create vertex format and vertex/index buffer
+	cd::VertexFormat vertexFormat;
+	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
 	m_vertexLayoutSkyBox.begin().add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float).end();
-	m_vbhSkybox = bgfx::createVertexBuffer(bgfx::makeRef(ms_skyboxVertices, sizeof(ms_skyboxVertices)), m_vertexLayoutSkyBox);
-	m_ibhSkybox = bgfx::createIndexBuffer(bgfx::makeRef(ms_skyBoxIndeces, sizeof(ms_skyBoxIndeces)));
+
+	cd::Box box(cd::Point(-1.0f), cd::Point(1.0f));
+	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(box, vertexFormat);
+	assert(optMesh.has_value());
+
+	const cd::Mesh& meshData = optMesh.value();
+	static std::vector<cd::Point> vertexBufferData = meshData.GetVertexPositions();
+	static std::vector<cd::Mesh::Polygon> indexBufferData = meshData.GetPolygons();
+	m_vbhSkybox = bgfx::createVertexBuffer(bgfx::makeRef(vertexBufferData.data(), static_cast<uint32_t>(vertexBufferData.size() * sizeof(cd::Point))), m_vertexLayoutSkyBox);
+	m_ibhSkybox = bgfx::createIndexBuffer(bgfx::makeRef(indexBufferData.data(), static_cast<uint32_t>(indexBufferData.size() * sizeof(uint32_t) * 3)), BGFX_BUFFER_INDEX32);
 
 	bgfx::setViewName(GetViewID(), "PBRSkyRenderer");
 }
