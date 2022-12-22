@@ -36,8 +36,8 @@ struct LightUniform {
 		u_params = bgfx::createUniform("u_lightParams", bgfx::UniformType::Vec4, VEC4_COUNT);
 	}
 
-	void Submit(const uint16_t _lightNum) {
-		assert(_lightNum <= MAX_LIGHT_COUNT && "Light count overflow;");
+	void Submit(const uint16_t _lightNum = MAX_LIGHT_COUNT) {
+		assert(_lightNum <= MAX_LIGHT_COUNT && "Light count overflow.");
 		bgfx::setUniform(u_params, m_lightParams, _lightNum * LIGHT_STRIDE);
 	}
 

@@ -12,17 +12,17 @@ U_Light GetLightParams(int pointer) {
 	// }
 	
 	U_Light light;
-	light.type = u_lightParams[pointer + 0].x;
-	light.position = u_lightParams[pointer + 0].yzw;
-	light.intensity = u_lightParams[pointer + 1].x;
-	light.color = u_lightParams[pointer + 1].yzw;
-	light.range = u_lightParams[pointer + 2].x;
-	light.direction = u_lightParams[pointer + 2].yzw;
-	light.radius = u_lightParams[pointer + 3].x;
-	light.up = u_lightParams[pointer + 3].yzw;
-	light.width = u_lightParams[pointer + 4].x;
-	light.height = u_lightParams[pointer + 4].y;
-	light.lightAngleScale = u_lightParams[pointer + 4].z;
+	light.type              = u_lightParams[pointer + 0].x;
+	light.position          = u_lightParams[pointer + 0].yzw;
+	light.intensity         = u_lightParams[pointer + 1].x;
+	light.color             = u_lightParams[pointer + 1].yzw;
+	light.range             = u_lightParams[pointer + 2].x;
+	light.direction         = u_lightParams[pointer + 2].yzw;
+	light.radius            = u_lightParams[pointer + 3].x;
+	light.up                = u_lightParams[pointer + 3].yzw;
+	light.width             = u_lightParams[pointer + 4].x;
+	light.height            = u_lightParams[pointer + 4].y;
+	light.lightAngleScale   = u_lightParams[pointer + 4].z;
 	light.lightAngleOffeset = u_lightParams[pointer + 4].w;
 	return light;
 }
