@@ -8,24 +8,8 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 #define INV_PI 0.3183098862
 #define INV_PI2 0.1013211836
 
-#if defined(USE_LIGHT)
-	#include "../UniformDefines/LightLength.sh"
-#endif
-
-uniform vec4 u_pointLightCount[1];
-uniform vec4 u_pointLightStride[1];
-uniform vec4 u_spotLightCount[1];
-uniform vec4 u_spotLightStride[1];
-uniform vec4 u_directionalLightCount[1];
-uniform vec4 u_directionalLightStride[1];
-uniform vec4 u_sphereLightCount[1];
-uniform vec4 u_sphereLightStride[1];
-uniform vec4 u_diskLightCount[1];
-uniform vec4 u_diskLightStride[1];
-uniform vec4 u_rectangleLightCount[1];
-uniform vec4 u_rectangleLightStride[1];
-uniform vec4 u_tubeLightCount[1];
-uniform vec4 u_tubeLightStride[1];
+uniform vec4 u_lightCount[1];
+uniform vec4 u_lightStride[1];
 
 SAMPLERCUBE(s_texCube, 0);
 SAMPLERCUBE(s_texCubeIrr, 1);
@@ -97,18 +81,6 @@ float GetDistanceAtt(float sqrDist, float invSqrAttRadius) {
 	return attenuation;
 }
 
-// Angle Attenuation
-float GetAngleAtt(vec3 lightDir, vec3 lightForward, float lightAngleScale, float lightAngleOffeset) {
-	// On CPU
-	// float lightAngleScale = 1.0f / max(0.001f, cosInner - cosOuter);
-	// float lightAngleOffeset = -cosOuter * angleScale;
-	
-	float cd = dot(lightDir, lightForward);
-	float attenuation = saturate(cd * lightAngleScale + lightAngleOffeset);
-	attenuation *= attenuation;
-	return attenuation;
-}
-
 // Fresnel
 vec3 FresnelSchlick(float cosTheta, vec3 F0) {
 	return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
@@ -138,29 +110,7 @@ float Visibility(float NdotV, float NdotL, float rough) {
 	return ggxV * ggxL * 0.25;
 }
 
-float RectangleSolidAngle(vec3 worldPos , vec3 p0 , vec3 p1 ,vec3 p2 , vec3 p3) {
-	vec3 v0 = p0 - worldPos;
-	vec3 v1 = p1 - worldPos;
-	vec3 v2 = p2 - worldPos;
-	vec3 v3 = p3 - worldPos;
-	vec3 n0 = normalize(cross(v0, v1));
-	vec3 n1 = normalize(cross(v1, v2));
-	vec3 n2 = normalize(cross(v2, v3));
-	vec3 n3 = normalize(cross(v3, v0));
-	float g0 = acos(dot(-n0, n1));
-	float g1 = acos(dot(-n1, n2));
-	float g2 = acos(dot(-n2, n3));
-	float g3 = acos(dot(-n3, n0));
-	return g0 + g1 + g2 + g3 - 2.0 * PI;
-}
-
-#include "lights/pointLight.sh"
-#include "lights/spotLight.sh"
-#include "lights/directionalLight.sh"
-#include "lights/sphereLight.sh"
-#include "lights/diskLight.sh"
-#include "lights/rectangleLight.sh"
-#include "lights/tubeLight.sh"
+#include "light.sh"
 
 void main()
 {
@@ -180,17 +130,7 @@ void main()
 	
 	// ------------------------------------ Directional Light ----------------------------------------
 	
-	vec3 dirColor = vec3_splat(0.0);
-	
-#if defined(USE_LIGHT)
-	dirColor += CalculatePointLights(material, v_worldPos, viewDir, diffuseBRDF);
-	dirColor += CalculateSpotLights(material, v_worldPos, viewDir, diffuseBRDF);
-	dirColor += CalculateDirectionalLights(material, v_worldPos, viewDir, diffuseBRDF);
-	dirColor += CalculateSphereLights(material, v_worldPos, viewDir, diffuseBRDF);
-	dirColor += CalculateDiskLights(material, v_worldPos, viewDir, diffuseBRDF);
-	dirColor += CalculateRectangleLights(material, v_worldPos, viewDir, diffuseBRDF);
-	dirColor += CalculateTubeLights(material, v_worldPos, viewDir, diffuseBRDF);
-#endif
+	vec3 dirColor = CalculateLights(material, v_worldPos, viewDir, diffuseBRDF);
 	
 	// ----------------------------------- Environment Light ----------------------------------------
 	

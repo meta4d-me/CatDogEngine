@@ -1,4 +1,4 @@
-#include "../UniformDefines/AtmosphericScatteringTextureSize.sh"
+#include "../UniformDefines/U_AtmTextureSize.sh"
 
 #define Length                  float
 #define Wavelength              float

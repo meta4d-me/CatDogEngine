@@ -1,3 +1,7 @@
+// Include to:
+// atm_definitions.sh
+// PBRSkyRenderer.cpp
+
 #define TRANSMITTANCE_TEXTURE_WIDTH 256
 #define TRANSMITTANCE_TEXTURE_HEIGHT 64
 
