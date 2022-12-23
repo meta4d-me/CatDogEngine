@@ -20,7 +20,7 @@ start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADER
 
 rem SceneRenderer
 start /b shaderc --type v --platform windows -p vs_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/vs_PBR.sc -o %PROJECT%/vs_PBR.bin
-start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/fs_PBR.sc -o %PROJECT%/fs_PBR.bin --define USE_LIGHT
+start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/fs_PBR.sc -o %PROJECT%/fs_PBR.bin
 
 rem TerrainRenderer
 start /b shaderc --type v --platform windows -p vs_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/vs_terrain.sc -o %PROJECT%/vs_terrain.bin
