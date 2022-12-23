@@ -1,6 +1,6 @@
 // Include to:
 // fs_PBR.sc
-// LightUniforms.h
+// Light.h
 
 #define POINT_LIGHT 0
 #define SPOT_LIGHT 1

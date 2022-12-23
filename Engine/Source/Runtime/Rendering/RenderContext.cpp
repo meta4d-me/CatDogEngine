@@ -355,6 +355,24 @@ void RenderContext::SetTexture(StringCrc resourceCrc, bgfx::TextureHandle textur
 	m_textureHandleCaches[resourceCrc.value()] = std::move(textureHandle);
 }
 
+void RenderContext::SetUniform(StringCrc resourceCrc, bgfx::UniformHandle uniformreHandle)
+{
+	auto itUniformCache = m_uniformHandleCaches.find(resourceCrc.value());
+	if (itUniformCache != m_uniformHandleCaches.end())
+	{
+		return;
+	}
+
+	m_uniformHandleCaches[resourceCrc.value()] = std::move(uniformreHandle);
+}
+
+
+void RenderContext::FillUniform(StringCrc resourceCrc, const void *pData, uint16_t num) const
+{
+	bgfx::setUniform(GetUniform(resourceCrc), pData, num);
+}
+
+
 RenderTarget* RenderContext::GetRenderTarget(StringCrc resourceCrc) const
 {
 	auto itResource = m_renderTargetCaches.find(resourceCrc.value());

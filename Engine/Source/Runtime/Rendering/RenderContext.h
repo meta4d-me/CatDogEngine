@@ -59,6 +59,9 @@ public:
 
 	void SetVertexLayout(StringCrc resourceCrc, bgfx::VertexLayout textureHandle);
 	void SetTexture(StringCrc resourceCrc, bgfx::TextureHandle textureHandle);
+	void SetUniform(StringCrc resourceCrc, bgfx::UniformHandle uniformreHandle);
+
+	void FillUniform(StringCrc resourceCrc, const void *pData, uint16_t num = static_cast<uint16_t>(1U)) const;
 
 	RenderTarget* GetRenderTarget(StringCrc resourceCrc) const;
 	const bgfx::VertexLayout& GetVertexLayout(StringCrc resourceCrc) const;
