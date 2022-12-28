@@ -1,13 +1,16 @@
 #pragma once
 
-#include "Consumer/IConsumer.h"
-#include "Scene/SceneDatabase.h"
+#include "Framework/IConsumer.h"
 #include "MeshRenderData.h"
 
-#include <algorithm>
-#include <cassert>
-#include <iterator>
-#include <set>
+#include <string>
+
+namespace cd
+{
+
+class SceneDatabase;
+
+}
 
 namespace engine
 {

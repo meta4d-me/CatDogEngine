@@ -1,6 +1,8 @@
 #include "Rendering/Utility/VertexLayoutUtility.h"
 
-#include <assert.h>
+#include <cassert>
+#include <string>
+#include <vector>
 
 namespace
 {
@@ -59,7 +61,7 @@ std::string AttributeValueTypeToString(const cd::AttributeValueType& attribValue
 	}
 }
 
-void ConvertVertexLayout(const cd::VertexFormat::VertexAttributeLayout& vertexAttributeLayout, bgfx::VertexLayout& outVertexLayout)
+void ConvertVertexLayout(const cd::VertexAttributeLayout& vertexAttributeLayout, bgfx::VertexLayout& outVertexLayout)
 {
 	bgfx::Attrib::Enum vertexAttrib = bgfx::Attrib::Enum::Count;
 	bgfx::AttribType::Enum vertexAttribValue = bgfx::AttribType::Enum::Count;
@@ -133,10 +135,10 @@ namespace engine
 {
 
 // static
-void VertexLayoutUtility::CreateVertexLayout(bgfx::VertexLayout& outVertexLayout, const std::vector<cd::VertexFormat::VertexAttributeLayout>& vertexAttributes, bool debugPrint /* = false */)
+void VertexLayoutUtility::CreateVertexLayout(bgfx::VertexLayout& outVertexLayout, const std::vector<cd::VertexAttributeLayout>& vertexAttributes, bool debugPrint /* = false */)
 {
 	outVertexLayout.begin();
-	for (const cd::VertexFormat::VertexAttributeLayout& vertexAttributeLayout : vertexAttributes)
+	for (const cd::VertexAttributeLayout& vertexAttributeLayout : vertexAttributes)
 	{
 		if (debugPrint)
 		{
@@ -151,7 +153,7 @@ void VertexLayoutUtility::CreateVertexLayout(bgfx::VertexLayout& outVertexLayout
 }
 
 // static
-void VertexLayoutUtility::CreateVertexLayout(bgfx::VertexLayout& outVertexLayout, const cd::VertexFormat::VertexAttributeLayout& vertexAttribute, bool debugPrint /* = false */)
+void VertexLayoutUtility::CreateVertexLayout(bgfx::VertexLayout& outVertexLayout, const cd::VertexAttributeLayout& vertexAttribute, bool debugPrint /* = false */)
 {
 	outVertexLayout.begin();
 	if (debugPrint)

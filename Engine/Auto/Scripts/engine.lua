@@ -13,7 +13,6 @@ project("Engine")
 
 	files {
 		path.join(RuntimeSourcePath, "**.*"),
-		path.join(ThirdPartySourcePath, "AssetPipeline/public/**.*"),
 		path.join(ThirdPartySourcePath, "rapidxml/**.hpp"),
 		path.join(ThirdPartySourcePath, "imgui/*.h"),
 		path.join(ThirdPartySourcePath, "imgui/*.cpp"),
@@ -23,9 +22,6 @@ project("Engine")
 	vpaths {
 		["Source/*"] = { 
 			path.join(RuntimeSourcePath, "**.*"),
-		},
-		["AssetPipeline"] = {
-			path.join(ThirdPartySourcePath, "AssetPipeline/public/**.*"),
 		},
 		["ImGui"] = {
 			path.join(ThirdPartySourcePath, "imgui/*.h"),
@@ -49,6 +45,7 @@ project("Engine")
 		RuntimeSourcePath,
 		ThirdPartySourcePath,
 		path.join(ThirdPartySourcePath, "AssetPipeline/public"),
+		path.join(ThirdPartySourcePath, "AssetPipeline/producer"),
 		path.join(ThirdPartySourcePath, "bgfx/include"),
 		path.join(ThirdPartySourcePath, "bgfx/3rdparty"),
 		path.join(ThirdPartySourcePath, "bimg/include"),
@@ -121,7 +118,7 @@ project("Engine")
 	-- Strict.
 	warnings("Default")
 	externalwarnings("Off")
-		
+	
 	flags {
 		"FatalWarnings", -- treat warnings as errors
 		"MultiProcessorCompile", -- compiler uses multiple thread
@@ -131,9 +128,21 @@ project("Engine")
 	filter { "configurations:Debug" }
 		postbuildcommands {
 			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Debug/SDL2d.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/AssetPipelineCore.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CatDogProducer.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/GenericProducer.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CatDogConsumer.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/assimp-vc142-mtd.dll").."\" \""..BinariesPath.."\"",			
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/assimp-vc143-mtd.dll").."\" \""..BinariesPath.."\"",			
 		}
 	filter { "configurations:Release" }
 		postbuildcommands {
 			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Release/SDL2.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/AssetPipelineCore.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CatDogProducer.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/GenericProducer.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CatDogConsumer.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/assimp-vc142-mtd.dll").."\" \""..BinariesPath.."\"",			
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/assimp-vc143-mtd.dll").."\" \""..BinariesPath.."\"",
 		}
 	filter {}

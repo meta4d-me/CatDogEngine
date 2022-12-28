@@ -334,7 +334,7 @@ bgfx::UniformHandle RenderContext::CreateUniform(const char* pName, bgfx::Unifor
 	return uniformHandle;
 }
 
-bgfx::VertexLayout RenderContext::CreateVertexLayout(StringCrc resourceCrc, const std::vector<cd::VertexFormat::VertexAttributeLayout>& vertexAttributes)
+bgfx::VertexLayout RenderContext::CreateVertexLayout(StringCrc resourceCrc, const std::vector<cd::VertexAttributeLayout>& vertexAttributes)
 {
 	auto itVertexLayoutCache = m_vertexLayoutCaches.find(resourceCrc.value());
 	if (itVertexLayoutCache != m_vertexLayoutCaches.end())
@@ -348,7 +348,7 @@ bgfx::VertexLayout RenderContext::CreateVertexLayout(StringCrc resourceCrc, cons
 	return newVertexLayout;
 }
 
-bgfx::VertexLayout RenderContext::CreateVertexLayout(StringCrc resourceCrc, const cd::VertexFormat::VertexAttributeLayout& vertexAttribute)
+bgfx::VertexLayout RenderContext::CreateVertexLayout(StringCrc resourceCrc, const cd::VertexAttributeLayout& vertexAttribute)
 {
 	auto itVertexLayoutCache = m_vertexLayoutCaches.find(resourceCrc.value());
 	if (itVertexLayoutCache != m_vertexLayoutCaches.end())

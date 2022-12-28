@@ -1,6 +1,10 @@
 #include "BgfxConsumer.h"
 
+#include "Scene/SceneDatabase.h"
+#include "Scene/VertexFormat.h"
 #include "Rendering/Utility/VertexLayoutUtility.h"
+
+#include <cassert>
 
 namespace
 {
@@ -159,7 +163,7 @@ namespace engine
 
 void BgfxConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 {
-	printf("Loading Scene: %s\n", pSceneDatabase->GetName().c_str());
+	printf("Loading Scene: %s\n", pSceneDatabase->GetName());
 	printf("MeshCount : %u\n", pSceneDatabase->GetMeshCount());
 	printf("MaterialCount : %u\n", pSceneDatabase->GetMaterialCount());
 
@@ -178,13 +182,13 @@ void BgfxConsumer::ConvertMeshesFromScene(const cd::SceneDatabase& sceneDatabase
 	const std::vector<cd::Mesh>& meshes = sceneDatabase.GetMeshes();
 	if (meshes.empty())
 	{
-		printf("No meshes found for scene: %s", sceneDatabase.GetName().c_str());
+		printf("No meshes found for scene: %s", sceneDatabase.GetName());
 		return;
 	}
 	printf("\nLoading %zu meshes\n", meshes.size());
 	for (const cd::Mesh& mesh : meshes)
 	{
-		printf("\tMeshName : %s\n", mesh.GetName().c_str());
+		printf("\tMeshName : %s\n", mesh.GetName());
 		printf("\t\tVertexCount : %u\n", mesh.GetVertexCount());
 		printf("\t\tPolygonCount : %u\n", mesh.GetPolygonCount());
 
@@ -243,8 +247,8 @@ void BgfxConsumer::ConvertMeshesFromScene(const cd::SceneDatabase& sceneDatabase
 				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexBiTangent(vertexIndex).begin(), mesh.GetVertexBiTangent(vertexIndex).begin() + 1, mesh.GetVertexBiTangent(vertexIndex).begin() + 2, nullptr);
 			}
 
-			assert(MAX_COLOR_COUNT >= cd::Mesh::MaxColorSetNumber);
-			for (uint32_t i = 0; i < cd::Mesh::MaxColorSetNumber; ++i)
+			assert(MAX_COLOR_COUNT >= cd::MaxColorSetNumber);
+			for (uint32_t i = 0; i < cd::MaxColorSetNumber; ++i)
 			{
 				const bgfx::Attrib::Enum color = AllAttribColorTypes[i];
 				if (!vertexLayout.has(color))
@@ -258,8 +262,8 @@ void BgfxConsumer::ConvertMeshesFromScene(const cd::SceneDatabase& sceneDatabase
 				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexColor(i)[vertexIndex].begin(), mesh.GetVertexColor(i)[vertexIndex].begin() + 1, mesh.GetVertexColor(i)[vertexIndex].begin() + 2, mesh.GetVertexColor(i)[vertexIndex].begin() + 3);
 			}
 
-			assert(MAX_UV_COUNT >= cd::Mesh::MaxUVSetNumber);
-			for (uint32_t i = 0; i < cd::Mesh::MaxUVSetNumber; ++i)
+			assert(MAX_UV_COUNT >= cd::MaxUVSetNumber);
+			for (uint32_t i = 0; i < cd::MaxUVSetNumber; ++i)
 			{
 				const bgfx::Attrib::Enum uv = AllAttribUVTypes[i];
 				if (!vertexLayout.has(uv))
@@ -295,7 +299,7 @@ void BgfxConsumer::GetMaterialsFromScene(const cd::SceneDatabase& sceneDatabase,
 	for (const cd::Material& material : sceneDatabase.GetMaterials())
 	{
 		// Materials
-		printf("\t\tMaterial Name: %s\n", material.GetName().c_str());
+		printf("\t\tMaterial Name: %s\n", material.GetName());
 		outLoadedMaterials.emplace_back();
 		MaterialRenderData& materialData = outLoadedMaterials.back();
 		for (const cd::MaterialTextureType& textureType : PossibleTextureTypes)

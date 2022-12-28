@@ -57,23 +57,23 @@ project("Editor")
 		runtime "Debug" -- /MTd
 		libdirs {
 			BinariesPath,
+			path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug"),
 		}
-	
-		links {
-			"Engine",
-		}
-
 	filter { "configurations:Release" }
 		runtime "Release" -- /MT
 		libdirs {
 			BinariesPath,
+			path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release"),
 		}
-	
-		links {
-			"Engine",
-		}
-
 	filter {}
+
+	links {
+		"Engine",
+		"AssetPipelineCore",
+		"CatDogProducer",
+		"GenericProducer",
+		"CatDogConsumer",
+	}
 
 	-- Disable these options can reduce the size of compiled binaries.
 	justmycode("Off")
@@ -87,6 +87,13 @@ project("Editor")
 	warnings("Default")
 	externalwarnings("Off")
 		
+	-- For msvc, a static library dependends on more than one import library will cause a LINK4006 warning which said
+	-- __NULL_IMPORT_DESCRIPTOR redefined. __NULL_IMPORT_DESCRIPTOR is at the end of all the import libraries to mark
+	-- the end. So you can only fix it by two ways:
+	-- 1. a static library only dependends on a import library.
+	-- 2. ignore it and make sure that these two libs are safe to link together.
+	-- linkoptions { "-IGNORE:4006" }
+
 	flags {
 		"FatalWarnings", -- treat warnings as errors
 		"MultiProcessorCompile", -- compiler uses multiple thread
