@@ -46,8 +46,8 @@ cd AssetPipeline
 if %VS_VERSION% == vs2019 call ./make_win64_vs2019.bat
 if %VS_VERSION% == vs2022 call ./make_win64_vs2022.bat
 cd %MSBUILD_FOLDER%
-"%MSBUILD_PATH%" -m %ThirdPartyProjectsPath%/AssetPipeline/AssetPipeline.sln /p:Configuration=Debug /p:Platform=x64
-"%MSBUILD_PATH%" -m %ThirdPartyProjectsPath%/AssetPipeline/AssetPipeline.sln /p:Configuration=Release /p:Platform=x64
+"%MSBUILD_PATH%" %ThirdPartyProjectsPath%/AssetPipeline/AssetPipeline.sln /p:Configuration=Debug /p:Platform=x64
+"%MSBUILD_PATH%" %ThirdPartyProjectsPath%/AssetPipeline/AssetPipeline.sln /p:Configuration=Release /p:Platform=x64
 cd %ThirdPartyProjectsPath%
 echo\
 

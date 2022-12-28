@@ -125,24 +125,40 @@ project("Engine")
 	}
 	
 	-- copy dll into binary folder automatically.
-	filter { "configurations:Debug" }
+	filter { "configurations:Debug", "action:vs2022" }
 		postbuildcommands {
 			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Debug/SDL2d.dll").."\" \""..BinariesPath.."\"",
 			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/AssetPipelineCore.dll").."\" \""..BinariesPath.."\"",
 			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CatDogProducer.dll").."\" \""..BinariesPath.."\"",
 			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/GenericProducer.dll").."\" \""..BinariesPath.."\"",
 			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CatDogConsumer.dll").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/assimp-vc142-mtd.dll").."\" \""..BinariesPath.."\"",			
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/assimp-vc143-mtd.dll").."\" \""..BinariesPath.."\"",			
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/assimp-vc143-mtd.dll").."\" \""..BinariesPath.."\"",
 		}
-	filter { "configurations:Release" }
+	filter { "configurations:Debug", "action:vs2019" }
 		postbuildcommands {
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Release/SDL2.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Debug/SDL2d.dll").."\" \""..BinariesPath.."\"",
 			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/AssetPipelineCore.dll").."\" \""..BinariesPath.."\"",
 			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CatDogProducer.dll").."\" \""..BinariesPath.."\"",
 			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/GenericProducer.dll").."\" \""..BinariesPath.."\"",
 			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CatDogConsumer.dll").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/assimp-vc142-mtd.dll").."\" \""..BinariesPath.."\"",			
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/assimp-vc143-mtd.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/assimp-vc142-mtd.dll").."\" \""..BinariesPath.."\"",
 		}
+	filter { "configurations:Release", "action:vs2022" }
+		postbuildcommands {
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Release/SDL2.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/AssetPipelineCore.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CatDogProducer.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/GenericProducer.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CatDogConsumer.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/assimp-vc143-mt.dll").."\" \""..BinariesPath.."\"",
+		}
+	filter { "configurations:Release", "action:vs2019" }
+		postbuildcommands {
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Release/SDL2.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/AssetPipelineCore.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CatDogProducer.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/GenericProducer.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CatDogConsumer.dll").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/assimp-vc142-mt.dll").."\" \""..BinariesPath.."\"",
+		}		
 	filter {}
