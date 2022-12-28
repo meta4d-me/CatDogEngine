@@ -13,9 +13,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-      
-    - name: Checkout submodules
-      run: git submodule update --init
+      with:
+        submodules: recursive
 
     - name: Make 3rdParty
       run: ${{github.workspace}}/MakeThirdParty_vs2022.bat
