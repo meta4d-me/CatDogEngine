@@ -64,7 +64,7 @@ function MakeProject(projectName)
 		links {
 			"Engine",
 			"AssetPipelineCore",
-			"CatDogProducer",
+			"CDProducer",
 		}
 end
 

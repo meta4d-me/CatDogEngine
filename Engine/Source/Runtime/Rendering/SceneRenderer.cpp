@@ -1,9 +1,6 @@
 #include "SceneRenderer.h"
 
-#include "BgfxConsumer.h"
 #include "Display/Camera.h"
-#include "Framework/Processor.h"
-#include "Producers/CatDogProducer/CatDogProducer.h"
 #include "RenderContext.h"
 #include "Scene/Texture.h"
 
@@ -71,19 +68,6 @@ void SceneRenderer::Render(float deltaTime)
 	
 		bgfx::submit(GetViewID(), m_programPBR);
 	}
-}
-
-void SceneRenderer::UpdateSceneDatabase(std::string sceneFilePath)
-{
-	// CatDogProducer can parse .cdbin format file to SceneDatabase in memory.
-	// BgfxConsumer is used to translate SceneDatabase to data which bgfx api can use directly.
-	cdtools::CatDogProducer cdProducer(sceneFilePath.c_str());
-	BgfxConsumer bgfxConsumer("");
-	cdtools::Processor processor(&cdProducer, &bgfxConsumer);
-	processor.Run();
-
-	// Start creating bgfx resources from RenderDataContext
-	SetRenderDataContext(bgfxConsumer.GetRenderDataContext());
 }
 
 void SceneRenderer::SetRenderDataContext(RenderDataContext renderDataContext)
