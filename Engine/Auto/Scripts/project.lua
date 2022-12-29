@@ -27,8 +27,10 @@ function MakeProject(projectName)
 			["Source"] = { path.join(projectSourcePath, "**.*") },
 		}
 		
+		local projectResourcesPath = RootPath.."/Projects/SponzaBaseScene/Resources/"
 		defines {
 			"BX_CONFIG_DEBUG",
+			"CDENGINE_RESOURCES_ROOT_PATH=\""..projectResourcesPath.."\"",	
 		}
 
 		includedirs {
@@ -43,21 +45,27 @@ function MakeProject(projectName)
 			path.join(ThirdPartySourcePath, "bx/include/compat/msvc"),
 		}
 		
-		libdirs {
-			BinariesPath,
-		}
-		
-		links {
-			"Engine"
-		}
-
 		-- use /MT /MTd, not /MD /MDd
 		staticruntime "on"
 		filter { "configurations:Debug" }
 			runtime "Debug" -- /MTd
+			libdirs {
+				BinariesPath,
+				path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug"),
+			}
 		filter { "configurations:Release" }
 			runtime "Release" -- /MT
+			libdirs {
+				BinariesPath,
+				path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release"),
+			}
 		filter {}
+		
+		links {
+			"Engine",
+			"AssetPipelineCore",
+			"CatDogProducer",
+		}
 end
 
 group "Projects"

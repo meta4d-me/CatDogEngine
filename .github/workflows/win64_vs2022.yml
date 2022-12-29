@@ -7,24 +7,23 @@ on:
     branches: [ main ]
 
 jobs:
-  build-windows:
+  build-engine:
     runs-on: windows-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-      
-    - name: Checkout submodules
-      run: git submodule update --init
-
-    - name: Make 3rdParty
-      run: ${{github.workspace}}/MakeThirdParty_vs2022.bat
-
-    - name: Make Engine
-      run: ${{github.workspace}}/MakeEngine_vs2022.bat
+      with:
+        submodules: recursive
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Make 3rdParty
+      run: ${{github.workspace}}/MakeThirdParty_vs2022.bat
+      
+    - name: Make Engine
+      run: ${{github.workspace}}/MakeEngine_vs2022.bat
 
     - name: Build Debugx64
       run: msbuild ${{github.workspace}}/CatDogEngine.sln /p:Configuration=Debug /p:Platform=x64

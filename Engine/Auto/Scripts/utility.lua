@@ -64,16 +64,16 @@ project("MakeEngine")
 		}
 	filter {}
 
-project("MakeThirdParty")
-	kind("Utility")
-	location(path.join(IntermediatePath, "Engine/Misc"))
-	targetdir(BinariesPath)
-
-	filter { "system:windows" }
-		prebuildcommands {
-			"cd "..RootPath,
-			"MakeThirdParty_"..IDEConfigs.BuildIDEName..".bat",
-		}
-	filter {}
+--project("MakeThirdParty")
+--	kind("Utility")
+--	location(path.join(IntermediatePath, "Engine/Misc"))
+--	targetdir(BinariesPath)
+--
+--	filter { "system:windows" }
+--		prebuildcommands {
+--			"cd "..RootPath,
+--			"MakeThirdParty_"..IDEConfigs.BuildIDEName..".bat",
+--		}
+--	filter {}
 
 group("")

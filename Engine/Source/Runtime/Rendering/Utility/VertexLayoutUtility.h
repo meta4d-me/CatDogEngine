@@ -1,8 +1,10 @@
 #pragma once
 
-#include "Scene/VertexFormat.h"
+#include "Scene/VertexAttribute.h"
 
 #include <bgfx/bgfx.h>
+
+#include <vector>
 
 namespace engine
 {
@@ -10,8 +12,8 @@ namespace engine
 class VertexLayoutUtility
 {
 public:
-	static void CreateVertexLayout(bgfx::VertexLayout& outVertexLayout, const std::vector<cd::VertexFormat::VertexAttributeLayout>& vertexAttributes, bool debugPrint = false);
-	static void CreateVertexLayout(bgfx::VertexLayout& outVertexLayout, const cd::VertexFormat::VertexAttributeLayout& vertexAttribute, bool debugPrint = false);
+	static void CreateVertexLayout(bgfx::VertexLayout& outVertexLayout, const std::vector<cd::VertexAttributeLayout>& vertexAttributes, bool debugPrint = false);
+	static void CreateVertexLayout(bgfx::VertexLayout& outVertexLayout, const cd::VertexAttributeLayout& vertexAttribute, bool debugPrint = false);
 };
 
 }
