@@ -70,9 +70,9 @@ project("Editor")
 	links {
 		"Engine",
 		"AssetPipelineCore",
-		"CatDogProducer",
+		"CDProducer",
 		"GenericProducer",
-		"CatDogConsumer",
+		"CDConsumer",
 	}
 
 	-- Disable these options can reduce the size of compiled binaries.

@@ -3,7 +3,7 @@
 #include "BgfxConsumer.h"
 #include "Display/Camera.h"
 #include "Framework/Processor.h"
-#include "Producers/CatDogProducer/CatDogProducer.h"
+#include "Producers/CDProducer/CDProducer.h"
 #include "RenderContext.h"
 #include "Scene/Texture.h"
 
@@ -18,7 +18,7 @@ namespace engine
 void TerrainRenderer::Init()
 {
 	std::string sceneModelFilePath = std::string(CDENGINE_RESOURCES_ROOT_PATH) + "Models/generated_terrain.cdbin";
-	cdtools::CatDogProducer cdProducer(sceneModelFilePath.c_str());
+	cdtools::CDProducer cdProducer(sceneModelFilePath.c_str());
 	BgfxConsumer bgfxConsumer("");
 	cdtools::Processor processor(&cdProducer, &bgfxConsumer);
 	processor.Run();

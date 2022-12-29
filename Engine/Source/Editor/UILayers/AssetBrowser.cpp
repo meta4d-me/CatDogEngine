@@ -1,5 +1,8 @@
 #include "AssetBrowser.h"
 
+#include "Rendering/BgfxConsumer.h"
+#include "Framework/Processor.h"
+#include "Producers/GenericProducer/GenericProducer.h"
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
 #include "Rendering/SceneRenderer.h"
 
@@ -28,10 +31,11 @@ void AssetBrowser::Init()
 {
 	m_pImportFileBrowser = new ImGui::FileBrowser();
 	m_pImportFileBrowser->SetTitle("Asset - Import");
+
 	// TODO : Import needs to have different options based on different kinds of file formats.
 	// Model/Material/Texture/Audio/Script/...
 	// /*".gltf", ".fbx"*/
-	m_pImportFileBrowser->SetTypeFilters({ ".cdbin" });
+	m_pImportFileBrowser->SetTypeFilters({ ".gltf", ".fbx", ".cdscene" });
 }
 
 void AssetBrowser::UpdateAssetFolderTree()
@@ -88,7 +92,22 @@ void AssetBrowser::Update()
 	if (m_pImportFileBrowser->HasSelected())
 	{
 		std::string importFilePath = m_pImportFileBrowser->GetSelected().string();
-		m_pSceneRenderer->UpdateSceneDatabase(importFilePath);
+
+		// Translate different 3D model file formats to memory data.
+		cdtools::GenericProducer cdProducer(importFilePath.c_str());
+		cdProducer.ActivateBoundingBoxService();
+		cdProducer.ActivateCleanUnusedService();
+		cdProducer.ActivateFlattenHierarchyService();
+		cdProducer.ActivateTangentsSpaceService();
+		cdProducer.ActivateTriangulateService();
+
+		engine::BgfxConsumer bgfxConsumer("");
+		cdtools::Processor processor(&cdProducer, &bgfxConsumer);
+		processor.Run();
+
+		// Pass data to SceneRenderer to render.
+		m_pSceneRenderer->SetRenderDataContext(bgfxConsumer.GetRenderDataContext());
+
 		m_pImportFileBrowser->ClearSelected();
 	}
 }

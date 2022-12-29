@@ -19,7 +19,7 @@ class BgfxConsumer final : public cdtools::IConsumer
 {
 public:
 	BgfxConsumer() = delete;
-	explicit BgfxConsumer(std::string filePath) : m_filePath(std::move(filePath)) {}
+	explicit BgfxConsumer(std::string filePath) : m_filePath(cd::MoveTemp(filePath)) {}
 	BgfxConsumer(const BgfxConsumer&) = delete;
 	BgfxConsumer& operator=(const BgfxConsumer&) = delete;
 	BgfxConsumer(BgfxConsumer&&) = delete;
@@ -27,7 +27,7 @@ public:
 	virtual ~BgfxConsumer() = default;
 
 	virtual void Execute(const cd::SceneDatabase* pSceneDatabase) override;
-	RenderDataContext&& GetRenderDataContext() { return std::move(m_renderDataContext); }
+	RenderDataContext&& GetRenderDataContext() { return cd::MoveTemp(m_renderDataContext); }
 
 private:
 	std::string m_filePath;
