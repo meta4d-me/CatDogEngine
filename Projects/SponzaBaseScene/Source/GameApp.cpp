@@ -3,7 +3,10 @@
 #include "Application/Engine.h"
 #include "Display/FirstPersonCameraController.h"
 #include "Display/FlybyCamera.h"
+#include "Framework/Processor.h"
 #include "ImGui/ImGuiContextInstance.h"
+#include "Producers/CDProducer/CDProducer.h"
+#include "Rendering/BgfxConsumer.h"
 #include "Rendering/ImGuiRenderer.h"
 #include "Rendering/PBRSkyRenderer.h"
 #include "Rendering/PostProcessRenderer.h"
@@ -75,9 +78,15 @@ void GameApp::Init(engine::EngineInitArgs initArgs)
 
 	AddRenderer(std::make_unique<engine::SkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pMainRenderTarget));
 	auto pSceneRenderer = std::make_unique<engine::SceneRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pMainRenderTarget);
+
 	std::string sceneFilePath = CDENGINE_RESOURCES_ROOT_PATH;
 	sceneFilePath += "Models/dragon_shield.cdscene";
-	pSceneRenderer->UpdateSceneDatabase(cd::MoveTemp(sceneFilePath));
+	cdtools::CDProducer producer(sceneFilePath.c_str());
+	engine::BgfxConsumer consumer("");
+	cdtools::Processor processor(&producer, &consumer);
+	processor.Run();
+	pSceneRenderer->SetRenderDataContext(consumer.GetRenderDataContext());
+
 	AddRenderer(cd::MoveTemp(pSceneRenderer));
 	//AddRenderer(std::make_unique<engine::TerrainRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pMainRenderTarget));
 	AddRenderer(std::make_unique<engine::PostProcessRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSwapChainRenderTarget));

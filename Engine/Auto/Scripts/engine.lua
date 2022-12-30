@@ -45,7 +45,6 @@ project("Engine")
 		RuntimeSourcePath,
 		ThirdPartySourcePath,
 		path.join(ThirdPartySourcePath, "AssetPipeline/public"),
-		path.join(ThirdPartySourcePath, "AssetPipeline/producer"),
 		path.join(ThirdPartySourcePath, "bgfx/include"),
 		path.join(ThirdPartySourcePath, "bgfx/3rdparty"),
 		path.join(ThirdPartySourcePath, "bimg/include"),
