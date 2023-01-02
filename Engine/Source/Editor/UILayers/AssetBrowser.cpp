@@ -1,9 +1,9 @@
 #include "AssetBrowser.h"
 
-#include "Rendering/BgfxConsumer.h"
 #include "Framework/Processor.h"
 #include "Producers/GenericProducer/GenericProducer.h"
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
+#include "Rendering/BgfxConsumer.h"
 #include "Rendering/SceneRenderer.h"
 
 #include <imgui/imgui.h>
@@ -35,7 +35,7 @@ void AssetBrowser::Init()
 	// TODO : Import needs to have different options based on different kinds of file formats.
 	// Model/Material/Texture/Audio/Script/...
 	// /*".gltf", ".fbx"*/
-	m_pImportFileBrowser->SetTypeFilters({ ".gltf", ".fbx", ".cdscene" });
+	m_pImportFileBrowser->SetTypeFilters({ ".gltf", ".fbx" });
 }
 
 void AssetBrowser::UpdateAssetFolderTree()
@@ -60,6 +60,24 @@ void AssetBrowser::UpdateAssetFileView()
 	ImGui::BeginChild("FileView", ImVec2(ImGui::GetWindowWidth() * 0.5f, ImGui::GetWindowHeight() * 0.75f));
 
 	ImGui::EndChild();
+}
+
+void AssetBrowser::ImportAssetFile(const char* pFilePath)
+{
+	// Translate different 3D model file formats to memory data.
+	cdtools::GenericProducer cdProducer(pFilePath);
+	cdProducer.ActivateBoundingBoxService();
+	cdProducer.ActivateCleanUnusedService();
+	cdProducer.ActivateFlattenHierarchyService();
+	cdProducer.ActivateTangentsSpaceService();
+	cdProducer.ActivateTriangulateService();
+
+	engine::BgfxConsumer bgfxConsumer("");
+	cdtools::Processor processor(&cdProducer, &bgfxConsumer);
+	processor.Run();
+
+	// Pass data to SceneRenderer to render.
+	m_pSceneRenderer->SetRenderDataContext(bgfxConsumer.GetRenderDataContext());
 }
 
 void AssetBrowser::Update()
@@ -91,23 +109,7 @@ void AssetBrowser::Update()
 	m_pImportFileBrowser->Display();
 	if (m_pImportFileBrowser->HasSelected())
 	{
-		std::string importFilePath = m_pImportFileBrowser->GetSelected().string();
-
-		// Translate different 3D model file formats to memory data.
-		cdtools::GenericProducer cdProducer(importFilePath.c_str());
-		cdProducer.ActivateBoundingBoxService();
-		cdProducer.ActivateCleanUnusedService();
-		cdProducer.ActivateFlattenHierarchyService();
-		cdProducer.ActivateTangentsSpaceService();
-		cdProducer.ActivateTriangulateService();
-
-		engine::BgfxConsumer bgfxConsumer("");
-		cdtools::Processor processor(&cdProducer, &bgfxConsumer);
-		processor.Run();
-
-		// Pass data to SceneRenderer to render.
-		m_pSceneRenderer->SetRenderDataContext(bgfxConsumer.GetRenderDataContext());
-
+		ImportAssetFile(m_pImportFileBrowser->GetSelected().generic_string().c_str());
 		m_pImportFileBrowser->ClearSelected();
 	}
 }

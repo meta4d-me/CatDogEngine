@@ -26,6 +26,7 @@ public:
 	virtual void Init() override;
 	virtual void Update() override;
 
+	void ImportAssetFile(const char* pFilePath);
 	void SetSceneRenderer(engine::SceneRenderer* pRenderer) { m_pSceneRenderer = pRenderer; }
 
 private:

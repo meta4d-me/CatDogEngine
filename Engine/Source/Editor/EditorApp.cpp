@@ -104,8 +104,11 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 	m_pSceneView = pSceneView.get();
 	m_pEditorImGuiContext->AddDynamicLayer(std::move(pSceneView));
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
+
 	auto pAssetBrowser = std::make_unique<AssetBrowser>("AssetBrowser");
 	pAssetBrowser->SetSceneRenderer(m_pSceneRenderer);
+	GetMainWindow()->OnDropFile.Bind<editor::AssetBrowser, &editor::AssetBrowser::ImportAssetFile>(pAssetBrowser.get());
+
 	m_pEditorImGuiContext->AddDynamicLayer(std::move(pAssetBrowser));
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<OutputLog>("OutputLog"));
 }
