@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Renderer.h"
-#include "Math/VectorDerived.hpp"
+#include "Math/Vector.hpp"
 
 #include <bgfx/bgfx.h>
 

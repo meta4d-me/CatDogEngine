@@ -216,8 +216,8 @@ void BgfxConsumer::ConvertMeshesFromScene(const cd::SceneDatabase& sceneDatabase
 				attribOffset = vertexLayout.getOffset(bgfx::Attrib::Enum::Position);
 				vertexLayout.decode(bgfx::Attrib::Enum::Position, attribNum, attribType, normalized, asInt);
 				attribTypeSize = GetSizeFromAttribType(attribType);
-				std::memcpy(&currentDataPtr[attribOffset], mesh.GetVertexPosition(vertexIndex).begin(), attribNum * attribTypeSize);
-				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexPosition(vertexIndex).begin(), mesh.GetVertexPosition(vertexIndex).begin()+1, mesh.GetVertexPosition(vertexIndex).begin()+2, nullptr);
+				std::memcpy(&currentDataPtr[attribOffset], mesh.GetVertexPosition(vertexIndex).Begin(), attribNum * attribTypeSize);
+				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexPosition(vertexIndex).Begin(), mesh.GetVertexPosition(vertexIndex).Begin() + 1, mesh.GetVertexPosition(vertexIndex).Begin()+2, nullptr);
 			}
 
 			if (vertexLayout.has(bgfx::Attrib::Enum::Normal))
@@ -225,8 +225,8 @@ void BgfxConsumer::ConvertMeshesFromScene(const cd::SceneDatabase& sceneDatabase
 				attribOffset = vertexLayout.getOffset(bgfx::Attrib::Enum::Normal);
 				vertexLayout.decode(bgfx::Attrib::Enum::Normal, attribNum, attribType, normalized, asInt);
 				attribTypeSize = GetSizeFromAttribType(attribType);
-				std::memcpy(&currentDataPtr[attribOffset], mesh.GetVertexNormal(vertexIndex).begin(), attribNum * attribTypeSize);
-				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexNormal(vertexIndex).begin(), mesh.GetVertexNormal(vertexIndex).begin() + 1, mesh.GetVertexNormal(vertexIndex).begin() + 2, nullptr);
+				std::memcpy(&currentDataPtr[attribOffset], mesh.GetVertexNormal(vertexIndex).Begin(), attribNum * attribTypeSize);
+				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexNormal(vertexIndex).Begin(), mesh.GetVertexNormal(vertexIndex).Begin() + 1, mesh.GetVertexNormal(vertexIndex).Begin() + 2, nullptr);
 			}
 
 			if (vertexLayout.has(bgfx::Attrib::Enum::Tangent))
@@ -234,8 +234,8 @@ void BgfxConsumer::ConvertMeshesFromScene(const cd::SceneDatabase& sceneDatabase
 				attribOffset = vertexLayout.getOffset(bgfx::Attrib::Enum::Tangent);
 				vertexLayout.decode(bgfx::Attrib::Enum::Tangent, attribNum, attribType, normalized, asInt);
 				attribTypeSize = GetSizeFromAttribType(attribType);
-				std::memcpy(&currentDataPtr[attribOffset], mesh.GetVertexTangent(vertexIndex).begin(), attribNum * attribTypeSize);
-				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexTangent(vertexIndex).begin(), mesh.GetVertexTangent(vertexIndex).begin() + 1, mesh.GetVertexTangent(vertexIndex).begin() + 2, nullptr);
+				std::memcpy(&currentDataPtr[attribOffset], mesh.GetVertexTangent(vertexIndex).Begin(), attribNum * attribTypeSize);
+				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexTangent(vertexIndex).Begin(), mesh.GetVertexTangent(vertexIndex).Begin() + 1, mesh.GetVertexTangent(vertexIndex).Begin() + 2, nullptr);
 			}
 
 			if (vertexLayout.has(bgfx::Attrib::Enum::Bitangent))
@@ -243,8 +243,8 @@ void BgfxConsumer::ConvertMeshesFromScene(const cd::SceneDatabase& sceneDatabase
 				attribOffset = vertexLayout.getOffset(bgfx::Attrib::Enum::Bitangent);
 				vertexLayout.decode(bgfx::Attrib::Enum::Bitangent, attribNum, attribType, normalized, asInt);
 				attribTypeSize = GetSizeFromAttribType(attribType);
-				std::memcpy(&currentDataPtr[attribOffset], mesh.GetVertexBiTangent(vertexIndex).begin(), attribNum * attribTypeSize);
-				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexBiTangent(vertexIndex).begin(), mesh.GetVertexBiTangent(vertexIndex).begin() + 1, mesh.GetVertexBiTangent(vertexIndex).begin() + 2, nullptr);
+				std::memcpy(&currentDataPtr[attribOffset], mesh.GetVertexBiTangent(vertexIndex).Begin(), attribNum * attribTypeSize);
+				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexBiTangent(vertexIndex).Begin(), mesh.GetVertexBiTangent(vertexIndex).Begin() + 1, mesh.GetVertexBiTangent(vertexIndex).Begin() + 2, nullptr);
 			}
 
 			assert(MAX_COLOR_COUNT >= cd::MaxColorSetNumber);
@@ -258,8 +258,8 @@ void BgfxConsumer::ConvertMeshesFromScene(const cd::SceneDatabase& sceneDatabase
 				attribOffset = vertexLayout.getOffset(color);
 				vertexLayout.decode(color, attribNum, attribType, normalized, asInt);
 				attribTypeSize = GetSizeFromAttribType(attribType);
-				std::memcpy(&currentDataPtr[attribOffset], mesh.GetVertexColor(i)[vertexIndex].begin(), attribNum * attribTypeSize);
-				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexColor(i)[vertexIndex].begin(), mesh.GetVertexColor(i)[vertexIndex].begin() + 1, mesh.GetVertexColor(i)[vertexIndex].begin() + 2, mesh.GetVertexColor(i)[vertexIndex].begin() + 3);
+				std::memcpy(&currentDataPtr[attribOffset], mesh.GetVertexColor(i)[vertexIndex].Begin(), attribNum * attribTypeSize);
+				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexColor(i)[vertexIndex].Begin(), mesh.GetVertexColor(i)[vertexIndex].Begin() + 1, mesh.GetVertexColor(i)[vertexIndex].Begin() + 2, mesh.GetVertexColor(i)[vertexIndex].Begin() + 3);
 			}
 
 			assert(MAX_UV_COUNT >= cd::MaxUVSetNumber);
@@ -273,8 +273,8 @@ void BgfxConsumer::ConvertMeshesFromScene(const cd::SceneDatabase& sceneDatabase
 				attribOffset = vertexLayout.getOffset(uv);
 				vertexLayout.decode(uv, attribNum, attribType, normalized, asInt);
 				attribTypeSize = GetSizeFromAttribType(attribType);
-				std::memcpy(&currentDataPtr[attribOffset], mesh.GetVertexUV(i)[vertexIndex].begin(), attribNum * attribTypeSize);
-				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexUV(i)[vertexIndex].begin(), mesh.GetVertexUV(i)[vertexIndex].begin() + 1, nullptr, nullptr);
+				std::memcpy(&currentDataPtr[attribOffset], mesh.GetVertexUV(i)[vertexIndex].Begin(), attribNum * attribTypeSize);
+				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexUV(i)[vertexIndex].Begin(), mesh.GetVertexUV(i)[vertexIndex].Begin() + 1, nullptr, nullptr);
 			}
 
 			// Advance currentDataPtr by stride
