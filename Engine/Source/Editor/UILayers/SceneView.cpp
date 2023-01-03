@@ -5,6 +5,7 @@
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/RenderTarget.h"
+#include "Scene/SceneDatabase.h"
 
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -114,6 +115,15 @@ void SceneView::UpdateToolMenuButtons()
 
 	ImGui::SameLine();
 	ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+	ImGui::SameLine();
+
+	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CAMERA " FrameAll")))
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
+		pCurrentRenderContext->GetCamera()->FrameAll(m_pSceneDatabase->GetAABB());
+	}
+
 	ImGui::SameLine();
 
 	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_AXIS_ARROW " 3D")))

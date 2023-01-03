@@ -1,10 +1,14 @@
 #include "AssetBrowser.h"
 
+#include "ECWorld/ECWorldConsumer.h"
+#include "ECWorld/EditorWorld.h"
+#include "ECWorld/StaticMeshComponent.h"
+#include "ECWorld/World.h"
 #include "Framework/Processor.h"
+#include "Material/MaterialType.h"
 #include "Producers/GenericProducer/GenericProducer.h"
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
-#include "Rendering/BgfxConsumer.h"
-#include "Rendering/SceneRenderer.h"
+#include "Rendering/WorldRenderer.h"
 
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -64,6 +68,9 @@ void AssetBrowser::UpdateAssetFileView()
 
 void AssetBrowser::ImportAssetFile(const char* pFilePath)
 {
+	ImGuiIO& io = ImGui::GetIO();
+	engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
+
 	// Translate different 3D model file formats to memory data.
 	cdtools::GenericProducer cdProducer(pFilePath);
 	cdProducer.ActivateBoundingBoxService();
@@ -72,12 +79,22 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 	cdProducer.ActivateTangentsSpaceService();
 	cdProducer.ActivateTriangulateService();
 
-	engine::BgfxConsumer bgfxConsumer("");
-	cdtools::Processor processor(&cdProducer, &bgfxConsumer);
+	engine::World* pWorld = m_pEditorWorld->GetWorld();
+	std::vector<engine::Entity>& meshEntites = m_pEditorWorld->GetMeshEntites();
+
+	engine::MaterialType pbrMaterialType = engine::MaterialType::GetPBRMaterialType();
+	engine::ECWorldConsumer ecConsumer(pWorld, &pbrMaterialType, pCurrentRenderContext);
+	cdtools::Processor processor(&cdProducer, &ecConsumer, m_pSceneDatabase);
 	processor.Run();
 
-	// Pass data to SceneRenderer to render.
-	m_pSceneRenderer->SetRenderDataContext(bgfxConsumer.GetRenderDataContext());
+	auto pStaticMeshStorage = pWorld->GetComponents<engine::StaticMeshComponent>();
+	for (engine::Entity entity : ecConsumer.GetMeshEntities())
+	{
+		engine::StaticMeshComponent* pStaticMeshComponent = pStaticMeshStorage->GetComponent(entity);
+		pStaticMeshComponent->Build();
+
+		meshEntites.push_back(entity);
+	}
 }
 
 void AssetBrowser::Update()

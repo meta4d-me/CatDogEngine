@@ -41,7 +41,7 @@ public:
 	size_t GetCapcity() const { assert(m_entities.size() == m_components.size()); return m_entities.size(); }
 
 	// Get component by entity.
-	Component* GetComponent(Entity entity) const
+	Component* GetComponent(Entity entity)
 	{
 		auto itIndex = m_entityToIndex.find(entity);
 		return itIndex == m_entityToIndex.end() ? nullptr : &m_components[itIndex->second];
