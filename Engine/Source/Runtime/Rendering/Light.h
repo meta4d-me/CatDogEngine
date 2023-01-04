@@ -1,6 +1,6 @@
 #pragma
 
-#include "Math/VectorDerived.hpp"
+#include "Math/Vector.hpp"
 
 namespace engine
 {

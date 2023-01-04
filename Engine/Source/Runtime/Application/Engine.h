@@ -11,6 +11,7 @@ namespace engine
 
 class RenderContext;
 class Renderer;
+class World;
 
 class Engine
 {

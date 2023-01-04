@@ -62,7 +62,9 @@ void PBRSkyRenderer::Init() {
 	// Create vertex format and vertex/index buffer
 	cd::VertexFormat vertexFormat;
 	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
-	m_vertexLayoutSkyBox.begin().add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float).end();
+	
+	constexpr StringCrc positionVertexLayout("PosistionOnly");
+	m_pRenderContext->CreateVertexLayout(positionVertexLayout, vertexFormat.GetVertexLayout());
 
 	cd::Box box(cd::Point(-1.0f), cd::Point(1.0f));
 	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(box, vertexFormat);
@@ -71,7 +73,7 @@ void PBRSkyRenderer::Init() {
 	const cd::Mesh& meshData = optMesh.value();
 	static std::vector<cd::Point> vertexBufferData = meshData.GetVertexPositions();
 	static std::vector<cd::Mesh::Polygon> indexBufferData = meshData.GetPolygons();
-	m_vbhSkybox = bgfx::createVertexBuffer(bgfx::makeRef(vertexBufferData.data(), static_cast<uint32_t>(vertexBufferData.size() * sizeof(cd::Point))), m_vertexLayoutSkyBox);
+	m_vbhSkybox = bgfx::createVertexBuffer(bgfx::makeRef(vertexBufferData.data(), static_cast<uint32_t>(vertexBufferData.size() * sizeof(cd::Point))), m_pRenderContext->GetVertexLayout(positionVertexLayout));
 	m_ibhSkybox = bgfx::createIndexBuffer(bgfx::makeRef(indexBufferData.data(), static_cast<uint32_t>(indexBufferData.size() * sizeof(uint32_t) * 3)), BGFX_BUFFER_INDEX32);
 
 	bgfx::setViewName(GetViewID(), "PBRSkyRenderer");

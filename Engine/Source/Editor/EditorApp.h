@@ -5,16 +5,24 @@
 #include <memory>
 #include <vector>
 
+namespace cd
+{
+
+class SceneDatabase;
+
+}
+
 namespace engine
 {
 
+class FirstPersonCameraController;
 class FlybyCamera;
 class ImGuiBaseLayer;
 class ImGuiContextInstance;
 class Window;
+class World;
 class RenderContext;
 class Renderer;
-class SceneRenderer;
 
 }
 
@@ -24,6 +32,7 @@ namespace editor
 {
 
 class EditorImGuiViewport;
+class EditorWorld;
 class SceneView;
 
 class EditorApp final : public engine::IApplication
@@ -52,6 +61,8 @@ public:
 	void InitEngineImGuiContext(engine::Language language);
 	void InitImGuiViewports(engine::RenderContext* pRenderContext);
 
+	void InitECWorld();
+
 private:
 	// Windows
 	std::vector<std::unique_ptr<engine::Window>> m_pAllWindows;
@@ -62,9 +73,13 @@ private:
 
 	std::unique_ptr<EditorImGuiViewport> m_pEditorImGuiViewport;
 
+	// Current open project's constructed EC World
+	std::unique_ptr<EditorWorld> m_pEditorWorld;
+	std::unique_ptr<cd::SceneDatabase> m_pWorldSceneDatabase;
+
 	// Scene
 	editor::SceneView* m_pSceneView;
-	engine::SceneRenderer* m_pSceneRenderer;
+	engine::Renderer* m_pSceneRenderer;
 
 	// Rendering
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;
@@ -72,6 +87,7 @@ private:
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEngineRenderers;
 
 	// TODO
+	std::unique_ptr<engine::FirstPersonCameraController> m_pCameraController;
 	std::unique_ptr<engine::FlybyCamera> m_pCamera;
 };
 

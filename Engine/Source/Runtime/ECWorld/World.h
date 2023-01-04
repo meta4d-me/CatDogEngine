@@ -33,11 +33,29 @@ public:
 	}
 
 	template<typename Component>
-	ComponentsStorage<Component>* Register(StringCrc componentName)
+	ComponentsStorage<Component>* Register()
 	{
+		StringCrc componentName = Component::GetClassName();
 		assert(!m_componentsLib.contains(componentName.value()));
 		m_componentsLib[componentName.value()] = std::make_unique<ComponentsStorage<Component>>();
 		return static_cast<ComponentsStorage<Component>*>(m_componentsLib[componentName.value()].get());
+	}
+
+	template<typename Component>
+	ComponentsStorage<Component>* GetComponents()
+	{
+		StringCrc componentName = Component::GetClassName();
+		assert(m_componentsLib.contains(componentName.value()));
+		return static_cast<ComponentsStorage<Component>*>(m_componentsLib[componentName.value()].get());
+	}
+
+	template<typename Component>
+	Component& CreateComponent(Entity entity)
+	{
+		StringCrc componentName = Component::GetClassName();
+		assert(m_componentsLib.contains(componentName.value()));
+		ComponentsStorage<Component>* pStorage = static_cast<ComponentsStorage<Component>*>(m_componentsLib[componentName.value()].get());
+		return pStorage->CreateComponent(entity);
 	}
 
 private:

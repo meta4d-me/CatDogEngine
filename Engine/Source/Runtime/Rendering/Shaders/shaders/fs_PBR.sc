@@ -11,12 +11,12 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 uniform vec4 u_lightCount[1];
 uniform vec4 u_lightStride[1];
 
-SAMPLERCUBE(s_texCube, 0);
-SAMPLERCUBE(s_texCubeIrr, 1);
-SAMPLER2D(s_texBaseColor, 2);
-SAMPLER2D(s_texNormal, 3);
-SAMPLER2D(s_texORM, 4);
-SAMPLER2D(s_texLUT, 5);
+SAMPLER2D(s_texBaseColor, 0);
+SAMPLER2D(s_texNormal, 1);
+SAMPLER2D(s_texORM, 2);
+SAMPLER2D(s_texLUT, 3);
+SAMPLERCUBE(s_texCube, 4);
+SAMPLERCUBE(s_texCubeIrr, 5);
 
 struct Material {
 	vec3 albedo;
@@ -118,7 +118,9 @@ void main()
 	material.albedo = SampleAlbedoTexture(v_texcoord0);
 	material.normal = SampleNormalTexture(v_texcoord0, v_TBN);
 	vec3 orm = SampleORMTexture(v_texcoord0);
+#if defined(USE_AOMAP)
 	material.occlusion = orm.x;
+#endif
 	material.roughness = orm.y;
 	material.metallic = orm.z;
 	material.F0 = CalcuateF0(material);

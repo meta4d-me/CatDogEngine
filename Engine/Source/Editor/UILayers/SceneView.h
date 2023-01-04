@@ -10,6 +10,13 @@ enum OPERATION;
 
 }
 
+namespace cd
+{
+
+class SceneDatabase;
+
+}
+
 namespace engine
 {
 
@@ -29,13 +36,17 @@ public:
 	virtual void Init() override;
 	virtual void Update() override;
 
-private:
-	void UpdateToolMenuButtons();
+	void SetSceneDatabase(cd::SceneDatabase* pSceneDatabase) { m_pSceneDatabase = pSceneDatabase; }
 
 public:
 	engine::MulticastDelegate<void(uint16_t, uint16_t)> OnResize;
 
 private:
+	void UpdateToolMenuButtons();
+
+private:
+	cd::SceneDatabase* m_pSceneDatabase = nullptr;
+
 	uint16_t m_lastContentWidth = 0;
 	uint16_t m_lastContentHeight = 0;
 

@@ -1,10 +1,14 @@
 #include "AssetBrowser.h"
 
-#include "Rendering/BgfxConsumer.h"
+#include "ECWorld/ECWorldConsumer.h"
+#include "ECWorld/EditorWorld.h"
+#include "ECWorld/StaticMeshComponent.h"
+#include "ECWorld/World.h"
 #include "Framework/Processor.h"
+#include "Material/MaterialType.h"
 #include "Producers/GenericProducer/GenericProducer.h"
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
-#include "Rendering/SceneRenderer.h"
+#include "Rendering/WorldRenderer.h"
 
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -35,7 +39,7 @@ void AssetBrowser::Init()
 	// TODO : Import needs to have different options based on different kinds of file formats.
 	// Model/Material/Texture/Audio/Script/...
 	// /*".gltf", ".fbx"*/
-	m_pImportFileBrowser->SetTypeFilters({ ".gltf", ".fbx", ".cdscene" });
+	m_pImportFileBrowser->SetTypeFilters({ ".gltf", ".fbx" });
 }
 
 void AssetBrowser::UpdateAssetFolderTree()
@@ -60,6 +64,37 @@ void AssetBrowser::UpdateAssetFileView()
 	ImGui::BeginChild("FileView", ImVec2(ImGui::GetWindowWidth() * 0.5f, ImGui::GetWindowHeight() * 0.75f));
 
 	ImGui::EndChild();
+}
+
+void AssetBrowser::ImportAssetFile(const char* pFilePath)
+{
+	ImGuiIO& io = ImGui::GetIO();
+	engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
+
+	// Translate different 3D model file formats to memory data.
+	cdtools::GenericProducer cdProducer(pFilePath);
+	cdProducer.ActivateBoundingBoxService();
+	cdProducer.ActivateCleanUnusedService();
+	cdProducer.ActivateFlattenHierarchyService();
+	cdProducer.ActivateTangentsSpaceService();
+	cdProducer.ActivateTriangulateService();
+
+	engine::World* pWorld = m_pEditorWorld->GetWorld();
+	std::vector<engine::Entity>& meshEntites = m_pEditorWorld->GetMeshEntites();
+
+	engine::MaterialType pbrMaterialType = engine::MaterialType::GetPBRMaterialType();
+	engine::ECWorldConsumer ecConsumer(pWorld, &pbrMaterialType, pCurrentRenderContext);
+	cdtools::Processor processor(&cdProducer, &ecConsumer, m_pSceneDatabase);
+	processor.Run();
+
+	auto pStaticMeshStorage = pWorld->GetComponents<engine::StaticMeshComponent>();
+	for (engine::Entity entity : ecConsumer.GetMeshEntities())
+	{
+		engine::StaticMeshComponent* pStaticMeshComponent = pStaticMeshStorage->GetComponent(entity);
+		pStaticMeshComponent->Build();
+
+		meshEntites.push_back(entity);
+	}
 }
 
 void AssetBrowser::Update()
@@ -91,23 +126,7 @@ void AssetBrowser::Update()
 	m_pImportFileBrowser->Display();
 	if (m_pImportFileBrowser->HasSelected())
 	{
-		std::string importFilePath = m_pImportFileBrowser->GetSelected().string();
-
-		// Translate different 3D model file formats to memory data.
-		cdtools::GenericProducer cdProducer(importFilePath.c_str());
-		cdProducer.ActivateBoundingBoxService();
-		cdProducer.ActivateCleanUnusedService();
-		cdProducer.ActivateFlattenHierarchyService();
-		cdProducer.ActivateTangentsSpaceService();
-		cdProducer.ActivateTriangulateService();
-
-		engine::BgfxConsumer bgfxConsumer("");
-		cdtools::Processor processor(&cdProducer, &bgfxConsumer);
-		processor.Run();
-
-		// Pass data to SceneRenderer to render.
-		m_pSceneRenderer->SetRenderDataContext(bgfxConsumer.GetRenderDataContext());
-
+		ImportAssetFile(m_pImportFileBrowser->GetSelected().generic_string().c_str());
 		m_pImportFileBrowser->ClearSelected();
 	}
 }

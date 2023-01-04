@@ -1,12 +1,20 @@
 #pragma once
 
-#include "Math/VectorDerived.hpp"
+#include "Core/StringCrc.h"
+#include "Math/Vector.hpp"
 
 namespace engine
 {
 
 class TransformComponent
 {
+public:
+	static constexpr StringCrc GetClassName()
+	{
+		constexpr StringCrc className("TransformComponent");
+		return className;
+	}
+
 public:
 	TransformComponent() = default;
 	TransformComponent(const TransformComponent&) = default;

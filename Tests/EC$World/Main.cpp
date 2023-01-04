@@ -1,11 +1,11 @@
 #include "Core/StringCrc.h"
-#include "EC$/CameraComponent.h"
-#include "EC$/LightComponent.h"
-#include "EC$/MaterialComponent.h"
-#include "EC$/HierarchyComponent.h"
-#include "EC$/World.h"
-#include "EC$/StaticMeshComponent.h"
-#include "EC$/TransformComponent.h"
+#include "ECWorld/CameraComponent.h"
+#include "ECWorld/LightComponent.h"
+#include "ECWorld/MaterialComponent.h"
+#include "ECWorld/HierarchyComponent.h"
+#include "ECWorld/World.h"
+#include "ECWorld/StaticMeshComponent.h"
+#include "ECWorld/TransformComponent.h"
 #include "Utilities/PerformanceProfiler.h"
 
 #include <cassert>
@@ -60,23 +60,12 @@ Factory Test_RegisterComponentStorages(World& world)
 	cdtools::PerformanceProfiler perf("Test_RegisterComponentStorages");
 
 	Factory factory;
-	constexpr StringCrc smComponentName("StaticMeshComponent");
-	factory.pStaticMesh = world.Register<StaticMeshComponent>(smComponentName);
-
-	constexpr StringCrc materialComponentName("MaterialComponent");
-	factory.pMaterial = world.Register<MaterialComponent>(materialComponentName);
-
-	constexpr StringCrc lightComponentName("LightComponent");
-	factory.pLight = world.Register<LightComponent>(lightComponentName);
-
-	constexpr StringCrc transformComponentName("TransformComponent");
-	factory.pTransform = world.Register<TransformComponent>(transformComponentName);
-
-	constexpr StringCrc cameraComponentName("CameraComponent");
-	factory.pCamera = world.Register<CameraComponent>(cameraComponentName);
-
-	constexpr StringCrc hierarchyComponentName("HierarchyComponent");
-	factory.pHierarchy = world.Register<HierarchyComponent>(hierarchyComponentName);
+	factory.pStaticMesh = world.Register<StaticMeshComponent>();
+	factory.pMaterial = world.Register<MaterialComponent>();
+	factory.pLight = world.Register<LightComponent>();
+	factory.pTransform = world.Register<TransformComponent>();
+	factory.pCamera = world.Register<CameraComponent>();
+	factory.pHierarchy = world.Register<HierarchyComponent>();
 
 	printf("\n[Success] Test_RegisterComponentStorages\n");
 

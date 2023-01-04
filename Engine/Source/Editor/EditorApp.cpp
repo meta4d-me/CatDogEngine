@@ -2,13 +2,16 @@
 
 #include "Application/Engine.h"
 #include "Display/FlybyCamera.h"
-#include "EditorImGuiViewport.h"
+#include "Display/FirstPersonCameraController.h"
+#include "ECWorld/EditorWorld.h"
+#include "ImGui/EditorImGuiViewport.h"
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/UILayers/DebugPanel.h"
 #include "Rendering/ImGuiRenderer.h"
 #include "Rendering/PBRSkyRenderer.h"
 #include "Rendering/RenderContext.h"
-#include "Rendering/SceneRenderer.h"
+#include "Rendering/WorldRenderer.h"
+#include "Scene/SceneDatabase.h"
 #include "UILayers/AssetBrowser.h"
 #include "UILayers/EntityList.h"
 #include "UILayers/GameView.h"
@@ -42,6 +45,8 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	uint16_t height = initArgs.height;
 	AddWindow(std::make_unique<engine::Window>(initArgs.pTitle, width, height));
 	GetMainWindow()->SetWindowIcon(initArgs.pIconFilePath);
+
+	InitECWorld();
 
 	InitRenderContext();
 
@@ -101,11 +106,17 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<EntityList>("EntityList"));
 	//m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<GameView>("GameView"));
 	auto pSceneView = std::make_unique<SceneView>("SceneView");
+	pSceneView->SetSceneDatabase(m_pWorldSceneDatabase.get());
 	m_pSceneView = pSceneView.get();
 	m_pEditorImGuiContext->AddDynamicLayer(std::move(pSceneView));
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
+
 	auto pAssetBrowser = std::make_unique<AssetBrowser>("AssetBrowser");
 	pAssetBrowser->SetSceneRenderer(m_pSceneRenderer);
+	pAssetBrowser->SetSceneDatabase(m_pWorldSceneDatabase.get());
+	pAssetBrowser->SetWorld(m_pEditorWorld.get());
+	GetMainWindow()->OnDropFile.Bind<editor::AssetBrowser, &editor::AssetBrowser::ImportAssetFile>(pAssetBrowser.get());
+
 	m_pEditorImGuiContext->AddDynamicLayer(std::move(pAssetBrowser));
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<OutputLog>("OutputLog"));
 }
@@ -141,6 +152,12 @@ void EditorApp::InitImGuiViewports(engine::RenderContext* pRenderContext)
 	m_pEditorImGuiViewport = std::make_unique<EditorImGuiViewport>(pRenderContext);
 }
 
+void EditorApp::InitECWorld()
+{
+	m_pEditorWorld = std::make_unique<EditorWorld>();
+	m_pWorldSceneDatabase = std::make_unique<cd::SceneDatabase>();
+}
+
 void EditorApp::InitRenderContext()
 {
 	m_pRenderContext = std::make_unique<engine::RenderContext>();
@@ -161,6 +178,8 @@ void EditorApp::InitRenderContext()
 	m_pCamera->SetHomogeneousNdc(bgfx::getCaps()->homogeneousDepth);
 	m_pRenderContext->SetCamera(m_pCamera.get());
 
+	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(m_pCamera.get(), 50.0f /* Mouse Sensitivity */, 160.0f /* Movement Speed*/);
+
 	// The init size doesn't make sense. It will resize by SceneView;
 	uint16_t width = 800;
 	uint16_t height = 800;
@@ -172,10 +191,16 @@ void EditorApp::InitRenderContext()
 	};
 	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->CreateRenderTarget(sceneViewRenderTargetName, width, height, std::move(attachmentDesc));
 	pSceneRenderTarget->OnResize.Bind<engine::Camera, &engine::Camera::SetAspect>(m_pCamera.get());
-	AddEngineRenderer(std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget));
-	auto pSceneRenderer = std::make_unique<engine::SceneRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+
+	auto pSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pSkyRenderer->SetEntity(m_pEditorWorld->GetSkyEntity());
+	AddEngineRenderer(cd::MoveTemp(pSkyRenderer));
+
+	auto pSceneRenderer = std::make_unique<engine::WorldRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pSceneRenderer = pSceneRenderer.get();
-	AddEngineRenderer(std::move(pSceneRenderer));
+	pSceneRenderer->SetWorld(m_pEditorWorld->GetWorld());
+	pSceneRenderer->SetMeshEntites(&m_pEditorWorld->GetMeshEntites());
+	AddEngineRenderer(cd::MoveTemp(pSceneRenderer));
 
 	// Note that if you don't want to use ImGuiRenderer for engine, you should also disable EngineImGuiContext.
 	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget));
@@ -184,19 +209,21 @@ void EditorApp::InitRenderContext()
 void EditorApp::AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer)
 {
 	pRenderer->Init();
-	m_pEditorRenderers.emplace_back(std::move(pRenderer));
+	m_pEditorRenderers.emplace_back(cd::MoveTemp(pRenderer));
 }
 
 void EditorApp::AddEngineRenderer(std::unique_ptr<engine::Renderer> pRenderer)
 {
 	pRenderer->Init();
 	pRenderer->SetCamera(m_pCamera.get());
-	m_pEngineRenderers.emplace_back(std::move(pRenderer));
+	m_pEngineRenderers.emplace_back(cd::MoveTemp(pRenderer));
 }
 
 bool EditorApp::Update(float deltaTime)
 {
 	GetMainWindow()->Update();
+
+	m_pCameraController->Update(deltaTime);
 
 	m_pEditorImGuiContext->Update(deltaTime);
 	m_pRenderContext->BeginFrame();
