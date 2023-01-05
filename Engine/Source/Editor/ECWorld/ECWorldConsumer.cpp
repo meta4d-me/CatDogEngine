@@ -2,6 +2,7 @@
 
 #include "ECWorld/ComponentsStorage.hpp"
 #include "ECWorld/MaterialComponent.h"
+#include "ECWorld/NameComponent.h"
 #include "ECWorld/World.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
@@ -18,15 +19,30 @@
 namespace engine
 {
 
+void ECWorldConsumer::SetSceneDatabaseIDs(uint32_t meshID)
+{
+	m_meshMinID = meshID;
+}
+
 void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 {
 	assert(pSceneDatabase->GetMeshCount() > 0);
 
 	for (const auto& mesh : pSceneDatabase->GetMeshes())
 	{
+		if (m_meshMinID > mesh.GetID().Data())
+		{
+			// The SceneDatabase can be reused when we import assets multiple times.
+			// So we need to filter meshes which was generated in the past.
+			continue;
+		}
+
 		assert(mesh.GetVertexCount() > 0 && mesh.GetPolygonCount() > 0);
 
 		Entity meshEntity = m_pWorld->CreateEntity();
+
+		NameComponent& nameComponent = m_pWorld->CreateComponent<NameComponent>(meshEntity);
+		nameComponent.SetName(mesh.GetName());
 
 		TransformComponent& transformComponent = m_pWorld->CreateComponent<TransformComponent>(meshEntity);
 

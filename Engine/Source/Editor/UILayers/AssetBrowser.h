@@ -24,7 +24,7 @@ class Renderer;
 namespace editor
 {
 
-class EditorWorld;
+class EditorSceneWorld;
 
 class AssetBrowser : public engine::ImGuiBaseLayer
 {
@@ -36,8 +36,7 @@ public:
 	virtual void Update() override;
 
 	void ImportAssetFile(const char* pFilePath);
-	void SetWorld(EditorWorld* pWorld) { m_pEditorWorld = pWorld; }
-	void SetSceneDatabase(cd::SceneDatabase* pSceneDatabase) { m_pSceneDatabase = pSceneDatabase; }
+	void SetSceneWorld(EditorSceneWorld* pWorld) { m_pEditorSceneWorld = pWorld; }
 	void SetSceneRenderer(engine::Renderer* pRenderer) { m_pSceneRenderer = pRenderer; }
 
 private:
@@ -48,8 +47,7 @@ private:
 	ImGui::FileBrowser* m_pImportFileBrowser = nullptr;
 	engine::Renderer* m_pSceneRenderer = nullptr;
 
-	EditorWorld* m_pEditorWorld = nullptr;
-	cd::SceneDatabase* m_pSceneDatabase = nullptr;
+	EditorSceneWorld* m_pEditorSceneWorld = nullptr;
 };
 
 }

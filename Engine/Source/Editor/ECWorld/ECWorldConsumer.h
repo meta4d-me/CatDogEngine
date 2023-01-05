@@ -32,6 +32,7 @@ public:
 	ECWorldConsumer& operator=(ECWorldConsumer&&) = delete;
 	virtual ~ECWorldConsumer() = default;
 
+	void SetSceneDatabaseIDs(uint32_t meshID);
 	virtual void Execute(const cd::SceneDatabase* pSceneDatabase) override;
 
 	std::vector<Entity>&& GetMeshEntities() { return cd::MoveTemp(m_meshEntities); }
@@ -42,6 +43,7 @@ private:
 	MaterialType* m_pStandardMaterialType;
 
 	std::vector<Entity> m_meshEntities;
+	uint32_t m_meshMinID;
 };
 
 }

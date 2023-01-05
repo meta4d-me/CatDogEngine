@@ -1,6 +1,7 @@
 #include "SceneView.h"
 
 #include "Display/Camera.h"
+#include "ECWorld/EditorSceneWorld.h"
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
 #include "Rendering/RenderContext.h"
@@ -121,7 +122,7 @@ void SceneView::UpdateToolMenuButtons()
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
-		pCurrentRenderContext->GetCamera()->FrameAll(m_pSceneDatabase->GetAABB());
+		pCurrentRenderContext->GetCamera()->FrameAll(m_pEditorSceneWorld->GetSceneDatabase()->GetAABB());
 	}
 
 	ImGui::SameLine();
