@@ -1,7 +1,7 @@
 #include "AssetBrowser.h"
 
 #include "ECWorld/ECWorldConsumer.h"
-#include "ECWorld/EditorWorld.h"
+#include "ECWorld/EditorSceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/World.h"
 #include "Framework/Processor.h"
@@ -72,19 +72,22 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 	engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
 
 	// Translate different 3D model file formats to memory data.
-	cdtools::GenericProducer cdProducer(pFilePath);
-	cdProducer.ActivateBoundingBoxService();
-	cdProducer.ActivateCleanUnusedService();
-	cdProducer.ActivateFlattenHierarchyService();
-	cdProducer.ActivateTangentsSpaceService();
-	cdProducer.ActivateTriangulateService();
+	cdtools::GenericProducer genericProducer(pFilePath);
+	cd::SceneDatabase* pSceneDatabase = m_pEditorSceneWorld->GetSceneDatabase();
+	genericProducer.SetSceneDatabaseIDs(pSceneDatabase->GetMeshCount(), pSceneDatabase->GetMaterialCount(), pSceneDatabase->GetTextureCount());
+	genericProducer.ActivateBoundingBoxService();
+	genericProducer.ActivateCleanUnusedService();
+	genericProducer.ActivateFlattenHierarchyService();
+	genericProducer.ActivateTangentsSpaceService();
+	genericProducer.ActivateTriangulateService();
 
-	engine::World* pWorld = m_pEditorWorld->GetWorld();
-	std::vector<engine::Entity>& meshEntites = m_pEditorWorld->GetMeshEntites();
+	engine::World* pWorld = m_pEditorSceneWorld->GetWorld();
+	std::vector<engine::Entity>& meshEntites = m_pEditorSceneWorld->GetMeshEntites();
 
 	engine::MaterialType pbrMaterialType = engine::MaterialType::GetPBRMaterialType();
 	engine::ECWorldConsumer ecConsumer(pWorld, &pbrMaterialType, pCurrentRenderContext);
-	cdtools::Processor processor(&cdProducer, &ecConsumer, m_pSceneDatabase);
+	ecConsumer.SetSceneDatabaseIDs(pSceneDatabase->GetMeshCount());
+	cdtools::Processor processor(&genericProducer, &ecConsumer, pSceneDatabase);
 	processor.Run();
 
 	auto pStaticMeshStorage = pWorld->GetComponents<engine::StaticMeshComponent>();

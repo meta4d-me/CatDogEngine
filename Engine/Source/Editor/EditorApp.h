@@ -5,13 +5,6 @@
 #include <memory>
 #include <vector>
 
-namespace cd
-{
-
-class SceneDatabase;
-
-}
-
 namespace engine
 {
 
@@ -20,7 +13,6 @@ class FlybyCamera;
 class ImGuiBaseLayer;
 class ImGuiContextInstance;
 class Window;
-class World;
 class RenderContext;
 class Renderer;
 
@@ -32,7 +24,7 @@ namespace editor
 {
 
 class EditorImGuiViewport;
-class EditorWorld;
+class EditorSceneWorld;
 class SceneView;
 
 class EditorApp final : public engine::IApplication
@@ -70,14 +62,10 @@ private:
 	// ImGui
 	std::unique_ptr<engine::ImGuiContextInstance> m_pEditorImGuiContext;
 	std::unique_ptr<engine::ImGuiContextInstance> m_pEngineImGuiContext;
-
 	std::unique_ptr<EditorImGuiViewport> m_pEditorImGuiViewport;
 
-	// Current open project's constructed EC World
-	std::unique_ptr<EditorWorld> m_pEditorWorld;
-	std::unique_ptr<cd::SceneDatabase> m_pWorldSceneDatabase;
-
 	// Scene
+	std::unique_ptr<EditorSceneWorld> m_pEditorSceneWorld;
 	editor::SceneView* m_pSceneView;
 	engine::Renderer* m_pSceneRenderer;
 
