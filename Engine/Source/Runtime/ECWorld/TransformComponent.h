@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Core/StringCrc.h"
+#include "Math/Matrix.hpp"
+#include "Math/Quaternion.hpp"
 #include "Math/Vector.hpp"
 
 namespace engine
@@ -23,14 +25,23 @@ public:
 	TransformComponent& operator=(TransformComponent&&) = default;
 	~TransformComponent() = default;
 
-	cd::Vec3f GetTranslation() const { return m_translation; }
-	cd::Vec3f GetRotation() const { return m_rotation; }
-	cd::Vec3f GetScale() const { return m_scale; }
+	const cd::Vec3f& GetTranslation() const { return m_translation; }
+	void SetTranslation(cd::Vec3f translation) { m_translation = cd::MoveTemp(translation); }
+
+	const cd::Quaternion& GetRotation() const { return m_rotation; }
+	void SetRotation(cd::Quaternion rotation) { m_rotation = cd::MoveTemp(rotation); }
+	const cd::Vec3f& GetScale() const { return m_scale; }
+	void SetScale(cd::Vec3f scale) { m_scale = cd::MoveTemp(scale); }
+
+	void Build();
 
 private:
+	// Input
 	cd::Vec3f m_translation;
-	cd::Vec3f m_rotation;
+	cd::Quaternion m_rotation;
 	cd::Vec3f m_scale;
+	// Output
+	cd::Matrix4x4 m_transformation;
 };
 
 }
