@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/StringCrc.h"
+#include "Math/Matrix.hpp"
 #include "RenderTarget.h"
 #include "Scene/VertexAttribute.h"
 #include "Scene/VertexFormat.h"

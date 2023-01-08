@@ -52,7 +52,7 @@ void GameApp::Init(engine::EngineInitArgs initArgs)
 	m_pRenderContext->Init();
 
 	// Camera
-	m_pFlybyCamera = std::make_unique<engine::FlybyCamera>(bx::Vec3(0.0f, 0.0f, -50.0f));
+	m_pFlybyCamera = std::make_unique<engine::FlybyCamera>(cd::Point(0.0f, 0.0f, -50.0f));
 	m_pFlybyCamera->SetAspect(aspect);
 	m_pFlybyCamera->SetFov(45.0f);
 	m_pFlybyCamera->SetNearPlane(0.1f);
@@ -92,6 +92,8 @@ void GameApp::Init(engine::EngineInitArgs initArgs)
 	AddRenderer(std::make_unique<engine::PostProcessRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSwapChainRenderTarget));
 	AddRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSwapChainRenderTarget));
 	m_pMainWindow->OnResize.Bind<engine::RenderContext, &engine::RenderContext::OnResize>(m_pRenderContext.get());
+
+	m_pFlybyCamera->FrameAll(processor.GetSceneDatabase()->GetAABB());
 }
 
 void GameApp::Shutdown()
