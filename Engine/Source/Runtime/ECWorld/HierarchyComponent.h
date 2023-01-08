@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core/StringCrc.h"
-#include "ECWorld/HierarchyComponent.h"
+#include "ECWorld/Entity.h"
 
 namespace engine
 {

@@ -59,14 +59,26 @@ void WorldRenderer::Render(float deltaTime)
 		{
 			shadingProgram.idx = pMaterialComponent->GetShadingProgram();
 
-			const auto& baseColorMapInfo = pMaterialComponent->GetTextureInfo(cd::MaterialTextureType::BaseColor);
-			bgfx::setTexture(baseColorMapInfo.slot, bgfx::UniformHandle(baseColorMapInfo.samplerHandle), bgfx::TextureHandle(baseColorMapInfo.textureHandle));
+			std::optional<MaterialComponent::TextureInfo> optBaseColorMapInfo = pMaterialComponent->GetTextureInfo(cd::MaterialTextureType::BaseColor);
+			if (optBaseColorMapInfo.has_value())
+			{
+				const MaterialComponent::TextureInfo& textureInfo = optBaseColorMapInfo.value();
+				bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle(textureInfo.samplerHandle), bgfx::TextureHandle(textureInfo.textureHandle));
+			}
 
-			const auto& normalMapInfo = pMaterialComponent->GetTextureInfo(cd::MaterialTextureType::Normal);
-			bgfx::setTexture(normalMapInfo.slot, bgfx::UniformHandle(normalMapInfo.samplerHandle), bgfx::TextureHandle(normalMapInfo.textureHandle));
+			std::optional<MaterialComponent::TextureInfo> optNormalMapInfo = pMaterialComponent->GetTextureInfo(cd::MaterialTextureType::Normal);
+			if (optNormalMapInfo.has_value())
+			{
+				const MaterialComponent::TextureInfo& textureInfo = optNormalMapInfo.value();
+				bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle(textureInfo.samplerHandle), bgfx::TextureHandle(textureInfo.textureHandle));
+			}
 
-			const auto& ormMapInfo = pMaterialComponent->GetTextureInfo(cd::MaterialTextureType::Metalness);
-			bgfx::setTexture(ormMapInfo.slot, bgfx::UniformHandle(ormMapInfo.samplerHandle), bgfx::TextureHandle(ormMapInfo.textureHandle));
+			std::optional<MaterialComponent::TextureInfo> optORMMapInfo = pMaterialComponent->GetTextureInfo(cd::MaterialTextureType::Metalness);
+			if (optORMMapInfo.has_value())
+			{
+				const MaterialComponent::TextureInfo& textureInfo = optORMMapInfo.value();
+				bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle(textureInfo.samplerHandle), bgfx::TextureHandle(textureInfo.textureHandle));
+			}
 
 			constexpr StringCrc lutSampler("s_texLUT");
 			constexpr StringCrc lutTexture("ibl_brdf_lut.dds");
