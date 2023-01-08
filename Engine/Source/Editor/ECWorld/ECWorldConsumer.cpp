@@ -73,34 +73,45 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 				MaterialComponent& materialComponent = m_pWorld->CreateComponent<MaterialComponent>(meshEntity);
 
 				constexpr uint64_t textureSamplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
-
 				const auto& assignedMaterial = pSceneDatabase->GetMaterial(mesh.GetMaterialID().Data());
+				bool isMissingTexture = false;
+
 				std::optional<cd::TextureID> optBaseColorMap = assignedMaterial.GetTextureID(cd::MaterialTextureType::BaseColor);
 				if (optBaseColorMap.has_value())
 				{
 					const cd::Texture& baseColorMap = pSceneDatabase->GetTexture(optBaseColorMap.value().Data());
-					bgfx::UniformHandle samplerHandle = m_pRenderContext->CreateUniform(std::format("s_textureBaseColor{}", mesh.GetMaterialID().Data()).c_str(), bgfx::UniformType::Sampler);
-
 					std::filesystem::path hackFilePath = baseColorMap.GetPath();
 					std::string ddsFilePath = hackFilePath.stem().generic_string().c_str();
 					ddsFilePath += ".dds";
 					bgfx::TextureHandle textureHandle = m_pRenderContext->CreateTexture(ddsFilePath.c_str(), textureSamplerFlags | BGFX_TEXTURE_SRGB);
-
-					materialComponent.SetTextureInfo(cd::MaterialTextureType::BaseColor, 0, samplerHandle.idx, textureHandle.idx);
+					if (bgfx::isValid(textureHandle))
+					{
+						bgfx::UniformHandle samplerHandle = m_pRenderContext->CreateUniform(std::format("s_textureBaseColor{}", mesh.GetMaterialID().Data()).c_str(), bgfx::UniformType::Sampler);
+						materialComponent.SetTextureInfo(cd::MaterialTextureType::BaseColor, 0, samplerHandle.idx, textureHandle.idx);
+					}
+					else
+					{
+						isMissingTexture = true;
+					}
 				}
 
 				std::optional<cd::TextureID> optNormalMap = assignedMaterial.GetTextureID(cd::MaterialTextureType::Normal);
 				if (optNormalMap.has_value())
 				{
 					const cd::Texture& normalMap = pSceneDatabase->GetTexture(optNormalMap.value().Data());
-					bgfx::UniformHandle samplerHandle = m_pRenderContext->CreateUniform(std::format("s_textureNormal{}", mesh.GetMaterialID().Data()).c_str(), bgfx::UniformType::Sampler);
-
 					std::filesystem::path hackFilePath = normalMap.GetPath();
 					std::string ddsFilePath = hackFilePath.stem().generic_string().c_str();
 					ddsFilePath += ".dds";
 					bgfx::TextureHandle textureHandle = m_pRenderContext->CreateTexture(ddsFilePath.c_str(), textureSamplerFlags);
-
-					materialComponent.SetTextureInfo(cd::MaterialTextureType::Normal, 1, samplerHandle.idx, textureHandle.idx);
+					if (bgfx::isValid(textureHandle))
+					{
+						bgfx::UniformHandle samplerHandle = m_pRenderContext->CreateUniform(std::format("s_textureNormal{}", mesh.GetMaterialID().Data()).c_str(), bgfx::UniformType::Sampler);
+						materialComponent.SetTextureInfo(cd::MaterialTextureType::Normal, 1, samplerHandle.idx, textureHandle.idx);
+					}
+					else
+					{
+						isMissingTexture = true;
+					}
 				}
 
 				std::optional<cd::TextureID> optMetalnessMap = assignedMaterial.GetTextureID(cd::MaterialTextureType::Metalness);
@@ -109,14 +120,19 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 				{
 					// Check AO is optional as the texture asset should have value 1.0 which doesn't affect shader results if it doesn't use AO.
 					const cd::Texture& ormMap = pSceneDatabase->GetTexture(optMetalnessMap.value().Data());
-					bgfx::UniformHandle samplerHandle = m_pRenderContext->CreateUniform(std::format("s_textureORM{}", mesh.GetMaterialID().Data()).c_str(), bgfx::UniformType::Sampler);
-
 					std::filesystem::path hackFilePath = ormMap.GetPath();
 					std::string ddsFilePath = hackFilePath.stem().generic_string().c_str();
 					ddsFilePath += ".dds";
 					bgfx::TextureHandle textureHandle = m_pRenderContext->CreateTexture(ddsFilePath.c_str(), textureSamplerFlags);
-
-					materialComponent.SetTextureInfo(cd::MaterialTextureType::Metalness, 2, samplerHandle.idx, textureHandle.idx);
+					if (bgfx::isValid(textureHandle))
+					{
+						bgfx::UniformHandle samplerHandle = m_pRenderContext->CreateUniform(std::format("s_textureORM{}", mesh.GetMaterialID().Data()).c_str(), bgfx::UniformType::Sampler);
+						materialComponent.SetTextureInfo(cd::MaterialTextureType::Metalness, 2, samplerHandle.idx, textureHandle.idx);
+					}
+					else
+					{
+						isMissingTexture = true;
+					}
 				}
 
 				//std::optional<cd::TextureID> optEmissive = assignedMaterial.GetTextureID(cd::MaterialTextureType::Emissive);
@@ -128,8 +144,15 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 				//	materialComponent.SetTextureInfo(cd::MaterialTextureType::Emissive, 0, samplerHandle.idx, textureHandle.idx);
 				//}
 
-				bgfx::ProgramHandle shadingProgram = m_pRenderContext->CreateProgram(m_pStandardMaterialType->GetMaterialName(),
-					m_pStandardMaterialType->GetVertexShaderName(), m_pStandardMaterialType->GetFragmentShaderName());
+				bgfx::ProgramHandle shadingProgram;
+				if (isMissingTexture)
+				{
+					shadingProgram = m_pRenderContext->CreateProgram("MissingTextures", m_pStandardMaterialType->GetVertexShaderName(), "fs_missing_textures.bin");
+				}
+				else
+				{
+					shadingProgram = m_pRenderContext->CreateProgram(m_pStandardMaterialType->GetMaterialName(), m_pStandardMaterialType->GetVertexShaderName(), m_pStandardMaterialType->GetFragmentShaderName());
+				}
 				materialComponent.SetShadingProgram(shadingProgram.idx);
 			}
 

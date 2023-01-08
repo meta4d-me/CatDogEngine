@@ -34,6 +34,10 @@ rem ImGui
 start /b shaderc --type v --platform windows -p vs_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/vs_imgui.sc -o %PROJECT%/vs_imgui.bin
 start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/fs_imgui.sc -o %PROJECT%/fs_imgui.bin
 
+rem Error Handling
+start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/fs_loading_resources.sc -o %PROJECT%/fs_loading_resources.bin
+start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/fs_missing_textures.sc -o %PROJECT%/fs_missing_textures.bin
+
 echo Finish compiling...
 echo .bin files generated at %PROJECT%
 

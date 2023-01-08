@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <map>
+#include <optional>
 
 namespace cd
 {
@@ -46,7 +47,7 @@ public:
 	uint16_t GetShadingProgram() const { return m_shadingProgram; }
 
 	void SetTextureInfo(cd::MaterialTextureType textureType, uint8_t slot, uint16_t samplerHandle, uint16_t textureHandle);
-	const TextureInfo& GetTextureInfo(cd::MaterialTextureType textureType) const;
+	std::optional<TextureInfo> GetTextureInfo(cd::MaterialTextureType textureType) const;
 
 private:
 	// Input
