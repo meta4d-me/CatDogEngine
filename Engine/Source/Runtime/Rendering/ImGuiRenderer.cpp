@@ -2,7 +2,6 @@
 
 #include "Rendering/RenderContext.h"
 
-#include <bx/math.h>
 #include <imgui/imgui.h>
 
 namespace engine
@@ -60,16 +59,16 @@ void ImGuiRenderer::UpdateView(const float* pViewMatrix, const float* pProjectio
 	bgfx::setViewMode(GetViewID(), bgfx::ViewMode::Sequential);
 	bgfx::setViewFrameBuffer(GetViewID(), *GetRenderTarget()->GetFrameBufferHandle());
 
-	float ortho[16];
 	const ImDrawData* pImGuiDrawData = ImGui::GetDrawData();
 	float x = pImGuiDrawData->DisplayPos.x;
 	float y = pImGuiDrawData->DisplayPos.y;
 	float width = pImGuiDrawData->DisplaySize.x;
 	float height = pImGuiDrawData->DisplaySize.y;
 	const bgfx::Caps* pCapabilities = bgfx::getCaps();
-	bx::mtxOrtho(ortho, x, x + width, y + height, y, 0.0f, 1000.0f, 0.0f, pCapabilities ? pCapabilities->homogeneousDepth : true);
+
+	cd::Matrix4x4 orthoMatrix = cd::Matrix4x4::Orthographic(x, x + width, y, y + height, 0.0f, 1000.0f, 0.0f, pCapabilities->homogeneousDepth).Transpose();
 	bgfx::setViewRect(GetViewID(), 0, 0, uint16_t(width), uint16_t(height));
-	bgfx::setViewTransform(GetViewID(), nullptr, ortho);
+	bgfx::setViewTransform(GetViewID(), nullptr, orthoMatrix.Begin());
 }
 
 void ImGuiRenderer::Render(float deltaTime)

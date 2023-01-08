@@ -7,8 +7,6 @@
 #include "Scene/VertexFormat.h"
 #include "Shaders/UniformDefines/U_AtmTextureSize.sh"
 
-#include <bx/math.h>
-
 namespace engine
 {
 

@@ -8,7 +8,6 @@
 #include "Scene/Texture.h"
 
 #include <bgfx/bgfx.h>
-#include <bx/math.h>
 
 #include <format>
 

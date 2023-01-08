@@ -2,8 +2,6 @@
 
 #include "RenderContext.h"
 
-#include <bx/math.h>
-
 namespace engine
 {
 
@@ -25,9 +23,8 @@ void PostProcessRenderer::UpdateView(const float* pViewMatrix, const float* pPro
 	bgfx::setViewFrameBuffer(GetViewID(), *GetRenderTarget()->GetFrameBufferHandle());
 	bgfx::setViewRect(GetViewID(), 0, 0, GetRenderTarget()->GetWidth(), GetRenderTarget()->GetHeight());
 
-	float proj[16];
-	bx::mtxOrtho(proj, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 100.0f, 0.0f, bgfx::getCaps()->homogeneousDepth);
-	bgfx::setViewTransform(GetViewID(), nullptr, proj);
+	cd::Matrix4x4 orthoMatrix = cd::Matrix4x4::Orthographic(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1000.0f, 0.0f, bgfx::getCaps()->homogeneousDepth).Transpose();
+	bgfx::setViewTransform(GetViewID(), nullptr, orthoMatrix.Begin());
 }
 
 void PostProcessRenderer::Render(float deltaTime)

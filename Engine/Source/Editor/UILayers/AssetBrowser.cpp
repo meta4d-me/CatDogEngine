@@ -80,6 +80,7 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 	genericProducer.ActivateCleanUnusedService();
 	genericProducer.ActivateTangentsSpaceService();
 	genericProducer.ActivateTriangulateService();
+	genericProducer.ActivateFlattenHierarchyService();
 
 	engine::World* pWorld = m_pEditorSceneWorld->GetWorld();
 	std::vector<engine::Entity>& meshEntites = m_pEditorSceneWorld->GetMeshEntites();

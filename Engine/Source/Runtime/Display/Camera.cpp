@@ -58,7 +58,6 @@ void Camera::FrameAll(const cd::AABB& aabb)
 {
 	cd::Point lookAt = aabb.GetCenter();
 	cd::Direction lookDirection(-1.0f, 0.0f, 1.0f);
-	// Should be calculated at compile time. To verify.
 	lookDirection.Normalize();
 
 	cd::Point lookFrom = lookAt - lookDirection * aabb.GetExtent().Length();
@@ -76,20 +75,12 @@ void Camera::FrameAll(const cd::AABB& aabb)
 
 void Camera::UpdateViewMatrix()
 {
-	cd::Vec3f view = m_position + m_forwardDirection;
-	m_viewMatrix = cd::Matrix4x4::LookAt<cd::Handedness::Left>(m_position, view, m_upDirection).Transpose();
+	m_viewMatrix = cd::Matrix4x4::LookAt<cd::Handedness::Left>(m_position, m_position + m_forwardDirection, m_upDirection).Transpose();
 }
 
 void Camera::UpdateProjectionMatrix()
 {
-	if (m_homogeneousNdc)
-	{
-		m_projectionMatrix = cd::Matrix4x4::Perspective<cd::Handedness::Left, cd::NDCDepth::MinusOneToOne>(m_fov, m_aspect, m_nearPlane, m_farPlane).Transpose();
-	}
-	else
-	{
-		m_projectionMatrix = cd::Matrix4x4::Perspective<cd::Handedness::Left, cd::NDCDepth::ZeroToOne>(m_fov, m_aspect, m_nearPlane, m_farPlane).Transpose();
-	}
+	m_projectionMatrix = cd::Matrix4x4::Perspective(m_fov, m_aspect, m_nearPlane, m_farPlane, m_homogeneousNdc).Transpose();
 }
 
 void Camera::Update()

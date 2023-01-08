@@ -59,9 +59,9 @@ private:
 	bool	m_homogeneousNdc = true;
 
 protected:
-	cd::Vec3f m_position;
-	cd::Vec3f m_forwardDirection;
-	cd::Vec3f m_upDirection;
+	cd::Point m_position;
+	cd::Direction m_forwardDirection;
+	cd::Direction m_upDirection;
 
 	// For status variable like dirty flag, it is recommended to be mutable
 	// because it is actually not a data variable, only a flag to notify changes happened.

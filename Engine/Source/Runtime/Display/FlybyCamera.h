@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Camera.h"
-#include "Math/Vector.hpp"
 
 namespace engine
 {
@@ -12,21 +11,21 @@ public:
 	using Camera::Camera;
 	virtual ~FlybyCamera() = default;
 
-	void MoveForward(const float amount);
-	void MoveBackward(const float amount);
-	void MoveLeft(const float amount);
-	void MoveRight(const float amount);
-	void MoveUp(const float amount);
-	void MoveDown(const float amount);
-	void Rotate(const cd::Vec3f& axis, const float angleDegrees);
-	void Rotate(const float x, const float y, const float z, const float angleDegrees);
-	void Yaw(const float angleDegrees);
-	void Pitch(const float angleDegrees);
-	void Roll(const float angleDegrees);
+	void MoveForward(float amount);
+	void MoveBackward(float amount);
+	void MoveLeft(float amount);
+	void MoveRight(float amount);
+	void MoveUp(float amount);
+	void MoveDown(float amount);
+	void Rotate(const cd::Vec3f& axis, float angleDegrees);
+	void Rotate(float x, float y, float z, float angleDegrees);
+	void Yaw(float angleDegrees);
+	void Pitch(float angleDegrees);
+	void Roll(float angleDegrees);
 
-	void YawLocal(const float angleDegrees);
-	void PitchLocal(const float angleDegrees);
-	void RollLocal(const float angleDegrees);
+	void YawLocal(float angleDegrees);
+	void PitchLocal(float angleDegrees);
+	void RollLocal(float angleDegrees);
 };
 
 }	// namespace engine
