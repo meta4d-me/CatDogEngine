@@ -102,10 +102,10 @@ void ImGuiRenderer::Render(float deltaTime)
 		bgfx::allocTransientIndexBuffer(&indexBuffer, numIndices, std::is_same<uint32_t, ImDrawIdx>());
 
 		ImDrawVert* pVertices = reinterpret_cast<ImDrawVert*>(vertexBuffer.data);
-		bx::memCopy(pVertices, pDrawList->VtxBuffer.begin(), numVertices * sizeof(ImDrawVert));
+		std::memcpy(pVertices, pDrawList->VtxBuffer.begin(), numVertices * sizeof(ImDrawVert));
 
 		ImDrawIdx* pIndices = reinterpret_cast<ImDrawIdx*>(indexBuffer.data);
-		bx::memCopy(pIndices, pDrawList->IdxBuffer.begin(), numIndices * sizeof(ImDrawIdx));
+		std::memcpy(pIndices, pDrawList->IdxBuffer.begin(), numIndices * sizeof(ImDrawIdx));
 
 		bgfx::Encoder* pEncoder = bgfx::begin();
 
@@ -152,9 +152,9 @@ void ImGuiRenderer::Render(float deltaTime)
 					clipRect.z >= 0.0f &&
 					clipRect.w >= 0.0f)
 				{
-					const uint16_t xx = static_cast<uint16_t>(bx::max(clipRect.x, 0.0f));
-					const uint16_t yy = static_cast<uint16_t>(bx::max(clipRect.y, 0.0f));
-					pEncoder->setScissor(xx, yy, uint16_t(bx::min(clipRect.z, 65535.0f) - xx), uint16_t(bx::min(clipRect.w, 65535.0f) - yy));
+					const uint16_t xx = static_cast<uint16_t>(std::max(clipRect.x, 0.0f));
+					const uint16_t yy = static_cast<uint16_t>(std::max(clipRect.y, 0.0f));
+					pEncoder->setScissor(xx, yy, uint16_t(std::min(clipRect.z, 65535.0f) - xx), uint16_t(std::min(clipRect.w, 65535.0f) - yy));
 
 					pEncoder->setState(state);
 

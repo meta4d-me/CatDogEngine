@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Camera.h"
+#include "Math/Vector.hpp"
 
 namespace engine
 {
@@ -17,7 +18,7 @@ public:
 	void MoveRight(const float amount);
 	void MoveUp(const float amount);
 	void MoveDown(const float amount);
-	void Rotate(const bx::Vec3& axis, const float angleDegrees);
+	void Rotate(const cd::Vec3f& axis, const float angleDegrees);
 	void Rotate(const float x, const float y, const float z, const float angleDegrees);
 	void Yaw(const float angleDegrees);
 	void Pitch(const float angleDegrees);

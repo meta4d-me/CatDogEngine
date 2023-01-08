@@ -7,7 +7,7 @@ namespace engine
 
 void FlybyCamera::MoveForward(const float amount)
 {
-	m_position = bx::mad(m_forwardDirection, amount, m_position);
+	m_position += m_forwardDirection * amount;
 	Dirty();
 }
 
@@ -18,8 +18,7 @@ void FlybyCamera::MoveBackward(const float amount)
 
 void FlybyCamera::MoveLeft(const float amount)
 {
-	const bx::Vec3 leftAxis = bx::normalize(bx::cross(m_forwardDirection, m_upDirection));
-	m_position = bx::mad(leftAxis, amount, m_position);
+	m_position += m_forwardDirection.Cross(m_upDirection).Normalize() * amount;
 	Dirty();
 }
 
@@ -30,7 +29,7 @@ void FlybyCamera::MoveRight(const float amount)
 
 void FlybyCamera::MoveUp(const float amount)
 {
-	m_position = bx::mad(m_upDirection, amount, m_position);
+	m_position += m_upDirection * amount;
 	Dirty();
 }
 
@@ -39,17 +38,17 @@ void FlybyCamera::MoveDown(const float amount)
 	MoveUp(-amount);
 }
 
-void FlybyCamera::Rotate(const bx::Vec3& axis, const float angleDegrees)
+void FlybyCamera::Rotate(const cd::Vec3f& axis, const float angleDegrees)
 {
-	const bx::Quaternion rotation = bx::fromAxisAngle(axis, bx::toRad(angleDegrees));
-	m_forwardDirection = bx::normalize(bx::mul(m_forwardDirection, rotation));
-	m_upDirection = bx::normalize(bx::mul(m_upDirection, rotation));
+	//const bx::Quaternion rotation = bx::fromAxisAngle(axis, bx::toRad(angleDegrees));
+	//m_forwardDirection = bx::normalize(bx::mul(m_forwardDirection, rotation));
+	//m_upDirection = bx::normalize(bx::mul(m_upDirection, rotation));
 	Dirty();
 }
 
 void FlybyCamera::Rotate(const float x, const float y, const float z, const float angleDegrees)
 {
-	Rotate(bx::Vec3(x, y, z), angleDegrees);
+	Rotate(cd::Vec3f(x, y, z), angleDegrees);
 }
 
 void FlybyCamera::Yaw(const float angleDegrees)
@@ -74,8 +73,7 @@ void FlybyCamera::YawLocal(const float angleDegrees)
 
 void FlybyCamera::PitchLocal(const float angleDegrees)
 {
-	const bx::Vec3 leftAxis = bx::normalize(bx::cross(m_forwardDirection, m_upDirection));
-	Rotate(leftAxis, angleDegrees);
+	Rotate(m_forwardDirection.Cross(m_upDirection).Normalize(), angleDegrees);
 }
 
 void FlybyCamera::RollLocal(const float angleDegrees)

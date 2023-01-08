@@ -72,12 +72,12 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 	engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
 
 	// Translate different 3D model file formats to memory data.
-	cdtools::GenericProducer genericProducer(pFilePath);
 	cd::SceneDatabase* pSceneDatabase = m_pEditorSceneWorld->GetSceneDatabase();
-	genericProducer.SetSceneDatabaseIDs(pSceneDatabase->GetMeshCount(), pSceneDatabase->GetMaterialCount(), pSceneDatabase->GetTextureCount());
+	cdtools::GenericProducer genericProducer(pFilePath);
+	genericProducer.SetSceneDatabaseIDs(pSceneDatabase->GetTransformCount(), pSceneDatabase->GetMeshCount(),
+		pSceneDatabase->GetMaterialCount(), pSceneDatabase->GetTextureCount(), pSceneDatabase->GetLightCount());
 	genericProducer.ActivateBoundingBoxService();
 	genericProducer.ActivateCleanUnusedService();
-	genericProducer.ActivateFlattenHierarchyService();
 	genericProducer.ActivateTangentsSpaceService();
 	genericProducer.ActivateTriangulateService();
 

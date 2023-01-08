@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Math/AABB.hpp>
-
-#include <bx/math.h>
+#include "Math/AABB.hpp"
+#include "Math/Matrix.hpp"
+#include "Math/Vector.hpp"
 
 namespace engine
 {
@@ -11,8 +11,8 @@ class Camera
 {
 public:
 	explicit Camera();
-	explicit Camera(bx::Vec3 position);
-	explicit Camera(bx::Vec3 position, bx::Vec3 forward, bx::Vec3 up);
+	explicit Camera(cd::Vec3f position);
+	explicit Camera(cd::Vec3f position, cd::Vec3f forward, cd::Vec3f up);
 	Camera(const Camera&) = delete;
 	Camera(Camera&&) = delete;
 	Camera& operator=(const Camera&) = delete;
@@ -34,12 +34,12 @@ public:
 
 	void SetHomogeneousNdc(bool homogeneousNdc);
 
-	const bx::Vec3& GetPosition() const { return m_position; }
-	const bx::Vec3& GetForwardDir() const { return m_forwardDirection; }
-	const bx::Vec3& GetUpDir() const { return m_upDirection; }
+	const cd::Vec3f& GetPosition() const { return m_position; }
+	const cd::Vec3f& GetForwardDir() const { return m_forwardDirection; }
+	const cd::Vec3f& GetUpDir() const { return m_upDirection; }
 
-	const float* GetViewMatrix() const { return m_viewMatrix; }
-	const float* GetProjectionMatrix() const { return m_projectionMatrix; }
+	const float* GetViewMatrix() const { return m_viewMatrix.Begin(); }
+	const float* GetProjectionMatrix() const { return m_projectionMatrix.Begin(); }
 
 	void Dirty() const { m_dirty = true; }
 
@@ -59,9 +59,9 @@ private:
 	bool	m_homogeneousNdc = true;
 
 protected:
-	bx::Vec3 m_position;
-	bx::Vec3 m_forwardDirection;
-	bx::Vec3 m_upDirection;
+	cd::Vec3f m_position;
+	cd::Vec3f m_forwardDirection;
+	cd::Vec3f m_upDirection;
 
 	// For status variable like dirty flag, it is recommended to be mutable
 	// because it is actually not a data variable, only a flag to notify changes happened.
@@ -69,8 +69,9 @@ protected:
 	mutable bool m_dirty = true;
 
 	// built matrix
-	float m_viewMatrix[16];
-	float m_projectionMatrix[16];
+	cd::Matrix4x4 m_viewMatrix2;
+	cd::Matrix4x4 m_viewMatrix;
+	cd::Matrix4x4 m_projectionMatrix;
 };
 
 }

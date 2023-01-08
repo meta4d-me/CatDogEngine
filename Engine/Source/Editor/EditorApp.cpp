@@ -173,7 +173,7 @@ void EditorApp::InitRenderContext()
 	AddEditorRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pRenderTarget));
 
 	// Camera is prepared for other renderers except ImGuiRenderer.
-	m_pCamera = std::make_unique<engine::FlybyCamera>(bx::Vec3(0.0f, 0.0f, -50.0f));
+	m_pCamera = std::make_unique<engine::FlybyCamera>(cd::Point(0.0f, 0.0f, -50.0f));
 	m_pCamera->SetAspect(1.0f);
 	m_pCamera->SetFov(45.0f);
 	m_pCamera->SetNearPlane(0.1f);
