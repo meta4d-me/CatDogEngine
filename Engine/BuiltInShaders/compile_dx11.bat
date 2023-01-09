@@ -19,8 +19,10 @@ start /b shaderc --type v --platform windows -p vs_5_0 -O 3 --varyingdef %SHADER
 start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/fs_PBR_skybox.sc -o %PROJECT%/fs_PBR_skybox.bin
 
 rem Scene Renderer
-start /b shaderc --type v --platform windows -p vs_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/vs_PBR.sc -o %PROJECT%/vs_PBR.bin
-start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/fs_PBR.sc -o %PROJECT%/fs_PBR.bin
+start /b shaderc --raw --type v --platform windows -p vs_5_0 -O 3 -f %SHADERS%/vs_PBR.hlsl -o %PROJECT%/vs_PBR.bin
+start /b shaderc --raw --type f --platform windows -p ps_5_0 -O 3 -f %SHADERS%/fs_PBR.hlsl -o %PROJECT%/fs_PBR.bin
+::start /b shaderc --type v --platform windows -p vs_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/vs_PBR.sc -o %PROJECT%/vs_PBR.bin
+::start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/fs_PBR.sc -o %PROJECT%/fs_PBR.bin
 
 rem Terrain Renderer
 start /b shaderc --type v --platform windows -p vs_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/vs_terrain.sc -o %PROJECT%/vs_terrain.bin
