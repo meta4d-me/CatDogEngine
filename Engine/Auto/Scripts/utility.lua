@@ -7,7 +7,7 @@ project("CompileShaders")
 	kind("Utility")
 	location(path.join(IntermediatePath, "Engine/Misc"))
 	targetdir(BinariesPath)
-	local shadersFilePath = path.join(RuntimeSourcePath, "Rendering/Shaders")
+	local shadersFilePath = path.join(EnginePath, "BuiltInShaders")
 	vpaths {
 		["shaders"] = path.join(shadersFilePath, "shaders/**.*"),
 		[""] = path.join(shadersFilePath, "compile_dx11.bat"),

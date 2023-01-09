@@ -5,7 +5,7 @@
 #include "RenderContext.h"
 #include "Scene/Mesh.h"
 #include "Scene/VertexFormat.h"
-#include "Shaders/UniformDefines/U_AtmTextureSize.sh"
+#include "U_AtmTextureSize.sh"
 
 namespace engine
 {
