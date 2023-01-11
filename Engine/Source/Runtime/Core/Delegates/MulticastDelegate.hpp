@@ -18,7 +18,7 @@ template<typename RetVal, typename... Args>
 class MulticastDelegate<RetVal(Args...)>
 {
 public:
-	explicit MulticastDelegate() = default;
+	MulticastDelegate() = default;
 	MulticastDelegate(const MulticastDelegate&) = delete;
 	MulticastDelegate& operator=(const MulticastDelegate&) = delete;
 	MulticastDelegate(MulticastDelegate&&) = default;

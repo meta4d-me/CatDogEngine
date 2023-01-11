@@ -18,6 +18,7 @@ struct EditorImGuiViewportData
 class EditorImGuiViewport
 {
 public:
+	EditorImGuiViewport() = delete;
 	explicit EditorImGuiViewport(engine::RenderContext* pRenderContext);
 	EditorImGuiViewport(const EditorImGuiViewport&) = delete;
 	EditorImGuiViewport& operator=(const EditorImGuiViewport&) = delete;

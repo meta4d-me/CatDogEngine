@@ -2,8 +2,11 @@
 
 #include "Core/StringCrc.h"
 #include "Scene/VertexFormat.h"
+#include "Scene/MaterialTextureType.h"
 
 #include <map>
+#include <optional>
+#include <set>
 #include <string>
 
 namespace engine
@@ -28,8 +31,16 @@ public:
 	const char* GetVertexShaderName() const { return m_vertexShaderName.c_str(); }
 	const char* GetFragmentShaderName() const { return m_fragmentShaderName.c_str(); }
 
-	void SetVertexFormat(cd::VertexFormat vertexFormat) { m_requiredVertexFormat = cd::MoveTemp(vertexFormat); }
-	const cd::VertexFormat& GetVertexFormat() const { return m_requiredVertexFormat; }
+	void SetRequiredVertexFormat(cd::VertexFormat vertexFormat) { m_requiredVertexFormat = cd::MoveTemp(vertexFormat); }
+	const cd::VertexFormat& GetRequiredVertexFormat() const { return m_requiredVertexFormat; }
+
+	void AddOptionalTextureType(cd::MaterialTextureType textureType, uint8_t slot);
+	const std::set<cd::MaterialTextureType>& GetOptionalTextureTypes() const { return m_optionalTextureTypes; }
+
+	void AddRequiredTextureType(cd::MaterialTextureType textureType, uint8_t slot);
+	const std::set<cd::MaterialTextureType>& GetRequiredTextureTypes() const { return m_requiredTextureTypes; }
+
+	std::optional<uint8_t> GetTextureSlot(cd::MaterialTextureType textureType);
 
 private:
 	std::string m_materialName;
@@ -37,15 +48,9 @@ private:
 	std::string m_fragmentShaderName;
 
 	cd::VertexFormat m_requiredVertexFormat;
-
-	// Parameter types
-	std::vector<std::string> m_parameterTypes;
-
-	// Texture types
-	std::map<std::string, std::string> m_textureTypes;
-
-	// Samplers
-	//std::map<std::string, Sampler> m_samplers;
+	std::set<cd::MaterialTextureType> m_optionalTextureTypes;
+	std::set<cd::MaterialTextureType> m_requiredTextureTypes;
+	std::map<cd::MaterialTextureType, uint8_t> m_textureTypeSlots;
 };
 
 }

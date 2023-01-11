@@ -28,7 +28,6 @@ public:
 		return s_instance;
 	}
 
-	explicit Input() = default;
 	Input(const Input&) = delete;
 	Input& operator=(const Input&) = delete;
 	Input(Input&&) = default;
@@ -71,6 +70,9 @@ public:
 	// Keyboard device
 	bool IsKeyPressed(KeyCode code) const { return m_keyPressed[static_cast<uint8_t>(code)]; }
 	void SetKeyPressed(uint8_t code, bool pressed) { m_keyPressed[code] = pressed; }
+
+private:
+	Input() = default;
 
 private:
 	// Mouse device

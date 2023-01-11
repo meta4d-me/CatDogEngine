@@ -11,6 +11,7 @@
 #include "Rendering/PBRSkyRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/WorldRenderer.h"
+#include "Resources/ResourceBuilder.h"
 #include "Scene/SceneDatabase.h"
 #include "UILayers/AssetBrowser.h"
 #include "UILayers/EntityList.h"
@@ -224,6 +225,8 @@ void EditorApp::AddEngineRenderer(std::unique_ptr<engine::Renderer> pRenderer)
 
 bool EditorApp::Update(float deltaTime)
 {
+	ResourceBuilder::Get().Update();
+
 	GetMainWindow()->Update();
 
 	m_pCameraController->Update(deltaTime);

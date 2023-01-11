@@ -2,6 +2,7 @@
 
 #include "ECWorld/ECWorldConsumer.h"
 #include "ECWorld/EditorSceneWorld.h"
+#include "ECWorld/MaterialComponent.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/World.h"
 #include "Framework/Processor.h"
@@ -86,16 +87,20 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 	std::vector<engine::Entity>& meshEntites = m_pEditorSceneWorld->GetMeshEntites();
 
 	engine::MaterialType pbrMaterialType = engine::MaterialType::GetPBRMaterialType();
-	engine::ECWorldConsumer ecConsumer(pWorld, &pbrMaterialType, pCurrentRenderContext);
+	ECWorldConsumer ecConsumer(pWorld, &pbrMaterialType, pCurrentRenderContext);
 	ecConsumer.SetSceneDatabaseIDs(pSceneDatabase->GetMeshCount());
 	cdtools::Processor processor(&genericProducer, &ecConsumer, pSceneDatabase);
 	processor.Run();
 
+	auto pMaterialStorage = pWorld->GetComponents<engine::MaterialComponent>();
 	auto pStaticMeshStorage = pWorld->GetComponents<engine::StaticMeshComponent>();
 	for (engine::Entity entity : ecConsumer.GetMeshEntities())
 	{
 		engine::StaticMeshComponent* pStaticMeshComponent = pStaticMeshStorage->GetComponent(entity);
 		pStaticMeshComponent->Build();
+
+		engine::MaterialComponent* pMaterialComponent = pMaterialStorage->GetComponent(entity);
+		pMaterialComponent->Build();
 
 		meshEntites.push_back(entity);
 	}

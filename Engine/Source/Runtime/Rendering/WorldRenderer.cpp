@@ -41,6 +41,7 @@ void WorldRenderer::Render(float deltaTime)
 {
 	auto pMeshStorage = m_pCurrentWorld->GetComponents<StaticMeshComponent>();
 	auto pMaterialStorage = m_pCurrentWorld->GetComponents<MaterialComponent>();
+	auto pTransformStorage = m_pCurrentWorld->GetComponents<TransformComponent>();
 
 	for (Entity entity : *m_pMeshEntites)
 	{
@@ -48,6 +49,17 @@ void WorldRenderer::Render(float deltaTime)
 		if (!pMeshComponent)
 		{
 			continue;
+		}
+
+		TransformComponent* pTransformComponent = pTransformStorage->GetComponent(entity);
+		if (pTransformComponent)
+		{
+			// TODO : test
+			//pTransformComponent->SetTranslation(pTransformComponent->GetTranslation() + cd::Vec3f(0.0f, 0.0f, deltaTime * 0.1));
+			//pTransformComponent->SetRotation(cd::Quaternion::FromAxisAngle(cd::Vec3f(0.0f, 0.0f, 1.0f), 0.0f));
+			//pTransformComponent->SetScale(cd::Vec3f(0.2f, 0.2f, 0.2f));
+			pTransformComponent->Build();
+			bgfx::setTransform(pTransformComponent->GetTransformation().Transpose().Begin());
 		}
 
 		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle(pMeshComponent->GetVertexBuffer()));

@@ -22,7 +22,7 @@ struct EngineInitArgs
 class IApplication
 {
 public:
-	explicit IApplication() = default;
+	IApplication() = default;
 	IApplication(const IApplication&) = delete;
 	IApplication& operator=(const IApplication&) = delete;
 	IApplication(IApplication&&) = default;

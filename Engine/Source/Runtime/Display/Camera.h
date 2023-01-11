@@ -10,7 +10,7 @@ namespace engine
 class Camera
 {
 public:
-	explicit Camera();
+	Camera();
 	explicit Camera(cd::Vec3f position);
 	explicit Camera(cd::Vec3f position, cd::Vec3f forward, cd::Vec3f up);
 	Camera(const Camera&) = delete;

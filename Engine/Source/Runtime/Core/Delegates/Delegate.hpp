@@ -43,7 +43,7 @@ private:
 	}
 
 public:
-	explicit Delegate() = default;
+	Delegate() = default;
 	Delegate(const Delegate&) = delete;
 	Delegate& operator=(const Delegate&) = delete;
 	Delegate(Delegate&&) = default;
