@@ -26,6 +26,7 @@ void Process::Run()
 	{
 		commandLine.push_back(commandArgument.c_str());
 	}
+	commandLine.push_back(nullptr); // subprocess api doesn't accept commandCount so we need to use nullptr as a terminate symbol.
 
 	std::vector<const char*> environments;
 	for (const std::string& environment : m_environments)

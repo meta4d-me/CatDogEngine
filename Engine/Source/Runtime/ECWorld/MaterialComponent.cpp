@@ -5,18 +5,25 @@
 #include "Scene/Texture.h"
 
 #include <bgfx/bgfx.h>
+#include <bimg/decode.h>
+#include <bx/allocator.h>
 
 #include <cassert>
 #include <filesystem>
 
-namespace engine
+namespace
 {
 
-void MaterialComponent::SetTextureInfo(cd::MaterialTextureType textureType, uint8_t slot, uint16_t samplerHandle, uint16_t textureHandle)
+static bx::AllocatorI* GetResourceAllocator()
 {
-	assert(!m_textureResources.contains(textureType));
-	m_textureResources[textureType] = { .slot = slot, .samplerHandle = samplerHandle, .textureHandle = textureHandle };
+	static bx::DefaultAllocator s_allocator;
+	return &s_allocator;
 }
+
+}
+
+namespace engine
+{
 
 std::optional<MaterialComponent::TextureInfo> MaterialComponent::GetTextureInfo(cd::MaterialTextureType textureType) const
 {
@@ -29,63 +36,71 @@ std::optional<MaterialComponent::TextureInfo> MaterialComponent::GetTextureInfo(
 	return itTextureInfo->second;
 }
 
-void MaterialComponent::BuildTexture(const char* pTextureFilePath)
+void MaterialComponent::Reset()
 {
-	std::filesystem::path inputFilePath = pTextureFilePath;
-	std::string outputFilePath = inputFilePath.stem().generic_string().c_str();
-	outputFilePath += ".dds";
+	m_pMaterialData = nullptr;
+	m_pMaterialType = nullptr;
+	m_textureTypeToBlob.clear();
+	m_shadingProgram = UINT16_MAX;
 
-	//constexpr uint64_t textureSamplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
-	//std::optional<cd::TextureID> optBaseColorMap = assignedMaterial.GetTextureID(cd::MaterialTextureType::BaseColor);
-	//if (optBaseColorMap.has_value())
-	//{
-	//	const cd::Texture& baseColorMap = pSceneDatabase->GetTexture(optBaseColorMap.value().Data());
-	//	std::filesystem::path hackFilePath = baseColorMap.GetPath();
-	//	std::string ddsFilePath = hackFilePath.stem().generic_string().c_str();
-	//	ddsFilePath += ".dds";
-	//	bgfx::TextureHandle textureHandle = m_pRenderContext->CreateTexture(ddsFilePath.c_str(), textureSamplerFlags | BGFX_TEXTURE_SRGB);
-	//	if (bgfx::isValid(textureHandle))
-	//	{
-	//		bgfx::UniformHandle samplerHandle = m_pRenderContext->CreateUniform(std::format("s_textureBaseColor{}", mesh.GetMaterialID().Data()).c_str(), bgfx::UniformType::Sampler);
-	//		materialComponent.SetTextureInfo(cd::MaterialTextureType::BaseColor, 0, samplerHandle.idx, textureHandle.idx);
-	//	}
-	//	else
-	//	{
-	//		isMissingTexture = true;
-	//	}
-	//}
-}
-
-void MaterialComponent::BuildShader(const char* pVSFilePath, const char* pFSFilePath)
-{
-	//std::string shaderFileFullPath = std::format("{}Shaders/{}", CDENGINE_RESOURCES_ROOT_PATH, pFilePath);
-	//std::ifstream fin(shaderFileFullPath, std::ios::in | std::ios::binary);
-	//if (!fin.is_open())
-	//{
-	//	return bgfx::ShaderHandle(bgfx::kInvalidHandle);
-	//}
-	//
-	//fin.seekg(0L, std::ios::end);
-	//size_t fileSize = fin.tellg();
-	//fin.seekg(0L, std::ios::beg);
-	//uint8_t* pRawData = new uint8_t[fileSize];
-	//fin.read(reinterpret_cast<char*>(pRawData), fileSize);
-	//fin.close();
-	//
-	//const bgfx::Memory* pMemory = bgfx::makeRef(pRawData, static_cast<uint32_t>(fileSize));
-	//bgfx::ShaderHandle handle = bgfx::createShader(pMemory);
-	//m_shadingProgram = bgfx::createProgram(vsh, fsh); m_pRenderContext->CreateProgram("MissingTextures", m_pStandardMaterialType->GetVertexShaderName(), "fs_missing_textures.bin");
+	m_textureResources.clear();
 }
 
 void MaterialComponent::Build()
 {
 	assert(m_pMaterialData && "Input data is not ready.");
 
-	for (const cd::Texture* pTextureData : m_pTextureDatas)
+	static int textureIndex = 0;
+	uint64_t textureFlag = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
+	for (const auto& [textureType, textureBlob] : m_textureTypeToBlob)
 	{
-		BuildTexture(pTextureData->GetPath());
+		std::optional<uint8_t> optTextureSlot = m_pMaterialType->GetTextureSlot(textureType);
+		if (!optTextureSlot.has_value())
+		{
+			continue;
+		}
+
+		if (cd::MaterialTextureType::BaseColor == textureType)
+		{
+			textureFlag |= BGFX_TEXTURE_SRGB;
+		}
+
+		// TODO : Customized allocator and free logic.
+		// It may depend on writing our own texture compile tool.
+		bimg::ImageContainer* pImageContainer = bimg::imageParse(GetResourceAllocator(), textureBlob.data(), static_cast<uint32_t>(textureBlob.size()));
+		const bgfx::Memory* pMemory = bgfx::makeRef(pImageContainer->m_data, pImageContainer->m_size);
+
+		uint16_t textureWidth = pImageContainer->m_width;
+		uint16_t textureHeight = pImageContainer->m_height;
+		uint16_t textureDepth = pImageContainer->m_depth;
+		uint16_t textureLayerCount = pImageContainer->m_numLayers;
+		bgfx::TextureFormat::Enum textureFormat = static_cast<bgfx::TextureFormat::Enum>(pImageContainer->m_format);
+		bool hasMips = pImageContainer->m_numMips > 1;
+		
+		bgfx::TextureHandle textureHandle(bgfx::kInvalidHandle);
+		if (pImageContainer->m_cubeMap)
+		{
+			textureHandle = bgfx::createTextureCube(textureWidth, hasMips, textureLayerCount, textureFormat, textureFlag, pMemory);
+		}
+		else if (textureDepth > 1)
+		{
+			textureHandle = bgfx::createTexture3D(textureWidth, textureHeight, textureDepth, hasMips, textureFormat, textureFlag, pMemory);
+		}
+		else if (bgfx::isTextureValid(0, false, textureLayerCount, textureFormat, textureFlag))
+		{
+			textureHandle = bgfx::createTexture2D(textureWidth, textureHeight, hasMips, textureLayerCount, textureFormat, textureFlag, pMemory);
+		}
+
+		std::string samplerUniformName = "s_textureSampler";
+		samplerUniformName += std::to_string(textureIndex++);
+		bgfx::UniformHandle samplerHandle = bgfx::createUniform(samplerUniformName.c_str(), bgfx::UniformType::Sampler);
+
+		TextureInfo textureInfo;
+		textureInfo.slot = optTextureSlot.value();
+		textureInfo.samplerHandle = samplerHandle.idx;
+		textureInfo.textureHandle = textureHandle.idx;
+		m_textureResources[textureType] = cd::MoveTemp(textureInfo);
 	}
-	//BuildShader(m_pMaterialType->GetVertexShaderName(), missRequiredTextures ? "fs_missing_textures.bin" : m_pMaterialType->GetFragmentShaderName());
 }
 
 }

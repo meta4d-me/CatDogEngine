@@ -12,16 +12,16 @@ void ResourceBuilder::AddTask(Process process)
 
 void ResourceBuilder::AddShaderBuildTask(const char* pInputFilePath, const char* pOutputFilePath)
 {
-	//Process process("shaderc");
-	//AddTask(cd::MoveTemp(process));
 }
 
 void ResourceBuilder::AddTextureBuildTask(const char* pInputFilePath, const char* pOutputFilePath, cd::MaterialTextureType textureType)
 {
 	// Document : https://bkaradzic.github.io/bgfx/tools.html#texture-compiler-texturec
-	Process process("texturec");
+	std::string texturecExePath = CDENGINE_TOOL_PATH;
+	texturecExePath += "/texturec";
+	Process process(texturecExePath.c_str());
 
-	std::vector<std::string> commandArguments{ "-f", pInputFilePath, "-o", pOutputFilePath, "-t BC3", "--mips", "-q highest" };
+	std::vector<std::string> commandArguments{ "-f", pInputFilePath, "-o", pOutputFilePath, "-t", "BC3", "--mips", "-q", "fastest"};
 	if (cd::MaterialTextureType::Normal == textureType)
 	{
 		commandArguments.push_back("--normalmap");
@@ -32,21 +32,20 @@ void ResourceBuilder::AddTextureBuildTask(const char* pInputFilePath, const char
 		commandArguments.push_back("--linear");
 	}
 	process.SetCommandArguments(cd::MoveTemp(commandArguments));
-
+	// TODO : multiple processes at the same time. But it requires that rendering logic will update automatically.
+	process.SetWaitUntilFinished(true);
 	AddTask(cd::MoveTemp(process));
 }
 
 void ResourceBuilder::Update()
 {
-	if (m_buildTasks.empty())
-	{
-		return;
-	}
-
 	// It may wait until process exited which depends on process's setting.
-	Process& process = m_buildTasks.front();
-	process.Run();
-	m_buildTasks.pop();
+	while (!m_buildTasks.empty())
+	{
+		Process& process = m_buildTasks.front();
+		process.Run();
+		m_buildTasks.pop();
+	}
 }
 
 }

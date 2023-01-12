@@ -40,7 +40,7 @@ public:
 	void AddRequiredTextureType(cd::MaterialTextureType textureType, uint8_t slot);
 	const std::set<cd::MaterialTextureType>& GetRequiredTextureTypes() const { return m_requiredTextureTypes; }
 
-	std::optional<uint8_t> GetTextureSlot(cd::MaterialTextureType textureType);
+	std::optional<uint8_t> GetTextureSlot(cd::MaterialTextureType textureType) const;
 
 private:
 	std::string m_materialName;

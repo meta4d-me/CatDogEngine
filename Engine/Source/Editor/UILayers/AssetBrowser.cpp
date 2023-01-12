@@ -75,7 +75,7 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 	// Translate different 3D model file formats to memory data.
 	cd::SceneDatabase* pSceneDatabase = m_pEditorSceneWorld->GetSceneDatabase();
 	cdtools::GenericProducer genericProducer(pFilePath);
-	genericProducer.SetSceneDatabaseIDs(pSceneDatabase->GetTransformCount(), pSceneDatabase->GetMeshCount(),
+	genericProducer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount(), pSceneDatabase->GetMeshCount(),
 		pSceneDatabase->GetMaterialCount(), pSceneDatabase->GetTextureCount(), pSceneDatabase->GetLightCount());
 	genericProducer.ActivateBoundingBoxService();
 	genericProducer.ActivateCleanUnusedService();

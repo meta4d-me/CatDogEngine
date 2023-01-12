@@ -28,9 +28,12 @@ project("Editor")
 	}
 
 	local editorResourcesPath = RootPath.."/Engine/Source/Editor/Resources/"
+	local projectResourcesPath = RootPath.."/Projects/SponzaBaseScene/Resources/"
 	defines {
 		"BX_CONFIG_DEBUG",
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..editorResourcesPath.."\"",
+		"CDENGINE_TOOL_PATH=\""..path.join(EnginePath, "EditorTools").."\"",
+		"CDENGINE_RESOURCES_ROOT_PATH=\""..projectResourcesPath.."\"",
 	}
 
 	includedirs {

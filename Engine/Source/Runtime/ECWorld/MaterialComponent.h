@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Core/StringCrc.h"
-#include "Material/MaterialType.h"
 #include "Scene/Material.h"
 #include "Scene/MaterialTextureType.h"
 #include "Scene/Texture.h"
@@ -32,6 +31,8 @@ public:
 		return className;
 	}
 
+	using TextureBlob = std::vector<std::byte>;
+
 	struct TextureInfo
 	{
 		uint8_t slot;
@@ -49,25 +50,22 @@ public:
 	~MaterialComponent() = default;
 
 	void SetMaterialData(const cd::Material* pMaterialData) { m_pMaterialData = pMaterialData; }
-	void AddTextureData(const cd::Texture* pTextureData) { m_pTextureDatas.push_back(pTextureData); }
+	void SetMaterialType(const engine::MaterialType* pMaterialType) { m_pMaterialType = pMaterialType; }
+	void AddTextureBlob(cd::MaterialTextureType textureType, TextureBlob textureBlob) { m_textureTypeToBlob[textureType] = cd::MoveTemp(textureBlob); }
 
 	void SetShadingProgram(uint16_t shadingProgram) { m_shadingProgram = shadingProgram; }
 	uint16_t GetShadingProgram() const { return m_shadingProgram; }
 
-	void SetTextureInfo(cd::MaterialTextureType textureType, uint8_t slot, uint16_t samplerHandle, uint16_t textureHandle);
 	std::optional<TextureInfo> GetTextureInfo(cd::MaterialTextureType textureType) const;
 
 	void Reset();
 	void Build();
 
 private:
-	void BuildTexture(const char* pTextureFilePath);
-	void BuildShader(const char* pVSFilePath, const char* pFSFilePath);
-
-private:
 	// Input
 	const cd::Material* m_pMaterialData = nullptr;
-	std::vector<const cd::Texture*> m_pTextureDatas;
+	const engine::MaterialType* m_pMaterialType = nullptr;
+	std::map<cd::MaterialTextureType, TextureBlob> m_textureTypeToBlob;
 	uint16_t m_shadingProgram = INT16_MAX;
 
 	// Output

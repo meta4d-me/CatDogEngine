@@ -225,8 +225,6 @@ void EditorApp::AddEngineRenderer(std::unique_ptr<engine::Renderer> pRenderer)
 
 bool EditorApp::Update(float deltaTime)
 {
-	ResourceBuilder::Get().Update();
-
 	GetMainWindow()->Update();
 
 	m_pCameraController->Update(deltaTime);

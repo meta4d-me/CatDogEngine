@@ -3,20 +3,29 @@
 #include "Base/Template.h"
 #include "ECWorld/Entity.h"
 #include "Framework/IConsumer.h"
+#include "Scene/MaterialTextureType.h"
+#include "Scene/ObjectID.h"
 
+#include <map>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace cd
 {
 
+class Material;
+class Mesh;
+class Node;
 class SceneDatabase;
+class Texture;
 
 }
 
 namespace engine
 {
 
+class MaterialComponent;
 class MaterialType;
 class RenderContext;
 class World;
@@ -30,7 +39,7 @@ class ECWorldConsumer final : public cdtools::IConsumer
 {
 public:
 	ECWorldConsumer() = delete;
-	explicit ECWorldConsumer(engine::World* pWorld, engine::MaterialType* pMaterialType, engine::RenderContext* pRenderContext) : m_pWorld(pWorld), m_pStandardMaterialType(pMaterialType), m_pRenderContext(pRenderContext) {}
+	explicit ECWorldConsumer(engine::World* pWorld, engine::MaterialType* pMaterialType, engine::RenderContext* pRenderContext);
 	ECWorldConsumer(const ECWorldConsumer&) = delete;
 	ECWorldConsumer& operator=(const ECWorldConsumer&) = delete;
 	ECWorldConsumer(ECWorldConsumer&&) = delete;
@@ -43,12 +52,20 @@ public:
 	std::vector<engine::Entity>&& GetMeshEntities() { return cd::MoveTemp(m_meshEntities); }
 
 private:
+	void AddNode(engine::Entity entity, const cd::Node& node);
+	void AddMesh(engine::Entity entity, const cd::Mesh& mesh);
+	std::string GetTextureOutputFilePath(const char* pInputFilePath);
+	void AddMaterial(engine::Entity entity, const cd::Material& material, const cd::SceneDatabase* pSceneDatabase);
+
+private:
 	engine::RenderContext* m_pRenderContext;
 	engine::World* m_pWorld;
 	engine::MaterialType* m_pStandardMaterialType;
 
 	std::vector<engine::Entity> m_meshEntities;
 	uint32_t m_meshMinID;
+
+	std::map<cd::NodeID::ValueType, engine::Entity> m_mapTransformIDToEntities;
 };
 
 }
