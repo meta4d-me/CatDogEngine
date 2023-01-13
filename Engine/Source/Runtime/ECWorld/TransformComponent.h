@@ -6,7 +6,7 @@
 namespace engine
 {
 
-class TransformComponent
+class TransformComponent final
 {
 public:
 	static constexpr StringCrc GetClassName()

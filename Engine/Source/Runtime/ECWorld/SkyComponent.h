@@ -5,7 +5,7 @@
 namespace engine
 {
 
-class SkyComponent
+class SkyComponent final
 {
 public:
 	static constexpr StringCrc GetClassName()

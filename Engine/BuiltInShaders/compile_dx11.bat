@@ -1,5 +1,5 @@
 set SHADERS="shaders"
-set PROJECT="../../Projects/SponzaBaseScene/Resources/Shaders"
+set PROJECT="../../Projects/PBRViewer/Resources/Shaders"
 
 rem Precompute
 start /b shaderc --type c --platform windows -p cs_5_0 -O 1 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/cs_ComputeTransmittance.sc -o %PROJECT%/cs_ComputeTransmittance.bin

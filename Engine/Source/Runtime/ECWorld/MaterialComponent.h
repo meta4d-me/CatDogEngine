@@ -22,7 +22,7 @@ namespace engine
 
 class MaterialType;
 
-class MaterialComponent
+class MaterialComponent final
 {
 public:
 	static constexpr StringCrc GetClassName()

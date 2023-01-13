@@ -6,7 +6,7 @@
 namespace engine
 {
 
-class HierarchyComponent
+class HierarchyComponent final
 {
 public:
 	static constexpr StringCrc GetClassName()

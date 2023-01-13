@@ -5,7 +5,7 @@
 namespace engine
 {
 
-class CameraComponent
+class CameraComponent final
 {
 public:
 	static constexpr StringCrc GetClassName()

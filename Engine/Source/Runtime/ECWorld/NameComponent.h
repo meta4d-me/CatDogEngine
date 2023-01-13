@@ -7,7 +7,7 @@
 namespace engine
 {
 
-class NameComponent
+class NameComponent final
 {
 public:
 	static constexpr StringCrc GetClassName()
