@@ -88,7 +88,7 @@ project("Engine")
 		table.insert(platformDefines, "ENGINE_BUILD_SHARED")
 	end
 
-	local editorResourcesPath = RootPath.."/Engine/Source/Editor/Resources/"
+	local editorResourcesPath = RootPath.."/Engine/EditorResources/"
 	local projectResourcesPath = RootPath.."/Projects/SponzaBaseScene/Resources/"
 	defines {
 		"SDL_MAIN_HANDLED", -- don't use SDL_main() as entry point

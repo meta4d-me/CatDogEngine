@@ -11,6 +11,7 @@
 #include "Rendering/PBRSkyRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/WorldRenderer.h"
+#include "Resources/ResourceBuilder.h"
 #include "Scene/SceneDatabase.h"
 #include "UILayers/AssetBrowser.h"
 #include "UILayers/EntityList.h"

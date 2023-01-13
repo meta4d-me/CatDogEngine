@@ -18,6 +18,7 @@ class ImGuiBaseLayer;
 class ImGuiContextInstance
 {
 public:
+	ImGuiContextInstance() = delete;
 	explicit ImGuiContextInstance(uint16_t width, uint16_t height, bool enableDock = false);
 	ImGuiContextInstance(const ImGuiContextInstance&) = delete;
 	ImGuiContextInstance& operator=(const ImGuiContextInstance&) = delete;

@@ -16,13 +16,13 @@ class World;
 class Engine
 {
 public:
+	Engine() = delete;
 	explicit Engine(std::unique_ptr<IApplication> pApplication);
-	virtual ~Engine();
-
 	Engine(const Engine&) = delete;
 	Engine& operator=(const Engine&) = delete;
 	Engine(Engine&&) = delete;
 	Engine& operator=(Engine&&) = delete;
+	virtual ~Engine();
 
 	static ENGINE_API Engine* Create(std::unique_ptr<IApplication> pApplication);
 	static ENGINE_API void Destroy(Engine* pEngine);

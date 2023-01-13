@@ -26,7 +26,7 @@ static constexpr uint8_t MaxRenderTargetCount = 255;
 class RenderContext
 {
 public:
-	explicit RenderContext() = default;
+	RenderContext() = default;
 	RenderContext(const RenderContext&) = delete;
 	RenderContext& operator=(const RenderContext&) = delete;
 	RenderContext(RenderContext&&) = delete;

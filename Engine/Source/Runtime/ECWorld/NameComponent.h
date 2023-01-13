@@ -32,7 +32,10 @@ public:
 	bool operator!=(const NameComponent& other) const { return m_nameCrc != other.m_nameCrc; }
 
 private:
+	// Input
 	std::string m_name;
+
+	// Output
 	StringCrc m_nameCrc;
 };
 

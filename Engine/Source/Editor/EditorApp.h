@@ -30,7 +30,7 @@ class SceneView;
 class EditorApp final : public engine::IApplication
 {
 public:
-	explicit EditorApp();
+	EditorApp();
 	EditorApp(const EditorApp&) = delete;
 	EditorApp& operator=(const EditorApp&) = delete;
 	EditorApp(EditorApp&&) = default;

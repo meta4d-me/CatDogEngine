@@ -25,28 +25,28 @@ project("CompileShaders")
 		}
 	filter {}
 
-project("CompileTextures")
-	kind("Utility")
-	location(path.join(IntermediatePath, "Engine/Misc"))
-	targetdir(BinariesPath)
-
-	local textureFilePath = path.join(ProjectsPath, "SponzaBaseScene/Resources/Textures")
-	vpaths {
-		["textures"] = path.join(textureFilePath, "textures/**.*"),
-		[""] = path.join(textureFilePath, "texture.bat"),
-	}
-
-	files {
-		path.join(textureFilePath, "textures/**.*"),
-		path.join(textureFilePath, "texture.bat"),
-	}
-
-	filter { "system:windows" }
-		prebuildcommands {
-			"cd "..path.join(ProjectsPath, "SponzaBaseScene/Resources/Textures"),
-			"texture.bat",
-		}
-	filter {}
+--project("CompileTextures")
+--	kind("Utility")
+--	location(path.join(IntermediatePath, "Engine/Misc"))
+--	targetdir(BinariesPath)
+--
+--	local textureFilePath = path.join(ProjectsPath, "SponzaBaseScene/Resources/Textures")
+--	vpaths {
+--		["textures"] = path.join(textureFilePath, "textures/**.*"),
+--		[""] = path.join(textureFilePath, "texture.bat"),
+--	}
+--
+--	files {
+--		path.join(textureFilePath, "textures/**.*"),
+--		path.join(textureFilePath, "texture.bat"),
+--	}
+--
+--	filter { "system:windows" }
+--		prebuildcommands {
+--			"cd "..path.join(ProjectsPath, "SponzaBaseScene/Resources/Textures"),
+--			"texture.bat",
+--		}
+--	filter {}
 
 project("MakeEngine")
 	kind("Utility")
