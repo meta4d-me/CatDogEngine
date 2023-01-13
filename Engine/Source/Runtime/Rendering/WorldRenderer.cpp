@@ -54,13 +54,8 @@ void WorldRenderer::Render(float deltaTime)
 		TransformComponent* pTransformComponent = pTransformStorage->GetComponent(entity);
 		if (pTransformComponent)
 		{
-			// TODO : test
-			//pTransformComponent->SetTranslation(pTransformComponent->GetTranslation() + cd::Vec3f(0.0f, 0.0f, deltaTime * 0.1));
-			//pTransformComponent->SetRotation(cd::Quaternion::FromAxisAngle(cd::Vec3f(0.0f, 0.0f, 1.0f), 0.0f));
-			//pTransformComponent->SetScale(cd::Vec3f(0.2f, 0.2f, 0.2f));
-
 			pTransformComponent->Build();
-			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Transpose().Begin());
+			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
 		}
 
 		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle(pMeshComponent->GetVertexBuffer()));

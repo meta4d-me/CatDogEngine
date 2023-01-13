@@ -28,7 +28,7 @@ project("Editor")
 	}
 
 	local editorResourcesPath = RootPath.."/Engine/Source/Editor/Resources/"
-	local projectResourcesPath = RootPath.."/Projects/SponzaBaseScene/Resources/"
+	local projectResourcesPath = RootPath.."/Projects/PBRViewer/Resources/"
 	defines {
 		"BX_CONFIG_DEBUG",
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..editorResourcesPath.."\"",

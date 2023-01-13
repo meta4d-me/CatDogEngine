@@ -19,7 +19,7 @@ namespace engine
 
 class World;
 
-class StaticMeshComponent
+class StaticMeshComponent final
 {
 public:
 	static constexpr StringCrc GetClassName()

@@ -75,12 +75,12 @@ void Camera::FrameAll(const cd::AABB& aabb)
 
 void Camera::UpdateViewMatrix()
 {
-	m_viewMatrix = cd::Matrix4x4::LookAt<cd::Handedness::Left>(m_position, m_position + m_forwardDirection, m_upDirection).Transpose();
+	m_viewMatrix = cd::Matrix4x4::LookAt<cd::Handedness::Left>(m_position, m_position + m_forwardDirection, m_upDirection);
 }
 
 void Camera::UpdateProjectionMatrix()
 {
-	m_projectionMatrix = cd::Matrix4x4::Perspective(m_fov, m_aspect, m_nearPlane, m_farPlane, m_homogeneousNdc).Transpose();
+	m_projectionMatrix = cd::Matrix4x4::Perspective(m_fov, m_aspect, m_nearPlane, m_farPlane, m_homogeneousNdc);
 }
 
 void Camera::Update()

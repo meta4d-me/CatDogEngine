@@ -5,7 +5,7 @@
 namespace engine
 {
 
-class LightComponent
+class LightComponent final
 {
 public:
 	static constexpr StringCrc GetClassName()

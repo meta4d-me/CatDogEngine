@@ -30,9 +30,9 @@ ECWorldConsumer::ECWorldConsumer(engine::World* pWorld, engine::MaterialType* pM
 {
 }
 
-void ECWorldConsumer::SetSceneDatabaseIDs(uint32_t meshID)
+void ECWorldConsumer::SetSceneDatabaseIDs(uint32_t nodeID)
 {
-	m_meshMinID = meshID;
+	m_nodeMinID = nodeID;
 }
 
 void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
@@ -41,28 +41,28 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 
 	for (const auto& node : pSceneDatabase->GetNodes())
 	{
+		if (m_nodeMinID > node.GetID().Data())
+		{
+			// The SceneDatabase can be reused when we import assets multiple times.
+			continue;
+		}
+
+		engine::Entity sceneEntity = m_pWorld->CreateEntity();
+		AddNode(sceneEntity, node);
+
 		for (cd::MeshID meshID : node.GetMeshIDs())
 		{
 			const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
-			if (m_meshMinID > mesh.GetID().Data())
-			{
-				// The SceneDatabase can be reused when we import assets multiple times.
-				// So we need to filter meshes which was generated in the past.
-				continue;
-			}
-
-			engine::Entity meshEntity = m_pWorld->CreateEntity();
-			//AddNode(meshEntity, node);
-			AddMesh(meshEntity, mesh);
+			AddMesh(sceneEntity, mesh);
 
 			cd::MaterialID meshMaterialID = mesh.GetMaterialID();
 			if (meshMaterialID.IsValid())
 			{
 				const cd::Material& material = pSceneDatabase->GetMaterial(mesh.GetMaterialID().Data());
-				AddMaterial(meshEntity, material, pSceneDatabase);
+				AddMaterial(sceneEntity, material, pSceneDatabase);
 			}
 
-			m_meshEntities.push_back(meshEntity);
+			m_meshEntities.push_back(sceneEntity);
 		}
 	}
 }

@@ -30,7 +30,7 @@ project("CompileShaders")
 --	location(path.join(IntermediatePath, "Engine/Misc"))
 --	targetdir(BinariesPath)
 --
---	local textureFilePath = path.join(ProjectsPath, "SponzaBaseScene/Resources/Textures")
+--	local textureFilePath = path.join(ProjectsPath, "PBRViewer/Resources/Textures")
 --	vpaths {
 --		["textures"] = path.join(textureFilePath, "textures/**.*"),
 --		[""] = path.join(textureFilePath, "texture.bat"),
@@ -43,7 +43,7 @@ project("CompileShaders")
 --
 --	filter { "system:windows" }
 --		prebuildcommands {
---			"cd "..path.join(ProjectsPath, "SponzaBaseScene/Resources/Textures"),
+--			"cd "..path.join(ProjectsPath, "PBRViewer/Resources/Textures"),
 --			"texture.bat",
 --		}
 --	filter {}

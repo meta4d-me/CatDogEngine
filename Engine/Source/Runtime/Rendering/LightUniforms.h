@@ -22,7 +22,7 @@ constexpr uint16_t ConstexprCeil(const float num) {
 	return inum + 1;
 }
 
-class LightUniform {
+class LightUniform final {
 public:
 	static constexpr uint16_t LIGHT_STRIDE = ConstexprCeil(sizeof(U_Light) / (4.0f * sizeof(float)));
 	static constexpr uint16_t VEC4_COUNT = LIGHT_STRIDE * MAX_LIGHT_COUNT;
@@ -30,7 +30,7 @@ public:
 
 public:
 	LightUniform() = delete;
-	LightUniform(RenderContext *pRenderContext);
+	explicit LightUniform(RenderContext *pRenderContext);
 	LightUniform(const LightUniform &) = delete;
 	LightUniform &operator=(const LightUniform &) = delete;
 	LightUniform(LightUniform &&) = delete;

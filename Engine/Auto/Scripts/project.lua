@@ -27,7 +27,7 @@ function MakeProject(projectName)
 			["Source"] = { path.join(projectSourcePath, "**.*") },
 		}
 		
-		local projectResourcesPath = RootPath.."/Projects/SponzaBaseScene/Resources/"
+		local projectResourcesPath = RootPath.."/Projects/PBRViewer/Resources/"
 		defines {
 			"BX_CONFIG_DEBUG",
 			"CDENGINE_RESOURCES_ROOT_PATH=\""..projectResourcesPath.."\"",	

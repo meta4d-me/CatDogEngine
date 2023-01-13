@@ -88,7 +88,7 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 
 	engine::MaterialType pbrMaterialType = engine::MaterialType::GetPBRMaterialType();
 	ECWorldConsumer ecConsumer(pWorld, &pbrMaterialType, pCurrentRenderContext);
-	ecConsumer.SetSceneDatabaseIDs(pSceneDatabase->GetMeshCount());
+	ecConsumer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount());
 	cdtools::Processor processor(&genericProducer, &ecConsumer, pSceneDatabase);
 	processor.Run();
 
