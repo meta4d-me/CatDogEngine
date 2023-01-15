@@ -104,6 +104,9 @@ void Window::Update()
 
 		case SDL_MOUSEMOTION:
 		{
+			// Top left is (0,0) for (x, y)
+			// xrel is positive to the right, negative to the left
+			// yrel is positive to the bottom, negative to the top
 			const SDL_MouseMotionEvent& mouseMotionEvent = sdlEvent.motion;
 			Input::Get().SetMousePositionX(mouseMotionEvent.x);
 			Input::Get().SetMousePositionY(mouseMotionEvent.y);

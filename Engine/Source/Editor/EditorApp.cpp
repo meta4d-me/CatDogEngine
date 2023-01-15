@@ -175,15 +175,19 @@ void EditorApp::InitRenderContext()
 	AddEditorRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pRenderTarget));
 
 	// Camera is prepared for other renderers except ImGuiRenderer.
-	m_pCamera = std::make_unique<engine::FlybyCamera>(cd::Point(0.0f, 0.0f, -50.0f));
+	m_pCamera = std::make_unique<engine::FlybyCamera>(cd::Point(0.0f, 50.0f, -50.0f));
 	m_pCamera->SetAspect(1.0f);
 	m_pCamera->SetFov(45.0f);
 	m_pCamera->SetNearPlane(0.1f);
-	m_pCamera->SetFarPlane(1000.0f);
+	m_pCamera->SetFarPlane(2000.0f);
 	m_pCamera->SetHomogeneousNdc(bgfx::getCaps()->homogeneousDepth);
 	m_pRenderContext->SetCamera(m_pCamera.get());
 
-	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(m_pCamera.get(), 50.0f /* Mouse Sensitivity */, 160.0f /* Movement Speed*/);
+	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(
+		m_pCamera.get(), 
+		15.0f /* horizontal sensitivity */,
+		5.0f /* vertical sensitivity */,
+		160.0f /* Movement Speed*/);
 
 	// The init size doesn't make sense. It will resize by SceneView;
 	uint16_t width = 800;
