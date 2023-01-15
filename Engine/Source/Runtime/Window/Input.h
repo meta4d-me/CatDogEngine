@@ -40,6 +40,7 @@ public:
 	{
 		m_mousePositionOffsetX = m_mousePositionOffsetY = 0;
 		m_mouseScrollOffsetY = 0;
+		m_keyModifiers = KeyMod::KMOD_NONE;
 	}
 
 	// Mouse device
@@ -71,6 +72,10 @@ public:
 	bool IsKeyPressed(KeyCode code) const { return m_keyPressed[static_cast<uint8_t>(code)]; }
 	void SetKeyPressed(uint8_t code, bool pressed) { m_keyPressed[code] = pressed; }
 
+	void SetModifier(KeyMod mod);
+	void ClearModifier(KeyMod mod);
+	bool ContainsModifier(KeyMod mod) const;
+
 private:
 	Input() = default;
 
@@ -87,6 +92,7 @@ private:
 
 	// Keyboard device
 	bool m_keyPressed[MaxKeyCode];
+	KeyMod m_keyModifiers = KeyMod::KMOD_NONE;
 };
 
 }

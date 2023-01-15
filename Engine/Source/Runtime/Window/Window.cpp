@@ -158,15 +158,16 @@ void Window::Update()
 		case SDL_KEYDOWN:
 		{
 			Sint32 sdlKeyCode = sdlEvent.key.keysym.sym;
-			if (sdlKeyCode == SDLK_ESCAPE)
-			{
-				Closed();
-				return;
-			}
 
 			if (sdlKeyCode < Input::MaxKeyCode)
 			{
 				Input::Get().SetKeyPressed(static_cast<uint8_t>(sdlKeyCode), true);
+			}
+
+			KeyMod keyMod = static_cast<KeyMod>(sdlEvent.key.keysym.mod);
+			if (keyMod != KeyMod::KMOD_NONE)
+			{
+				Input::Get().SetModifier(keyMod);
 			}
 		}
 		break;
@@ -174,15 +175,16 @@ void Window::Update()
 		case SDL_KEYUP:
 		{
 			Sint32 sdlKeyCode = sdlEvent.key.keysym.sym;
-			if (sdlKeyCode == SDLK_ESCAPE)
-			{
-				Closed();
-				return;
-			}
 
 			if (sdlKeyCode < Input::MaxKeyCode)
 			{
 				Input::Get().SetKeyPressed(static_cast<uint8_t>(sdlKeyCode), false);
+			}
+
+			KeyMod keyMod = static_cast<KeyMod>(sdlEvent.key.keysym.mod);
+			if (keyMod != KeyMod::KMOD_NONE)
+			{
+				Input::Get().ClearModifier(keyMod);
 			}
 		}
 		break;

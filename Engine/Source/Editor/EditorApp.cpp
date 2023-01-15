@@ -104,7 +104,7 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 	ImGui::GetIO().BackendRendererUserData = m_pRenderContext.get();
 
 	// Add UI layers after finish imgui and rendering contexts' initialization.
-	m_pEditorImGuiContext->AddStaticLayer(std::make_unique<MainMenu>("MainMenu"));
+	m_pEditorImGuiContext->AddStaticLayer(std::make_unique<MainMenu>("MainMenu", GetMainWindow()));
 
 	auto pEntityList = std::make_unique<EntityList>("EntityList");
 	pEntityList->SetSceneWorld(m_pEditorSceneWorld.get());
