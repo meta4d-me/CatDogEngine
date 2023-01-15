@@ -1,8 +1,8 @@
 ﻿#include "EditorApp.h"
 
 #include "Application/Engine.h"
-#include "Display/FlybyCamera.h"
 #include "Display/FirstPersonCameraController.h"
+#include "Display/FlybyCamera.h"
 #include "ECWorld/EditorSceneWorld.h"
 #include "ImGui/EditorImGuiViewport.h"
 #include "ImGui/ImGuiContextInstance.h"
@@ -10,6 +10,7 @@
 #include "Rendering/ImGuiRenderer.h"
 #include "Rendering/PBRSkyRenderer.h"
 #include "Rendering/RenderContext.h"
+#include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Resources/ResourceBuilder.h"
 #include "Scene/SceneDatabase.h"
@@ -199,6 +200,9 @@ void EditorApp::InitRenderContext()
 	auto pSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pSkyRenderer->SetEntity(m_pEditorSceneWorld->GetSkyEntity());
 	AddEngineRenderer(cd::MoveTemp(pSkyRenderer));
+
+	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	AddEngineRenderer(cd::MoveTemp(pTerrainRenderer));
 
 	auto pSceneRenderer = std::make_unique<engine::WorldRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pSceneRenderer = pSceneRenderer.get();

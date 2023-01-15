@@ -72,7 +72,7 @@ void TerrainRenderer::Render(float deltaTime)
 	for (size_t meshIndex = 0; meshIndex < m_meshHandles.size(); ++meshIndex)
 	{
 		const MeshHandle& meshHandle = m_meshHandles[meshIndex];
-		const TerrainMaterialHandle& materialHandle = m_materialHandles[meshIndex];
+		const TerrainMaterialHandle& materialHandle = m_materialHandles[0];
 
 		bgfx::setVertexBuffer(0, meshHandle.vbh);
 		bgfx::setIndexBuffer(meshHandle.ibh);
