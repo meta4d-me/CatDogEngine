@@ -3,11 +3,19 @@
 #include "EditorApp.h"
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/ThemeColor.h"
+#include "Window/Window.h"
+#include "Window/Input.h"
+#include "Window/KeyCode.h"
 
 #include <imgui/imgui.h>
 
 namespace editor
 {
+
+MainMenu::MainMenu(const char* pName, engine::Window* mainWindow)
+	: ImGuiBaseLayer(pName)
+	, p_MainWindow(mainWindow)
+{}
 
 MainMenu::~MainMenu()
 {
@@ -41,6 +49,10 @@ void MainMenu::FileMenu()
 
 		if (ImGui::MenuItem("Quit", "Ctrl Q"))
 		{
+			if (p_MainWindow != nullptr)
+			{
+				p_MainWindow->Closed();
+			}
 		}
 
 		ImGui::EndMenu();
@@ -132,6 +144,15 @@ void MainMenu::Update()
 		WindowMenu();
 		AboutMenu();
 		ImGui::EndMainMenuBar();
+	}
+
+	if (engine::Input::Get().ContainsModifier(engine::KeyMod::KMOD_CTRL) 
+		&& engine::Input::Get().IsKeyPressed(engine::KeyCode::q))
+	{
+		if (p_MainWindow != nullptr)
+		{ 
+			p_MainWindow->Closed();
+		}
 	}
 }
 
