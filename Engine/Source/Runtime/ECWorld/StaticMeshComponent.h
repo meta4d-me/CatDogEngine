@@ -2,6 +2,7 @@
 
 #include "Core/StringCrc.h"
 #include "ECWorld/Entity.h"
+#include "Math/AABB.hpp"
 
 #include <cstdint>
 #include <vector>
@@ -39,6 +40,7 @@ public:
 	void SetMeshData(const cd::Mesh* pMeshData) { m_pMeshData = pMeshData; }
 	void SetRequiredVertexFormat(const cd::VertexFormat* pVertexFormat) { m_pRequiredVertexFormat = pVertexFormat; }
 
+	const cd::AABB& GetAABB() const;
 	uint16_t GetVertexBuffer() const { return m_vertexBufferHandle; }
 	uint16_t GetIndexBuffer() const { return m_indexBufferHandle; }
 

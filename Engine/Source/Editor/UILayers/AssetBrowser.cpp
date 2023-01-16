@@ -83,27 +83,11 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 	genericProducer.ActivateTriangulateService();
 	genericProducer.ActivateFlattenHierarchyService();
 
-	engine::World* pWorld = m_pEditorSceneWorld->GetWorld();
-	std::vector<engine::Entity>& meshEntites = m_pEditorSceneWorld->GetMeshEntites();
-
 	engine::MaterialType pbrMaterialType = engine::MaterialType::GetPBRMaterialType();
-	ECWorldConsumer ecConsumer(pWorld, &pbrMaterialType, pCurrentRenderContext);
+	ECWorldConsumer ecConsumer(m_pEditorSceneWorld->GetWorld(), &pbrMaterialType, pCurrentRenderContext);
 	ecConsumer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount());
 	cdtools::Processor processor(&genericProducer, &ecConsumer, pSceneDatabase);
 	processor.Run();
-
-	auto pMaterialStorage = pWorld->GetComponents<engine::MaterialComponent>();
-	auto pStaticMeshStorage = pWorld->GetComponents<engine::StaticMeshComponent>();
-	for (engine::Entity entity : ecConsumer.GetMeshEntities())
-	{
-		engine::StaticMeshComponent* pStaticMeshComponent = pStaticMeshStorage->GetComponent(entity);
-		pStaticMeshComponent->Build();
-
-		engine::MaterialComponent* pMaterialComponent = pMaterialStorage->GetComponent(entity);
-		pMaterialComponent->Build();
-
-		meshEntites.push_back(entity);
-	}
 }
 
 void AssetBrowser::Update()

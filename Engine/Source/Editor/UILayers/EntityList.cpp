@@ -58,6 +58,11 @@ void EntityList::DrawEntity(engine::Entity entity)
 {
     engine::World* pWorld = m_pEditorSceneWorld->GetWorld();
     engine::NameComponent* pNameComponent = pWorld->GetComponents<engine::NameComponent>()->GetComponent(entity);
+    if (!pNameComponent)
+    {
+        return;
+    }
+
 
     // When you use the entity filter, it will skip drawing entites which doesn't pass the filter conditions.
     if (m_entityFilter.IsActive() && !m_entityFilter.PassFilter(pNameComponent->GetName()))
@@ -222,7 +227,7 @@ void EntityList::Update()
     ImGui::BeginChild("Entites");
 
     // TODO : Need to have a more generic entity manager.
-    for (engine::Entity entity : m_pEditorSceneWorld->GetMeshEntites())
+    for (engine::Entity entity : m_pEditorSceneWorld->GetWorld()->GetComponents<engine::StaticMeshComponent>()->GetEntities())
     {
         DrawEntity(entity);
     }

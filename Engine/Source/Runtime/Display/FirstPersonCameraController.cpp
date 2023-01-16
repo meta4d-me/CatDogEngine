@@ -3,6 +3,8 @@
 #include "FlybyCamera.h"
 #include "Window/Input.h"
 
+#include <cassert>
+
 namespace engine
 {
 

@@ -36,6 +36,7 @@ public:
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		assert(io.UserData != nullptr && "Please set ImGuiContextInstance to io.UserData field.");
+		io.BackendRendererUserData;
 		if (io.UserData != pThis)
 		{
 			pThis->SwitchCurrentContext();

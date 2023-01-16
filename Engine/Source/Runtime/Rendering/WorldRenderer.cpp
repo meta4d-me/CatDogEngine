@@ -43,7 +43,7 @@ void WorldRenderer::Render(float deltaTime)
 	auto pMaterialStorage = m_pCurrentWorld->GetComponents<MaterialComponent>();
 	auto pTransformStorage = m_pCurrentWorld->GetComponents<TransformComponent>();
 
-	for (Entity entity : *m_pMeshEntites)
+	for (Entity entity : pMeshStorage->GetEntities())
 	{
 		StaticMeshComponent* pMeshComponent = pMeshStorage->GetComponent(entity);
 		if (!pMeshComponent)
@@ -51,12 +51,12 @@ void WorldRenderer::Render(float deltaTime)
 			continue;
 		}
 
-		TransformComponent* pTransformComponent = pTransformStorage->GetComponent(entity);
-		if (pTransformComponent)
-		{
-			pTransformComponent->Build();
-			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
-		}
+		//TransformComponent* pTransformComponent = pTransformStorage->GetComponent(entity);
+		//if (pTransformComponent)
+		//{
+		//	pTransformComponent->Build();
+		//	bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
+		//}
 
 		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle(pMeshComponent->GetVertexBuffer()));
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle(pMeshComponent->GetIndexBuffer()));

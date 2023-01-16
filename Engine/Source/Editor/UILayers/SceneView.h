@@ -34,6 +34,8 @@ public:
 	engine::MulticastDelegate<void(uint16_t, uint16_t)> OnResize;
 	void SetSceneWorld(EditorSceneWorld* pWorld) { m_pEditorSceneWorld = pWorld; }
 
+	void PickSceneMesh(float regionWidth, float regionHeight);
+
 private:
 	void UpdateToolMenuButtons();
 	
@@ -48,6 +50,7 @@ private:
 	ImGuizmo::OPERATION m_currentOperation;
 
 	engine::RenderTarget* m_pRenderTarget = nullptr;
+	bool m_isMouseDownFirstTime = true;
 };
 
 }

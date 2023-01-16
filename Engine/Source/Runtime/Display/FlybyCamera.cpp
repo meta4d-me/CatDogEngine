@@ -42,7 +42,7 @@ void FlybyCamera::MoveDown(float amount)
 
 void FlybyCamera::Rotate(const cd::Vec3f& axis, float angleDegrees)
 {
-	cd::Quaternion rotation = cd::Quaternion::FromAxisAngle(axis, cd::DegreeToRadian<float>(angleDegrees));
+	cd::Quaternion rotation = cd::Quaternion::FromAxisAngle(axis, cd::Math::DegreeToRadian<float>(angleDegrees));
 	m_forwardDirection = (rotation * m_forwardDirection).Normalize();
 	m_upDirection = (rotation * m_upDirection).Normalize();
 	Dirty();

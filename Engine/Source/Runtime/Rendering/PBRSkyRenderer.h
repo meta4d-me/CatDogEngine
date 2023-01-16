@@ -19,16 +19,12 @@ public:
 	virtual void UpdateView(const float *pViewMatrix, const float *pProjectionMatrix) override;
 	virtual void Render(float deltaTime) override;
 
-	void SetEntity(Entity entity) { m_skyEntity = entity; }
-
 private:
 	void Precompute();
 	void ClearTextureSlots() const;
 	void ReleaseTemporaryTextureResources();
 
 private:
-	Entity m_skyEntity;
-
 	bgfx::ProgramHandle m_programSingleScattering_RayMarching;
 	bgfx::ProgramHandle m_programAtmosphericScattering_LUT;
 

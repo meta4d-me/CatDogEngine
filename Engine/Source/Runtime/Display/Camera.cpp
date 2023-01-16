@@ -56,11 +56,11 @@ void Camera::SetHomogeneousNdc(bool homogeneousNdc)
 
 void Camera::FrameAll(const cd::AABB& aabb)
 {
-	cd::Point lookAt = aabb.GetCenter();
+	cd::Point lookAt = aabb.Center();
 	cd::Direction lookDirection(-1.0f, 0.0f, 1.0f);
 	lookDirection.Normalize();
 
-	cd::Point lookFrom = lookAt - lookDirection * aabb.GetExtent().Length();
+	cd::Point lookFrom = lookAt - lookDirection * aabb.Size().Length();
 
 	m_position.x() = lookFrom.x();
 	m_position.y() = lookFrom.y();
@@ -73,6 +73,37 @@ void Camera::FrameAll(const cd::AABB& aabb)
 	Dirty();
 }
 
+cd::Ray Camera::EmitRay(float screenX, float screenY, float width, float height)
+{
+	// TODO : Optimize inverse ProjectionMatrix * ViewMatrix twice?
+	cd::Point rayStartPosition = cd::Matrix4x4::UnProject(cd::Vec3f(screenX, screenY, 0.0f),
+		cd::Matrix4x4::Identity(), GetProjectionMatrix(), cd::Vec4f(0.0f, 0.0f, width, height));
+	cd::Point rayEndPosition = cd::Matrix4x4::UnProject(cd::Vec3f(screenX, screenY, 1.0f),
+		cd::Matrix4x4::Identity(), GetProjectionMatrix(), cd::Vec4f(0.0f, 0.0f, width, height));
+
+	return cd::Ray(rayStartPosition, rayEndPosition - rayStartPosition);
+}
+
+const cd::Matrix4x4& Camera::GetViewMatrix()
+{
+	if (m_dirty)
+	{
+		UpdateViewMatrix();
+	}
+
+	return m_viewMatrix;
+}
+
+const cd::Matrix4x4& Camera::GetProjectionMatrix()
+{
+	if (m_dirty)
+	{
+		UpdateProjectionMatrix();
+	}
+
+	return m_projectionMatrix;
+}
+
 void Camera::UpdateViewMatrix()
 {
 	m_viewMatrix = cd::Matrix4x4::LookAt<cd::Handedness::Left>(m_position, m_position + m_forwardDirection, m_upDirection);
@@ -81,19 +112,6 @@ void Camera::UpdateViewMatrix()
 void Camera::UpdateProjectionMatrix()
 {
 	m_projectionMatrix = cd::Matrix4x4::Perspective(m_fov, m_aspect, m_nearPlane, m_farPlane, m_homogeneousNdc);
-}
-
-void Camera::Update()
-{
-	if(!m_dirty)
-	{
-		return;
-	}
-
-	UpdateViewMatrix();
-	UpdateProjectionMatrix();
-
-	m_dirty = false;
 }
 
 }
