@@ -1,8 +1,8 @@
 ﻿#include "EditorApp.h"
 
 #include "Application/Engine.h"
-#include "Display/FlybyCamera.h"
 #include "Display/FirstPersonCameraController.h"
+#include "Display/FlybyCamera.h"
 #include "ECWorld/EditorSceneWorld.h"
 #include "ImGui/EditorImGuiViewport.h"
 #include "ImGui/ImGuiContextInstance.h"
@@ -12,6 +12,7 @@
 #include "Rendering/SkyRenderer.h"
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
+#include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Resources/ResourceBuilder.h"
 #include "Scene/SceneDatabase.h"
@@ -105,7 +106,7 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 	ImGui::GetIO().BackendRendererUserData = m_pRenderContext.get();
 
 	// Add UI layers after finish imgui and rendering contexts' initialization.
-	m_pEditorImGuiContext->AddStaticLayer(std::make_unique<MainMenu>("MainMenu"));
+	m_pEditorImGuiContext->AddStaticLayer(std::make_unique<MainMenu>("MainMenu", GetMainWindow()));
 
 	auto pEntityList = std::make_unique<EntityList>("EntityList");
 	pEntityList->SetSceneWorld(m_pEditorSceneWorld.get());
@@ -175,15 +176,19 @@ void EditorApp::InitRenderContext()
 	AddEditorRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pRenderTarget));
 
 	// Camera is prepared for other renderers except ImGuiRenderer.
-	m_pCamera = std::make_unique<engine::FlybyCamera>(cd::Point(0.0f, 0.0f, -50.0f));
+	m_pCamera = std::make_unique<engine::FlybyCamera>(cd::Point(0.0f, 50.0f, -50.0f));
 	m_pCamera->SetAspect(1.0f);
 	m_pCamera->SetFov(45.0f);
 	m_pCamera->SetNearPlane(0.1f);
-	m_pCamera->SetFarPlane(1000.0f);
+	m_pCamera->SetFarPlane(2000.0f);
 	m_pCamera->SetHomogeneousNdc(bgfx::getCaps()->homogeneousDepth);
 	m_pRenderContext->SetCamera(m_pCamera.get());
 
-	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(m_pCamera.get(), 50.0f /* Mouse Sensitivity */, 160.0f /* Movement Speed*/);
+	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(
+		m_pCamera.get(), 
+		15.0f /* horizontal sensitivity */,
+		5.0f /* vertical sensitivity */,
+		160.0f /* Movement Speed*/);
 
 	constexpr engine::StringCrc sceneViewRenderTargetName("SceneRenderTarget");
 	std::vector<engine::AttachmentDescriptor> attachmentDesc = {
@@ -191,6 +196,7 @@ void EditorApp::InitRenderContext()
 		{ .textureFormat = engine::TextureFormat::RGBA32F },
 		{ .textureFormat = engine::TextureFormat::D32F },
 	};
+
 	// The init size doesn't make sense. It will resize by SceneView.
 	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->CreateRenderTarget(sceneViewRenderTargetName, 1, 1, std::move(attachmentDesc));
 	pSceneRenderTarget->OnResize.Bind<engine::Camera, &engine::Camera::SetAspect>(m_pCamera.get());
@@ -198,10 +204,13 @@ void EditorApp::InitRenderContext()
 	auto pSkyRenderer = std::make_unique<engine::SkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	AddEngineRenderer(cd::MoveTemp(pSkyRenderer));
 
-	//auto pSceneRenderer = std::make_unique<engine::WorldRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
-	//m_pSceneRenderer = pSceneRenderer.get();
-	//pSceneRenderer->SetWorld(m_pEditorSceneWorld->GetWorld());
-	//AddEngineRenderer(cd::MoveTemp(pSceneRenderer));
+	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	AddEngineRenderer(cd::MoveTemp(pTerrainRenderer));
+
+	auto pSceneRenderer = std::make_unique<engine::WorldRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pSceneRenderer = pSceneRenderer.get();
+	pSceneRenderer->SetWorld(m_pEditorSceneWorld->GetWorld());
+	AddEngineRenderer(cd::MoveTemp(pSceneRenderer));
 
 	//auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	//AddEngineRenderer(cd::MoveTemp(pPostProcessRenderer));
