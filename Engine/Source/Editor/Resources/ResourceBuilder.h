@@ -29,6 +29,7 @@ public:
 	}
 
 	void AddTask(Process process);
+	void AddCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFileName);
 	void AddShaderBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
 	void AddTextureBuildTask(const char* pInputFilePath, const char* pOutputFilePath, cd::MaterialTextureType textureType);
 	void Update();

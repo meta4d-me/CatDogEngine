@@ -24,6 +24,14 @@ class Renderer;
 namespace editor
 {
 
+enum class ImportAssetType
+{
+	CubeMap,
+	Model,
+	Shader,
+	Unknown,
+};
+
 class EditorSceneWorld;
 
 class AssetBrowser : public engine::ImGuiBaseLayer
@@ -48,6 +56,8 @@ private:
 	engine::Renderer* m_pSceneRenderer = nullptr;
 
 	EditorSceneWorld* m_pEditorSceneWorld = nullptr;
+
+	ImportAssetType m_importingAssetType = ImportAssetType::Unknown;
 };
 
 }

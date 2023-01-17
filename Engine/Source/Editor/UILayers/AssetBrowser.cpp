@@ -10,6 +10,7 @@
 #include "Producers/GenericProducer/GenericProducer.h"
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
 #include "Rendering/WorldRenderer.h"
+#include "Resources/ResourceBuilder.h"
 
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -35,12 +36,6 @@ AssetBrowser::~AssetBrowser()
 void AssetBrowser::Init()
 {
 	m_pImportFileBrowser = new ImGui::FileBrowser();
-	m_pImportFileBrowser->SetTitle("Asset - Import");
-
-	// TODO : Import needs to have different options based on different kinds of file formats.
-	// Model/Material/Texture/Audio/Script/...
-	// /*".gltf", ".fbx"*/
-	m_pImportFileBrowser->SetTypeFilters({ ".gltf", ".fbx" });
 }
 
 void AssetBrowser::UpdateAssetFolderTree()
@@ -49,8 +44,36 @@ void AssetBrowser::UpdateAssetFolderTree()
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.16f, 0.16f, 0.21f, 1.0f));
 	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_FILE_IMPORT " Import")))
 	{
-		m_pImportFileBrowser->Open();
+		ImGui::OpenPopup("ImportAssets");
 	}
+
+	if (ImGui::BeginPopup("ImportAssets"))
+	{
+		if (ImGui::Selectable("Cubemap"))
+		{
+			m_importingAssetType = ImportAssetType::CubeMap;
+			m_pImportFileBrowser->SetTitle("ImportAssets - Cubemap");
+			//m_pImportFileBrowser->SetTypeFilters({ ".dds", "*.exr", "*.hdr", "*.ktx", ".tga" });
+			m_pImportFileBrowser->Open();
+		}
+		else if (ImGui::Selectable("Model"))
+		{
+			m_importingAssetType = ImportAssetType::Model;
+			m_pImportFileBrowser->SetTitle("ImportAssets - Model");
+			//m_pImportFileBrowser->SetTypeFilters({ ".fbx", ".gltf" }); // ".obj", ".dae", ".ogex"
+			m_pImportFileBrowser->Open();
+		}
+		else if (ImGui::Selectable("Shader"))
+		{
+			m_importingAssetType = ImportAssetType::Shader;
+			m_pImportFileBrowser->SetTitle("ImportAssets - Shader");
+			//m_pImportFileBrowser->SetTypeFilters({ ".sc" }); // ".hlsl"
+			m_pImportFileBrowser->Open();
+		}
+
+		ImGui::EndPopup();
+	}
+
 	ImGui::PopStyleColor();
 	ImGui::EndChild();
 
@@ -69,25 +92,47 @@ void AssetBrowser::UpdateAssetFileView()
 
 void AssetBrowser::ImportAssetFile(const char* pFilePath)
 {
-	ImGuiIO& io = ImGui::GetIO();
-	engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
+	if (ImportAssetType::Model == m_importingAssetType ||
+		ImportAssetType::Unknown == m_importingAssetType)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
 
-	// Translate different 3D model file formats to memory data.
-	cd::SceneDatabase* pSceneDatabase = m_pEditorSceneWorld->GetSceneDatabase();
-	cdtools::GenericProducer genericProducer(pFilePath);
-	genericProducer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount(), pSceneDatabase->GetMeshCount(),
-		pSceneDatabase->GetMaterialCount(), pSceneDatabase->GetTextureCount(), pSceneDatabase->GetLightCount());
-	genericProducer.ActivateBoundingBoxService();
-	genericProducer.ActivateCleanUnusedService();
-	genericProducer.ActivateTangentsSpaceService();
-	genericProducer.ActivateTriangulateService();
-	genericProducer.ActivateFlattenHierarchyService();
+		// Translate different 3D model file formats to memory data.
+		cd::SceneDatabase* pSceneDatabase = m_pEditorSceneWorld->GetSceneDatabase();
+		cdtools::GenericProducer genericProducer(pFilePath);
+		genericProducer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount(), pSceneDatabase->GetMeshCount(),
+			pSceneDatabase->GetMaterialCount(), pSceneDatabase->GetTextureCount(), pSceneDatabase->GetLightCount());
+		genericProducer.ActivateBoundingBoxService();
+		genericProducer.ActivateCleanUnusedService();
+		genericProducer.ActivateTangentsSpaceService();
+		genericProducer.ActivateTriangulateService();
+		genericProducer.ActivateFlattenHierarchyService();
 
-	engine::MaterialType pbrMaterialType = engine::MaterialType::GetPBRMaterialType();
-	ECWorldConsumer ecConsumer(m_pEditorSceneWorld->GetWorld(), &pbrMaterialType, pCurrentRenderContext);
-	ecConsumer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount());
-	cdtools::Processor processor(&genericProducer, &ecConsumer, pSceneDatabase);
-	processor.Run();
+		engine::MaterialType pbrMaterialType = engine::MaterialType::GetPBRMaterialType();
+		ECWorldConsumer ecConsumer(m_pEditorSceneWorld->GetWorld(), &pbrMaterialType, pCurrentRenderContext);
+		ecConsumer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount());
+		cdtools::Processor processor(&genericProducer, &ecConsumer, pSceneDatabase);
+		processor.Run();
+	}
+	else if (ImportAssetType::CubeMap == m_importingAssetType)
+	{
+		std::filesystem::path inputFilePath(pFilePath);
+		std::string inputFileName = inputFilePath.stem().generic_string();
+		std::string outputFilePath = CDENGINE_RESOURCES_ROOT_PATH;
+		outputFilePath += "Textures/skybox/" + inputFileName;
+		ResourceBuilder::Get().AddCubeMapBuildTask(pFilePath, inputFileName.c_str());
+		ResourceBuilder::Get().Update();
+	}
+	else if (ImportAssetType::Shader == m_importingAssetType)
+	{
+		std::filesystem::path inputFilePath(pFilePath);
+		std::string inputFileName = inputFilePath.stem().generic_string();
+		std::string outputFilePath = CDENGINE_RESOURCES_ROOT_PATH;
+		outputFilePath += "Shaders/" + inputFileName + ".bin";
+		ResourceBuilder::Get().AddShaderBuildTask(pFilePath, outputFilePath.c_str());
+		ResourceBuilder::Get().Update();
+	}
 }
 
 void AssetBrowser::Update()

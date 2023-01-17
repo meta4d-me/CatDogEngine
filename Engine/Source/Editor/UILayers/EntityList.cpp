@@ -35,16 +35,14 @@ void EntityList::AddEntity()
         pWorld->CreateComponent<engine::TransformComponent>(meshEntity);
         pWorld->CreateComponent<engine::StaticMeshComponent>(meshEntity);
     }
-
-    if (ImGui::Selectable("Add Camera"))
+    else if (ImGui::Selectable("Add Camera"))
     {
         engine::Entity cameraEntity = pWorld->CreateEntity();
         pWorld->CreateComponent<engine::NameComponent>(cameraEntity);
         pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
         pWorld->CreateComponent<engine::CameraComponent>(cameraEntity);
     }
-
-    if (ImGui::Selectable("Add Light"))
+    else if (ImGui::Selectable("Add Light"))
     {
         engine::Entity lightEntity = pWorld->CreateEntity();
         pWorld->CreateComponent<engine::NameComponent>(lightEntity);
@@ -126,11 +124,11 @@ void EntityList::DrawEntity(engine::Entity entity)
         {
 
         }
-
-        if (ImGui::Selectable("Rename"))
+        else if (ImGui::Selectable("Rename"))
         {
             // pNameComponent->SetName();
         }
+
         ImGui::Separator();
 
         if (ImGui::Selectable("Delete"))

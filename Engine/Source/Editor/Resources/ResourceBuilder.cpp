@@ -14,6 +14,21 @@ void ResourceBuilder::AddShaderBuildTask(const char* pInputFilePath, const char*
 {
 }
 
+void ResourceBuilder::AddCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFileName)
+{
+	// Document : In command line, ./cmft -h
+	std::string cmftExePath = CDENGINE_TOOL_PATH;
+	cmftExePath += "/cmft";
+	Process process(cmftExePath.c_str());
+
+	std::vector<std::string> commandArguments{ "--input", pInputFilePath,
+		"--outputNum", "1", "--output0", pOutputFileName,
+		"--excludeBase", "true", "--mipCount", "7", "--glossScale", "10", "--glossBias", "2", "--edgeFixup", "warp" };
+	process.SetCommandArguments(cd::MoveTemp(commandArguments));
+	process.SetWaitUntilFinished(true);
+	AddTask(cd::MoveTemp(process));
+}
+
 void ResourceBuilder::AddTextureBuildTask(const char* pInputFilePath, const char* pOutputFilePath, cd::MaterialTextureType textureType)
 {
 	// Document : https://bkaradzic.github.io/bgfx/tools.html#texture-compiler-texturec
@@ -32,7 +47,6 @@ void ResourceBuilder::AddTextureBuildTask(const char* pInputFilePath, const char
 		commandArguments.push_back("--linear");
 	}
 	process.SetCommandArguments(cd::MoveTemp(commandArguments));
-	// TODO : multiple processes at the same time. But it requires that rendering logic will update automatically.
 	process.SetWaitUntilFinished(true);
 	AddTask(cd::MoveTemp(process));
 }

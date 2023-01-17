@@ -32,7 +32,7 @@ project("Editor")
 	defines {
 		"BX_CONFIG_DEBUG",
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..editorResourcesPath.."\"",
-		"CDENGINE_TOOL_PATH=\""..path.join(EnginePath, "EditorTools").."\"",
+		"CDENGINE_TOOL_PATH=\""..path.join(EnginePath, "EditorTools", GetPlatformDisplayName()).."\"",
 		"CDENGINE_RESOURCES_ROOT_PATH=\""..projectResourcesPath.."\"",
 	}
 

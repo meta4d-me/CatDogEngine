@@ -36,11 +36,11 @@ Window::Window(const char* pTitle, uint16_t width, uint16_t height)
 	SDL_VERSION(&wmi.version);
 	SDL_GetWindowWMInfo(m_pSDLWindow, &wmi);
 
-#if PLATFORM_OSX || PLATFORM_IOS
+#if CD_PLATFORM_OSX || CD_PLATFORM_IOS
 	m_pNativeWindowHandle = wmi.info.cocoa.window;
-#elif PLATFORM_WINDOWS
+#elif CD_PLATFORM_WINDOWS
 	m_pNativeWindowHandle = wmi.info.win.window;
-#elif PLATFORM_ANDROID
+#elif CD_PLATFORM_ANDRIOD
 	m_pNativeWindowHandle = wmi.info.android.window;
 #endif
 }
