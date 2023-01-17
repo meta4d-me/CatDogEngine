@@ -35,7 +35,7 @@ void ImGuizmoView::Update()
 		0.f, 1.f, 0.f, 0.f,
 		0.f, 0.f, 1.f, 0.f,
 		0.f, 0.f, 0.f, 1.f };
-	ImGuizmo::DrawGrid(pCamera->GetViewMatrix(), pCamera->GetProjectionMatrix(), identityMatrix, 100.f);
+	ImGuizmo::DrawGrid(pCamera->GetViewMatrix().Begin(), pCamera->GetProjectionMatrix().Begin(), identityMatrix, 100.f);
 }
 
 }

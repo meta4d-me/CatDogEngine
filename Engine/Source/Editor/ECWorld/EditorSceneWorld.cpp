@@ -26,15 +26,6 @@ EditorSceneWorld::EditorSceneWorld()
 	m_pWorld->Register<engine::SkyComponent>();
 	m_pWorld->Register<engine::StaticMeshComponent>();
 	m_pWorld->Register<engine::TransformComponent>();
-
-	// Sky
-	m_skyEntity = m_pWorld->CreateEntity();
-	m_pWorld->CreateComponent<engine::NameComponent>(m_skyEntity);
-	m_pWorld->CreateComponent<engine::SkyComponent>(m_skyEntity);
-	m_pWorld->CreateComponent<engine::StaticMeshComponent>(m_skyEntity);
-
-	// Meshes
-	m_meshEntites.reserve(1024);
 }
 
 }

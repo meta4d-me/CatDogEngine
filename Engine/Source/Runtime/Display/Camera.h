@@ -2,6 +2,7 @@
 
 #include "Math/AABB.hpp"
 #include "Math/Matrix.hpp"
+#include "Math/Ray.hpp"
 #include "Math/Vector.hpp"
 
 namespace engine
@@ -34,19 +35,20 @@ public:
 
 	void SetHomogeneousNdc(bool homogeneousNdc);
 
-	const cd::Vec3f& GetPosition() const { return m_position; }
-	const cd::Vec3f& GetForwardDir() const { return m_forwardDirection; }
-	const cd::Vec3f& GetUpDir() const { return m_upDirection; }
+	const cd::Point& GetPosition() const { return m_position; }
+	const cd::Direction& GetForward() const { return m_forwardDirection; }
+	const cd::Direction& GetUp() const { return m_upDirection; }
 
-	const float* GetViewMatrix() const { return m_viewMatrix.Begin(); }
-	const float* GetProjectionMatrix() const { return m_projectionMatrix.Begin(); }
+	const cd::Matrix4x4& GetViewMatrix();
+	const cd::Matrix4x4& GetProjectionMatrix();
 
-	void Dirty() const { m_dirty = true; }
+	void Dirty() { m_dirty = true; }
 
 	void FrameAll(const cd::AABB& aabb);
+	cd::Ray EmitRay(float screenX, float screenY, float width, float height);
+
 	void UpdateProjectionMatrix();
 	void UpdateViewMatrix();
-	void Update();
 
 private:
 	float	m_aspect = 1.778f;
@@ -63,13 +65,9 @@ protected:
 	cd::Direction m_forwardDirection;
 	cd::Direction m_upDirection;
 
-	// For status variable like dirty flag, it is recommended to be mutable
-	// because it is actually not a data variable, only a flag to notify changes happened.
-	// The benefit is that other const methods can keep const even though they will call Dirty().
-	mutable bool m_dirty = true;
+	bool m_dirty = true;
 
 	// built matrix
-	cd::Matrix4x4 m_viewMatrix2;
 	cd::Matrix4x4 m_viewMatrix;
 	cd::Matrix4x4 m_projectionMatrix;
 };

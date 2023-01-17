@@ -10,6 +10,11 @@
 namespace engine
 {
 
+const cd::AABB& StaticMeshComponent::GetAABB() const
+{
+	return m_pMeshData->GetAABB();
+}
+
 void StaticMeshComponent::Reset()
 {
 	m_pMeshData = nullptr;

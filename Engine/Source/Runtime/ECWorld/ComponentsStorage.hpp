@@ -37,8 +37,11 @@ public:
 	// Returns current active components count.
 	size_t GetCount() const { return m_entityToIndex.size(); }
 
-	// Returns current components capcity
+	// Returns current components capcity.
 	size_t GetCapcity() const { assert(m_entities.size() == m_components.size()); return m_entities.size(); }
+
+	// Need to check if it is still active.
+	const std::vector<Entity>& GetEntities() const { return m_entities; }
 
 	// Get component by entity.
 	Component* GetComponent(Entity entity)

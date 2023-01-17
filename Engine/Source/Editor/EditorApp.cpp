@@ -7,9 +7,12 @@
 #include "ImGui/EditorImGuiViewport.h"
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/UILayers/DebugPanel.h"
+#include "Rendering/BlitRenderTargetPass.h"
 #include "Rendering/ImGuiRenderer.h"
 #include "Rendering/PBRSkyRenderer.h"
+#include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
+#include "Rendering/SkyRenderer.h"
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Resources/ResourceBuilder.h"
@@ -139,7 +142,6 @@ void EditorApp::InitEngineImGuiContext(engine::Language language)
 
 	// Set style settings.
 	m_pEngineImGuiContext->SetImGuiThemeColor(engine::ThemeColor::Light);
-
 	ImGui::GetIO().BackendRendererUserData = m_pRenderContext.get();
 
 	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<engine::DebugPanel>("DebugPanel"));
@@ -189,20 +191,18 @@ void EditorApp::InitRenderContext()
 		5.0f /* vertical sensitivity */,
 		160.0f /* Movement Speed*/);
 
-	// The init size doesn't make sense. It will resize by SceneView;
-	uint16_t width = 800;
-	uint16_t height = 800;
 	constexpr engine::StringCrc sceneViewRenderTargetName("SceneRenderTarget");
 	std::vector<engine::AttachmentDescriptor> attachmentDesc = {
 		{ .textureFormat = engine::TextureFormat::RGBA32F },
 		{ .textureFormat = engine::TextureFormat::RGBA32F },
 		{ .textureFormat = engine::TextureFormat::D32F },
 	};
-	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->CreateRenderTarget(sceneViewRenderTargetName, width, height, std::move(attachmentDesc));
+
+	// The init size doesn't make sense. It will resize by SceneView.
+	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->CreateRenderTarget(sceneViewRenderTargetName, 1, 1, std::move(attachmentDesc));
 	pSceneRenderTarget->OnResize.Bind<engine::Camera, &engine::Camera::SetAspect>(m_pCamera.get());
 
 	auto pSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
-	pSkyRenderer->SetEntity(m_pEditorSceneWorld->GetSkyEntity());
 	AddEngineRenderer(cd::MoveTemp(pSkyRenderer));
 
 	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
@@ -211,8 +211,13 @@ void EditorApp::InitRenderContext()
 	auto pSceneRenderer = std::make_unique<engine::WorldRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pSceneRenderer = pSceneRenderer.get();
 	pSceneRenderer->SetWorld(m_pEditorSceneWorld->GetWorld());
-	pSceneRenderer->SetMeshEntites(&m_pEditorSceneWorld->GetMeshEntites());
 	AddEngineRenderer(cd::MoveTemp(pSceneRenderer));
+
+	auto pBlitRTRenderPass = std::make_unique<engine::BlitRenderTargetPass>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	AddEngineRenderer(cd::MoveTemp(pBlitRTRenderPass));
+
+	auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	AddEngineRenderer(cd::MoveTemp(pPostProcessRenderer));
 
 	// Note that if you don't want to use ImGuiRenderer for engine, you should also disable EngineImGuiContext.
 	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget));
@@ -245,9 +250,8 @@ bool EditorApp::Update(float deltaTime)
 		const float* pProjectionMatrix = nullptr;
 		if (engine::Camera* pCamera = pRenderer->GetCamera())
 		{
-			pCamera->Update();
-			pViewMatrix = pCamera->GetViewMatrix();
-			pProjectionMatrix = pCamera->GetProjectionMatrix();
+			pViewMatrix = pCamera->GetViewMatrix().Begin();
+			pProjectionMatrix = pCamera->GetProjectionMatrix().Begin();
 		}
 
 		pRenderer->UpdateView(pViewMatrix, pProjectionMatrix);
@@ -262,9 +266,8 @@ bool EditorApp::Update(float deltaTime)
 		const float* pProjectionMatrix = nullptr;
 		if (engine::Camera* pCamera = pRenderer->GetCamera())
 		{
-			pCamera->Update();
-			pViewMatrix = pCamera->GetViewMatrix();
-			pProjectionMatrix = pCamera->GetProjectionMatrix();
+			pViewMatrix = pCamera->GetViewMatrix().Begin();
+			pProjectionMatrix = pCamera->GetProjectionMatrix().Begin();
 		}
 
 		pRenderer->UpdateView(pViewMatrix, pProjectionMatrix);

@@ -70,10 +70,10 @@ public:
 
 	RenderTarget* GetRenderTarget(StringCrc resourceCrc) const;
 	const bgfx::VertexLayout& GetVertexLayout(StringCrc resourceCrc) const;
-	const bgfx::ShaderHandle& GetShader(StringCrc resourceCrc) const;
-	const bgfx::ProgramHandle& GetProgram(StringCrc resourceCrc) const;
-	const bgfx::TextureHandle& GetTexture(StringCrc resourceCrc) const;
-	const bgfx::UniformHandle& GetUniform(StringCrc resourceCrc) const;
+	bgfx::ShaderHandle GetShader(StringCrc resourceCrc) const;
+	bgfx::ProgramHandle GetProgram(StringCrc resourceCrc) const;
+	bgfx::TextureHandle GetTexture(StringCrc resourceCrc) const;
+	bgfx::UniformHandle GetUniform(StringCrc resourceCrc) const;
 
 private:
 	uint8_t m_currentViewCount = 0;

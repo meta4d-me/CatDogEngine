@@ -61,8 +61,6 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 				const cd::Material& material = pSceneDatabase->GetMaterial(mesh.GetMaterialID().Data());
 				AddMaterial(sceneEntity, material, pSceneDatabase);
 			}
-
-			m_meshEntities.push_back(sceneEntity);
 		}
 	}
 }
@@ -92,6 +90,7 @@ void ECWorldConsumer::AddMesh(engine::Entity entity, const cd::Mesh& mesh)
 	engine::StaticMeshComponent& staticMeshComponent = m_pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
 	staticMeshComponent.SetMeshData(&mesh);
 	staticMeshComponent.SetRequiredVertexFormat(&m_pStandardMaterialType->GetRequiredVertexFormat());
+	staticMeshComponent.Build();
 }
 
 std::string ECWorldConsumer::GetTextureOutputFilePath(const char* pInputFilePath)
@@ -164,6 +163,8 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& mat
 	{
 		materialComponent.AddTextureBlob(pTextureData->GetType(), ResourceLoader::LoadTexture(outputTextureFilePath.c_str()));
 	}
+
+	materialComponent.Build();
 }
 
 }

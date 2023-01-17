@@ -364,43 +364,23 @@ bgfx::VertexLayout RenderContext::CreateVertexLayout(StringCrc resourceCrc, cons
 
 void RenderContext::SetVertexLayout(StringCrc resourceCrc, bgfx::VertexLayout vertexLayoutHandle)
 {
-	auto itVertexLayoutCache = m_vertexLayoutCaches.find(resourceCrc.Value());
-	if (itVertexLayoutCache != m_vertexLayoutCaches.end())
-	{
-		return;
-	}
-
 	m_vertexLayoutCaches[resourceCrc.Value()] = std::move(vertexLayoutHandle);
 }
 
 void RenderContext::SetTexture(StringCrc resourceCrc, bgfx::TextureHandle textureHandle)
 {
-	auto itTextureCache = m_textureHandleCaches.find(resourceCrc.Value());
-	if (itTextureCache != m_textureHandleCaches.end())
-	{
-		return;
-	}
-
 	m_textureHandleCaches[resourceCrc.Value()] = std::move(textureHandle);
 }
 
 void RenderContext::SetUniform(StringCrc resourceCrc, bgfx::UniformHandle uniformreHandle)
 {
-	auto itUniformCache = m_uniformHandleCaches.find(resourceCrc.Value());
-	if (itUniformCache != m_uniformHandleCaches.end())
-	{
-		return;
-	}
-
 	m_uniformHandleCaches[resourceCrc.Value()] = std::move(uniformreHandle);
 }
-
 
 void RenderContext::FillUniform(StringCrc resourceCrc, const void *pData, uint16_t num) const
 {
 	bgfx::setUniform(GetUniform(resourceCrc), pData, num);
 }
-
 
 RenderTarget* RenderContext::GetRenderTarget(StringCrc resourceCrc) const
 {
@@ -425,7 +405,7 @@ const bgfx::VertexLayout& RenderContext::GetVertexLayout(StringCrc resourceCrc) 
 	return dummy;
 }
 
-const bgfx::ShaderHandle& RenderContext::GetShader(StringCrc resourceCrc) const
+bgfx::ShaderHandle RenderContext::GetShader(StringCrc resourceCrc) const
 {
 	auto itResource = m_shaderHandleCaches.find(resourceCrc.Value());
 	if (itResource != m_shaderHandleCaches.end())
@@ -433,11 +413,10 @@ const bgfx::ShaderHandle& RenderContext::GetShader(StringCrc resourceCrc) const
 		return itResource->second;
 	}
 
-	static bgfx::ShaderHandle dummy(bgfx::kInvalidHandle);
-	return dummy;
+	return bgfx::ShaderHandle(bgfx::kInvalidHandle);
 }
 
-const bgfx::ProgramHandle& RenderContext::GetProgram(StringCrc resourceCrc) const
+bgfx::ProgramHandle RenderContext::GetProgram(StringCrc resourceCrc) const
 {
 	auto itResource = m_programHandleCaches.find(resourceCrc.Value());
 	if (itResource != m_programHandleCaches.end())
@@ -445,11 +424,10 @@ const bgfx::ProgramHandle& RenderContext::GetProgram(StringCrc resourceCrc) cons
 		return itResource->second;
 	}
 
-	static bgfx::ProgramHandle dummy(bgfx::kInvalidHandle);
-	return dummy;
+	return bgfx::ProgramHandle(bgfx::kInvalidHandle);
 }
 
-const bgfx::TextureHandle& RenderContext::GetTexture(StringCrc resourceCrc) const
+bgfx::TextureHandle RenderContext::GetTexture(StringCrc resourceCrc) const
 {
 	auto itResource = m_textureHandleCaches.find(resourceCrc.Value());
 	if (itResource != m_textureHandleCaches.end())
@@ -457,11 +435,10 @@ const bgfx::TextureHandle& RenderContext::GetTexture(StringCrc resourceCrc) cons
 		return itResource->second;
 	}
 
-	static bgfx::TextureHandle dummy(bgfx::kInvalidHandle);
-	return dummy;
+	return bgfx::TextureHandle(bgfx::kInvalidHandle);
 }
 
-const bgfx::UniformHandle& RenderContext::GetUniform(StringCrc resourceCrc) const
+bgfx::UniformHandle RenderContext::GetUniform(StringCrc resourceCrc) const
 {
 	auto itResource = m_uniformHandleCaches.find(resourceCrc.Value());
 	if (itResource != m_uniformHandleCaches.end())
@@ -469,8 +446,7 @@ const bgfx::UniformHandle& RenderContext::GetUniform(StringCrc resourceCrc) cons
 		return itResource->second;
 	}
 
-	static bgfx::UniformHandle dummy(bgfx::kInvalidHandle);
-	return dummy;
+	return bgfx::UniformHandle(bgfx::kInvalidHandle);
 }
 
 }

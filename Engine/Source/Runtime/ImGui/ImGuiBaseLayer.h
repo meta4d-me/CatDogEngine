@@ -19,6 +19,7 @@ public:
 	const char* GetName() const { return m_pName; }
 	float GetWindowPosX() const { return m_windowPosX; }
 	float GetWindowPosY() const { return m_windowPosY; }
+	void SetWindowPos(float x, float y) { m_windowPosX = x; m_windowPosY = y; }
 
 	void SetEnable(bool enable) { m_isEnable = enable; }
 	bool IsEnable() const { return m_isEnable; }

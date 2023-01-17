@@ -2,11 +2,15 @@
 
 #include "Display/Camera.h"
 #include "ECWorld/EditorSceneWorld.h"
+#include "ECWorld/NameComponent.h"
+#include "ECWorld/StaticMeshComponent.h"
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
+#include "Math/Ray.hpp"
 #include "Rendering/RenderContext.h"
 #include "Rendering/RenderTarget.h"
 #include "Scene/SceneDatabase.h"
+#include "Window/Input.h"
 
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -140,14 +144,50 @@ void SceneView::UpdateToolMenuButtons()
 	ImGui::PopStyleColor();
 }
 
+void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
+{
+	engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(ImGui::GetIO().BackendRendererUserData);
+
+	float screenX = static_cast<float>(engine::Input::Get().GetMousePositionX() - GetWindowPosX());
+	float screenY = static_cast<float>(engine::Input::Get().GetMousePositionY() - GetWindowPosY());
+	float screenWidth = static_cast<float>(regionWidth);
+	float screenHeight = static_cast<float>(regionHeight);
+	if (screenX < 0.0f || screenX > screenWidth ||
+		screenY < 0.0f || screenY > screenHeight)
+	{
+		return;
+	}
+
+	cd::Ray pickRay = pRenderContext->GetCamera()->EmitRay(screenX, screenY, screenWidth, screenHeight);
+	printf("Ray origin=(%f, %f, %f), direction=(%f, %f, %f)\n",
+		pickRay.Origin().x(), pickRay.Origin().y(), pickRay.Origin().z(),
+		pickRay.Direction().x(), pickRay.Direction().y(), pickRay.Direction().z());
+
+	// Loop through scene's all static meshes' AABB to test intersections with Ray.
+	auto pMeshStorage = m_pEditorSceneWorld->GetWorld()->GetComponents<engine::StaticMeshComponent>();
+	for (engine::Entity entity : pMeshStorage->GetEntities())
+	{
+		engine::StaticMeshComponent* pMeshComponent = pMeshStorage->GetComponent(entity);
+		if (!pMeshComponent)
+		{
+			continue;
+		}
+
+		if (pMeshComponent->GetAABB().Intersects(pickRay))
+		{
+			printf("Hit : %s\n", m_pEditorSceneWorld->GetWorld()->GetComponents<engine::NameComponent>()->GetComponent(entity)->GetName());
+		}
+	}
+}
+
 void SceneView::Update()
 {
+	ImGuiIO& io = ImGui::GetIO();
+	engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
+	assert(pRenderContext && "SceneView needs to access rendering resource.");
+
 	if (nullptr == m_pRenderTarget)
 	{
-		ImGuiIO& io = ImGui::GetIO();
-		engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
-		assert(pRenderContext && "SceneView needs to access rendering resource.");
-
 		constexpr engine::StringCrc sceneRenderTarget("SceneRenderTarget");
 		m_pRenderTarget = pRenderContext->GetRenderTarget(sceneRenderTarget);
 	}
@@ -175,8 +215,7 @@ void SceneView::Update()
 	// Check if mouse hover on the area of SceneView so it can control.
 	ImVec2 cursorPosition = ImGui::GetCursorPos();
 	ImVec2 sceneViewPosition = ImGui::GetWindowPos() + cursorPosition;
-	m_windowPosX = sceneViewPosition.x;
-	m_windowPosY = sceneViewPosition.y;
+	SetWindowPos(sceneViewPosition.x, sceneViewPosition.y);
 
 	// Draw scene.
 	ImGui::Image(ImTextureID(m_pRenderTarget->GetTextureHandle(0).idx),
@@ -195,6 +234,21 @@ void SceneView::Update()
 	ImGui::PopStyleVar();
 
 	ImGui::End();
+
+	if (engine::Input::Get().IsMouseLBPressed())
+	{
+		if (!m_isMouseDownFirstTime)
+		{
+			return;
+		}
+
+		m_isMouseDownFirstTime = false;
+		PickSceneMesh(regionWidth, regionHeight);
+	}
+	else
+	{
+		m_isMouseDownFirstTime = true;
+	}
 }
 
 }

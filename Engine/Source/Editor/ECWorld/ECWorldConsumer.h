@@ -49,8 +49,6 @@ public:
 	void SetSceneDatabaseIDs(uint32_t nodeID);
 	virtual void Execute(const cd::SceneDatabase* pSceneDatabase) override;
 
-	std::vector<engine::Entity>&& GetMeshEntities() { return cd::MoveTemp(m_meshEntities); }
-
 private:
 	void AddNode(engine::Entity entity, const cd::Node& node);
 	void AddMesh(engine::Entity entity, const cd::Mesh& mesh);
@@ -62,9 +60,7 @@ private:
 	engine::World* m_pWorld;
 	engine::MaterialType* m_pStandardMaterialType;
 
-	std::vector<engine::Entity> m_meshEntities;
 	uint32_t m_nodeMinID;
-
 	std::map<cd::NodeID::ValueType, engine::Entity> m_mapTransformIDToEntities;
 };
 

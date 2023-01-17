@@ -119,7 +119,6 @@ bool GameApp::Update(float deltaTime)
 	m_pImGuiContext->Update(deltaTime);
 
 	m_pCameraController->Update(deltaTime);
-	m_pFlybyCamera->Update();
 
 	m_pRenderContext->BeginFrame();
 
@@ -129,8 +128,8 @@ bool GameApp::Update(float deltaTime)
 		const float* pProjectionMatrix = nullptr;
 		if (engine::Camera* pCamera = pRenderer->GetCamera())
 		{
-			pViewMatrix = pCamera->GetViewMatrix();
-			pProjectionMatrix = pCamera->GetProjectionMatrix();
+			pViewMatrix = pCamera->GetViewMatrix().Begin();
+			pProjectionMatrix = pCamera->GetProjectionMatrix().Begin();
 		}
 
 		pRenderer->UpdateView(pViewMatrix, pProjectionMatrix);
