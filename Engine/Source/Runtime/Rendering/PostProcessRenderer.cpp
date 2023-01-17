@@ -29,10 +29,25 @@ void PostProcessRenderer::UpdateView(const float* pViewMatrix, const float* pPro
 
 void PostProcessRenderer::Render(float deltaTime)
 {
-	// TODO : expose these resource names to outside.
-	constexpr StringCrc lightingResultSampler("s_lightingColor");
 	constexpr StringCrc sceneRenderTarget("SceneRenderTarget");
-	bgfx::setTexture(0, m_pRenderContext->GetUniform(lightingResultSampler), m_pRenderContext->GetRenderTarget(sceneRenderTarget)->GetTextureHandle(0));
+
+	const RenderTarget* pInputRT = m_pRenderContext->GetRenderTarget(sceneRenderTarget);
+	const RenderTarget* pOutputRT = GetRenderTarget();
+
+	bgfx::TextureHandle screenTextureHandle;
+	if (pInputRT == pOutputRT)
+	{
+		constexpr StringCrc sceneRenderTargetBlitSRV("SceneRenderTargetBlitSRV");
+		screenTextureHandle = m_pRenderContext->GetTexture(sceneRenderTargetBlitSRV);
+	}
+	else
+	{
+		screenTextureHandle = pInputRT->GetTextureHandle(0);
+	}
+
+	constexpr StringCrc lightingResultSampler("s_lightingColor");
+	bgfx::setTexture(0, m_pRenderContext->GetUniform(lightingResultSampler), screenTextureHandle);
+
 	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 	Renderer::ScreenSpaceQuad(static_cast<float>(GetRenderTarget()->GetWidth()), static_cast<float>(GetRenderTarget()->GetHeight()), false);
 
