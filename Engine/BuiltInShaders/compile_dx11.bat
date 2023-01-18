@@ -14,13 +14,14 @@ start /b shaderc --type v --platform windows -p vs_5_0 -O 3 --varyingdef %SHADER
 start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/fs_PrecomputedAtmosphericScattering_LUT.sc -o %PROJECT%/fs_PrecomputedAtmosphericScattering_LUT.bin
 start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/fs_SingleScattering_RayMarching.sc -o %PROJECT%/fs_SingleScattering_RayMarching.bin
 
-rem Cube Map Renderer
+rem CubeMap Renderer
 start /b shaderc --type v --platform windows -p vs_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/vs_PBR_skybox.sc -o %PROJECT%/vs_PBR_skybox.bin
 start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/fs_PBR_skybox.sc -o %PROJECT%/fs_PBR_skybox.bin
 
-rem Scene Renderer
+rem Scene/World Renderer
 start /b shaderc --type v --platform windows -p vs_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/vs_PBR.sc -o %PROJECT%/vs_PBR.bin
 start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/fs_PBR.sc -o %PROJECT%/fs_PBR.bin
+start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/fs_PBR.sc -o %PROJECT%/fs_PBR_IBL.bin --define USE_PBR_IBL
 
 rem Terrain Renderer
 start /b shaderc --type v --platform windows -p vs_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/vs_terrain.sc -o %PROJECT%/vs_terrain.bin

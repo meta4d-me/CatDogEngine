@@ -63,11 +63,8 @@ void SceneView::Init()
 	OnResize.Bind<engine::RenderTarget, &engine::RenderTarget::Resize>(pRenderTarget);
 }
 
-void SceneView::UpdateToolMenuButtons()
+void SceneView::UpdateOperationButtons()
 {
-	ImGui::Indent();
-	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-
 	bool isSelected = false;
 	for (const auto& operationMode : OperationModes)
 	{
@@ -76,7 +73,7 @@ void SceneView::UpdateToolMenuButtons()
 		{
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 		}
-		
+
 		ImGui::SameLine();
 		if (ImGui::Button(reinterpret_cast<const char*>(operationMode.pIconFontName)))
 		{
@@ -104,6 +101,70 @@ void SceneView::UpdateToolMenuButtons()
 			ImGui::SameLine();
 		}
 	}
+}
+
+void SceneView::Update2DAnd3DButtons()
+{
+	bool is3DMode = m_is3DMode;
+	if (is3DMode)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+	}
+
+	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_AXIS_ARROW " 3D")))
+	{
+		m_is3DMode = true;
+	}
+
+	if (is3DMode)
+	{
+		ImGui::PopStyleColor();
+	}
+
+	ImGui::SameLine();
+
+	is3DMode = m_is3DMode;
+	if (!is3DMode)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+	}
+
+	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_ANGLE_RIGHT " 2D")))
+	{
+		m_is3DMode = false;
+	}
+
+	if (!is3DMode)
+	{
+		ImGui::PopStyleColor();
+	}
+}
+
+void SceneView::UpdateSwitchIBLButton()
+{
+	bool isIBLActive = m_isIBLActive;
+	if (isIBLActive)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+	}
+
+	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CUBE " IBL")))
+	{
+		m_isIBLActive = !m_isIBLActive;
+	}
+
+	if (isIBLActive)
+	{
+		ImGui::PopStyleColor();
+	}
+}
+
+void SceneView::UpdateToolMenuButtons()
+{
+	ImGui::Indent();
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+
+	UpdateOperationButtons();
 
 	if (ImGui::Button(reinterpret_cast<const char*>("Options " ICON_MDI_CHEVRON_DOWN)))
 	{
@@ -131,15 +192,11 @@ void SceneView::UpdateToolMenuButtons()
 
 	ImGui::SameLine();
 
-	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_AXIS_ARROW " 3D")))
-	{
-	}
+	Update2DAnd3DButtons();
 
 	ImGui::SameLine();
 
-	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_ANGLE_RIGHT " 2D")))
-	{
-	}
+	UpdateSwitchIBLButton();
 
 	ImGui::PopStyleColor();
 }

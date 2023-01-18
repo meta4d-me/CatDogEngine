@@ -21,6 +21,59 @@
 // We will replace it with our own implementation when have time to improve UI.
 #include "ImGui/imfilebrowser.h"
 
+namespace
+{
+
+bool IsCubeMapInputFile(const char* pFileExtension)
+{
+	constexpr const char* pFileExtensions[] = {".dds", ".exr", ".hdr", ".ktx", ".tga"};
+	constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
+
+	for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
+	{
+		if (0 == strcmp(pFileExtensions[extensionIndex], pFileExtension))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool IsShaderInputFile(const char* pFileExtension)
+{
+	constexpr const char* pFileExtensions[] = { ".sc" };
+	constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
+
+	for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
+	{
+		if (0 == strcmp(pFileExtensions[extensionIndex], pFileExtension))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool IsModelInputFile(const char* pFileExtension)
+{
+	constexpr const char* pFileExtensions[] = { ".dae", ".fbx", ".gltf", ".obj" };
+	constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
+
+	for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
+	{
+		if (0 == strcmp(pFileExtensions[extensionIndex], pFileExtension))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+}
+
 namespace editor
 {
 
@@ -92,8 +145,39 @@ void AssetBrowser::UpdateAssetFileView()
 
 void AssetBrowser::ImportAssetFile(const char* pFilePath)
 {
-	if (ImportAssetType::Model == m_importingAssetType ||
-		ImportAssetType::Unknown == m_importingAssetType)
+	if (ImportAssetType::Unknown == m_importingAssetType)
+	{
+		// Outside callback such as drag and drop event.
+		// We can check its type by file extension.
+		std::filesystem::path inputFilePath(pFilePath);
+		if (!inputFilePath.has_extension())
+		{
+			// Can't reduce file type without extension.
+			return;
+		}
+
+		std::filesystem::path fileExtension = inputFilePath.extension();
+		std::string pFileExtension = fileExtension.generic_string();
+		if (IsCubeMapInputFile(pFileExtension.c_str()))
+		{
+			m_importingAssetType = ImportAssetType::CubeMap;
+		}
+		else if (IsShaderInputFile(pFileExtension.c_str()))
+		{
+			m_importingAssetType = ImportAssetType::Shader;
+		}
+		else if (IsModelInputFile(pFileExtension.c_str()))
+		{
+			m_importingAssetType = ImportAssetType::Model;
+		}
+		else
+		{
+			// Still unknown, exit.
+			return;
+		}
+	}
+
+	if (ImportAssetType::Model == m_importingAssetType)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
@@ -128,9 +212,28 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 	{
 		std::filesystem::path inputFilePath(pFilePath);
 		std::string inputFileName = inputFilePath.stem().generic_string();
+
+		ShaderType shaderType;
+		if (inputFileName.find("vs_") != std::string::npos)
+		{
+			shaderType = ShaderType::Vertex;
+		}
+		else if (inputFileName.find("fs_") != std::string::npos)
+		{
+			shaderType = ShaderType::Fragment;
+		}
+		else if (inputFileName.find("cs_") != std::string::npos)
+		{
+			shaderType = ShaderType::Compute;
+		}
+		else
+		{
+			return;
+		}
+
 		std::string outputFilePath = CDENGINE_RESOURCES_ROOT_PATH;
 		outputFilePath += "Shaders/" + inputFileName + ".bin";
-		ResourceBuilder::Get().AddShaderBuildTask(pFilePath, outputFilePath.c_str());
+		ResourceBuilder::Get().AddShaderBuildTask(pFilePath, outputFilePath.c_str(), shaderType);
 		ResourceBuilder::Get().Update();
 	}
 }

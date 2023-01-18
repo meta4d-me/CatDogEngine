@@ -20,14 +20,13 @@ MaterialType MaterialType::GetPBRMaterialType()
 	pbr.SetRequiredVertexFormat(cd::MoveTemp(pbrVertexFormat));
 
 	// Slot index should align to shader codes.
-	// TODO : define them in a common C header file.
 	pbr.AddRequiredTextureType(cd::MaterialTextureType::BaseColor, 0);
 	pbr.AddRequiredTextureType(cd::MaterialTextureType::Normal, 1);
-	pbr.AddRequiredTextureType(cd::MaterialTextureType::Metalness, 2);
-	pbr.AddRequiredTextureType(cd::MaterialTextureType::Roughness, 2);
 
 	pbr.AddOptionalTextureType(cd::MaterialTextureType::AO, 2);
-	//pbr.AddOptionalTextureType(cd::MaterialTextureType::Emissive);
+	//pbr.AddOptionalTextureType(cd::MaterialTextureType::Emissive, );
+	pbr.AddOptionalTextureType(cd::MaterialTextureType::Metalness, 2);
+	pbr.AddOptionalTextureType(cd::MaterialTextureType::Roughness, 2);
 
 	return pbr;
 }

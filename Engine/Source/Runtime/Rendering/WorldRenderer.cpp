@@ -45,70 +45,55 @@ void WorldRenderer::Render(float deltaTime)
 
 	for (Entity entity : pMeshStorage->GetEntities())
 	{
+		MaterialComponent* pMaterialComponent = pMaterialStorage->GetComponent(entity);
 		StaticMeshComponent* pMeshComponent = pMeshStorage->GetComponent(entity);
-		if (!pMeshComponent)
+		if (!pMeshComponent || !pMaterialComponent)
 		{
 			continue;
 		}
 
-		//TransformComponent* pTransformComponent = pTransformStorage->GetComponent(entity);
-		//if (pTransformComponent)
-		//{
-		//	pTransformComponent->Build();
-		//	bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
-		//}
+		// Transform
+		TransformComponent* pTransformComponent = pTransformStorage->GetComponent(entity);
+		if (pTransformComponent)
+		{
+			//static float radian = 0.0f;
+			//radian += deltaTime;
+			//pTransformComponent->GetTransform().SetRotation(cd::Quaternion::FromAxisAngle(cd::Vec3f(0.0f, 1.0f, 0.0f), radian));
+			pTransformComponent->Build();
+			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
+		}
 
+		// Mesh
 		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle(pMeshComponent->GetVertexBuffer()));
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle(pMeshComponent->GetIndexBuffer()));
 
-		bgfx::ProgramHandle shadingProgram(BGFX_INVALID_HANDLE);
-		MaterialComponent* pMaterialComponent = pMaterialStorage->GetComponent(entity);
-		if (pMaterialComponent)
+		for (const auto& [textureType, textureInfo] : pMaterialComponent->GetTextureResources())
 		{
-			shadingProgram.idx = pMaterialComponent->GetShadingProgram();
-
-			std::optional<MaterialComponent::TextureInfo> optBaseColorMapInfo = pMaterialComponent->GetTextureInfo(cd::MaterialTextureType::BaseColor);
-			if (optBaseColorMapInfo.has_value())
+			std::optional<MaterialComponent::TextureInfo> optTextureInfo = pMaterialComponent->GetTextureInfo(textureType);
+			if (optTextureInfo.has_value())
 			{
-				const MaterialComponent::TextureInfo& textureInfo = optBaseColorMapInfo.value();
+				const MaterialComponent::TextureInfo& textureInfo = optTextureInfo.value();
 				bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle(textureInfo.samplerHandle), bgfx::TextureHandle(textureInfo.textureHandle));
 			}
-
-			std::optional<MaterialComponent::TextureInfo> optNormalMapInfo = pMaterialComponent->GetTextureInfo(cd::MaterialTextureType::Normal);
-			if (optNormalMapInfo.has_value())
-			{
-				const MaterialComponent::TextureInfo& textureInfo = optNormalMapInfo.value();
-				bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle(textureInfo.samplerHandle), bgfx::TextureHandle(textureInfo.textureHandle));
-			}
-
-			std::optional<MaterialComponent::TextureInfo> optORMMapInfo = pMaterialComponent->GetTextureInfo(cd::MaterialTextureType::Metalness);
-			if (optORMMapInfo.has_value())
-			{
-				const MaterialComponent::TextureInfo& textureInfo = optORMMapInfo.value();
-				bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle(textureInfo.samplerHandle), bgfx::TextureHandle(textureInfo.textureHandle));
-			}
-
-			constexpr StringCrc lutSampler("s_texLUT");
-			constexpr StringCrc lutTexture("ibl_brdf_lut.dds");
-			bgfx::setTexture(3, m_pRenderContext->GetUniform(lutSampler), m_pRenderContext->GetTexture(lutTexture));
-
-			constexpr StringCrc cubeSampler("s_texCube");
-			constexpr StringCrc cubeTexture("skybox/bolonga_lod.dds");
-			bgfx::setTexture(4, m_pRenderContext->GetUniform(cubeSampler), m_pRenderContext->GetTexture(cubeTexture));
-			
-			constexpr StringCrc cubeIrrSampler("s_texCubeIrr");
-			constexpr StringCrc cubeIrrTexture("skybox/bolonga_irr.dds");
-			bgfx::setTexture(5, m_pRenderContext->GetUniform(cubeIrrSampler), m_pRenderContext->GetTexture(cubeIrrTexture));
 		}
-		else
-		{
-			// TODO...
-		}
+
+		constexpr StringCrc lutSampler("s_texLUT");
+		constexpr StringCrc lutTexture("ibl_brdf_lut.dds");
+		bgfx::setTexture(3, m_pRenderContext->GetUniform(lutSampler), m_pRenderContext->GetTexture(lutTexture));
+
+		// TODO : Enable/disable IBL in the editor side.
+		//constexpr StringCrc cubeSampler("s_texCube");
+		//constexpr StringCrc cubeTexture("skybox/bolonga_lod.dds");
+		//bgfx::setTexture(4, m_pRenderContext->GetUniform(cubeSampler), m_pRenderContext->GetTexture(cubeTexture));
+		//
+		//constexpr StringCrc cubeIrrSampler("s_texCubeIrr");
+		//constexpr StringCrc cubeIrrTexture("skybox/bolonga_irr.dds");
+		//bgfx::setTexture(5, m_pRenderContext->GetUniform(cubeIrrSampler), m_pRenderContext->GetTexture(cubeIrrTexture));
 
 		uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA;
 		state |= BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);
-		bgfx::submit(GetViewID(), shadingProgram);
+		bgfx::submit(GetViewID(), bgfx::ProgramHandle(pMaterialComponent->GetShadingProgram()));
 	}
 }
 
