@@ -2,18 +2,43 @@
 -- @Description : Makefile of CatDog Engine
 --------------------------------------------------------------
 
+EngineName = "CatDogEngine"
+
 -- Build options
 -- StaticLib is convenient to develop C++ applications which needs to reuse engine codes.
 -- SharedLib needs to export APIs by ENGINE_API macro which needs more efforts to have a good design.
 -- But it is necessary if you want to combine Engine and applications in other languages, such as C#.
 EngineBuildLibKind = "StaticLib" -- "SharedLib"
 
--- OS Platform
--- PLATFORM_OSX
--- PLATFORM_IOS
--- PLATFORM_WINDOWS
--- PLATFORM_ANDROID
-EngineBuildPlatform = "PLATFORM_WINDOWS"
+PlatformSettings = {}
+PlatformSettings["Windows"] = {
+	DisplayName = "Win64",
+	MacroName = "CD_PLATFORM_WINDOWS",
+}
+
+PlatformSettings["Andriod"] = {
+	DisplayName = "Android",
+	MacroName = "CD_PLATFORM_ANDRIOD",
+}
+
+PlatformSettings["OSX"] = {
+	DisplayName = "OSX",
+	MacroName = "CD_PLATFORM_OSX",
+}
+
+PlatformSettings["IOS"] = {
+	DisplayName = "IOS",
+	MacroName = "CD_PLATFORM_IOS",
+}
+
+ChoosePlatform = "Windows"
+function GetPlatformDisplayName()
+	return PlatformSettings[ChoosePlatform].DisplayName
+end
+
+function GetPlatformMacroName()
+	return PlatformSettings[ChoosePlatform].MacroName
+end
 
 IDEConfigs = {}
 local buildIDEName = os.getenv("BUILD_IDE_NAME")

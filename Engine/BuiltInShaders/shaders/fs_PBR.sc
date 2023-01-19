@@ -15,8 +15,11 @@ SAMPLER2D(s_texBaseColor, 0);
 SAMPLER2D(s_texNormal, 1);
 SAMPLER2D(s_texORM, 2);
 SAMPLER2D(s_texLUT, 3);
+
+#if defined(USE_PBR_IBL)
 SAMPLERCUBE(s_texCube, 4);
 SAMPLERCUBE(s_texCubeIrr, 5);
+#endif
 
 struct Material {
 	vec3 albedo;
@@ -118,9 +121,7 @@ void main()
 	material.albedo = SampleAlbedoTexture(v_texcoord0);
 	material.normal = SampleNormalTexture(v_texcoord0, v_TBN);
 	vec3 orm = SampleORMTexture(v_texcoord0);
-#if defined(USE_AOMAP)
 	material.occlusion = orm.x;
-#endif
 	material.roughness = orm.y;
 	material.metallic = orm.z;
 	material.F0 = CalcuateF0(material);
@@ -128,27 +129,32 @@ void main()
 	vec3 viewDir  = normalize(u_cameraPos - v_worldPos);
 	vec3 diffuseBRDF = material.albedo * INV_PI;
 	float NdotV = max(dot(material.normal, viewDir), 0.0);
-	float mip = clamp(6.0 * material.roughness, 0.1, 6.0);
 	
 	// ------------------------------------ Directional Light ----------------------------------------
 	
 	vec3 dirColor = CalculateLights(material, v_worldPos, viewDir, diffuseBRDF);
 	
 	// ----------------------------------- Environment Light ----------------------------------------
-	
-	// Environment Prefiltered Irradiance
-	vec3 cubeNormalDir = normalize(fixCubeLookup(material.normal, mip, 256.0));
-	vec3 envIrradiance = toLinear(textureCube(s_texCubeIrr, cubeNormalDir).xyz);
-	
+
 	// Environment Specular BRDF
 	vec2 lut = texture2D(s_texLUT, vec2(NdotV, 1.0 - material.roughness)).xy;
 	vec3 envSpecularBRDF = (material.F0 * lut.x + lut.y);
-	
-	// Environment Specular Radiance
 	vec3 reflectDir = normalize(reflect(-viewDir, material.normal));
+
+	vec3 envIrradiance = vec3_splat(1.0);
+	vec3 envRadiance = vec3_splat(1.0);
+#if defined(USE_PBR_IBL)
+	float mip = clamp(6.0 * material.roughness, 0.1, 6.0);
+
+	// Environment Prefiltered Irradiance
+	vec3 cubeNormalDir = normalize(fixCubeLookup(material.normal, mip, 256.0));
+	envIrradiance = toLinear(textureCube(s_texCubeIrr, cubeNormalDir).xyz);
+
+	// Environment Specular Radiance
 	vec3 cubeReflectDir = normalize(fixCubeLookup(reflectDir, mip, 256.0));
-	vec3 envRadiance = toLinear(textureCubeLod(s_texCube, cubeReflectDir, mip).xyz);
-	
+	envRadiance = toLinear(textureCubeLod(s_texCube, cubeReflectDir, mip).xyz);
+#endif
+
 	// Occlusion
 	float specularOcclusion = lerp(pow(material.occlusion, 4.0), 1.0, saturate(-0.3 + NdotV * NdotV));
 	float horizonOcclusion = saturate(1.0 + 1.2 * dot(reflectDir, v_normal));
@@ -160,6 +166,6 @@ void main()
 	vec3 envColor = KD * material.albedo * envIrradiance * material.occlusion + envSpecularBRDF * envRadiance * min(specularOcclusion, horizonOcclusion);
 	
 	// ------------------------------------ Fragment Color -----------------------------------------
-	
+
 	gl_FragColor = vec4(dirColor + envColor, 1.0);
 }

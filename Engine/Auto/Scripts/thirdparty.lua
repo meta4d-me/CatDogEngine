@@ -56,11 +56,11 @@ group "ThirdParty/bgfx"
 
 group "ThirdParty/bgfx/examples"
 
-print("Load bgfx examples...")
+--print("Load bgfx examples...")
 local allProjects = os.matchfiles(bgfxProjectsPath.."/example-*.vcxproj")
 for _, v in ipairs(allProjects) do
 	local projectName = path.getbasename(v)
-	print(projectName)
+	--print(projectName)
 	externalproject(projectName)
 		kind("ConsoleApp")
 		location(bgfxProjectsPath)
@@ -120,4 +120,4 @@ group "ThirdParty/bgfx/tools/shaderc"
 		targetdir(BinariesPath)
 
 group ""
-print("================================================================")
+--print("================================================================")

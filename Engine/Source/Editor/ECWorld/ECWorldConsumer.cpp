@@ -108,9 +108,11 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& mat
 	materialComponent.SetMaterialData(&material);
 	materialComponent.SetMaterialType(m_pStandardMaterialType);
 
+	std::set<uint8_t> compiledTextureSlot;
 	std::map<std::string, const cd::Texture*> outputTexturePathToData;
 
 	bool missRequiredTextures = false;
+	bool unknownTextureSlot = false;
 	for (cd::MaterialTextureType requiredTextureType : m_pStandardMaterialType->GetRequiredTextureTypes())
 	{
 		std::optional<cd::TextureID> optTexture = material.GetTextureID(requiredTextureType);
@@ -120,15 +122,31 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& mat
 			break;
 		}
 
+		std::optional<uint8_t> optTextureSlot = m_pStandardMaterialType->GetTextureSlot(requiredTextureType);
+		if(!optTextureSlot.has_value())
+		{
+			unknownTextureSlot = true;
+			break;
+		}
+
+		uint8_t textureSlot = optTextureSlot.value();
 		const cd::Texture& requiredTexture = pSceneDatabase->GetTexture(optTexture.value().Data());
 		std::string outputTexturePath = GetTextureOutputFilePath(requiredTexture.GetPath());
-		ResourceBuilder::Get().AddTextureBuildTask(requiredTexture.GetPath(), outputTexturePath.c_str(), requiredTexture.GetType());
+		if(!compiledTextureSlot.contains(textureSlot))
+		{
+			// When multiple textures have the same texture slot, it implies that these textures are packed in one file.
+			// For example, AO + Metalness + Roughness are packed so they have same slots which mean we only need to build it once.
+			// Note that these texture types can only have same setting to build texture.
+			compiledTextureSlot.insert(textureSlot);
+			ResourceBuilder::Get().AddTextureBuildTask(requiredTexture.GetPath(), outputTexturePath.c_str(), requiredTexture.GetType());
+		}
 		outputTexturePathToData[cd::MoveTemp(outputTexturePath)] = &requiredTexture;
 	}
 
-	if (missRequiredTextures)
+	if (missRequiredTextures || unknownTextureSlot)
 	{
 		// Missed required textures are unexpected behavior which will have a notification in the apperance with a special color.
+		// Another case is that we can't know where is its slot.
 		bgfx::ProgramHandle shadingProgram = m_pRenderContext->CreateProgram("MissingTextures",
 			m_pStandardMaterialType->GetVertexShaderName(), "fs_missing_textures.bin");
 		materialComponent.SetShadingProgram(shadingProgram.idx);
@@ -141,12 +159,25 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& mat
 			std::optional<cd::TextureID> optTexture = material.GetTextureID(optionalTextureType);
 			if (!optTexture.has_value())
 			{
+				// Optional texture is OK to failed to import.
 				continue;
 			}
 
+			std::optional<uint8_t> optTextureSlot = m_pStandardMaterialType->GetTextureSlot(optionalTextureType);
+			if (!optTextureSlot.has_value())
+			{
+				unknownTextureSlot = true;
+				break;
+			}
+
+			uint8_t textureSlot = optTextureSlot.value();
 			const cd::Texture& optionalTexture = pSceneDatabase->GetTexture(optTexture.value().Data());
 			std::string outputTexturePath = GetTextureOutputFilePath(optionalTexture.GetPath());
-			ResourceBuilder::Get().AddTextureBuildTask(optionalTexture.GetPath(), outputTexturePath.c_str(), optionalTexture.GetType());
+			if (!compiledTextureSlot.contains(textureSlot))
+			{
+				compiledTextureSlot.insert(textureSlot);
+				ResourceBuilder::Get().AddTextureBuildTask(optionalTexture.GetPath(), outputTexturePath.c_str(), optionalTexture.GetType());
+			}
 			outputTexturePathToData[cd::MoveTemp(outputTexturePath)] = &optionalTexture;
 		}
 

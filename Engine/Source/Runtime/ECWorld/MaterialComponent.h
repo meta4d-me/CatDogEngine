@@ -57,6 +57,7 @@ public:
 	uint16_t GetShadingProgram() const { return m_shadingProgram; }
 
 	std::optional<TextureInfo> GetTextureInfo(cd::MaterialTextureType textureType) const;
+	const std::map<cd::MaterialTextureType, TextureInfo>& GetTextureResources() const { return m_textureResources; }
 
 	void Reset();
 	void Build();

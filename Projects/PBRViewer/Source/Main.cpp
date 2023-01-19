@@ -7,7 +7,7 @@ int main()
 	Engine* pEngine = Engine::Create(std::make_unique<game::GameApp>());
 
 	EngineInitArgs initArgs;
-	initArgs.pTitle = "Game";
+	initArgs.pTitle = "PBRViewer";
 	initArgs.width = 1200;
 	initArgs.height = 900;
 	initArgs.pIconFilePath = "editor_icon.png";

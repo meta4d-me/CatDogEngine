@@ -38,6 +38,9 @@ public:
 
 private:
 	void UpdateToolMenuButtons();
+	void Update2DAnd3DButtons();
+	void UpdateSwitchIBLButton();
+	void UpdateOperationButtons();
 	
 private:
 	EditorSceneWorld* m_pEditorSceneWorld;
@@ -48,6 +51,9 @@ private:
 	bool m_option1;
 	bool m_option2;
 	ImGuizmo::OPERATION m_currentOperation;
+
+	bool m_is3DMode = true;
+	bool m_isIBLActive = false;
 
 	engine::RenderTarget* m_pRenderTarget = nullptr;
 	bool m_isMouseDownFirstTime = true;

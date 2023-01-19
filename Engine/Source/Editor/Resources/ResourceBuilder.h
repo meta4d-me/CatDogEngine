@@ -8,6 +8,13 @@
 namespace editor
 {
 
+enum class ShaderType
+{
+	Compute,
+	Vertex,
+	Fragment
+};
+
 class Process;
 
 // ResourceBuilder is used to create processes to build different resource types.
@@ -29,7 +36,8 @@ public:
 	}
 
 	void AddTask(Process process);
-	void AddShaderBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
+	void AddCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFileName);
+	void AddShaderBuildTask(const char* pInputFilePath, const char* pOutputFilePath, ShaderType shaderType);
 	void AddTextureBuildTask(const char* pInputFilePath, const char* pOutputFilePath, cd::MaterialTextureType textureType);
 	void Update();
 

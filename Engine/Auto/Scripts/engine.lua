@@ -95,7 +95,7 @@ project("Engine")
 		"__STDC_LIMIT_MACROS", "__STDC_FORMAT_MACROS", "__STDC_CONSTANT_MACROS",
 		"STB_IMAGE_STATIC",
 		"IMGUI_ENABLE_FREETYPE",
-		EngineBuildPlatform,
+		GetPlatformMacroName(),
 		table.unpack(platformDefines),
 		"CDENGINE_RESOURCES_ROOT_PATH=\""..projectResourcesPath.."\"",
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..editorResourcesPath.."\"",
@@ -127,8 +127,6 @@ project("Engine")
 	-- copy dll into binary folder automatically.
 	filter { "configurations:Debug" }
 		postbuildcommands {
-			"{COPYFILE} \""..path.join(bgfxBuildBinPath, "texturec*.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(bgfxBuildBinPath, "shaderc*.*").."\" \""..BinariesPath.."\"",
 			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Debug/SDL2d.*").."\" \""..BinariesPath.."\"",
 			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
 			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDProducer.*").."\" \""..BinariesPath.."\"",
@@ -138,8 +136,6 @@ project("Engine")
 		}
 	filter { "configurations:Release" }
 		postbuildcommands {
-			"{COPYFILE} \""..path.join(bgfxBuildBinPath, "texturec*.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(bgfxBuildBinPath, "shaderc*.*").."\" \""..BinariesPath.."\"",
 			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Release/SDL2.*").."\" \""..BinariesPath.."\"",
 			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
 			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CDProducer.*").."\" \""..BinariesPath.."\"",

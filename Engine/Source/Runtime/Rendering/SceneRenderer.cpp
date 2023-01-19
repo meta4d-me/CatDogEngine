@@ -12,7 +12,7 @@ namespace engine
 void SceneRenderer::Init()
 {
 	bgfx::ShaderHandle vsh = m_pRenderContext->CreateShader("vs_PBR.bin");
-	m_programPBR = m_pRenderContext->CreateProgram("PBR", vsh, m_pRenderContext->CreateShader("fs_PBR.bin"));
+	m_programPBR = m_pRenderContext->CreateProgram("PBR", vsh, m_pRenderContext->CreateShader("fs_PBR_IBL.bin"));
 
 	m_pRenderContext->CreateUniform("s_texCube", bgfx::UniformType::Sampler);
 	m_pRenderContext->CreateUniform("s_texCubeIrr", bgfx::UniformType::Sampler);
