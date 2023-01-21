@@ -230,10 +230,16 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 			continue;
 		}
 
-		if (pMeshComponent->GetAABB().Intersects(pickRay))
+		printf("MeshAABB : Min=(%f, %f, %f), Max=(%f, %f, %f)\n",
+			pMeshComponent->GetAABB().Min().x(), pMeshComponent->GetAABB().Min().y(), pMeshComponent->GetAABB().Min().z(),
+			pMeshComponent->GetAABB().Max().x(), pMeshComponent->GetAABB().Max().y(), pMeshComponent->GetAABB().Max().z());
+
+		float rayTime;
+		if (pMeshComponent->GetAABB().Intersects(pickRay, rayTime))
 		{
 			printf("Hit : %s\n", m_pEditorSceneWorld->GetWorld()->GetComponents<engine::NameComponent>()->GetComponent(entity)->GetName());
 		}
+		printf("RayT : %f\n", rayTime);
 	}
 }
 

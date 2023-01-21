@@ -75,13 +75,21 @@ void Camera::FrameAll(const cd::AABB& aabb)
 
 cd::Ray Camera::EmitRay(float screenX, float screenY, float width, float height)
 {
-	// TODO : Optimize inverse ProjectionMatrix * ViewMatrix twice?
-	cd::Point rayStartPosition = cd::Matrix4x4::UnProject(cd::Vec3f(screenX, screenY, 0.0f),
-		cd::Matrix4x4::Identity(), GetProjectionMatrix(), cd::Vec4f(0.0f, 0.0f, width, height));
-	cd::Point rayEndPosition = cd::Matrix4x4::UnProject(cd::Vec3f(screenX, screenY, 1.0f),
-		cd::Matrix4x4::Identity(), GetProjectionMatrix(), cd::Vec4f(0.0f, 0.0f, width, height));
+	cd::Matrix4x4 vpInverse = m_projectionMatrix * m_viewMatrix;
+	vpInverse = vpInverse.Inverse();
 
-	return cd::Ray(rayStartPosition, rayEndPosition - rayStartPosition);
+	float x = cd::Math::GetValueInNewRange(screenX / width, 0.0f, 1.0f, -1.0f, 1.0f);
+	float y = cd::Math::GetValueInNewRange(screenY / height, 0.0f, 1.0f, -1.0f, 1.0f);
+
+	cd::Vec4f near = vpInverse * cd::Vec4f(x, y, 0.0f, 1.0f);
+	near /= near.w();
+
+	cd::Vec4f far = vpInverse * cd::Vec4f(x, y, 1.0f, 1.0f);
+	far /= far.w();
+
+	cd::Vec4f direction = (far - near).Normalize();
+	return cd::Ray(cd::Vec3f(near.x(), near.y(), near.z()),
+		cd::Vec3f(direction.x(), direction.y(), direction.z()));
 }
 
 const cd::Matrix4x4& Camera::GetViewMatrix()
