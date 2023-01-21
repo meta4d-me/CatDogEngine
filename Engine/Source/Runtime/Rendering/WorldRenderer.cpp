@@ -56,9 +56,6 @@ void WorldRenderer::Render(float deltaTime)
 		TransformComponent* pTransformComponent = pTransformStorage->GetComponent(entity);
 		if (pTransformComponent)
 		{
-			//static float radian = 0.0f;
-			//radian += deltaTime;
-			//pTransformComponent->GetTransform().SetRotation(cd::Quaternion::FromAxisAngle(cd::Vec3f(0.0f, 1.0f, 0.0f), radian));
 			pTransformComponent->Build();
 			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
 		}

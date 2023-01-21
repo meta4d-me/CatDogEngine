@@ -205,7 +205,7 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		std::string inputFileName = inputFilePath.stem().generic_string();
 		std::string outputFilePath = CDENGINE_RESOURCES_ROOT_PATH;
 		outputFilePath += "Textures/skybox/" + inputFileName;
-		ResourceBuilder::Get().AddCubeMapBuildTask(pFilePath, inputFileName.c_str());
+		ResourceBuilder::Get().AddCubeMapBuildTask(pFilePath, outputFilePath.c_str());
 		ResourceBuilder::Get().Update();
 	}
 	else if (ImportAssetType::Shader == m_importingAssetType)

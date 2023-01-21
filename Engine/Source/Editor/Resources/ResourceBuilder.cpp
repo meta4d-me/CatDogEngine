@@ -4,6 +4,28 @@
 
 #include <filesystem>
 
+namespace
+{
+
+bool IsIOFilePathsValid(const char* pInputFilePath, const char* pOutputFilePath)
+{
+	if (!std::filesystem::exists(pInputFilePath))
+	{
+		printf("Input file path %s not existed.\n", pInputFilePath);
+		return false;
+	}
+
+	if (std::filesystem::exists(pOutputFilePath))
+	{
+		printf("Output file path %s already existed.\n", pOutputFilePath);
+		return false;
+	}
+
+	return true;
+}
+
+}
+
 namespace editor
 {
 
@@ -14,13 +36,18 @@ void ResourceBuilder::AddTask(Process process)
 
 void ResourceBuilder::AddShaderBuildTask(const char* pInputFilePath, const char* pOutputFilePath, ShaderType shaderType)
 {
+	if (!IsIOFilePathsValid(pInputFilePath, pOutputFilePath))
+	{
+		return;
+	}
+
 	// Document : https://bkaradzic.github.io/bgfx/tools.html#shader-compiler-shaderc
 	std::string cmftExePath = CDENGINE_TOOL_PATH;
 	cmftExePath += "/shaderc";
 	Process process(cmftExePath.c_str());
 
-	std::filesystem::path shaderSourceFilePath = pInputFilePath;
-	std::filesystem::path shaderSourceFolderPath = shaderSourceFilePath.parent_path();
+	std::filesystem::path shaderSourceFolderPath(pInputFilePath);
+	shaderSourceFolderPath = shaderSourceFolderPath.parent_path();
 	shaderSourceFolderPath += "/varying.def.sc";
 
 	std::vector<std::string> commandArguments{ "-f", pInputFilePath, "--varyingdef", shaderSourceFolderPath.string().c_str(),
@@ -54,15 +81,20 @@ void ResourceBuilder::AddShaderBuildTask(const char* pInputFilePath, const char*
 	AddTask(cd::MoveTemp(process));
 }
 
-void ResourceBuilder::AddCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFileName)
+void ResourceBuilder::AddCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath)
 {
+	if (!IsIOFilePathsValid(pInputFilePath, pOutputFilePath))
+	{
+		return;
+	}
+
 	// Document : In command line, ./cmft -h
 	std::string cmftExePath = CDENGINE_TOOL_PATH;
 	cmftExePath += "/cmft";
 	Process process(cmftExePath.c_str());
 
 	std::vector<std::string> commandArguments{ "--input", pInputFilePath,
-		"--outputNum", "1", "--output0", pOutputFileName,
+		"--outputNum", "1", "--output0", pOutputFilePath,
 		"--excludeBase", "true", "--mipCount", "7", "--glossScale", "10", "--glossBias", "2", "--edgeFixup", "warp" };
 	process.SetCommandArguments(cd::MoveTemp(commandArguments));
 	process.SetWaitUntilFinished(true);
@@ -71,6 +103,11 @@ void ResourceBuilder::AddCubeMapBuildTask(const char* pInputFilePath, const char
 
 void ResourceBuilder::AddTextureBuildTask(const char* pInputFilePath, const char* pOutputFilePath, cd::MaterialTextureType textureType)
 {
+	if (!IsIOFilePathsValid(pInputFilePath, pOutputFilePath))
+	{
+		return;
+	}
+
 	// Document : https://bkaradzic.github.io/bgfx/tools.html#texture-compiler-texturec
 	std::string texturecExePath = CDENGINE_TOOL_PATH;
 	texturecExePath += "/texturec";
