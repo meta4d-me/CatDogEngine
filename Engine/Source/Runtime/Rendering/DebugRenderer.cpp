@@ -39,18 +39,17 @@ void DebugRenderer::Render(float deltaTime)
 			continue;
 		}
 
-		// Transform
 		if (TransformComponent* pTransformComponent = pTransformStorage->GetComponent(entity))
 		{
 			pTransformComponent->Build();
 			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
 		}
 
-		// Mesh
 		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle(pMeshComponent->GetAABBVertexBuffer()));
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle(pMeshComponent->GetAABBIndexBuffer()));
 
-		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
+		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
+			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
 		bgfx::setState(state);
 
 		constexpr StringCrc wireframeProgram("WireFrameProgram");

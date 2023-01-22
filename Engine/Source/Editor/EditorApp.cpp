@@ -8,6 +8,7 @@
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/UILayers/DebugPanel.h"
 #include "Rendering/BlitRenderTargetPass.h"
+#include "Rendering/DebugRenderer.h"
 #include "Rendering/ImGuiRenderer.h"
 #include "Rendering/PBRSkyRenderer.h"
 #include "Rendering/PostProcessRenderer.h"
@@ -116,6 +117,7 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 	//m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<GameView>("GameView"));
 
 	auto pSceneView = std::make_unique<SceneView>("SceneView");
+	pSceneView->SetAABBRenderer(m_pDebugRenderer);
 	pSceneView->SetSceneWorld(m_pEditorSceneWorld.get());
 	m_pSceneView = pSceneView.get();
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
@@ -213,6 +215,12 @@ void EditorApp::InitRenderContext()
 	pSceneRenderer->SetWorld(m_pEditorSceneWorld->GetWorld());
 	AddEngineRenderer(cd::MoveTemp(pSceneRenderer));
 
+	auto pDebugRenderer = std::make_unique<engine::DebugRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pDebugRenderer = pDebugRenderer.get();
+	pDebugRenderer->SetDisabled(true);
+	pDebugRenderer->SetWorld(m_pEditorSceneWorld->GetWorld());
+	AddEngineRenderer(cd::MoveTemp(pDebugRenderer));
+
 	auto pBlitRTRenderPass = std::make_unique<engine::BlitRenderTargetPass>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	AddEngineRenderer(cd::MoveTemp(pBlitRTRenderPass));
 
@@ -246,6 +254,11 @@ bool EditorApp::Update(float deltaTime)
 	m_pRenderContext->BeginFrame();
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEditorRenderers)
 	{
+		if (!pRenderer->IsEnable())
+		{
+			continue;
+		}
+
 		const float* pViewMatrix = nullptr;
 		const float* pProjectionMatrix = nullptr;
 		if (engine::Camera* pCamera = pRenderer->GetCamera())
@@ -262,6 +275,11 @@ bool EditorApp::Update(float deltaTime)
 	m_pEngineImGuiContext->Update(deltaTime);
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
 	{
+		if (!pRenderer->IsEnable())
+		{
+			continue;
+		}
+
 		const float* pViewMatrix = nullptr;
 		const float* pProjectionMatrix = nullptr;
 		if (engine::Camera* pCamera = pRenderer->GetCamera())

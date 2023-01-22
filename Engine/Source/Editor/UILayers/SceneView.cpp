@@ -8,6 +8,7 @@
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
 #include "Math/Ray.hpp"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Renderer.h"
 #include "Rendering/RenderTarget.h"
 #include "Scene/SceneDatabase.h"
 #include "Window/Input.h"
@@ -159,6 +160,25 @@ void SceneView::UpdateSwitchIBLButton()
 	}
 }
 
+void SceneView::UpdateSwitchAABBButton()
+{
+	bool isAABBActive = m_pAABBRenderer->IsEnable();
+	if (isAABBActive)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+	}
+
+	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CUBE " AABB")))
+	{
+		m_pAABBRenderer->SetEnabled(!isAABBActive);
+	}
+
+	if (isAABBActive)
+	{
+		ImGui::PopStyleColor();
+	}
+}
+
 void SceneView::UpdateToolMenuButtons()
 {
 	ImGui::Indent();
@@ -197,6 +217,10 @@ void SceneView::UpdateToolMenuButtons()
 	ImGui::SameLine();
 
 	UpdateSwitchIBLButton();
+
+	ImGui::SameLine();
+
+	UpdateSwitchAABBButton();
 
 	ImGui::PopStyleColor();
 }

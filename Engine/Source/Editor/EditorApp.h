@@ -68,6 +68,7 @@ private:
 	std::unique_ptr<EditorSceneWorld> m_pEditorSceneWorld;
 	editor::SceneView* m_pSceneView;
 	engine::Renderer* m_pSceneRenderer;
+	engine::Renderer* m_pDebugRenderer;
 
 	// Rendering
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;

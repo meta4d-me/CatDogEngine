@@ -60,7 +60,7 @@ void StaticMeshComponent::BuildDebug()
 	const uint32_t vertexCount = meshData.GetVertexCount();
 	m_aabbVertexBuffer.resize(vertexCount * vertexFormat.GetStride());
 	uint32_t currentDataSize = 0U;
-	auto currentDataPtr = m_vertexBuffer.data();
+	auto currentDataPtr = m_aabbVertexBuffer.data();
 	for (uint32_t vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex)
 	{
 		// position
@@ -70,7 +70,7 @@ void StaticMeshComponent::BuildDebug()
 		currentDataSize += posDataSize;
 
 		// barycentric
-		const cd::Point& barycentricCoordinates = meshData.GetVertexNormal(vertexIndex);
+		const cd::Point& barycentricCoordinates = meshData.GetVertexBiTangent(vertexIndex);
 		constexpr uint32_t bcDataSize = cd::Point::Size * sizeof(cd::Point::ValueType);
 		std::memcpy(&currentDataPtr[currentDataSize], barycentricCoordinates.Begin(), bcDataSize);
 		currentDataSize += bcDataSize;
@@ -81,8 +81,8 @@ void StaticMeshComponent::BuildDebug()
 
 	bgfx::VertexLayout vertexLayout;
 	VertexLayoutUtility::CreateVertexLayout(vertexLayout, vertexFormat.GetVertexLayout());
-	m_aabbVBH = bgfx::createVertexBuffer(bgfx::makeRef(m_aabbVertexBuffer.data(), static_cast<uint32_t>(m_aabbVertexBuffer.size() * sizeof(cd::Point))), vertexLayout).idx;
-	m_aabbIBH = bgfx::createIndexBuffer(bgfx::makeRef(m_aabbIndexBuffer.data(), static_cast<uint32_t>(m_aabbIndexBuffer.size() * sizeof(uint32_t) * 3)), BGFX_BUFFER_INDEX32).idx;
+	m_aabbVBH = bgfx::createVertexBuffer(bgfx::makeRef(m_aabbVertexBuffer.data(), static_cast<uint32_t>(m_aabbVertexBuffer.size())), vertexLayout).idx;
+	m_aabbIBH = bgfx::createIndexBuffer(bgfx::makeRef(m_aabbIndexBuffer.data(), static_cast<uint32_t>(m_aabbIndexBuffer.size())), BGFX_BUFFER_INDEX32).idx;
 }
 
 void StaticMeshComponent::Build()

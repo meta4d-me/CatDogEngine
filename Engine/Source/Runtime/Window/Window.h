@@ -36,7 +36,7 @@ public:
 public:
     // Window
     Delegate<void(const char*)> OnDropFile;
-    Delegate<void(uint16_t, uint16_t)> OnResize;
+    MulticastDelegate<void(uint16_t, uint16_t)> OnResize;
 
 private:
     void* m_pNativeWindowHandle = nullptr;

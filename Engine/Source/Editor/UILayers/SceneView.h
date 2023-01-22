@@ -13,6 +13,7 @@ enum OPERATION;
 namespace engine
 {
 
+class Renderer;
 class RenderTarget;
 
 }
@@ -33,6 +34,7 @@ public:
 
 	engine::MulticastDelegate<void(uint16_t, uint16_t)> OnResize;
 	void SetSceneWorld(EditorSceneWorld* pWorld) { m_pEditorSceneWorld = pWorld; }
+	void SetAABBRenderer(engine::Renderer* pRenderer) { m_pAABBRenderer = pRenderer; }
 
 	void PickSceneMesh(float regionWidth, float regionHeight);
 
@@ -40,6 +42,7 @@ private:
 	void UpdateToolMenuButtons();
 	void Update2DAnd3DButtons();
 	void UpdateSwitchIBLButton();
+	void UpdateSwitchAABBButton();
 	void UpdateOperationButtons();
 	
 private:
@@ -55,6 +58,7 @@ private:
 	bool m_is3DMode = true;
 	bool m_isIBLActive = false;
 
+	engine::Renderer* m_pAABBRenderer = nullptr;
 	engine::RenderTarget* m_pRenderTarget = nullptr;
 	bool m_isMouseDownFirstTime = true;
 };
