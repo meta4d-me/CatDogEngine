@@ -15,16 +15,12 @@ namespace engine
 
 void WorldRenderer::Init()
 {
-	bgfx::ShaderHandle vsh = m_pRenderContext->CreateShader("vs_PBR.bin");
-	m_programPBR = m_pRenderContext->CreateProgram("PBR", vsh, m_pRenderContext->CreateShader("fs_PBR.bin"));
-	m_programPBR_AO = m_pRenderContext->CreateProgram("PBR_AO", vsh, m_pRenderContext->CreateShader("fs_PBR_AO.bin"));
-
-	m_pRenderContext->CreateUniform("s_texCube", bgfx::UniformType::Sampler);
-	m_pRenderContext->CreateUniform("s_texCubeIrr", bgfx::UniformType::Sampler);
+	//m_pRenderContext->CreateUniform("s_texCube", bgfx::UniformType::Sampler);
+	//m_pRenderContext->CreateUniform("s_texCubeIrr", bgfx::UniformType::Sampler);
 	m_pRenderContext->CreateUniform("s_texLUT", bgfx::UniformType::Sampler);
-	uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
-	m_pRenderContext->CreateTexture("skybox/bolonga_lod.dds", samplerFlags);
-	m_pRenderContext->CreateTexture("skybox/bolonga_irr.dds", samplerFlags);
+	//uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
+	//m_pRenderContext->CreateTexture("skybox/bolonga_lod.dds", samplerFlags);
+	//m_pRenderContext->CreateTexture("skybox/bolonga_irr.dds", samplerFlags);
 	m_pRenderContext->CreateTexture("ibl_brdf_lut.dds");
 
 	bgfx::setViewName(GetViewID(), "WorldRenderer");
@@ -53,8 +49,7 @@ void WorldRenderer::Render(float deltaTime)
 		}
 
 		// Transform
-		TransformComponent* pTransformComponent = pTransformStorage->GetComponent(entity);
-		if (pTransformComponent)
+		if (TransformComponent* pTransformComponent = pTransformStorage->GetComponent(entity))
 		{
 			pTransformComponent->Build();
 			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());

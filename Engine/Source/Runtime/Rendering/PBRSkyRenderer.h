@@ -3,6 +3,7 @@
 #include "ECWorld/Entity.h"
 #include "Renderer.h"
 #include "Math/Vector.hpp"
+#include "Scene/Mesh.h"
 
 #include <bgfx/bgfx.h>
 
@@ -55,6 +56,8 @@ private:
 	bool m_precomputeCache = false;
 
 	// Skybox
+	std::vector<cd::Point> m_vertexBufferSkybox;
+	std::vector<cd::Mesh::Polygon> m_indexBufferSkybox;
 	bgfx::VertexBufferHandle m_vbhSkybox;
 	bgfx::IndexBufferHandle m_ibhSkybox;
 };

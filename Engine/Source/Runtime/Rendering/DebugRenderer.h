@@ -9,7 +9,7 @@ namespace engine
 
 class World;
 
-class WorldRenderer final : public Renderer
+class DebugRenderer final : public Renderer
 {
 public:
 	using Renderer::Renderer;

@@ -1,11 +1,13 @@
 #include "StaticMeshComponent.h"
 
 #include "ECWorld/World.h"
+#include "Math/MeshGenerator.h"
 #include "Rendering/Utility/VertexLayoutUtility.h"
-#include "Scene/Mesh.h"
 #include "Scene/VertexFormat.h"
 
 #include <bgfx/bgfx.h>
+
+#include <optional>
 
 namespace engine
 {
@@ -25,6 +27,62 @@ void StaticMeshComponent::Reset()
 
 	m_indexBuffer.clear();
 	m_indexBufferHandle = UINT16_MAX;
+
+	// Debug
+	m_aabbVertexBuffer.clear();
+	m_aabbVBH = UINT16_MAX;
+
+	m_aabbIndexBuffer.clear();
+	m_aabbIBH = UINT16_MAX;
+}
+
+void StaticMeshComponent::BuildDebug()
+{
+	const cd::AABB& meshAABB = m_pMeshData->GetAABB();
+	if (meshAABB.Empty())
+	{
+		return;
+	}
+
+	cd::VertexFormat vertexFormat;
+	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
+	// Hack : use normal as barycentric coordinate.
+	// TODO : Vertex attribute type can have userdata storage and map to slot enum.
+	// It requires duplicated vertices so only used for debug/editor usage.
+	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Bitangent, cd::AttributeValueType::Float, 3);
+	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::GenerateNonUnique(cd::Box(meshAABB.Min(), meshAABB.Max()), vertexFormat);
+	if (!optMesh.has_value())
+	{
+		return;
+	}
+
+	const cd::Mesh& meshData = optMesh.value();
+	const uint32_t vertexCount = meshData.GetVertexCount();
+	m_aabbVertexBuffer.resize(vertexCount * vertexFormat.GetStride());
+	uint32_t currentDataSize = 0U;
+	auto currentDataPtr = m_vertexBuffer.data();
+	for (uint32_t vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex)
+	{
+		// position
+		const cd::Point& position = meshData.GetVertexPosition(vertexIndex);
+		constexpr uint32_t posDataSize = cd::Point::Size * sizeof(cd::Point::ValueType);
+		std::memcpy(&currentDataPtr[currentDataSize], position.Begin(), posDataSize);
+		currentDataSize += posDataSize;
+
+		// barycentric
+		const cd::Point& barycentricCoordinates = meshData.GetVertexNormal(vertexIndex);
+		constexpr uint32_t bcDataSize = cd::Point::Size * sizeof(cd::Point::ValueType);
+		std::memcpy(&currentDataPtr[currentDataSize], barycentricCoordinates.Begin(), bcDataSize);
+		currentDataSize += bcDataSize;
+	}
+	
+	m_aabbIndexBuffer.resize(meshData.GetPolygonCount() * cd::Mesh::Polygon::Size * sizeof(cd::Mesh::Polygon::ValueType));
+	std::memcpy(m_aabbIndexBuffer.data(), meshData.GetPolygons().data(), m_aabbIndexBuffer.size());
+
+	bgfx::VertexLayout vertexLayout;
+	VertexLayoutUtility::CreateVertexLayout(vertexLayout, vertexFormat.GetVertexLayout());
+	m_aabbVBH = bgfx::createVertexBuffer(bgfx::makeRef(m_aabbVertexBuffer.data(), static_cast<uint32_t>(m_aabbVertexBuffer.size() * sizeof(cd::Point))), vertexLayout).idx;
+	m_aabbIBH = bgfx::createIndexBuffer(bgfx::makeRef(m_aabbIndexBuffer.data(), static_cast<uint32_t>(m_aabbIndexBuffer.size() * sizeof(uint32_t) * 3)), BGFX_BUFFER_INDEX32).idx;
 }
 
 void StaticMeshComponent::Build()
@@ -115,6 +173,9 @@ void StaticMeshComponent::Build()
 	bgfx::IndexBufferHandle indexBufferHandle = bgfx::createIndexBuffer(bgfx::makeRef(m_indexBuffer.data(), static_cast<uint32_t>(m_indexBuffer.size())), BGFX_BUFFER_INDEX32);
 	assert(bgfx::isValid(indexBufferHandle));
 	m_indexBufferHandle = indexBufferHandle.idx;
+
+	// Build debug data.
+	BuildDebug();
 }
 
 }

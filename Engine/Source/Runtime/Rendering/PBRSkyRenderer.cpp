@@ -12,14 +12,16 @@ namespace engine
 
 namespace
 {
-	constexpr uint64_t FLAG_2DTEXTURE = BGFX_TEXTURE_COMPUTE_WRITE | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
-	constexpr uint64_t FLAG_3DTEXTURE = BGFX_TEXTURE_COMPUTE_WRITE | BGFX_SAMPLER_UVW_CLAMP;
-	constexpr uint64_t RENDERING_STATE = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LEQUAL;
+
+constexpr uint64_t FLAG_2DTEXTURE = BGFX_TEXTURE_COMPUTE_WRITE | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
+constexpr uint64_t FLAG_3DTEXTURE = BGFX_TEXTURE_COMPUTE_WRITE | BGFX_SAMPLER_UVW_CLAMP;
+constexpr uint64_t RENDERING_STATE = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LEQUAL;
 	
-	constexpr uint16_t SCATTERING_ORDERS = 6;
+constexpr uint16_t SCATTERING_ORDERS = 6;
+
 }
 
-PBRSkyRenderer::~PBRSkyRenderer() {};
+PBRSkyRenderer::~PBRSkyRenderer() = default;
 
 void PBRSkyRenderer::Init() {
 	bgfx::ShaderHandle vsh_skyBox             = m_pRenderContext->CreateShader("vs_atmSkyBox.bin");
@@ -69,10 +71,10 @@ void PBRSkyRenderer::Init() {
 	assert(optMesh.has_value());
 
 	const cd::Mesh& meshData = optMesh.value();
-	static std::vector<cd::Point> vertexBufferData = meshData.GetVertexPositions();
-	static std::vector<cd::Mesh::Polygon> indexBufferData = meshData.GetPolygons();
-	m_vbhSkybox = bgfx::createVertexBuffer(bgfx::makeRef(vertexBufferData.data(), static_cast<uint32_t>(vertexBufferData.size() * sizeof(cd::Point))), m_pRenderContext->GetVertexLayout(positionVertexLayout));
-	m_ibhSkybox = bgfx::createIndexBuffer(bgfx::makeRef(indexBufferData.data(), static_cast<uint32_t>(indexBufferData.size() * sizeof(uint32_t) * 3)), BGFX_BUFFER_INDEX32);
+	m_vertexBufferSkybox = meshData.GetVertexPositions();
+	m_indexBufferSkybox = meshData.GetPolygons();
+	m_vbhSkybox = bgfx::createVertexBuffer(bgfx::makeRef(m_vertexBufferSkybox.data(), static_cast<uint32_t>(m_vertexBufferSkybox.size() * sizeof(cd::Point))), m_pRenderContext->GetVertexLayout(positionVertexLayout));
+	m_ibhSkybox = bgfx::createIndexBuffer(bgfx::makeRef(m_indexBufferSkybox.data(), static_cast<uint32_t>(m_indexBufferSkybox.size() * sizeof(uint32_t) * 3)), BGFX_BUFFER_INDEX32);
 
 	bgfx::setViewName(GetViewID(), "PBRSkyRenderer");
 }
