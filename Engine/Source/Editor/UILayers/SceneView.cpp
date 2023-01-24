@@ -34,7 +34,7 @@ struct ImGuizmoOperationMode
 // Be careful to control the last ImGuizmoOperationMode object's createUIVerticalLine flag.
 // It depends on what the next UI element is.
 constexpr ImGuizmoOperationMode OperationModes[] = {
-	{ ICON_MDI_CURSOR_DEFAULT, "Select",  ImGuizmo::OPERATION::TRANSLATE_Z, true},
+	//{ ICON_MDI_CURSOR_DEFAULT, "Select",  ImGuizmo::OPERATION::TRANSLATE_Z, true},
 	{ ICON_MDI_ARROW_ALL, "Translate",  ImGuizmo::OPERATION::TRANSLATE, false},
 	{ ICON_MDI_ROTATE_ORBIT, "Rotate",  ImGuizmo::OPERATION::ROTATE, false},
 	{ ICON_MDI_ARROW_EXPAND_ALL, "Scale",  ImGuizmo::OPERATION::SCALE, false},
@@ -63,6 +63,8 @@ void SceneView::Init()
 	constexpr engine::StringCrc sceneRenderTarget("SceneRenderTarget");
 	engine::RenderTarget* pRenderTarget = pCurrentRenderContext->GetRenderTarget(sceneRenderTarget);
 	OnResize.Bind<engine::RenderTarget, &engine::RenderTarget::Resize>(pRenderTarget);
+
+	m_currentOperation = ImGuizmo::OPERATION::TRANSLATE;
 }
 
 void SceneView::UpdateOperationButtons()
@@ -187,29 +189,34 @@ void SceneView::UpdateToolMenuButtons()
 
 	UpdateOperationButtons();
 
-	if (ImGui::Button(reinterpret_cast<const char*>("Options " ICON_MDI_CHEVRON_DOWN)))
-	{
-		ImGui::OpenPopup("GizmosPopup");
-	}
+	//if (ImGui::Button(reinterpret_cast<const char*>("Options " ICON_MDI_CHEVRON_DOWN)))
+	//{
+	//	ImGui::OpenPopup("GizmosPopup");
+	//}
+	//
+	//if (ImGui::BeginPopup("GizmosPopup"))
+	//{
+	//	ImGui::Checkbox("Option 1", &m_option1);
+	//	ImGui::Checkbox("Option 2", &m_option2);
+	//
+	//	ImGui::EndPopup();
+	//}
 
-	if (ImGui::BeginPopup("GizmosPopup"))
-	{
-		ImGui::Checkbox("Option 1", &m_option1);
-		ImGui::Checkbox("Option 2", &m_option2);
-
-		ImGui::EndPopup();
-	}
-
-	ImGui::SameLine();
-	ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+	//ImGui::SameLine();
+	//ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
 	ImGui::SameLine();
 
 	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CAMERA " FrameAll")))
 	{
 		ImGuiIO& io = ImGui::GetIO();
-		engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
-		engine::SceneWorld* pSceneWorld = reinterpret_cast<engine::SceneWorld*>(io.UserData);
-		pCurrentRenderContext->GetCamera()->FrameAll(pSceneWorld->GetSceneDatabase()->GetAABB());
+		engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
+		engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
+		engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
+		const cd::AABB& sceneAABB = pSceneWorld->GetSceneDatabase()->GetAABB();
+		if (!sceneAABB.Empty())
+		{
+			pRenderContext->GetCamera()->FrameAll(sceneAABB);
+		}
 	}
 
 	ImGui::SameLine();
@@ -229,7 +236,10 @@ void SceneView::UpdateToolMenuButtons()
 
 void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 {
-	engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(ImGui::GetIO().BackendRendererUserData);
+	if (ImGuizmo::IsOver())
+	{
+		return;
+	}
 
 	float screenX = static_cast<float>(engine::Input::Get().GetMousePositionX() - GetWindowPosX());
 	float screenY = static_cast<float>(engine::Input::Get().GetMousePositionY() - GetWindowPosY());
@@ -242,6 +252,7 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 	}
 
 	// Loop through scene's all static meshes' AABB to test intersections with Ray.
+	engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(ImGui::GetIO().BackendRendererUserData);
 	cd::Ray pickRay = pRenderContext->GetCamera()->EmitRay(screenX, screenY, screenWidth, screenHeight);
 	engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(ImGui::GetIO().UserData);
 	engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
@@ -250,14 +261,23 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 	engine::Entity nearestEntity = engine::INVALID_ENTITY;
 	for (engine::Entity entity : pSceneWorld->GetStaticMeshEntities())
 	{
+		engine::TransformComponent* pTransformComponent = pSceneWorld->GetTransformComponent(entity);
+		if (!pTransformComponent)
+		{
+			continue;
+		}
+
 		engine::StaticMeshComponent* pMeshComponent = pSceneWorld->GetStaticMeshComponent(entity);
 		if (!pMeshComponent)
 		{
 			continue;
 		}
 
+		cd::AABB collisonMeshAABB = pMeshComponent->GetAABB();
+		collisonMeshAABB = collisonMeshAABB.Transform(pTransformComponent->GetWorldMatrix());
+
 		float rayTime;
-		if (pMeshComponent->GetAABB().Intersects(pickRay, rayTime))
+		if (collisonMeshAABB.Intersects(pickRay, rayTime))
 		{
 			if (rayTime < minRayTime)
 			{
@@ -267,6 +287,7 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 		}
 	}
 
+	printf("Select entity : %u \n", nearestEntity);
 	pSceneWorld->SetSelectedEntity(nearestEntity);
 }
 
