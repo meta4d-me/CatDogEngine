@@ -14,6 +14,7 @@ namespace engine
 {
 
 class ImGuiBaseLayer;
+class SceneWorld;
 
 class ImGuiContextInstance
 {
@@ -53,6 +54,9 @@ public:
 
 	void SetWindowPosOffset(float x, float y) { m_windowPosOffsetX = x; m_windowPosOffsetY = y; }
 
+	void SetSceneWorld(SceneWorld* pSceneWorld) { m_pSceneWorld = pSceneWorld; }
+	SceneWorld* GetSceneWorld() const { return m_pSceneWorld; }
+
 private:
 	void AddInputEvent();
 	void SetImGuiStyles();
@@ -60,7 +64,8 @@ private:
 	void EndDockSpace();
 
 private:
-	ImGuiContext* m_pImGuiContext;
+	SceneWorld* m_pSceneWorld = nullptr;
+	ImGuiContext* m_pImGuiContext = nullptr;
 	ThemeColor m_themeColor;
 
 	float m_windowPosOffsetX = 0.0f;

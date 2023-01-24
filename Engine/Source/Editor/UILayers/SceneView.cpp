@@ -1,9 +1,10 @@
 #include "SceneView.h"
 
 #include "Display/Camera.h"
-#include "ECWorld/EditorSceneWorld.h"
 #include "ECWorld/NameComponent.h"
+#include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
+#include "ECWorld/TransformComponent.h"
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
 #include "Math/Ray.hpp"
@@ -207,7 +208,8 @@ void SceneView::UpdateToolMenuButtons()
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
-		pCurrentRenderContext->GetCamera()->FrameAll(m_pEditorSceneWorld->GetSceneDatabase()->GetAABB());
+		engine::SceneWorld* pSceneWorld = reinterpret_cast<engine::SceneWorld*>(io.UserData);
+		pCurrentRenderContext->GetCamera()->FrameAll(pSceneWorld->GetSceneDatabase()->GetAABB());
 	}
 
 	ImGui::SameLine();
@@ -241,12 +243,14 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 
 	// Loop through scene's all static meshes' AABB to test intersections with Ray.
 	cd::Ray pickRay = pRenderContext->GetCamera()->EmitRay(screenX, screenY, screenWidth, screenHeight);
-	auto pMeshStorage = m_pEditorSceneWorld->GetWorld()->GetComponents<engine::StaticMeshComponent>();
+	engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(ImGui::GetIO().UserData);
+	engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
+
 	float minRayTime = FLT_MAX;
 	engine::Entity nearestEntity = engine::INVALID_ENTITY;
-	for (engine::Entity entity : pMeshStorage->GetEntities())
+	for (engine::Entity entity : pSceneWorld->GetStaticMeshEntities())
 	{
-		engine::StaticMeshComponent* pMeshComponent = pMeshStorage->GetComponent(entity);
+		engine::StaticMeshComponent* pMeshComponent = pSceneWorld->GetStaticMeshComponent(entity);
 		if (!pMeshComponent)
 		{
 			continue;
@@ -255,24 +259,15 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 		float rayTime;
 		if (pMeshComponent->GetAABB().Intersects(pickRay, rayTime))
 		{
-			
-		}
-
-		if (rayTime < minRayTime)
-		{
-			minRayTime = rayTime;
-			nearestEntity = entity;
+			if (rayTime < minRayTime)
+			{
+				minRayTime = rayTime;
+				nearestEntity = entity;
+			}
 		}
 	}
 
-	if (engine::INVALID_ENTITY == nearestEntity)
-	{
-
-	}
-	else
-	{
-
-	}
+	pSceneWorld->SetSelectedEntity(nearestEntity);
 }
 
 void SceneView::Update()

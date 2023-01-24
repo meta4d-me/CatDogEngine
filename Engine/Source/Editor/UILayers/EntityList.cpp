@@ -1,14 +1,15 @@
 #include "EntityList.h"
 
-#include "ECWorld/EditorSceneWorld.h"
-#include "ECWorld/World.h"
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/LightComponent.h"
 #include "ECWorld/NameComponent.h"
+#include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
+#include "ECWorld/World.h"
 
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
+#include "ImGui/ImGuiContextInstance.h"
 
 #include <imgui/imgui_internal.h>
 
@@ -27,7 +28,10 @@ void EntityList::Init()
 
 void EntityList::AddEntity()
 {
-    engine::World* pWorld = m_pEditorSceneWorld->GetWorld();
+    engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(ImGui::GetIO().UserData);
+    engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
+    engine::World* pWorld = pSceneWorld->GetWorld();
+
     if (ImGui::Selectable("Add Mesh"))
     {
         engine::Entity meshEntity = pWorld->CreateEntity();
@@ -54,13 +58,15 @@ void EntityList::AddEntity()
 
 void EntityList::DrawEntity(engine::Entity entity)
 {
-    engine::World* pWorld = m_pEditorSceneWorld->GetWorld();
+    engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(ImGui::GetIO().UserData);
+    engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
+    engine::World* pWorld = pSceneWorld->GetWorld();
+
     engine::NameComponent* pNameComponent = pWorld->GetComponents<engine::NameComponent>()->GetComponent(entity);
     if (!pNameComponent)
     {
         return;
     }
-
 
     // When you use the entity filter, it will skip drawing entites which doesn't pass the filter conditions.
     if (m_entityFilter.IsActive() && !m_entityFilter.PassFilter(pNameComponent->GetName()))
@@ -225,7 +231,9 @@ void EntityList::Update()
     ImGui::BeginChild("Entites");
 
     // TODO : Need to have a more generic entity manager.
-    for (engine::Entity entity : m_pEditorSceneWorld->GetWorld()->GetComponents<engine::StaticMeshComponent>()->GetEntities())
+    engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
+    engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
+    for (engine::Entity entity : pSceneWorld->GetStaticMeshEntities())
     {
         DrawEntity(entity);
     }

@@ -3,7 +3,7 @@
 #include "Application/Engine.h"
 #include "Display/FirstPersonCameraController.h"
 #include "Display/FlybyCamera.h"
-#include "ECWorld/EditorSceneWorld.h"
+#include "ECWorld/SceneWorld.h"
 #include "ImGui/EditorImGuiViewport.h"
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/UILayers/DebugPanel.h"
@@ -94,6 +94,7 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 	assert(GetMainWindow() && "Init window before imgui context");
 
 	m_pEditorImGuiContext = std::make_unique<engine::ImGuiContextInstance>(GetMainWindow()->GetWidth(), GetMainWindow()->GetHeight(), true/*dockable*/);
+	RegisterImGuiUserData(m_pEditorImGuiContext.get());
 
 	// TODO : more font files to load and switch dynamicly.
 	std::vector<std::string> ttfFileNames = { "FanWunMing-SB.ttf" };
@@ -105,27 +106,22 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 	// Set style settings.
 	m_pEditorImGuiContext->SetImGuiThemeColor(engine::ThemeColor::Dark);
 
-	ImGui::GetIO().BackendRendererUserData = m_pRenderContext.get();
-
 	// Add UI layers after finish imgui and rendering contexts' initialization.
-	m_pEditorImGuiContext->AddStaticLayer(std::make_unique<MainMenu>("MainMenu", GetMainWindow()));
+	m_pEditorImGuiContext->AddStaticLayer(std::make_unique<MainMenu>("MainMenu"));
 
 	auto pEntityList = std::make_unique<EntityList>("EntityList");
-	pEntityList->SetSceneWorld(m_pEditorSceneWorld.get());
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pEntityList));
 
 	//m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<GameView>("GameView"));
 
 	auto pSceneView = std::make_unique<SceneView>("SceneView");
 	pSceneView->SetAABBRenderer(m_pDebugRenderer);
-	pSceneView->SetSceneWorld(m_pEditorSceneWorld.get());
 	m_pSceneView = pSceneView.get();
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
 
 	auto pAssetBrowser = std::make_unique<AssetBrowser>("AssetBrowser");
 	pAssetBrowser->SetSceneRenderer(m_pSceneRenderer);
-	pAssetBrowser->SetSceneWorld(m_pEditorSceneWorld.get());
 	GetMainWindow()->OnDropFile.Bind<editor::AssetBrowser, &editor::AssetBrowser::ImportAssetFile>(pAssetBrowser.get());
 
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pAssetBrowser));
@@ -138,16 +134,18 @@ void EditorApp::InitEngineImGuiContext(engine::Language language)
 	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->GetRenderTarget(sceneRenderTarget);
 
 	m_pEngineImGuiContext = std::make_unique<engine::ImGuiContextInstance>(pSceneRenderTarget->GetWidth(), pSceneRenderTarget->GetHeight());
+	RegisterImGuiUserData(m_pEngineImGuiContext.get());
 
 	std::vector<std::string> ttfFileNames = { "FanWunMing-SB.ttf" };
 	m_pEngineImGuiContext->LoadFontFiles(ttfFileNames, language);
 
 	// Set style settings.
 	m_pEngineImGuiContext->SetImGuiThemeColor(engine::ThemeColor::Light);
-	ImGui::GetIO().BackendRendererUserData = m_pRenderContext.get();
 
 	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<engine::DebugPanel>("DebugPanel"));
-	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<editor::ImGuizmoView>("ImGuizmoView"));
+	auto pImGuizmoView = std::make_unique<editor::ImGuizmoView>("ImGuizmoView");
+	pImGuizmoView->SetSceneView(m_pSceneView);
+	m_pEngineImGuiContext->AddDynamicLayer(cd::MoveTemp(pImGuizmoView));
 
 	pSceneRenderTarget->OnResize.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnResize>(m_pEngineImGuiContext.get());
 }
@@ -162,9 +160,22 @@ void EditorApp::InitImGuiViewports(engine::RenderContext* pRenderContext)
 	m_pEditorImGuiViewport = std::make_unique<EditorImGuiViewport>(pRenderContext);
 }
 
+void EditorApp::RegisterImGuiUserData(engine::ImGuiContextInstance* pImGuiContext)
+{
+	assert(GetMainWindow() && m_pRenderContext);
+
+	ImGuiIO& io = ImGui::GetIO();
+	assert(io.UserData == pImGuiContext);
+
+	io.BackendPlatformUserData = GetMainWindow();
+	io.BackendRendererUserData = m_pRenderContext.get();
+
+	pImGuiContext->SetSceneWorld(m_pSceneWorld.get());
+}
+
 void EditorApp::InitECWorld()
 {
-	m_pEditorSceneWorld = std::make_unique<EditorSceneWorld>();
+	m_pSceneWorld = std::make_unique<engine::SceneWorld>();
 }
 
 void EditorApp::InitRenderContext()
@@ -179,7 +190,7 @@ void EditorApp::InitRenderContext()
 	AddEditorRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pRenderTarget));
 
 	// Camera is prepared for other renderers except ImGuiRenderer.
-	m_pCamera = std::make_unique<engine::FlybyCamera>(cd::Point(0.0f, 50.0f, -50.0f));
+	m_pCamera = std::make_unique<engine::FlybyCamera>(cd::Point(0.0f, 50.0f, -200.0f));
 	m_pCamera->SetAspect(1.0f);
 	m_pCamera->SetFov(45.0f);
 	m_pCamera->SetNearPlane(0.1f);
@@ -212,13 +223,13 @@ void EditorApp::InitRenderContext()
 
 	auto pSceneRenderer = std::make_unique<engine::WorldRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pSceneRenderer = pSceneRenderer.get();
-	pSceneRenderer->SetWorld(m_pEditorSceneWorld->GetWorld());
+	pSceneRenderer->SetWorld(m_pSceneWorld->GetWorld());
 	AddEngineRenderer(cd::MoveTemp(pSceneRenderer));
 
 	auto pDebugRenderer = std::make_unique<engine::DebugRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pDebugRenderer = pDebugRenderer.get();
 	pDebugRenderer->SetDisabled(true);
-	pDebugRenderer->SetWorld(m_pEditorSceneWorld->GetWorld());
+	pDebugRenderer->SetWorld(m_pSceneWorld->GetWorld());
 	AddEngineRenderer(cd::MoveTemp(pDebugRenderer));
 
 	auto pBlitRTRenderPass = std::make_unique<engine::BlitRenderTargetPass>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);

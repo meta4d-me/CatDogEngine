@@ -36,7 +36,6 @@ public:
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		assert(io.UserData != nullptr && "Please set ImGuiContextInstance to io.UserData field.");
-		io.BackendRendererUserData;
 		if (io.UserData != pThis)
 		{
 			pThis->SwitchCurrentContext();
@@ -73,10 +72,9 @@ ImGuiContextInstance::ImGuiContextInstance(uint16_t width, uint16_t height, bool
 	SwitchCurrentContext();
 
 	ImGuiIO& io = ImGui::GetIO();
-	// It will be very useful for UI layers to get/set data in the current ImGuiContext.
-	io.UserData = static_cast<void*>(this);
 	io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
 	io.ConfigWindowsMoveFromTitleBarOnly = true;
+	io.UserData = this;
 
 	if (enableDock)
 	{

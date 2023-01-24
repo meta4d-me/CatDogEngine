@@ -1,4 +1,5 @@
 #include "Core/Delegates/MulticastDelegate.hpp"
+#include "ECWorld/Entity.h"
 #include "ImGui/ImGuiBaseLayer.h"
 
 #include <inttypes.h>
@@ -21,8 +22,6 @@ class RenderTarget;
 namespace editor
 {
 
-class EditorSceneWorld;
-
 class SceneView : public engine::ImGuiBaseLayer
 {
 public:
@@ -33,10 +32,11 @@ public:
 	virtual void Update() override;
 
 	engine::MulticastDelegate<void(uint16_t, uint16_t)> OnResize;
-	void SetSceneWorld(EditorSceneWorld* pWorld) { m_pEditorSceneWorld = pWorld; }
 	void SetAABBRenderer(engine::Renderer* pRenderer) { m_pAABBRenderer = pRenderer; }
 
 	void PickSceneMesh(float regionWidth, float regionHeight);
+
+	ImGuizmo::OPERATION GetImGuizmoOperation() const { return m_currentOperation; }
 
 private:
 	void UpdateToolMenuButtons();
@@ -46,8 +46,6 @@ private:
 	void UpdateOperationButtons();
 	
 private:
-	EditorSceneWorld* m_pEditorSceneWorld;
-
 	uint16_t m_lastContentWidth = 0;
 	uint16_t m_lastContentHeight = 0;
 
@@ -61,6 +59,8 @@ private:
 	engine::Renderer* m_pAABBRenderer = nullptr;
 	engine::RenderTarget* m_pRenderTarget = nullptr;
 	bool m_isMouseDownFirstTime = true;
+
+	engine::Entity m_selectedEntity = engine::INVALID_ENTITY;
 };
 
 }
