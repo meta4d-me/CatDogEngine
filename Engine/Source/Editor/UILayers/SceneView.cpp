@@ -239,13 +239,11 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 		return;
 	}
 
-	cd::Ray pickRay = pRenderContext->GetCamera()->EmitRay(screenX, screenY, screenWidth, screenHeight);
-	printf("Ray origin=(%f, %f, %f), direction=(%f, %f, %f)\n",
-		pickRay.Origin().x(), pickRay.Origin().y(), pickRay.Origin().z(),
-		pickRay.Direction().x(), pickRay.Direction().y(), pickRay.Direction().z());
-
 	// Loop through scene's all static meshes' AABB to test intersections with Ray.
+	cd::Ray pickRay = pRenderContext->GetCamera()->EmitRay(screenX, screenY, screenWidth, screenHeight);
 	auto pMeshStorage = m_pEditorSceneWorld->GetWorld()->GetComponents<engine::StaticMeshComponent>();
+	float minRayTime = FLT_MAX;
+	engine::Entity nearestEntity = engine::INVALID_ENTITY;
 	for (engine::Entity entity : pMeshStorage->GetEntities())
 	{
 		engine::StaticMeshComponent* pMeshComponent = pMeshStorage->GetComponent(entity);
@@ -254,16 +252,26 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 			continue;
 		}
 
-		printf("MeshAABB : Min=(%f, %f, %f), Max=(%f, %f, %f)\n",
-			pMeshComponent->GetAABB().Min().x(), pMeshComponent->GetAABB().Min().y(), pMeshComponent->GetAABB().Min().z(),
-			pMeshComponent->GetAABB().Max().x(), pMeshComponent->GetAABB().Max().y(), pMeshComponent->GetAABB().Max().z());
-
 		float rayTime;
 		if (pMeshComponent->GetAABB().Intersects(pickRay, rayTime))
 		{
-			printf("Hit : %s\n", m_pEditorSceneWorld->GetWorld()->GetComponents<engine::NameComponent>()->GetComponent(entity)->GetName());
+			
 		}
-		printf("RayT : %f\n", rayTime);
+
+		if (rayTime < minRayTime)
+		{
+			minRayTime = rayTime;
+			nearestEntity = entity;
+		}
+	}
+
+	if (engine::INVALID_ENTITY == nearestEntity)
+	{
+
+	}
+	else
+	{
+
 	}
 }
 
@@ -297,8 +305,9 @@ void SceneView::Update()
 		OnResize.Invoke(regionWidth, regionHeight);
 		m_lastContentWidth = regionWidth;
 		m_lastContentHeight = regionHeight;
+		pRenderContext->GetCamera()->SetAspect(static_cast<float>(regionWidth) / static_cast<float>(regionHeight));
 	}
-		
+
 	// Check if mouse hover on the area of SceneView so it can control.
 	ImVec2 cursorPosition = ImGui::GetCursorPos();
 	ImVec2 sceneViewPosition = ImGui::GetWindowPos() + cursorPosition;
