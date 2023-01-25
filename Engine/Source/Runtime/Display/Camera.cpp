@@ -26,32 +26,32 @@ Camera::Camera(cd::Vec3f position, cd::Vec3f forward, cd::Vec3f up)
 
 void Camera::SetAspect(float aspect)
 {
-	Dirty();
 	m_aspect = aspect;
+	Dirty();
 }
 
 void Camera::SetFov(float fov)
 {
-	Dirty();
 	m_fov = fov;
+	Dirty();
 }
 
 void Camera::SetNearPlane(float nearPlane)
 {
-	Dirty();
 	m_nearPlane = nearPlane;
+	Dirty();
 }
 
 void Camera::SetFarPlane(float farPlane)
 {
-	Dirty();
 	m_farPlane = farPlane;
+	Dirty();
 }
 
 void Camera::SetHomogeneousNdc(bool homogeneousNdc)
 {
-	Dirty();
 	m_homogeneousNdc = homogeneousNdc;
+	Dirty();
 }
 
 void Camera::FrameAll(const cd::AABB& aabb)
@@ -75,20 +75,29 @@ void Camera::FrameAll(const cd::AABB& aabb)
 
 cd::Ray Camera::EmitRay(float screenX, float screenY, float width, float height)
 {
-	// TODO : Optimize inverse ProjectionMatrix * ViewMatrix twice?
-	cd::Point rayStartPosition = cd::Matrix4x4::UnProject(cd::Vec3f(screenX, screenY, 0.0f),
-		cd::Matrix4x4::Identity(), GetProjectionMatrix(), cd::Vec4f(0.0f, 0.0f, width, height));
-	cd::Point rayEndPosition = cd::Matrix4x4::UnProject(cd::Vec3f(screenX, screenY, 1.0f),
-		cd::Matrix4x4::Identity(), GetProjectionMatrix(), cd::Vec4f(0.0f, 0.0f, width, height));
+	cd::Matrix4x4 vpInverse = m_projectionMatrix * m_viewMatrix;
+	vpInverse = vpInverse.Inverse();
 
-	return cd::Ray(rayStartPosition, rayEndPosition - rayStartPosition);
+	float x = cd::Math::GetValueInNewRange(screenX / width, 0.0f, 1.0f, -1.0f, 1.0f);
+	float y = cd::Math::GetValueInNewRange(screenY / height, 0.0f, 1.0f, -1.0f, 1.0f);
+
+	cd::Vec4f near = vpInverse * cd::Vec4f(x, -y, 0.0f, 1.0f);
+	near /= near.w();
+
+	cd::Vec4f far = vpInverse * cd::Vec4f(x, -y, 1.0f, 1.0f);
+	far /= far.w();
+
+	cd::Vec4f direction = (far - near).Normalize();
+	return cd::Ray(cd::Vec3f(near.x(), near.y(), near.z()),
+		cd::Vec3f(direction.x(), direction.y(), direction.z()));
 }
 
 const cd::Matrix4x4& Camera::GetViewMatrix()
 {
 	if (m_dirty)
 	{
-		UpdateViewMatrix();
+		Update();
+		m_dirty = false;
 	}
 
 	return m_viewMatrix;
@@ -98,19 +107,16 @@ const cd::Matrix4x4& Camera::GetProjectionMatrix()
 {
 	if (m_dirty)
 	{
-		UpdateProjectionMatrix();
+		Update();
+		m_dirty = false;
 	}
 
 	return m_projectionMatrix;
 }
 
-void Camera::UpdateViewMatrix()
+void Camera::Update()
 {
 	m_viewMatrix = cd::Matrix4x4::LookAt<cd::Handedness::Left>(m_position, m_position + m_forwardDirection, m_upDirection);
-}
-
-void Camera::UpdateProjectionMatrix()
-{
 	m_projectionMatrix = cd::Matrix4x4::Perspective(m_fov, m_aspect, m_nearPlane, m_farPlane, m_homogeneousNdc);
 }
 

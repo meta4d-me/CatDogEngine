@@ -3,6 +3,7 @@
 #include "Core/StringCrc.h"
 #include "ECWorld/Entity.h"
 #include "Math/AABB.hpp"
+#include "Scene/Mesh.h"
 
 #include <cstdint>
 #include <vector>
@@ -43,9 +44,14 @@ public:
 	const cd::AABB& GetAABB() const;
 	uint16_t GetVertexBuffer() const { return m_vertexBufferHandle; }
 	uint16_t GetIndexBuffer() const { return m_indexBufferHandle; }
+	uint16_t GetAABBVertexBuffer() const { return m_aabbVBH; }
+	uint16_t GetAABBIndexBuffer() const { return m_aabbIBH; }
 
 	void Reset();
 	void Build();
+
+private:
+	void BuildDebug();
 
 private:
 	// Input
@@ -57,6 +63,12 @@ private:
 	std::vector<std::byte> m_indexBuffer;
 	uint16_t m_vertexBufferHandle = UINT16_MAX;
 	uint16_t m_indexBufferHandle = UINT16_MAX;
+
+	// For debug use
+	std::vector<std::byte> m_aabbVertexBuffer;
+	std::vector<std::byte> m_aabbIndexBuffer;
+	uint16_t m_aabbVBH = UINT16_MAX;
+	uint16_t m_aabbIBH = UINT16_MAX;
 };
 
 }

@@ -32,6 +32,10 @@ public:
 	void SetCamera(Camera* pCamera) { m_pCamera = pCamera; }
 	Camera* GetCamera() const { return m_pCamera; }
 
+	void SetEnabled(bool enable) { m_isEnable = enable; }
+	void SetDisabled(bool diable) { m_isEnable = !diable; }
+	bool IsEnable() const { return m_isEnable; }
+
 public:
 	static void ScreenSpaceQuad(float _textureWidth, float _textureHeight, bool _originBottomLeft = false, float _width = 1.0f, float _height = 1.0f);
 
@@ -40,6 +44,7 @@ protected:
 	RenderContext*	m_pRenderContext = nullptr;
 	RenderTarget*	m_pRenderTarget = nullptr;
 	Camera*			m_pCamera = nullptr;
+	bool			m_isEnable = true;
 };
 
 }

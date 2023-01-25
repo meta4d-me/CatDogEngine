@@ -12,14 +12,8 @@
 namespace editor
 {
 
-MainMenu::MainMenu(const char* pName, engine::Window* mainWindow)
-	: ImGuiBaseLayer(pName)
-	, p_MainWindow(mainWindow)
-{}
-
 MainMenu::~MainMenu()
 {
-
 }
 
 void MainMenu::FileMenu()
@@ -49,9 +43,9 @@ void MainMenu::FileMenu()
 
 		if (ImGui::MenuItem("Quit", "Ctrl Q"))
 		{
-			if (p_MainWindow != nullptr)
+			if (auto* pMainWindow = reinterpret_cast<engine::Window*>(ImGui::GetIO().BackendPlatformUserData))
 			{
-				p_MainWindow->Closed();
+				pMainWindow->Closed();
 			}
 		}
 
@@ -85,10 +79,10 @@ void MainMenu::EditMenu()
 			for (engine::ThemeColor theme = engine::ThemeColor::Black; theme < engine::ThemeColor::Count;
 				theme = static_cast<engine::ThemeColor>(static_cast<int>(theme) + 1))
 			{
-				engine::ImGuiContextInstance* pCurrentImguiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
-				if (ImGui::MenuItem(GetThemeColorName(theme), "", pCurrentImguiContextInstance->GetImGuiThemeColor() == theme))
+				engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
+				if (ImGui::MenuItem(GetThemeColorName(theme), "", pImGuiContextInstance->GetImGuiThemeColor() == theme))
 				{
-					pCurrentImguiContextInstance->SetImGuiThemeColor(theme);
+					pImGuiContextInstance->SetImGuiThemeColor(theme);
 				}
 			}
 
@@ -149,9 +143,9 @@ void MainMenu::Update()
 	if (engine::Input::Get().ContainsModifier(engine::KeyMod::KMOD_CTRL) 
 		&& engine::Input::Get().IsKeyPressed(engine::KeyCode::q))
 	{
-		if (p_MainWindow != nullptr)
+		if (auto* pMainWindow = reinterpret_cast<engine::Window*>(ImGui::GetIO().BackendPlatformUserData))
 		{ 
-			p_MainWindow->Closed();
+			pMainWindow->Closed();
 		}
 	}
 }

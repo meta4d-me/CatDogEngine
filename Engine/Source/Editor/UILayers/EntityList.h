@@ -7,8 +7,6 @@
 namespace editor
 {
 
-class EditorSceneWorld;
-
 class EntityList : public engine::ImGuiBaseLayer
 {
 public:
@@ -20,11 +18,9 @@ public:
 
 	void AddEntity();
 	void DrawEntity(engine::Entity entity);
-	void SetSceneWorld(EditorSceneWorld* pWorld) { m_pEditorSceneWorld = pWorld; }
 
 private:
 	ImGuiTextFilter m_entityFilter;
-	EditorSceneWorld* m_pEditorSceneWorld;
 };
 
 }

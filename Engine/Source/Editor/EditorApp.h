@@ -15,6 +15,7 @@ class ImGuiContextInstance;
 class Window;
 class RenderContext;
 class Renderer;
+class SceneWorld;
 
 }
 
@@ -24,7 +25,6 @@ namespace editor
 {
 
 class EditorImGuiViewport;
-class EditorSceneWorld;
 class SceneView;
 
 class EditorApp final : public engine::IApplication
@@ -52,6 +52,7 @@ public:
 	void InitEditorImGuiContext(engine::Language language);
 	void InitEngineImGuiContext(engine::Language language);
 	void InitImGuiViewports(engine::RenderContext* pRenderContext);
+	void RegisterImGuiUserData(engine::ImGuiContextInstance* pImGuiContext);
 
 	void InitECWorld();
 
@@ -65,9 +66,10 @@ private:
 	std::unique_ptr<EditorImGuiViewport> m_pEditorImGuiViewport;
 
 	// Scene
-	std::unique_ptr<EditorSceneWorld> m_pEditorSceneWorld;
+	std::unique_ptr<engine::SceneWorld> m_pSceneWorld;
 	editor::SceneView* m_pSceneView;
 	engine::Renderer* m_pSceneRenderer;
+	engine::Renderer* m_pDebugRenderer;
 
 	// Rendering
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;

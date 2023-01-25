@@ -47,8 +47,7 @@ public:
 	void FrameAll(const cd::AABB& aabb);
 	cd::Ray EmitRay(float screenX, float screenY, float width, float height);
 
-	void UpdateProjectionMatrix();
-	void UpdateViewMatrix();
+	void Update();
 
 private:
 	float	m_aspect = 1.778f;

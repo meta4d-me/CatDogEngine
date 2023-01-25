@@ -1,9 +1,7 @@
-$input v_bc, v_normal, v_worldPos
+$input v_bc, v_worldPos
 
 #include "../common/common.sh"
 #include "uniforms.sh"
-
-SAMPLER2D(s_texNormal, 3);
 
 vec3 evalSh(vec3 dir) {
 #	define k01 0.2820947918 // sqrt( 1/PI)/2

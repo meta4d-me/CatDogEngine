@@ -1,13 +1,15 @@
 #include "SceneView.h"
 
 #include "Display/Camera.h"
-#include "ECWorld/EditorSceneWorld.h"
 #include "ECWorld/NameComponent.h"
+#include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
+#include "ECWorld/TransformComponent.h"
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
 #include "Math/Ray.hpp"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Renderer.h"
 #include "Rendering/RenderTarget.h"
 #include "Scene/SceneDatabase.h"
 #include "Window/Input.h"
@@ -32,7 +34,7 @@ struct ImGuizmoOperationMode
 // Be careful to control the last ImGuizmoOperationMode object's createUIVerticalLine flag.
 // It depends on what the next UI element is.
 constexpr ImGuizmoOperationMode OperationModes[] = {
-	{ ICON_MDI_CURSOR_DEFAULT, "Select",  ImGuizmo::OPERATION::TRANSLATE_Z, true},
+	//{ ICON_MDI_CURSOR_DEFAULT, "Select",  ImGuizmo::OPERATION::TRANSLATE_Z, true},
 	{ ICON_MDI_ARROW_ALL, "Translate",  ImGuizmo::OPERATION::TRANSLATE, false},
 	{ ICON_MDI_ROTATE_ORBIT, "Rotate",  ImGuizmo::OPERATION::ROTATE, false},
 	{ ICON_MDI_ARROW_EXPAND_ALL, "Scale",  ImGuizmo::OPERATION::SCALE, false},
@@ -61,6 +63,8 @@ void SceneView::Init()
 	constexpr engine::StringCrc sceneRenderTarget("SceneRenderTarget");
 	engine::RenderTarget* pRenderTarget = pCurrentRenderContext->GetRenderTarget(sceneRenderTarget);
 	OnResize.Bind<engine::RenderTarget, &engine::RenderTarget::Resize>(pRenderTarget);
+
+	m_currentOperation = ImGuizmo::OPERATION::TRANSLATE;
 }
 
 void SceneView::UpdateOperationButtons()
@@ -159,6 +163,25 @@ void SceneView::UpdateSwitchIBLButton()
 	}
 }
 
+void SceneView::UpdateSwitchAABBButton()
+{
+	bool isAABBActive = m_pAABBRenderer->IsEnable();
+	if (isAABBActive)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+	}
+
+	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CUBE " AABB")))
+	{
+		m_pAABBRenderer->SetEnabled(!isAABBActive);
+	}
+
+	if (isAABBActive)
+	{
+		ImGui::PopStyleColor();
+	}
+}
+
 void SceneView::UpdateToolMenuButtons()
 {
 	ImGui::Indent();
@@ -166,28 +189,34 @@ void SceneView::UpdateToolMenuButtons()
 
 	UpdateOperationButtons();
 
-	if (ImGui::Button(reinterpret_cast<const char*>("Options " ICON_MDI_CHEVRON_DOWN)))
-	{
-		ImGui::OpenPopup("GizmosPopup");
-	}
+	//if (ImGui::Button(reinterpret_cast<const char*>("Options " ICON_MDI_CHEVRON_DOWN)))
+	//{
+	//	ImGui::OpenPopup("GizmosPopup");
+	//}
+	//
+	//if (ImGui::BeginPopup("GizmosPopup"))
+	//{
+	//	ImGui::Checkbox("Option 1", &m_option1);
+	//	ImGui::Checkbox("Option 2", &m_option2);
+	//
+	//	ImGui::EndPopup();
+	//}
 
-	if (ImGui::BeginPopup("GizmosPopup"))
-	{
-		ImGui::Checkbox("Option 1", &m_option1);
-		ImGui::Checkbox("Option 2", &m_option2);
-
-		ImGui::EndPopup();
-	}
-
-	ImGui::SameLine();
-	ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+	//ImGui::SameLine();
+	//ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
 	ImGui::SameLine();
 
 	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CAMERA " FrameAll")))
 	{
 		ImGuiIO& io = ImGui::GetIO();
-		engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
-		pCurrentRenderContext->GetCamera()->FrameAll(m_pEditorSceneWorld->GetSceneDatabase()->GetAABB());
+		engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
+		engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
+		engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
+		const cd::AABB& sceneAABB = pSceneWorld->GetSceneDatabase()->GetAABB();
+		if (!sceneAABB.Empty())
+		{
+			pRenderContext->GetCamera()->FrameAll(sceneAABB);
+		}
 	}
 
 	ImGui::SameLine();
@@ -198,12 +227,19 @@ void SceneView::UpdateToolMenuButtons()
 
 	UpdateSwitchIBLButton();
 
+	ImGui::SameLine();
+
+	UpdateSwitchAABBButton();
+
 	ImGui::PopStyleColor();
 }
 
 void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 {
-	engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(ImGui::GetIO().BackendRendererUserData);
+	if (ImGuizmo::IsOver())
+	{
+		return;
+	}
 
 	float screenX = static_cast<float>(engine::Input::Get().GetMousePositionX() - GetWindowPosX());
 	float screenY = static_cast<float>(engine::Input::Get().GetMousePositionY() - GetWindowPosY());
@@ -215,26 +251,44 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 		return;
 	}
 
-	cd::Ray pickRay = pRenderContext->GetCamera()->EmitRay(screenX, screenY, screenWidth, screenHeight);
-	printf("Ray origin=(%f, %f, %f), direction=(%f, %f, %f)\n",
-		pickRay.Origin().x(), pickRay.Origin().y(), pickRay.Origin().z(),
-		pickRay.Direction().x(), pickRay.Direction().y(), pickRay.Direction().z());
-
 	// Loop through scene's all static meshes' AABB to test intersections with Ray.
-	auto pMeshStorage = m_pEditorSceneWorld->GetWorld()->GetComponents<engine::StaticMeshComponent>();
-	for (engine::Entity entity : pMeshStorage->GetEntities())
+	engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(ImGui::GetIO().BackendRendererUserData);
+	cd::Ray pickRay = pRenderContext->GetCamera()->EmitRay(screenX, screenY, screenWidth, screenHeight);
+	engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(ImGui::GetIO().UserData);
+	engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
+
+	float minRayTime = FLT_MAX;
+	engine::Entity nearestEntity = engine::INVALID_ENTITY;
+	for (engine::Entity entity : pSceneWorld->GetStaticMeshEntities())
 	{
-		engine::StaticMeshComponent* pMeshComponent = pMeshStorage->GetComponent(entity);
+		engine::TransformComponent* pTransformComponent = pSceneWorld->GetTransformComponent(entity);
+		if (!pTransformComponent)
+		{
+			continue;
+		}
+
+		engine::StaticMeshComponent* pMeshComponent = pSceneWorld->GetStaticMeshComponent(entity);
 		if (!pMeshComponent)
 		{
 			continue;
 		}
 
-		if (pMeshComponent->GetAABB().Intersects(pickRay))
+		cd::AABB collisonMeshAABB = pMeshComponent->GetAABB();
+		collisonMeshAABB = collisonMeshAABB.Transform(pTransformComponent->GetWorldMatrix());
+
+		float rayTime;
+		if (collisonMeshAABB.Intersects(pickRay, rayTime))
 		{
-			printf("Hit : %s\n", m_pEditorSceneWorld->GetWorld()->GetComponents<engine::NameComponent>()->GetComponent(entity)->GetName());
+			if (rayTime < minRayTime)
+			{
+				minRayTime = rayTime;
+				nearestEntity = entity;
+			}
 		}
 	}
+
+	printf("Select entity : %u \n", nearestEntity);
+	pSceneWorld->SetSelectedEntity(nearestEntity);
 }
 
 void SceneView::Update()
@@ -267,8 +321,9 @@ void SceneView::Update()
 		OnResize.Invoke(regionWidth, regionHeight);
 		m_lastContentWidth = regionWidth;
 		m_lastContentHeight = regionHeight;
+		pRenderContext->GetCamera()->SetAspect(static_cast<float>(regionWidth) / static_cast<float>(regionHeight));
 	}
-		
+
 	// Check if mouse hover on the area of SceneView so it can control.
 	ImVec2 cursorPosition = ImGui::GetCursorPos();
 	ImVec2 sceneViewPosition = ImGui::GetWindowPos() + cursorPosition;

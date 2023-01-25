@@ -1,14 +1,15 @@
 #include "AssetBrowser.h"
 
 #include "ECWorld/ECWorldConsumer.h"
-#include "ECWorld/EditorSceneWorld.h"
 #include "ECWorld/MaterialComponent.h"
+#include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/World.h"
 #include "Framework/Processor.h"
 #include "Material/MaterialType.h"
 #include "Producers/GenericProducer/GenericProducer.h"
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
+#include "ImGui/ImGuiContextInstance.h"
 #include "Rendering/WorldRenderer.h"
 #include "Resources/ResourceBuilder.h"
 
@@ -181,9 +182,11 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
+		engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
+		engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
 
 		// Translate different 3D model file formats to memory data.
-		cd::SceneDatabase* pSceneDatabase = m_pEditorSceneWorld->GetSceneDatabase();
+		cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
 		cdtools::GenericProducer genericProducer(pFilePath);
 		genericProducer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount(), pSceneDatabase->GetMeshCount(),
 			pSceneDatabase->GetMaterialCount(), pSceneDatabase->GetTextureCount(), pSceneDatabase->GetLightCount());
@@ -194,7 +197,7 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		genericProducer.ActivateFlattenHierarchyService();
 
 		engine::MaterialType pbrMaterialType = engine::MaterialType::GetPBRMaterialType();
-		ECWorldConsumer ecConsumer(m_pEditorSceneWorld->GetWorld(), &pbrMaterialType, pCurrentRenderContext);
+		ECWorldConsumer ecConsumer(pSceneWorld->GetWorld(), &pbrMaterialType, pCurrentRenderContext);
 		ecConsumer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount());
 		cdtools::Processor processor(&genericProducer, &ecConsumer, pSceneDatabase);
 		processor.Run();
@@ -205,7 +208,7 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		std::string inputFileName = inputFilePath.stem().generic_string();
 		std::string outputFilePath = CDENGINE_RESOURCES_ROOT_PATH;
 		outputFilePath += "Textures/skybox/" + inputFileName;
-		ResourceBuilder::Get().AddCubeMapBuildTask(pFilePath, inputFileName.c_str());
+		ResourceBuilder::Get().AddCubeMapBuildTask(pFilePath, outputFilePath.c_str());
 		ResourceBuilder::Get().Update();
 	}
 	else if (ImportAssetType::Shader == m_importingAssetType)

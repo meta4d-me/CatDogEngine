@@ -32,8 +32,6 @@ enum class ImportAssetType
 	Unknown,
 };
 
-class EditorSceneWorld;
-
 class AssetBrowser : public engine::ImGuiBaseLayer
 {
 public:
@@ -44,7 +42,6 @@ public:
 	virtual void Update() override;
 
 	void ImportAssetFile(const char* pFilePath);
-	void SetSceneWorld(EditorSceneWorld* pWorld) { m_pEditorSceneWorld = pWorld; }
 	void SetSceneRenderer(engine::Renderer* pRenderer) { m_pSceneRenderer = pRenderer; }
 
 private:
@@ -54,9 +51,6 @@ private:
 private:
 	ImGui::FileBrowser* m_pImportFileBrowser = nullptr;
 	engine::Renderer* m_pSceneRenderer = nullptr;
-
-	EditorSceneWorld* m_pEditorSceneWorld = nullptr;
-
 	ImportAssetType m_importingAssetType = ImportAssetType::Unknown;
 };
 
