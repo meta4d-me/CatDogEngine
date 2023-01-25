@@ -70,6 +70,8 @@ private:
 	editor::SceneView* m_pSceneView;
 	engine::Renderer* m_pSceneRenderer;
 	engine::Renderer* m_pDebugRenderer;
+	engine::Renderer* m_pPBRSkyRenderer;
+	engine::Renderer* m_pIBLSkyRenderer;
 
 	// Rendering
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;

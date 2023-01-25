@@ -31,16 +31,15 @@ struct ImGuizmoOperationMode
 	bool createUIVerticalLine;
 };
 
+constexpr ImGuizmo::OPERATION SelectOperation = static_cast<ImGuizmo::OPERATION>(0);
+
 // Be careful to control the last ImGuizmoOperationMode object's createUIVerticalLine flag.
 // It depends on what the next UI element is.
 constexpr ImGuizmoOperationMode OperationModes[] = {
-	//{ ICON_MDI_CURSOR_DEFAULT, "Select",  ImGuizmo::OPERATION::TRANSLATE_Z, true},
+	{ ICON_MDI_CURSOR_DEFAULT, "Select",  SelectOperation, true},
 	{ ICON_MDI_ARROW_ALL, "Translate",  ImGuizmo::OPERATION::TRANSLATE, false},
 	{ ICON_MDI_ROTATE_ORBIT, "Rotate",  ImGuizmo::OPERATION::ROTATE, false},
 	{ ICON_MDI_ARROW_EXPAND_ALL, "Scale",  ImGuizmo::OPERATION::SCALE, false},
-
-	// Universal mode is a combination of Translate/Rotate/Scale.
-	// You can do these three operations together.
 	{ ICON_MDI_CROP_ROTATE, "Universal",  ImGuizmo::OPERATION::UNIVERSAL, true},
 };
 
@@ -64,7 +63,7 @@ void SceneView::Init()
 	engine::RenderTarget* pRenderTarget = pCurrentRenderContext->GetRenderTarget(sceneRenderTarget);
 	OnResize.Bind<engine::RenderTarget, &engine::RenderTarget::Resize>(pRenderTarget);
 
-	m_currentOperation = ImGuizmo::OPERATION::TRANSLATE;
+	m_currentOperation = SelectOperation;
 }
 
 void SceneView::UpdateOperationButtons()
@@ -155,6 +154,17 @@ void SceneView::UpdateSwitchIBLButton()
 	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CUBE " IBL")))
 	{
 		m_isIBLActive = !m_isIBLActive;
+		
+		if (m_isIBLActive)
+		{
+			m_pIBLSkyRenderer->SetEnabled(true);
+			m_pPBRSkyRenderer->SetEnabled(false);
+		}
+		else
+		{
+			m_pIBLSkyRenderer->SetEnabled(false);
+			m_pPBRSkyRenderer->SetEnabled(true);
+		}
 	}
 
 	if (isIBLActive)
@@ -236,7 +246,7 @@ void SceneView::UpdateToolMenuButtons()
 
 void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 {
-	if (ImGuizmo::IsOver())
+	if (m_currentOperation != SelectOperation)
 	{
 		return;
 	}

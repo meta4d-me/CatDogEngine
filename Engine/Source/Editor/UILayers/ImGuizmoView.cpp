@@ -68,23 +68,19 @@ void ImGuizmoView::Update()
 
 	if (ImGuizmo::IsUsing())
 	{
-		if (ImGuizmo::OPERATION::SCALE == operation)
-		{
-			pTransformComponent->GetTransform().SetScale(worldMatrix.GetScale());
-		}
-		else if (ImGuizmo::OPERATION::TRANSLATE == operation)
+		if (ImGuizmo::OPERATION::TRANSLATE & operation)
 		{
 			pTransformComponent->GetTransform().SetTranslation(worldMatrix.GetTranslation());
 		}
-		else if (ImGuizmo::OPERATION::ROTATE == operation)
+
+		if (ImGuizmo::OPERATION::ROTATE & operation)
 		{
 			pTransformComponent->GetTransform().SetRotation(cd::Quaternion(worldMatrix.GetRotation()));
 		}
-		else if (ImGuizmo::OPERATION::UNIVERSAL == operation)
+
+		if (ImGuizmo::OPERATION::SCALE & operation)
 		{
 			pTransformComponent->GetTransform().SetScale(worldMatrix.GetScale());
-			pTransformComponent->GetTransform().SetTranslation(worldMatrix.GetTranslation());
-			pTransformComponent->GetTransform().SetRotation(cd::Quaternion(worldMatrix.GetRotation()));
 		}
 	}
 }

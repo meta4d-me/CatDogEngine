@@ -33,6 +33,8 @@ public:
 
 	engine::MulticastDelegate<void(uint16_t, uint16_t)> OnResize;
 	void SetAABBRenderer(engine::Renderer* pRenderer) { m_pAABBRenderer = pRenderer; }
+	void SetPBRSkyRenderer(engine::Renderer* pRenderer) { m_pPBRSkyRenderer = pRenderer; }
+	void SetIBLSkyRenderer(engine::Renderer* pRenderer) { m_pIBLSkyRenderer = pRenderer; }
 
 	void PickSceneMesh(float regionWidth, float regionHeight);
 
@@ -57,6 +59,8 @@ private:
 	bool m_isIBLActive = false;
 
 	engine::Renderer* m_pAABBRenderer = nullptr;
+	engine::Renderer* m_pPBRSkyRenderer = nullptr;
+	engine::Renderer* m_pIBLSkyRenderer = nullptr;
 	engine::RenderTarget* m_pRenderTarget = nullptr;
 	bool m_isMouseDownFirstTime = true;
 

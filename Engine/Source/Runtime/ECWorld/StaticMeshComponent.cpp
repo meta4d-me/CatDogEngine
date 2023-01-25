@@ -46,11 +46,12 @@ void StaticMeshComponent::BuildDebug()
 
 	cd::VertexFormat vertexFormat;
 	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
-	// Hack : use normal as barycentric coordinate.
+
+	// Hack : use bitangents as barycentric coordinate...
 	// TODO : Vertex attribute type can have userdata storage and map to slot enum.
 	// It requires duplicated vertices so only used for debug/editor usage.
 	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Bitangent, cd::AttributeValueType::Float, 3);
-	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::GenerateNonUnique(cd::Box(meshAABB.Min(), meshAABB.Max()), vertexFormat);
+	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Box(meshAABB.Min(), meshAABB.Max()), vertexFormat);
 	if (!optMesh.has_value())
 	{
 		return;
