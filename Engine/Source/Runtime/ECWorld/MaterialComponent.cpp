@@ -36,13 +36,27 @@ std::optional<MaterialComponent::TextureInfo> MaterialComponent::GetTextureInfo(
 	return itTextureInfo->second;
 }
 
+void MaterialComponent::SetUberShaderOption(StringCrc uberOption)
+{
+	m_uberShaderOption = uberOption;
+}
+
+StringCrc MaterialComponent::GetUberShaderOption() const
+{
+	return m_uberShaderOption;
+}
+
+uint16_t MaterialComponent::GetShadingProgram() const
+{
+	return m_pMaterialType->GetShaderSchema().GetCompiledProgram(m_uberShaderOption);
+}
+
 void MaterialComponent::Reset()
 {
 	m_pMaterialData = nullptr;
 	m_pMaterialType = nullptr;
 	m_textureTypeToBlob.clear();
-	m_shadingProgram = UINT16_MAX;
-
+	m_uberShaderOption = ShaderSchema::DefaultUberOption;
 	m_textureResources.clear();
 }
 

@@ -34,7 +34,7 @@ void ResourceBuilder::AddTask(Process process)
 	m_buildTasks.push(cd::MoveTemp(process));
 }
 
-void ResourceBuilder::AddShaderBuildTask(const char* pInputFilePath, const char* pOutputFilePath, ShaderType shaderType)
+void ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const std::vector<const char*>* pUberOptions)
 {
 	if (!IsIOFilePathsValid(pInputFilePath, pOutputFilePath))
 	{
@@ -75,6 +75,15 @@ void ResourceBuilder::AddShaderBuildTask(const char* pInputFilePath, const char*
 		commandArguments.push_back("vs_5_0");
 	}
 
+	if (pUberOptions && pUberOptions->size() > 0)
+	{
+		commandArguments.push_back("--define");
+		for (const char* pUberOption : *pUberOptions)
+		{
+			commandArguments.push_back(pUberOption);
+		}
+	}
+
 	process.SetCommandArguments(cd::MoveTemp(commandArguments));
 
 	process.SetWaitUntilFinished(true);
@@ -101,7 +110,7 @@ void ResourceBuilder::AddCubeMapBuildTask(const char* pInputFilePath, const char
 	AddTask(cd::MoveTemp(process));
 }
 
-void ResourceBuilder::AddTextureBuildTask(const char* pInputFilePath, const char* pOutputFilePath, cd::MaterialTextureType textureType)
+void ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath)
 {
 	if (!IsIOFilePathsValid(pInputFilePath, pOutputFilePath))
 	{

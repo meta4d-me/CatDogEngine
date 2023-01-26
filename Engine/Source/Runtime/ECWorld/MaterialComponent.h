@@ -53,8 +53,9 @@ public:
 	void SetMaterialType(const engine::MaterialType* pMaterialType) { m_pMaterialType = pMaterialType; }
 	void AddTextureBlob(cd::MaterialTextureType textureType, TextureBlob textureBlob) { m_textureTypeToBlob[textureType] = cd::MoveTemp(textureBlob); }
 
-	void SetShadingProgram(uint16_t shadingProgram) { m_shadingProgram = shadingProgram; }
-	uint16_t GetShadingProgram() const { return m_shadingProgram; }
+	void SetUberShaderOption(StringCrc uberOption);
+	StringCrc GetUberShaderOption() const;
+	uint16_t GetShadingProgram() const;
 
 	std::optional<TextureInfo> GetTextureInfo(cd::MaterialTextureType textureType) const;
 	const std::map<cd::MaterialTextureType, TextureInfo>& GetTextureResources() const { return m_textureResources; }
@@ -67,7 +68,7 @@ private:
 	const cd::Material* m_pMaterialData = nullptr;
 	const engine::MaterialType* m_pMaterialType = nullptr;
 	std::map<cd::MaterialTextureType, TextureBlob> m_textureTypeToBlob;
-	uint16_t m_shadingProgram = INT16_MAX;
+	StringCrc m_uberShaderOption;
 
 	// Output
 	std::map<cd::MaterialTextureType, TextureInfo> m_textureResources;

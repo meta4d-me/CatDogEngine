@@ -88,6 +88,7 @@ project("Engine")
 		table.insert(platformDefines, "ENGINE_BUILD_SHARED")
 	end
 
+	local engineBuiltInShaderPath = RootPath.."/Engine/BuiltInShaders/shaders/"
 	local editorResourcesPath = RootPath.."/Engine/EditorResources/"
 	local projectResourcesPath = RootPath.."/Projects/PBRViewer/Resources/"
 	defines {
@@ -97,6 +98,7 @@ project("Engine")
 		"IMGUI_ENABLE_FREETYPE",
 		GetPlatformMacroName(),
 		table.unpack(platformDefines),
+		"CDENGINE_BUILTIN_SHADER_PATH=\""..engineBuiltInShaderPath.."\"",
 		"CDENGINE_RESOURCES_ROOT_PATH=\""..projectResourcesPath.."\"",
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..editorResourcesPath.."\"",
 	}

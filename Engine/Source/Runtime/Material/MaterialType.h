@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/StringCrc.h"
+#include "Material/ShaderSchema.h"
 #include "Scene/VertexFormat.h"
 #include "Scene/MaterialTextureType.h"
 
@@ -28,8 +29,8 @@ public:
 	~MaterialType() = default;
 
 	const char* GetMaterialName() const { return m_materialName.c_str(); }
-	const char* GetVertexShaderName() const { return m_vertexShaderName.c_str(); }
-	const char* GetFragmentShaderName() const { return m_fragmentShaderName.c_str(); }
+	ShaderSchema& GetShaderSchema() { return m_shaderSchema; }
+	const ShaderSchema& GetShaderSchema() const { return m_shaderSchema; }
 
 	void SetRequiredVertexFormat(cd::VertexFormat vertexFormat) { m_requiredVertexFormat = cd::MoveTemp(vertexFormat); }
 	const cd::VertexFormat& GetRequiredVertexFormat() const { return m_requiredVertexFormat; }
@@ -44,8 +45,7 @@ public:
 
 private:
 	std::string m_materialName;
-	std::string m_vertexShaderName;
-	std::string m_fragmentShaderName;
+	ShaderSchema m_shaderSchema;
 
 	cd::VertexFormat m_requiredVertexFormat;
 	std::set<cd::MaterialTextureType> m_optionalTextureTypes;

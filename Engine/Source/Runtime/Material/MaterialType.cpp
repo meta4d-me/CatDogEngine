@@ -2,15 +2,32 @@
 
 #include "Math/Vector.hpp"
 
+namespace
+{
+
+std::string GetShaderPath(const char* pShaderName)
+{
+	std::string shaderPath = CDENGINE_BUILTIN_SHADER_PATH;
+	shaderPath += pShaderName;
+	shaderPath += ".sc";
+
+	return shaderPath;
+}
+
+}
+
 namespace engine
 {
 
 MaterialType MaterialType::GetPBRMaterialType()
 {
+	ShaderSchema shaderSchema(GetShaderPath("vs_PBR"), GetShaderPath("fs_PBR"));
+	shaderSchema.RegisterUberOption(ShaderSchema::DefaultUberOptionName);
+	shaderSchema.RegisterUberOption("USE_PBR_IBL");
+
 	MaterialType pbr;
-	pbr.m_materialName = "CDStandard";
-	pbr.m_vertexShaderName = "vs_PBR.bin";
-	pbr.m_fragmentShaderName = "fs_PBR.bin";
+	pbr.m_materialName = "CD_PBR";
+	pbr.m_shaderSchema = cd::MoveTemp(shaderSchema);
 
 	cd::VertexFormat pbrVertexFormat;
 	pbrVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
@@ -24,9 +41,10 @@ MaterialType MaterialType::GetPBRMaterialType()
 	pbr.AddRequiredTextureType(cd::MaterialTextureType::Normal, 1);
 
 	pbr.AddOptionalTextureType(cd::MaterialTextureType::AO, 2);
-	//pbr.AddOptionalTextureType(cd::MaterialTextureType::Emissive, );
 	pbr.AddOptionalTextureType(cd::MaterialTextureType::Metalness, 2);
 	pbr.AddOptionalTextureType(cd::MaterialTextureType::Roughness, 2);
+
+	//pbr.AddOptionalTextureType(cd::MaterialTextureType::Emissive, );
 
 	return pbr;
 }

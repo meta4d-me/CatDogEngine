@@ -5,6 +5,7 @@
 #include "ECWorld/TransformComponent.h"
 #include "ECWorld/World.h"
 #include "Display/Camera.h"
+#include "Material/ShaderSchema.h"
 #include "RenderContext.h"
 #include "Scene/Texture.h"
 
@@ -15,13 +16,14 @@ namespace engine
 
 void WorldRenderer::Init()
 {
-	//m_pRenderContext->CreateUniform("s_texCube", bgfx::UniformType::Sampler);
-	//m_pRenderContext->CreateUniform("s_texCubeIrr", bgfx::UniformType::Sampler);
 	m_pRenderContext->CreateUniform("s_texLUT", bgfx::UniformType::Sampler);
-	//uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
-	//m_pRenderContext->CreateTexture("skybox/bolonga_lod.dds", samplerFlags);
-	//m_pRenderContext->CreateTexture("skybox/bolonga_irr.dds", samplerFlags);
 	m_pRenderContext->CreateTexture("ibl_brdf_lut.dds");
+
+	m_pRenderContext->CreateUniform("s_texCube", bgfx::UniformType::Sampler);
+	m_pRenderContext->CreateUniform("s_texCubeIrr", bgfx::UniformType::Sampler);
+	uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
+	m_pRenderContext->CreateTexture("skybox/bolonga_lod.dds", samplerFlags);
+	m_pRenderContext->CreateTexture("skybox/bolonga_irr.dds", samplerFlags);
 
 	bgfx::setViewName(GetViewID(), "WorldRenderer");
 }
@@ -73,17 +75,21 @@ void WorldRenderer::Render(float deltaTime)
 		constexpr StringCrc lutTexture("ibl_brdf_lut.dds");
 		bgfx::setTexture(3, m_pRenderContext->GetUniform(lutSampler), m_pRenderContext->GetTexture(lutTexture));
 
-		// TODO : Enable/disable IBL in the editor side.
-		//constexpr StringCrc cubeSampler("s_texCube");
-		//constexpr StringCrc cubeTexture("skybox/bolonga_lod.dds");
-		//bgfx::setTexture(4, m_pRenderContext->GetUniform(cubeSampler), m_pRenderContext->GetTexture(cubeTexture));
-		//
-		//constexpr StringCrc cubeIrrSampler("s_texCubeIrr");
-		//constexpr StringCrc cubeIrrTexture("skybox/bolonga_irr.dds");
-		//bgfx::setTexture(5, m_pRenderContext->GetUniform(cubeIrrSampler), m_pRenderContext->GetTexture(cubeIrrTexture));
+		constexpr StringCrc useIBLCrc("USE_PBR_IBL");
+		if (useIBLCrc == pMaterialComponent->GetUberShaderOption())
+		{
+			constexpr StringCrc cubeSampler("s_texCube");
+			constexpr StringCrc cubeTexture("skybox/bolonga_lod.dds");
+			bgfx::setTexture(4, m_pRenderContext->GetUniform(cubeSampler), m_pRenderContext->GetTexture(cubeTexture));
+
+			constexpr StringCrc cubeIrrSampler("s_texCubeIrr");
+			constexpr StringCrc cubeIrrTexture("skybox/bolonga_irr.dds");
+			bgfx::setTexture(5, m_pRenderContext->GetUniform(cubeIrrSampler), m_pRenderContext->GetTexture(cubeIrrTexture));
+		}
 
 		uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA;
 		state |= BGFX_STATE_DEPTH_TEST_LESS;
+
 		bgfx::setState(state);
 		bgfx::submit(GetViewID(), bgfx::ProgramHandle(pMaterialComponent->GetShadingProgram()));
 	}

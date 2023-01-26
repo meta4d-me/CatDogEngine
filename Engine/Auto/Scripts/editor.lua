@@ -27,10 +27,12 @@ project("Editor")
 		},
 	}
 
+	local engineBuiltInShaderPath = RootPath.."/Engine/BuiltInShaders/shaders/"
 	local editorResourcesPath = RootPath.."/Engine/Source/Editor/Resources/"
 	local projectResourcesPath = RootPath.."/Projects/PBRViewer/Resources/"
 	defines {
 		"BX_CONFIG_DEBUG",
+		"CDENGINE_BUILTIN_SHADER_PATH=\""..engineBuiltInShaderPath.."\"",
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..editorResourcesPath.."\"",
 		"CDENGINE_TOOL_PATH=\""..path.join(EnginePath, "EditorTools", GetPlatformDisplayName()).."\"",
 		"CDENGINE_RESOURCES_ROOT_PATH=\""..projectResourcesPath.."\"",

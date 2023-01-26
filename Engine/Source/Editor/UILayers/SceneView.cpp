@@ -7,6 +7,7 @@
 #include "ECWorld/TransformComponent.h"
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
+#include "Material/ShaderSchema.h"
 #include "Math/Ray.hpp"
 #include "Rendering/RenderContext.h"
 #include "Rendering/Renderer.h"
@@ -155,15 +156,30 @@ void SceneView::UpdateSwitchIBLButton()
 	{
 		m_isIBLActive = !m_isIBLActive;
 		
+		engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(ImGui::GetIO().UserData);
+		engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
 		if (m_isIBLActive)
 		{
 			m_pIBLSkyRenderer->SetEnabled(true);
 			m_pPBRSkyRenderer->SetEnabled(false);
+
+			constexpr engine::StringCrc iblPBRCrc("USE_PBR_IBL");
+			for (engine::Entity entity : pSceneWorld->GetMaterialEntities())
+			{
+				engine::MaterialComponent* pMaterialComponent = pSceneWorld->GetMaterialComponent(entity);
+				pMaterialComponent->SetUberShaderOption(iblPBRCrc);
+			}
 		}
 		else
 		{
 			m_pIBLSkyRenderer->SetEnabled(false);
 			m_pPBRSkyRenderer->SetEnabled(true);
+
+			for (engine::Entity entity : pSceneWorld->GetMaterialEntities())
+			{
+				engine::MaterialComponent* pMaterialComponent = pSceneWorld->GetMaterialComponent(entity);
+				pMaterialComponent->SetUberShaderOption(engine::ShaderSchema::DefaultUberOption);
+			}
 		}
 	}
 

@@ -37,8 +37,8 @@ public:
 
 	void AddTask(Process process);
 	void AddCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
-	void AddShaderBuildTask(const char* pInputFilePath, const char* pOutputFilePath, ShaderType shaderType);
-	void AddTextureBuildTask(const char* pInputFilePath, const char* pOutputFilePath, cd::MaterialTextureType textureType);
+	void AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const std::vector<const char*>* pUberOptions = nullptr);
+	void AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath);
 	void Update();
 
 private:
