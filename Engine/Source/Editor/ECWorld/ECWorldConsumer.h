@@ -52,6 +52,7 @@ public:
 private:
 	void AddNode(engine::Entity entity, const cd::Node& node);
 	void AddMesh(engine::Entity entity, const cd::Mesh& mesh);
+	std::string GetShaderOutputFilePath(const char* pInputFilePath, const char* pAppendFileName = nullptr);
 	std::string GetTextureOutputFilePath(const char* pInputFilePath);
 	void AddMaterial(engine::Entity entity, const cd::Material& material, const cd::SceneDatabase* pSceneDatabase);
 

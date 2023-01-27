@@ -196,7 +196,7 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		genericProducer.ActivateTriangulateService();
 		genericProducer.ActivateFlattenHierarchyService();
 
-		engine::MaterialType pbrMaterialType = engine::MaterialType::GetPBRMaterialType();
+		static engine::MaterialType pbrMaterialType = engine::MaterialType::GetPBRMaterialType();
 		ECWorldConsumer ecConsumer(pSceneWorld->GetWorld(), &pbrMaterialType, pCurrentRenderContext);
 		ecConsumer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount());
 		cdtools::Processor processor(&genericProducer, &ecConsumer, pSceneDatabase);
@@ -236,7 +236,7 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 
 		std::string outputFilePath = CDENGINE_RESOURCES_ROOT_PATH;
 		outputFilePath += "Shaders/" + inputFileName + ".bin";
-		ResourceBuilder::Get().AddShaderBuildTask(pFilePath, outputFilePath.c_str(), shaderType);
+		ResourceBuilder::Get().AddShaderBuildTask(shaderType, pFilePath, outputFilePath.c_str());
 		ResourceBuilder::Get().Update();
 	}
 }

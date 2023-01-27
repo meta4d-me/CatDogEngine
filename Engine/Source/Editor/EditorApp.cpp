@@ -116,6 +116,8 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 
 	auto pSceneView = std::make_unique<SceneView>("SceneView");
 	pSceneView->SetAABBRenderer(m_pDebugRenderer);
+	pSceneView->SetPBRSkyRenderer(m_pPBRSkyRenderer);
+	pSceneView->SetIBLSkyRenderer(m_pIBLSkyRenderer);
 	m_pSceneView = pSceneView.get();
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
@@ -215,8 +217,14 @@ void EditorApp::InitRenderContext()
 	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->CreateRenderTarget(sceneViewRenderTargetName, 1, 1, std::move(attachmentDesc));
 	pSceneRenderTarget->OnResize.Bind<engine::Camera, &engine::Camera::SetAspect>(m_pCamera.get());
 
-	auto pSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
-	AddEngineRenderer(cd::MoveTemp(pSkyRenderer));
+	auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pPBRSkyRenderer = pPBRSkyRenderer.get();
+	AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
+
+	auto pIBLSkyRenderer = std::make_unique<engine::SkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pIBLSkyRenderer->SetDisabled(true);
+	m_pIBLSkyRenderer = pIBLSkyRenderer.get();
+	AddEngineRenderer(cd::MoveTemp(pIBLSkyRenderer));
 
 	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	AddEngineRenderer(cd::MoveTemp(pTerrainRenderer));
