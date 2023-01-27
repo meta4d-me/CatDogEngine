@@ -53,7 +53,6 @@ void WorldRenderer::Render(float deltaTime)
 		// Transform
 		if (TransformComponent* pTransformComponent = pTransformStorage->GetComponent(entity))
 		{
-			pTransformComponent->Build();
 			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
 		}
 

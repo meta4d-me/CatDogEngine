@@ -69,6 +69,7 @@ void ECWorldConsumer::AddNode(engine::Entity entity, const cd::Node& node)
 {
 	engine::TransformComponent& transformComponent = m_pWorld->CreateComponent<engine::TransformComponent>(entity);
 	transformComponent.SetTransform(node.GetTransform());
+	transformComponent.Build();
 
 	engine::HierarchyComponent& hierarchyComponent = m_pWorld->CreateComponent<engine::HierarchyComponent>(entity);
 	m_mapTransformIDToEntities[node.GetID().Data()] = entity;
