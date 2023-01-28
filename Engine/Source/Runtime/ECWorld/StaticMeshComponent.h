@@ -41,7 +41,7 @@ public:
 	void SetMeshData(const cd::Mesh* pMeshData) { m_pMeshData = pMeshData; }
 	void SetRequiredVertexFormat(const cd::VertexFormat* pVertexFormat) { m_pRequiredVertexFormat = pVertexFormat; }
 
-	const cd::AABB& GetAABB() const;
+	const cd::AABB& GetAABB() const { return m_aabb; }
 	uint16_t GetVertexBuffer() const { return m_vertexBufferHandle; }
 	uint16_t GetIndexBuffer() const { return m_indexBufferHandle; }
 	uint16_t GetAABBVertexBuffer() const { return m_aabbVBH; }
@@ -65,6 +65,7 @@ private:
 	uint16_t m_indexBufferHandle = UINT16_MAX;
 
 	// For debug use
+	cd::AABB m_aabb;
 	std::vector<std::byte> m_aabbVertexBuffer;
 	std::vector<std::byte> m_aabbIndexBuffer;
 	uint16_t m_aabbVBH = UINT16_MAX;

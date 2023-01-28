@@ -12,11 +12,6 @@
 namespace engine
 {
 
-const cd::AABB& StaticMeshComponent::GetAABB() const
-{
-	return m_pMeshData->GetAABB();
-}
-
 void StaticMeshComponent::Reset()
 {
 	m_pMeshData = nullptr;
@@ -29,6 +24,7 @@ void StaticMeshComponent::Reset()
 	m_indexBufferHandle = UINT16_MAX;
 
 	// Debug
+	m_aabb.Clear();
 	m_aabbVertexBuffer.clear();
 	m_aabbVBH = UINT16_MAX;
 
@@ -38,8 +34,8 @@ void StaticMeshComponent::Reset()
 
 void StaticMeshComponent::BuildDebug()
 {
-	const cd::AABB& meshAABB = m_pMeshData->GetAABB();
-	if (meshAABB.Empty())
+	m_aabb = m_pMeshData->GetAABB();
+	if (m_aabb.Empty())
 	{
 		return;
 	}
@@ -51,7 +47,7 @@ void StaticMeshComponent::BuildDebug()
 	// TODO : Vertex attribute type can have userdata storage and map to slot enum.
 	// It requires duplicated vertices so only used for debug/editor usage.
 	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Bitangent, cd::AttributeValueType::Float, 3);
-	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Box(meshAABB.Min(), meshAABB.Max()), vertexFormat);
+	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Box(m_aabb.Min(), m_aabb.Max()), vertexFormat);
 	if (!optMesh.has_value())
 	{
 		return;

@@ -45,6 +45,8 @@ void WorldRenderer::Render(float deltaTime)
 	{
 		MaterialComponent* pMaterialComponent = pMaterialStorage->GetComponent(entity);
 		StaticMeshComponent* pMeshComponent = pMeshStorage->GetComponent(entity);
+
+		// TODO : no material shading. Or it is in a loading resource status.
 		if (!pMeshComponent || !pMaterialComponent)
 		{
 			continue;

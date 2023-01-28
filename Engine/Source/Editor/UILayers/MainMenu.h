@@ -15,6 +15,7 @@ public:
 	void FileMenu();
 	void EditMenu();
 	void WindowMenu();
+	void BuildMenu();
 	void AboutMenu();
 };
 
