@@ -81,17 +81,17 @@ private:
 
 private:
 	// Mouse device
-	int32_t m_mousePositionX;
-	int32_t m_mousePositionY;
-	int32_t m_mousePositionOffsetX;
-	int32_t m_mousePositionOffsetY;
-	float m_mouseScrollOffsetY;
-	bool m_mouseLBPressed;
-	bool m_mouseRBPressed;
-	bool m_mouseMBPressed;
+	int32_t m_mousePositionX = 0;
+	int32_t m_mousePositionY = 0;
+	int32_t m_mousePositionOffsetX = 0;
+	int32_t m_mousePositionOffsetY = 0;
+	float m_mouseScrollOffsetY = 0.0f;
+	bool m_mouseLBPressed = false;
+	bool m_mouseRBPressed = false;
+	bool m_mouseMBPressed = false;
 
 	// Keyboard device
-	bool m_keyPressed[MaxKeyCode];
+	bool m_keyPressed[MaxKeyCode]{};
 	KeyMod m_keyModifiers = KeyMod::KMOD_NONE;
 };
 
