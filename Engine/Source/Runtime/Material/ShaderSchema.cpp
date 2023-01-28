@@ -42,36 +42,32 @@ uint16_t ShaderSchema::GetCompiledProgram(StringCrc uberOption) const
 	return programHandle;
 }
 
-const std::vector<std::string>& ShaderSchema::GetUberOptions() const
-{
-	return m_uberOptions;
-}
-
-const std::map<uint32_t, uint16_t>& ShaderSchema::GetUberPrograms() const
-{
-	return m_compiledProgramHandles;
-}
-
 void ShaderSchema::AddUberOptionVSBlob(ShaderBlob shaderBlob)
 {
-	m_vsBlob = cd::MoveTemp(shaderBlob);
+	if (m_pVSBlob)
+	{
+		// TODO : process vertex uber shaders.
+		return;
+	}
+
+	m_pVSBlob = std::make_unique<ShaderBlob>(cd::MoveTemp(shaderBlob));
 }
 
 void ShaderSchema::AddUberOptionFSBlob(StringCrc uberOption, ShaderBlob shaderBlob)
 {
-	m_uberOptionToFSBlobs[uberOption.Value()] = cd::MoveTemp(shaderBlob);
-}
+	if (m_uberOptionToFSBlobs.contains(uberOption.Value()))
+	{
+		return;
+	}
 
-const ShaderSchema::ShaderBlob& ShaderSchema::GetVSBlob() const
-{
-	return m_vsBlob;
+	m_uberOptionToFSBlobs[uberOption.Value()] = std::make_unique<ShaderBlob>(cd::MoveTemp(shaderBlob));
 }
 
 const ShaderSchema::ShaderBlob& ShaderSchema::GetFSBlob(StringCrc uberOption) const
 {
 	auto itBlob = m_uberOptionToFSBlobs.find(uberOption.Value());
 	assert(itBlob != m_uberOptionToFSBlobs.end());
-	return itBlob->second;
+	return *(itBlob->second.get());
 }
 
 }

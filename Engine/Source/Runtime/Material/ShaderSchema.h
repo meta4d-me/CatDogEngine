@@ -3,6 +3,7 @@
 #include "Core/StringCrc.h"
 
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -33,13 +34,13 @@ public:
 	bool IsUberOptionValid(StringCrc uberOption) const;
 	void SetCompiledProgram(StringCrc uberOption, uint16_t programHandle);
 	uint16_t GetCompiledProgram(StringCrc uberOption) const;
-	const std::vector<std::string>& GetUberOptions() const;
-	const std::map<uint32_t, uint16_t>& GetUberPrograms() const;
+	const std::vector<std::string>& GetUberOptions() const { return m_uberOptions; }
+	const std::map<uint32_t, uint16_t>& GetUberPrograms() const { return m_compiledProgramHandles; }
 
 	// TODO : More generic.
 	void AddUberOptionVSBlob(ShaderBlob shaderBlob);
 	void AddUberOptionFSBlob(StringCrc uberOption, ShaderBlob shaderBlob);
-	const ShaderBlob& GetVSBlob() const;
+	const ShaderBlob& GetVSBlob() const { return *m_pVSBlob.get(); }
 	const ShaderBlob& GetFSBlob(StringCrc uberOption) const;
 
 private:
@@ -47,8 +48,8 @@ private:
 	std::string m_fragmentShaderPath;
 	std::vector<std::string> m_uberOptions;
 
-	ShaderBlob m_vsBlob;
-	std::map<uint32_t, ShaderBlob> m_uberOptionToFSBlobs;
+	std::unique_ptr<ShaderBlob> m_pVSBlob;
+	std::map<uint32_t, std::unique_ptr<ShaderBlob>> m_uberOptionToFSBlobs;
 	std::map<uint32_t, uint16_t> m_compiledProgramHandles;
 };
 
