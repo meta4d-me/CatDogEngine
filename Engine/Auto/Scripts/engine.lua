@@ -55,6 +55,7 @@ project("Engine")
 		path.join(ThirdPartySourcePath, "freetype/include"),
 		table.unpack(platformIncludeDirs),
 		path.join(EnginePath, "BuiltInShaders/UniformDefines"),
+		path.join(ThirdPartySourcePath, "spdlog/include"),
 	}
 
 	filter { "configurations:Debug" }
@@ -64,23 +65,25 @@ project("Engine")
 		libdirs {
 			path.join(ThirdPartySourcePath, "sdl/build/Debug"),
 			path.join(ThirdPartySourcePath, "freetype/build/Debug"),
+			path.join(ThirdPartySourcePath, "spdlog/build/Debug"),
 			bgfxBuildBinPath,
 		}
 		links {
 			"sdl2d", "sdl2maind",
 			"bgfxDebug", "bimgDebug", "bxDebug", "bimg_decodeDebug",
-			"freetyped"
+			"freetyped", "spdlogd"
 		}
 	filter { "configurations:Release" }
 		libdirs {
 			path.join(ThirdPartySourcePath, "sdl/build/Release"),
 			path.join(ThirdPartySourcePath, "freetype/build/Release"),
+			path.join(ThirdPartySourcePath, "spdlog/build/Release"),
 			bgfxBuildBinPath,
 		}
 		links {
 			"sdl2", "sdl2main",
 			"bgfxRelease", "bimgRelease", "bxRelease", "bimg_decodeRelease",
-			"freetype"
+			"freetype",  "spdlog"
 		}
 	filter {}
 
