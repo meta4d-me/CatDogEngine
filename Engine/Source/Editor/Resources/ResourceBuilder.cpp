@@ -15,6 +15,7 @@ bool IsIOFilePathsValid(const char* pInputFilePath, const char* pOutputFilePath)
 		return false;
 	}
 
+	// TODO : check if we really need to overwrite old file.
 	if (std::filesystem::exists(pOutputFilePath))
 	{
 		printf("Output file path %s already existed.\n", pOutputFilePath);
@@ -36,10 +37,10 @@ void ResourceBuilder::AddTask(Process process)
 
 void ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const std::vector<const char*>* pUberOptions)
 {
-	if (!IsIOFilePathsValid(pInputFilePath, pOutputFilePath))
-	{
-		return;
-	}
+	//if (!IsIOFilePathsValid(pInputFilePath, pOutputFilePath))
+	//{
+	//	return;
+	//}
 
 	// Document : https://bkaradzic.github.io/bgfx/tools.html#shader-compiler-shaderc
 	std::string cmftExePath = CDENGINE_TOOL_PATH;
@@ -75,12 +76,15 @@ void ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 		commandArguments.push_back("vs_5_0");
 	}
 
-	if (pUberOptions && pUberOptions->size() > 0)
+	if (pUberOptions && !pUberOptions->empty())
 	{
-		commandArguments.push_back("--define");
-		for (const char* pUberOption : *pUberOptions)
+		if (0 != strcmp("DEFAULT", pUberOptions->at(0)))
 		{
-			commandArguments.push_back(pUberOption);
+			commandArguments.push_back("--define");
+			for (const char* pUberOption : *pUberOptions)
+			{
+				commandArguments.push_back(pUberOption);
+			}
 		}
 	}
 

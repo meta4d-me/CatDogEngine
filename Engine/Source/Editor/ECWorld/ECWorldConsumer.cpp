@@ -102,8 +102,11 @@ std::string ECWorldConsumer::GetShaderOutputFilePath(const char* pInputFilePath,
 	outputShaderPath += "Shaders/" + inputShaderFileName;
 	if (pAppendFileName)
 	{
-		outputShaderPath += "_";
-		outputShaderPath += pAppendFileName;
+		if (engine::ShaderSchema::DefaultUberOption != engine::StringCrc(pAppendFileName))
+		{
+			outputShaderPath += "_";
+			outputShaderPath += pAppendFileName;
+		}
 	}
 	outputShaderPath += ".bin";
 	return outputShaderPath;
@@ -120,10 +123,6 @@ std::string ECWorldConsumer::GetTextureOutputFilePath(const char* pInputFilePath
 
 void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& material, const cd::SceneDatabase* pSceneDatabase)
 {
-	engine::MaterialComponent& materialComponent = m_pWorld->CreateComponent<engine::MaterialComponent>(entity);
-	materialComponent.SetMaterialData(&material);
-	materialComponent.SetMaterialType(m_pStandardMaterialType);
-
 	std::set<uint8_t> compiledTextureSlot;
 	std::map<std::string, const cd::Texture*> outputTexturePathToData;
 	std::map<std::string, engine::StringCrc> outputFSPathToUberOption;
@@ -165,7 +164,8 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& mat
 	std::string outputVSFilePath = GetShaderOutputFilePath(shaderSchema.GetVertexShaderPath());
 	ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Vertex,
 		shaderSchema.GetVertexShaderPath(), outputVSFilePath.c_str());
-
+	
+	engine::StringCrc currentUberOption = engine::ShaderSchema::DefaultUberOption;
 	if (missRequiredTextures || unknownTextureSlot)
 	{
 		// Treate missing textures case as a special uber option in the CPU side.
@@ -186,7 +186,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& mat
 			outputFSPathToUberOption[cd::MoveTemp(outputFSFilePath)] = uberOptionCrc;
 		}
 
-		materialComponent.SetUberShaderOption(missingTextureOption);
+		currentUberOption = missingTextureOption;
 	}
 	else
 	{
@@ -233,14 +233,18 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& mat
 			engine::StringCrc uberOptionCrc(uberOption);
 			outputFSPathToUberOption[cd::MoveTemp(outputFSFilePath)] = uberOptionCrc;
 		}
-
-		// At first, it will use default uber shader option.
-		materialComponent.SetUberShaderOption(engine::ShaderSchema::DefaultUberOption);
 	}
 
 	// TODO : ResourceBuilder will move to EditorApp::Update in the future.
 	// Now let's wait all resource build tasks done here.
 	ResourceBuilder::Get().Update();
+
+	// TODO : create material component before ResourceBuilder done.
+	// Assign a special color for loading resource status.
+	engine::MaterialComponent& materialComponent = m_pWorld->CreateComponent<engine::MaterialComponent>(entity);
+	materialComponent.SetMaterialData(&material);
+	materialComponent.SetMaterialType(m_pStandardMaterialType);
+	materialComponent.SetUberShaderOption(currentUberOption);
 
 	for (const auto& [outputTextureFilePath, pTextureData] : outputTexturePathToData)
 	{

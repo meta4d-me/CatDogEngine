@@ -3,11 +3,14 @@
 #include "EditorApp.h"
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/ThemeColor.h"
+#include "Resources/ResourceBuilder.h"
 #include "Window/Window.h"
 #include "Window/Input.h"
 #include "Window/KeyCode.h"
 
 #include <imgui/imgui.h>
+
+#include <filesystem>
 
 namespace editor
 {
@@ -112,6 +115,55 @@ void MainMenu::WindowMenu()
 	}
 }
 
+void MainMenu::BuildMenu()
+{
+	if (ImGui::BeginMenu("Build"))
+	{
+		if (ImGui::MenuItem("Rebuild Shaders"))
+		{
+			for (const auto& entry : std::filesystem::recursive_directory_iterator(CDENGINE_BUILTIN_SHADER_PATH))
+			{
+				const auto& filePath = entry.path();
+				if (".sc" != filePath.extension())
+				{
+					continue;
+				}
+
+				ShaderType shaderType;
+				std::string fileName = filePath.stem().generic_string();
+				if (fileName.starts_with("vs_") || fileName.starts_with("VS_"))
+				{
+					shaderType = ShaderType::Vertex;
+				}
+				else if (fileName.starts_with("fs_") || fileName.starts_with("FS_"))
+				{
+					shaderType = ShaderType::Fragment;
+				}
+				else if (fileName.starts_with("cs_") || fileName.starts_with("CS_"))
+				{
+					shaderType = ShaderType::Compute;
+				}
+				else
+				{
+					printf("Shader source file's type is unknown by its file name.\n");
+					continue;
+				}
+				
+				// TODO : We don't know their uber options here.
+				// So this feature only generates default shader now.
+				std::string outputShaderPath = CDENGINE_RESOURCES_ROOT_PATH;
+				outputShaderPath += "Shaders/" + filePath.filename().generic_string();
+				ResourceBuilder::Get().AddShaderBuildTask(shaderType,
+					filePath.generic_string().c_str(), outputShaderPath.c_str());
+			}
+
+			ResourceBuilder::Get().Update();
+		}
+
+		ImGui::EndMenu();
+	}
+}
+
 void MainMenu::AboutMenu()
 {
 	if (ImGui::BeginMenu("About"))
@@ -136,6 +188,7 @@ void MainMenu::Update()
 		FileMenu();
 		EditMenu();
 		WindowMenu();
+		BuildMenu();
 		AboutMenu();
 		ImGui::EndMainMenuBar();
 	}
