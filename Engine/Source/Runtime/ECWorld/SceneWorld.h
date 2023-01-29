@@ -64,6 +64,15 @@ public:
 	const std::vector<engine::Entity>& GetStaticMeshEntities() const { return m_pStaticMeshStorage->GetEntities(); }
 	const std::vector<engine::Entity>& GetTransformEntities() const { return m_pTransformStorage->GetEntities(); }
 
+	void DeleteCameraComponent(engine::Entity entity) { m_pCameraStorage->RemoveComponent(entity); }
+	void DeleteHierarchyComponent(engine::Entity entity) { m_pHierarchyStorage->RemoveComponent(entity); }
+	void DeleteLightComponent(engine::Entity entity) { m_pLightStorage->RemoveComponent(entity); }
+	void DeleteMaterialComponent(engine::Entity entity) { m_pMaterialStorage->RemoveComponent(entity); }
+	void DeleteNameComponent(engine::Entity entity) { m_pNameStorage->RemoveComponent(entity); }
+	void DeleteSkyComponent(engine::Entity entity) { m_pSkyStorage->RemoveComponent(entity); }
+	void DeleteStaticMeshComponent(engine::Entity entity) { m_pStaticMeshStorage->RemoveComponent(entity); }
+	void DeleteTransformComponent(engine::Entity entity) { m_pTransformStorage->RemoveComponent(entity); }
+
 private:
 	std::unique_ptr<cd::SceneDatabase> m_pSceneDatabase;
 	std::unique_ptr<engine::World> m_pWorld;
