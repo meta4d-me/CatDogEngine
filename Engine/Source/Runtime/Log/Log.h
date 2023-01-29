@@ -2,6 +2,9 @@
 
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/ostr.h"
+#include "Math/Vector.hpp"
+
+#include <format>
 
 namespace engine
 {
@@ -12,14 +15,29 @@ public:
 	static void Init();
 
 	static std::shared_ptr<spdlog::logger> &GetEngineLogger() { return s_engineLogger; }
-	static std::shared_ptr<spdlog::logger> &GetEditorLogger() { return s_editorLogger; }
+	static std::shared_ptr<spdlog::logger> &GetApplicationLogger() { return s_applicationLogger; }
 
 private:
 	static std::shared_ptr<spdlog::logger> s_engineLogger;
-	static std::shared_ptr<spdlog::logger> s_editorLogger;
+	static std::shared_ptr<spdlog::logger> s_applicationLogger;
 };
 
 } // namespace engine
+
+inline std::ostream &operator<<(std::ostream &os, const cd::Vec2f &vec)
+{
+	return os << std::format("({0}, {1})", vec.x(), vec.y());
+}
+
+inline std::ostream &operator<<(std::ostream &os, const cd::Vec3f &vec)
+{
+	return os << std::format("({0}, {1}, {2})", vec.x(), vec.y(), vec.z());
+}
+
+inline std::ostream &operator<<(std::ostream &os, const cd::Vec4f &vec)
+{
+	return os << std::format("({0}, {1}, {2}, {3})", vec.x(), vec.y(), vec.z(), vec.w());
+}
 
 #ifndef NDEBUG
 
@@ -30,12 +48,12 @@ private:
 #define CD_ENGINE_ERROR(...) ::engine::Log::GetEngineLogger()->error(__VA_ARGS__)
 #define CD_ENGINE_FATAL(...) ::engine::Log::GetEngineLogger()->critical(__VA_ARGS__)
 
-// Editor log macros.
-#define CD_EDITOR_TRACE(...) ::engine::Log::GetEditorLogger()->trace(__VA_ARGS__)
-#define CD_EDITOR_INFO(...)  ::engine::Log::GetEditorLogger()->info(__VA_ARGS__)
-#define CD_EDITOR_WARN(...)  ::engine::Log::GetEditorLogger()->warn(__VA_ARGS__)
-#define CD_EDITOR_ERROR(...) ::engine::Log::GetEditorLogger()->error(__VA_ARGS__)
-#define CD_EDITOR_FATAL(...) ::engine::Log::GetEditorLogger()->critical(__VA_ARGS__)
+// Application log macros.
+#define CD_TRACE(...) ::engine::Log::GetApplicationLogger()->trace(__VA_ARGS__)
+#define CD_INFO(...)  ::engine::Log::GetApplicationLogger()->info(__VA_ARGS__)
+#define CD_WARN(...)  ::engine::Log::GetApplicationLogger()->warn(__VA_ARGS__)
+#define CD_ERROR(...) ::engine::Log::GetApplicationLogger()->error(__VA_ARGS__)
+#define CD_FATAL(...) ::engine::Log::GetApplicationLogger()->critical(__VA_ARGS__)
 
 #else
 

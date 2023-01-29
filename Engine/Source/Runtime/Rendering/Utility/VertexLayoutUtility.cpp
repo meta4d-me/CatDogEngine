@@ -1,4 +1,5 @@
 #include "Rendering/Utility/VertexLayoutUtility.h"
+#include "Log/Log.h"
 
 #include <cassert>
 #include <string>
@@ -142,7 +143,7 @@ void VertexLayoutUtility::CreateVertexLayout(bgfx::VertexLayout& outVertexLayout
 	{
 		if (debugPrint)
 		{
-			printf("\t\tVA: (%s, %s, %d)\n",
+			CD_ENGINE_TRACE("\t\tVA: ({0}, {1}, {2})",
 				VertexAttributeTypeToString(vertexAttributeLayout.vertexAttributeType).c_str(),
 				AttributeValueTypeToString(vertexAttributeLayout.attributeValueType).c_str(),
 				vertexAttributeLayout.attributeCount);
@@ -158,9 +159,9 @@ void VertexLayoutUtility::CreateVertexLayout(bgfx::VertexLayout& outVertexLayout
 	outVertexLayout.begin();
 	if (debugPrint)
 	{
-		printf("\t\tVA: (%s, %s, %d)\n",
+		CD_ENGINE_TRACE("\t\tVA: ({0}, {1}, {2})",
 			VertexAttributeTypeToString(vertexAttribute.vertexAttributeType).c_str(),
-			AttributeValueTypeToString(vertexAttribute.attributeValueType).c_str(), 
+			AttributeValueTypeToString(vertexAttribute.attributeValueType).c_str(),
 			vertexAttribute.attributeCount);
 	}
 	ConvertVertexLayout(vertexAttribute, outVertexLayout);

@@ -48,7 +48,7 @@ EditorApp::~EditorApp()
 
 void EditorApp::Init(engine::EngineInitArgs initArgs)
 {
-	CD_INFO("Init ediotr\n");
+	CD_INFO("Init ediotr");
 
 	uint16_t width = initArgs.width;
 	uint16_t height = initArgs.height;

@@ -18,7 +18,6 @@ project("Engine")
 		path.join(ThirdPartySourcePath, "imgui/*.cpp"),
 		path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
 		path.join(ThirdPartySourcePath, "spdlog/include/spdlog/**.*"),
-
 	}
 	
 	vpaths {

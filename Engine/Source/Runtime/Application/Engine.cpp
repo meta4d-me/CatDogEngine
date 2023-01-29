@@ -19,7 +19,7 @@ Engine::~Engine()
 
 void Engine::Init(EngineInitArgs args)
 {
-	CD_ENGINE_INFO("Init engine\n");
+	CD_ENGINE_INFO("Init engine");
 	m_pApplication->Init(args);
 }
 
@@ -52,7 +52,7 @@ static std::unique_ptr<Engine> s_pEngine;
 Engine* Engine::Create(std::unique_ptr<IApplication> pApplication)
 {
 	Log::Init();
-	CD_ENGINE_INFO("Init log\n");
+	CD_ENGINE_INFO("Init log");
 
 	IApplication* pWhatApp = pApplication.get();
 	s_pEngine = std::make_unique<Engine>(std::move(pApplication));
