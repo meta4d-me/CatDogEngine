@@ -7,6 +7,7 @@
 #include "ImGui/EditorImGuiViewport.h"
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/UILayers/DebugPanel.h"
+#include "Log/Log.h"
 #include "Rendering/BlitRenderTargetPass.h"
 #include "Rendering/DebugRenderer.h"
 #include "Rendering/ImGuiRenderer.h"
@@ -47,6 +48,8 @@ EditorApp::~EditorApp()
 
 void EditorApp::Init(engine::EngineInitArgs initArgs)
 {
+	CD_INFO("Init ediotr\n");
+
 	uint16_t width = initArgs.width;
 	uint16_t height = initArgs.height;
 	AddWindow(std::make_unique<engine::Window>(initArgs.pTitle, width, height));

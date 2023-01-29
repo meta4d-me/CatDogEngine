@@ -17,6 +17,8 @@ project("Engine")
 		path.join(ThirdPartySourcePath, "imgui/*.h"),
 		path.join(ThirdPartySourcePath, "imgui/*.cpp"),
 		path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
+		path.join(ThirdPartySourcePath, "spdlog/include/spdlog/**.*"),
+
 	}
 	
 	vpaths {
@@ -65,25 +67,23 @@ project("Engine")
 		libdirs {
 			path.join(ThirdPartySourcePath, "sdl/build/Debug"),
 			path.join(ThirdPartySourcePath, "freetype/build/Debug"),
-			path.join(ThirdPartySourcePath, "spdlog/build/Debug"),
 			bgfxBuildBinPath,
 		}
 		links {
 			"sdl2d", "sdl2maind",
 			"bgfxDebug", "bimgDebug", "bxDebug", "bimg_decodeDebug",
-			"freetyped", "spdlogd"
+			"freetyped",
 		}
 	filter { "configurations:Release" }
 		libdirs {
 			path.join(ThirdPartySourcePath, "sdl/build/Release"),
 			path.join(ThirdPartySourcePath, "freetype/build/Release"),
-			path.join(ThirdPartySourcePath, "spdlog/build/Release"),
 			bgfxBuildBinPath,
 		}
 		links {
 			"sdl2", "sdl2main",
 			"bgfxRelease", "bimgRelease", "bxRelease", "bimg_decodeRelease",
-			"freetype",  "spdlog"
+			"freetype",
 		}
 	filter {}
 
@@ -124,6 +124,9 @@ project("Engine")
 	-- Strict.
 	warnings("Default")
 	externalwarnings("Off")
+	
+	-- Enable run-time type information for using spdlog.
+	rtti("On")
 	
 	flags {
 		"FatalWarnings", -- treat warnings as errors

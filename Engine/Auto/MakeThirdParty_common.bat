@@ -51,14 +51,4 @@ cd %MSBUILD_FOLDER%
 cd %ThirdPartyProjectsPath%
 echo\
 
-echo [ SPDLOG ] Start making project...
-cd spdlog
-if not exist build mkdir build
-cd build
-%CMAKE_EXE% .. -G %CMAKE_IDE_FULL_NAME% -DCMAKE_CXX_FLAGS="/MT"
-start /b %CMAKE_EXE% --build . --config Debug
-start /b %CMAKE_EXE% --build . --config Release
-cd %ThirdPartyProjectsPath%
-echo\
-
 pause
