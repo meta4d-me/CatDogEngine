@@ -71,7 +71,7 @@ project("Engine")
 		links {
 			"sdl2d", "sdl2maind",
 			"bgfxDebug", "bimgDebug", "bxDebug", "bimg_decodeDebug",
-			"freetyped",
+			"freetyped"
 		}
 	filter { "configurations:Release" }
 		libdirs {
@@ -82,7 +82,7 @@ project("Engine")
 		links {
 			"sdl2", "sdl2main",
 			"bgfxRelease", "bimgRelease", "bxRelease", "bimg_decodeRelease",
-			"freetype",
+			"freetype"
 		}
 	filter {}
 
