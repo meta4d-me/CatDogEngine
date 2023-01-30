@@ -39,15 +39,15 @@ void Process::Run()
 	subprocess_create_ex(commandLine.data(), 0, environments.data(), m_pProcess.get());
 
 	// LOG
-	CD_INFO("Start process {0}", m_processName.c_str());
+	CD_ENGINE_INFO("Start process {0}", m_processName.c_str());
 
 	for(int i = 1, num = static_cast<int>(commandLine.size() - 1); i < num; ++i)
 	{
-		CD_TRACE("\tArgument {0}", commandLine[i]);
+		CD_ENGINE_TRACE("\tArgument {0}", commandLine[i]);
 	}
 	for (int i = 1, num = static_cast<int>(environments.size() - 1); i < num; ++i)
 	{
-		CD_TRACE("\tEnvironment {0}", environments[i]);
+		CD_ENGINE_TRACE("\tEnvironment {0}", environments[i]);
 	}
 
 	if (m_waitUntilFinished)
@@ -55,7 +55,7 @@ void Process::Run()
 		int processResult;
 		subprocess_join(m_pProcess.get(), &processResult);
 	}
-	printf("End process %s\n", m_processName.c_str());
+	CD_ENGINE_INFO("End process {0}", m_processName.c_str());
 }
 
 }

@@ -32,7 +32,7 @@ project("Editor")
 	local projectResourcesPath = RootPath.."/Projects/PBRViewer/Resources/"
 	defines {
 		"BX_CONFIG_DEBUG",
-		"SPDLOG_NO_EXCEPTIONS",
+		"SPDLOG_NO_EXCEPTIONS", "FMT_USE_NONTYPE_TEMPLATE_ARGS=0",
 		"CDENGINE_BUILTIN_SHADER_PATH=\""..engineBuiltInShaderPath.."\"",
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..editorResourcesPath.."\"",
 		"CDENGINE_TOOL_PATH=\""..path.join(EnginePath, "EditorTools", GetPlatformDisplayName()).."\"",

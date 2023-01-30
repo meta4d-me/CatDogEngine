@@ -98,7 +98,7 @@ project("Engine")
 		"__STDC_LIMIT_MACROS", "__STDC_FORMAT_MACROS", "__STDC_CONSTANT_MACROS",
 		"STB_IMAGE_STATIC",
 		"IMGUI_ENABLE_FREETYPE",
-		"SPDLOG_NO_EXCEPTIONS",
+		"SPDLOG_NO_EXCEPTIONS", "FMT_USE_NONTYPE_TEMPLATE_ARGS=0",
 		GetPlatformMacroName(),
 		table.unpack(platformDefines),
 		"CDENGINE_BUILTIN_SHADER_PATH=\""..engineBuiltInShaderPath.."\"",

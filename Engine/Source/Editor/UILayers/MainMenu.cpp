@@ -3,6 +3,7 @@
 #include "EditorApp.h"
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/ThemeColor.h"
+#include "Log/Log.h"
 #include "Resources/ResourceBuilder.h"
 #include "Window/Window.h"
 #include "Window/Input.h"
@@ -145,7 +146,7 @@ void MainMenu::BuildMenu()
 				}
 				else
 				{
-					printf("Shader source file's type is unknown by its file name.\n");
+					CD_ERROR("Shader source file's type is unknown by its file name.");
 					continue;
 				}
 				
