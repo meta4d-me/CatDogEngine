@@ -1,6 +1,7 @@
 #include "ResourceBuilder.h"
 
 #include "Base/Template.h"
+#include "Log/Log.h"
 
 #include <filesystem>
 
@@ -11,14 +12,14 @@ bool IsIOFilePathsValid(const char* pInputFilePath, const char* pOutputFilePath)
 {
 	if (!std::filesystem::exists(pInputFilePath))
 	{
-		printf("Input file path %s not existed.\n", pInputFilePath);
+		CD_ERROR("Input file path {0} not existed.", pInputFilePath);
 		return false;
 	}
 
 	// TODO : check if we really need to overwrite old file.
 	if (std::filesystem::exists(pOutputFilePath))
 	{
-		printf("Output file path %s already existed.\n", pOutputFilePath);
+		CD_ERROR("Output file path {0} already existed.", pOutputFilePath);
 		return false;
 	}
 

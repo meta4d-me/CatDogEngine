@@ -7,6 +7,7 @@
 #include "ECWorld/TransformComponent.h"
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
+#include "Log/Log.h"
 #include "Material/ShaderSchema.h"
 #include "Math/Ray.hpp"
 #include "Rendering/RenderContext.h"
@@ -313,7 +314,7 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 		}
 	}
 
-	printf("Select entity : %u \n", nearestEntity);
+	CD_TRACE("Select entity : {0}", nearestEntity);
 	pSceneWorld->SetSelectedEntity(nearestEntity);
 }
 

@@ -32,6 +32,7 @@ project("Editor")
 	local projectResourcesPath = RootPath.."/Projects/PBRViewer/Resources/"
 	defines {
 		"BX_CONFIG_DEBUG",
+		"SPDLOG_NO_EXCEPTIONS",
 		"CDENGINE_BUILTIN_SHADER_PATH=\""..engineBuiltInShaderPath.."\"",
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..editorResourcesPath.."\"",
 		"CDENGINE_TOOL_PATH=\""..path.join(EnginePath, "EditorTools", GetPlatformDisplayName()).."\"",
@@ -50,6 +51,7 @@ project("Editor")
 		path.join(ThirdPartySourcePath, "bx/include/compat/msvc"),
 		path.join(ThirdPartySourcePath, "imgui"),
 		path.join(ThirdPartySourcePath, "imguizmo"),
+		path.join(ThirdPartySourcePath, "spdlog/include"),
 		ThirdPartySourcePath,
 	}
 
@@ -91,7 +93,10 @@ project("Editor")
 	-- Strict.
 	warnings("Default")
 	externalwarnings("Off")
-		
+	
+	-- Enable run-time type information for using spdlog.
+	rtti("On")
+	
 	-- For msvc, a static library dependends on more than one import library will cause a LINK4006 warning which said
 	-- __NULL_IMPORT_DESCRIPTOR redefined. __NULL_IMPORT_DESCRIPTOR is at the end of all the import libraries to mark
 	-- the end. So you can only fix it by two ways:

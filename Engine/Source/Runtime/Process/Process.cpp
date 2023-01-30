@@ -1,4 +1,5 @@
 #include "Process.h"
+#include "Log/Log.h"
 
 namespace editor
 {
@@ -38,14 +39,15 @@ void Process::Run()
 	subprocess_create_ex(commandLine.data(), 0, environments.data(), m_pProcess.get());
 
 	// LOG
-	printf("Start process %s\n", m_processName.c_str());
+	CD_INFO("Start process {0}", m_processName.c_str());
+
 	for(int i = 1, num = static_cast<int>(commandLine.size() - 1); i < num; ++i)
 	{
-		printf("\tArgument %s\n", commandLine[i]);
+		CD_TRACE("\tArgument {0}", commandLine[i]);
 	}
 	for (int i = 1, num = static_cast<int>(environments.size() - 1); i < num; ++i)
 	{
-		printf("\tEnvironment %s\n", environments[i]);
+		CD_TRACE("\tEnvironment {0}", environments[i]);
 	}
 
 	if (m_waitUntilFinished)

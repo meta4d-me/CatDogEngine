@@ -1,5 +1,6 @@
 #include "BgfxConsumer.h"
 
+#include "Log/Log.h"
 #include "Scene/SceneDatabase.h"
 #include "Scene/VertexFormat.h"
 #include "Rendering/Utility/VertexLayoutUtility.h"
@@ -70,11 +71,11 @@ size_t GetSizeFromAttribType(const bgfx::AttribType::Enum attribType)
 	case bgfx::AttribType::Enum::Int16:
 		return sizeof(int16_t);
 	case bgfx::AttribType::Enum::Uint10:
-		printf("Uint10 types are not supported!");
+		CD_ENGINE_ERROR("Uint10 types are not supported!");
 		assert(false);	// not supported
 		return 0;
 	default:
-		printf("Unknown attribute type!");
+		CD_ENGINE_ERROR("Unknown attribute type!");
 		assert(false);	// Unknown type!
 		return 0;
 	}
@@ -163,14 +164,12 @@ namespace engine
 
 void BgfxConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 {
-	printf("Loading Scene: %s\n", pSceneDatabase->GetName());
-	printf("MeshCount : %u\n", pSceneDatabase->GetMeshCount());
-	printf("MaterialCount : %u\n", pSceneDatabase->GetMaterialCount());
+	CD_ENGINE_INFO("Loading Scene: {0}", pSceneDatabase->GetName());
+	CD_ENGINE_TRACE("MeshCount : {0}", pSceneDatabase->GetMeshCount());
+	CD_ENGINE_TRACE("MaterialCount : {0}", pSceneDatabase->GetMaterialCount());
 
 	const cd::AABB& sceneAABB = pSceneDatabase->GetAABB();
-	printf("Scene AABB min: (%f, %f, %f), max: (%f, %f, %f)\n",
-		sceneAABB.Min().x(), sceneAABB.Min().y(), sceneAABB.Min().z(),
-		sceneAABB.Max().x(), sceneAABB.Max().y(), sceneAABB.Max().z());
+	CD_ENGINE_TRACE("Scene AABB min: {0}, max: {1}", sceneAABB.Min(), sceneAABB.Max());
 	m_renderDataContext.sceneAABB = sceneAABB;
 
 	ConvertMeshesFromScene(*pSceneDatabase, m_renderDataContext.meshRenderDataArray);
@@ -182,15 +181,15 @@ void BgfxConsumer::ConvertMeshesFromScene(const cd::SceneDatabase& sceneDatabase
 	const std::vector<cd::Mesh>& meshes = sceneDatabase.GetMeshes();
 	if (meshes.empty())
 	{
-		printf("No meshes found for scene: %s", sceneDatabase.GetName());
+		CD_ENGINE_ERROR("No meshes found for scene: {0}", sceneDatabase.GetName());
 		return;
 	}
-	printf("\nLoading %zu meshes\n", meshes.size());
+	CD_ENGINE_TRACE("Loading {0} meshes", meshes.size());
 	for (const cd::Mesh& mesh : meshes)
 	{
-		printf("\tMeshName : %s\n", mesh.GetName());
-		printf("\t\tVertexCount : %u\n", mesh.GetVertexCount());
-		printf("\t\tPolygonCount : %u\n", mesh.GetPolygonCount());
+		CD_ENGINE_TRACE("\tMeshName : {}", mesh.GetName());
+		CD_ENGINE_TRACE("\t\tVertexCount : {}", mesh.GetVertexCount());
+		CD_ENGINE_TRACE("\t\tPolygonCount : {}", mesh.GetPolygonCount());
 
 		outLoadedMeshes.emplace_back();
 		MeshRenderData& meshData = outLoadedMeshes.back();
@@ -299,23 +298,23 @@ void BgfxConsumer::GetMaterialsFromScene(const cd::SceneDatabase& sceneDatabase,
 	for (const cd::Material& material : sceneDatabase.GetMaterials())
 	{
 		// Materials
-		printf("\t\tMaterial Name: %s\n", material.GetName());
+		CD_ENGINE_TRACE("\t\tMaterial Name: {0}", material.GetName());
 		outLoadedMaterials.emplace_back();
 		MaterialRenderData& materialData = outLoadedMaterials.back();
 		for (const cd::MaterialTextureType& textureType : PossibleTextureTypes)
 		{
-			printf("\t\t\tMaterial Type: %s\n", MaterialTextureTypeToString(textureType).c_str());
+			CD_ENGINE_TRACE("\t\t\tMaterial Type: {0}", MaterialTextureTypeToString(textureType).c_str());
 			const std::optional<cd::TextureID>& textureID = material.GetTextureID(textureType);
 			if (textureID.has_value())
 			{
 				const std::string& texturePath = sceneDatabase.GetTexture(textureID->Data()).GetPath();
 				std::string textureName = texturePath.substr(texturePath.rfind('/') + 1, texturePath.rfind('.') - texturePath.rfind('/') - 1);
-				printf("\t\t\tTexture Name: %s\n\n", textureName.c_str());
+				CD_ENGINE_TRACE("\t\t\tTexture Name: {0}", textureName.c_str());
 				materialData.SetTextureName(textureType, std::move(textureName));
 			}
 			else
 			{
-				printf("\t\t\tTexture Name: UnknownMaterial\n\n");
+				CD_ENGINE_WARN("\t\t\tTexture Name: UnknownMaterial");
 				materialData.SetTextureName(textureType, std::nullopt);
 			}
 		}

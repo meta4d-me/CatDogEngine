@@ -29,3 +29,6 @@
 [submodule "Engine/Source/ThirdParty/ImGuizmo"]
 	path = Engine/Source/ThirdParty/ImGuizmo
 	url = https://github.com/CatDogEngine/ImGuizmo.git
+[submodule "Engine/Source/ThirdParty/spdlog"]
+	path = Engine/Source/ThirdParty/spdlog
+	url = https://github.com/CatDogEngine/spdlog
