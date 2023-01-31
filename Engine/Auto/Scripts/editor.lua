@@ -88,14 +88,11 @@ project("Editor")
 	-- Sometimes I don't like to use exception because it will need compiler to generate extra codes about deconstructor callback safely.
 	-- Editor application is OK to use as it is in a complex senario which can happen many unexpected user cases.
 	exceptionhandling("On")
-	rtti("Off")	
+	rtti("Off")
 		
 	-- Strict.
 	warnings("Default")
 	externalwarnings("Off")
-	
-	-- Enable run-time type information for using spdlog.
-	rtti("On")
 	
 	-- For msvc, a static library dependends on more than one import library will cause a LINK4006 warning which said
 	-- __NULL_IMPORT_DESCRIPTOR redefined. __NULL_IMPORT_DESCRIPTOR is at the end of all the import libraries to mark

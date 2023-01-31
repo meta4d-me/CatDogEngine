@@ -118,14 +118,11 @@ project("Engine")
 	justmycode("Off")
 	editAndContinue("Off")
 	exceptionhandling("Off")
-	rtti("Off")	
+	rtti("Off")
 		
 	-- Strict.
 	warnings("Default")
 	externalwarnings("Off")
-	
-	-- Enable run-time type information for using spdlog.
-	rtti("On")
 	
 	flags {
 		"FatalWarnings", -- treat warnings as errors
