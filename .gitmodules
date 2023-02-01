@@ -1,21 +1,27 @@
 [submodule "Engine/Source/ThirdParty/bimg"]
 	path = Engine/Source/ThirdParty/bimg
 	url = https://github.com/CatDogEngine/bimg
+	branch = master
 [submodule "Engine/Source/ThirdParty/bx"]
 	path = Engine/Source/ThirdParty/bx
 	url = https://github.com/CatDogEngine/bx
+	branch = master
 [submodule "Engine/Source/ThirdParty/bgfx"]
 	path = Engine/Source/ThirdParty/bgfx
 	url = https://github.com/CatDogEngine/bgfx
+	branch = master
 [submodule "Engine/Source/ThirdParty/AssetPipeline"]
 	path = Engine/Source/ThirdParty/AssetPipeline
 	url = https://github.com/CatDogEngine/AssetPipeline
+	branch = main
 [submodule "Engine/Source/ThirdParty/sdl"]
 	path = Engine/Source/ThirdParty/sdl
 	url = https://github.com/CatDogEngine/sdl
+	branch = main
 [submodule "Engine/Source/ThirdParty/rapidxml"]
 	path = Engine/Source/ThirdParty/rapidxml
 	url = https://github.com/CatDogEngine/rapidxml.git
+	branch = master
 [submodule "Engine/Source/ThirdParty/imgui"]
 	path = Engine/Source/ThirdParty/imgui
 	url = https://github.com/CatDogEngine/imgui.git
@@ -23,12 +29,16 @@
 [submodule "Engine/Source/ThirdParty/freetype"]
 	path = Engine/Source/ThirdParty/freetype
 	url = https://github.com/CatDogEngine/freetype.git
+	branch = master
 [submodule "Engine/Source/ThirdParty/stb"]
 	path = Engine/Source/ThirdParty/stb
 	url = https://github.com/CatDogEngine/stb.git
+	branch = master
 [submodule "Engine/Source/ThirdParty/ImGuizmo"]
 	path = Engine/Source/ThirdParty/ImGuizmo
 	url = https://github.com/CatDogEngine/ImGuizmo.git
+	branch = master
 [submodule "Engine/Source/ThirdParty/spdlog"]
 	path = Engine/Source/ThirdParty/spdlog
 	url = https://github.com/CatDogEngine/spdlog
+	branch = v1.x
