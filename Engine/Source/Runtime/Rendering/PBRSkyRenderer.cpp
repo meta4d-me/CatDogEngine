@@ -1,5 +1,6 @@
 #include "PBRSkyRenderer.h"
 
+#include "Log/Log.h"
 #include "Math/Box.hpp"
 #include "Math/MeshGenerator.h"
 #include "RenderContext.h"
@@ -178,7 +179,8 @@ void PBRSkyRenderer::Precompute() {
 			bgfx::setImage(9, m_textureScattering, 0, Write, RGBA32F);
 			bgfx::dispatch(viewId, m_programComputeMultipleScattering, SCATTERING_TEXTURE_WIDTH / 8U, SCATTERING_TEXTURE_HEIGHT / 8U, SCATTERING_TEXTURE_DEPTH / 8U);
 		}
-		printf("\nAll compute shaders for precomputing atmospheric scattering texture dispatched.\nScattering Orders : %d\n", SCATTERING_ORDERS);
+		CD_ENGINE_TRACE("All compute shaders for precomputing atmospheric scattering texture dispatched.");
+		CD_ENGINE_TRACE("Scattering Orders : {0}", SCATTERING_ORDERS);
 		ClearTextureSlots();
 		ReleaseTemporaryTextureResources();
 	}

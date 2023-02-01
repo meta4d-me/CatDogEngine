@@ -63,8 +63,6 @@ private:
 	engine::Renderer* m_pIBLSkyRenderer = nullptr;
 	engine::RenderTarget* m_pRenderTarget = nullptr;
 	bool m_isMouseDownFirstTime = true;
-
-	engine::Entity m_selectedEntity = engine::INVALID_ENTITY;
 };
 
 }

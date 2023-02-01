@@ -32,6 +32,7 @@ project("Editor")
 	local projectResourcesPath = RootPath.."/Projects/PBRViewer/Resources/"
 	defines {
 		"BX_CONFIG_DEBUG",
+		"SPDLOG_NO_EXCEPTIONS", "FMT_USE_NONTYPE_TEMPLATE_ARGS=0",
 		"CDENGINE_BUILTIN_SHADER_PATH=\""..engineBuiltInShaderPath.."\"",
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..editorResourcesPath.."\"",
 		"CDENGINE_TOOL_PATH=\""..path.join(EnginePath, "EditorTools", GetPlatformDisplayName()).."\"",
@@ -50,6 +51,7 @@ project("Editor")
 		path.join(ThirdPartySourcePath, "bx/include/compat/msvc"),
 		path.join(ThirdPartySourcePath, "imgui"),
 		path.join(ThirdPartySourcePath, "imguizmo"),
+		path.join(ThirdPartySourcePath, "spdlog/include"),
 		ThirdPartySourcePath,
 	}
 
@@ -86,12 +88,12 @@ project("Editor")
 	-- Sometimes I don't like to use exception because it will need compiler to generate extra codes about deconstructor callback safely.
 	-- Editor application is OK to use as it is in a complex senario which can happen many unexpected user cases.
 	exceptionhandling("On")
-	rtti("Off")	
+	rtti("Off")
 		
 	-- Strict.
 	warnings("Default")
 	externalwarnings("Off")
-		
+	
 	-- For msvc, a static library dependends on more than one import library will cause a LINK4006 warning which said
 	-- __NULL_IMPORT_DESCRIPTOR redefined. __NULL_IMPORT_DESCRIPTOR is at the end of all the import libraries to mark
 	-- the end. So you can only fix it by two ways:
