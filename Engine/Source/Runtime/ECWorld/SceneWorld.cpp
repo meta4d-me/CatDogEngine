@@ -9,6 +9,7 @@ SceneWorld::SceneWorld()
 
 	m_pWorld = std::make_unique<engine::World>();
 	m_pCameraStorage = m_pWorld->Register<engine::CameraComponent>();
+	m_pCollisionMeshStorage = m_pWorld->Register<engine::CollisionMeshComponent>();
 	m_pHierarchyStorage = m_pWorld->Register<engine::HierarchyComponent>();
 	m_pLightStorage = m_pWorld->Register<engine::LightComponent>();
 	m_pMaterialStorage = m_pWorld->Register<engine::MaterialComponent>();

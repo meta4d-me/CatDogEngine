@@ -16,7 +16,7 @@ public:
 	}
 
 public:
-	TransformComponent() = default;
+	TransformComponent() { m_transform.Clear(); }
 	TransformComponent(const TransformComponent&) = default;
 	TransformComponent& operator=(const TransformComponent&) = default;
 	TransformComponent(TransformComponent&&) = default;
