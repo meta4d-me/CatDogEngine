@@ -1,10 +1,12 @@
 #pragma once
 
-#include "spdlog/spdlog.h"
-#include "spdlog/fmt/ostr.h"
 #include "Math/Vector.hpp"
 
+#include <spdlog/spdlog.h>
+#include <spdlog/fmt/ostr.h>
+
 #include <format>
+#include <strstream>
 
 namespace engine
 {
@@ -17,9 +19,15 @@ public:
 	static std::shared_ptr<spdlog::logger> &GetEngineLogger() { return s_engineLogger; }
 	static std::shared_ptr<spdlog::logger> &GetApplicationLogger() { return s_applicationLogger; }
 
+	static const std::ostringstream &GetSpdOutput() { return m_oss; }
+	static void ClearBuffer() { m_oss.str(""); }
+
 private:
 	static std::shared_ptr<spdlog::logger> s_engineLogger;
 	static std::shared_ptr<spdlog::logger> s_applicationLogger;
+
+	// Note that m_oss will be cleared after OutputLog::AddSpdLog be called.
+	static std::ostringstream m_oss;
 };
 
 } // namespace engine
@@ -55,6 +63,10 @@ inline std::ostream &operator<<(std::ostream &os, const cd::Vec4f &vec)
 #define CD_ERROR(...) ::engine::Log::GetApplicationLogger()->error(__VA_ARGS__)
 #define CD_FATAL(...) ::engine::Log::GetApplicationLogger()->critical(__VA_ARGS__)
 
+// Runtime assert.
+#define CD_ENGINE_ASSERT(x, ...) { if(!(x)) { ::engine::Log::GetEngineLogger()->error(__VA_ARGS__); } }
+#define CD_ASSERT(x, ...) { if(!(x)) { ::engine::Log::GetApplicationLogger()->error(__VA_ARGS__); } }
+
 #else
 
 // Maby we don't need log in release mode.
@@ -68,5 +80,8 @@ inline std::ostream &operator<<(std::ostream &os, const cd::Vec4f &vec)
 #define CD_WARN(...) 
 #define CD_ERROR(...)
 #define CD_FATAL(...)
+
+#define CD_ENGINE_ASSERT(x, ...)
+#define CD_ASSERT(x, ...)
 
 #endif
