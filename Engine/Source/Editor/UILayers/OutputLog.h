@@ -2,7 +2,7 @@
 
 #include "imgui.h"
 
-#include <strstream>
+#include <sstream>
 
 namespace editor
 {

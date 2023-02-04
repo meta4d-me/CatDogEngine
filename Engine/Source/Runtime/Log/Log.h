@@ -6,7 +6,7 @@
 #include <spdlog/fmt/ostr.h>
 
 #include <format>
-#include <strstream>
+#include <sstream>
 
 namespace engine
 {
