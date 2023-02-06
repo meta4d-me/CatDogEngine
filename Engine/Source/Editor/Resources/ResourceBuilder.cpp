@@ -12,14 +12,14 @@ bool IsIOFilePathsValid(const char* pInputFilePath, const char* pOutputFilePath)
 {
 	if (!std::filesystem::exists(pInputFilePath))
 	{
-		CD_ERROR("Input file path {0} not existed.", pInputFilePath);
+		CD_WARN("Input file path {0} not existed.", pInputFilePath);
 		return false;
 	}
 
 	// TODO : check if we really need to overwrite old file.
 	if (std::filesystem::exists(pOutputFilePath))
 	{
-		CD_ERROR("Output file path {0} already existed.", pOutputFilePath);
+		CD_WARN("Output file path {0} already existed.", pOutputFilePath);
 		return false;
 	}
 
