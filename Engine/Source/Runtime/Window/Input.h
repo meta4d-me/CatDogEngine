@@ -1,8 +1,10 @@
 #pragma once
 
-#include <inttypes.h>
-
 #include "KeyCode.h"
+
+#include <array>
+#include <inttypes.h>
+#include <vector>
 
 namespace engine
 {
@@ -18,6 +20,14 @@ public:
 	// TODO : some keycodes' value is too large to put them into a continues array memory...
 	// We will ignore them at first as they are not commonly used in game and editor.
 	static constexpr uint8_t MaxKeyCode = 255;
+	static constexpr size_t MaxInputCharBuffer = 32;
+
+	struct KeyEvent 
+	{
+		KeyCode code;
+		KeyMod mod;
+		bool isPressed;
+	};
 
 public:
 	// Input is a singleton class which will be used conveniently to query device status.
@@ -40,7 +50,6 @@ public:
 	{
 		m_mousePositionOffsetX = m_mousePositionOffsetY = 0;
 		m_mouseScrollOffsetY = 0;
-		m_keyModifiers = KeyMod::KMOD_NONE;
 	}
 
 	// Mouse device
@@ -70,14 +79,22 @@ public:
 
 	// Keyboard device
 	bool IsKeyPressed(KeyCode code) const { return m_keyPressed[static_cast<uint8_t>(code)]; }
-	void SetKeyPressed(uint8_t code, bool pressed) { m_keyPressed[code] = pressed; }
+	void SetKeyPressed(KeyCode code, bool pressed);
 
 	void SetModifier(KeyMod mod);
 	void ClearModifier(KeyMod mod);
 	bool ContainsModifier(KeyMod mod) const;
 
+	void AppendKeyEvent(KeyCode code, KeyMod mod, bool pressed);
+	void AppendInputCharacter(const char* c, size_t len);
+
+	const std::vector<KeyEvent>& GetKeyEventList() const { return m_keyEventList; }
+	const char* GetInputCharacters() const { return m_inputCharBuffer.data(); }
+
+	void FlushInputs();
+
 private:
-	Input() = default;
+	Input();
 
 private:
 	// Mouse device
@@ -93,6 +110,9 @@ private:
 	// Keyboard device
 	bool m_keyPressed[MaxKeyCode]{};
 	KeyMod m_keyModifiers = KeyMod::KMOD_NONE;
+	std::vector<KeyEvent> m_keyEventList;
+	size_t m_inputCharBufferIndex = 0;
+	std::array<char, MaxInputCharBuffer> m_inputCharBuffer;
 };
 
 }
