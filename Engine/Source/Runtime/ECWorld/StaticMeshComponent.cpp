@@ -35,7 +35,7 @@ void StaticMeshComponent::Reset()
 void StaticMeshComponent::BuildDebug()
 {
 	m_aabb = m_pMeshData->GetAABB();
-	if (m_aabb.Empty())
+	if (m_aabb.IsEmpty())
 	{
 		return;
 	}

@@ -197,8 +197,7 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		genericProducer.ActivateFlattenHierarchyService();
 
 		// TODO : manage different material types.
-		static engine::MaterialType pbrMaterialType = engine::MaterialType::GetPBRMaterialType();
-		ECWorldConsumer ecConsumer(pSceneWorld->GetWorld(), &pbrMaterialType, pCurrentRenderContext);
+		ECWorldConsumer ecConsumer(pSceneWorld->GetWorld(), pSceneWorld->GetPBRMaterialType(), pCurrentRenderContext);
 		ecConsumer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount());
 		cdtools::Processor processor(&genericProducer, &ecConsumer, pSceneDatabase);
 		processor.Run();

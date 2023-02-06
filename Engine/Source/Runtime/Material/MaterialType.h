@@ -29,8 +29,11 @@ public:
 	~MaterialType() = default;
 
 	const char* GetMaterialName() const { return m_materialName.c_str(); }
+	void SetMaterialName(std::string materialName) { m_materialName = cd::MoveTemp(materialName); }
+
 	ShaderSchema& GetShaderSchema() { return m_shaderSchema; }
 	const ShaderSchema& GetShaderSchema() const { return m_shaderSchema; }
+	void SetShaderSchema(ShaderSchema shaderSchema) { m_shaderSchema = cd::MoveTemp(shaderSchema); }
 
 	void SetRequiredVertexFormat(cd::VertexFormat vertexFormat) { m_requiredVertexFormat = cd::MoveTemp(vertexFormat); }
 	const cd::VertexFormat& GetRequiredVertexFormat() const { return m_requiredVertexFormat; }

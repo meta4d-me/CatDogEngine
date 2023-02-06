@@ -1,15 +1,10 @@
 #include "EntityList.h"
 
-#include "ECWorld/CameraComponent.h"
-#include "ECWorld/LightComponent.h"
-#include "ECWorld/NameComponent.h"
 #include "ECWorld/SceneWorld.h"
-#include "ECWorld/StaticMeshComponent.h"
-#include "ECWorld/TransformComponent.h"
 #include "ECWorld/World.h"
-
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
 #include "ImGui/ImGuiContextInstance.h"
+#include "Math/MeshGenerator.h"
 
 #include <imgui/imgui_internal.h>
 
@@ -32,37 +27,51 @@ void EntityList::AddEntity()
     engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
     engine::World* pWorld = pSceneWorld->GetWorld();
 
+    auto AddNamedEntity = [&pWorld]() -> engine::Entity
+    {
+        engine::Entity entity = pWorld->CreateEntity();
+        auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
+        nameComponent.SetName("Untitled");
+        return entity;
+    };
+
     if (ImGui::Selectable("Add Mesh"))
     {
-        engine::Entity meshEntity = pWorld->CreateEntity();
-        pWorld->CreateComponent<engine::NameComponent>(meshEntity);
-        pWorld->CreateComponent<engine::TransformComponent>(meshEntity);
-        pWorld->CreateComponent<engine::StaticMeshComponent>(meshEntity);
+        //engine::Entity entity = AddNamedEntity();
+        //pWorld->CreateComponent<engine::TransformComponent>(entity);
+        //auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
+        //
+        //engine::MaterialType* pPBRMaterialType = pSceneWorld->GetPBRMaterialType();
+        //cd::Box box(cd::Point(-1.0f), cd::Point(1.0f));
+        //std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(box, pPBRMaterialType->GetRequiredVertexFormat());
+        //if (optMesh.has_value())
+        //{
+        //    meshComponent.SetMeshData(&optMesh.value());
+        //    meshComponent.SetRequiredVertexFormat(&pPBRMaterialType->GetRequiredVertexFormat());
+        //    meshComponent.Build();
+        //}
     }
-    else if (ImGui::Selectable("Add Camera"))
-    {
-        engine::Entity cameraEntity = pWorld->CreateEntity();
-        pWorld->CreateComponent<engine::NameComponent>(cameraEntity);
-        pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
-        pWorld->CreateComponent<engine::CameraComponent>(cameraEntity);
-    }
-    else if (ImGui::Selectable("Add Light"))
-    {
-        engine::Entity lightEntity = pWorld->CreateEntity();
-        pWorld->CreateComponent<engine::NameComponent>(lightEntity);
-        pWorld->CreateComponent<engine::TransformComponent>(lightEntity);
-        pWorld->CreateComponent<engine::StaticMeshComponent>(lightEntity);
-        pWorld->CreateComponent<engine::LightComponent>(lightEntity);
-    }
+    //else if (ImGui::Selectable("Add Camera"))
+    //{
+    //    engine::Entity entity = AddNamedEntity();
+    //    pWorld->CreateComponent<engine::TransformComponent>(entity);
+    //    pWorld->CreateComponent<engine::CameraComponent>(entity);
+    //}
+    //else if (ImGui::Selectable("Add Light"))
+    //{
+    //    engine::Entity entity = AddNamedEntity();
+    //    pWorld->CreateComponent<engine::TransformComponent>(entity);
+    //    pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
+    //    pWorld->CreateComponent<engine::LightComponent>(entity);
+    //}
 }
 
 void EntityList::DrawEntity(engine::Entity entity)
 {
     engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(ImGui::GetIO().UserData);
     engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
-    engine::World* pWorld = pSceneWorld->GetWorld();
 
-    engine::NameComponent* pNameComponent = pWorld->GetComponents<engine::NameComponent>()->GetComponent(entity);
+    engine::NameComponent* pNameComponent = pSceneWorld->GetNameComponent(entity);
     if (!pNameComponent)
     {
         return;
@@ -76,10 +85,12 @@ void EntityList::DrawEntity(engine::Entity entity)
 
     ImGui::PushID(static_cast<int>(entity));
 
-    // TODO : selected or not?
-     // ImGuiTreeNodeFlags_Selected
     ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_FramePadding |
         ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_SpanAvailWidth;
+    if (pSceneWorld->GetSelectedEntity() != engine::INVALID_ENTITY)
+    {
+        nodeFlags |= ImGuiTreeNodeFlags_Selected;
+    }
 
     // TODO : hierarchy or not?
     bool hasNoChildren = true;
@@ -96,15 +107,15 @@ void EntityList::DrawEntity(engine::Entity entity)
     }
 
     const char* entityIcon = reinterpret_cast<const char*>(ICON_MDI_CUBE_OUTLINE);
-    if (pWorld->GetComponents<engine::CameraComponent>()->GetComponent(entity))
+    if (pSceneWorld->GetCameraComponent(entity))
     {
         entityIcon = reinterpret_cast<const char*>(ICON_MDI_CAMERA);
     }
-    else if (pWorld->GetComponents<engine::LightComponent>()->GetComponent(entity))
+    else if (pSceneWorld->GetLightComponent(entity))
     {
         entityIcon = reinterpret_cast<const char*>(ICON_MDI_LIGHTBULB);
     }
-    else if (pWorld->GetComponents<engine::StaticMeshComponent>()->GetComponent(entity))
+    else if (pSceneWorld->GetStaticMeshComponent(entity))
     {
         entityIcon = reinterpret_cast<const char*>(ICON_MDI_SHAPE);
     }
@@ -112,10 +123,7 @@ void EntityList::DrawEntity(engine::Entity entity)
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_Text]);
     bool isNodeOpen = ImGui::TreeNodeEx(pNameComponent->GetName(), nodeFlags, "%s", entityIcon);
     ImGui::PopStyleColor();
-    if (ImGui::IsItemClicked())
-    {
-        // Select it.
-    }
+
     ImGui::SameLine();
     ImGui::TextUnformatted(pNameComponent->GetName());
 
@@ -132,18 +140,32 @@ void EntityList::DrawEntity(engine::Entity entity)
         }
         else if (ImGui::Selectable("Rename"))
         {
-            // pNameComponent->SetName();
+           // m_editingEntityName = true;
         }
-
-        ImGui::Separator();
-
-        if (ImGui::Selectable("Delete"))
+        else if (ImGui::Selectable("Delete"))
         {
-
+            pSceneWorld->DeleteEntity(entity);
         }
 
         ImGui::EndPopup();
     }
+
+    if (ImGui::IsItemClicked())
+    {
+        pSceneWorld->SetSelectedEntity(entity);
+    }
+
+    //if (m_editingEntityName)
+    //{
+    //    static char entityNewName[128];
+    //    strcpy_s(entityNewName, pNameComponent->GetName());
+    //    ImGui::PushItemWidth(-1);
+    //    if (ImGui::InputText("##Name", entityNewName, IM_ARRAYSIZE(entityNewName), 0))
+    //    {
+    //        pNameComponent->SetName(entityNewName);
+    //        m_editingEntityName = false;
+    //    }
+    //}
 
     if (!isNodeOpen)
     {
@@ -230,7 +252,6 @@ void EntityList::Update()
 
     ImGui::BeginChild("Entites");
 
-    // TODO : Need to have a more generic entity manager.
     engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
     engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
     for (engine::Entity entity : pSceneWorld->GetStaticMeshEntities())

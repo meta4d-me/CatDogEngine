@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AllComponentsHeader.h"
 #include "ComponentsStorage.hpp"
 #include "Entity.h"
 #include "Core/StringCrc.h"

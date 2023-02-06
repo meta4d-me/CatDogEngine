@@ -2,7 +2,7 @@
 
 #include "Core/StringCrc.h"
 #include "ECWorld/Entity.h"
-#include "Math/AABB.hpp"
+#include "Math/Box.hpp"
 #include "Scene/Mesh.h"
 
 #include <cstdint>

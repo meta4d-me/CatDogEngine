@@ -240,7 +240,7 @@ void SceneView::UpdateToolMenuButtons()
 		engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
 		engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
 		const cd::AABB& sceneAABB = pSceneWorld->GetSceneDatabase()->GetAABB();
-		if (!sceneAABB.Empty())
+		if (!sceneAABB.IsEmpty())
 		{
 			pRenderContext->GetCamera()->FrameAll(sceneAABB);
 		}
@@ -314,7 +314,6 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 		}
 	}
 
-	CD_TRACE("Select entity : {0}", nearestEntity);
 	pSceneWorld->SetSelectedEntity(nearestEntity);
 }
 
