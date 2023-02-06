@@ -1,11 +1,51 @@
 #include "SceneWorld.h"
 
+#include "Log/Log.h"
+
+namespace
+{
+
+std::string GetShaderPath(const char* pShaderName)
+{
+	std::string shaderPath = CDENGINE_BUILTIN_SHADER_PATH;
+	shaderPath += pShaderName;
+	shaderPath += ".sc";
+
+	return shaderPath;
+}
+
+}
+
 namespace engine
 {
 
 SceneWorld::SceneWorld()
 {
 	m_pSceneDatabase = std::make_unique<cd::SceneDatabase>();
+
+	m_pPBRMaterialType = std::make_unique<MaterialType>();
+	ShaderSchema shaderSchema(GetShaderPath("vs_PBR"), GetShaderPath("fs_PBR"));
+	shaderSchema.RegisterUberOption(ShaderSchema::DefaultUberOptionName);
+	shaderSchema.RegisterUberOption("USE_PBR_IBL");
+
+	m_pPBRMaterialType->SetMaterialName("CD_PBR");
+	m_pPBRMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
+
+	cd::VertexFormat pbrVertexFormat;
+	pbrVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+	pbrVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+	pbrVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+	pbrVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
+	m_pPBRMaterialType->SetRequiredVertexFormat(cd::MoveTemp(pbrVertexFormat));
+
+	// Slot index should align to shader codes.
+	m_pPBRMaterialType->AddRequiredTextureType(cd::MaterialTextureType::BaseColor, 0);
+	m_pPBRMaterialType->AddRequiredTextureType(cd::MaterialTextureType::Normal, 1);
+
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::AO, 2);
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Metalness, 2);
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Roughness, 2);
+	//m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Emissive, );
 
 	m_pWorld = std::make_unique<engine::World>();
 	m_pCameraStorage = m_pWorld->Register<engine::CameraComponent>();
@@ -17,6 +57,12 @@ SceneWorld::SceneWorld()
 	m_pSkyStorage = m_pWorld->Register<engine::SkyComponent>();
 	m_pStaticMeshStorage = m_pWorld->Register<engine::StaticMeshComponent>();
 	m_pTransformStorage = m_pWorld->Register<engine::TransformComponent>();
+}
+
+void SceneWorld::SetSelectedEntity(engine::Entity entity)
+{
+	CD_TRACE("Select entity : {0}", entity);
+	m_selectedEntity = entity;
 }
 
 }

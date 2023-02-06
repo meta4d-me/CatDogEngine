@@ -1,11 +1,6 @@
 #include "EntityList.h"
 
-#include "ECWorld/CameraComponent.h"
-#include "ECWorld/LightComponent.h"
-#include "ECWorld/NameComponent.h"
 #include "ECWorld/SceneWorld.h"
-#include "ECWorld/StaticMeshComponent.h"
-#include "ECWorld/TransformComponent.h"
 #include "ECWorld/World.h"
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
 #include "ImGui/ImGuiContextInstance.h"
@@ -42,16 +37,19 @@ void EntityList::AddEntity()
 
     if (ImGui::Selectable("Add Mesh"))
     {
-        engine::Entity entity = AddNamedEntity();
-        pWorld->CreateComponent<engine::TransformComponent>(entity);
-        auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
-
-        // TODO : material type management.
+        //engine::Entity entity = AddNamedEntity();
+        //pWorld->CreateComponent<engine::TransformComponent>(entity);
+        //auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
+        //
+        //engine::MaterialType* pPBRMaterialType = pSceneWorld->GetPBRMaterialType();
         //cd::Box box(cd::Point(-1.0f), cd::Point(1.0f));
-        //std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(box, vertexFormat);
-        //meshComponent.SetMeshData(&mesh);
-        //meshComponent.SetRequiredVertexFormat(&m_pStandardMaterialType->GetRequiredVertexFormat());
-        //meshComponent.Build();
+        //std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(box, pPBRMaterialType->GetRequiredVertexFormat());
+        //if (optMesh.has_value())
+        //{
+        //    meshComponent.SetMeshData(&optMesh.value());
+        //    meshComponent.SetRequiredVertexFormat(&pPBRMaterialType->GetRequiredVertexFormat());
+        //    meshComponent.Build();
+        //}
     }
     //else if (ImGui::Selectable("Add Camera"))
     //{

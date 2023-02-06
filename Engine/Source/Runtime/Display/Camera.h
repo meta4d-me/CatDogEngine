@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Math/AABB.hpp"
+#include "Math/Box.hpp"
 #include "Math/Matrix.hpp"
 #include "Math/Ray.hpp"
 #include "Math/Vector.hpp"

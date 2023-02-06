@@ -1,16 +1,7 @@
 #pragma once
 
-#include "ECWorld/CameraComponent.h"
-#include "ECWorld/CollisionMeshComponent.h"
-#include "ECWorld/HierarchyComponent.h"
-#include "ECWorld/LightComponent.h"
-#include "ECWorld/MaterialComponent.h"
-#include "ECWorld/NameComponent.h"
 #include "ECWorld/World.h"
-#include "ECWorld/SkyComponent.h"
-#include "ECWorld/StaticMeshComponent.h"
-#include "ECWorld/TransformComponent.h"
-
+#include "Material/MaterialType.h"
 #include "Scene/SceneDatabase.h"
 
 #include <memory>
@@ -19,15 +10,7 @@
 namespace engine
 {
 
-class CollisionMeshComponent;
-class CameraComponent;
-class HierarchyComponent;
-class LightComponent;
-class MaterialComponent;
-class NameComponent;
-class SkyComponent;
-class StaticMeshComponent;
-class TransformComponent;
+class MaterialType;
 
 class SceneWorld
 {
@@ -44,8 +27,10 @@ public:
 	CD_FORCEINLINE const engine::World* GetWorld() const { return m_pWorld.get(); }
 
 	// Maybe not suitable to put selected entity here?
-	CD_FORCEINLINE void SetSelectedEntity(engine::Entity entity) { m_selectedEntity = entity; }
+	void SetSelectedEntity(engine::Entity entity);
 	CD_FORCEINLINE engine::Entity GetSelectedEntity() const { return m_selectedEntity; }
+
+	engine::MaterialType* GetPBRMaterialType() const { return m_pPBRMaterialType.get(); }
 
 	// It can save performance on addressing the actual ComponentStorage.
 	// TODO : write a help macro ? Though I hate macro...
@@ -95,6 +80,8 @@ public:
 private:
 	std::unique_ptr<cd::SceneDatabase> m_pSceneDatabase;
 	std::unique_ptr<engine::World> m_pWorld;
+
+	std::unique_ptr<engine::MaterialType> m_pPBRMaterialType;
 
 	engine::ComponentsStorage<engine::CameraComponent>* m_pCameraStorage;
 	engine::ComponentsStorage<engine::CollisionMeshComponent>* m_pCollisionMeshStorage;
