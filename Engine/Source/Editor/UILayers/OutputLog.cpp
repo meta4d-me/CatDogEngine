@@ -84,12 +84,9 @@ void OutputLog::Draw() {
     ImGui::Separator();
 
     if (ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar)) {
-        if (clearFilter) {
+        if(clearFilter) {
             m_levelFilter = static_cast<uint8_t>(LogLevel::All);
-        }
-        
-        if (m_levelFilter) {
-            strcpy_s(m_fillter.InputBuf, GetFilterStr().c_str());
+            strcpy_s(m_fillter.InputBuf, "");
             m_fillter.Build();
         }
 
@@ -160,6 +157,8 @@ void OutputLog::CreateButton(LogLevel level) {
     }
     if (ImGui::Button(GetLevelIcon(level))) {
         m_levelFilter ^= static_cast<uint8_t>(level);
+        strcpy_s(m_fillter.InputBuf, GetFilterStr().c_str());
+        m_fillter.Build();
     }
     ImGui::PopStyleColor();
 }

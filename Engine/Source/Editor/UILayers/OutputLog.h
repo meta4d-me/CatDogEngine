@@ -9,13 +9,13 @@ namespace editor
 
 enum class LogLevel : uint8_t
 {
-	None = 0,
+	None  = 0x00,
 	Trace = 1 << 0,
-	Info = 1 << 1,
-	Warn = 1 << 2,
+	Info  = 1 << 1,
+	Warn  = 1 << 2,
 	Error = 1 << 3,
 	Fatal = 1 << 4,
-	All = 0xff,
+	All   = 0xff,
 };
 
 class OutputLog : public engine::ImGuiBaseLayer
