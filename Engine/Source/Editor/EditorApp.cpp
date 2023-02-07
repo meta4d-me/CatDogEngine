@@ -8,6 +8,7 @@
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/UILayers/DebugPanel.h"
 #include "Log/Log.h"
+#include "Rendering/AnimationRenderer.h"
 #include "Rendering/BlitRenderTargetPass.h"
 #include "Rendering/DebugRenderer.h"
 #include "Rendering/ImGuiRenderer.h"
@@ -229,18 +230,22 @@ void EditorApp::InitRenderContext()
 	m_pIBLSkyRenderer = pIBLSkyRenderer.get();
 	AddEngineRenderer(cd::MoveTemp(pIBLSkyRenderer));
 
-	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
-	AddEngineRenderer(cd::MoveTemp(pTerrainRenderer));
+	//auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	//AddEngineRenderer(cd::MoveTemp(pTerrainRenderer));
 
 	auto pSceneRenderer = std::make_unique<engine::WorldRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pSceneRenderer = pSceneRenderer.get();
-	pSceneRenderer->SetWorld(m_pSceneWorld->GetWorld());
+	pSceneRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pSceneRenderer));
+
+	auto pAnimationRenderer = std::make_unique<engine::AnimationRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pAnimationRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pAnimationRenderer));
 
 	auto pDebugRenderer = std::make_unique<engine::DebugRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pDebugRenderer = pDebugRenderer.get();
 	pDebugRenderer->SetDisabled(true);
-	pDebugRenderer->SetWorld(m_pSceneWorld->GetWorld());
+	pDebugRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pDebugRenderer));
 
 	auto pBlitRTRenderPass = std::make_unique<engine::BlitRenderTargetPass>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);

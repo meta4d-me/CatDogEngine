@@ -57,7 +57,7 @@ private:
 
 	// Skybox
 	std::vector<cd::Point> m_vertexBufferSkybox;
-	std::vector<cd::Mesh::Polygon> m_indexBufferSkybox;
+	std::vector<cd::Polygon> m_indexBufferSkybox;
 	bgfx::VertexBufferHandle m_vbhSkybox;
 	bgfx::IndexBufferHandle m_ibhSkybox;
 };

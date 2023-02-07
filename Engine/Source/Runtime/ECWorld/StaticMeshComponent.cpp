@@ -73,7 +73,7 @@ void StaticMeshComponent::BuildDebug()
 		currentDataSize += bcDataSize;
 	}
 	
-	m_aabbIndexBuffer.resize(meshData.GetPolygonCount() * cd::Mesh::Polygon::Size * sizeof(cd::Mesh::Polygon::ValueType));
+	m_aabbIndexBuffer.resize(meshData.GetPolygonCount() * cd::Polygon::Size * sizeof(cd::Polygon::ValueType));
 	std::memcpy(m_aabbIndexBuffer.data(), meshData.GetPolygons().data(), m_aabbIndexBuffer.size());
 
 	bgfx::VertexLayout vertexLayout;
@@ -165,7 +165,7 @@ void StaticMeshComponent::Build()
 	m_vertexBufferHandle = vertexBufferHandle.idx;
 
 	// Create index buffer.
-	m_indexBuffer.resize(m_pMeshData->GetPolygonCount() * cd::Mesh::Polygon::Size * sizeof(cd::Mesh::Polygon::ValueType));
+	m_indexBuffer.resize(m_pMeshData->GetPolygonCount() * cd::Polygon::Size * sizeof(cd::Polygon::ValueType));
 	std::memcpy(m_indexBuffer.data(), m_pMeshData->GetPolygons().data(), m_indexBuffer.size());
 	bgfx::IndexBufferHandle indexBufferHandle = bgfx::createIndexBuffer(bgfx::makeRef(m_indexBuffer.data(), static_cast<uint32_t>(m_indexBuffer.size())), BGFX_BUFFER_INDEX32);
 	assert(bgfx::isValid(indexBufferHandle));

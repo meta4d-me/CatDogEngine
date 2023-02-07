@@ -48,6 +48,7 @@ SceneWorld::SceneWorld()
 	//m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Emissive, );
 
 	m_pWorld = std::make_unique<engine::World>();
+	m_pAnimationStorage = m_pWorld->Register<engine::AnimationComponent>();
 	m_pCameraStorage = m_pWorld->Register<engine::CameraComponent>();
 	m_pCollisionMeshStorage = m_pWorld->Register<engine::CollisionMeshComponent>();
 	m_pHierarchyStorage = m_pWorld->Register<engine::HierarchyComponent>();

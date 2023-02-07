@@ -1,9 +1,9 @@
 #include "WorldRenderer.h"
 
 #include "ECWorld/MaterialComponent.h"
+#include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
-#include "ECWorld/World.h"
 #include "Display/Camera.h"
 #include "Material/ShaderSchema.h"
 #include "RenderContext.h"
@@ -37,23 +37,25 @@ void WorldRenderer::UpdateView(const float* pViewMatrix, const float* pProjectio
 
 void WorldRenderer::Render(float deltaTime)
 {
-	auto pMeshStorage = m_pCurrentWorld->GetComponents<StaticMeshComponent>();
-	auto pMaterialStorage = m_pCurrentWorld->GetComponents<MaterialComponent>();
-	auto pTransformStorage = m_pCurrentWorld->GetComponents<TransformComponent>();
-
-	for (Entity entity : pMeshStorage->GetEntities())
+	for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
 	{
-		MaterialComponent* pMaterialComponent = pMaterialStorage->GetComponent(entity);
-		StaticMeshComponent* pMeshComponent = pMeshStorage->GetComponent(entity);
+		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
+		if (pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetPBRMaterialType())
+		{
+			// TODO : improve this condition. As we want to skip some feature-specified entities to render.
+			// For example, terrain/particle/...
+			continue;
+		}
 
-		// TODO : no material shading. Or it is in a loading resource status.
-		if (!pMeshComponent || !pMaterialComponent)
+		// No mesh attached?
+		StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
+		if (!pMeshComponent)
 		{
 			continue;
 		}
 
 		// Transform
-		if (TransformComponent* pTransformComponent = pTransformStorage->GetComponent(entity))
+		if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 		{
 			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
 		}
@@ -88,10 +90,9 @@ void WorldRenderer::Render(float deltaTime)
 			bgfx::setTexture(5, m_pRenderContext->GetUniform(cubeIrrSampler), m_pRenderContext->GetTexture(cubeIrrTexture));
 		}
 
-		uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA;
-		state |= BGFX_STATE_DEPTH_TEST_LESS;
-
+		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);
+
 		bgfx::submit(GetViewID(), bgfx::ProgramHandle(pMaterialComponent->GetShadingProgram()));
 	}
 }

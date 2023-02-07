@@ -92,6 +92,11 @@ void ECWorldConsumer::AddMesh(engine::Entity entity, const cd::Mesh& mesh)
 	staticMeshComponent.SetMeshData(&mesh);
 	staticMeshComponent.SetRequiredVertexFormat(&m_pStandardMaterialType->GetRequiredVertexFormat());
 	staticMeshComponent.Build();
+
+	if (mesh.GetVertexInfluenceCount() > 0U)
+	{
+		engine::AnimationComponent& animationComponent = m_pWorld->CreateComponent<engine::AnimationComponent>(entity);
+	}
 }
 
 std::string ECWorldConsumer::GetShaderOutputFilePath(const char* pInputFilePath, const char* pAppendFileName)

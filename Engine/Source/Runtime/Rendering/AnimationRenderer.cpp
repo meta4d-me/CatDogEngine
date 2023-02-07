@@ -1,4 +1,4 @@
-#include "DebugRenderer.h"
+#include "AnimationRenderer.h"
 
 #include "Core/StringCrc.h"
 #include "ECWorld/SceneWorld.h"
@@ -13,22 +13,22 @@
 namespace engine
 {
 
-void DebugRenderer::Init()
+void AnimationRenderer::Init()
 {
-	m_pRenderContext->CreateProgram("WireFrameProgram", "vs_wireframe.bin", "fs_wireframe.bin");
-	bgfx::setViewName(GetViewID(), "DebugRenderer");
+	m_pRenderContext->CreateProgram("AnimationProgram", "vs_animation.bin", "fs_animation.bin");
+	bgfx::setViewName(GetViewID(), "AnimationRenderer");
 }
 
-void DebugRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
+void AnimationRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
 	bgfx::setViewFrameBuffer(GetViewID(), *GetRenderTarget()->GetFrameBufferHandle());
 	bgfx::setViewRect(GetViewID(), 0, 0, GetRenderTarget()->GetWidth(), GetRenderTarget()->GetHeight());
 	bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
 }
 
-void DebugRenderer::Render(float deltaTime)
+void AnimationRenderer::Render(float deltaTime)
 {
-	for (Entity entity : m_pCurrentSceneWorld->GetStaticMeshEntities())
+	for (Entity entity : m_pCurrentSceneWorld->GetAnimationEntities())
 	{
 		StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
 		if (!pMeshComponent)
@@ -45,11 +45,10 @@ void DebugRenderer::Render(float deltaTime)
 		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle(pMeshComponent->GetAABBVertexBuffer()));
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle(pMeshComponent->GetAABBIndexBuffer()));
 
-		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
-			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
+		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);
 
-		constexpr StringCrc wireframeProgram("WireFrameProgram");
+		constexpr StringCrc wireframeProgram("AnimationProgram");
 		bgfx::submit(GetViewID(), m_pRenderContext->GetProgram(wireframeProgram));
 	}
 }

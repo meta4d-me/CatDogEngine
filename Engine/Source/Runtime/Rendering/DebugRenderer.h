@@ -7,7 +7,7 @@
 namespace engine
 {
 
-class World;
+class SceneWorld;
 
 class DebugRenderer final : public Renderer
 {
@@ -18,10 +18,10 @@ public:
 	virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) override;
 	virtual void Render(float deltaTime) override;
 
-	void SetWorld(World* pWorld) { m_pCurrentWorld = pWorld; }
+	void SetSceneWorld(SceneWorld* pSceneWorld) { m_pCurrentSceneWorld = pSceneWorld; }
 
 private:
-	World* m_pCurrentWorld = nullptr;
+	SceneWorld* m_pCurrentSceneWorld = nullptr;
 };
 
 }

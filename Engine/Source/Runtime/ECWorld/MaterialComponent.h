@@ -51,6 +51,8 @@ public:
 
 	void SetMaterialData(const cd::Material* pMaterialData) { m_pMaterialData = pMaterialData; }
 	void SetMaterialType(const engine::MaterialType* pMaterialType) { m_pMaterialType = pMaterialType; }
+	const engine::MaterialType* GetMaterialType() const { return m_pMaterialType; }
+
 	void AddTextureBlob(cd::MaterialTextureType textureType, TextureBlob textureBlob) { m_textureTypeToBlob[textureType] = cd::MoveTemp(textureBlob); }
 
 	void SetUberShaderOption(StringCrc uberOption);
