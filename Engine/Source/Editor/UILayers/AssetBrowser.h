@@ -28,6 +28,7 @@ enum class ImportAssetType
 {
 	CubeMap,
 	Model,
+	Terrain,
 	Shader,
 	Unknown,
 };

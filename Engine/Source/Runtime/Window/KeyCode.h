@@ -1,5 +1,7 @@
 #pragma once
 
+#include <inttypes.h>
+
 // This file was copied from SDL_Keycode.h and modified.
 // All engine::KeyCode and engine::KeyMod match SDL values.
 // Just to avoid introduce SDL file dependency to editor/game projects.

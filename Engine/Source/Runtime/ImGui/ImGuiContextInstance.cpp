@@ -4,6 +4,7 @@
 #include "IconFont/MaterialDesign.inl"
 #include "ImGui/ImGuiBaseLayer.h"
 #include "Window/Input.h"
+#include "Log/Log.h"
 
 #include <bgfx/bgfx.h>
 #include <imgui/imgui.h>
@@ -12,9 +13,113 @@
 #include <misc/freetype/imgui_freetype.h>
 
 #include <string>
+#include <unordered_map>
 
 namespace
 {
+
+std::unordered_map<engine::KeyCode, ImGuiKey> kImguiKeyLookup {
+	{engine::KeyCode::RETURN, ImGuiKey::ImGuiKey_Enter},
+	{engine::KeyCode::ESCAPE, ImGuiKey::ImGuiKey_Escape},
+	{engine::KeyCode::BACKSPACE, ImGuiKey::ImGuiKey_Backspace},
+	{engine::KeyCode::TAB, ImGuiKey::ImGuiKey_Tab},
+	{engine::KeyCode::SPACE, ImGuiKey::ImGuiKey_Space},
+	// {engine::KeyCode::EXCLAIM, ImGuiKey::ImGuiKey_}, 
+	// {engine::KeyCode::QUOTEDBL, ImGuiKey::ImGuiKey_},
+	// {engine::KeyCode::HASH, ImGuiKey::ImGuiKey_},
+	// {engine::KeyCode::PERCENT, ImGuiKey::ImGuiKey_},
+	// {engine::KeyCode::DOLLAR, ImGuiKey::ImGuiKey_},
+	// {engine::KeyCode::AMPERSAND, ImGuiKey::ImGuiKey_},
+	{engine::KeyCode::QUOTE, ImGuiKey::ImGuiKey_Apostrophe},
+	// {engine::KeyCode::LEFTPAREN, ImGuiKey::ImGuiKey_},
+	// {engine::KeyCode::RIGHTPAREN, ImGuiKey::ImGuiKey_},
+	// {engine::KeyCode::ASTERISK, ImGuiKey::ImGuiKey_},
+	// {engine::KeyCode::PLUS, ImGuiKey::ImGuiKey_},
+	{engine::KeyCode::COMMA, ImGuiKey::ImGuiKey_Comma},
+	{engine::KeyCode::MINUS, ImGuiKey::ImGuiKey_Minus},
+	{engine::KeyCode::PERIOD, ImGuiKey::ImGuiKey_Period},
+	{engine::KeyCode::SLASH, ImGuiKey::ImGuiKey_Slash},
+	{engine::KeyCode::NUM_0, ImGuiKey::ImGuiKey_0},
+	{engine::KeyCode::NUM_1, ImGuiKey::ImGuiKey_1},
+	{engine::KeyCode::NUM_2, ImGuiKey::ImGuiKey_2},
+	{engine::KeyCode::NUM_3, ImGuiKey::ImGuiKey_3},
+	{engine::KeyCode::NUM_4, ImGuiKey::ImGuiKey_4},
+	{engine::KeyCode::NUM_5, ImGuiKey::ImGuiKey_5},
+	{engine::KeyCode::NUM_6, ImGuiKey::ImGuiKey_6},
+	{engine::KeyCode::NUM_7, ImGuiKey::ImGuiKey_7},
+	{engine::KeyCode::NUM_8, ImGuiKey::ImGuiKey_8},
+	{engine::KeyCode::NUM_9, ImGuiKey::ImGuiKey_9},
+	// {engine::KeyCode::COLON, ImGuiKey::ImGuiKey_},
+	{engine::KeyCode::SEMICOLON, ImGuiKey::ImGuiKey_Semicolon},
+	// {engine::KeyCode::LESS, ImGuiKey::ImGuiKey_},
+	{engine::KeyCode::EQUALS, ImGuiKey::ImGuiKey_Equal},
+	// {engine::KeyCode::GREATER, ImGuiKey::ImGuiKey_},
+	// {engine::KeyCode::QUESTION, ImGuiKey::ImGuiKey_},
+	// {engine::KeyCode::AT, ImGuiKey::ImGuiKey_},
+	{engine::KeyCode::LEFTBRACKET, ImGuiKey::ImGuiKey_LeftBracket},
+	{engine::KeyCode::BACKSLASH, ImGuiKey::ImGuiKey_Backslash},
+	{engine::KeyCode::RIGHTBRACKET, ImGuiKey::ImGuiKey_RightBracket},
+	// {engine::KeyCode::CARET, ImGuiKey::ImGuiKey_},
+	// {engine::KeyCode::UNDERSCORE, ImGuiKey::ImGuiKey_},
+	{engine::KeyCode::BACKQUOTE, ImGuiKey::ImGuiKey_GraveAccent},
+	{engine::KeyCode::a, ImGuiKey::ImGuiKey_A},
+	{engine::KeyCode::b, ImGuiKey::ImGuiKey_B},
+	{engine::KeyCode::c, ImGuiKey::ImGuiKey_C},
+	{engine::KeyCode::d, ImGuiKey::ImGuiKey_D},
+	{engine::KeyCode::e, ImGuiKey::ImGuiKey_E},
+	{engine::KeyCode::f, ImGuiKey::ImGuiKey_F},
+	{engine::KeyCode::g, ImGuiKey::ImGuiKey_G},
+	{engine::KeyCode::h, ImGuiKey::ImGuiKey_H},
+	{engine::KeyCode::i, ImGuiKey::ImGuiKey_I},
+	{engine::KeyCode::j, ImGuiKey::ImGuiKey_J},
+	{engine::KeyCode::k, ImGuiKey::ImGuiKey_K},
+	{engine::KeyCode::l, ImGuiKey::ImGuiKey_L},
+	{engine::KeyCode::m, ImGuiKey::ImGuiKey_M},
+	{engine::KeyCode::n, ImGuiKey::ImGuiKey_N},
+	{engine::KeyCode::o, ImGuiKey::ImGuiKey_O},
+	{engine::KeyCode::p, ImGuiKey::ImGuiKey_P},
+	{engine::KeyCode::q, ImGuiKey::ImGuiKey_Q},
+	{engine::KeyCode::r, ImGuiKey::ImGuiKey_R},
+	{engine::KeyCode::s, ImGuiKey::ImGuiKey_S},
+	{engine::KeyCode::t, ImGuiKey::ImGuiKey_T},
+	{engine::KeyCode::u, ImGuiKey::ImGuiKey_U},
+	{engine::KeyCode::v, ImGuiKey::ImGuiKey_V},
+	{engine::KeyCode::w, ImGuiKey::ImGuiKey_W},
+	{engine::KeyCode::x, ImGuiKey::ImGuiKey_X},
+	{engine::KeyCode::y, ImGuiKey::ImGuiKey_Y},
+	{engine::KeyCode::z, ImGuiKey::ImGuiKey_Z},
+};
+
+std::unordered_map<engine::KeyMod, ImGuiKey> kImguiKeyModToImGuiKeyLookup{
+	{engine::KeyMod::KMOD_LSHIFT, ImGuiKey::ImGuiKey_LeftShift},
+	{engine::KeyMod::KMOD_RSHIFT, ImGuiKey::ImGuiKey_RightShift},
+	{engine::KeyMod::KMOD_LCTRL, ImGuiKey::ImGuiKey_LeftCtrl},
+	{engine::KeyMod::KMOD_RCTRL, ImGuiKey::ImGuiKey_RightCtrl},
+	{engine::KeyMod::KMOD_LALT, ImGuiKey::ImGuiKey_LeftAlt},
+	{engine::KeyMod::KMOD_RALT, ImGuiKey::ImGuiKey_RightAlt},
+	{engine::KeyMod::KMOD_LGUI, ImGuiKey::ImGuiKey_LeftSuper},
+	{engine::KeyMod::KMOD_RGUI, ImGuiKey::ImGuiKey_RightSuper},
+	{engine::KeyMod::KMOD_NUM, ImGuiKey::ImGuiKey_NumLock},
+	{engine::KeyMod::KMOD_CAPS, ImGuiKey::ImGuiKey_CapsLock},
+	{engine::KeyMod::KMOD_MODE, ImGuiKey::ImGuiKey_ModSuper},
+	{engine::KeyMod::KMOD_SCROLL, ImGuiKey::ImGuiKey_ScrollLock},
+};
+
+std::unordered_map<engine::KeyMod, ImGuiKey> kImguiKeyModToImGuiModLookup{
+	{engine::KeyMod::KMOD_NONE, ImGuiKey::ImGuiMod_None},
+	{engine::KeyMod::KMOD_LSHIFT, ImGuiKey::ImGuiMod_Shift},
+	{engine::KeyMod::KMOD_RSHIFT, ImGuiKey::ImGuiMod_Shift},
+	{engine::KeyMod::KMOD_LCTRL, ImGuiKey::ImGuiMod_Ctrl},
+	{engine::KeyMod::KMOD_RCTRL, ImGuiKey::ImGuiMod_Ctrl},
+	{engine::KeyMod::KMOD_LALT, ImGuiKey::ImGuiMod_Alt},
+	{engine::KeyMod::KMOD_RALT, ImGuiKey::ImGuiMod_Alt},
+	{engine::KeyMod::KMOD_LGUI, ImGuiKey::ImGuiMod_Super},
+	{engine::KeyMod::KMOD_RGUI, ImGuiKey::ImGuiMod_Super},
+	{engine::KeyMod::KMOD_CTRL, ImGuiKey::ImGuiMod_Ctrl},
+	{engine::KeyMod::KMOD_SHIFT, ImGuiKey::ImGuiMod_Shift},
+	{engine::KeyMod::KMOD_ALT, ImGuiKey::ImGuiMod_Alt},
+	{engine::KeyMod::KMOD_GUI, ImGuiKey::ImGuiMod_Super},
+};
 
 // ImGui has a static global ImGuiContext* which points to current active ImGuiContext.
 // And almost all ImGui apis assume that the api call will affect current active ImGuiContext.
@@ -216,7 +321,8 @@ void ImGuiContextInstance::Update(float deltaTime)
 	}
 
 	ImGuiIO& io = ImGui::GetIO();
-	if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+	const bool dockingEnabled = io.ConfigFlags & ImGuiConfigFlags_DockingEnable;
+	if (dockingEnabled)
 	{
 		BeginDockSpace();
 	}
@@ -229,7 +335,7 @@ void ImGuiContextInstance::Update(float deltaTime)
 		}
 	}
 
-	if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+	if (dockingEnabled)
 	{
 		EndDockSpace();
 	}
@@ -273,6 +379,35 @@ void ImGuiContextInstance::AddInputEvent()
 		io.AddMousePosEvent(mousePosX - m_windowPosOffsetX, mousePosY - m_windowPosOffsetY);
 		m_lastMousePositionX = mousePosX;
 		m_lastMousePositionY = mousePosY;
+	}
+
+	const std::vector<Input::KeyEvent> keyEvents = Input::Get().GetKeyEventList();
+	for (uint32_t i = 0; i < keyEvents.size(); ++i)
+	{
+		const Input::KeyEvent keyEvent = keyEvents[i];
+		if (keyEvent.mod != KeyMod::KMOD_NONE)
+		{
+			// Add the modifier key event
+			if (kImguiKeyModToImGuiModLookup.find(keyEvent.mod) != kImguiKeyModToImGuiModLookup.cend())
+			{
+				io.AddKeyEvent(kImguiKeyModToImGuiModLookup[keyEvent.mod], keyEvent.isPressed);
+			}
+			// Also add the key itself as key event
+			if (kImguiKeyModToImGuiKeyLookup.find(keyEvent.mod) != kImguiKeyModToImGuiKeyLookup.cend())
+			{
+				io.AddKeyEvent(kImguiKeyModToImGuiKeyLookup[keyEvent.mod], keyEvent.isPressed);
+			}
+		}
+		if (kImguiKeyLookup.find(keyEvent.code) != kImguiKeyLookup.cend()) {
+			io.AddKeyEvent(kImguiKeyLookup[keyEvent.code], keyEvent.isPressed);
+		}
+	}
+
+	const char* inputChars = Input::Get().GetInputCharacters();
+	const size_t inputCharSize = strlen(inputChars);
+	for (size_t i = 0; i < inputCharSize; ++i)
+	{
+		io.AddInputCharacter(inputChars[i]);
 	}
 }
 

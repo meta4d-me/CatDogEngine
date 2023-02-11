@@ -5,6 +5,7 @@
 #include "Display/FlybyCamera.h"
 #include "Framework/Processor.h"
 #include "ImGui/ImGuiContextInstance.h"
+#include "ImGui/UILayers/DebugPanel.h"
 #include "Producers/CDProducer/CDProducer.h"
 #include "Rendering/BgfxConsumer.h"
 #include "Rendering/ImGuiRenderer.h"
@@ -15,7 +16,7 @@
 #include "Rendering/SceneRenderer.h"
 #include "Rendering/SkyRenderer.h"
 #include "Rendering/TerrainRenderer.h"
-#include "ImGui/UILayers/DebugPanel.h"
+#include "Window/Input.h"
 #include "Window/Window.h"
 
 namespace game
@@ -137,6 +138,8 @@ bool GameApp::Update(float deltaTime)
 	}
 
 	m_pRenderContext->EndFrame();
+
+	engine::Input::Get().FlushInputs();
 
 	return !m_pMainWindow->ShouldClose();
 }
