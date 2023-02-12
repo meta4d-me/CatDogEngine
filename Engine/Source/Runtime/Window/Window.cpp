@@ -82,22 +82,22 @@ void Window::Update()
 			const SDL_WindowEvent& wev = sdlEvent.window;
 			switch (wev.event)
 			{
-				case SDL_WINDOWEVENT_RESIZED:
-				case SDL_WINDOWEVENT_SIZE_CHANGED:
+			case SDL_WINDOWEVENT_RESIZED:
+			case SDL_WINDOWEVENT_SIZE_CHANGED:
+			{
+				int currentWindowWidth;
+				int currentWindowHeight;
+				SDL_GetWindowSize(m_pSDLWindow, &currentWindowWidth, &currentWindowHeight);
+				if (currentWindowWidth != m_width || currentWindowHeight != m_height)
 				{
-					int currentWindowWidth;
-					int currentWindowHeight;
-					SDL_GetWindowSize(m_pSDLWindow, &currentWindowWidth, &currentWindowHeight);
-					if (currentWindowWidth != m_width || currentWindowHeight != m_height)
-					{
-						m_width = currentWindowWidth;
-						m_height = currentWindowHeight;
-						SDL_SetWindowSize(m_pSDLWindow, m_width, m_height);
+					m_width = currentWindowWidth;
+					m_height = currentWindowHeight;
+					SDL_SetWindowSize(m_pSDLWindow, m_width, m_height);
 
-						OnResize.Invoke(m_width, m_height);
-					}
+					OnResize.Invoke(m_width, m_height);
 				}
-				break;
+			}
+			break;
 			}
 		}
 		break;
@@ -155,37 +155,48 @@ void Window::Update()
 		}
 		break;
 
+		case SDL_TEXTINPUT:
+		{   
+			const size_t inputLen = strlen(sdlEvent.text.text);
+			Input::Get().AppendInputCharacter(sdlEvent.text.text, inputLen);
+		}
+		break;
+
 		case SDL_KEYDOWN:
 		{
 			Sint32 sdlKeyCode = sdlEvent.key.keysym.sym;
-
-			if (sdlKeyCode < Input::MaxKeyCode)
-			{
-				Input::Get().SetKeyPressed(static_cast<uint8_t>(sdlKeyCode), true);
-			}
-
 			KeyMod keyMod = static_cast<KeyMod>(sdlEvent.key.keysym.mod);
 			if (keyMod != KeyMod::KMOD_NONE)
 			{
 				Input::Get().SetModifier(keyMod);
 			}
+			if (sdlKeyCode >= Input::MaxKeyCode)
+			{
+				return;
+			}
+			KeyCode keyCode = static_cast<KeyCode>(static_cast<std::underlying_type_t<KeyCode>>(sdlKeyCode));
+			Input::Get().SetKeyPressed(keyCode, true);
+			Input::Get().AppendKeyEvent(keyCode, keyMod, true);
 		}
 		break;
 
 		case SDL_KEYUP:
 		{
 			Sint32 sdlKeyCode = sdlEvent.key.keysym.sym;
-
-			if (sdlKeyCode < Input::MaxKeyCode)
-			{
-				Input::Get().SetKeyPressed(static_cast<uint8_t>(sdlKeyCode), false);
-			}
-
 			KeyMod keyMod = static_cast<KeyMod>(sdlEvent.key.keysym.mod);
 			if (keyMod != KeyMod::KMOD_NONE)
 			{
 				Input::Get().ClearModifier(keyMod);
 			}
+
+			if (sdlKeyCode >= Input::MaxKeyCode)
+			{
+				return;
+			}
+			KeyCode keyCode = static_cast<KeyCode>(static_cast<std::underlying_type_t<KeyCode>>(sdlKeyCode));
+			Input::Get().SetKeyPressed(keyCode, false);
+			Input::Get().AppendKeyEvent(keyCode, keyMod, false);
+
 		}
 		break;
 

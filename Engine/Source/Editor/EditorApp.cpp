@@ -28,6 +28,8 @@
 #include "UILayers/MainMenu.h"
 #include "UILayers/OutputLog.h"
 #include "UILayers/SceneView.h"
+#include "UILayers/TerrainEditor.h"
+#include "Window/Input.h"
 #include "Window/Window.h"
 
 #include <imgui/imgui.h>
@@ -100,7 +102,7 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 	m_pEditorImGuiContext = std::make_unique<engine::ImGuiContextInstance>(GetMainWindow()->GetWidth(), GetMainWindow()->GetHeight(), true/*dockable*/);
 	RegisterImGuiUserData(m_pEditorImGuiContext.get());
 
-	// TODO : more font files to load and switch dynamicly.
+	// TODO : more font files to load and switch dynamically.
 	std::vector<std::string> ttfFileNames = { "FanWunMing-SB.ttf" };
 	m_pEditorImGuiContext->LoadFontFiles(ttfFileNames, language);
 
@@ -125,6 +127,9 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 	m_pSceneView = pSceneView.get();
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
+
+	auto pTerrainEditor = std::make_unique<TerrainEditor>("Terrain Editor");
+	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pTerrainEditor));
 
 	auto pAssetBrowser = std::make_unique<AssetBrowser>("AssetBrowser");
 	pAssetBrowser->SetSceneRenderer(m_pSceneRenderer);
@@ -320,6 +325,8 @@ bool EditorApp::Update(float deltaTime)
 	}
 
 	m_pRenderContext->EndFrame();
+
+	engine::Input::Get().FlushInputs();
 	
 	return !GetMainWindow()->ShouldClose();
 }

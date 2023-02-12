@@ -79,6 +79,7 @@ project("Editor")
 		"AssetPipelineCore",
 		"CDProducer",
 		"GenericProducer",
+		"TerrainProducer",
 		"CDConsumer",
 	}
 

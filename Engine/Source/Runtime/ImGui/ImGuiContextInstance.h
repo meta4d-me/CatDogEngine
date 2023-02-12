@@ -37,10 +37,10 @@ public:
 	// Query if m_pImGuiContext is current active context.
 	bool IsActive() const;
 
-	// Static layer means non-moveable, non-dockable.
+	// Static layer means non-movable, non-dockable.
 	void AddStaticLayer(std::unique_ptr<ImGuiBaseLayer> pLayer);
 
-	// Dockable layer means moveable, dockable.
+	// Dockable layer means movable, dockable.
 	std::vector<std::unique_ptr<ImGuiBaseLayer>>& GetDockableLayers() { return m_pImGuiDockableLayers; }
 	void AddDynamicLayer(std::unique_ptr<ImGuiBaseLayer> pLayer);
 	
