@@ -1,4 +1,4 @@
-git pull origin HEAD
-git submodule update --init
+git submodule init
+git submodule update --recursive --remote
 
 pause
