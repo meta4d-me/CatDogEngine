@@ -1,7 +1,8 @@
 $input v_worldPos, v_indices, v_weight
 
 #include "../common/common.sh"
-#include "uniforms.sh"
+
+uniform vec4 u_debugBoneIndex[1];
 
 vec3 evalSh(vec3 dir) {
 #	define k01 0.2820947918 // sqrt( 1/PI)/2
@@ -52,7 +53,7 @@ void main()
 	vec3 fragColor = vec3_splat(0.0);
 	for(int i = 0; i < 4; ++i)
 	{
-		if(v_indices[i] == 1)
+		if(v_indices[i] == u_debugBoneIndex[0].x)
 		{
 			if(v_weight[i] >= 0.7)
 			{
