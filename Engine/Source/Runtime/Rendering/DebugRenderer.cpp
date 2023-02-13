@@ -1,9 +1,9 @@
 #include "DebugRenderer.h"
 
 #include "Core/StringCrc.h"
+#include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
-#include "ECWorld/World.h"
 #include "Display/Camera.h"
 #include "RenderContext.h"
 #include "Scene/Texture.h"
@@ -28,18 +28,15 @@ void DebugRenderer::UpdateView(const float* pViewMatrix, const float* pProjectio
 
 void DebugRenderer::Render(float deltaTime)
 {
-	auto pMeshStorage = m_pCurrentWorld->GetComponents<StaticMeshComponent>();
-	auto pTransformStorage = m_pCurrentWorld->GetComponents<TransformComponent>();
-
-	for (Entity entity : pMeshStorage->GetEntities())
+	for (Entity entity : m_pCurrentSceneWorld->GetStaticMeshEntities())
 	{
-		StaticMeshComponent* pMeshComponent = pMeshStorage->GetComponent(entity);
+		StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
 		if (!pMeshComponent)
 		{
 			continue;
 		}
 
-		if (TransformComponent* pTransformComponent = pTransformStorage->GetComponent(entity))
+		if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 		{
 			pTransformComponent->Build();
 			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());

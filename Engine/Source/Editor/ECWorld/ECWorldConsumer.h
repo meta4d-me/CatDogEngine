@@ -19,6 +19,7 @@ class Mesh;
 class Node;
 class SceneDatabase;
 class Texture;
+class VertexFormat;
 
 }
 
@@ -28,7 +29,7 @@ namespace engine
 class MaterialComponent;
 class MaterialType;
 class RenderContext;
-class World;
+class SceneWorld;
 
 }
 
@@ -39,7 +40,7 @@ class ECWorldConsumer final : public cdtools::IConsumer
 {
 public:
 	ECWorldConsumer() = delete;
-	explicit ECWorldConsumer(engine::World* pWorld, engine::MaterialType* pMaterialType, engine::RenderContext* pRenderContext);
+	explicit ECWorldConsumer(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext);
 	ECWorldConsumer(const ECWorldConsumer&) = delete;
 	ECWorldConsumer& operator=(const ECWorldConsumer&) = delete;
 	ECWorldConsumer(ECWorldConsumer&&) = delete;
@@ -51,15 +52,16 @@ public:
 
 private:
 	void AddNode(engine::Entity entity, const cd::Node& node);
-	void AddMesh(engine::Entity entity, const cd::Mesh& mesh);
+	void AddStaticMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat);
+	void AddSkinMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat);
+	void AddMaterial(engine::Entity entity, const cd::Material* pMaterial, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase);
+
 	std::string GetShaderOutputFilePath(const char* pInputFilePath, const char* pAppendFileName = nullptr);
 	std::string GetTextureOutputFilePath(const char* pInputFilePath);
-	void AddMaterial(engine::Entity entity, const cd::Material& material, const cd::SceneDatabase* pSceneDatabase);
 
 private:
 	engine::RenderContext* m_pRenderContext;
-	engine::World* m_pWorld;
-	engine::MaterialType* m_pStandardMaterialType;
+	engine::SceneWorld* m_pSceneWorld;
 
 	uint32_t m_nodeMinID;
 	std::map<cd::NodeID::ValueType, engine::Entity> m_mapTransformIDToEntities;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ECWorld/AnimationComponent.h"
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/CollisionMeshComponent.h"
 #include "ECWorld/HierarchyComponent.h"

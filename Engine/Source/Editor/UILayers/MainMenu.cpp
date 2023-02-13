@@ -146,14 +146,15 @@ void MainMenu::BuildMenu()
 				}
 				else
 				{
-					CD_ERROR("Shader source file's type is unknown by its file name.");
+					CD_ERROR("Shader source file's type is unknown by its file name : {0}.", fileName.c_str());
 					continue;
 				}
 				
 				// TODO : We don't know their uber options here.
 				// So this feature only generates default shader now.
 				std::string outputShaderPath = CDENGINE_RESOURCES_ROOT_PATH;
-				outputShaderPath += "Shaders/" + filePath.filename().generic_string();
+				outputShaderPath += "Shaders/" + filePath.stem().generic_string();
+				outputShaderPath += ".bin";
 				ResourceBuilder::Get().AddShaderBuildTask(shaderType,
 					filePath.generic_string().c_str(), outputShaderPath.c_str());
 			}

@@ -287,6 +287,7 @@ void ImGuiContextInstance::BeginDockSpace()
 		ImGui::DockBuilderDockWindow("EntityList", dockSpaceUpLeftLeft);
 		ImGui::DockBuilderDockWindow("GameView", dockSpaceLeftLeft);
 		ImGui::DockBuilderDockWindow("SceneView", dockSpaceLeftRight);
+		ImGui::DockBuilderDockWindow("Terrain Editor", dockSpaceUpRight);
 		ImGui::DockBuilderDockWindow("Inspector", dockSpaceUpRight);
 		ImGui::DockBuilderDockWindow("AssetBrowser", dockSpaceBottomLeft);
 		ImGui::DockBuilderDockWindow("OutputLog", dockSpaceBottomRight);

@@ -35,10 +35,10 @@ public:
 		return s_instance;
 	}
 
-	void AddTask(Process process);
-	void AddCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
-	void AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const std::vector<const char*>* pUberOptions = nullptr);
-	void AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath);
+	bool AddTask(Process process);
+	bool AddCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
+	bool AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const std::vector<const char*>* pUberOptions = nullptr);
+	bool AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath);
 	void Update();
 
 private:

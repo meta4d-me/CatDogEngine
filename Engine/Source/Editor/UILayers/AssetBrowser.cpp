@@ -194,10 +194,9 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		genericProducer.ActivateCleanUnusedService();
 		genericProducer.ActivateTangentsSpaceService();
 		genericProducer.ActivateTriangulateService();
-		genericProducer.ActivateFlattenHierarchyService();
 
 		// TODO : manage different material types.
-		ECWorldConsumer ecConsumer(pSceneWorld->GetWorld(), pSceneWorld->GetPBRMaterialType(), pCurrentRenderContext);
+		ECWorldConsumer ecConsumer(pSceneWorld, pCurrentRenderContext);
 		ecConsumer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount());
 		cdtools::Processor processor(&genericProducer, &ecConsumer, pSceneDatabase);
 		processor.Run();

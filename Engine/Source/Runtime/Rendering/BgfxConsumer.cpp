@@ -246,8 +246,8 @@ void BgfxConsumer::ConvertMeshesFromScene(const cd::SceneDatabase& sceneDatabase
 				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexBiTangent(vertexIndex).Begin(), mesh.GetVertexBiTangent(vertexIndex).Begin() + 1, mesh.GetVertexBiTangent(vertexIndex).Begin() + 2, nullptr);
 			}
 
-			assert(MAX_COLOR_COUNT >= cd::MaxColorSetNumber);
-			for (uint32_t i = 0; i < cd::MaxColorSetNumber; ++i)
+			assert(MAX_COLOR_COUNT >= cd::MaxColorSetCount);
+			for (uint32_t i = 0; i < cd::MaxColorSetCount; ++i)
 			{
 				const bgfx::Attrib::Enum color = AllAttribColorTypes[i];
 				if (!vertexLayout.has(color))
@@ -261,8 +261,8 @@ void BgfxConsumer::ConvertMeshesFromScene(const cd::SceneDatabase& sceneDatabase
 				sanityCheck(currentDataPtr, attribOffset, mesh.GetVertexColor(i)[vertexIndex].Begin(), mesh.GetVertexColor(i)[vertexIndex].Begin() + 1, mesh.GetVertexColor(i)[vertexIndex].Begin() + 2, mesh.GetVertexColor(i)[vertexIndex].Begin() + 3);
 			}
 
-			assert(MAX_UV_COUNT >= cd::MaxUVSetNumber);
-			for (uint32_t i = 0; i < cd::MaxUVSetNumber; ++i)
+			assert(MAX_UV_COUNT >= cd::MaxUVSetCount);
+			for (uint32_t i = 0; i < cd::MaxUVSetCount; ++i)
 			{
 				const bgfx::Attrib::Enum uv = AllAttribUVTypes[i];
 				if (!vertexLayout.has(uv))

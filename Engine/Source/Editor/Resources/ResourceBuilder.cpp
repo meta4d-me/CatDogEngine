@@ -31,16 +31,17 @@ bool IsIOFilePathsValid(const char* pInputFilePath, const char* pOutputFilePath)
 namespace editor
 {
 
-void ResourceBuilder::AddTask(Process process)
+bool ResourceBuilder::AddTask(Process process)
 {
 	m_buildTasks.push(cd::MoveTemp(process));
+	return true;
 }
 
-void ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const std::vector<const char*>* pUberOptions)
+bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const std::vector<const char*>* pUberOptions)
 {
 	//if (!IsIOFilePathsValid(pInputFilePath, pOutputFilePath))
 	//{
-	//	return;
+	//	return false;
 	//}
 
 	// Document : https://bkaradzic.github.io/bgfx/tools.html#shader-compiler-shaderc
@@ -93,13 +94,15 @@ void ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 
 	process.SetWaitUntilFinished(true);
 	AddTask(cd::MoveTemp(process));
+
+	return true;
 }
 
-void ResourceBuilder::AddCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath)
+bool ResourceBuilder::AddCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath)
 {
 	if (!IsIOFilePathsValid(pInputFilePath, pOutputFilePath))
 	{
-		return;
+		return false;
 	}
 
 	// Document : In command line, ./cmft -h
@@ -113,13 +116,15 @@ void ResourceBuilder::AddCubeMapBuildTask(const char* pInputFilePath, const char
 	process.SetCommandArguments(cd::MoveTemp(commandArguments));
 	process.SetWaitUntilFinished(true);
 	AddTask(cd::MoveTemp(process));
+
+	return true;
 }
 
-void ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath)
+bool ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath)
 {
 	if (!IsIOFilePathsValid(pInputFilePath, pOutputFilePath))
 	{
-		return;
+		return false;
 	}
 
 	// Document : https://bkaradzic.github.io/bgfx/tools.html#texture-compiler-texturec
@@ -139,6 +144,8 @@ void ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, c
 	process.SetCommandArguments(cd::MoveTemp(commandArguments));
 	process.SetWaitUntilFinished(true);
 	AddTask(cd::MoveTemp(process));
+
+	return true;
 }
 
 void ResourceBuilder::Update()

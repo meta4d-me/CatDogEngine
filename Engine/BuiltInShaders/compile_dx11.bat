@@ -35,6 +35,10 @@ rem ImGui
 start /b shaderc --type v --platform windows -p vs_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/vs_imgui.sc -o %PROJECT%/vs_imgui.bin
 start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/fs_imgui.sc -o %PROJECT%/fs_imgui.bin
 
+rem Animation
+start /b shaderc --type v --platform windows -p vs_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/vs_animation.sc -o %PROJECT%/vs_animation.bin
+start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/fs_animation.sc -o %PROJECT%/fs_animation.bin
+
 rem Wireframes
 start /b shaderc --type v --platform windows -p vs_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/vs_wireframe.sc -o %PROJECT%/vs_wireframe.bin
 start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/fs_wireframe.sc -o %PROJECT%/fs_wireframe.bin
