@@ -9,12 +9,12 @@ namespace
 {
 
 constexpr bgfx::Attrib::Enum AllAttribColorTypes[] = {
-bgfx::Attrib::Enum::Color0,
-bgfx::Attrib::Enum::Color1,
-bgfx::Attrib::Enum::Color2,
-bgfx::Attrib::Enum::Color3
+	bgfx::Attrib::Enum::Color0,
+	bgfx::Attrib::Enum::Color1,
+	bgfx::Attrib::Enum::Color2,
+	bgfx::Attrib::Enum::Color3
 };
-constexpr uint32_t MAX_COLOR_COUNT = 4;
+constexpr uint32_t MAX_COLOR_COUNT = sizeof(AllAttribColorTypes) / sizeof(bgfx::Attrib::Enum);
 
 constexpr bgfx::Attrib::Enum AllAttribUVTypes[] = {
 	bgfx::Attrib::Enum::TexCoord0,
@@ -26,9 +26,9 @@ constexpr bgfx::Attrib::Enum AllAttribUVTypes[] = {
 	bgfx::Attrib::Enum::TexCoord6,
 	bgfx::Attrib::Enum::TexCoord7
 };
-constexpr uint32_t MAX_UV_COUNT = 8;
+constexpr uint32_t MAX_UV_COUNT = sizeof(AllAttribUVTypes) / sizeof(bgfx::Attrib::Enum);
 
-std::string VertexAttributeTypeToString(const cd::VertexAttributeType& attribType)
+std::string VertexAttributeTypeToString(cd::VertexAttributeType attribType)
 {
 	switch (attribType)
 	{
@@ -44,6 +44,10 @@ std::string VertexAttributeTypeToString(const cd::VertexAttributeType& attribTyp
 		return "UV";
 	case cd::VertexAttributeType::Color:
 		return "Color";
+	case cd::VertexAttributeType::BoneIndex:
+		return "BoneIndex";
+	case cd::VertexAttributeType::BoneWeight:
+		return "BoneWeight";
 	default:
 		return "Invalid Attribute Type!";
 	}
@@ -57,6 +61,8 @@ std::string AttributeValueTypeToString(const cd::AttributeValueType& attribValue
 		return "Float";
 	case cd::AttributeValueType::Uint8:
 		return "Uint8";
+	case cd::AttributeValueType::Int16:
+		return "Uint16";
 	default:
 		return "Invalid Attribute Value Type!";
 	}
@@ -64,50 +70,56 @@ std::string AttributeValueTypeToString(const cd::AttributeValueType& attribValue
 
 void ConvertVertexLayout(const cd::VertexAttributeLayout& vertexAttributeLayout, bgfx::VertexLayout& outVertexLayout)
 {
-	bgfx::Attrib::Enum vertexAttrib = bgfx::Attrib::Enum::Count;
-	bgfx::AttribType::Enum vertexAttribValue = bgfx::AttribType::Enum::Count;
+	bgfx::Attrib::Enum vertexAttribute = bgfx::Attrib::Enum::Count;
+	bgfx::AttribType::Enum vertexAttributeValue = bgfx::AttribType::Enum::Count;
 	bool normalized = false;
 
 	// Attribute Type
 	switch (vertexAttributeLayout.vertexAttributeType)
 	{
 	case cd::VertexAttributeType::Position:
-		vertexAttrib = bgfx::Attrib::Enum::Position;
+		vertexAttribute = bgfx::Attrib::Enum::Position;
 		break;
 	case cd::VertexAttributeType::Normal:
-		vertexAttrib = bgfx::Attrib::Enum::Normal;
+		vertexAttribute = bgfx::Attrib::Enum::Normal;
 		normalized = true;
 		break;
 	case cd::VertexAttributeType::Tangent:
-		vertexAttrib = bgfx::Attrib::Enum::Tangent;
+		vertexAttribute = bgfx::Attrib::Enum::Tangent;
 		break;
 	case cd::VertexAttributeType::Bitangent:
-		vertexAttrib = bgfx::Attrib::Enum::Bitangent;
+		vertexAttribute = bgfx::Attrib::Enum::Bitangent;
 		break;
 	case cd::VertexAttributeType::UV:
-		vertexAttrib = bgfx::Attrib::Enum::Count;
+		vertexAttribute = bgfx::Attrib::Enum::Count;
 		for (const bgfx::Attrib::Enum& textCoord : AllAttribUVTypes)
 		{
 			if (!outVertexLayout.has(textCoord))
 			{
-				vertexAttrib = textCoord;
+				vertexAttribute = textCoord;
 				break;
 			}
 		}
 		break;
 	case cd::VertexAttributeType::Color:
-		vertexAttrib = bgfx::Attrib::Enum::Count;
+		vertexAttribute = bgfx::Attrib::Enum::Count;
 		for (const bgfx::Attrib::Enum& color : AllAttribColorTypes)
 		{
 			if (!outVertexLayout.has(color))
 			{
-				vertexAttrib = color;
+				vertexAttribute = color;
 				break;
 			}
 		}
 		break;
+	case cd::VertexAttributeType::BoneIndex:
+		vertexAttribute = bgfx::Attrib::Enum::Indices;
+		break;
+	case cd::VertexAttributeType::BoneWeight:
+		vertexAttribute = bgfx::Attrib::Enum::Weight;
+		break;
 	default:
-		vertexAttrib = bgfx::Attrib::Enum::Count;
+		vertexAttribute = bgfx::Attrib::Enum::Count;
 		break;
 	}
 
@@ -115,19 +127,22 @@ void ConvertVertexLayout(const cd::VertexAttributeLayout& vertexAttributeLayout,
 	switch (vertexAttributeLayout.attributeValueType)
 	{
 	case cd::AttributeValueType::Uint8:
-		vertexAttribValue = bgfx::AttribType::Enum::Uint8;
+		vertexAttributeValue = bgfx::AttribType::Enum::Uint8;
+		break;
+	case cd::AttributeValueType::Int16:
+		vertexAttributeValue = bgfx::AttribType::Enum::Int16;
 		break;
 	case cd::AttributeValueType::Float:
-		vertexAttribValue = bgfx::AttribType::Enum::Float;
+		vertexAttributeValue = bgfx::AttribType::Enum::Float;
 		break;
 	default:
-		vertexAttribValue = bgfx::AttribType::Enum::Count;
+		vertexAttributeValue = bgfx::AttribType::Enum::Count;
 		break;
 	}
 
-	assert(vertexAttrib != bgfx::Attrib::Enum::Count);
-	assert(vertexAttribValue != bgfx::AttribType::Enum::Count);
-	outVertexLayout.add(vertexAttrib, vertexAttributeLayout.attributeCount, vertexAttribValue, normalized);
+	assert(vertexAttribute != bgfx::Attrib::Enum::Count);
+	assert(vertexAttributeValue != bgfx::AttribType::Enum::Count);
+	outVertexLayout.add(vertexAttribute, vertexAttributeLayout.attributeCount, vertexAttributeValue, normalized);
 }
 
 }

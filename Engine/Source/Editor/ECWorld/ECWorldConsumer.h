@@ -54,7 +54,7 @@ private:
 	void AddNode(engine::Entity entity, const cd::Node& node);
 	void AddStaticMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat);
 	void AddSkinMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat);
-	void AddMaterial(engine::Entity entity, const cd::Material& material, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase);
+	void AddMaterial(engine::Entity entity, const cd::Material* pMaterial, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase);
 
 	std::string GetShaderOutputFilePath(const char* pInputFilePath, const char* pAppendFileName = nullptr);
 	std::string GetTextureOutputFilePath(const char* pInputFilePath);

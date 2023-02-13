@@ -1,4 +1,4 @@
-$input v_worldPos
+$input v_worldPos, v_indices, v_weight
 
 #include "../common/common.sh"
 #include "uniforms.sh"
@@ -48,13 +48,39 @@ vec3 evalSh(vec3 dir) {
 
 void main()
 {
-	vec4 shColor = vec4_splat(0.0);
+	bool foundBoneWeights = false;
+	vec3 fragColor = vec3_splat(0.0);
+	for(int i = 0; i < 4; ++i)
+	{
+		if(v_indices[i] == 1)
+		{
+			if(v_weight[i] >= 0.7)
+			{
+				fragColor = vec3(1.0, 0.0, 0.0) * v_weight[i];
+			}
+			else if(v_weight[i] >= 0.4 && v_weight[i] <= 0.6)
+			{
+				fragColor = vec3(0.0, 1.0, 0.0) * v_weight[i];
+			}
+			else if(v_weight[i] >= 0.1)
+			{
+				fragColor = vec3(0.0, 0.0, 1.0) * v_weight[i];
+			}
+			
+			foundBoneWeights = true;
+			break;
+		}
+	}
 	
-	// Spherical Harmonics
-	vec3 dx = dFdx(v_worldPos);
-	vec3 dy = dFdy(v_worldPos);
-	vec3 flatNormal = normalize(cross(dx, dy));
-	shColor = vec4(evalSh(flatNormal), 1.0);
-	
-	gl_FragColor = shColor;
+	if(foundBoneWeights)
+	{
+		// debug bone weights
+		gl_FragColor = vec4(fragColor, 1.0);
+	}
+	else
+	{
+		// Spherical Harmonics
+		vec3 flatNormal = normalize(cross(dFdx(v_worldPos), dFdy(v_worldPos)));
+		gl_FragColor = vec4(evalSh(flatNormal), 1.0);
+	}
 }

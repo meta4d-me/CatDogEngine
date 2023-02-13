@@ -63,13 +63,14 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 				cd::MaterialID meshMaterialID = mesh.GetMaterialID();
 				if (meshMaterialID.IsValid())
 				{
-					AddMaterial(sceneEntity, pSceneDatabase->GetMaterial(meshMaterialID.Data()), pMaterialType, pSceneDatabase);
+					AddMaterial(sceneEntity, &pSceneDatabase->GetMaterial(meshMaterialID.Data()), pMaterialType, pSceneDatabase);
 				}
 			}
 			else
 			{
 				engine::MaterialType* pMaterialType = m_pSceneWorld->GetAnimationMaterialType();
 				AddSkinMesh(sceneEntity, mesh, pMaterialType->GetRequiredVertexFormat());
+				AddMaterial(sceneEntity, nullptr, pMaterialType, pSceneDatabase);
 			}
 		}
 	}
@@ -141,7 +142,7 @@ std::string ECWorldConsumer::GetTextureOutputFilePath(const char* pInputFilePath
 	return outputTexturePath;
 }
 
-void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& material, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase)
+void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMaterial, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase)
 {
 	std::set<uint8_t> compiledTextureSlot;
 	std::map<std::string, const cd::Texture*> outputTexturePathToData;
@@ -151,7 +152,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& mat
 	bool unknownTextureSlot = false;
 	for (cd::MaterialTextureType requiredTextureType : pMaterialType->GetRequiredTextureTypes())
 	{
-		std::optional<cd::TextureID> optTexture = material.GetTextureID(requiredTextureType);
+		std::optional<cd::TextureID> optTexture = pMaterial->GetTextureID(requiredTextureType);
 		if (!optTexture.has_value())
 		{
 			missRequiredTextures = true;
@@ -174,7 +175,10 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& mat
 			// For example, AO + Metalness + Roughness are packed so they have same slots which mean we only need to build it once.
 			// Note that these texture types can only have same setting to build texture.
 			compiledTextureSlot.insert(textureSlot);
-			ResourceBuilder::Get().AddTextureBuildTask(requiredTexture.GetType(), requiredTexture.GetPath(), outputTexturePath.c_str());
+			if (!ResourceBuilder::Get().AddTextureBuildTask(requiredTexture.GetType(), requiredTexture.GetPath(), outputTexturePath.c_str()))
+			{
+				break;
+			}
 		}
 		outputTexturePathToData[cd::MoveTemp(outputTexturePath)] = &requiredTexture;
 	}
@@ -213,7 +217,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& mat
 		// Expected textures are ready to build. Add more optional texture data.
 		for (cd::MaterialTextureType optionalTextureType : pMaterialType->GetOptionalTextureTypes())
 		{
-			std::optional<cd::TextureID> optTexture = material.GetTextureID(optionalTextureType);
+			std::optional<cd::TextureID> optTexture = pMaterial->GetTextureID(optionalTextureType);
 			if (!optTexture.has_value())
 			{
 				// Optional texture is OK to failed to import.
@@ -233,7 +237,10 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& mat
 			if (!compiledTextureSlot.contains(textureSlot))
 			{
 				compiledTextureSlot.insert(textureSlot);
-				ResourceBuilder::Get().AddTextureBuildTask(optionalTexture.GetType(), optionalTexture.GetPath(), outputTexturePath.c_str());
+				if (!ResourceBuilder::Get().AddTextureBuildTask(optionalTexture.GetType(), optionalTexture.GetPath(), outputTexturePath.c_str()))
+				{
+					continue;
+				}
 			}
 			outputTexturePathToData[cd::MoveTemp(outputTexturePath)] = &optionalTexture;
 		}
@@ -262,7 +269,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& mat
 	// TODO : create material component before ResourceBuilder done.
 	// Assign a special color for loading resource status.
 	engine::MaterialComponent& materialComponent = m_pSceneWorld->GetWorld()->CreateComponent<engine::MaterialComponent>(entity);
-	materialComponent.SetMaterialData(&material);
+	materialComponent.SetMaterialData(pMaterial);
 	materialComponent.SetMaterialType(pMaterialType);
 	materialComponent.SetUberShaderOption(currentUberOption);
 

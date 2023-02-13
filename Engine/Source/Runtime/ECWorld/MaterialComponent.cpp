@@ -62,8 +62,6 @@ void MaterialComponent::Reset()
 
 void MaterialComponent::Build()
 {
-	assert(m_pMaterialData && "Input data is not ready.");
-
 	static int textureIndex = 0;
 	uint64_t textureFlag = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
 	for (const auto& [textureType, textureBlob] : m_textureTypeToBlob)
