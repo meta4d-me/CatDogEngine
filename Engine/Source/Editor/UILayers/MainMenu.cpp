@@ -146,7 +146,7 @@ void MainMenu::BuildMenu()
 				}
 				else
 				{
-					CD_ERROR("Shader source file's type is unknown by its file name.");
+					CD_ERROR("Shader source file's type is unknown by its file name : {0}.", fileName.c_str());
 					continue;
 				}
 				

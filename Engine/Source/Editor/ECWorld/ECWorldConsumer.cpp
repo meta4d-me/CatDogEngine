@@ -4,7 +4,7 @@
 #include "ECWorld/HierarchyComponent.h"
 #include "ECWorld/MaterialComponent.h"
 #include "ECWorld/NameComponent.h"
-#include "ECWorld/World.h"
+#include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
 #include "Material/MaterialType.h"
@@ -23,9 +23,8 @@
 namespace editor
 {
 
-ECWorldConsumer::ECWorldConsumer(engine::World* pWorld, engine::MaterialType* pMaterialType, engine::RenderContext* pRenderContext) :
-	m_pWorld(pWorld),
-	m_pStandardMaterialType(pMaterialType),
+ECWorldConsumer::ECWorldConsumer(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext) :
+	m_pSceneWorld(pSceneWorld),
 	m_pRenderContext(pRenderContext)
 {
 }
@@ -47,19 +46,30 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 			continue;
 		}
 
-		engine::Entity sceneEntity = m_pWorld->CreateEntity();
+		engine::Entity sceneEntity = m_pSceneWorld->GetWorld()->CreateEntity();
 		AddNode(sceneEntity, node);
 
 		for (cd::MeshID meshID : node.GetMeshIDs())
 		{
 			const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
-			AddMesh(sceneEntity, mesh);
 
-			cd::MaterialID meshMaterialID = mesh.GetMaterialID();
-			if (meshMaterialID.IsValid())
+			// TODO : Or the user doesn't want to import animation data.
+			const bool isStaticMesh = 0U == mesh.GetVertexInfluenceCount();
+			if (isStaticMesh)
 			{
-				const cd::Material& material = pSceneDatabase->GetMaterial(mesh.GetMaterialID().Data());
-				AddMaterial(sceneEntity, material, pSceneDatabase);
+				engine::MaterialType* pMaterialType = m_pSceneWorld->GetPBRMaterialType();
+				AddStaticMesh(sceneEntity, mesh, pMaterialType->GetRequiredVertexFormat());
+
+				cd::MaterialID meshMaterialID = mesh.GetMaterialID();
+				if (meshMaterialID.IsValid())
+				{
+					AddMaterial(sceneEntity, pSceneDatabase->GetMaterial(meshMaterialID.Data()), pMaterialType, pSceneDatabase);
+				}
+			}
+			else
+			{
+				engine::MaterialType* pMaterialType = m_pSceneWorld->GetAnimationMaterialType();
+				AddSkinMesh(sceneEntity, mesh, pMaterialType->GetRequiredVertexFormat());
 			}
 		}
 	}
@@ -67,11 +77,12 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 
 void ECWorldConsumer::AddNode(engine::Entity entity, const cd::Node& node)
 {
-	engine::TransformComponent& transformComponent = m_pWorld->CreateComponent<engine::TransformComponent>(entity);
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+	engine::TransformComponent& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
 	transformComponent.SetTransform(node.GetTransform());
 	transformComponent.Build();
 
-	engine::HierarchyComponent& hierarchyComponent = m_pWorld->CreateComponent<engine::HierarchyComponent>(entity);
+	engine::HierarchyComponent& hierarchyComponent = pWorld->CreateComponent<engine::HierarchyComponent>(entity);
 	m_mapTransformIDToEntities[node.GetID().Data()] = entity;
 	cd::NodeID parentTransformID = node.GetParentID();
 	if (parentTransformID.Data() != cd::NodeID::InvalidID)
@@ -81,22 +92,26 @@ void ECWorldConsumer::AddNode(engine::Entity entity, const cd::Node& node)
 	}
 }
 
-void ECWorldConsumer::AddMesh(engine::Entity entity, const cd::Mesh& mesh)
+void ECWorldConsumer::AddStaticMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat)
 {
 	assert(mesh.GetVertexCount() > 0 && mesh.GetPolygonCount() > 0);
 
-	engine::NameComponent& nameComponent = m_pWorld->CreateComponent<engine::NameComponent>(entity);
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+	engine::NameComponent& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
 	nameComponent.SetName(mesh.GetName());
 
-	engine::StaticMeshComponent& staticMeshComponent = m_pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
+	engine::StaticMeshComponent& staticMeshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
 	staticMeshComponent.SetMeshData(&mesh);
-	staticMeshComponent.SetRequiredVertexFormat(&m_pStandardMaterialType->GetRequiredVertexFormat());
+	staticMeshComponent.SetRequiredVertexFormat(&vertexFormat);
 	staticMeshComponent.Build();
+}
 
-	if (mesh.GetVertexInfluenceCount() > 0U)
-	{
-		engine::AnimationComponent& animationComponent = m_pWorld->CreateComponent<engine::AnimationComponent>(entity);
-	}
+void ECWorldConsumer::AddSkinMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat)
+{
+	AddStaticMesh(entity, mesh, vertexFormat);
+
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+	engine::AnimationComponent& animationComponent = pWorld->CreateComponent<engine::AnimationComponent>(entity);
 }
 
 std::string ECWorldConsumer::GetShaderOutputFilePath(const char* pInputFilePath, const char* pAppendFileName)
@@ -126,7 +141,7 @@ std::string ECWorldConsumer::GetTextureOutputFilePath(const char* pInputFilePath
 	return outputTexturePath;
 }
 
-void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& material, const cd::SceneDatabase* pSceneDatabase)
+void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& material, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase)
 {
 	std::set<uint8_t> compiledTextureSlot;
 	std::map<std::string, const cd::Texture*> outputTexturePathToData;
@@ -134,7 +149,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& mat
 
 	bool missRequiredTextures = false;
 	bool unknownTextureSlot = false;
-	for (cd::MaterialTextureType requiredTextureType : m_pStandardMaterialType->GetRequiredTextureTypes())
+	for (cd::MaterialTextureType requiredTextureType : pMaterialType->GetRequiredTextureTypes())
 	{
 		std::optional<cd::TextureID> optTexture = material.GetTextureID(requiredTextureType);
 		if (!optTexture.has_value())
@@ -143,7 +158,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& mat
 			break;
 		}
 
-		std::optional<uint8_t> optTextureSlot = m_pStandardMaterialType->GetTextureSlot(requiredTextureType);
+		std::optional<uint8_t> optTextureSlot = pMaterialType->GetTextureSlot(requiredTextureType);
 		if(!optTextureSlot.has_value())
 		{
 			unknownTextureSlot = true;
@@ -165,7 +180,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& mat
 	}
 	
 	// No uber option support for VS now.
-	engine::ShaderSchema& shaderSchema = m_pStandardMaterialType->GetShaderSchema();
+	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
 	std::string outputVSFilePath = GetShaderOutputFilePath(shaderSchema.GetVertexShaderPath());
 	ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Vertex,
 		shaderSchema.GetVertexShaderPath(), outputVSFilePath.c_str());
@@ -196,7 +211,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& mat
 	else
 	{
 		// Expected textures are ready to build. Add more optional texture data.
-		for (cd::MaterialTextureType optionalTextureType : m_pStandardMaterialType->GetOptionalTextureTypes())
+		for (cd::MaterialTextureType optionalTextureType : pMaterialType->GetOptionalTextureTypes())
 		{
 			std::optional<cd::TextureID> optTexture = material.GetTextureID(optionalTextureType);
 			if (!optTexture.has_value())
@@ -205,7 +220,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& mat
 				continue;
 			}
 
-			std::optional<uint8_t> optTextureSlot = m_pStandardMaterialType->GetTextureSlot(optionalTextureType);
+			std::optional<uint8_t> optTextureSlot = pMaterialType->GetTextureSlot(optionalTextureType);
 			if (!optTextureSlot.has_value())
 			{
 				unknownTextureSlot = true;
@@ -246,14 +261,18 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material& mat
 
 	// TODO : create material component before ResourceBuilder done.
 	// Assign a special color for loading resource status.
-	engine::MaterialComponent& materialComponent = m_pWorld->CreateComponent<engine::MaterialComponent>(entity);
+	engine::MaterialComponent& materialComponent = m_pSceneWorld->GetWorld()->CreateComponent<engine::MaterialComponent>(entity);
 	materialComponent.SetMaterialData(&material);
-	materialComponent.SetMaterialType(m_pStandardMaterialType);
+	materialComponent.SetMaterialType(pMaterialType);
 	materialComponent.SetUberShaderOption(currentUberOption);
 
 	for (const auto& [outputTextureFilePath, pTextureData] : outputTexturePathToData)
 	{
-		materialComponent.AddTextureBlob(pTextureData->GetType(), ResourceLoader::LoadTexture(outputTextureFilePath.c_str()));
+		auto textureBlob = ResourceLoader::LoadTexture(outputTextureFilePath.c_str());
+		if(!textureBlob.empty())
+		{
+			materialComponent.AddTextureBlob(pTextureData->GetType(), cd::MoveTemp(textureBlob));
+		}
 	}
 
 	shaderSchema.AddUberOptionVSBlob(ResourceLoader::LoadShader(outputVSFilePath.c_str()));

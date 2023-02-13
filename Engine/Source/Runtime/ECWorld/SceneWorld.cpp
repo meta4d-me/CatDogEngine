@@ -23,12 +23,30 @@ SceneWorld::SceneWorld()
 {
 	m_pSceneDatabase = std::make_unique<cd::SceneDatabase>();
 
+	m_pWorld = std::make_unique<engine::World>();
+	m_pAnimationStorage = m_pWorld->Register<engine::AnimationComponent>();
+	m_pCameraStorage = m_pWorld->Register<engine::CameraComponent>();
+	m_pCollisionMeshStorage = m_pWorld->Register<engine::CollisionMeshComponent>();
+	m_pHierarchyStorage = m_pWorld->Register<engine::HierarchyComponent>();
+	m_pLightStorage = m_pWorld->Register<engine::LightComponent>();
+	m_pMaterialStorage = m_pWorld->Register<engine::MaterialComponent>();
+	m_pNameStorage = m_pWorld->Register<engine::NameComponent>();
+	m_pSkyStorage = m_pWorld->Register<engine::SkyComponent>();
+	m_pStaticMeshStorage = m_pWorld->Register<engine::StaticMeshComponent>();
+	m_pTransformStorage = m_pWorld->Register<engine::TransformComponent>();
+
+	CreatePBRMaterialType();
+	CreateAnimationMaterialType();
+}
+
+void SceneWorld::CreatePBRMaterialType()
+{
 	m_pPBRMaterialType = std::make_unique<MaterialType>();
+	m_pPBRMaterialType->SetMaterialName("CD_PBR");
+
 	ShaderSchema shaderSchema(GetShaderPath("vs_PBR"), GetShaderPath("fs_PBR"));
 	shaderSchema.RegisterUberOption(ShaderSchema::DefaultUberOptionName);
 	shaderSchema.RegisterUberOption("USE_PBR_IBL");
-
-	m_pPBRMaterialType->SetMaterialName("CD_PBR");
 	m_pPBRMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat pbrVertexFormat;
@@ -46,18 +64,23 @@ SceneWorld::SceneWorld()
 	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Metalness, 2);
 	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Roughness, 2);
 	//m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Emissive, );
+}
 
-	m_pWorld = std::make_unique<engine::World>();
-	m_pAnimationStorage = m_pWorld->Register<engine::AnimationComponent>();
-	m_pCameraStorage = m_pWorld->Register<engine::CameraComponent>();
-	m_pCollisionMeshStorage = m_pWorld->Register<engine::CollisionMeshComponent>();
-	m_pHierarchyStorage = m_pWorld->Register<engine::HierarchyComponent>();
-	m_pLightStorage = m_pWorld->Register<engine::LightComponent>();
-	m_pMaterialStorage = m_pWorld->Register<engine::MaterialComponent>();
-	m_pNameStorage = m_pWorld->Register<engine::NameComponent>();
-	m_pSkyStorage = m_pWorld->Register<engine::SkyComponent>();
-	m_pStaticMeshStorage = m_pWorld->Register<engine::StaticMeshComponent>();
-	m_pTransformStorage = m_pWorld->Register<engine::TransformComponent>();
+void SceneWorld::CreateAnimationMaterialType()
+{
+	m_pAnimationMaterialType = std::make_unique<MaterialType>();
+	m_pAnimationMaterialType->SetMaterialName("CD_Animation");
+
+	ShaderSchema shaderSchema(GetShaderPath("vs_animation"), GetShaderPath("fs_animation"));
+	shaderSchema.RegisterUberOption(ShaderSchema::DefaultUberOptionName);
+	m_pAnimationMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
+
+	cd::VertexFormat animationVertexFormat;
+	animationVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+	animationVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+	animationVertexFormat.AddAttributeLayout(cd::VertexAttributeType::BoneIndex, cd::AttributeValueType::Int16, cd::MaxBoneInfluenceCount);
+	animationVertexFormat.AddAttributeLayout(cd::VertexAttributeType::BoneWeight, cd::AttributeValueType::Float, cd::MaxBoneInfluenceCount);
+	m_pAnimationMaterialType->SetRequiredVertexFormat(cd::MoveTemp(animationVertexFormat));
 }
 
 void SceneWorld::SetSelectedEntity(engine::Entity entity)

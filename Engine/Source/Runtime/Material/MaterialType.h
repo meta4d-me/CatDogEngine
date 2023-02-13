@@ -18,9 +18,6 @@ namespace engine
 class MaterialType
 {
 public:
-	static MaterialType GetPBRMaterialType();
-
-public:
 	MaterialType() = default;
 	MaterialType(const MaterialType&) = default;
 	MaterialType& operator=(const MaterialType&) = default;

@@ -196,7 +196,7 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		genericProducer.ActivateTriangulateService();
 
 		// TODO : manage different material types.
-		ECWorldConsumer ecConsumer(pSceneWorld->GetWorld(), pSceneWorld->GetPBRMaterialType(), pCurrentRenderContext);
+		ECWorldConsumer ecConsumer(pSceneWorld, pCurrentRenderContext);
 		ecConsumer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount());
 		cdtools::Processor processor(&genericProducer, &ecConsumer, pSceneDatabase);
 		processor.Run();

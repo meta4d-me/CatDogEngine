@@ -54,6 +54,12 @@ void WorldRenderer::Render(float deltaTime)
 			continue;
 		}
 
+		// SkinMesh
+		if(m_pCurrentSceneWorld->GetAnimationComponent(entity))
+		{
+			continue;
+		}
+
 		// Transform
 		if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 		{
