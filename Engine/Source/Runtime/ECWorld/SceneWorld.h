@@ -30,7 +30,11 @@ public:
 	void SetSelectedEntity(engine::Entity entity);
 	CD_FORCEINLINE engine::Entity GetSelectedEntity() const { return m_selectedEntity; }
 
+	void CreatePBRMaterialType();
 	engine::MaterialType* GetPBRMaterialType() const { return m_pPBRMaterialType.get(); }
+
+	void CreateAnimationMaterialType();
+	engine::MaterialType* GetAnimationMaterialType() const { return m_pAnimationMaterialType.get(); }
 
 	// It can save performance on addressing the actual ComponentStorage.
 	// TODO : write a help macro ? Though I hate macro...
@@ -86,6 +90,7 @@ private:
 	std::unique_ptr<engine::World> m_pWorld;
 
 	std::unique_ptr<engine::MaterialType> m_pPBRMaterialType;
+	std::unique_ptr<engine::MaterialType> m_pAnimationMaterialType;
 
 	engine::ComponentsStorage<engine::AnimationComponent>* m_pAnimationStorage;
 	engine::ComponentsStorage<engine::CameraComponent>* m_pCameraStorage;

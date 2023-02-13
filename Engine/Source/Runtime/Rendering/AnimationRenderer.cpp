@@ -42,14 +42,14 @@ void AnimationRenderer::Render(float deltaTime)
 			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
 		}
 
-		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle(pMeshComponent->GetAABBVertexBuffer()));
-		bgfx::setIndexBuffer(bgfx::IndexBufferHandle(pMeshComponent->GetAABBIndexBuffer()));
+		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle(pMeshComponent->GetVertexBuffer()));
+		bgfx::setIndexBuffer(bgfx::IndexBufferHandle(pMeshComponent->GetIndexBuffer()));
 
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);
 
-		constexpr StringCrc wireframeProgram("AnimationProgram");
-		bgfx::submit(GetViewID(), m_pRenderContext->GetProgram(wireframeProgram));
+		constexpr StringCrc animationProgram("AnimationProgram");
+		bgfx::submit(GetViewID(), m_pRenderContext->GetProgram(animationProgram));
 	}
 }
 
