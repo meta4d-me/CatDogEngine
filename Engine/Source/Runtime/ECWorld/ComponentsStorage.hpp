@@ -67,8 +67,8 @@ public:
 		}
 
 		m_entityToIndex[entity] = m_components.size();
-		m_entities.push_back(entity);
-		m_components.push_back(Component());
+		m_entities.emplace_back(entity);
+		m_components.emplace_back();
 		return m_components.back();
 	}
 

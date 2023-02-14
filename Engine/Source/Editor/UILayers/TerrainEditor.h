@@ -6,13 +6,15 @@
 
 #include <vector>
 
-namespace cdtools
+namespace cd
 {
-class TerrainProducer;
+class SceneDatabase;
 }
 
 namespace editor
 {
+
+	class ECTerrainConsumer;
 
 class TerrainEditor : public engine::ImGuiBaseLayer
 {
@@ -29,7 +31,9 @@ private:
 	cdtools::TerrainMetadata m_terrainMetadata;
 	cdtools::TerrainSectorMetadata m_sectorMetadata;
 	cdtools::TerrainProducer m_terrainProducer;
+	std::unique_ptr<ECTerrainConsumer> m_pEcTerrainConsumer;
 	std::vector<engine::Entity> m_terrainEntities;
+	std::unique_ptr<cd::SceneDatabase> m_pSceneDatabase;
 };
 
 }

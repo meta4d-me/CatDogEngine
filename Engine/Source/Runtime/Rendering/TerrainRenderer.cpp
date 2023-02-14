@@ -3,61 +3,36 @@
 #include "BgfxConsumer.h"
 #include "Display/Camera.h"
 #include "Framework/Processor.h"
+#include "Log/Log.h"
 #include "Producers/CDProducer/CDProducer.h"
 #include "RenderContext.h"
 #include "Scene/Texture.h"
+#include "Core/StringCrc.h"
 
 #include <bgfx/bgfx.h>
 
-#include <format>
+#include <optional>
+
+using namespace cd;
+
+namespace
+{
+constexpr const char* kUniformSectorOrigin = "u_SectorOrigin";
+constexpr engine::StringCrc kUniformSectorOriginCrc(kUniformSectorOrigin);
+constexpr const char* kUniformSectorDimension = "u_SectorDimension";
+constexpr engine::StringCrc kUniformSectorDimensionCrc(kUniformSectorDimension);
+}
 
 namespace engine
 {
 
 void TerrainRenderer::Init()
 {
-	std::string sceneModelFilePath = std::string(CDENGINE_RESOURCES_ROOT_PATH) + "Models/generated_terrain.cdbin";
-	cdtools::CDProducer cdProducer(sceneModelFilePath.c_str());
-	BgfxConsumer bgfxConsumer("");
-	cdtools::Processor processor(&cdProducer, &bgfxConsumer);
-	processor.Run();
-
-	// Start creating bgfx resources from RenderDataContext
-	m_renderDataContext = bgfxConsumer.GetRenderDataContext();
-
-	m_meshHandles.reserve(m_renderDataContext.meshRenderDataArray.size());
-	for (const MeshRenderData& meshRenderData : m_renderDataContext.meshRenderDataArray)
-	{
-		m_meshHandles.emplace_back();
-		MeshHandle& meshHandle = m_meshHandles.back();
-
-		const bgfx::Memory* pVBMemory = bgfx::makeRef(static_cast<const void*>(meshRenderData.GetRawVertices().data()), meshRenderData.GetVerticesBufferLength());
-		meshHandle.vbh = bgfx::createVertexBuffer(pVBMemory, meshRenderData.GetVertexLayout());
-
-		const bgfx::Memory* pIBMemory = bgfx::makeRef(static_cast<const void*>(meshRenderData.GetIndices().data()), meshRenderData.GetIndicesBufferLength());
-		meshHandle.ibh = bgfx::createIndexBuffer(pIBMemory, BGFX_BUFFER_INDEX32);
-	}
-
-	// TODO use AssetPipeline to generate materials instead of hard-coding it
-	m_materialHandles.reserve(2);
-	int materialIndex = 0;
-	uint64_t textureSamplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
-
-	m_materialHandles.emplace_back();
-	TerrainMaterialHandle& materialHandle = m_materialHandles.back();
-	materialHandle.baseColor.sampler = m_pRenderContext->CreateUniform(std::format("s_textureBaseColor{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
-	materialHandle.baseColor.texture = m_pRenderContext->CreateTexture("Terrain_baseColor.dds", textureSamplerFlags | BGFX_TEXTURE_SRGB);
-	materialHandle.debug.sampler = m_pRenderContext->CreateUniform(std::format("s_textureDebug{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
-	materialHandle.debug.texture = m_pRenderContext->CreateTexture("TerrainTest_baseColor.dds", textureSamplerFlags | BGFX_TEXTURE_SRGB);
-
-	// Load terrain shaders
-	bgfx::ShaderHandle vsh = m_pRenderContext->CreateShader("vs_terrain.bin");
-	bgfx::ShaderHandle fsh = m_pRenderContext->CreateShader("fs_terrain.bin");
-	m_program = m_pRenderContext->CreateProgram("TerrainProgram", vsh, fsh);
-
-	// m_pRenderContext->GetCamera()->FrameAll(m_renderDataContext.sceneAABB);
-
 	bgfx::setViewName(GetViewID(), "TerrainRenderer");
+	m_updateUniforms = true;
+
+	u_terrainOrigin = m_pRenderContext->CreateUniform(kUniformSectorOrigin, bgfx::UniformType::Enum::Vec4, 1);
+	u_terrainDimension = m_pRenderContext->CreateUniform(kUniformSectorDimension, bgfx::UniformType::Vec4, 1);
 }
 
 void TerrainRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -65,26 +40,106 @@ void TerrainRenderer::UpdateView(const float* pViewMatrix, const float* pProject
 	bgfx::setViewFrameBuffer(GetViewID(), *GetRenderTarget()->GetFrameBufferHandle());
 	bgfx::setViewRect(GetViewID(), 0, 0, GetRenderTarget()->GetWidth(), GetRenderTarget()->GetHeight());
 	bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
+
+	UpdateUniforms();
 }
 
 void TerrainRenderer::Render(float deltaTime)
 {
-	for (size_t meshIndex = 0; meshIndex < m_meshHandles.size(); ++meshIndex)
+	for (const Entity& entity : m_pCurrentSceneWorld->GetMaterialEntities())
 	{
-		const MeshHandle& meshHandle = m_meshHandles[meshIndex];
-		const TerrainMaterialHandle& materialHandle = m_materialHandles[0];
+		if (!IsTerrainMesh(entity))
+		{
+			continue;
+		}
+		const MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
+		const StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
 
-		bgfx::setVertexBuffer(0, meshHandle.vbh);
-		bgfx::setIndexBuffer(meshHandle.ibh);
+		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle(pMeshComponent->GetVertexBuffer()));
+		bgfx::setIndexBuffer(bgfx::IndexBufferHandle(pMeshComponent->GetIndexBuffer()));
 
-		bgfx::setTexture(0, materialHandle.baseColor.sampler, materialHandle.baseColor.texture);
-		bgfx::setTexture(1, materialHandle.debug.sampler, materialHandle.debug.texture);
+		for (const auto& [textureType, textureInfo] : pMaterialComponent->GetTextureResources())
+		{
+			std::optional<const MaterialComponent::TextureInfo> optTextureInfo = pMaterialComponent->GetTextureInfo(textureType);
+			if (optTextureInfo.has_value())
+			{
+				const MaterialComponent::TextureInfo& textureInfo = optTextureInfo.value();
+				bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle(textureInfo.samplerHandle), bgfx::TextureHandle(textureInfo.textureHandle));
+			}
+		}
+		
+		if (m_entityToRenderInfo.find(entity) == m_entityToRenderInfo.cend())
+		{
+			m_updateUniforms = true;
+			UpdateUniforms();
+		}
+		const TerrainRenderInfo& meshRenderInfo = m_entityToRenderInfo[entity];
+		bgfx::setUniform(u_terrainOrigin, static_cast<const void*>(meshRenderInfo.m_origin));
+		bgfx::setUniform(u_terrainDimension, static_cast<const void*>(meshRenderInfo.m_dimension));
 
-		uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA;
-		state |= BGFX_STATE_DEPTH_TEST_LESS;
+		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);
 
-		bgfx::submit(GetViewID(), m_program);
+		bgfx::submit(GetViewID(), bgfx::ProgramHandle(pMaterialComponent->GetShadingProgram()));
+	}
+}
+
+bool TerrainRenderer::IsTerrainMesh(Entity entity) const
+{
+	const MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
+	if (pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetTerrainMaterialType())
+	{
+		return false;
+	}
+	const StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
+	if (!pMeshComponent)
+	{
+		CD_ENGINE_WARN("Entity: %u has terrain material but is missing mesh component!", entity);
+		return false;
+	}
+	return true;
+}
+
+void TerrainRenderer::UpdateUniforms()
+{
+	if (m_updateUniforms)
+	{
+		for (const Entity& entity : m_pCurrentSceneWorld->GetMaterialEntities())
+		{
+			if (!IsTerrainMesh(entity))
+			{
+				continue;
+			}
+			if (m_entityToRenderInfo.find(entity) == m_entityToRenderInfo.cend())
+			{
+				m_entityToRenderInfo[entity] = TerrainRenderInfo();
+			}
+			TerrainRenderInfo& renderInfo = m_entityToRenderInfo[entity];
+			const StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
+			const Mesh* terrainMesh = pMeshComponent->GetMeshData();
+			if (!terrainMesh)
+			{
+				CD_ENGINE_WARN("Entity: %u has null mesh data!", entity);
+				continue;
+			}
+			// Convention is determined by TerrainProducer that the origin is always the first vertex
+			const std::vector<Point>& vertices = terrainMesh->GetVertexPositions();
+			const Point& origin = vertices[0];
+			renderInfo.m_origin[0] = origin.x();
+			renderInfo.m_origin[1] = origin.y();
+			renderInfo.m_origin[2] = origin.z();
+			renderInfo.m_origin[3] = 0.0f;
+
+			const MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
+			std::optional<const MaterialComponent::TextureInfo> elevationTexture = pMaterialComponent->GetTextureInfo(MaterialTextureType::Roughness);
+			assert(elevationTexture.has_value());
+			renderInfo.m_dimension[0] = static_cast<float>(elevationTexture->width);
+			renderInfo.m_dimension[1] = static_cast<float>(elevationTexture->height);
+			renderInfo.m_dimension[2] = 0.0f;
+			renderInfo.m_dimension[3] = 0.0f;
+		}
+
+		m_updateUniforms = false;
 	}
 }
 

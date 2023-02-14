@@ -37,6 +37,7 @@ SceneWorld::SceneWorld()
 
 	CreatePBRMaterialType();
 	CreateAnimationMaterialType();
+	CreateTerrainMaterialType();
 }
 
 void SceneWorld::CreatePBRMaterialType()
@@ -81,6 +82,24 @@ void SceneWorld::CreateAnimationMaterialType()
 	animationVertexFormat.AddAttributeLayout(cd::VertexAttributeType::BoneIndex, cd::AttributeValueType::Int16, 4U);
 	animationVertexFormat.AddAttributeLayout(cd::VertexAttributeType::BoneWeight, cd::AttributeValueType::Float, 4U);
 	m_pAnimationMaterialType->SetRequiredVertexFormat(cd::MoveTemp(animationVertexFormat));
+}
+
+void SceneWorld::CreateTerrainMaterialType()
+{
+	m_pTerrainMaterialType = std::make_unique<MaterialType>();
+	m_pTerrainMaterialType->SetMaterialName("CD_Terrain");
+
+	ShaderSchema shaderSchema(GetShaderPath("vs_terrain"), GetShaderPath("fs_terrain"));
+	shaderSchema.RegisterUberOption(ShaderSchema::DefaultUberOptionName);
+	m_pTerrainMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
+
+	cd::VertexFormat terrainVertexFormat;
+	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
+	m_pTerrainMaterialType->SetRequiredVertexFormat(cd::MoveTemp(terrainVertexFormat));
+
+	m_pTerrainMaterialType->AddRequiredTextureType(cd::MaterialTextureType::BaseColor, 0);
+	m_pTerrainMaterialType->AddRequiredTextureType(cd::MaterialTextureType::Roughness, 1);
 }
 
 void SceneWorld::SetSelectedEntity(engine::Entity entity)

@@ -189,7 +189,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	engine::StringCrc currentUberOption = engine::ShaderSchema::DefaultUberOption;
 	if (missRequiredTextures || unknownTextureSlot)
 	{
-		// Treate missing textures case as a special uber option in the CPU side.
+		// Treat missing textures case as a special uber option in the CPU side.
 		constexpr engine::StringCrc missingTextureOption("MissingTextures");
 		if (!shaderSchema.IsUberOptionValid(missingTextureOption))
 		{
@@ -269,10 +269,10 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 
 	for (const auto& [outputTextureFilePath, pTextureData] : outputTexturePathToData)
 	{
-		auto textureBlob = ResourceLoader::LoadTexture(outputTextureFilePath.c_str());
-		if(!textureBlob.empty())
+		auto textureFileBlob = ResourceLoader::LoadTextureFile(outputTextureFilePath.c_str());
+		if(!textureFileBlob.empty())
 		{
-			materialComponent.AddTextureBlob(pTextureData->GetType(), cd::MoveTemp(textureBlob));
+			materialComponent.AddTextureFileBlob(pTextureData->GetType(), cd::MoveTemp(textureFileBlob));
 		}
 	}
 

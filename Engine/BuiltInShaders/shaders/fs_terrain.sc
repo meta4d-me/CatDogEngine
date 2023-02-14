@@ -4,7 +4,6 @@ $input v_worldPos, v_normal, v_texcoord0
 #include "uniforms.sh"
 
 SAMPLER2D(s_texBaseColor, 0);
-SAMPLER2D(s_texDebug, 1);
 
 void main()
 {
