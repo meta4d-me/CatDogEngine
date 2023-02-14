@@ -36,6 +36,9 @@ public:
 	void CreateAnimationMaterialType();
 	engine::MaterialType* GetAnimationMaterialType() const { return m_pAnimationMaterialType.get(); }
 
+	void CreateTerrainMaterialType();
+	engine::MaterialType* GetTerrainMaterialType() const { return m_pTerrainMaterialType.get(); }
+
 	// It can save performance on addressing the actual ComponentStorage.
 	// TODO : write a help macro ? Though I hate macro...
 	CD_FORCEINLINE engine::AnimationComponent* GetAnimationComponent(engine::Entity entity) const { return m_pAnimationStorage->GetComponent(entity); }
@@ -91,6 +94,7 @@ private:
 
 	std::unique_ptr<engine::MaterialType> m_pPBRMaterialType;
 	std::unique_ptr<engine::MaterialType> m_pAnimationMaterialType;
+	std::unique_ptr<engine::MaterialType> m_pTerrainMaterialType;
 
 	engine::ComponentsStorage<engine::AnimationComponent>* m_pAnimationStorage;
 	engine::ComponentsStorage<engine::CameraComponent>* m_pCameraStorage;
