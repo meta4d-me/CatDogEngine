@@ -440,9 +440,9 @@ void ImGuiContextInstance::LoadFontFiles(const std::vector<std::string>& ttfFile
 		const ImWchar* pGlyphRanges = nullptr;
 		switch (language)
 		{
+		// Glyph ranges for Chinese Simplied have issues on showing some characters.
+		// So let's use the bigger Glyph ranges including tradional characters.
 		case engine::Language::ChineseSimplied:
-			pGlyphRanges = io.Fonts->GetGlyphRangesChineseSimplifiedCommon();
-			break;
 		case engine::Language::ChineseTraditional:
 			pGlyphRanges = io.Fonts->GetGlyphRangesChineseFull();
 			break;
