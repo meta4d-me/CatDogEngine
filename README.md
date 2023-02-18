@@ -8,9 +8,8 @@
   * [freetype](https://github.com/freetype/freetype)
 * Graphics
   * [bgfx](https://github.com/bkaradzic/bgfx)
-* GUI Framework
+* GUI
   * [imgui](https://github.com/ocornut/imgui)
-* ImGUI Widgets
   * [imgui-filebrowser](https://github.com/AirGuanZ/imgui-filebrowser)
   * [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo)
 * Image IO
@@ -30,7 +29,10 @@
     * [Icons Document](https://pictogrammers.com/library/mdi/)  
 * Window
   * [SDL](https://github.com/libsdl-org/SDL)
-  
+
+## Assets for testing
+* https://github.com/CatDogEngine/TestAssets
+
 ## Other open-source game engines to learn
 * [DiligentEngine](https://github.com/DiligentGraphics/DiligentEngine)
 * [GodotEngine](https://github.com/godotengine/godot)
