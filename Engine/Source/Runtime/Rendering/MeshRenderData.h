@@ -123,13 +123,13 @@ public:
 			return m_baseColorName;
 		case cd::MaterialTextureType::Normal:
 			return m_normalName;
-		case cd::MaterialTextureType::Metalness:
+		case cd::MaterialTextureType::Metallic:
 			return m_metalnessName;
 		case cd::MaterialTextureType::Roughness:
 			return m_ORMName;
 		case cd::MaterialTextureType::Emissive:
 			return m_emissiveName;
-		case cd::MaterialTextureType::AO:
+		case cd::MaterialTextureType::Occlusion:
 			return m_aoName;
 		default:
 			assert("Invalid texture type!");
@@ -147,7 +147,7 @@ public:
 		case cd::MaterialTextureType::Normal:
 			m_normalName = std::move(name); 
 			break;
-		case cd::MaterialTextureType::Metalness:
+		case cd::MaterialTextureType::Metallic:
 			m_metalnessName = std::move(name);
 			break;
 		case cd::MaterialTextureType::Roughness:
@@ -156,7 +156,7 @@ public:
 		case cd::MaterialTextureType::Emissive:
 			m_emissiveName = std::move(name);
 			break;
-		case cd::MaterialTextureType::AO:
+		case cd::MaterialTextureType::Occlusion:
 			m_aoName = std::move(name);
 			break;
 		default:
