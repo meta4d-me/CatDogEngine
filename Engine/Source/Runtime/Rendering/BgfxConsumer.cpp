@@ -89,13 +89,13 @@ std::string MaterialTextureTypeToString(const cd::MaterialTextureType& materialT
 		return "BaseColor";
 	case cd::MaterialTextureType::Normal:
 		return "Normal";
-	case cd::MaterialTextureType::Metalness:
+	case cd::MaterialTextureType::Metallic:
 		return "Metalness";
 	case cd::MaterialTextureType::Roughness:
 		return "Roughness";
 	case cd::MaterialTextureType::Emissive:
 		return "Emissive";
-	case cd::MaterialTextureType::AO:
+	case cd::MaterialTextureType::Occlusion:
 		return "AO";
 	default:
 		return "Invalid Material Type!";
@@ -105,10 +105,10 @@ std::string MaterialTextureTypeToString(const cd::MaterialTextureType& materialT
 constexpr cd::MaterialTextureType PossibleTextureTypes[] = {
 	cd::MaterialTextureType::BaseColor,
 	cd::MaterialTextureType::Normal,
-	cd::MaterialTextureType::Metalness,
+	cd::MaterialTextureType::Metallic,
 	cd::MaterialTextureType::Roughness,
 	cd::MaterialTextureType::Emissive,
-	cd::MaterialTextureType::AO
+	cd::MaterialTextureType::Occlusion
 };
 
 float bytesToFloat(const uint8_t* bytes)

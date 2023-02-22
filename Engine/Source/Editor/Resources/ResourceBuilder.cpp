@@ -12,7 +12,7 @@ bool IsIOFilePathsValid(const char* pInputFilePath, const char* pOutputFilePath)
 {
 	if (!std::filesystem::exists(pInputFilePath))
 	{
-		CD_WARN("Input file path {0} not existed.", pInputFilePath);
+		CD_ERROR("Input file path {0} not existed.", pInputFilePath);
 		return false;
 	}
 

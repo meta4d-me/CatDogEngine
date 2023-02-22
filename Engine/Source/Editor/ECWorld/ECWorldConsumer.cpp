@@ -175,12 +175,9 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 			// For example, AO + Metalness + Roughness are packed so they have same slots which mean we only need to build it once.
 			// Note that these texture types can only have same setting to build texture.
 			compiledTextureSlot.insert(textureSlot);
-			if (!ResourceBuilder::Get().AddTextureBuildTask(requiredTexture.GetType(), requiredTexture.GetPath(), outputTexturePath.c_str()))
-			{
-				break;
-			}
+			ResourceBuilder::Get().AddTextureBuildTask(requiredTexture.GetType(), requiredTexture.GetPath(), outputTexturePath.c_str());
+			outputTexturePathToData[cd::MoveTemp(outputTexturePath)] = &requiredTexture;
 		}
-		outputTexturePathToData[cd::MoveTemp(outputTexturePath)] = &requiredTexture;
 	}
 	
 	// No uber option support for VS now.
@@ -237,12 +234,9 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 			if (!compiledTextureSlot.contains(textureSlot))
 			{
 				compiledTextureSlot.insert(textureSlot);
-				if (!ResourceBuilder::Get().AddTextureBuildTask(optionalTexture.GetType(), optionalTexture.GetPath(), outputTexturePath.c_str()))
-				{
-					continue;
-				}
+				ResourceBuilder::Get().AddTextureBuildTask(optionalTexture.GetType(), optionalTexture.GetPath(), outputTexturePath.c_str());
+				outputTexturePathToData[cd::MoveTemp(outputTexturePath)] = &optionalTexture;
 			}
-			outputTexturePathToData[cd::MoveTemp(outputTexturePath)] = &optionalTexture;
 		}
 
 		// Compile uber shaders with different options.

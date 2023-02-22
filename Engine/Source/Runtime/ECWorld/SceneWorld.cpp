@@ -60,8 +60,8 @@ void SceneWorld::CreatePBRMaterialType()
 	m_pPBRMaterialType->AddRequiredTextureType(cd::MaterialTextureType::BaseColor, 0);
 	m_pPBRMaterialType->AddRequiredTextureType(cd::MaterialTextureType::Normal, 1);
 
-	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::AO, 2);
-	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Metalness, 2);
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Occlusion, 2);
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Metallic, 2);
 	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Roughness, 2);
 	//m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Emissive, );
 }
