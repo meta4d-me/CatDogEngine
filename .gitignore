@@ -4,3 +4,7 @@
 Engine/Binaries
 Engine/Intermediate
 Engine/ThirdPartyProjects
+
+Projects/PBRViewer/Resources/Textures/*
+!Projects/PBRViewer/Resources/Textures/*/
+
