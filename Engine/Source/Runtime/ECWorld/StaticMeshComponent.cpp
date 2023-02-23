@@ -158,13 +158,10 @@ void StaticMeshComponent::Build()
 
 		if (containsBoneIndex && containsBoneWeight)
 		{
-			const uint32_t influenceBoneCount = 4U;
-			assert(m_pMeshData->GetVertexInfluenceCount() == 4U);
-
 			std::vector<uint16_t> vertexBoneIDs;
 			std::vector<cd::VertexWeight> vertexBoneWeights;
 
-			for(uint32_t vertexBoneIndex = 0U; vertexBoneIndex < influenceBoneCount; ++vertexBoneIndex)
+			for(uint32_t vertexBoneIndex = 0U; vertexBoneIndex < m_pMeshData->GetVertexInfluenceCount(); ++vertexBoneIndex)
 			{
 				vertexBoneIDs.push_back(static_cast<uint16_t>(m_pMeshData->GetVertexBoneID(vertexBoneIndex, vertexIndex).Data()));
 				vertexBoneWeights.push_back(m_pMeshData->GetVertexWeight(vertexBoneIndex, vertexIndex));
