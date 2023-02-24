@@ -782,4 +782,51 @@ void ImGuiContextInstance::SetImGuiThemeColor(ThemeColor theme)
 	colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
 }
 
+void ImGuiContextInstance::SetImGuiLanguage(Language language)
+{
+	
+	m_language = language;
+
+	if (Language::ChineseSimplied == language)
+	{
+	  
+		
+	}
+	
+	else if (Language::Cyrillic == language)
+	{
+
+	}
+	else if (Language::English == language)
+	{
+
+	}
+	else if (Language::Greek == language)
+	{
+
+	}
+	else if (Language::Japanese == language)
+	{
+
+	}
+	else if (Language::Korean == language)
+	{
+
+	}
+	else if (Language::Thai == language)
+	{
+
+	}
+
+
+
 }
+
+
+
+
+
+
+
+}
+

@@ -50,11 +50,13 @@ public:
 
 	void LoadFontFiles(const std::vector<std::string>& ttfFileNames, engine::Language language);
 	ThemeColor GetImGuiThemeColor() const { return m_themeColor; }
+	Language GetImGuiLanguage()const { return m_language; }
 	void SetImGuiThemeColor(ThemeColor theme);
-
-	void SetWindowPosOffset(float x, float y) { m_windowPosOffsetX = x; m_windowPosOffsetY = y; }
-
+	void SetImGuiLanguage(Language language);
+    void SetWindowPosOffset(float x, float y) { m_windowPosOffsetX = x; m_windowPosOffsetY = y; }
 	void SetSceneWorld(SceneWorld* pSceneWorld) { m_pSceneWorld = pSceneWorld; }
+
+	
 	SceneWorld* GetSceneWorld() const { return m_pSceneWorld; }
 
 private:
@@ -67,6 +69,7 @@ private:
 	SceneWorld* m_pSceneWorld = nullptr;
 	ImGuiContext* m_pImGuiContext = nullptr;
 	ThemeColor m_themeColor;
+	Language m_language;
 
 	float m_windowPosOffsetX = 0.0f;
 	float m_windowPosOffsetY = 0.0f;

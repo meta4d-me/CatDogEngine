@@ -1,5 +1,9 @@
 #include "ImGui/ImGuiBaseLayer.h"
 
+namespace ImGui
+{
+	class FileBrowser;
+}
 namespace editor
 {
 
@@ -17,6 +21,8 @@ public:
 	void WindowMenu();
 	void BuildMenu();
 	void AboutMenu();
+private:
+	ImGui::FileBrowser* m_pCreatProject = nullptr;
 };
 
 }

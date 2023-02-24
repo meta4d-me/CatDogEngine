@@ -10,24 +10,44 @@
 #include "Window/KeyCode.h"
 
 #include <imgui/imgui.h>
-
+#include<string>
 #include <filesystem>
+#include "ImGui/imfilebrowser.h"
+#include "ImGui/EditorImGuiViewport.h"
+
+
+
+
 
 namespace editor
 {
 
+	
+
 MainMenu::~MainMenu()
 {
+	if (m_pCreatProject)
+	{
+		delete m_pCreatProject;
+		m_pCreatProject = nullptr;
+	}
 }
 
 void MainMenu::FileMenu()
 {
+	
+	
+	
+	
 	if (ImGui::BeginMenu("File"))
-	{
+	{ 
+		
 		if (ImGui::MenuItem("New", "Ctrl N"))
 		{
+			m_pCreatProject->SetTitle("Creat - Project");
+			m_pCreatProject->Open();
 		}
-		if (ImGui::MenuItem("Open", "Ctrl O"))
+		if (ImGui::MenuItem("New", "Ctrl O"))
 		{
 		}
 		if (ImGui::MenuItem("Open Recent"))
@@ -90,6 +110,20 @@ void MainMenu::EditMenu()
 				}
 			}
 
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("Language"))
+		{
+			for (engine::Language language = engine::Language::ChineseSimplied; language < engine::Language::Count;
+				language = static_cast<engine::Language>(static_cast<int>(language) + 1))
+			{
+				engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
+				if (ImGui::MenuItem(engine::GetLanguageName(language), "", pImGuiContextInstance->GetImGuiLanguage() == language))
+				{
+					pImGuiContextInstance->SetImGuiLanguage(language);
+				}
+				
+			}
 			ImGui::EndMenu();
 		}
 
@@ -180,7 +214,7 @@ void MainMenu::AboutMenu()
 
 void MainMenu::Init()
 {
-
+	m_pCreatProject = new ImGui::FileBrowser();
 }
 
 void MainMenu::Update()
@@ -194,6 +228,7 @@ void MainMenu::Update()
 		AboutMenu();
 		ImGui::EndMainMenuBar();
 	}
+	m_pCreatProject->Display();
 
 	if (engine::Input::Get().ContainsModifier(engine::KeyMod::KMOD_CTRL) 
 		&& engine::Input::Get().IsKeyPressed(engine::KeyCode::q))
@@ -204,5 +239,6 @@ void MainMenu::Update()
 		}
 	}
 }
+
 
 }
