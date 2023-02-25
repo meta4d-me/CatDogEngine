@@ -1,5 +1,5 @@
 ﻿#include "ImGuiContextInstance.h"
-
+#include "Application/Localization.h"
 #include "IconFont/IconsMaterialDesignIcons.h"
 #include "IconFont/MaterialDesign.inl"
 #include "ImGui/ImGuiBaseLayer.h"
