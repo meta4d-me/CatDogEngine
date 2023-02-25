@@ -47,7 +47,7 @@ namespace editor
 		str = accumulate(scv.begin(), scv.end(), str);
 		size_t keybegin = str.find("TEXT_TEST");
 		size_t keyend = str.find("TEXT_END") - keybegin;
-		size_t CNbegin = str.find("BEGIN");
+		size_t CNbegin = str.find("测试");
 		size_t CNend = (str.find("CNEND") - CNbegin);
 		size_t ENbegin = str.find("Test");
 		size_t ENend = str.find("ENEND") - ENbegin;
