@@ -1,4 +1,4 @@
-#include<sstream>
+﻿#include<sstream>
 #include<string>
 #include <vector>
 #include<numeric>
@@ -9,14 +9,14 @@
 #include <iostream>
 #include "Localization.h"
 #include "ImGui/ImGuiContextInstance.h"
-namespace engine
+namespace editor
 {
 	using namespace std;
 
 	vector<string>vec_key;
 	vector<string> vec_CN;
 	vector<string> vec_EN;
-	std::map<std::string, std::pair<std::string, std::string>> texts;
+	static std::map<std::string, std::pair<std::string, std::string>> texts;
 	const char* keyconst;
 	void Read_csv()
 	{
@@ -24,10 +24,7 @@ namespace engine
 		std::filesystem::path base_path = std::filesystem::current_path();
 		
 		std::filesystem::path csv_path = base_path / "text_csv" / "text.csv";
-		cout << csv_path << endl;
-
-
-		ifstream fp(csv_path);
+	    ifstream fp(csv_path);
 		string line;
 		int textnum = 0;
 		while (getline(fp, line))
