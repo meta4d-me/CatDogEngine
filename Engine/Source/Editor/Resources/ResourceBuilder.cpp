@@ -3,47 +3,43 @@
 #include "Base/Template.h"
 #include "Log/Log.h"
 
-#include <filesystem>
-
-namespace
-{
-
-bool IsIOFilePathsValid(const char* pInputFilePath, const char* pOutputFilePath)
-{
-	if (!std::filesystem::exists(pInputFilePath))
-	{
-		CD_ERROR("Input file path {0} does not exist.", pInputFilePath);
-		return false;
-	}
-
-	if (std::filesystem::exists(pOutputFilePath))
-	{
-		CD_WARN("Output file path {0} already existed.", pOutputFilePath);
-		return false;
-	}
-
-	return true;
-}
-
-}
-
 namespace editor
 {
 
-ProcessStatus ResourceBuilder::CheckFileStatus(const char* pInputFilePath, const char* pOutputFilePath) const
+ProcessStatus ResourceBuilder::CheckFileStatus(const char* pInputFilePath, const char* pOutputFilePath)
 {
 	if (!std::filesystem::exists(pInputFilePath))
 	{
-		CD_ERROR("Input file path {0} does not exist.", pInputFilePath);
+		CD_ERROR("Input file path {0} does not exist!", pInputFilePath);
 		return ProcessStatus::InputNotExist;
 	}
 
-	if (std::filesystem::exists(pOutputFilePath))
+	if (m_modifyTimeCache.find(pInputFilePath) == m_modifyTimeCache.end())
 	{
-		CD_WARN("Output file path {0} already exist.", pOutputFilePath);
-		return ProcessStatus::OutputAlreadyExist;
+		// Init time cache the first time the file is accessed.
+		m_modifyTimeCache[pInputFilePath] = std::filesystem::last_write_time(pInputFilePath);
 	}
 
+	auto lastTime = std::filesystem::last_write_time(pInputFilePath);
+	if (m_modifyTimeCache[pInputFilePath] != lastTime)
+	{
+		CD_WARN("Input file path {0} has been modified.", pInputFilePath);
+		m_modifyTimeCache[pInputFilePath] = cd::MoveTemp(lastTime);
+		return ProcessStatus::InputModified;
+	}
+
+	if (!std::filesystem::exists(pOutputFilePath))
+	{
+		return ProcessStatus::OutputNotExist;
+	}
+	else
+	{
+		CD_INFO("Output file path {0} already exist.", pOutputFilePath);
+		return ProcessStatus::Stable;
+	}
+
+	CD_ERROR("Unknow ProcessStatus of input {0} and output {1}!", pInputFilePath, pOutputFilePath);
+	assert(false);
 	return ProcessStatus::None;
 }
 
@@ -56,10 +52,10 @@ bool ResourceBuilder::AddTask(Process process)
 
 bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pUberOptions)
 {
-	//if (!IsIOFilePathsValid(pInputFilePath, pOutputFilePath))
-	//{
-	//	return false;
-	//}
+	if (s_SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
+	{
+		return false;
+	}
 
 	// Document : https://bkaradzic.github.io/bgfx/tools.html#shader-compiler-shaderc
 	std::string cmftExePath = CDENGINE_TOOL_PATH;
@@ -112,7 +108,7 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 
 bool ResourceBuilder::AddCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath)
 {
-	if (!IsIOFilePathsValid(pInputFilePath, pOutputFilePath))
+	if (s_SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
 	{
 		return false;
 	}
@@ -134,7 +130,7 @@ bool ResourceBuilder::AddCubeMapBuildTask(const char* pInputFilePath, const char
 
 bool ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath)
 {
-	if (!IsIOFilePathsValid(pInputFilePath, pOutputFilePath))
+	if (s_SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
 	{
 		return false;
 	}

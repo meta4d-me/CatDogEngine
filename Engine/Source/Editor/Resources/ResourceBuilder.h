@@ -3,7 +3,10 @@
 #include "Process/Process.h"
 #include "Scene/MaterialTextureType.h"
 
+#include <chrono>
+#include <filesystem>
 #include <queue>
+#include <unordered_map>
 
 namespace editor
 {
@@ -15,12 +18,13 @@ enum class ShaderType
 	Fragment
 };
 
-enum class ProcessStatus
+enum class ProcessStatus : uint8_t
 {
-	None,
-	InputNotExist,
-	OutputAlreadyExist,
-	InputModified,
+	None           = 0x00,
+	InputNotExist  = 1 << 0,
+	OutputNotExist = 1 << 1,
+	InputModified  = 1 << 2,
+	Stable         = 1 << 3,
 };
 
 class Process;
@@ -30,6 +34,11 @@ class Process;
 // For resource build tasks which are using dll calls, it will be wrapped as a task to multithreading JobSystem.
 class ResourceBuilder final
 {
+public:
+	static constexpr uint8_t s_SkipStatus =
+		static_cast<uint8_t>(ProcessStatus::InputNotExist) |
+		static_cast<uint8_t>(ProcessStatus::Stable);
+
 public:
 	ResourceBuilder(const ResourceBuilder&) = delete;
 	ResourceBuilder& operator=(const ResourceBuilder&) = delete;
@@ -43,7 +52,6 @@ public:
 		return s_instance;
 	}
 
-	ProcessStatus CheckFileStatus(const char* pInputFilePath, const char* pOutputFilePath) const;
 	bool AddTask(Process process);
 	bool AddCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
 	bool AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char *pUberOptions = nullptr);
@@ -53,7 +61,10 @@ public:
 private:
 	ResourceBuilder() = default;
 
+	ProcessStatus CheckFileStatus(const char* pInputFilePath, const char* pOutputFilePath);
+
 	std::queue<Process> m_buildTasks;
+	std::unordered_map<std::string, std::filesystem::file_time_type> m_modifyTimeCache;
 };
 
 }
