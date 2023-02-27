@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/StringCrc.h"
+#include "Log/Log.h"
 
 #include <map>
 #include <memory>
@@ -10,12 +11,24 @@
 namespace engine
 {
 
+enum class Uber : uint8_t
+{
+	DEFAULT = 0,
+	IBL,
+	NORMAL_MAP,
+	OCCLUSION,
+
+	Count,
+};
+
 class ShaderSchema
 {
 public:
+
+
+public:
 	static constexpr uint16_t InvalidProgramHandle = UINT16_MAX;
-	static constexpr char DefaultUberOptionName[] = "DEFAULT";
-	static constexpr StringCrc DefaultUberOption = StringCrc(DefaultUberOptionName);
+	static constexpr StringCrc DefaultUberOption = StringCrc("DEFAULT;");
 	using ShaderBlob = std::vector<std::byte>;
 
 public:
@@ -30,11 +43,18 @@ public:
 	const char* GetVertexShaderPath() const { return m_vertexShaderPath.c_str(); }
 	const char* GetFragmentShaderPath() const { return m_fragmentShaderPath.c_str(); }
 
-	void RegisterUberOption(std::string uberOption);
+	// This option will combien with every exists combination.
+	void RegisterUberOption(Uber uberOption);
+	// Add a single option wihch will not combine with any other option.
+	void AddSingleUberOption(std::string uberOption);
+
 	bool IsUberOptionValid(StringCrc uberOption) const;
 	void SetCompiledProgram(StringCrc uberOption, uint16_t programHandle);
 	uint16_t GetCompiledProgram(StringCrc uberOption) const;
-	const std::vector<std::string>& GetUberOptions() const { return m_uberOptions; }
+	StringCrc GetOptionsCombination(const std::initializer_list<Uber>& options) const;
+	const std::vector<Uber>& GetUberOptions() const { return m_uberOptions; }
+	const std::vector<std::string>& GetUberCombines() const { return m_uberCombines; }
+
 	const std::map<uint32_t, uint16_t>& GetUberPrograms() const { return m_compiledProgramHandles; }
 
 	// TODO : More generic.
@@ -46,11 +66,16 @@ public:
 private:
 	std::string m_vertexShaderPath;
 	std::string m_fragmentShaderPath;
-	std::vector<std::string> m_uberOptions;
+
+	// Registration order of options. 
+	std::vector<Uber> m_uberOptions;
+	// Parameters to compile shaders.
+	std::vector<std::string> m_uberCombines;
+	// Key: StringCrc(option combine), Value: shader handle.
+	std::map<uint32_t, uint16_t> m_compiledProgramHandles;
 
 	std::unique_ptr<ShaderBlob> m_pVSBlob;
 	std::map<uint32_t, std::unique_ptr<ShaderBlob>> m_uberOptionToFSBlobs;
-	std::map<uint32_t, uint16_t> m_compiledProgramHandles;
 };
 
 }

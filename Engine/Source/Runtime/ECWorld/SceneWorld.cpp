@@ -45,8 +45,7 @@ void SceneWorld::CreatePBRMaterialType()
 	m_pPBRMaterialType->SetMaterialName("CD_PBR");
 
 	ShaderSchema shaderSchema(GetShaderPath("vs_PBR"), GetShaderPath("fs_PBR"));
-	shaderSchema.RegisterUberOption(ShaderSchema::DefaultUberOptionName);
-	shaderSchema.RegisterUberOption("USE_PBR_IBL");
+	shaderSchema.RegisterUberOption(Uber::IBL);
 	m_pPBRMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat pbrVertexFormat;
@@ -58,11 +57,11 @@ void SceneWorld::CreatePBRMaterialType()
 
 	// Slot index should align to shader codes.
 	m_pPBRMaterialType->AddRequiredTextureType(cd::MaterialTextureType::BaseColor, 0);
-	m_pPBRMaterialType->AddRequiredTextureType(cd::MaterialTextureType::Normal, 1);
+	m_pPBRMaterialType->AddRequiredTextureType(cd::MaterialTextureType::Roughness, 2);
+	m_pPBRMaterialType->AddRequiredTextureType(cd::MaterialTextureType::Metallic, 2);
 
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Normal, 1);
 	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Occlusion, 2);
-	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Metallic, 2);
-	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Roughness, 2);
 	//m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Emissive, );
 }
 
@@ -72,7 +71,6 @@ void SceneWorld::CreateAnimationMaterialType()
 	m_pAnimationMaterialType->SetMaterialName("CD_Animation");
 
 	ShaderSchema shaderSchema(GetShaderPath("vs_animation"), GetShaderPath("fs_animation"));
-	shaderSchema.RegisterUberOption(ShaderSchema::DefaultUberOptionName);
 	m_pAnimationMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat animationVertexFormat;

@@ -12,11 +12,10 @@ bool IsIOFilePathsValid(const char* pInputFilePath, const char* pOutputFilePath)
 {
 	if (!std::filesystem::exists(pInputFilePath))
 	{
-		CD_ERROR("Input file path {0} not existed.", pInputFilePath);
+		CD_ERROR("Input file path {0} does not exist.", pInputFilePath);
 		return false;
 	}
 
-	// TODO : check if we really need to overwrite old file.
 	if (std::filesystem::exists(pOutputFilePath))
 	{
 		CD_WARN("Output file path {0} already existed.", pOutputFilePath);
@@ -31,13 +30,31 @@ bool IsIOFilePathsValid(const char* pInputFilePath, const char* pOutputFilePath)
 namespace editor
 {
 
+ProcessStatus ResourceBuilder::CheckFileStatus(const char* pInputFilePath, const char* pOutputFilePath) const
+{
+	if (!std::filesystem::exists(pInputFilePath))
+	{
+		CD_ERROR("Input file path {0} does not exist.", pInputFilePath);
+		return ProcessStatus::InputNotExist;
+	}
+
+	if (std::filesystem::exists(pOutputFilePath))
+	{
+		CD_WARN("Output file path {0} already exist.", pOutputFilePath);
+		return ProcessStatus::OutputAlreadyExist;
+	}
+
+	return ProcessStatus::None;
+}
+
+
 bool ResourceBuilder::AddTask(Process process)
 {
 	m_buildTasks.push(cd::MoveTemp(process));
 	return true;
 }
 
-bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const std::vector<const char*>* pUberOptions)
+bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pUberOptions)
 {
 	//if (!IsIOFilePathsValid(pInputFilePath, pOutputFilePath))
 	//{
@@ -78,16 +95,11 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 		commandArguments.push_back("vs_5_0");
 	}
 
-	if (pUberOptions && !pUberOptions->empty())
+	if (pUberOptions && *pUberOptions != '\0' && 0 != strcmp("DEFAULT;", pUberOptions))
 	{
-		if (0 != strcmp("DEFAULT", pUberOptions->at(0)))
-		{
-			commandArguments.push_back("--define");
-			for (const char* pUberOption : *pUberOptions)
-			{
-				commandArguments.push_back(pUberOption);
-			}
-		}
+		// Should never use DEFAULT as a compile parameter.
+		commandArguments.push_back("--define");
+		commandArguments.push_back(pUberOptions);
 	}
 
 	process.SetCommandArguments(cd::MoveTemp(commandArguments));

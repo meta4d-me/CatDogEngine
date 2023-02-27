@@ -12,13 +12,16 @@ uniform vec4 u_lightCount[1];
 uniform vec4 u_lightStride[1];
 
 SAMPLER2D(s_texBaseColor, 0);
-SAMPLER2D(s_texNormal, 1);
 SAMPLER2D(s_texORM, 2);
 SAMPLER2D(s_texLUT, 3);
 
-#if defined(USE_PBR_IBL)
+#if defined(IBL)
 SAMPLERCUBE(s_texCube, 4);
 SAMPLERCUBE(s_texCubeIrr, 5);
+#endif
+
+#if defined(NORMAL_MAP)
+SAMPLER2D(s_texNormal, 1);
 #endif
 
 struct Material {
@@ -56,15 +59,23 @@ vec3 CalcuateNormal(vec3 worldPos) {
 	return normalize(cross(dx, dy));
 }
 
+#if defined(NORMAL_MAP)
 vec3 SampleNormalTexture(vec2 uv, mat3 TBN) {
+	// We assume that normal texture is already in linear space.
 	vec3 normalTexture = normalize(texture2D(s_texNormal, uv).xyz * 2.0 - 1.0);
 	return normalize(mul(TBN, normalTexture));
 }
+#endif
 
 vec3 SampleORMTexture(vec2 uv) {
 	// We assume that ORM texture is already in linear space.
 	vec3 orm = texture2D(s_texORM, uv).xyz;
-	orm.y = clamp(orm.y, 0.04, 1.0); // roughness
+	// roughness
+	orm.y = clamp(orm.y, 0.04, 1.0);
+#if !defined(OCCLUSION)
+	// Occlusion must be 1.0 if material does not have occlusion.
+	orm.x = 1.0;
+#endif
 	return orm;
 }
 
@@ -118,7 +129,13 @@ void main()
 {
 	Material material = CreateMaterial();
 	material.albedo = SampleAlbedoTexture(v_texcoord0);
+	
+#if defined(NORMAL_MAP)
 	material.normal = SampleNormalTexture(v_texcoord0, v_TBN);
+#else
+	material.normal = normalize(v_normal);
+#endif
+	
 	vec3 orm = SampleORMTexture(v_texcoord0);
 	material.occlusion = orm.x;
 	material.roughness = orm.y;
@@ -142,7 +159,8 @@ void main()
 
 	vec3 envIrradiance = vec3_splat(1.0);
 	vec3 envRadiance = vec3_splat(1.0);
-#if defined(USE_PBR_IBL)
+	
+#if defined(IBL)
 	float mip = clamp(6.0 * material.roughness, 0.1, 6.0);
 
 	// Environment Prefiltered Irradiance

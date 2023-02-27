@@ -15,6 +15,14 @@ enum class ShaderType
 	Fragment
 };
 
+enum class ProcessStatus
+{
+	None,
+	InputNotExist,
+	OutputAlreadyExist,
+	InputModified,
+};
+
 class Process;
 
 // ResourceBuilder is used to create processes to build different resource types.
@@ -35,9 +43,10 @@ public:
 		return s_instance;
 	}
 
+	ProcessStatus CheckFileStatus(const char* pInputFilePath, const char* pOutputFilePath) const;
 	bool AddTask(Process process);
 	bool AddCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
-	bool AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const std::vector<const char*>* pUberOptions = nullptr);
+	bool AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char *pUberOptions = nullptr);
 	bool AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath);
 	void Update();
 
