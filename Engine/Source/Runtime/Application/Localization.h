@@ -35,7 +35,7 @@ static constexpr const char* GetLanguageName(Language language)
 {
 	return LanguageNames[static_cast<int>(language)];
 }
-void Read_csv();
-const char* SetText(const char* text);
+//void ReadCSV(std::string csv_path);
+//const char* SetText(std::string key);
 
 }
