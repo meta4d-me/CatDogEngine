@@ -46,14 +46,10 @@ static constexpr const char* GetLanguageName(Language language)
 {
 	return LanguageNames[static_cast<int>(language)];
 }
-<<<<<<< HEAD
+
 
 const char* SetText(std::string key);
 void ReadCSV(std::string csv_path);
 
-=======
-//void ReadCSV(std::string csv_path);
-//const char* SetText(std::string key);
->>>>>>> 651486cfc86c1e28e6d4b7f78cfdff56571ef960
 
 }
