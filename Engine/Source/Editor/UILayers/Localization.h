@@ -1,17 +1,6 @@
 #pragma once
-#include<sstream>
-#include<string>
-#include <vector>
-#include<numeric>
-#include<filesystem>
-#include<map>
-#include<utility>
-#include<fstream>
-#include <iostream>
 
-
-
-namespace engine
+namespace editor
 {
 
 enum class Language
@@ -46,14 +35,7 @@ static constexpr const char* GetLanguageName(Language language)
 {
 	return LanguageNames[static_cast<int>(language)];
 }
-<<<<<<< HEAD
-
-const char* SetText(std::string key);
-void ReadCSV(std::string csv_path);
-
-=======
-//void ReadCSV(std::string csv_path);
-//const char* SetText(std::string key);
->>>>>>> 651486cfc86c1e28e6d4b7f78cfdff56571ef960
+void Read_csv();
+const char* SetText(const char* text);
 
 }

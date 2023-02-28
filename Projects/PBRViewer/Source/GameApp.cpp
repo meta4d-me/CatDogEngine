@@ -18,6 +18,7 @@
 #include "Rendering/TerrainRenderer.h"
 #include "Window/Input.h"
 #include "Window/Window.h"
+#include "Application/Localization.h"
 
 namespace game
 {
@@ -99,6 +100,9 @@ void GameApp::Init(engine::EngineInitArgs initArgs)
 	m_pMainWindow->OnResize.Bind<engine::RenderContext, &engine::RenderContext::OnResize>(m_pRenderContext.get());
 
 	m_pFlybyCamera->FrameAll(processor.GetSceneDatabase()->GetAABB());
+
+	//Load text.csv,but seems unseless
+	engine::Read_csv();
 }
 
 void GameApp::Shutdown()

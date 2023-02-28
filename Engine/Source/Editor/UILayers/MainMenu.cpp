@@ -42,14 +42,12 @@ void MainMenu::FileMenu()
 	if (ImGui::BeginMenu(engine::SetText("TEXT_NEW")))
 	{ 
 		
-		if (ImGui::MenuItem("New", "Ctrl N"))
+		if (ImGui::MenuItem("TEXT_NEW", "Ctrl N"))
 		{
 			m_pCreatProject->SetTitle("Creat - Project");
 			m_pCreatProject->Open();
 		}
-		if (ImGui::MenuItem("New", "Ctrl O"))
-		{
-		}
+	
 		if (ImGui::MenuItem("Open Recent"))
 		{
 		}
@@ -81,7 +79,7 @@ void MainMenu::EditMenu()
 {
 	ImGuiIO& io = ImGui::GetIO();
 
-	if (ImGui::BeginMenu("Edit"))
+	if (ImGui::BeginMenu("TEXT_EDIT"))
 	{
 		if (ImGui::MenuItem("Undo", "Ctrl Z"))
 		{
@@ -96,7 +94,7 @@ void MainMenu::EditMenu()
 		{
 		}
 
-		if (ImGui::BeginMenu("Style"))
+		if (ImGui::BeginMenu("TEXT_STYLE"))
 		{
 			// It is not convenient in C++ to loop enum except define an extra array to wrap them.
 			// C++ 20/23 ranges may look better but still needs std::iota inside its implementation.
@@ -112,7 +110,7 @@ void MainMenu::EditMenu()
 
 			ImGui::EndMenu();
 		}
-		if (ImGui::BeginMenu("Language"))
+		if (ImGui::BeginMenu("TEXT_LANGUAGE"))
 		{
 			for (engine::Language language = engine::Language::ChineseSimplied; language < engine::Language::Count;
 				language = static_cast<engine::Language>(static_cast<int>(language) + 1))
