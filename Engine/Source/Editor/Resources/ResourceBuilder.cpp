@@ -3,8 +3,82 @@
 #include "Base/Template.h"
 #include "Log/Log.h"
 
-namespace editor
+namespace editor {
+
+ResourceBuilder::ResourceBuilder()
 {
+	ReadModifyCacheFile();
+}
+
+
+ResourceBuilder::~ResourceBuilder()
+{
+	WriteModifyCacheFile();
+}
+
+void ResourceBuilder::ReadModifyCacheFile()
+{
+	std::string modifyCachePath = GetModifyCacheFilePath();
+	std::ifstream inFile(modifyCachePath);
+	if (!inFile.is_open())
+	{
+		CD_WARN("Can not open file {0}!", modifyCachePath);
+		return;
+	}
+
+	CD_INFO("Reading modify time cache from {0}.", modifyCachePath);
+
+	std::string line;
+	while (std::getline(inFile, line))
+	{
+		size_t pos = line.find("=");
+		if (pos != std::string::npos)
+		{
+			std::string filePath = line.substr(0, pos);
+
+			// C++20 only
+			long long timeStamp = std::stoll(line.substr(pos + 1));
+			auto systemClock = std::chrono::system_clock::from_time_t(static_cast<time_t>(timeStamp));
+			auto fileTime = std::chrono::clock_cast<std::chrono::file_clock>(systemClock);
+
+			assert(m_modifyTimeCache.find(filePath) == m_modifyTimeCache.end());
+			m_modifyTimeCache[filePath] = fileTime;
+		}
+	}
+
+	inFile.close();
+}
+
+void ResourceBuilder::WriteModifyCacheFile()
+{
+	std::string modifyCachePath = GetModifyCacheFilePath();
+	std::ofstream outFile(modifyCachePath, std::ios::trunc);
+	if (!outFile.is_open())
+	{
+		CD_ERROR("Can not open file {0}!", modifyCachePath);
+		return;
+	}
+
+	CD_INFO("Writing modify time cache to {0}.", modifyCachePath);
+
+	outFile.clear();
+	for (const auto& [filePath, fileTime] : m_modifyTimeCache)
+	{
+		// C++20 only
+		auto systemClock = std::chrono::clock_cast<std::chrono::system_clock>(fileTime);
+		long long timeStamp = static_cast<long long>(std::chrono::system_clock::to_time_t(systemClock));
+		outFile << filePath << "=" << timeStamp << std::endl;
+	}
+
+	outFile.close();
+}
+
+std::string ResourceBuilder::GetModifyCacheFilePath()
+{
+	static std::filesystem::path modifyCachePath = CDENGINE_RESOURCES_ROOT_PATH;
+	// TODO : Move to another path.
+	return (modifyCachePath / "Textures/modifyCache.bin").string();
+}
 
 ProcessStatus ResourceBuilder::CheckFileStatus(const char* pInputFilePath, const char* pOutputFilePath)
 {
@@ -14,27 +88,30 @@ ProcessStatus ResourceBuilder::CheckFileStatus(const char* pInputFilePath, const
 		return ProcessStatus::InputNotExist;
 	}
 
+	const auto lastTime = std::filesystem::last_write_time(pInputFilePath);
+
 	if (m_modifyTimeCache.find(pInputFilePath) == m_modifyTimeCache.end())
 	{
-		// Init time cache the first time the file is accessed.
-		m_modifyTimeCache[pInputFilePath] = std::filesystem::last_write_time(pInputFilePath);
+		CD_INFO("New input file {0} detected.", pInputFilePath);
+		m_modifyTimeCache[pInputFilePath] = lastTime;
+		return ProcessStatus::InputAdded;
 	}
 
-	auto lastTime = std::filesystem::last_write_time(pInputFilePath);
 	if (m_modifyTimeCache[pInputFilePath] != lastTime)
 	{
-		CD_WARN("Input file path {0} has been modified.", pInputFilePath);
-		m_modifyTimeCache[pInputFilePath] = cd::MoveTemp(lastTime);
+		CD_INFO("Input file path {0} has been modified.", pInputFilePath);
+		m_modifyTimeCache[pInputFilePath] = lastTime;
 		return ProcessStatus::InputModified;
 	}
 
 	if (!std::filesystem::exists(pOutputFilePath))
 	{
+		CD_INFO("Output file path {0} not exist.", pOutputFilePath);
 		return ProcessStatus::OutputNotExist;
 	}
 	else
 	{
-		CD_INFO("Output file path {0} already exist.", pOutputFilePath);
+		CD_TRACE("Output file path {0} already exist.", pOutputFilePath);
 		return ProcessStatus::Stable;
 	}
 

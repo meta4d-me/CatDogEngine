@@ -262,6 +262,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 			}
 		}
 
+		// tmp
 		currentUberOption = shaderSchema.GetOptionsCombination({ engine::Uber::NORMAL_MAP,  engine::Uber::OCCLUSION });
 
 		// Compile uber shaders with different options.

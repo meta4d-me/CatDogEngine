@@ -5,8 +5,10 @@
 
 #include <chrono>
 #include <filesystem>
+#include <fstream>
+#include <map>
 #include <queue>
-#include <unordered_map>
+#include <string>
 
 namespace editor
 {
@@ -20,11 +22,12 @@ enum class ShaderType
 
 enum class ProcessStatus : uint8_t
 {
-	None           = 0x00,
-	InputNotExist  = 1 << 0,
-	OutputNotExist = 1 << 1,
-	InputModified  = 1 << 2,
-	Stable         = 1 << 3,
+	None           = 1 << 0,
+	InputNotExist  = 1 << 1,
+	OutputNotExist = 1 << 2,
+	InputModified  = 1 << 3,
+	InputAdded     = 1 << 4,
+	Stable         = 1 << 5,
 };
 
 class Process;
@@ -36,6 +39,7 @@ class ResourceBuilder final
 {
 public:
 	static constexpr uint8_t s_SkipStatus =
+		static_cast<uint8_t>(ProcessStatus::None) |
 		static_cast<uint8_t>(ProcessStatus::InputNotExist) |
 		static_cast<uint8_t>(ProcessStatus::Stable);
 
@@ -44,7 +48,6 @@ public:
 	ResourceBuilder& operator=(const ResourceBuilder&) = delete;
 	ResourceBuilder(ResourceBuilder&&) = delete;
 	ResourceBuilder& operator=(ResourceBuilder&&) = delete;
-	~ResourceBuilder() = default;
 
 	static ResourceBuilder& Get()
 	{
@@ -59,12 +62,18 @@ public:
 	void Update();
 
 private:
-	ResourceBuilder() = default;
+	ResourceBuilder();
+	~ResourceBuilder();
+
+	void ReadModifyCacheFile();
+	void WriteModifyCacheFile();
+
+	std::string GetModifyCacheFilePath();
 
 	ProcessStatus CheckFileStatus(const char* pInputFilePath, const char* pOutputFilePath);
 
 	std::queue<Process> m_buildTasks;
-	std::unordered_map<std::string, std::filesystem::file_time_type> m_modifyTimeCache;
+	std::map<std::string, std::filesystem::file_time_type> m_modifyTimeCache;
 };
 
 }
