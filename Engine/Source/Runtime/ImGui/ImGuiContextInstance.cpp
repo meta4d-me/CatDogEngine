@@ -12,7 +12,6 @@
 #include <imgui/imgui_internal.h>
 #include <misc/freetype/imgui_freetype.h>
 
-#include <string>
 #include <unordered_map>
 
 namespace

@@ -1,4 +1,15 @@
 #pragma once
+#include<sstream>
+#include<string>
+#include <vector>
+#include<numeric>
+#include<filesystem>
+#include<map>
+#include<utility>
+#include<fstream>
+#include <iostream>
+
+
 
 namespace engine
 {
@@ -35,7 +46,9 @@ static constexpr const char* GetLanguageName(Language language)
 {
 	return LanguageNames[static_cast<int>(language)];
 }
-void Read_csv();
-const char* SetText(const char* text);
+
+const char* SetText(std::string key);
+void ReadCSV(std::string csv_path);
+
 
 }

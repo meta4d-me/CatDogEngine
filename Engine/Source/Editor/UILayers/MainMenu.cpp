@@ -8,13 +8,13 @@
 #include "Window/Window.h"
 #include "Window/Input.h"
 #include "Window/KeyCode.h"
-
+#include "Application/Localization.h"
 #include <imgui/imgui.h>
 #include<string>
 #include <filesystem>
 #include "ImGui/imfilebrowser.h"
 #include "ImGui/EditorImGuiViewport.h"
-
+#include"Application/Localization.h"
 
 
 
@@ -39,7 +39,7 @@ void MainMenu::FileMenu()
 	
 	
 	
-	if (ImGui::BeginMenu("File"))
+	if (ImGui::BeginMenu(engine::SetText("TEXT_NEW")))
 	{ 
 		
 		if (ImGui::MenuItem("New", "Ctrl N"))
