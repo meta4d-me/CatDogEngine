@@ -45,6 +45,8 @@ void SceneWorld::CreatePBRMaterialType()
 	m_pPBRMaterialType->SetMaterialName("CD_PBR");
 
 	ShaderSchema shaderSchema(GetShaderPath("vs_PBR"), GetShaderPath("fs_PBR"));
+	shaderSchema.RegisterUberOption(Uber::NORMAL_MAP);
+	shaderSchema.RegisterUberOption(Uber::OCCLUSION);
 	shaderSchema.RegisterUberOption(Uber::IBL);
 	m_pPBRMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 

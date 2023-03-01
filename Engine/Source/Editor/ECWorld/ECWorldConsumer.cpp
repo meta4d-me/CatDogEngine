@@ -39,6 +39,8 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 {
 	assert(pSceneDatabase->GetMeshCount() > 0);
 
+	AddShader(m_pSceneWorld->GetPBRMaterialType());
+
 	for (const auto& node : pSceneDatabase->GetNodes())
 	{
 		if (m_nodeMinID > node.GetID().Data())
@@ -74,6 +76,47 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 				AddMaterial(sceneEntity, nullptr, pMaterialType, pSceneDatabase);
 			}
 		}
+	}
+}
+
+void ECWorldConsumer::AddShader(engine::MaterialType* pMaterialType)
+{
+	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
+	std::map<std::string, engine::StringCrc> outputFSPathToUberOption;
+
+	// No uber option support for VS now.
+	std::string outputVSFilePath = GetShaderOutputFilePath(shaderSchema.GetVertexShaderPath());
+	ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Vertex,
+		shaderSchema.GetVertexShaderPath(), outputVSFilePath.c_str());
+
+	for (const auto& combine : shaderSchema.GetUberCombines())
+	{
+		std::string outputFSFilePath = GetShaderOutputFilePath(shaderSchema.GetFragmentShaderPath(), combine);
+		ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Fragment,
+			shaderSchema.GetFragmentShaderPath(), outputFSFilePath.c_str(), combine.c_str());
+		engine::StringCrc uberOptionCrc(combine);
+		outputFSPathToUberOption[cd::MoveTemp(outputFSFilePath)] = uberOptionCrc;
+	}
+
+	// TODO : ResourceBuilder will move to EditorApp::Update in the future.
+	ResourceBuilder::Get().Update();
+
+	// Vertex shader.
+	shaderSchema.AddUberOptionVSBlob(ResourceLoader::LoadShader(outputVSFilePath.c_str()));
+	const auto& VSBlob = shaderSchema.GetVSBlob();
+	bgfx::ShaderHandle vsHandle = bgfx::createShader(bgfx::makeRef(VSBlob.data(), static_cast<uint32_t>(VSBlob.size())));
+
+	// Fragment shader.
+	for (const auto& [outputFSFilePath, uberOptionCrc] : outputFSPathToUberOption)
+	{
+		shaderSchema.AddUberOptionFSBlob(uberOptionCrc, ResourceLoader::LoadShader(outputFSFilePath.c_str()));
+
+		const auto& FSBlob = shaderSchema.GetFSBlob(uberOptionCrc);
+		bgfx::ShaderHandle fsHandle = bgfx::createShader(bgfx::makeRef(FSBlob.data(), static_cast<uint32_t>(FSBlob.size())));
+
+		// Program.
+		bgfx::ProgramHandle uberProgramHandle = bgfx::createProgram(vsHandle, fsHandle);
+		shaderSchema.SetCompiledProgram(uberOptionCrc, uberProgramHandle.idx);
 	}
 }
 
@@ -154,7 +197,6 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 {
 	std::set<uint8_t> compiledTextureSlot;
 	std::map<std::string, const cd::Texture*> outputTexturePathToData;
-	std::map<std::string, engine::StringCrc> outputFSPathToUberOption;
 
 	bool missRequiredTextures = false;
 	bool unknownTextureSlot = false;
@@ -189,13 +231,8 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 			outputTexturePathToData[cd::MoveTemp(outputTexturePath)] = &requiredTexture;
 		}
 	}
-	
-	// No uber option support for VS now.
+
 	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
-	std::string outputVSFilePath = GetShaderOutputFilePath(shaderSchema.GetVertexShaderPath());
-	ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Vertex,
-		shaderSchema.GetVertexShaderPath(), outputVSFilePath.c_str());
-	
 	engine::StringCrc currentUberOption = engine::StringCrc(shaderSchema.GetUberCombines().at(0));
 	if (missRequiredTextures || unknownTextureSlot)
 	{
@@ -217,7 +254,8 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 			shaderSchema.AddSingleUberOption(uberOptionName.c_str());
 
 			engine::StringCrc uberOptionCrc(uberOptionName);
-			outputFSPathToUberOption[cd::MoveTemp(outputFSFilePath)] = uberOptionCrc;
+			// TODO
+			// outputFSPathToUberOption[cd::MoveTemp(outputFSFilePath)] = uberOptionCrc;
 		}
 
 		currentUberOption = missingTextureOption;
@@ -241,16 +279,6 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 				break;
 			}
 
-			// tmp
-			if (optionalTextureType == cd::MaterialTextureType::Normal)
-			{
-				shaderSchema.RegisterUberOption(engine::Uber::NORMAL_MAP);
-			}
-			if (optionalTextureType == cd::MaterialTextureType::Occlusion)
-			{
-				shaderSchema.RegisterUberOption(engine::Uber::OCCLUSION);
-			}
-
 			uint8_t textureSlot = optTextureSlot.value();
 			const cd::Texture& optionalTexture = pSceneDatabase->GetTexture(optTexture.value().Data());
 			std::string outputTexturePath = GetTextureOutputFilePath(optionalTexture.GetPath());
@@ -263,18 +291,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 		}
 
 		// tmp
-		currentUberOption = shaderSchema.GetOptionsCombination({ engine::Uber::NORMAL_MAP,  engine::Uber::OCCLUSION });
-
-		// Compile uber shaders with different options.
-		auto& testCombin = shaderSchema.GetUberCombines();
-		for (const auto& combine : shaderSchema.GetUberCombines())
-		{
-			std::string outputFSFilePath = GetShaderOutputFilePath(shaderSchema.GetFragmentShaderPath(), combine);
-			ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Fragment,
-				shaderSchema.GetFragmentShaderPath(), outputFSFilePath.c_str(), combine.c_str());
-			engine::StringCrc uberOptionCrc(combine);
-			outputFSPathToUberOption[cd::MoveTemp(outputFSFilePath)] = uberOptionCrc;
-		}
+		currentUberOption = shaderSchema.GetOptionsCombination({ engine::Uber::NORMAL_MAP });
 	}
 
 	// TODO : ResourceBuilder will move to EditorApp::Update in the future.
@@ -296,24 +313,6 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 		{
 			materialComponent.AddTextureBlob(pTextureData->GetType(), cd::MoveTemp(textureBlob));
 		}
-	}
-
-	// Vertex shader.
-	shaderSchema.AddUberOptionVSBlob(ResourceLoader::LoadShader(outputVSFilePath.c_str()));
-	const auto& VSBlob = shaderSchema.GetVSBlob();
-	bgfx::ShaderHandle vsHandle = bgfx::createShader(bgfx::makeRef(VSBlob.data(), static_cast<uint32_t>(VSBlob.size())));
-
-	// Fragment shader.
-	for (const auto& [outputFSFilePath, uberOptionCrc] : outputFSPathToUberOption)
-	{
-		shaderSchema.AddUberOptionFSBlob(uberOptionCrc, ResourceLoader::LoadShader(outputFSFilePath.c_str()));
-	
-		const auto& FSBlob = shaderSchema.GetFSBlob(uberOptionCrc);
-		bgfx::ShaderHandle fsHandle = bgfx::createShader(bgfx::makeRef(FSBlob.data(), static_cast<uint32_t>(FSBlob.size())));
-
-		// Program.
-		bgfx::ProgramHandle uberProgramHandle = bgfx::createProgram(vsHandle, fsHandle);
-		shaderSchema.SetCompiledProgram(uberOptionCrc, uberProgramHandle.idx);
 	}
 
 	materialComponent.Build();

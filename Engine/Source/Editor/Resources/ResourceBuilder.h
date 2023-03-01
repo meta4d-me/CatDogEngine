@@ -6,9 +6,9 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
-#include <map>
 #include <queue>
 #include <string>
+#include <unordered_map>
 
 namespace editor
 {
@@ -61,6 +61,9 @@ public:
 	bool AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath);
 	void Update();
 
+	void UpdateModifyTimeCache();
+	void ClearModifyTimeCache();
+
 private:
 	ResourceBuilder();
 	~ResourceBuilder();
@@ -73,7 +76,11 @@ private:
 	ProcessStatus CheckFileStatus(const char* pInputFilePath, const char* pOutputFilePath);
 
 	std::queue<Process> m_buildTasks;
-	std::map<std::string, std::filesystem::file_time_type> m_modifyTimeCache;
+	
+	std::unordered_map<std::string, long long> m_modifyTimeCache;
+	// We always access to fragment ahsder multiple times by using ubre options.
+	// So we can not update fragment shader's modify time every time we found it has been modified.
+	std::unordered_map<std::string, long long> m_newModifyTimeCache;
 };
 
 }

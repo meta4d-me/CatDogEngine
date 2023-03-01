@@ -51,6 +51,8 @@ public:
 	virtual void Execute(const cd::SceneDatabase* pSceneDatabase) override;
 
 private:
+	// TODO : Maby we can move this function out of ECWorldConsumer.
+	void AddShader(engine::MaterialType* pMaterialType);
 	void AddNode(engine::Entity entity, const cd::Node& node);
 	void AddStaticMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat);
 	void AddSkinMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat);
