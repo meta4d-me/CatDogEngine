@@ -184,5 +184,6 @@ void main()
 	
 	// ------------------------------------ Fragment Color -----------------------------------------
 
-	gl_FragColor = vec4(dirColor + envColor, 1.0);
+	// gl_FragColor = vec4(dirColor + envColor, 1.0);
+	gl_FragColor = vec4(0.1, 0.2, 0.3, 1.0);
 }

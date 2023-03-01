@@ -75,9 +75,21 @@ void ResourceBuilder::WriteModifyCacheFile()
 
 std::string ResourceBuilder::GetModifyCacheFilePath()
 {
-	static std::filesystem::path modifyCachePath = CDENGINE_RESOURCES_ROOT_PATH;
 	// TODO : Move to another path.
-	return (modifyCachePath / "Textures/modifyCache.bin").string();
+	static std::filesystem::path modifyCachePath = CDENGINE_RESOURCES_ROOT_PATH;
+	return (modifyCachePath / "Textures/modifyTimeCache.bin").string();
+}
+
+// tmp
+void OutPut(std::filesystem::file_time_type crtTime)
+{
+	auto sctp = std::chrono::clock_cast<std::chrono::system_clock>(crtTime);
+	std::time_t cftime = std::chrono::system_clock::to_time_t(sctp);
+	char buffer[256];
+	struct tm tm;
+	localtime_s(&tm, &cftime);
+	asctime_s(buffer, sizeof buffer, &tm);
+	CD_FATAL(buffer);
 }
 
 ProcessStatus ResourceBuilder::CheckFileStatus(const char* pInputFilePath, const char* pOutputFilePath)
@@ -88,19 +100,24 @@ ProcessStatus ResourceBuilder::CheckFileStatus(const char* pInputFilePath, const
 		return ProcessStatus::InputNotExist;
 	}
 
-	const auto lastTime = std::filesystem::last_write_time(pInputFilePath);
+	const auto crtTime = std::filesystem::last_write_time(pInputFilePath);
 
 	if (m_modifyTimeCache.find(pInputFilePath) == m_modifyTimeCache.end())
 	{
 		CD_INFO("New input file {0} detected.", pInputFilePath);
-		m_modifyTimeCache[pInputFilePath] = lastTime;
+		m_modifyTimeCache[pInputFilePath] = crtTime;
 		return ProcessStatus::InputAdded;
 	}
 
-	if (m_modifyTimeCache[pInputFilePath] != lastTime)
+	if (m_modifyTimeCache[pInputFilePath] != crtTime)
 	{
+		// Why they have same output?
+		CD_FATAL(pInputFilePath);
+		OutPut(m_modifyTimeCache[pInputFilePath]);
+		OutPut(crtTime);
+
 		CD_INFO("Input file path {0} has been modified.", pInputFilePath);
-		m_modifyTimeCache[pInputFilePath] = lastTime;
+		m_modifyTimeCache[pInputFilePath] = crtTime;
 		return ProcessStatus::InputModified;
 	}
 
