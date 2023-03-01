@@ -21,31 +21,28 @@
 #include <cassert>
 #include <filesystem>
 
-using namespace cd;
-using namespace engine;
-
 namespace editor
 {
 
-ECTerrainConsumer::ECTerrainConsumer(SceneWorld* pSceneWorld, RenderContext* pRenderContext)
+ECTerrainConsumer::ECTerrainConsumer(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext)
 	: m_pSceneWorld(pSceneWorld)
 	, m_pRenderContext(pRenderContext)
 {
 }
 
-void ECTerrainConsumer::Execute(const SceneDatabase* pSceneDatabase)
+void ECTerrainConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 {
 	assert(pSceneDatabase->GetMeshCount() > 0);
 	
-	for (const Mesh& mesh : pSceneDatabase->GetMeshes())
+	for (const cd::Mesh& mesh : pSceneDatabase->GetMeshes())
 	{
 		const cd::MeshID::ValueType meshID = mesh.GetID().Data();
 		if (m_meshToEntity.find(meshID) == m_meshToEntity.cend())
 		{
-			Entity terrainEntity = m_pSceneWorld->GetWorld()->CreateEntity();
-			MaterialType* pMaterialType = m_pSceneWorld->GetTerrainMaterialType();
+			engine::Entity terrainEntity = m_pSceneWorld->GetWorld()->CreateEntity();
+			engine::MaterialType* pMaterialType = m_pSceneWorld->GetTerrainMaterialType();
 			AddStaticMesh(terrainEntity, &mesh, pMaterialType->GetRequiredVertexFormat());
-			const MaterialID meshMaterialID = mesh.GetMaterialID();
+			const cd::MaterialID meshMaterialID = mesh.GetMaterialID();
 			if (meshMaterialID.IsValid())
 			{
 				AddMaterial(terrainEntity, &pSceneDatabase->GetMaterial(meshMaterialID.Data()), pMaterialType, pSceneDatabase);
@@ -63,27 +60,27 @@ void ECTerrainConsumer::Clear()
 	}
 }
 
-void ECTerrainConsumer::AddStaticMesh(Entity entity, const Mesh* mesh, const VertexFormat& vertexFormat)
+void ECTerrainConsumer::AddStaticMesh(engine::Entity entity, const cd::Mesh* mesh, const cd::VertexFormat& vertexFormat)
 {
 	assert(mesh->GetVertexCount() > 0 && mesh->GetPolygonCount() > 0);
 
-	World* pWorld = m_pSceneWorld->GetWorld();
-	NameComponent& nameComponent = pWorld->CreateComponent<NameComponent>(entity);
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+	engine::NameComponent& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
 	nameComponent.SetName(mesh->GetName());
 
-	StaticMeshComponent& staticMeshComponent = pWorld->CreateComponent<StaticMeshComponent>(entity);
+	engine::StaticMeshComponent& staticMeshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
 	staticMeshComponent.SetMeshData(mesh);
 	staticMeshComponent.SetRequiredVertexFormat(&vertexFormat);
 	staticMeshComponent.Build();
 }
 
-void ECTerrainConsumer::AddMaterial(Entity entity, const Material* pMaterial, MaterialType* pMaterialType, const SceneDatabase* pSceneDatabase)
+void ECTerrainConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMaterial, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase)
 {
-	const std::optional<TextureID> optBaseColorTexture = pMaterial->GetTextureID(MaterialTextureType::BaseColor);
+	const std::optional<cd::TextureID> optBaseColorTexture = pMaterial->GetTextureID(cd::MaterialTextureType::BaseColor);
 	assert(optBaseColorTexture.has_value());
 	const cd::Texture& baseColorTexture = pSceneDatabase->GetTexture(optBaseColorTexture.value().Data());
 	const std::string baseColorTexturePath = GetTextureOutputFilePath(baseColorTexture.GetPath());
-	std::string textureDir = string_format("%sTextures/textures/%s.png", CDENGINE_RESOURCES_ROOT_PATH, baseColorTexture.GetPath());
+	std::string textureDir = cd::string_format("%sTextures/textures/%s.png", CDENGINE_RESOURCES_ROOT_PATH, baseColorTexture.GetPath());
 	if (!ResourceBuilder::Get().AddTextureBuildTask(baseColorTexture.GetType(), textureDir.c_str(), baseColorTexturePath.c_str()))
 	{
 		CD_ERROR("Texture %s has an invalid path!", baseColorTexturePath.c_str());
@@ -92,7 +89,7 @@ void ECTerrainConsumer::AddMaterial(Entity entity, const Material* pMaterial, Ma
 	}
 	
 	// Shaders
-	ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
+	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
 	const std::string outputVSFilePath = GetShaderOutputFilePath(shaderSchema.GetVertexShaderPath());
 	ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Vertex, shaderSchema.GetVertexShaderPath(), outputVSFilePath.c_str());
 
@@ -112,22 +109,22 @@ void ECTerrainConsumer::AddMaterial(Entity entity, const Material* pMaterial, Ma
 
 	// Textures
 	materialComponent.AddTextureFileBlob(baseColorTexture.GetType(), ResourceLoader::LoadTextureFile(baseColorTexturePath.c_str()));
-	const std::optional<TextureID> optElevationTexture = pMaterial->GetTextureID(MaterialTextureType::Roughness);
+	const std::optional<cd::TextureID> optElevationTexture = pMaterial->GetTextureID(cd::MaterialTextureType::Roughness);
 	assert(optElevationTexture.has_value());
 	// Don't need to load as this is generated
 	const cd::Texture& elevationTexture = pSceneDatabase->GetTexture(optElevationTexture.value().Data());
-	materialComponent.AddTextureBlob(elevationTexture.GetType(), elevationTexture.GetTextureFormat(), MaterialComponent::TextureBlob(elevationTexture.GetRawTexture()), elevationTexture.GetWidth(), elevationTexture.GetHeight());
+	materialComponent.AddTextureBlob(elevationTexture.GetType(), elevationTexture.GetTextureFormat(), engine::MaterialComponent::TextureBlob(elevationTexture.GetRawTexture()), elevationTexture.GetWidth(), elevationTexture.GetHeight());
 
 	// Shaders
 	shaderSchema.AddUberOptionVSBlob(ResourceLoader::LoadShader(outputVSFilePath.c_str()));
-	const ShaderSchema::ShaderBlob& VSBlob = shaderSchema.GetVSBlob();
+	const engine::ShaderSchema::ShaderBlob& VSBlob = shaderSchema.GetVSBlob();
 	bgfx::ShaderHandle vsHandle = bgfx::createShader(bgfx::makeRef(VSBlob.data(), static_cast<uint32_t>(VSBlob.size())));
 
-	shaderSchema.AddUberOptionFSBlob(ShaderSchema::DefaultUberOption, ResourceLoader::LoadShader(outputFSFilePath.c_str()));
-	const ShaderSchema::ShaderBlob& FSBlob = shaderSchema.GetFSBlob(ShaderSchema::DefaultUberOption);
+	shaderSchema.AddUberOptionFSBlob(engine::ShaderSchema::DefaultUberOption, ResourceLoader::LoadShader(outputFSFilePath.c_str()));
+	const engine::ShaderSchema::ShaderBlob& FSBlob = shaderSchema.GetFSBlob(engine::ShaderSchema::DefaultUberOption);
 	bgfx::ShaderHandle fsHandle = bgfx::createShader(bgfx::makeRef(FSBlob.data(), static_cast<uint32_t>(FSBlob.size())));
 	bgfx::ProgramHandle uberProgramHandle = bgfx::createProgram(vsHandle, fsHandle);
-	shaderSchema.SetCompiledProgram(ShaderSchema::DefaultUberOption, uberProgramHandle.idx);
+	shaderSchema.SetCompiledProgram(engine::ShaderSchema::DefaultUberOption, uberProgramHandle.idx);
 
 	materialComponent.Build();
 }
