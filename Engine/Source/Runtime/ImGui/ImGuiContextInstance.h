@@ -49,6 +49,7 @@ public:
 	void OnResize(uint16_t width, uint16_t height);
 
 	void LoadFontFiles(const std::vector<std::string>& ttfFileNames, engine::Language language);
+	
 	ThemeColor GetImGuiThemeColor() const { return m_themeColor; }
 	Language GetImGuiLanguage()const { return m_language; }
 	void SetImGuiThemeColor(ThemeColor theme);

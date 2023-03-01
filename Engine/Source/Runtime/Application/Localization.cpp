@@ -2,13 +2,16 @@
 
 namespace engine
 {// Define global variables
-    Language m_lang = Language::ChineseSimplied;//m_lang should be changed when choosing the language type
-    std::map<std::string, std::vector<std::string>> Text_Map;
+    Language m_language = Language::English;//m_lang should be changed when choosing the language type
+   std::map<std::string, std::vector<std::string>> Text_Map;
   
 
     // Read data from CSV file and return as a map
     void ReadCSV(std::string csv_path) {
-        std::ifstream file(csv_path);
+        std::string CSVPath = CDEDITOR_RESOURCES_ROOT_PATH;
+        std::string FileName = "Text.csv";
+        CSVPath += FileName;
+        std::ifstream file(CSVPath);
         if (!file.is_open()) {
             std::cout << "Failed to open CSV file: " << csv_path << std::endl;
             return;
@@ -31,13 +34,14 @@ namespace engine
     }
 
       const char* SetText(std::string key) {
-        ReadCSV("D:\\code\\Text.csv");//it should join the initialization phase
+         if(Text_Map.empty())
+        ReadCSV("D:\\code\\Text1.csv");//it should join the initialization phase
         auto itKeyValue = Text_Map.find(key);
         if (itKeyValue != Text_Map.end()) {
-            if (m_lang == Language::ChineseSimplied) {
+            if (m_language == Language::ChineseSimplied) {
                 return itKeyValue->second[0].c_str();
             }
-            else if (m_lang == Language::English) {
+            else if (m_language == Language::English) {
                 return itKeyValue->second[1].c_str();
             }
         }

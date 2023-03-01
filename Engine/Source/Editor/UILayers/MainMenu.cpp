@@ -36,19 +36,16 @@ MainMenu::~MainMenu()
 void MainMenu::FileMenu()
 {
 	
-	
-	
-	
-	if (ImGui::BeginMenu(engine::SetText("TEXT_NEW")))
+	if (ImGui::BeginMenu(engine::SetText("TEXT_FILE")))
 	{ 
 		
-		if (ImGui::MenuItem("TEXT_NEW", "Ctrl N"))
+		if (ImGui::MenuItem(engine::SetText("TEXT_NEW"), "Ctrl N"))
 		{
-			m_pCreatProject->SetTitle("Creat - Project");
+			m_pCreatProject->SetTitle(engine::SetText("TEXT_CREAT_PROJECT"));
 			m_pCreatProject->Open();
 		}
 	
-		if (ImGui::MenuItem("Open Recent"))
+		if (ImGui::MenuItem(engine::SetText("TEXT_OPEN_RECENT")))
 		{
 		}
 
@@ -79,7 +76,7 @@ void MainMenu::EditMenu()
 {
 	ImGuiIO& io = ImGui::GetIO();
 
-	if (ImGui::BeginMenu("TEXT_EDIT"))
+	if (ImGui::BeginMenu(engine::SetText("TEXT_EDIT")))
 	{
 		if (ImGui::MenuItem("Undo", "Ctrl Z"))
 		{
@@ -94,7 +91,7 @@ void MainMenu::EditMenu()
 		{
 		}
 
-		if (ImGui::BeginMenu("TEXT_STYLE"))
+		if (ImGui::BeginMenu(engine::SetText("TEXT_STYLE")))
 		{
 			// It is not convenient in C++ to loop enum except define an extra array to wrap them.
 			// C++ 20/23 ranges may look better but still needs std::iota inside its implementation.
@@ -110,7 +107,7 @@ void MainMenu::EditMenu()
 
 			ImGui::EndMenu();
 		}
-		if (ImGui::BeginMenu("TEXT_LANGUAGE"))
+		if (ImGui::BeginMenu(engine::SetText("TEXT_LANGUAGE")))
 		{
 			for (engine::Language language = engine::Language::ChineseSimplied; language < engine::Language::Count;
 				language = static_cast<engine::Language>(static_cast<int>(language) + 1))
@@ -133,7 +130,7 @@ void MainMenu::WindowMenu()
 {
 	ImGuiIO& io = ImGui::GetIO();
 
-	if (ImGui::BeginMenu("Window"))
+	if (ImGui::BeginMenu(engine::SetText("TEXT_WINDOW")))
 	{
 		engine::ImGuiContextInstance* pCurrentImguiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
 		for (const auto& pDockableLayer : pCurrentImguiContextInstance->GetDockableLayers())

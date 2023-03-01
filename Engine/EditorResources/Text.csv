@@ -1,6 +1,11 @@
-LocalizationKey,Chinese,English
-TEXT_EDIT,�༭,Edit
-TEXT_NEW,�½�,New
-TEXT_LANGUAGE,����,Language
-TEXT_FILE,�ļ�,File
-TEXT_STYLE,���,Style
+﻿LocalizationKey,Chinese,English
+TEXT_EDIT,编辑,Edit
+TEXT_NEW,新建,New
+TEXT_LANGUAGE,语言,Language
+TEXT_FILE,文件,File
+TEXT_STYLE,风格,Style
+TEXT_CREAT_PROJECT,新建项目,Creat  Project
+TEXT_OPEN_RECENT,最近打开,Open Recent
+TEXT_SAVE,保存,Save
+TEXT_SAVE_AS,另存为,Save AS
+TEXT_WINDOW,窗口,Window

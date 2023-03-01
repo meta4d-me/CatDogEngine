@@ -5,7 +5,7 @@
 #include "ImGui/ImGuiBaseLayer.h"
 #include "Window/Input.h"
 #include "Log/Log.h"
-
+#include "Application/Localization.h"
 #include <bgfx/bgfx.h>
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -119,6 +119,8 @@ std::unordered_map<engine::KeyMod, ImGuiKey> kImguiKeyModToImGuiModLookup{
 	{engine::KeyMod::KMOD_ALT, ImGuiKey::ImGuiMod_Alt},
 	{engine::KeyMod::KMOD_GUI, ImGuiKey::ImGuiMod_Super},
 };
+
+std::map<std::string, std::vector<std::string>> Text_Map;
 
 // ImGui has a static global ImGuiContext* which points to current active ImGuiContext.
 // And almost all ImGui apis assume that the api call will affect current active ImGuiContext.
@@ -505,6 +507,8 @@ void ImGuiContextInstance::LoadFontFiles(const std::vector<std::string>& ttfFile
 	pFontAtlas->Build();
 }
 
+
+
 void ImGuiContextInstance::SetImGuiStyles()
 {
 	TempSwitchContextScope tempSwitchScope(this);
@@ -784,25 +788,25 @@ void ImGuiContextInstance::SetImGuiThemeColor(ThemeColor theme)
 void ImGuiContextInstance::SetImGuiLanguage(Language language)
 {
 	
-	m_language = language;
+	extern Language m_language;
 
 	if (Language::ChineseSimplied == language)
 	{
-	  
+		m_language = Language::ChineseSimplied;
 		
 	}
 	
 	else if (Language::Cyrillic == language)
 	{
-
+		m_language = Language::Cyrillic;
 	}
 	else if (Language::English == language)
 	{
-
+		m_language = Language::English;
 	}
 	else if (Language::Greek == language)
 	{
-
+		
 	}
 	else if (Language::Japanese == language)
 	{

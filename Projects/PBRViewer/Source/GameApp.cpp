@@ -44,7 +44,7 @@ void GameApp::Init(engine::EngineInitArgs initArgs)
 	// ImGui
 	m_pImGuiContext = std::make_unique<engine::ImGuiContextInstance>(width, height);
 	std::vector<std::string> ttfFileNames = { "FanWunMing-SB.ttf" };
-	m_pImGuiContext->LoadFontFiles(ttfFileNames, initArgs.language);
+    m_pImGuiContext->LoadFontFiles(ttfFileNames, initArgs.language);
 	m_pImGuiContext->SetImGuiThemeColor(engine::ThemeColor::Dark);
 	m_pImGuiContext->AddDynamicLayer(std::make_unique<engine::DebugPanel>("DebugPanel"));
 	m_pMainWindow->OnResize.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnResize>(m_pImGuiContext.get());
