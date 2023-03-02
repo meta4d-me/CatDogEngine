@@ -24,6 +24,23 @@
 namespace editor
 {
 
+namespace Utils
+{
+
+const std::unordered_map<cd::MaterialTextureType, engine::Uber> materialTextureType2Uber
+{
+	// IBL?
+	{cd::MaterialTextureType::Normal, engine::Uber::NORMAL_MAP},
+	{cd::MaterialTextureType::Occlusion, engine::Uber::OCCLUSION},
+};
+
+CD_FORCEINLINE bool IsMaterialTextureTypeValid(cd::MaterialTextureType type)
+{
+	return materialTextureType2Uber.find(type) != materialTextureType2Uber.end();
+}
+
+} // namespace Utils
+
 ECWorldConsumer::ECWorldConsumer(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext) :
 	m_pSceneWorld(pSceneWorld),
 	m_pRenderContext(pRenderContext)
@@ -88,7 +105,8 @@ void ECWorldConsumer::AddShader(engine::MaterialType* pMaterialType)
 	std::string outputVSFilePath = GetShaderOutputFilePath(shaderSchema.GetVertexShaderPath());
 	ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Vertex,
 		shaderSchema.GetVertexShaderPath(), outputVSFilePath.c_str());
-
+	
+	// Compile fragment shader with uber options.
 	for (const auto& combine : shaderSchema.GetUberCombines())
 	{
 		std::string outputFSFilePath = GetShaderOutputFilePath(shaderSchema.GetFragmentShaderPath(), combine);
@@ -96,6 +114,16 @@ void ECWorldConsumer::AddShader(engine::MaterialType* pMaterialType)
 			shaderSchema.GetFragmentShaderPath(), outputFSFilePath.c_str(), combine.c_str());
 		engine::StringCrc uberOptionCrc(combine);
 		outputFSPathToUberOption[cd::MoveTemp(outputFSFilePath)] = uberOptionCrc;
+	}
+
+	// Compile fragment shader for indicating loadig status.
+	for (const auto& [status, path] : shaderSchema.GetLoadingStatusPath())
+	{
+		std::string outputFSFilePath = GetShaderOutputFilePath(path.c_str());
+		ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Fragment,
+			path.c_str(), outputFSFilePath.c_str());
+		engine::StringCrc statusCrc = shaderSchema.GetProgramCrc(status);
+		outputFSPathToUberOption[cd::MoveTemp(outputFSFilePath)] = statusCrc;
 	}
 
 	// TODO : ResourceBuilder will move to EditorApp::Update in the future.
@@ -236,29 +264,8 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	engine::StringCrc currentUberOption = engine::StringCrc(shaderSchema.GetUberCombines().at(0));
 	if (missRequiredTextures || unknownTextureSlot)
 	{
-		// Treate missing textures case as a special uber option in the CPU side.
-		constexpr engine::StringCrc missingTextureOption("MissingResources");
-		if (!shaderSchema.IsUberOptionValid(missingTextureOption))
-		{
-			std::string inputFSShaderPath = CDENGINE_BUILTIN_SHADER_PATH;
-			inputFSShaderPath += "fs_missing_resources.sc";
-
-			std::string outputFSFilePath = GetShaderOutputFilePath(shaderSchema.GetFragmentShaderPath());
-			ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Fragment,
-				inputFSShaderPath.c_str(), outputFSFilePath.c_str());
-
-			// Technically, option MissingResources is an actual shader.
-			// We can use AddSingleUberOption to add it to shaderSchema,
-			// whithout combine with any other option.
-			std::string uberOptionName("MissingResources");
-			shaderSchema.AddSingleUberOption(uberOptionName.c_str());
-
-			engine::StringCrc uberOptionCrc(uberOptionName);
-			// TODO
-			// outputFSPathToUberOption[cd::MoveTemp(outputFSFilePath)] = uberOptionCrc;
-		}
-
-		currentUberOption = missingTextureOption;
+		// Treate missing resources case as a special uber option in the CPU side.
+		currentUberOption = shaderSchema.GetProgramCrc(engine::LoadingStatus::MISSING_RESOURCES);
 	}
 	else
 	{
@@ -268,7 +275,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 			std::optional<cd::TextureID> optTexture = pMaterial->GetTextureID(optionalTextureType);
 			if (!optTexture.has_value())
 			{
-				// Optional texture is OK to failed to import.
+				CD_WARN("Material {0} does not have optional texture type {1}!", pMaterial->GetName(), GetMaterialPropertyGroupName(optionalTextureType));
 				continue;
 			}
 
@@ -276,8 +283,11 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 			if (!optTextureSlot.has_value())
 			{
 				unknownTextureSlot = true;
+				CD_ERROR("Unknow texture {0} slot!", GetMaterialPropertyGroupName(optionalTextureType));
 				break;
 			}
+
+			ActivateUberOption(optionalTextureType);
 
 			uint8_t textureSlot = optTextureSlot.value();
 			const cd::Texture& optionalTexture = pSceneDatabase->GetTexture(optTexture.value().Data());
@@ -290,8 +300,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 			}
 		}
 
-		// tmp
-		currentUberOption = shaderSchema.GetOptionsCombination({ engine::Uber::NORMAL_MAP });
+		currentUberOption = shaderSchema.GetProgramCrc(m_activeUberOptions);
 	}
 
 	// TODO : ResourceBuilder will move to EditorApp::Update in the future.
@@ -316,6 +325,35 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	}
 
 	materialComponent.Build();
+}
+
+void ECWorldConsumer::ActivateUberOption(cd::MaterialTextureType textureType)
+{
+	if (Utils::IsMaterialTextureTypeValid(textureType))
+	{
+		m_activeUberOptions.push_back(Utils::materialTextureType2Uber.at(textureType));
+	}
+	else
+	{
+		CD_WARN("MaterialTextureType {0} is not a vaild uber option!", GetMaterialPropertyGroupName(textureType));
+	}
+}
+
+void ECWorldConsumer::DeactivateUberOption(cd::MaterialTextureType textureType)
+{
+	if (Utils::IsMaterialTextureTypeValid(textureType))
+	{
+		m_activeUberOptions.erase(std::find(m_activeUberOptions.begin(), m_activeUberOptions.end(), Utils::materialTextureType2Uber.at(textureType)));
+	}
+	else
+	{
+		CD_WARN("MaterialTextureType {0} is not a vaild uber option!", GetMaterialPropertyGroupName(textureType));
+	}
+}
+
+void ECWorldConsumer::ClearActiveUberOption()
+{
+	m_activeUberOptions.clear();
 }
 
 }

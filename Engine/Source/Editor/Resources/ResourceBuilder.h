@@ -63,6 +63,7 @@ public:
 
 	void UpdateModifyTimeCache();
 	void ClearModifyTimeCache();
+	void DeleteModifyTimeCache();
 
 private:
 	ResourceBuilder();

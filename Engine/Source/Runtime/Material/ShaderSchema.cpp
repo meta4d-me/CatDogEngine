@@ -20,12 +20,28 @@ constexpr const char* UberName[] =
 	"OCCLUSION;",
 };
 
-static_assert(static_cast<int>(Uber::Count) == sizeof(UberName) / sizeof(char*),
+static_assert(static_cast<int>(Uber::COUNT) == sizeof(UberName) / sizeof(char*),
 	"Uber and names mismatch.");
 
 CD_FORCEINLINE const char* GetUberName(Uber buer)
 {
 	return UberName[static_cast<size_t>(buer)];
+}
+
+constexpr const char* LoadingStatusName[] =
+{
+	"MISSING_RESOURCES",
+	"LOADING_SHADERS",
+	"LOADING_TEXTURES",
+	"LOADING_ERROR",
+};
+
+static_assert(static_cast<int>(LoadingStatus::COUNT) == sizeof(LoadingStatusName) / sizeof(char*),
+	"LoadingStatus and names mismatch.");
+
+CD_FORCEINLINE const char* GetLoadingStatusName(LoadingStatus status)
+{
+	return LoadingStatusName[static_cast<size_t>(status)];
 }
 
 } // namespace Utils
@@ -71,10 +87,18 @@ void ShaderSchema::RegisterUberOption(Uber uberOption)
 	m_uberOptions.emplace_back(cd::MoveTemp(uberOption));
 }
 
-void ShaderSchema::AddSingleUberOption(std::string uberOption)
+void ShaderSchema::AddSingleUberOption(LoadingStatus status, std::string path)
 {
-	assert(!IsUberOptionValid(StringCrc(uberOption)));
-	m_compiledProgramHandles[StringCrc(uberOption).Value()] = InvalidProgramHandle;
+	if (m_loadingStatusFSPath.contains(status))
+	{
+		CD_ENGINE_WARN("Single uber opertion {0} has already been added!", Utils::GetLoadingStatusName(status));
+		return;
+	}
+	m_loadingStatusFSPath[status] = cd::MoveTemp(path);
+
+	std::string loadingStatusName = Utils::GetLoadingStatusName(status);
+	assert(!IsUberOptionValid(StringCrc(loadingStatusName)));
+	m_compiledProgramHandles[StringCrc(loadingStatusName).Value()] = InvalidProgramHandle;
 }
 
 bool ShaderSchema::IsUberOptionValid(StringCrc uberOption) const
@@ -100,8 +124,14 @@ uint16_t ShaderSchema::GetCompiledProgram(StringCrc uberOption) const
 	return programHandle;
 }
 
-StringCrc ShaderSchema::GetOptionsCombination(const std::initializer_list<Uber>& options) const
+StringCrc ShaderSchema::GetProgramCrc(const std::vector<Uber>& options) const
 {
+	if (options.empty())
+	{
+		return DefaultUberOption;
+	}
+
+	// Ignore option which contain in parameter but not contain in m_uberOptions.
 	std::stringstream ss;
 	for (const auto& registered : m_uberOptions)
 	{
@@ -111,6 +141,11 @@ StringCrc ShaderSchema::GetOptionsCombination(const std::initializer_list<Uber>&
 		}
 	}
 	return StringCrc(ss.str());
+}
+
+StringCrc ShaderSchema::GetProgramCrc(const LoadingStatus& status) const
+{
+	return StringCrc(Utils::GetLoadingStatusName(status));
 }
 
 void ShaderSchema::AddUberOptionVSBlob(ShaderBlob shaderBlob)

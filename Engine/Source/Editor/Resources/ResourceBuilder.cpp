@@ -5,24 +5,24 @@
 
 namespace editor {
 
-namespace Util
+namespace Utils
 {
 
-long long TimePointToTimeStamp(std::filesystem::file_time_type fileTime)
+CD_FORCEINLINE long long TimePointToTimeStamp(std::filesystem::file_time_type fileTime)
 {
 	// C++20 only
 	auto systemClock = std::chrono::clock_cast<std::chrono::system_clock>(fileTime);
 	return static_cast<long long>(std::chrono::system_clock::to_time_t(systemClock));
 }
 
-std::filesystem::file_time_type TimeStampToTimePoint(long long timeStamp)
+CD_FORCEINLINE std::filesystem::file_time_type TimeStampToTimePoint(long long timeStamp)
 {
 	// C++20 only
 	auto systemClock = std::chrono::system_clock::from_time_t(static_cast<time_t>(timeStamp));
 	return std::chrono::clock_cast<std::chrono::file_clock>(systemClock);
 }
 
-}
+} // namespace Utils
 
 ResourceBuilder::ResourceBuilder()
 {
@@ -49,7 +49,7 @@ void ResourceBuilder::ReadModifyCacheFile()
 	std::ifstream inFile(modifyCachePath);
 	if (!inFile.is_open())
 	{
-		CD_ERROR("Can not open file {0}!", modifyCachePath);
+		CD_ERROR("Open file {0} failed!", modifyCachePath);
 		return;
 	}
 
@@ -77,7 +77,7 @@ void ResourceBuilder::WriteModifyCacheFile()
 	std::ofstream outFile(modifyCachePath, std::ios::trunc);
 	if (!outFile.is_open())
 	{
-		CD_ERROR("Can not open file {0}!", modifyCachePath);
+		CD_ERROR("Open file {0} failed!", modifyCachePath);
 		return;
 	}
 
@@ -108,7 +108,7 @@ ProcessStatus ResourceBuilder::CheckFileStatus(const char* pInputFilePath, const
 		return ProcessStatus::InputNotExist;
 	}
 
-	auto crtTimeStamp = Util::TimePointToTimeStamp(std::filesystem::last_write_time(pInputFilePath));
+	auto crtTimeStamp = Utils::TimePointToTimeStamp(std::filesystem::last_write_time(pInputFilePath));
 
 	if (m_modifyTimeCache.find(pInputFilePath) == m_modifyTimeCache.end())
 	{
@@ -276,6 +276,14 @@ void ResourceBuilder::ClearModifyTimeCache()
 {
 	m_modifyTimeCache.clear();
 	m_newModifyTimeCache.clear();
+}
+
+void ResourceBuilder::DeleteModifyTimeCache()
+{
+	if (!std::filesystem::remove(GetModifyCacheFilePath()))
+	{
+		CD_WARN("Delete file {0} failed!", GetModifyCacheFilePath());
+	}
 }
 
 }
