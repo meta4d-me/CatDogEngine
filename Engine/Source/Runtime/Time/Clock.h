@@ -1,12 +1,18 @@
 #pragma once
 
 #include <chrono>
+#include <filesystem>
 
 namespace engine
 {
 
 class Clock
 {
+public:
+	// C++20 only
+	static long long FileTimePointToTimeStamp(std::filesystem::file_time_type fileTime);
+	static std::filesystem::file_time_type TimeStampToFileTimePoint(long long timeStamp);
+
 public:
 	Clock();
 	Clock(const Clock&) = default;

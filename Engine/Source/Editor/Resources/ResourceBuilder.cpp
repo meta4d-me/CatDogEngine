@@ -1,28 +1,10 @@
 #include "ResourceBuilder.h"
 
 #include "Base/Template.h"
+#include "Time/Clock.h"
 #include "Log/Log.h"
 
 namespace editor {
-
-namespace Utils
-{
-
-CD_FORCEINLINE long long TimePointToTimeStamp(std::filesystem::file_time_type fileTime)
-{
-	// C++20 only
-	auto systemClock = std::chrono::clock_cast<std::chrono::system_clock>(fileTime);
-	return static_cast<long long>(std::chrono::system_clock::to_time_t(systemClock));
-}
-
-CD_FORCEINLINE std::filesystem::file_time_type TimeStampToTimePoint(long long timeStamp)
-{
-	// C++20 only
-	auto systemClock = std::chrono::system_clock::from_time_t(static_cast<time_t>(timeStamp));
-	return std::chrono::clock_cast<std::chrono::file_clock>(systemClock);
-}
-
-} // namespace Utils
 
 ResourceBuilder::ResourceBuilder()
 {
@@ -108,7 +90,7 @@ ProcessStatus ResourceBuilder::CheckFileStatus(const char* pInputFilePath, const
 		return ProcessStatus::InputNotExist;
 	}
 
-	auto crtTimeStamp = Utils::TimePointToTimeStamp(std::filesystem::last_write_time(pInputFilePath));
+	auto crtTimeStamp = engine::Clock::FileTimePointToTimeStamp(std::filesystem::last_write_time(pInputFilePath));
 
 	if (m_modifyTimeCache.find(pInputFilePath) == m_modifyTimeCache.end())
 	{

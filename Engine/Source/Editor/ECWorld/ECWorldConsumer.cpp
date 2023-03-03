@@ -24,7 +24,7 @@
 namespace editor
 {
 
-namespace Utils
+namespace Detail
 {
 
 const std::unordered_map<cd::MaterialTextureType, engine::Uber> materialTextureType2Uber
@@ -39,7 +39,7 @@ CD_FORCEINLINE bool IsMaterialTextureTypeValid(cd::MaterialTextureType type)
 	return materialTextureType2Uber.find(type) != materialTextureType2Uber.end();
 }
 
-} // namespace Utils
+} // namespace Detail
 
 ECWorldConsumer::ECWorldConsumer(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext) :
 	m_pSceneWorld(pSceneWorld),
@@ -329,9 +329,9 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 
 void ECWorldConsumer::ActivateUberOption(cd::MaterialTextureType textureType)
 {
-	if (Utils::IsMaterialTextureTypeValid(textureType))
+	if (Detail::IsMaterialTextureTypeValid(textureType))
 	{
-		m_activeUberOptions.push_back(Utils::materialTextureType2Uber.at(textureType));
+		m_activeUberOptions.push_back(Detail::materialTextureType2Uber.at(textureType));
 	}
 	else
 	{
@@ -341,9 +341,9 @@ void ECWorldConsumer::ActivateUberOption(cd::MaterialTextureType textureType)
 
 void ECWorldConsumer::DeactivateUberOption(cd::MaterialTextureType textureType)
 {
-	if (Utils::IsMaterialTextureTypeValid(textureType))
+	if (Detail::IsMaterialTextureTypeValid(textureType))
 	{
-		m_activeUberOptions.erase(std::find(m_activeUberOptions.begin(), m_activeUberOptions.end(), Utils::materialTextureType2Uber.at(textureType)));
+		m_activeUberOptions.erase(std::find(m_activeUberOptions.begin(), m_activeUberOptions.end(), Detail::materialTextureType2Uber.at(textureType)));
 	}
 	else
 	{
