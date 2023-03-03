@@ -1,20 +1,7 @@
 #include "SceneWorld.h"
 
 #include "Log/Log.h"
-
-namespace
-{
-
-std::string GetShaderPath(const char* pShaderName)
-{
-	std::string shaderPath = CDENGINE_BUILTIN_SHADER_PATH;
-	shaderPath += pShaderName;
-	shaderPath += ".sc";
-
-	return shaderPath;
-}
-
-}
+#include "Path/Path.h"
 
 namespace engine
 {
@@ -44,17 +31,17 @@ void SceneWorld::CreatePBRMaterialType()
 	m_pPBRMaterialType = std::make_unique<MaterialType>();
 	m_pPBRMaterialType->SetMaterialName("CD_PBR");
 
-	ShaderSchema shaderSchema(GetShaderPath("vs_PBR"), GetShaderPath("fs_PBR"));
+	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("vs_PBR"), Path::GetBuiltinShaderInputPath("fs_PBR"));
 	shaderSchema.RegisterUberOption(Uber::NORMAL_MAP);
 	shaderSchema.RegisterUberOption(Uber::OCCLUSION);
 	shaderSchema.RegisterUberOption(Uber::IBL);
 	// Technically, option LoadingStatus:: is an actual shader.
 	// We can use AddSingleUberOption to add it to shaderSchema,
 	// whithout combine with any other option.
-	shaderSchema.AddSingleUberOption(LoadingStatus::MISSING_RESOURCES, GetShaderPath("fs_unlit_flat_red"));
-	shaderSchema.AddSingleUberOption(LoadingStatus::LOADING_SHADERS, GetShaderPath("fs_unlit_flat_blue"));
-	shaderSchema.AddSingleUberOption(LoadingStatus::LOADING_TEXTURES, GetShaderPath("fs_unlit_flat_green"));
-	shaderSchema.AddSingleUberOption(LoadingStatus::LOADING_ERROR, GetShaderPath("fs_unlit_flat_pink"));
+	shaderSchema.AddSingleUberOption(LoadingStatus::MISSING_RESOURCES, Path::GetBuiltinShaderInputPath("fs_unlit_flat_red"));
+	shaderSchema.AddSingleUberOption(LoadingStatus::LOADING_SHADERS, Path::GetBuiltinShaderInputPath("fs_unlit_flat_blue"));
+	shaderSchema.AddSingleUberOption(LoadingStatus::LOADING_TEXTURES, Path::GetBuiltinShaderInputPath("fs_unlit_flat_green"));
+	shaderSchema.AddSingleUberOption(LoadingStatus::LOADING_ERROR, Path::GetBuiltinShaderInputPath("fs_unlit_flat_pink"));
 	m_pPBRMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat pbrVertexFormat;
@@ -79,7 +66,7 @@ void SceneWorld::CreateAnimationMaterialType()
 	m_pAnimationMaterialType = std::make_unique<MaterialType>();
 	m_pAnimationMaterialType->SetMaterialName("CD_Animation");
 
-	ShaderSchema shaderSchema(GetShaderPath("vs_animation"), GetShaderPath("fs_animation"));
+	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("vs_animation"), Path::GetBuiltinShaderInputPath("fs_animation"));
 	m_pAnimationMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat animationVertexFormat;

@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <optional>
+#include <string>
 
 namespace engine
 {
@@ -11,24 +12,19 @@ class Path
 {
 public:
 	static constexpr size_t MAX_PATH_SIZE = 1024;
-
-public:
 	static constexpr const char* EngineName = "CatDogEngine";
+	static constexpr const char* ShaderInputExtension = ".sc";
+	static constexpr const char* ShaderOutputExtension = ".bin";
 
 	static std::optional<std::filesystem::path> GetApplicationDataPath();
 
-	static std::filesystem::path GetEngineBuiltinShaderPath()
-	{
-		return std::filesystem::path(CDENGINE_BUILTIN_SHADER_PATH);
-	}
-	static std::filesystem::path GetEngineResourcesPath()
-	{
-		return std::filesystem::path(CDENGINE_RESOURCES_ROOT_PATH);
-	}
-	static std::filesystem::path GetEditorResourcesPath()
-	{
-		return std::filesystem::path(CDEDITOR_RESOURCES_ROOT_PATH);
-	}
+	static std::filesystem::path GetEngineBuiltinShaderPath();
+	static std::filesystem::path GetEngineResourcesPath();
+	static std::filesystem::path GetEditorResourcesPath();
+
+	static std::string GetBuiltinShaderInputPath(const char* pShaderName);
+	static std::string GetShaderOutputPath(const char* pInputFilePath, const std::string& options = "");
+	static std::string GetTextureOutputFilePath(const char* pInputFilePath, const char* extension);
 
 private:
 	static const char* GetPlatformPathKey();

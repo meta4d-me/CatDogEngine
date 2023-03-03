@@ -8,6 +8,7 @@
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
 #include "Material/MaterialType.h"
+#include "Path/Path.h"
 #include "Rendering/RenderContext.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ResourceLoader.h"
@@ -102,14 +103,14 @@ void ECWorldConsumer::AddShader(engine::MaterialType* pMaterialType)
 	std::map<std::string, engine::StringCrc> outputFSPathToUberOption;
 
 	// No uber option support for VS now.
-	std::string outputVSFilePath = GetShaderOutputFilePath(shaderSchema.GetVertexShaderPath());
+	std::string outputVSFilePath = engine::Path::GetShaderOutputPath(shaderSchema.GetVertexShaderPath());
 	ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Vertex,
 		shaderSchema.GetVertexShaderPath(), outputVSFilePath.c_str());
 	
 	// Compile fragment shader with uber options.
 	for (const auto& combine : shaderSchema.GetUberCombines())
 	{
-		std::string outputFSFilePath = GetShaderOutputFilePath(shaderSchema.GetFragmentShaderPath(), combine);
+		std::string outputFSFilePath = engine::Path::GetShaderOutputPath(shaderSchema.GetFragmentShaderPath(), combine);
 		ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Fragment,
 			shaderSchema.GetFragmentShaderPath(), outputFSFilePath.c_str(), combine.c_str());
 		engine::StringCrc uberOptionCrc(combine);
@@ -119,7 +120,7 @@ void ECWorldConsumer::AddShader(engine::MaterialType* pMaterialType)
 	// Compile fragment shader for indicating loadig status.
 	for (const auto& [status, path] : shaderSchema.GetLoadingStatusPath())
 	{
-		std::string outputFSFilePath = GetShaderOutputFilePath(path.c_str());
+		std::string outputFSFilePath = engine::Path::GetShaderOutputPath(path.c_str());
 		ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Fragment,
 			path.c_str(), outputFSFilePath.c_str());
 		engine::StringCrc statusCrc = shaderSchema.GetProgramCrc(status);
@@ -187,40 +188,6 @@ void ECWorldConsumer::AddSkinMesh(engine::Entity entity, const cd::Mesh& mesh, c
 	engine::AnimationComponent& animationComponent = pWorld->CreateComponent<engine::AnimationComponent>(entity);
 }
 
-std::string ECWorldConsumer::GetShaderOutputFilePath(const char* pInputFilePath, const std::string& options)
-{
-	std::filesystem::path inputShaderPath(pInputFilePath);
-	std::string inputShaderFileName = inputShaderPath.stem().generic_string();
-	std::string outputShaderPath = CDENGINE_RESOURCES_ROOT_PATH;
-	outputShaderPath += "Shaders/" + inputShaderFileName;
-
-	if (!options.empty())
-	{
-		std::string appendName = "_" + options;
-		std::replace(appendName.begin(), appendName.end(), ';', '_');
-		outputShaderPath += appendName;
-
-		assert(!outputShaderPath.empty());
-		auto last = outputShaderPath.end() - 1;
-		if (*last == '_')
-		{
-			outputShaderPath.erase(last);
-		}
-	}
-
-	outputShaderPath += ".bin";
-	return outputShaderPath;
-}
-
-std::string ECWorldConsumer::GetTextureOutputFilePath(const char* pInputFilePath)
-{
-	std::filesystem::path inputTexturePath(pInputFilePath);
-	std::string inputTextureFileName = inputTexturePath.stem().generic_string();
-	std::string outputTexturePath = CDENGINE_RESOURCES_ROOT_PATH;
-	outputTexturePath += "Textures/" + inputTextureFileName + ".dds";
-	return outputTexturePath;
-}
-
 void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMaterial, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase)
 {
 	std::set<uint8_t> compiledTextureSlot;
@@ -249,7 +216,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 
 		uint8_t textureSlot = optTextureSlot.value();
 		const cd::Texture& requiredTexture = pSceneDatabase->GetTexture(optTexture.value().Data());
-		std::string outputTexturePath = GetTextureOutputFilePath(requiredTexture.GetPath());
+		std::string outputTexturePath = engine::Path::GetTextureOutputFilePath(requiredTexture.GetPath(), ".dds");
 		if(!compiledTextureSlot.contains(textureSlot))
 		{
 			// When multiple textures have the same texture slot, it implies that these textures are packed in one file.
@@ -292,7 +259,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 
 			uint8_t textureSlot = optTextureSlot.value();
 			const cd::Texture& optionalTexture = pSceneDatabase->GetTexture(optTexture.value().Data());
-			std::string outputTexturePath = GetTextureOutputFilePath(optionalTexture.GetPath());
+			std::string outputTexturePath = engine::Path::GetTextureOutputFilePath(optionalTexture.GetPath(), ".dds");
 			if (!compiledTextureSlot.contains(textureSlot))
 			{
 				compiledTextureSlot.insert(textureSlot);

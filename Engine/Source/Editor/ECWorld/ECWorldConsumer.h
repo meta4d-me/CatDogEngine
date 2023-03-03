@@ -67,9 +67,6 @@ private:
 	void AddSkinMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat);
 	void AddMaterial(engine::Entity entity, const cd::Material* pMaterial, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase);
 
-	std::string GetShaderOutputFilePath(const char* pInputFilePath, const std::string& ubers = "");
-	std::string GetTextureOutputFilePath(const char* pInputFilePath);
-
 private:
 	engine::RenderContext* m_pRenderContext;
 	engine::SceneWorld* m_pSceneWorld;
