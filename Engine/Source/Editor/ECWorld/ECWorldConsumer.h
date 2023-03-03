@@ -59,7 +59,7 @@ public:
 	const std::vector<engine::Uber>& GetActiveUberOptions() const { return m_activeUberOptions; }
 
 private:
-	// TODO : Maby we can move this function out of ECWorldConsumer.
+	// TODO : Maybe we can move this function out of ECWorldConsumer.
 	void AddShader(engine::MaterialType* pMaterialType);
 
 	void AddNode(engine::Entity entity, const cd::Node& node);

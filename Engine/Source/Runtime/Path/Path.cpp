@@ -5,13 +5,6 @@
 namespace engine
 {
 
-namespace
-{
-
-constexpr size_t MAX_PATH_SIZE = 1024;
-
-}
-
 std::optional<std::filesystem::path> Path::GetApplicationDataPath()
 {
 
@@ -25,14 +18,7 @@ std::optional<std::filesystem::path> Path::GetApplicationDataPath()
     }
     else
     {
-        // TODO : Need more test.
-#if defined(_WIN32)
-        return std::filesystem::path(value);
-#elif defined(__linux__)
-        return std::filesystem::path(value) / ".local" / "share";
-#elif defined(__APPLE__)
-        return std::filesystem::path(value) / "Library" / "Application Support";
-#endif
+        return GetPlatformAppDataPath(value);
     }
 }
 
@@ -49,4 +35,18 @@ const char* Path::GetPlatformPathKey()
 #endif
 }
 
-} // namespace engine
+std::filesystem::path Path::GetPlatformAppDataPath(char(&value)[MAX_PATH_SIZE])
+{
+    // TODO : Need more test.
+#if defined(_WIN32)
+    return std::filesystem::path(value);
+#elif defined(__linux__)
+    return std::filesystem::path(value) / ".local" / "share";
+#elif defined(__APPLE__)
+    return std::filesystem::path(value) / "Library" / "Application Support";
+#else
+#error Unsupport platform!
+#endif
+}
+
+}

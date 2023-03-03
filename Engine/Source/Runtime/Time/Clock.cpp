@@ -13,9 +13,8 @@ std::filesystem::file_time_type Clock::TimeStampToFileTimePoint(long long timeSt
 {
 	auto systemClock = std::chrono::system_clock::from_time_t(static_cast<time_t>(timeStamp));
 	return std::chrono::clock_cast<std::chrono::file_clock>(systemClock);
-
-
 }
+
 Clock::Clock() :
 	m_elapsed{}
 {

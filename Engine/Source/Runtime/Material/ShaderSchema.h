@@ -34,9 +34,6 @@ enum class LoadingStatus : uint8_t
 class ShaderSchema
 {
 public:
-
-
-public:
 	static constexpr uint16_t InvalidProgramHandle = UINT16_MAX;
 	static constexpr StringCrc DefaultUberOption = StringCrc("DEFAULT;");
 	using ShaderBlob = std::vector<std::byte>;

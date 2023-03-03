@@ -11,6 +11,7 @@ class Clock
 public:
 	// C++20 only
 	static long long FileTimePointToTimeStamp(std::filesystem::file_time_type fileTime);
+	// C++20 only
 	static std::filesystem::file_time_type TimeStampToFileTimePoint(long long timeStamp);
 
 public:

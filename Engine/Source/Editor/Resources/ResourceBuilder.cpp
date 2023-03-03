@@ -5,7 +5,8 @@
 #include "Time/Clock.h"
 #include "Log/Log.h"
 
-namespace editor {
+namespace editor
+{
 
 ResourceBuilder::ResourceBuilder()
 {

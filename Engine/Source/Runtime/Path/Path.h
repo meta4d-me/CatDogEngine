@@ -10,6 +10,9 @@ namespace engine
 class Path
 {
 public:
+	static constexpr size_t MAX_PATH_SIZE = 1024;
+
+public:
 	static constexpr const char* EngineName = "CatDogEngine";
 
 	static std::optional<std::filesystem::path> GetApplicationDataPath();
@@ -29,6 +32,7 @@ public:
 
 private:
 	static const char* GetPlatformPathKey();
+	static std::filesystem::path GetPlatformAppDataPath(char(&value)[MAX_PATH_SIZE]);
 };
 
-} // namespace engine
+}

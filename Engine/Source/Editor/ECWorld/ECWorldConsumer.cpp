@@ -29,7 +29,7 @@ namespace Detail
 
 const std::unordered_map<cd::MaterialTextureType, engine::Uber> materialTextureType2Uber
 {
-	// IBL?
+	// TODO : IBL
 	{cd::MaterialTextureType::Normal, engine::Uber::NORMAL_MAP},
 	{cd::MaterialTextureType::Occlusion, engine::Uber::OCCLUSION},
 };
@@ -234,7 +234,8 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 		if (!optTexture.has_value())
 		{
 			missRequiredTextures = true;
-			CD_ENGINE_ERROR("Material {0} massing required texture {1}!", pMaterial->GetName(), GetMaterialPropertyGroupName(requiredTextureType));
+			CD_ENGINE_ERROR("Material {0} massing required texture {1}!", pMaterial->GetName(),
+				GetMaterialPropertyGroupName(requiredTextureType));
 			break;
 		}
 
