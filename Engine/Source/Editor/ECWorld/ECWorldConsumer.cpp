@@ -261,7 +261,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	}
 
 	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
-	engine::StringCrc currentUberOption = engine::StringCrc(shaderSchema.GetUberCombines().at(0));
+	engine::StringCrc currentUberOption(shaderSchema.GetUberCombines().at(0));
 	if (missRequiredTextures || unknownTextureSlot)
 	{
 		// Treate missing resources case as a special uber option in the CPU side.
