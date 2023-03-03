@@ -51,10 +51,10 @@ void SceneWorld::CreatePBRMaterialType()
 	// Technically, option LoadingStatus:: is an actual shader.
 	// We can use AddSingleUberOption to add it to shaderSchema,
 	// whithout combine with any other option.
-	shaderSchema.AddSingleUberOption(LoadingStatus::MISSING_RESOURCES, GetShaderPath("fs_missing_resources"));
-	shaderSchema.AddSingleUberOption(LoadingStatus::LOADING_SHADERS, GetShaderPath("fs_loading_shaders"));
-	shaderSchema.AddSingleUberOption(LoadingStatus::LOADING_TEXTURES, GetShaderPath("fs_loading_textures"));
-	shaderSchema.AddSingleUberOption(LoadingStatus::LOADING_ERROR, GetShaderPath("fs_error"));
+	shaderSchema.AddSingleUberOption(LoadingStatus::MISSING_RESOURCES, GetShaderPath("fs_unlit_flat_red"));
+	shaderSchema.AddSingleUberOption(LoadingStatus::LOADING_SHADERS, GetShaderPath("fs_unlit_flat_blue"));
+	shaderSchema.AddSingleUberOption(LoadingStatus::LOADING_TEXTURES, GetShaderPath("fs_unlit_flat_green"));
+	shaderSchema.AddSingleUberOption(LoadingStatus::LOADING_ERROR, GetShaderPath("fs_unlit_flat_pink"));
 	m_pPBRMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat pbrVertexFormat;

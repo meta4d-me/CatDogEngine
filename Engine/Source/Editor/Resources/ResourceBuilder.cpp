@@ -1,6 +1,7 @@
 #include "ResourceBuilder.h"
 
 #include "Base/Template.h"
+#include "Path/Path.h"
 #include "Time/Clock.h"
 #include "Log/Log.h"
 
@@ -56,6 +57,12 @@ void ResourceBuilder::ReadModifyCacheFile()
 void ResourceBuilder::WriteModifyCacheFile()
 {
 	std::string modifyCachePath = GetModifyCacheFilePath();
+
+	if (!std::filesystem::exists(modifyCachePath))
+	{
+		std::filesystem::create_directories(std::filesystem::path(modifyCachePath).parent_path());
+	}
+		
 	std::ofstream outFile(modifyCachePath, std::ios::trunc);
 	if (!outFile.is_open())
 	{
@@ -78,8 +85,13 @@ void ResourceBuilder::WriteModifyCacheFile()
 
 std::string ResourceBuilder::GetModifyCacheFilePath()
 {
-	// TODO : Can this file be uploaded to git?
-	return (std::filesystem::path(CDENGINE_RESOURCES_ROOT_PATH) / "Textures/modifyTimeCache.bin").string();
+	const auto& appDataPath = engine::Path::GetApplicationDataPath();
+	if (appDataPath.has_value())
+	{
+		return (appDataPath.value() / engine::Path::EngineName / "modifyTimeCache.bin").string();
+	}
+	CD_ERROR("Can not find application data path!");
+	return "";
 }
 
 ProcessStatus ResourceBuilder::CheckFileStatus(const char* pInputFilePath, const char* pOutputFilePath)
