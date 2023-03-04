@@ -192,11 +192,11 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 			pSceneDatabase->GetMaterialCount(), pSceneDatabase->GetTextureCount(), pSceneDatabase->GetLightCount());
 		genericProducer.ActivateBoundingBoxService();
 		genericProducer.ActivateCleanUnusedService();
+		// TODO : add a flatten option without breaking bone hierarchys.
 		//genericProducer.ActivateFlattenHierarchyService();
 		genericProducer.ActivateTangentsSpaceService();
 		genericProducer.ActivateTriangulateService();
-
-		// TODO : manage different material types.
+		genericProducer.ActivateSimpleAnimationService();
 		ECWorldConsumer ecConsumer(pSceneWorld, pCurrentRenderContext);
 		ecConsumer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount());
 		cdtools::Processor processor(&genericProducer, &ecConsumer, pSceneDatabase);
