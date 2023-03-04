@@ -12,15 +12,12 @@
 #include "Rendering/RenderContext.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ResourceLoader.h"
-#include "Scene/Material.h"
-#include "Scene/MaterialTextureType.h"
-#include "Scene/Node.h"
 #include "Scene/SceneDatabase.h"
-#include "Scene/VertexFormat.h"
 
 #include <algorithm>
 #include <filesystem>
 #include <format>
+#include <span>
 
 namespace editor
 {
@@ -94,6 +91,10 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 			{
 				engine::MaterialType* pMaterialType = m_pSceneWorld->GetAnimationMaterialType();
 				AddSkinMesh(sceneEntity, mesh, pMaterialType->GetRequiredVertexFormat());
+
+				// TODO : Use a standalone .cdanim file to play animation.
+				// Currently, we assume that imported SkinMesh will play animation automatically for testing.
+				AddAnimation(sceneEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
 				AddMaterial(sceneEntity, nullptr, pMaterialType, pSceneDatabase);
 			}
 		}
@@ -187,9 +188,19 @@ void ECWorldConsumer::AddStaticMesh(engine::Entity entity, const cd::Mesh& mesh,
 void ECWorldConsumer::AddSkinMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat)
 {
 	AddStaticMesh(entity, mesh, vertexFormat);
+}
 
+void ECWorldConsumer::AddAnimation(engine::Entity entity, const cd::Animation& animation, const cd::SceneDatabase* pSceneDatabase)
+{
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
 	engine::AnimationComponent& animationComponent = pWorld->CreateComponent<engine::AnimationComponent>(entity);
+	animationComponent.SetAnimationData(&animation);
+	animationComponent.SetTrackData(pSceneDatabase->GetTracks().data());
+	animationComponent.SetDuration(animation.GetDuration());
+	animationComponent.SetTicksPerSecond(animation.GetTicksPerSecnod());
+
+	bgfx::UniformHandle boneMatricesUniform = bgfx::createUniform("u_boneMatrices", bgfx::UniformType::Mat4, static_cast<uint16_t>(pSceneDatabase->GetBoneCount()));
+	animationComponent.SetBoneMatricesUniform(boneMatricesUniform.idx);
 }
 
 void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMaterial, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase)
