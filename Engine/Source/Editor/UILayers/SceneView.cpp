@@ -164,7 +164,7 @@ void SceneView::UpdateSwitchIBLButton()
 			m_pIBLSkyRenderer->SetEnabled(true);
 			m_pPBRSkyRenderer->SetEnabled(false);
 
-			constexpr engine::StringCrc iblPBRCrc("USE_PBR_IBL");
+			constexpr engine::StringCrc iblPBRCrc("IBL");
 			for (engine::Entity entity : pSceneWorld->GetMaterialEntities())
 			{
 				engine::MaterialComponent* pMaterialComponent = pSceneWorld->GetMaterialComponent(entity);

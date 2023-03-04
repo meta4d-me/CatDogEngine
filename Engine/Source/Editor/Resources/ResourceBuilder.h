@@ -3,7 +3,12 @@
 #include "Process/Process.h"
 #include "Scene/MaterialTextureType.h"
 
+#include <chrono>
+#include <filesystem>
+#include <fstream>
 #include <queue>
+#include <string>
+#include <unordered_map>
 
 namespace editor
 {
@@ -15,6 +20,16 @@ enum class ShaderType
 	Fragment
 };
 
+enum class ProcessStatus : uint8_t
+{
+	None           = 1 << 0,
+	InputNotExist  = 1 << 1,
+	OutputNotExist = 1 << 2,
+	InputModified  = 1 << 3,
+	InputAdded     = 1 << 4,
+	Stable         = 1 << 5,
+};
+
 class Process;
 
 // ResourceBuilder is used to create processes to build different resource types.
@@ -23,11 +38,16 @@ class Process;
 class ResourceBuilder final
 {
 public:
+	static constexpr uint8_t s_SkipStatus =
+		static_cast<uint8_t>(ProcessStatus::None) |
+		static_cast<uint8_t>(ProcessStatus::InputNotExist) |
+		static_cast<uint8_t>(ProcessStatus::Stable);
+
+public:
 	ResourceBuilder(const ResourceBuilder&) = delete;
 	ResourceBuilder& operator=(const ResourceBuilder&) = delete;
 	ResourceBuilder(ResourceBuilder&&) = delete;
 	ResourceBuilder& operator=(ResourceBuilder&&) = delete;
-	~ResourceBuilder() = default;
 
 	static ResourceBuilder& Get()
 	{
@@ -37,14 +57,31 @@ public:
 
 	bool AddTask(Process process);
 	bool AddCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
-	bool AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const std::vector<const char*>* pUberOptions = nullptr);
+	bool AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char *pUberOptions = nullptr);
 	bool AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath);
 	void Update();
 
+	void UpdateModifyTimeCache();
+	void ClearModifyTimeCache();
+	void DeleteModifyTimeCache();
+
 private:
-	ResourceBuilder() = default;
+	ResourceBuilder();
+	~ResourceBuilder();
+
+	void ReadModifyCacheFile();
+	void WriteModifyCacheFile();
+
+	std::string GetModifyCacheFilePath();
+
+	ProcessStatus CheckFileStatus(const char* pInputFilePath, const char* pOutputFilePath);
 
 	std::queue<Process> m_buildTasks;
+	
+	std::unordered_map<std::string, long long> m_modifyTimeCache;
+	// We always access to fragment ahsder multiple times by using ubre options.
+	// So we can not update fragment shader's modify time every time we found it has been modified.
+	std::unordered_map<std::string, long long> m_newModifyTimeCache;
 };
 
 }

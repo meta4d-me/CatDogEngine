@@ -17,7 +17,7 @@ namespace engine
 void WorldRenderer::Init()
 {
 	m_pRenderContext->CreateUniform("s_texLUT", bgfx::UniformType::Sampler);
-	m_pRenderContext->CreateTexture("ibl_brdf_lut.dds");
+	m_pRenderContext->CreateTexture("lut/ibl_brdf_lut.dds");
 
 	m_pRenderContext->CreateUniform("s_texCube", bgfx::UniformType::Sampler);
 	m_pRenderContext->CreateUniform("s_texCubeIrr", bgfx::UniformType::Sampler);
@@ -81,7 +81,7 @@ void WorldRenderer::Render(float deltaTime)
 		}
 
 		constexpr StringCrc lutSampler("s_texLUT");
-		constexpr StringCrc lutTexture("ibl_brdf_lut.dds");
+		constexpr StringCrc lutTexture("lut/ibl_brdf_lut.dds");
 		bgfx::setTexture(3, m_pRenderContext->GetUniform(lutSampler), m_pRenderContext->GetTexture(lutTexture));
 
 		constexpr StringCrc useIBLCrc("USE_PBR_IBL");

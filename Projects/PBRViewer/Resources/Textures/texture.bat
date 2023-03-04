@@ -1,6 +1,6 @@
 echo off
 set textures="textures"
-set compiled="compiled"
+set compiled="terrain"
 
 set baseColor="aseColor"
 set normal="ormal"

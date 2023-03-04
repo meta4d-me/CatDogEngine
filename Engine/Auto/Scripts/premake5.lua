@@ -101,6 +101,8 @@ workspace(EngineName)
 		buildoptions { "/utf-8" }
 	filter {}
 
+	startproject("Editor")
+
 -- thirdparty projects such as sdl
 dofile("thirdparty.lua")
 

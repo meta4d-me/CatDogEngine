@@ -3,6 +3,7 @@
 #include "Base/Template.h"
 #include "ECWorld/Entity.h"
 #include "Framework/IConsumer.h"
+#include "Material/ShaderSchema.h"
 #include "Scene/MaterialTextureType.h"
 #include "Scene/ObjectID.h"
 
@@ -50,14 +51,21 @@ public:
 	void SetSceneDatabaseIDs(uint32_t nodeID);
 	virtual void Execute(const cd::SceneDatabase* pSceneDatabase) override;
 
+	void ActivateUberOption(cd::MaterialTextureType textureType);
+	void DeactivateUberOption(cd::MaterialTextureType textureType);
+	void ClearActiveUberOption();
+
+	std::vector<engine::Uber>& GetActiveUberOptions() { return m_activeUberOptions; }
+	const std::vector<engine::Uber>& GetActiveUberOptions() const { return m_activeUberOptions; }
+
 private:
+	// TODO : Maybe we can move this function out of ECWorldConsumer.
+	void AddShader(engine::MaterialType* pMaterialType);
+
 	void AddNode(engine::Entity entity, const cd::Node& node);
 	void AddStaticMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat);
 	void AddSkinMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat);
 	void AddMaterial(engine::Entity entity, const cd::Material* pMaterial, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase);
-
-	std::string GetShaderOutputFilePath(const char* pInputFilePath, const char* pAppendFileName = nullptr);
-	std::string GetTextureOutputFilePath(const char* pInputFilePath);
 
 private:
 	engine::RenderContext* m_pRenderContext;
@@ -65,6 +73,8 @@ private:
 
 	uint32_t m_nodeMinID;
 	std::map<cd::NodeID::ValueType, engine::Entity> m_mapTransformIDToEntities;
+
+	std::vector<engine::Uber> m_activeUberOptions;
 };
 
 }
