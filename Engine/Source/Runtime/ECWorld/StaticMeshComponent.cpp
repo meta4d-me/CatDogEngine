@@ -161,10 +161,18 @@ void StaticMeshComponent::Build()
 			std::vector<uint16_t> vertexBoneIDs;
 			std::vector<cd::VertexWeight> vertexBoneWeights;
 
-			for(uint32_t vertexBoneIndex = 0U; vertexBoneIndex < m_pMeshData->GetVertexInfluenceCount(); ++vertexBoneIndex)
+			for(uint32_t vertexBoneIndex = 0U; vertexBoneIndex < 4; ++vertexBoneIndex)
 			{
-				vertexBoneIDs.push_back(static_cast<uint16_t>(m_pMeshData->GetVertexBoneID(vertexBoneIndex, vertexIndex).Data()));
-				vertexBoneWeights.push_back(m_pMeshData->GetVertexWeight(vertexBoneIndex, vertexIndex));
+				if (vertexBoneIndex < m_pMeshData->GetVertexInfluenceCount())
+				{
+					vertexBoneIDs.push_back(static_cast<uint16_t>(m_pMeshData->GetVertexBoneID(vertexBoneIndex, vertexIndex).Data()));
+					vertexBoneWeights.push_back(m_pMeshData->GetVertexWeight(vertexBoneIndex, vertexIndex));
+				}
+				else
+				{
+					vertexBoneIDs.push_back(255);
+					vertexBoneWeights.push_back(1.0f);
+				}
 			}
 
 			// TODO : Change storage to a TVector<uint16_t, InfluenceCount> and TVector<float, InfluenceCount> ?

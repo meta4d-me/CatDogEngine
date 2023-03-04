@@ -4,7 +4,7 @@ $output v_worldPos
 #include "../common/common.sh"
 #include "uniforms.sh"
 
-uniform mat4 u_boneMatrices[65];
+uniform mat4 u_boneMatrices[256];
 
 void main()
 {
