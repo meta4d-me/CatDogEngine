@@ -46,9 +46,9 @@ void TerrainRenderer::Init()
 	m_materialHandles.emplace_back();
 	TerrainMaterialHandle& materialHandle = m_materialHandles.back();
 	materialHandle.baseColor.sampler = m_pRenderContext->CreateUniform(std::format("s_textureBaseColor{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
-	materialHandle.baseColor.texture = m_pRenderContext->CreateTexture("Terrain_baseColor.dds", textureSamplerFlags | BGFX_TEXTURE_SRGB);
+	materialHandle.baseColor.texture = m_pRenderContext->CreateTexture("terrain/Terrain_baseColor.dds", textureSamplerFlags | BGFX_TEXTURE_SRGB);
 	materialHandle.debug.sampler = m_pRenderContext->CreateUniform(std::format("s_textureDebug{}", materialIndex).c_str(), bgfx::UniformType::Sampler);
-	materialHandle.debug.texture = m_pRenderContext->CreateTexture("TerrainTest_baseColor.dds", textureSamplerFlags | BGFX_TEXTURE_SRGB);
+	materialHandle.debug.texture = m_pRenderContext->CreateTexture("terrain/TerrainTest_baseColor.dds", textureSamplerFlags | BGFX_TEXTURE_SRGB);
 
 	// Load terrain shaders
 	bgfx::ShaderHandle vsh = m_pRenderContext->CreateShader("vs_terrain.bin");

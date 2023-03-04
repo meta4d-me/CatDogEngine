@@ -20,7 +20,7 @@ void SceneRenderer::Init()
 	uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 	m_pRenderContext->CreateTexture("skybox/bolonga_lod.dds", samplerFlags);
 	m_pRenderContext->CreateTexture("skybox/bolonga_irr.dds", samplerFlags);
-	m_pRenderContext->CreateTexture("ibl_brdf_lut.dds");
+	m_pRenderContext->CreateTexture("lut/ibl_brdf_lut.dds");
 
 	bgfx::setViewName(GetViewID(), "SceneRenderer");
 }
@@ -47,7 +47,7 @@ void SceneRenderer::Render(float deltaTime)
 		bgfx::setTexture(2, materialHandle.orm.sampler, materialHandle.orm.texture);
 
 		constexpr StringCrc lutSampler("s_texLUT");
-		constexpr StringCrc lutTexture("ibl_brdf_lut.dds");
+		constexpr StringCrc lutTexture("lut/ibl_brdf_lut.dds");
 		bgfx::setTexture(3, m_pRenderContext->GetUniform(lutSampler), m_pRenderContext->GetTexture(lutTexture));
 
 		constexpr StringCrc cubeSampler("s_texCube");

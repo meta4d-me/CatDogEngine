@@ -50,6 +50,30 @@ void Process::Run()
 		CD_ENGINE_TRACE("\tEnvironment {0}", environments[i]);
 	}
 
+	// Read logs from process.
+	using SubProcessReadLogFunction = unsigned (*)(struct subprocess_s* const, char* const, unsigned);
+	auto PrintSubProcessLog = [](const char* pTagName, subprocess_s* const pSubProcess, SubProcessReadLogFunction readMethod)
+	{
+		static char processOutputData[65536] = { 0 };
+		uint32_t processOutputDataIndex = 0U;
+		uint32_t processOutputDataReadBytes = 0U;
+
+		do
+		{
+			processOutputDataReadBytes = readMethod(pSubProcess, processOutputData + processOutputDataIndex, sizeof(processOutputData) - 1 - processOutputDataIndex);
+			processOutputDataIndex += processOutputDataReadBytes;
+		} while (processOutputDataReadBytes != 0U);
+
+		if (processOutputDataIndex > 0U)
+		{
+			// Logs from child process's stdout maybe error info because many tool authors will use stdout to print rather than stderr.
+			CD_ENGINE_ERROR("{0}\n{1}", pTagName, processOutputData);
+		}
+	};
+
+	PrintSubProcessLog("StdOut", m_pProcess.get(), subprocess_read_stdout);
+	PrintSubProcessLog("StdErr", m_pProcess.get(), subprocess_read_stderr);
+
 	if (m_waitUntilFinished)
 	{
 		int processResult;

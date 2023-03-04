@@ -1,20 +1,7 @@
 #include "SceneWorld.h"
 
 #include "Log/Log.h"
-
-namespace
-{
-
-std::string GetShaderPath(const char* pShaderName)
-{
-	std::string shaderPath = CDENGINE_BUILTIN_SHADER_PATH;
-	shaderPath += pShaderName;
-	shaderPath += ".sc";
-
-	return shaderPath;
-}
-
-}
+#include "Path/Path.h"
 
 namespace engine
 {
@@ -44,9 +31,20 @@ void SceneWorld::CreatePBRMaterialType()
 	m_pPBRMaterialType = std::make_unique<MaterialType>();
 	m_pPBRMaterialType->SetMaterialName("CD_PBR");
 
-	ShaderSchema shaderSchema(GetShaderPath("vs_PBR"), GetShaderPath("fs_PBR"));
-	shaderSchema.RegisterUberOption(ShaderSchema::DefaultUberOptionName);
-	shaderSchema.RegisterUberOption("USE_PBR_IBL");
+	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("vs_PBR"), Path::GetBuiltinShaderInputPath("fs_PBR"));
+	shaderSchema.RegisterUberOption(Uber::ALBEDO);
+	shaderSchema.RegisterUberOption(Uber::NORMAL_MAP);
+	shaderSchema.RegisterUberOption(Uber::OCCLUSION);
+	shaderSchema.RegisterUberOption(Uber::ROUGHNESS);
+	shaderSchema.RegisterUberOption(Uber::METALLIC);
+	shaderSchema.RegisterUberOption(Uber::IBL);
+	// Technically, option LoadingStatus:: is an actual shader.
+	// We can use AddSingleUberOption to add it to shaderSchema,
+	// whithout combine with any other option.
+	shaderSchema.AddSingleUberOption(LoadingStatus::MISSING_RESOURCES, Path::GetBuiltinShaderInputPath("fs_unlit_flat_red"));
+	shaderSchema.AddSingleUberOption(LoadingStatus::LOADING_SHADERS, Path::GetBuiltinShaderInputPath("fs_unlit_flat_blue"));
+	shaderSchema.AddSingleUberOption(LoadingStatus::LOADING_TEXTURES, Path::GetBuiltinShaderInputPath("fs_unlit_flat_green"));
+	shaderSchema.AddSingleUberOption(LoadingStatus::LOADING_ERROR, Path::GetBuiltinShaderInputPath("fs_unlit_flat_pink"));
 	m_pPBRMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat pbrVertexFormat;
@@ -57,12 +55,12 @@ void SceneWorld::CreatePBRMaterialType()
 	m_pPBRMaterialType->SetRequiredVertexFormat(cd::MoveTemp(pbrVertexFormat));
 
 	// Slot index should align to shader codes.
-	m_pPBRMaterialType->AddRequiredTextureType(cd::MaterialTextureType::BaseColor, 0);
-	m_pPBRMaterialType->AddRequiredTextureType(cd::MaterialTextureType::Normal, 1);
-
+	// We want basic PBR materials to be flexible.
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::BaseColor, 0);
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Normal, 1);
 	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Occlusion, 2);
-	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Metallic, 2);
 	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Roughness, 2);
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Metallic, 2);
 	//m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Emissive, );
 }
 
@@ -71,8 +69,7 @@ void SceneWorld::CreateAnimationMaterialType()
 	m_pAnimationMaterialType = std::make_unique<MaterialType>();
 	m_pAnimationMaterialType->SetMaterialName("CD_Animation");
 
-	ShaderSchema shaderSchema(GetShaderPath("vs_animation"), GetShaderPath("fs_animation"));
-	shaderSchema.RegisterUberOption(ShaderSchema::DefaultUberOptionName);
+	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("vs_animation"), Path::GetBuiltinShaderInputPath("fs_animation"));
 	m_pAnimationMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat animationVertexFormat;

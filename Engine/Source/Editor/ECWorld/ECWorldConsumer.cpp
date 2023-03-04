@@ -8,17 +8,39 @@
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
 #include "Material/MaterialType.h"
+#include "Path/Path.h"
 #include "Rendering/RenderContext.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ResourceLoader.h"
 #include "Scene/SceneDatabase.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <format>
 #include <span>
 
 namespace editor
 {
+
+namespace Detail
+{
+
+const std::unordered_map<cd::MaterialTextureType, engine::Uber> materialTextureType2Uber
+{
+	// TODO : IBL
+	{cd::MaterialTextureType::BaseColor, engine::Uber::ALBEDO},
+	{cd::MaterialTextureType::Normal, engine::Uber::NORMAL_MAP},
+	{cd::MaterialTextureType::Occlusion, engine::Uber::OCCLUSION},
+	{cd::MaterialTextureType::Roughness, engine::Uber::ROUGHNESS},
+	{cd::MaterialTextureType::Metallic, engine::Uber::METALLIC},
+};
+
+CD_FORCEINLINE bool IsMaterialTextureTypeValid(cd::MaterialTextureType type)
+{
+	return materialTextureType2Uber.find(type) != materialTextureType2Uber.end();
+}
+
+} // namespace Detail
 
 ECWorldConsumer::ECWorldConsumer(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext) :
 	m_pSceneWorld(pSceneWorld),
@@ -34,6 +56,8 @@ void ECWorldConsumer::SetSceneDatabaseIDs(uint32_t nodeID)
 void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 {
 	assert(pSceneDatabase->GetMeshCount() > 0);
+
+	AddShader(m_pSceneWorld->GetPBRMaterialType());
 
 	for (const auto& node : pSceneDatabase->GetNodes())
 	{
@@ -74,6 +98,59 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 				AddMaterial(sceneEntity, nullptr, pMaterialType, pSceneDatabase);
 			}
 		}
+	}
+}
+
+void ECWorldConsumer::AddShader(engine::MaterialType* pMaterialType)
+{
+	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
+	std::map<std::string, engine::StringCrc> outputFSPathToUberOption;
+
+	// No uber option support for VS now.
+	std::string outputVSFilePath = engine::Path::GetShaderOutputPath(shaderSchema.GetVertexShaderPath());
+	ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Vertex,
+		shaderSchema.GetVertexShaderPath(), outputVSFilePath.c_str());
+	
+	// Compile fragment shader with uber options.
+	for (const auto& combine : shaderSchema.GetUberCombines())
+	{
+		std::string outputFSFilePath = engine::Path::GetShaderOutputPath(shaderSchema.GetFragmentShaderPath(), combine);
+		ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Fragment,
+			shaderSchema.GetFragmentShaderPath(), outputFSFilePath.c_str(), combine.c_str());
+		engine::StringCrc uberOptionCrc(combine);
+		outputFSPathToUberOption[cd::MoveTemp(outputFSFilePath)] = uberOptionCrc;
+	}
+	CD_ENGINE_INFO("Material type {0} have shader variant count : {1}.", pMaterialType->GetMaterialName(), shaderSchema.GetUberCombines().size());
+
+	// Compile fragment shader for indicating loadig status.
+	for (const auto& [status, path] : shaderSchema.GetLoadingStatusPath())
+	{
+		std::string outputFSFilePath = engine::Path::GetShaderOutputPath(path.c_str());
+		ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Fragment,
+			path.c_str(), outputFSFilePath.c_str());
+		engine::StringCrc statusCrc = shaderSchema.GetProgramCrc(status);
+		outputFSPathToUberOption[cd::MoveTemp(outputFSFilePath)] = statusCrc;
+	}
+
+	// TODO : ResourceBuilder will move to EditorApp::Update in the future.
+	ResourceBuilder::Get().Update();
+
+	// Vertex shader.
+	shaderSchema.AddUberOptionVSBlob(ResourceLoader::LoadShader(outputVSFilePath.c_str()));
+	const auto& VSBlob = shaderSchema.GetVSBlob();
+	bgfx::ShaderHandle vsHandle = bgfx::createShader(bgfx::makeRef(VSBlob.data(), static_cast<uint32_t>(VSBlob.size())));
+
+	// Fragment shader.
+	for (const auto& [outputFSFilePath, uberOptionCrc] : outputFSPathToUberOption)
+	{
+		shaderSchema.AddUberOptionFSBlob(uberOptionCrc, ResourceLoader::LoadShader(outputFSFilePath.c_str()));
+
+		const auto& FSBlob = shaderSchema.GetFSBlob(uberOptionCrc);
+		bgfx::ShaderHandle fsHandle = bgfx::createShader(bgfx::makeRef(FSBlob.data(), static_cast<uint32_t>(FSBlob.size())));
+
+		// Program.
+		bgfx::ProgramHandle uberProgramHandle = bgfx::createProgram(vsHandle, fsHandle);
+		shaderSchema.SetCompiledProgram(uberOptionCrc, uberProgramHandle.idx);
 	}
 }
 
@@ -126,38 +203,10 @@ void ECWorldConsumer::AddAnimation(engine::Entity entity, const cd::Animation& a
 	animationComponent.SetBoneMatricesUniform(boneMatricesUniform.idx);
 }
 
-std::string ECWorldConsumer::GetShaderOutputFilePath(const char* pInputFilePath, const char* pAppendFileName)
-{
-	std::filesystem::path inputShaderPath(pInputFilePath);
-	std::string inputShaderFileName = inputShaderPath.stem().generic_string();
-	std::string outputShaderPath = CDENGINE_RESOURCES_ROOT_PATH;
-	outputShaderPath += "Shaders/" + inputShaderFileName;
-	if (pAppendFileName)
-	{
-		if (engine::ShaderSchema::DefaultUberOption != engine::StringCrc(pAppendFileName))
-		{
-			outputShaderPath += "_";
-			outputShaderPath += pAppendFileName;
-		}
-	}
-	outputShaderPath += ".bin";
-	return outputShaderPath;
-}
-
-std::string ECWorldConsumer::GetTextureOutputFilePath(const char* pInputFilePath)
-{
-	std::filesystem::path inputTexturePath(pInputFilePath);
-	std::string inputTextureFileName = inputTexturePath.stem().generic_string();
-	std::string outputTexturePath = CDENGINE_RESOURCES_ROOT_PATH;
-	outputTexturePath += "Textures/" + inputTextureFileName + ".dds";
-	return outputTexturePath;
-}
-
 void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMaterial, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase)
 {
 	std::set<uint8_t> compiledTextureSlot;
 	std::map<std::string, const cd::Texture*> outputTexturePathToData;
-	std::map<std::string, engine::StringCrc> outputFSPathToUberOption;
 
 	bool missRequiredTextures = false;
 	bool unknownTextureSlot = false;
@@ -167,6 +216,8 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 		if (!optTexture.has_value())
 		{
 			missRequiredTextures = true;
+			CD_ENGINE_ERROR("Material {0} massing required texture {1}!", pMaterial->GetName(),
+				GetMaterialPropertyGroupName(requiredTextureType));
 			break;
 		}
 
@@ -174,12 +225,13 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 		if(!optTextureSlot.has_value())
 		{
 			unknownTextureSlot = true;
+			CD_ENGINE_ERROR("Material {0} unknown texture slot of textuere type {1}!", pMaterial->GetName(), GetMaterialPropertyGroupName(requiredTextureType));
 			break;
 		}
 
 		uint8_t textureSlot = optTextureSlot.value();
 		const cd::Texture& requiredTexture = pSceneDatabase->GetTexture(optTexture.value().Data());
-		std::string outputTexturePath = GetTextureOutputFilePath(requiredTexture.GetPath());
+		std::string outputTexturePath = engine::Path::GetTextureOutputFilePath(requiredTexture.GetPath(), ".dds");
 		if(!compiledTextureSlot.contains(textureSlot))
 		{
 			// When multiple textures have the same texture slot, it implies that these textures are packed in one file.
@@ -190,35 +242,13 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 			outputTexturePathToData[cd::MoveTemp(outputTexturePath)] = &requiredTexture;
 		}
 	}
-	
-	// No uber option support for VS now.
+
 	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
-	std::string outputVSFilePath = GetShaderOutputFilePath(shaderSchema.GetVertexShaderPath());
-	ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Vertex,
-		shaderSchema.GetVertexShaderPath(), outputVSFilePath.c_str());
-	
-	engine::StringCrc currentUberOption = engine::ShaderSchema::DefaultUberOption;
+	engine::StringCrc currentUberOption(shaderSchema.GetUberCombines().at(0));
 	if (missRequiredTextures || unknownTextureSlot)
 	{
-		// Treate missing textures case as a special uber option in the CPU side.
-		constexpr engine::StringCrc missingTextureOption("MissingTextures");
-		if (!shaderSchema.IsUberOptionValid(missingTextureOption))
-		{
-			std::string inputFSShaderPath = CDENGINE_BUILTIN_SHADER_PATH;
-			inputFSShaderPath += "fs_missing_textures.sc";
-
-			std::string outputFSFilePath = GetShaderOutputFilePath(shaderSchema.GetFragmentShaderPath(), "MissingTextures");
-			ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Fragment,
-				inputFSShaderPath.c_str(), outputFSFilePath.c_str());
-
-			std::string uberOptionName("MissingTextures");
-			shaderSchema.RegisterUberOption(uberOptionName.c_str());
-
-			engine::StringCrc uberOptionCrc(uberOptionName);
-			outputFSPathToUberOption[cd::MoveTemp(outputFSFilePath)] = uberOptionCrc;
-		}
-
-		currentUberOption = missingTextureOption;
+		// Treate missing resources case as a special uber option in the CPU side.
+		currentUberOption = shaderSchema.GetProgramCrc(engine::LoadingStatus::MISSING_RESOURCES);
 	}
 	else
 	{
@@ -228,7 +258,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 			std::optional<cd::TextureID> optTexture = pMaterial->GetTextureID(optionalTextureType);
 			if (!optTexture.has_value())
 			{
-				// Optional texture is OK to failed to import.
+				CD_WARN("Material {0} does not have optional texture type {1}!", pMaterial->GetName(), GetMaterialPropertyGroupName(optionalTextureType));
 				continue;
 			}
 
@@ -236,12 +266,15 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 			if (!optTextureSlot.has_value())
 			{
 				unknownTextureSlot = true;
+				CD_ERROR("Unknow texture {0} slot!", GetMaterialPropertyGroupName(optionalTextureType));
 				break;
 			}
 
+			ActivateUberOption(optionalTextureType);
+
 			uint8_t textureSlot = optTextureSlot.value();
 			const cd::Texture& optionalTexture = pSceneDatabase->GetTexture(optTexture.value().Data());
-			std::string outputTexturePath = GetTextureOutputFilePath(optionalTexture.GetPath());
+			std::string outputTexturePath = engine::Path::GetTextureOutputFilePath(optionalTexture.GetPath(), ".dds");
 			if (!compiledTextureSlot.contains(textureSlot))
 			{
 				compiledTextureSlot.insert(textureSlot);
@@ -250,21 +283,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 			}
 		}
 
-		// Compile uber shaders with different options.
-		std::vector<const char*> uberOptions;
-		for (const auto& uberOption : shaderSchema.GetUberOptions())
-		{
-			// TODO : different compostions of uber options.
-			// Currently, we only consider one uber option at the same time.
-			uberOptions.clear();
-			uberOptions.push_back(uberOption.c_str());
-			std::string outputFSFilePath = GetShaderOutputFilePath(shaderSchema.GetFragmentShaderPath(), uberOption.c_str());
-			ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Fragment,
-				shaderSchema.GetFragmentShaderPath(), outputFSFilePath.c_str(), &uberOptions);
-
-			engine::StringCrc uberOptionCrc(uberOption);
-			outputFSPathToUberOption[cd::MoveTemp(outputFSFilePath)] = uberOptionCrc;
-		}
+		currentUberOption = shaderSchema.GetProgramCrc(m_activeUberOptions);
 	}
 
 	// TODO : ResourceBuilder will move to EditorApp::Update in the future.
@@ -278,6 +297,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	materialComponent.SetMaterialType(pMaterialType);
 	materialComponent.SetUberShaderOption(currentUberOption);
 
+	// Textures.
 	for (const auto& [outputTextureFilePath, pTextureData] : outputTexturePathToData)
 	{
 		auto textureBlob = ResourceLoader::LoadTexture(outputTextureFilePath.c_str());
@@ -287,21 +307,36 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 		}
 	}
 
-	shaderSchema.AddUberOptionVSBlob(ResourceLoader::LoadShader(outputVSFilePath.c_str()));
-	const auto& VSBlob = shaderSchema.GetVSBlob();
-	bgfx::ShaderHandle vsHandle = bgfx::createShader(bgfx::makeRef(VSBlob.data(), static_cast<uint32_t>(VSBlob.size())));
-
-	for (const auto& [outputFSFilePath, uberOptionCrc] : outputFSPathToUberOption)
-	{
-		shaderSchema.AddUberOptionFSBlob(uberOptionCrc, ResourceLoader::LoadShader(outputFSFilePath.c_str()));
-	
-		const auto& FSBlob = shaderSchema.GetFSBlob(uberOptionCrc);
-		bgfx::ShaderHandle fsHandle = bgfx::createShader(bgfx::makeRef(FSBlob.data(), static_cast<uint32_t>(FSBlob.size())));
-		bgfx::ProgramHandle uberProgramHandle = bgfx::createProgram(vsHandle, fsHandle);
-		shaderSchema.SetCompiledProgram(uberOptionCrc, uberProgramHandle.idx);
-	}
-
 	materialComponent.Build();
+}
+
+void ECWorldConsumer::ActivateUberOption(cd::MaterialTextureType textureType)
+{
+	if (Detail::IsMaterialTextureTypeValid(textureType))
+	{
+		m_activeUberOptions.push_back(Detail::materialTextureType2Uber.at(textureType));
+	}
+	else
+	{
+		CD_WARN("MaterialTextureType {0} is not a vaild uber option!", GetMaterialPropertyGroupName(textureType));
+	}
+}
+
+void ECWorldConsumer::DeactivateUberOption(cd::MaterialTextureType textureType)
+{
+	if (Detail::IsMaterialTextureTypeValid(textureType))
+	{
+		m_activeUberOptions.erase(std::find(m_activeUberOptions.begin(), m_activeUberOptions.end(), Detail::materialTextureType2Uber.at(textureType)));
+	}
+	else
+	{
+		CD_WARN("MaterialTextureType {0} is not a vaild uber option!", GetMaterialPropertyGroupName(textureType));
+	}
+}
+
+void ECWorldConsumer::ClearActiveUberOption()
+{
+	m_activeUberOptions.clear();
 }
 
 }
