@@ -31,8 +31,11 @@ namespace Detail
 const std::unordered_map<cd::MaterialTextureType, engine::Uber> materialTextureType2Uber
 {
 	// TODO : IBL
+	{cd::MaterialTextureType::BaseColor, engine::Uber::ALBEDO},
 	{cd::MaterialTextureType::Normal, engine::Uber::NORMAL_MAP},
 	{cd::MaterialTextureType::Occlusion, engine::Uber::OCCLUSION},
+	{cd::MaterialTextureType::Roughness, engine::Uber::ROUGHNESS},
+	{cd::MaterialTextureType::Metallic, engine::Uber::METALLIC},
 };
 
 CD_FORCEINLINE bool IsMaterialTextureTypeValid(cd::MaterialTextureType type)
@@ -116,6 +119,7 @@ void ECWorldConsumer::AddShader(engine::MaterialType* pMaterialType)
 		engine::StringCrc uberOptionCrc(combine);
 		outputFSPathToUberOption[cd::MoveTemp(outputFSFilePath)] = uberOptionCrc;
 	}
+	CD_ENGINE_INFO("Material type {0} have shader variant count : {1}.", pMaterialType->GetMaterialName(), shaderSchema.GetUberCombines().size());
 
 	// Compile fragment shader for indicating loadig status.
 	for (const auto& [status, path] : shaderSchema.GetLoadingStatusPath())

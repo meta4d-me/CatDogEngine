@@ -45,7 +45,7 @@ std::filesystem::path Path::GetPlatformAppDataPath(char(&value)[MAX_PATH_SIZE])
 #elif defined(__APPLE__)
     return std::filesystem::path(value) / "Library" / "Application Support";
 #else
-#error Unsupport platform!
+    #error Unsupport platform!
 #endif
 }
 

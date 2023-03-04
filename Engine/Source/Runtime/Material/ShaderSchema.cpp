@@ -15,9 +15,13 @@ namespace Detail
 constexpr const char* UberName[] =
 {
 	"DEFAULT;",
-	"IBL;",
+	"ALBEDO;",
 	"NORMAL_MAP;",
 	"OCCLUSION;",
+	"ROUGHNESS;",
+	"METALLIC;",
+	"IBL;",
+	"AREAL_LIGHT;",
 };
 
 static_assert(static_cast<int>(Uber::COUNT) == sizeof(UberName) / sizeof(char*),

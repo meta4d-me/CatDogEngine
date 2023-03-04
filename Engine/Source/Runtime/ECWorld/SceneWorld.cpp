@@ -32,8 +32,11 @@ void SceneWorld::CreatePBRMaterialType()
 	m_pPBRMaterialType->SetMaterialName("CD_PBR");
 
 	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("vs_PBR"), Path::GetBuiltinShaderInputPath("fs_PBR"));
+	shaderSchema.RegisterUberOption(Uber::ALBEDO);
 	shaderSchema.RegisterUberOption(Uber::NORMAL_MAP);
 	shaderSchema.RegisterUberOption(Uber::OCCLUSION);
+	shaderSchema.RegisterUberOption(Uber::ROUGHNESS);
+	shaderSchema.RegisterUberOption(Uber::METALLIC);
 	shaderSchema.RegisterUberOption(Uber::IBL);
 	// Technically, option LoadingStatus:: is an actual shader.
 	// We can use AddSingleUberOption to add it to shaderSchema,
@@ -52,12 +55,12 @@ void SceneWorld::CreatePBRMaterialType()
 	m_pPBRMaterialType->SetRequiredVertexFormat(cd::MoveTemp(pbrVertexFormat));
 
 	// Slot index should align to shader codes.
-	m_pPBRMaterialType->AddRequiredTextureType(cd::MaterialTextureType::BaseColor, 0);
-	m_pPBRMaterialType->AddRequiredTextureType(cd::MaterialTextureType::Roughness, 2);
-	m_pPBRMaterialType->AddRequiredTextureType(cd::MaterialTextureType::Metallic, 2);
-
+	// We want basic PBR materials to be flexible.
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::BaseColor, 0);
 	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Normal, 1);
 	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Occlusion, 2);
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Roughness, 2);
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Metallic, 2);
 	//m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Emissive, );
 }
 

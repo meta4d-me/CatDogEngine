@@ -11,17 +11,57 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 uniform vec4 u_lightCount[1];
 uniform vec4 u_lightStride[1];
 
+// Simplify some common cases.
+// TODO : More generic.
+#if defined(ROUGHNESS) && defined(METALLIC)
+	#if defined(OCCLUSION)
+		#define USE_ORM
+	#else
+		#define USE_RM
+	#endif
+#endif
+
+#if defined(ALBEDO)
 SAMPLER2D(s_texBaseColor, 0);
+
+vec3 SampleAlbedoTexture(vec2 uv) {
+	// We assume that albedo texture is already in linear space.
+	return texture2D(s_texBaseColor, uv).xyz;
+}
+#endif
+
+#if defined(NORMAL_MAP)
+SAMPLER2D(s_texNormal, 1);
+
+vec3 SampleNormalTexture(vec2 uv, mat3 TBN) {
+	// We assume that normal texture is already in linear space.
+	vec3 normalTexture = normalize(texture2D(s_texNormal, uv).xyz * 2.0 - 1.0);
+	return normalize(mul(TBN, normalTexture));
+}
+#endif
+
+#if defined(USE_ORM) || defined(USE_RM)
 SAMPLER2D(s_texORM, 2);
+
+vec3 SampleORMTexture(vec2 uv) {
+	// We assume that ORM texture is already in linear space.
+	vec3 orm = texture2D(s_texORM, uv).xyz;
+	orm.y = clamp(orm.y, 0.04, 1.0); // roughness
+	
+	#if defined(USE_RM)
+	// Occlusion must be 1.0 if material does not have occlusion.
+	orm.x = 1.0;
+	#endif
+
+	return orm;
+}
+#endif
+
 SAMPLER2D(s_texLUT, 3);
 
 #if defined(IBL)
 SAMPLERCUBE(s_texCube, 4);
 SAMPLERCUBE(s_texCubeIrr, 5);
-#endif
-
-#if defined(NORMAL_MAP)
-SAMPLER2D(s_texNormal, 1);
 #endif
 
 struct Material {
@@ -37,7 +77,7 @@ struct Material {
 
 Material CreateMaterial() {
 	Material material;
-	material.albedo = vec3(0.99, 0.98, 0.95);
+	material.albedo = vec3(1.0, 1.0, 1.0);
 	material.normal = vec3(0.0, 1.0, 0.0);
 	material.occlusion = 1.0;
 	material.roughness = 0.9;
@@ -48,39 +88,39 @@ Material CreateMaterial() {
 	return material;
 }
 
-vec3 SampleAlbedoTexture(vec2 uv) {
-	// We assume that albedo texture is already in linear space.
-	return texture2D(s_texBaseColor, uv).xyz;
-}
-
 vec3 CalcuateNormal(vec3 worldPos) {
 	vec3 dx = dFdx(worldPos);
 	vec3 dy = dFdy(worldPos);
 	return normalize(cross(dx, dy));
 }
 
+vec3 CalcuateF0(vec3 albedo, float metallic) {
+	return mix(vec3_splat(0.04), albedo, metallic);
+} 
+
+Material GetMaterial(vec2 uv, vec3 normal, mat3 TBN) {
+	Material material = CreateMaterial();
+
+#if defined(ALBEDO)
+	material.albedo = SampleAlbedoTexture(uv);
+#endif
+
 #if defined(NORMAL_MAP)
-vec3 SampleNormalTexture(vec2 uv, mat3 TBN) {
-	// We assume that normal texture is already in linear space.
-	vec3 normalTexture = normalize(texture2D(s_texNormal, uv).xyz * 2.0 - 1.0);
-	return normalize(mul(TBN, normalTexture));
-}
+	material.normal = SampleNormalTexture(uv, TBN);
+#else
+	material.normal = normalize(normal);
 #endif
-
-vec3 SampleORMTexture(vec2 uv) {
-	// We assume that ORM texture is already in linear space.
-	vec3 orm = texture2D(s_texORM, uv).xyz;
-	// roughness
-	orm.y = clamp(orm.y, 0.04, 1.0);
-#if !defined(OCCLUSION)
-	// Occlusion must be 1.0 if material does not have occlusion.
-	orm.x = 1.0;
+	
+#if defined(USE_ORM) || defined(USE_RMS)
+	vec3 orm = SampleORMTexture(uv);
+	material.occlusion = orm.x;
+	material.roughness = orm.y;
+	material.metallic = orm.z;
 #endif
-	return orm;
-}
-
-vec3 CalcuateF0(Material material) {
-	return mix(vec3_splat(0.04), material.albedo, material.metallic);
+	
+	material.F0 = CalcuateF0(material.albedo, material.metallic);
+	
+	return material;
 }
 
 // Distance Attenuation
@@ -127,20 +167,7 @@ float Visibility(float NdotV, float NdotL, float rough) {
 
 void main()
 {
-	Material material = CreateMaterial();
-	material.albedo = SampleAlbedoTexture(v_texcoord0);
-	
-#if defined(NORMAL_MAP)
-	material.normal = SampleNormalTexture(v_texcoord0, v_TBN);
-#else
-	material.normal = normalize(v_normal);
-#endif
-	
-	vec3 orm = SampleORMTexture(v_texcoord0);
-	material.occlusion = orm.x;
-	material.roughness = orm.y;
-	material.metallic = orm.z;
-	material.F0 = CalcuateF0(material);
+	Material material = GetMaterial(v_texcoord0, v_normal, v_TBN);
 	
 	vec3 viewDir  = normalize(u_cameraPos - v_worldPos);
 	vec3 diffuseBRDF = material.albedo * INV_PI;

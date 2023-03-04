@@ -11,12 +11,20 @@
 namespace engine
 {
 
-enum class Uber : uint8_t
+enum class Uber : uint32_t
 {
 	DEFAULT = 0,
-	IBL,
+
+	// PBR parameters
+	ALBEDO,
 	NORMAL_MAP,
 	OCCLUSION,
+	ROUGHNESS,
+	METALLIC,
+
+	// Techniques
+	IBL,
+	AREAL_LIGHT,
 
 	COUNT,
 };
