@@ -315,7 +315,8 @@ void ImGuiContextInstance::Update(float deltaTime)
 	AddInputEvent();
 
 	ImGui::NewFrame();
-    for (const auto& pImGuiLayer : m_pImGuiStaticLayers)
+    
+	for (const auto& pImGuiLayer : m_pImGuiStaticLayers)
 	{
 		pImGuiLayer->Update();
 	}
