@@ -18,7 +18,7 @@
 namespace
 {
 
-std::unordered_map<engine::KeyCode, ImGuiKey> kImguiKeyLookup {
+std::unordered_map<engine::KeyCode, ImGuiKey> kImguiKeyLookup{
 	{engine::KeyCode::RETURN, ImGuiKey::ImGuiKey_Enter},
 	{engine::KeyCode::ESCAPE, ImGuiKey::ImGuiKey_Escape},
 	{engine::KeyCode::BACKSPACE, ImGuiKey::ImGuiKey_Backspace},
@@ -230,13 +230,13 @@ void ImGuiContextInstance::BeginDockSpace()
 	constexpr const char* pDockSpaceName = "FullScreenDockSpace";
 	static bool enableDockSpace = true;
 	constexpr ImGuiWindowFlags dockSpaceWindowFlags = ImGuiWindowFlags_NoDocking |
-													  ImGuiWindowFlags_NoTitleBar |
-													  ImGuiWindowFlags_NoCollapse |
-													  ImGuiWindowFlags_NoResize |
-													  ImGuiWindowFlags_NoMove |
-													  ImGuiWindowFlags_NoBringToFrontOnFocus |
-													  ImGuiWindowFlags_NoNavFocus |
-													  ImGuiWindowFlags_NoBackground;
+		ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoCollapse |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoBringToFrontOnFocus |
+		ImGuiWindowFlags_NoNavFocus |
+		ImGuiWindowFlags_NoBackground;
 
 	// Place dock space window under static imgui layers.
 	// It is a hack now as only main menu bar is a static layer so we only need to adjust the height.
@@ -315,7 +315,7 @@ void ImGuiContextInstance::Update(float deltaTime)
 	AddInputEvent();
 
 	ImGui::NewFrame();
-	
+
 	for (const auto& pImGuiLayer : m_pImGuiStaticLayers)
 	{
 		pImGuiLayer->Update();
@@ -440,8 +440,8 @@ void ImGuiContextInstance::LoadFontFiles(const std::vector<std::string>& ttfFile
 		const ImWchar* pGlyphRanges = nullptr;
 		switch (language)
 		{
-		// Glyph ranges for Chinese Simplied have issues on showing some characters.
-		// So let's use the bigger Glyph ranges including tradional characters.
+			// Glyph ranges for Chinese Simplied have issues on showing some characters.
+			// So let's use the bigger Glyph ranges including tradional characters.
 		case engine::Language::ChineseSimplied:
 		case engine::Language::ChineseTraditional:
 			pGlyphRanges = io.Fonts->GetGlyphRangesChineseFull();
@@ -782,4 +782,9 @@ void ImGuiContextInstance::SetImGuiThemeColor(ThemeColor theme)
 	colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
 }
 
+void ImGuiContextInstance::SetImGuiLanguage(Language language)
+{
+	m_language = language;
+	Localization::SetLanguage(language);
+}
 }

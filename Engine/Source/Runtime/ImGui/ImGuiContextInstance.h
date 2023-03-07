@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Application/Localization.h"
+#include "Localization.h"
 #include "ThemeColor.h"
 
 #include <inttypes.h>
@@ -43,13 +43,16 @@ public:
 	// Dockable layer means movable, dockable.
 	std::vector<std::unique_ptr<ImGuiBaseLayer>>& GetDockableLayers() { return m_pImGuiDockableLayers; }
 	void AddDynamicLayer(std::unique_ptr<ImGuiBaseLayer> pLayer);
-	
+
 	void Update(float deltaTime);
 
 	void OnResize(uint16_t width, uint16_t height);
 
 	void LoadFontFiles(const std::vector<std::string>& ttfFileNames, engine::Language language);
 	ThemeColor GetImGuiThemeColor() const { return m_themeColor; }
+	Language GetImGuiLanguage() const { return m_language; }
+	void SetImGuiLanguage(Language language);
+
 	void SetImGuiThemeColor(ThemeColor theme);
 
 	void SetWindowPosOffset(float x, float y) { m_windowPosOffsetX = x; m_windowPosOffsetY = y; }
@@ -66,6 +69,7 @@ private:
 private:
 	SceneWorld* m_pSceneWorld = nullptr;
 	ImGuiContext* m_pImGuiContext = nullptr;
+	Language m_language;
 	ThemeColor m_themeColor;
 
 	float m_windowPosOffsetX = 0.0f;
