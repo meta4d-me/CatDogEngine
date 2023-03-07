@@ -1,0 +1,15 @@
+﻿LocalizationKey,Chinese,English
+TEXT_EDIT,编辑,Edit
+TEXT_NEW,新建,New
+TEXT_LANGUAGE,语言,Language
+TEXT_FILE,文件,File
+TEXT_STYLE,风格,Style
+TEXT_CREAT_PROJECT,新建项目,Creat  Project
+TEXT_OPEN_RECENT,最近打开,Open Recent
+TEXT_SAVE,保存,Save
+TEXT_SAVE_AS,另存为,Save AS
+TEXT_WINDOW,窗口,Window
+TEXT_BUILD,编译,Build
+TEXT_REBUILD_SHADERS,重新生成Shader,Rebuild Shaders
+TEXT_ABOUT,关于,About
+TEXT_DOCUMENTS,文档,Documents
