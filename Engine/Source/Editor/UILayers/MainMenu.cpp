@@ -85,7 +85,7 @@ void MainMenu::EditMenu()
 			// It is not convenient in C++ to loop enum except define an extra array to wrap them.
 			// C++ 20/23 ranges may look better but still needs std::iota inside its implementation.
 			for (engine::ThemeColor theme = engine::ThemeColor::Black; theme < engine::ThemeColor::Count;
-				 theme = static_cast<engine::ThemeColor>(static_cast<int>(theme) + 1))
+				theme = static_cast<engine::ThemeColor>(static_cast<int>(theme) + 1))
 			{
 				engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
 				if (ImGui::MenuItem(GetThemeColorName(theme), "", pImGuiContextInstance->GetImGuiThemeColor() == theme))
@@ -174,7 +174,7 @@ void MainMenu::BuildMenu()
 				outputShaderPath += "Shaders/" + filePath.stem().generic_string();
 				outputShaderPath += ".bin";
 				ResourceBuilder::Get().AddShaderBuildTask(shaderType,
-														  filePath.generic_string().c_str(), outputShaderPath.c_str());
+			    filePath.generic_string().c_str(), outputShaderPath.c_str());
 			}
 
 			ResourceBuilder::Get().Update();
