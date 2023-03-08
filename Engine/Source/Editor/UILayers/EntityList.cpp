@@ -37,33 +37,39 @@ void EntityList::AddEntity()
 
     if (ImGui::Selectable("Add Mesh"))
     {
-        //engine::Entity entity = AddNamedEntity();
-        //pWorld->CreateComponent<engine::TransformComponent>(entity);
-        //auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
-        //
-        //engine::MaterialType* pPBRMaterialType = pSceneWorld->GetPBRMaterialType();
-        //cd::Box box(cd::Point(-1.0f), cd::Point(1.0f));
-        //std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(box, pPBRMaterialType->GetRequiredVertexFormat());
-        //if (optMesh.has_value())
-        //{
-        //    meshComponent.SetMeshData(&optMesh.value());
-        //    meshComponent.SetRequiredVertexFormat(&pPBRMaterialType->GetRequiredVertexFormat());
-        //    meshComponent.Build();
-        //}
+        engine::MaterialType* pPBRMaterialType = pSceneWorld->GetPBRMaterialType();
+        std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Box(cd::Point(-10.0f), cd::Point(10.0f)), pPBRMaterialType->GetRequiredVertexFormat());
+        if (optMesh.has_value())
+        {
+            engine::Entity entity = AddNamedEntity();
+            auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+            transformComponent.SetTransform(cd::Transform::Identity());
+
+            auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
+            meshComponent.SetMeshData(&optMesh.value());
+            meshComponent.SetRequiredVertexFormat(&pPBRMaterialType->GetRequiredVertexFormat());
+            meshComponent.Build();
+
+            auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
+            materialComponent.SetMaterialData(nullptr);
+            materialComponent.SetMaterialType(pPBRMaterialType);
+            materialComponent.SetUberShaderOption(engine::ShaderSchema::DefaultUberOption);
+            materialComponent.Build();
+        }
     }
-    //else if (ImGui::Selectable("Add Camera"))
-    //{
-    //    engine::Entity entity = AddNamedEntity();
-    //    pWorld->CreateComponent<engine::TransformComponent>(entity);
-    //    pWorld->CreateComponent<engine::CameraComponent>(entity);
-    //}
-    //else if (ImGui::Selectable("Add Light"))
-    //{
-    //    engine::Entity entity = AddNamedEntity();
-    //    pWorld->CreateComponent<engine::TransformComponent>(entity);
-    //    pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
-    //    pWorld->CreateComponent<engine::LightComponent>(entity);
-    //}
+    else if (ImGui::Selectable("Add Camera"))
+    {
+        engine::Entity entity = AddNamedEntity();
+        pWorld->CreateComponent<engine::TransformComponent>(entity);
+        pWorld->CreateComponent<engine::CameraComponent>(entity);
+    }
+    else if (ImGui::Selectable("Add Light"))
+    {
+        engine::Entity entity = AddNamedEntity();
+        pWorld->CreateComponent<engine::TransformComponent>(entity);
+        pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
+        pWorld->CreateComponent<engine::LightComponent>(entity);
+    }
 }
 
 void EntityList::DrawEntity(engine::Entity entity)
