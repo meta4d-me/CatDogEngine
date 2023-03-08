@@ -5,12 +5,11 @@
 namespace engine
 {
 std::map<std::string, std::vector<std::string>> Localization::TextMap;
-//editors default languages is English
-Language Localization::m_language = Language::English;
+Language Localization::m_language = UserSetting::LoadLanguageSetting();
 
-void Localization::SetLanguage(Language language)
+void Localization::ChangeLanguage(Language language)
 {
-     m_language = language;
+    m_language = language;
 }
 
 const char* Localization::GetText(const std::string& key)

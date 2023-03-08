@@ -3,6 +3,7 @@
 #include "IconFont/IconsMaterialDesignIcons.h"
 #include "IconFont/MaterialDesign.inl"
 #include "ImGui/ImGuiBaseLayer.h"
+#include "ImGui/ini.h"
 #include "Window/Input.h"
 #include "Log/Log.h"
 
@@ -785,6 +786,7 @@ void ImGuiContextInstance::SetImGuiThemeColor(ThemeColor theme)
 void ImGuiContextInstance::SetImGuiLanguage(Language language)
 {
 	m_language = language;
-	Localization::SetLanguage(language);
+    Localization::ChangeLanguage(language);
+	UserSetting::SaveLanguageSetting(language);
 }
 }

@@ -2,6 +2,7 @@
 
 #include "Localization.h"
 #include "ThemeColor.h"
+#include "UserSetting.h"
 
 #include <inttypes.h>
 #include <memory>

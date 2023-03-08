@@ -1,5 +1,7 @@
 #pragma once
 
+#include<string>
+
 namespace engine
 {
 
@@ -36,5 +38,19 @@ static constexpr const char* GetLanguageName(Language language)
 {
 	return LanguageNames[static_cast<int>(language)];
 }
+
+static Language GetLanguageFromName(const std::string& name)
+{
+	for (int i = 0; i < static_cast<int>(Language::Count); ++i)
+	{
+		if (name == LanguageNames[i])
+		{
+			return static_cast<Language>(i);
+		}
+	}
+	// If not found retrun default Language:English
+	return Language::English;
+}
+
 
 }
