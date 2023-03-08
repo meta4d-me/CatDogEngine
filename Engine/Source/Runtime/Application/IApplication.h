@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Localization.h"
+#include "ImGui/Language.h"
 
 #include <inttypes.h>
 

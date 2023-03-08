@@ -315,7 +315,7 @@ void ImGuiContextInstance::Update(float deltaTime)
 	AddInputEvent();
 
 	ImGui::NewFrame();
-	
+    
 	for (const auto& pImGuiLayer : m_pImGuiStaticLayers)
 	{
 		pImGuiLayer->Update();
@@ -782,4 +782,9 @@ void ImGuiContextInstance::SetImGuiThemeColor(ThemeColor theme)
 	colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
 }
 
+void ImGuiContextInstance::SetImGuiLanguage(Language language)
+{
+	m_language = language;
+	Localization::SetLanguage(language);
+}
 }
