@@ -36,7 +36,7 @@ void MainMenu::FileMenu()
 		if (ImGui::MenuItem("Open", "Ctrl O"))
 		{
 		}
-		if (ImGui::MenuItem(engine::Localization::GetText("TEXT_OPEN_RECENTLY")))
+		if (ImGui::MenuItem(engine::Localization::GetText("TEXT_OPEN_RECENT")))
 		{
 		}
 
