@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <map>
 #include <unordered_map>
 #include <vector>
 
@@ -68,7 +69,7 @@ public:
 
 		m_entityToIndex[entity] = m_components.size();
 		m_entities.push_back(entity);
-		m_components.push_back(Component());
+		m_components.emplace_back();
 		return m_components.back();
 	}
 
@@ -112,7 +113,7 @@ public:
 		// Back iterate to find last n active entities for unused entities to overwrite memory.
 		int swapTimes = 0;
 		int skipTimes = 0;
-		std::unordered_map<Entity, size_t> tempEntityToIndex;
+		std::map<Entity, size_t> tempEntityToIndex;
 		for (int entityIndex = static_cast<int>(m_entities.size()) - 1; entityIndex >= 0; --entityIndex)
 		{
 			// Check if it is an active index.
