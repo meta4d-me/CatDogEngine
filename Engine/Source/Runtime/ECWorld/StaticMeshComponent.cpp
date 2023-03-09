@@ -163,15 +163,21 @@ void StaticMeshComponent::Build()
 
 			for(uint32_t vertexBoneIndex = 0U; vertexBoneIndex < 4; ++vertexBoneIndex)
 			{
+				cd::BoneID boneID;
 				if (vertexBoneIndex < m_pMeshData->GetVertexInfluenceCount())
 				{
-					vertexBoneIDs.push_back(static_cast<uint16_t>(m_pMeshData->GetVertexBoneID(vertexBoneIndex, vertexIndex).Data()));
+					boneID = m_pMeshData->GetVertexBoneID(vertexBoneIndex, vertexIndex);
+				}
+
+				if (boneID.IsValid())
+				{
+					vertexBoneIDs.push_back(static_cast<uint16_t>(boneID.Data()));
 					vertexBoneWeights.push_back(m_pMeshData->GetVertexWeight(vertexBoneIndex, vertexIndex));
 				}
 				else
 				{
-					vertexBoneIDs.push_back(255);
-					vertexBoneWeights.push_back(1.0f);
+					vertexBoneIDs.push_back(127);
+					vertexBoneWeights.push_back(0.0f);
 				}
 			}
 

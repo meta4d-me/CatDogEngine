@@ -62,7 +62,7 @@ void CalculateBoneTransform(std::vector<cd::Matrix4x4>& boneMatrices, const cd::
 				float keyFrameRate = (animationTime - currentKey.GetTime()) / keyFrameDeltaTime;
 				assert(keyFrameRate >= 0.0f && keyFrameRate <= 1.0f);
 
-				return cd::Quaternion::Lerp(currentKey.GetValue(), nextKey.GetValue(), keyFrameRate);
+				return cd::Quaternion::Lerp(currentKey.GetValue(), nextKey.GetValue(), keyFrameRate).Normalize();
 			}
 		}
 
@@ -179,13 +179,12 @@ void AnimationRenderer::Render(float deltaTime)
 		assert(ticksPerSecond > 1.0f);
 		float animationTime = std::fmodf(animationRunningTime * ticksPerSecond, pAnimation->GetDuration());
 
-		std::vector<cd::Matrix4x4> boneMatrices;
-		boneMatrices.reserve(256);
-		for (const auto& bone : pSceneDatabase->GetBones())
+		static std::vector<cd::Matrix4x4> boneMatrices;
+		boneMatrices.clear();
+		for (uint16_t boneIndex = 0; boneIndex < 128; ++boneIndex)
 		{
 			boneMatrices.push_back(cd::Matrix4x4::Identity());
 		}
-
 
 		const cd::Node& rootNode = pSceneDatabase->GetNode(0);
 		const cd::Bone& rootBone = pSceneDatabase->GetBone(0);
