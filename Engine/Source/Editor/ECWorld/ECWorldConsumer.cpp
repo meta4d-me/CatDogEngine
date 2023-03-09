@@ -67,11 +67,11 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 			continue;
 		}
 
-		engine::Entity sceneEntity = m_pSceneWorld->GetWorld()->CreateEntity();
-		AddNode(sceneEntity, node);
-
 		for (cd::MeshID meshID : node.GetMeshIDs())
 		{
+			engine::Entity sceneEntity = m_pSceneWorld->GetWorld()->CreateEntity();
+			AddNode(sceneEntity, node);
+
 			const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
 
 			// TODO : Or the user doesn't want to import animation data.
@@ -160,15 +160,6 @@ void ECWorldConsumer::AddNode(engine::Entity entity, const cd::Node& node)
 	engine::TransformComponent& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
 	transformComponent.SetTransform(node.GetTransform());
 	transformComponent.Build();
-
-	engine::HierarchyComponent& hierarchyComponent = pWorld->CreateComponent<engine::HierarchyComponent>(entity);
-	m_mapTransformIDToEntities[node.GetID().Data()] = entity;
-	cd::NodeID parentTransformID = node.GetParentID();
-	if (parentTransformID.Data() != cd::NodeID::InvalidID)
-	{
-		assert(m_mapTransformIDToEntities.contains(parentTransformID.Data()));
-		hierarchyComponent.SetParentEntity(m_mapTransformIDToEntities[parentTransformID.Data()]);
-	}
 }
 
 void ECWorldConsumer::AddStaticMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat)
@@ -199,7 +190,7 @@ void ECWorldConsumer::AddAnimation(engine::Entity entity, const cd::Animation& a
 	animationComponent.SetDuration(animation.GetDuration());
 	animationComponent.SetTicksPerSecond(animation.GetTicksPerSecnod());
 
-	bgfx::UniformHandle boneMatricesUniform = bgfx::createUniform("u_boneMatrices", bgfx::UniformType::Mat4, static_cast<uint16_t>(pSceneDatabase->GetBoneCount()));
+	bgfx::UniformHandle boneMatricesUniform = bgfx::createUniform("u_boneMatrices", bgfx::UniformType::Mat4, 128);
 	animationComponent.SetBoneMatricesUniform(boneMatricesUniform.idx);
 }
 

@@ -74,8 +74,6 @@ private:
 	engine::SceneWorld* m_pSceneWorld;
 
 	uint32_t m_nodeMinID;
-	std::map<cd::NodeID::ValueType, engine::Entity> m_mapTransformIDToEntities;
-
 	std::vector<engine::Uber> m_activeUberOptions;
 };
 
