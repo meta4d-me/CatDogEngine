@@ -60,9 +60,6 @@ public:
 	const std::vector<engine::Uber>& GetActiveUberOptions() const { return m_activeUberOptions; }
 
 private:
-	// TODO : Maybe we can move this function out of ECWorldConsumer.
-	void AddShader(engine::MaterialType* pMaterialType);
-
 	void AddNode(engine::Entity entity, const cd::Node& node);
 	void AddStaticMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat);
 	void AddSkinMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat);

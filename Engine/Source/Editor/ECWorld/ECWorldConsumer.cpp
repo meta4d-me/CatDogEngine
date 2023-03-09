@@ -12,6 +12,7 @@
 #include "Rendering/RenderContext.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ResourceLoader.h"
+#include "Resources/ShaderBuilder.h"
 #include "Scene/SceneDatabase.h"
 
 #include <algorithm>
@@ -56,8 +57,8 @@ void ECWorldConsumer::SetSceneDatabaseIDs(uint32_t nodeID)
 void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 {
 	assert(pSceneDatabase->GetMeshCount() > 0);
-
-	AddShader(m_pSceneWorld->GetPBRMaterialType());
+	
+	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetPBRMaterialType());
 
 	for (const auto& node : pSceneDatabase->GetNodes())
 	{
@@ -98,59 +99,6 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 				AddMaterial(sceneEntity, nullptr, pMaterialType, pSceneDatabase);
 			}
 		}
-	}
-}
-
-void ECWorldConsumer::AddShader(engine::MaterialType* pMaterialType)
-{
-	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
-	std::map<std::string, engine::StringCrc> outputFSPathToUberOption;
-
-	// No uber option support for VS now.
-	std::string outputVSFilePath = engine::Path::GetShaderOutputPath(shaderSchema.GetVertexShaderPath());
-	ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Vertex,
-		shaderSchema.GetVertexShaderPath(), outputVSFilePath.c_str());
-	
-	// Compile fragment shader with uber options.
-	for (const auto& combine : shaderSchema.GetUberCombines())
-	{
-		std::string outputFSFilePath = engine::Path::GetShaderOutputPath(shaderSchema.GetFragmentShaderPath(), combine);
-		ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Fragment,
-			shaderSchema.GetFragmentShaderPath(), outputFSFilePath.c_str(), combine.c_str());
-		engine::StringCrc uberOptionCrc(combine);
-		outputFSPathToUberOption[cd::MoveTemp(outputFSFilePath)] = uberOptionCrc;
-	}
-	CD_ENGINE_INFO("Material type {0} have shader variant count : {1}.", pMaterialType->GetMaterialName(), shaderSchema.GetUberCombines().size());
-
-	// Compile fragment shader for indicating loadig status.
-	for (const auto& [status, path] : shaderSchema.GetLoadingStatusPath())
-	{
-		std::string outputFSFilePath = engine::Path::GetShaderOutputPath(path.c_str());
-		ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Fragment,
-			path.c_str(), outputFSFilePath.c_str());
-		engine::StringCrc statusCrc = shaderSchema.GetProgramCrc(status);
-		outputFSPathToUberOption[cd::MoveTemp(outputFSFilePath)] = statusCrc;
-	}
-
-	// TODO : ResourceBuilder will move to EditorApp::Update in the future.
-	ResourceBuilder::Get().Update();
-
-	// Vertex shader.
-	shaderSchema.AddUberOptionVSBlob(ResourceLoader::LoadShader(outputVSFilePath.c_str()));
-	const auto& VSBlob = shaderSchema.GetVSBlob();
-	bgfx::ShaderHandle vsHandle = bgfx::createShader(bgfx::makeRef(VSBlob.data(), static_cast<uint32_t>(VSBlob.size())));
-
-	// Fragment shader.
-	for (const auto& [outputFSFilePath, uberOptionCrc] : outputFSPathToUberOption)
-	{
-		shaderSchema.AddUberOptionFSBlob(uberOptionCrc, ResourceLoader::LoadShader(outputFSFilePath.c_str()));
-
-		const auto& FSBlob = shaderSchema.GetFSBlob(uberOptionCrc);
-		bgfx::ShaderHandle fsHandle = bgfx::createShader(bgfx::makeRef(FSBlob.data(), static_cast<uint32_t>(FSBlob.size())));
-
-		// Program.
-		bgfx::ProgramHandle uberProgramHandle = bgfx::createProgram(vsHandle, fsHandle);
-		shaderSchema.SetCompiledProgram(uberOptionCrc, uberProgramHandle.idx);
 	}
 }
 

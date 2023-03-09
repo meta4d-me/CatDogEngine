@@ -51,34 +51,42 @@ void main()
 	vec4 wfColor = vec4_splat(0.0);
 	vec4 shColor = vec4_splat(0.0);
 	
-	// Spherical Harmonics
-	if(u_doSH) {
-		vec3 dx = dFdx(v_worldPos);
-		vec3 dy = dFdy(v_worldPos);
-		vec3 flatNormal = normalize(cross(dx, dy));
-		shColor = vec4(evalSh(flatNormal), 1.0);
-		
-		gl_FragColor = shColor;
-	}
+	// Temporary code to avoid shader compile error.
+	vec3 dx = dFdx(v_worldPos);
+	vec3 dy = dFdy(v_worldPos);
+	vec3 flatNormal = normalize(cross(dx, dy));
+	shColor = vec4(evalSh(flatNormal), 1.0);
 	
-	// Wire Frame
-	if(u_doWF) {
-		vec3  color     = vec3(1.0, 0.02, 0.01);
-		float opacity   = 1.0;
-		float thickness = 1.0;
-		vec3 fw = abs(dFdx(v_bc)) + abs(dFdy(v_bc));
-		vec3 val = smoothstep(vec3_splat(0.0), fw * thickness, v_bc);
-		float edge = min(min(val.x, val.y), val.z); // Gets to 0.0 around the edges.
-		
-		// wf + sh
-		if(u_doSH) {
-			wfColor = vec4(mix(color, shColor.xyz, edge), opacity);
-		}
-		else {
-			if (gl_FrontFacing) { opacity = 0.5; }
-			wfColor = vec4(color, (1.0 - edge) * opacity);
-		}
-		
-		gl_FragColor = wfColor;
-	}
+	gl_FragColor = shColor;
+	
+	// // Spherical Harmonics
+	// if(u_doSH) {
+	// 	vec3 dx = dFdx(v_worldPos);
+	// 	vec3 dy = dFdy(v_worldPos);
+	// 	vec3 flatNormal = normalize(cross(dx, dy));
+	// 	shColor = vec4(evalSh(flatNormal), 1.0);
+	// 	
+	// 	gl_FragColor = shColor;
+	// }
+	// 
+	// // Wire Frame
+	// if(u_doWF) {
+	// 	vec3  color     = vec3(1.0, 0.02, 0.01);
+	// 	float opacity   = 1.0;
+	// 	float thickness = 1.0;
+	// 	vec3 fw = abs(dFdx(v_bc)) + abs(dFdy(v_bc));
+	// 	vec3 val = smoothstep(vec3_splat(0.0), fw * thickness, v_bc);
+	// 	float edge = min(min(val.x, val.y), val.z); // Gets to 0.0 around the edges.
+	// 	
+	// 	// wf + sh
+	// 	if(u_doSH) {
+	// 		wfColor = vec4(mix(color, shColor.xyz, edge), opacity);
+	// 	}
+	// 	else {
+	// 		if (gl_FrontFacing) { opacity = 0.5; }
+	// 		wfColor = vec4(color, (1.0 - edge) * opacity);
+	// 	}
+	// 	
+	// 	gl_FragColor = wfColor;
+	// }
 }

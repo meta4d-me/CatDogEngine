@@ -19,6 +19,7 @@
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Resources/ResourceBuilder.h"
+#include "Resources/ShaderBuilder.h"
 #include "Scene/SceneDatabase.h"
 #include "UILayers/AssetBrowser.h"
 #include "UILayers/EntityList.h"
@@ -68,6 +69,8 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 
 	// Init ImGuiContext in the engine side which used to draw in game ui.
 	InitEngineImGuiContext(initArgs.language);
+
+	InitShaderPrograms();
 
 	// Enable multiple viewports which means that we can drop any imgui window outside the main window.
 	// Then the imgui window will become a new standalone window. Drop back to convert it back.
@@ -264,6 +267,13 @@ void EditorApp::InitRenderContext()
 
 	// Note that if you don't want to use ImGuiRenderer for engine, you should also disable EngineImGuiContext.
 	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget));
+}
+
+void EditorApp::InitShaderPrograms() const
+{
+	ShaderBuilder::BuildNonUberShader();
+	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetPBRMaterialType());
+	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetAnimationMaterialType());
 }
 
 void EditorApp::AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer)

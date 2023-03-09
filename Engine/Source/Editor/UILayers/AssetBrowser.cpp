@@ -192,7 +192,7 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 			pSceneDatabase->GetMaterialCount(), pSceneDatabase->GetTextureCount(), pSceneDatabase->GetLightCount());
 		genericProducer.ActivateBoundingBoxService();
 		genericProducer.ActivateCleanUnusedService();
-		//genericProducer.ActivateFlattenHierarchyService();
+		// genericProducer.ActivateFlattenHierarchyService();
 		genericProducer.ActivateTangentsSpaceService();
 		genericProducer.ActivateTriangulateService();
 
