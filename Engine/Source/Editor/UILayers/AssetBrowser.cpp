@@ -192,7 +192,7 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		genericProducer.ActivateBoundingBoxService();
 		genericProducer.ActivateCleanUnusedService();
 		// TODO : add a flatten option without breaking bone hierarchys.
-		//genericProducer.ActivateFlattenHierarchyService();
+		genericProducer.ActivateFlattenHierarchyService();
 		genericProducer.ActivateTangentsSpaceService();
 		genericProducer.ActivateTriangulateService();
 		genericProducer.ActivateSimpleAnimationService();
