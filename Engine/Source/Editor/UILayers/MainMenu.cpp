@@ -1,11 +1,13 @@
 ﻿#include "MainMenu.h"
 
+#include "ECWorld/SceneWorld.h"
 #include "EditorApp.h"
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/Localization.h"
 #include "ImGui/ThemeColor.h"
 #include "Log/Log.h"
 #include "Resources/ResourceBuilder.h"
+#include "Resources/ShaderBuilder.h"
 #include "Window/Window.h"
 #include "Window/Input.h"
 #include "Window/KeyCode.h"
@@ -138,46 +140,21 @@ void MainMenu::BuildMenu()
 {
 	if (ImGui::BeginMenu(engine::Localization::GetText("TEXT_BUILD")))
 	{
-		if (ImGui::MenuItem(engine::Localization::GetText("TEXT_REBUILD_SHADERS")))
+		ImGuiIO& io = ImGui::GetIO();
+		engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
+		engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
+
+		if (ImGui::MenuItem(engine::Localization::GetText("TEXT_REBUILD_NONUBER_SHADERS")))
 		{
-			for (const auto& entry : std::filesystem::recursive_directory_iterator(CDENGINE_BUILTIN_SHADER_PATH))
-			{
-				const auto& filePath = entry.path();
-				if (".sc" != filePath.extension())
-				{
-					continue;
-				}
-
-				ShaderType shaderType;
-				std::string fileName = filePath.stem().generic_string();
-				if (fileName.starts_with("vs_") || fileName.starts_with("VS_"))
-				{
-					shaderType = ShaderType::Vertex;
-				}
-				else if (fileName.starts_with("fs_") || fileName.starts_with("FS_"))
-				{
-					shaderType = ShaderType::Fragment;
-				}
-				else if (fileName.starts_with("cs_") || fileName.starts_with("CS_"))
-				{
-					shaderType = ShaderType::Compute;
-				}
-				else
-				{
-					CD_ERROR("Shader source file's type is unknown by its file name : {0}.", fileName.c_str());
-					continue;
-				}
-
-				// TODO : We don't know their uber options here.
-				// So this feature only generates default shader now.
-				std::string outputShaderPath = CDENGINE_RESOURCES_ROOT_PATH;
-				outputShaderPath += "Shaders/" + filePath.stem().generic_string();
-				outputShaderPath += ".bin";
-				ResourceBuilder::Get().AddShaderBuildTask(shaderType,
-			    filePath.generic_string().c_str(), outputShaderPath.c_str());
-			}
-
-			ResourceBuilder::Get().Update();
+			ShaderBuilder::BuildNonUberShader();
+		}
+		if (ImGui::MenuItem(engine::Localization::GetText("TEXT_REBUILD_PBR_SHADERS")))
+		{
+			ShaderBuilder::BuildUberShader(pSceneWorld->GetPBRMaterialType());
+		}
+		if (ImGui::MenuItem(engine::Localization::GetText("TEXT_REBUILD_ANIMATION_SHADERS")))
+		{
+			ShaderBuilder::BuildUberShader(pSceneWorld->GetAnimationMaterialType());
 		}
 
 		ImGui::EndMenu();
