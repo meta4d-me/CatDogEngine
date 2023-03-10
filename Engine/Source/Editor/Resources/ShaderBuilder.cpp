@@ -65,29 +65,27 @@ void ShaderBuilder::BuildNonUberShader()
 {
 	for (const auto& entry : std::filesystem::recursive_directory_iterator(CDENGINE_BUILTIN_SHADER_PATH))
 	{
-		const auto& filePath = entry.path();
-		if (".sc" != filePath.extension())
+		const auto& inputFilePath = entry.path();
+		if (".sc" != inputFilePath.extension())
 		{
 			continue;
 		}
 
-		ShaderType shaderType = GetShaderType(filePath.stem().string());
+		ShaderType shaderType = GetShaderType(inputFilePath.stem().string());
 		if (shaderType == ShaderType::None)
 		{
 			continue;
 		}
 
-		std::string outputShaderPath = CDENGINE_RESOURCES_ROOT_PATH;
-		outputShaderPath += "Shaders/" + filePath.stem().generic_string();
-		outputShaderPath += ".bin";
+		std::string outputShaderPath = engine::Path::GetShaderOutputPath(inputFilePath.string().c_str());
 		ResourceBuilder::Get().AddShaderBuildTask(shaderType,
-			filePath.generic_string().c_str(), outputShaderPath.c_str());
+			inputFilePath.string().c_str(), outputShaderPath.c_str());
 	}
 
 	ResourceBuilder::Get().Update();
 }
 
-ShaderType ShaderBuilder::GetShaderType(const std::string& fileName)
+const ShaderType ShaderBuilder::GetShaderType(const std::string& fileName)
 {
 	if (fileName.starts_with("vs_") || fileName.starts_with("VS_"))
 	{
