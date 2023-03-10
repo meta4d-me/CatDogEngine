@@ -86,8 +86,8 @@ void SceneWorld::CreateTerrainMaterialType()
 	m_pTerrainMaterialType = std::make_unique<MaterialType>();
 	m_pTerrainMaterialType->SetMaterialName("CD_Terrain");
 
-	ShaderSchema shaderSchema(GetShaderPath("vs_terrain"), GetShaderPath("fs_terrain"));
-	shaderSchema.RegisterUberOption(ShaderSchema::DefaultUberOptionName);
+	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("vs_terrain"), Path::GetBuiltinShaderInputPath("fs_terrain"));
+	shaderSchema.RegisterUberOption(Uber::DEFAULT);
 	m_pTerrainMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat terrainVertexFormat;

@@ -238,25 +238,8 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	engine::StringCrc currentUberOption(shaderSchema.GetUberCombines().at(0));
 	if (missRequiredTextures || unknownTextureSlot)
 	{
-		// Treat missing textures case as a special uber option in the CPU side.
-		constexpr engine::StringCrc missingTextureOption("MissingTextures");
-		if (!shaderSchema.IsUberOptionValid(missingTextureOption))
-		{
-			std::string inputFSShaderPath = CDENGINE_BUILTIN_SHADER_PATH;
-			inputFSShaderPath += "fs_missing_textures.sc";
-
-			std::string outputFSFilePath = GetShaderOutputFilePath(shaderSchema.GetFragmentShaderPath(), "MissingTextures");
-			ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Fragment,
-				inputFSShaderPath.c_str(), outputFSFilePath.c_str());
-
-			std::string uberOptionName("MissingTextures");
-			shaderSchema.RegisterUberOption(uberOptionName.c_str());
-
-			engine::StringCrc uberOptionCrc(uberOptionName);
-			outputFSPathToUberOption[cd::MoveTemp(outputFSFilePath)] = uberOptionCrc;
-		}
-
-		currentUberOption = missingTextureOption;
+		// treat missing resources case as a special uber option in the CPU side.
+		currentUberOption = shaderSchema.GetProgramCrc(engine::LoadingStatus::MISSING_RESOURCES);
 	}
 	else
 	{
