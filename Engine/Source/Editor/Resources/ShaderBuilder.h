@@ -16,7 +16,7 @@ public:
 	static void BuildUberShader(engine::MaterialType* pMaterialType);
 
 private:
-	static ShaderType GetShaderType(const std::string& fileName);
+	static const ShaderType GetShaderType(const std::string& fileName);
 };
 
 } // namespace editor
