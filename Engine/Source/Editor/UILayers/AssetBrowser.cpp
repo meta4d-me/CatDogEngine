@@ -59,9 +59,8 @@ bool IsShaderInputFile(const char* pFileExtension)
 
 bool IsModelInputFile(const char* pFileExtension)
 {
-	constexpr const char* pFileExtensions[] = { ".dae", ".fbx", ".gltf", ".obj" };
+	constexpr const char* pFileExtensions[] = { ".dae", ".fbx", ".glb", ".gltf", ".md5mesh" };
 	constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
-
 	for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
 	{
 		if (0 == strcmp(pFileExtensions[extensionIndex], pFileExtension))
@@ -192,11 +191,11 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 			pSceneDatabase->GetMaterialCount(), pSceneDatabase->GetTextureCount(), pSceneDatabase->GetLightCount());
 		genericProducer.ActivateBoundingBoxService();
 		genericProducer.ActivateCleanUnusedService();
-		// genericProducer.ActivateFlattenHierarchyService();
+		// TODO : add a flatten option without breaking bone hierarchys.
+		genericProducer.ActivateFlattenHierarchyService();
 		genericProducer.ActivateTangentsSpaceService();
 		genericProducer.ActivateTriangulateService();
-
-		// TODO : manage different material types.
+		genericProducer.ActivateSimpleAnimationService();
 		ECWorldConsumer ecConsumer(pSceneWorld, pCurrentRenderContext);
 		ecConsumer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount());
 		cdtools::Processor processor(&genericProducer, &ecConsumer, pSceneDatabase);
