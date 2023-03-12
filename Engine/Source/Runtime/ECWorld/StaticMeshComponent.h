@@ -38,6 +38,7 @@ public:
 	StaticMeshComponent& operator=(StaticMeshComponent&&) = default;
 	~StaticMeshComponent() = default;
 
+	const cd::Mesh* GetMeshData() const { return m_pMeshData; }
 	void SetMeshData(const cd::Mesh* pMeshData) { m_pMeshData = pMeshData; }
 	void SetRequiredVertexFormat(const cd::VertexFormat* pVertexFormat) { m_pRequiredVertexFormat = pVertexFormat; }
 

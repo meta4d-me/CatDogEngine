@@ -7,6 +7,7 @@
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
+#include "Log/Log.h"
 #include "Material/MaterialType.h"
 #include "Path/Path.h"
 #include "Rendering/RenderContext.h"
@@ -186,7 +187,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	engine::StringCrc currentUberOption(shaderSchema.GetUberCombines().at(0));
 	if (missRequiredTextures || unknownTextureSlot)
 	{
-		// Treate missing resources case as a special uber option in the CPU side.
+		// treat missing resources case as a special uber option in the CPU side.
 		currentUberOption = shaderSchema.GetProgramCrc(engine::LoadingStatus::MISSING_RESOURCES);
 	}
 	else
@@ -239,10 +240,10 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	// Textures.
 	for (const auto& [outputTextureFilePath, pTextureData] : outputTexturePathToData)
 	{
-		auto textureBlob = ResourceLoader::LoadTexture(outputTextureFilePath.c_str());
-		if(!textureBlob.empty())
+		auto textureFileBlob = ResourceLoader::LoadTextureFile(outputTextureFilePath.c_str());
+		if(!textureFileBlob.empty())
 		{
-			materialComponent.AddTextureBlob(pTextureData->GetType(), cd::MoveTemp(textureBlob));
+			materialComponent.AddTextureFileBlob(pTextureData->GetType(), cd::MoveTemp(textureFileBlob));
 		}
 	}
 

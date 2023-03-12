@@ -235,12 +235,13 @@ void EditorApp::InitRenderContext()
 	AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
 
 	auto pIBLSkyRenderer = std::make_unique<engine::SkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
-	pIBLSkyRenderer->SetDisabled(true);
+	pIBLSkyRenderer->Disable();
 	m_pIBLSkyRenderer = pIBLSkyRenderer.get();
 	AddEngineRenderer(cd::MoveTemp(pIBLSkyRenderer));
 
-	//auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
-	//AddEngineRenderer(cd::MoveTemp(pTerrainRenderer));
+	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pTerrainRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pTerrainRenderer));
 
 	auto pSceneRenderer = std::make_unique<engine::WorldRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pSceneRenderer = pSceneRenderer.get();
@@ -253,7 +254,7 @@ void EditorApp::InitRenderContext()
 
 	auto pDebugRenderer = std::make_unique<engine::DebugRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pDebugRenderer = pDebugRenderer.get();
-	pDebugRenderer->SetDisabled(true);
+	pDebugRenderer->Disable();
 	pDebugRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pDebugRenderer));
 

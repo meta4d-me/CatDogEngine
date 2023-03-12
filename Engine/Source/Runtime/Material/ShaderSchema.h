@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Core/StringCrc.h"
-#include "Log/Log.h"
 
 #include <map>
 #include <memory>
