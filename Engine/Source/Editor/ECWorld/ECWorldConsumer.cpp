@@ -7,6 +7,7 @@
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
+#include "Log/Log.h"
 #include "Material/MaterialType.h"
 #include "Path/Path.h"
 #include "Rendering/RenderContext.h"

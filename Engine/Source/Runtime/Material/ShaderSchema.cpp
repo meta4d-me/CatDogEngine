@@ -1,6 +1,7 @@
 #include "ShaderSchema.h"
 
 #include "Base/Template.h"
+#include "Log/Log.h"
 
 #include <algorithm>
 #include <cassert>
