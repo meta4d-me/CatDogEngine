@@ -57,19 +57,19 @@ void EntityList::AddEntity()
             materialComponent.Build();
         }
     }
-    else if (ImGui::Selectable("Add Camera"))
-    {
-        engine::Entity entity = AddNamedEntity();
-        pWorld->CreateComponent<engine::TransformComponent>(entity);
-        pWorld->CreateComponent<engine::CameraComponent>(entity);
-    }
-    else if (ImGui::Selectable("Add Light"))
-    {
-        engine::Entity entity = AddNamedEntity();
-        pWorld->CreateComponent<engine::TransformComponent>(entity);
-        pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
-        pWorld->CreateComponent<engine::LightComponent>(entity);
-    }
+    //else if (ImGui::Selectable("Add Camera"))
+    //{
+    //    engine::Entity entity = AddNamedEntity();
+    //    pWorld->CreateComponent<engine::TransformComponent>(entity);
+    //    pWorld->CreateComponent<engine::CameraComponent>(entity);
+    //}
+    //else if (ImGui::Selectable("Add Light"))
+    //{
+    //    engine::Entity entity = AddNamedEntity();
+    //    pWorld->CreateComponent<engine::TransformComponent>(entity);
+    //    pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
+    //    pWorld->CreateComponent<engine::LightComponent>(entity);
+    //}
 }
 
 void EntityList::DrawEntity(engine::Entity entity)
