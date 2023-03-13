@@ -35,17 +35,20 @@ void TerrainEditor::Init()
 	// Initialize some reasonable values
 	m_terrainMetadata.numSectorsInX = 5;
 	m_terrainMetadata.numSectorsInZ = 5;
-	m_terrainMetadata.octaves.push_back(ElevationOctave(781151579, 1.0f, 0.0f));
-	m_terrainMetadata.octaves.push_back(ElevationOctave(134159887, 2.0f, 0.8f));
-	m_terrainMetadata.octaves.push_back(ElevationOctave(155147123, 4.0f, 0.8f));
-	m_terrainMetadata.octaves.push_back(ElevationOctave(870779821, 8.0f, 0.5f));
-	m_terrainMetadata.octaves.push_back(ElevationOctave(136204796, 16.0f, 0.4f));
-	m_terrainMetadata.octaves.push_back(ElevationOctave(8714743102, 32.0f, 0.6f));
+	m_terrainMetadata.minElevation = 0;
+	m_terrainMetadata.maxElevation = 200;
+	m_terrainMetadata.redistPow = 5.0f;
+	m_terrainMetadata.octaves.push_back(ElevationOctave(4564781151579, 1.0f, 1.0f));
+	m_terrainMetadata.octaves.push_back(ElevationOctave(1341177459887, 2.0f, 0.8f));
+	m_terrainMetadata.octaves.push_back(ElevationOctave(1551312147123, 4.0f, 0.6f));
+	m_terrainMetadata.octaves.push_back(ElevationOctave(8707137379821, 8.0f, 0.4f));
+	m_terrainMetadata.octaves.push_back(ElevationOctave(1362045344796, 16.0f, 0.2f));
+	m_terrainMetadata.octaves.push_back(ElevationOctave(8714321343102, 32.0f, 0.1f));
 
 	m_sectorMetadata.numQuadsInX = 5;
 	m_sectorMetadata.numQuadsInZ = 5;
-	m_sectorMetadata.quadLenInX = 10;
-	m_sectorMetadata.quadLenInZ = 10;
+	m_sectorMetadata.quadLenInX = 20;
+	m_sectorMetadata.quadLenInZ = 20;
 
 	m_pSceneDatabase = std::make_unique<cd::SceneDatabase>();
 }
