@@ -36,8 +36,8 @@ void TerrainEditor::Init()
 	m_terrainMetadata.numSectorsInX = 5;
 	m_terrainMetadata.numSectorsInZ = 5;
 	m_terrainMetadata.minElevation = 0;
-	m_terrainMetadata.maxElevation = 200;
-	m_terrainMetadata.redistPow = 5.0f;
+	m_terrainMetadata.maxElevation = 100;
+	m_terrainMetadata.redistPow = 4.5f;
 	m_terrainMetadata.octaves.push_back(ElevationOctave(4564781151579, 1.0f, 1.0f));
 	m_terrainMetadata.octaves.push_back(ElevationOctave(1341177459887, 2.0f, 0.8f));
 	m_terrainMetadata.octaves.push_back(ElevationOctave(1551312147123, 4.0f, 0.6f));
@@ -47,8 +47,8 @@ void TerrainEditor::Init()
 
 	m_sectorMetadata.numQuadsInX = 5;
 	m_sectorMetadata.numQuadsInZ = 5;
-	m_sectorMetadata.quadLenInX = 20;
-	m_sectorMetadata.quadLenInZ = 20;
+	m_sectorMetadata.quadLenInX = 5;
+	m_sectorMetadata.quadLenInZ = 5;
 
 	m_pSceneDatabase = std::make_unique<cd::SceneDatabase>();
 }
