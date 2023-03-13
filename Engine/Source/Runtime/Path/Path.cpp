@@ -66,7 +66,7 @@ std::filesystem::path Path::GetEditorResourcesPath()
 
 std::string Path::GetBuiltinShaderInputPath(const char* pShaderName)
 {
-    return (GetEngineBuiltinShaderPath() / pShaderName).replace_extension(ShaderInputExtension).string();
+    return (GetEngineBuiltinShaderPath() / std::filesystem::path(pShaderName).stem()).replace_extension(ShaderInputExtension).string();
 }
 
 std::string Path::GetShaderOutputPath(const char* pInputFilePath, const std::string& options)

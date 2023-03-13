@@ -15,6 +15,7 @@ namespace editor
 
 enum class ShaderType
 {
+	None,
 	Compute,
 	Vertex,
 	Fragment

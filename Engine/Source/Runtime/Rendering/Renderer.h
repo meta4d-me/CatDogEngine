@@ -32,8 +32,8 @@ public:
 	void SetCamera(Camera* pCamera) { m_pCamera = pCamera; }
 	Camera* GetCamera() const { return m_pCamera; }
 
-	void SetEnabled(bool enable) { m_isEnable = enable; }
-	void SetDisabled(bool diable) { m_isEnable = !diable; }
+	void Enable() { m_isEnable = true; }
+	void Disable() { m_isEnable = false; }
 	bool IsEnable() const { return m_isEnable; }
 
 public:
