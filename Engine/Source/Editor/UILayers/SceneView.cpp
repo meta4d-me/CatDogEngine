@@ -242,11 +242,11 @@ void SceneView::UpdateToolMenuButtons()
 		ImGuiIO& io = ImGui::GetIO();
 		engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
 		engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
-		engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
-		const cd::AABB& sceneAABB = pSceneWorld->GetSceneDatabase()->GetAABB();
-		if (!sceneAABB.IsEmpty())
+
+		if (cd::SceneDatabase* pSceneDatabase = pImGuiContextInstance->GetSceneWorld()->GetSceneDatabase())
 		{
-			pRenderContext->GetCamera()->FrameAll(sceneAABB);
+			pSceneDatabase->UpdateAABB();
+			pRenderContext->GetCamera()->FrameAll(pSceneDatabase->GetAABB());
 		}
 	}
 

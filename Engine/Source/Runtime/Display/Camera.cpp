@@ -56,6 +56,11 @@ void Camera::SetHomogeneousNdc(bool homogeneousNdc)
 
 void Camera::FrameAll(const cd::AABB& aabb)
 {
+	if (aabb.IsEmpty())
+	{
+		return;
+	}
+
 	cd::Point lookAt = aabb.Center();
 	cd::Direction lookDirection(0.0f, 0.0f, 1.0f);
 	lookDirection.Normalize();
