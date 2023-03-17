@@ -59,8 +59,6 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 {
 	assert(pSceneDatabase->GetMeshCount() > 0);
 	
-	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetPBRMaterialType());
-
 	for (const auto& node : pSceneDatabase->GetNodes())
 	{
 		if (m_nodeMinID > node.GetID().Data())

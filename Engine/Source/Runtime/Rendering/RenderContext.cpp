@@ -377,9 +377,9 @@ void RenderContext::SetUniform(StringCrc resourceCrc, bgfx::UniformHandle unifor
 	m_uniformHandleCaches[resourceCrc.Value()] = std::move(uniformreHandle);
 }
 
-void RenderContext::FillUniform(StringCrc resourceCrc, const void *pData, uint16_t num) const
+void RenderContext::FillUniform(StringCrc resourceCrc, const void *pData, uint16_t vec4Count) const
 {
-	bgfx::setUniform(GetUniform(resourceCrc), pData, num);
+	bgfx::setUniform(GetUniform(resourceCrc), pData, vec4Count);
 }
 
 RenderTarget* RenderContext::GetRenderTarget(StringCrc resourceCrc) const

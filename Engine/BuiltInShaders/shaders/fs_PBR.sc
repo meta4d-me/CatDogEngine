@@ -8,6 +8,9 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 #define INV_PI 0.3183098862
 #define INV_PI2 0.1013211836
 
+uniform vec4 u_cameraPos[1];
+#define cameraPos u_cameraPos[0].xyz
+
 uniform vec4 u_lightCount[1];
 uniform vec4 u_lightStride[1];
 
@@ -48,10 +51,10 @@ vec3 SampleORMTexture(vec2 uv) {
 	vec3 orm = texture2D(s_texORM, uv).xyz;
 	orm.y = clamp(orm.y, 0.04, 1.0); // roughness
 	
-	#if defined(USE_RM)
+#if defined(USE_RM)
 	// Occlusion must be 1.0 if material does not have occlusion.
 	orm.x = 1.0;
-	#endif
+#endif
 
 	return orm;
 }
@@ -111,7 +114,7 @@ Material GetMaterial(vec2 uv, vec3 normal, mat3 TBN) {
 	material.normal = normalize(normal);
 #endif
 	
-#if defined(USE_ORM) || defined(USE_RMS)
+#if defined(USE_ORM) || defined(USE_RM)
 	vec3 orm = SampleORMTexture(uv);
 	material.occlusion = orm.x;
 	material.roughness = orm.y;
@@ -169,7 +172,7 @@ void main()
 {
 	Material material = GetMaterial(v_texcoord0, v_normal, v_TBN);
 	
-	vec3 viewDir  = normalize(u_cameraPos - v_worldPos);
+	vec3 viewDir  = normalize(cameraPos - v_worldPos);
 	vec3 diffuseBRDF = material.albedo * INV_PI;
 	float NdotV = max(dot(material.normal, viewDir), 0.0);
 	
