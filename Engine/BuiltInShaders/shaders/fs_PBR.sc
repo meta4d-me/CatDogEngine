@@ -215,6 +215,4 @@ void main()
 	// ------------------------------------ Fragment Color -----------------------------------------
 
 	gl_FragColor = vec4(dirColor + envColor, 1.0);
-	// gl_FragColor = vec4(cameraPos, 1.0);
-	// gl_FragColor = vec4(vec3_splat(NdotV), 1.0);
 }
