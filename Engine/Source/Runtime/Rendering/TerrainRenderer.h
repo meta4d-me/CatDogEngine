@@ -2,6 +2,7 @@
 
 #include "ECWorld/SceneWorld.h"
 #include "MeshRenderData.h"
+#include "Producers/TerrainProducer/AlphaMapTypes.h"
 #include "Renderer.h"
 
 #include <unordered_map>
@@ -22,6 +23,7 @@ public:
 
 	void SetSceneWorld(SceneWorld* pSceneWorld) { m_pCurrentSceneWorld = pSceneWorld; }
 	void SetCullDistance(uint32_t dist) { m_cullDistanceSquared = dist * dist; }
+	void SetAndLoadAlphaMapTexture(const cdtools::AlphaMapChannel channel, const std::string& textureName);
 
 private:
 	struct TerrainRenderInfo
@@ -35,15 +37,32 @@ private:
 		float m_dimension[4];
 	};
 
+	struct TerrainTexture
+	{
+		uint8_t slot;
+		uint16_t samplerHandle = bgfx::kInvalidHandle;
+		uint16_t textureHandle = bgfx::kInvalidHandle;
+		cd::TextureFormat format;
+	};
+
+	TerrainTexture CreateTerrainTexture(const char* textureFileName, uint8_t slot);
+
 	bool IsTerrainMesh(Entity) const;
 
 	void UpdateUniforms();
 
+
 	bool m_updateUniforms = true;
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
 	std::unordered_map<Entity, TerrainRenderInfo> m_entityToRenderInfo;
-	uint32_t m_cullDistanceSquared = 20000;
+	uint32_t m_cullDistanceSquared = 40000;
 
+	// Textures
+	TerrainTexture m_dirtTexture;
+	TerrainTexture m_redChannelTexture;
+	TerrainTexture m_greenChannelTexture;
+	TerrainTexture m_blueChannelTexture;
+	TerrainTexture m_alphaChannelTexture;
 	// Uniforms
 	bgfx::UniformHandle u_terrainOrigin;	// bottom left corner in world coord; vec2
 	bgfx::UniformHandle u_terrainDimension;	// width and depth of the terrain; vec2

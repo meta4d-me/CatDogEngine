@@ -76,13 +76,6 @@ void ECTerrainConsumer::AddStaticMesh(engine::Entity entity, const cd::Mesh* mes
 
 void ECTerrainConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMaterial, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase)
 {
-	const std::optional<cd::TextureID> optBaseColorTexture = pMaterial->GetTextureID(cd::MaterialTextureType::BaseColor);
-	assert(optBaseColorTexture.has_value());
-	const cd::Texture& baseColorTexture = pSceneDatabase->GetTexture(optBaseColorTexture.value().Data());
-	const std::string baseColorTexturePath = GetTextureOutputFilePath(baseColorTexture.GetPath());
-	std::string textureDir = cd::string_format("%sTextures/textures/%s.png", CDENGINE_RESOURCES_ROOT_PATH, baseColorTexture.GetPath());
-	ResourceBuilder::Get().AddTextureBuildTask(baseColorTexture.GetType(), textureDir.c_str(), baseColorTexturePath.c_str());
-	
 	// Shaders
 	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
 	const std::string outputVSFilePath = GetShaderOutputFilePath(shaderSchema.GetVertexShaderPath());
@@ -103,12 +96,18 @@ void ECTerrainConsumer::AddMaterial(engine::Entity entity, const cd::Material* p
 	materialComponent.SetUberShaderOption(currentUberOption);
 
 	// Textures
-	materialComponent.AddTextureFileBlob(baseColorTexture.GetType(), ResourceLoader::LoadTextureFile(baseColorTexturePath.c_str()));
-	const std::optional<cd::TextureID> optElevationTexture = pMaterial->GetTextureID(cd::MaterialTextureType::Roughness);
+	const std::optional<cd::TextureID> optElevationTexture = pMaterial->GetTextureID(cd::MaterialTextureType::Elevation);
 	assert(optElevationTexture.has_value());
 	// Don't need to load as this is generated
 	const cd::Texture& elevationTexture = pSceneDatabase->GetTexture(optElevationTexture.value().Data());
 	materialComponent.AddTextureBlob(elevationTexture.GetType(), elevationTexture.GetTextureFormat(), engine::MaterialComponent::TextureBlob(elevationTexture.GetRawTexture()), elevationTexture.GetWidth(), elevationTexture.GetHeight());
+
+	const std::optional<cd::TextureID> optAlphaMapTexture = pMaterial->GetTextureID(cd::MaterialTextureType::AlphaMap);
+	if (optAlphaMapTexture.has_value())
+	{
+		const cd::Texture& alphaMapTexture = pSceneDatabase->GetTexture(optAlphaMapTexture.value().Data());
+		materialComponent.AddTextureBlob(alphaMapTexture.GetType(), alphaMapTexture.GetTextureFormat(), engine::MaterialComponent::TextureBlob(alphaMapTexture.GetRawTexture()), alphaMapTexture.GetWidth(), alphaMapTexture.GetHeight());
+	}
 
 	// Shaders
 	shaderSchema.AddUberOptionVSBlob(ResourceLoader::LoadShader(outputVSFilePath.c_str()));

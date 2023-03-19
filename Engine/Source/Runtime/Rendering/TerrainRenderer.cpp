@@ -1,14 +1,18 @@
 #include "TerrainRenderer.h"
 
+#include "Core/StringCrc.h"
 #include "Framework/Processor.h"
 #include "Log/Log.h"
+#include "Path/Path.h"
 #include "Producers/CDProducer/CDProducer.h"
 #include "RenderContext.h"
 #include "Scene/Texture.h"
-#include "Core/StringCrc.h"
 
 #include <bgfx/bgfx.h>
+#include <bimg/decode.h>
+#include <bx/allocator.h>
 
+#include <fstream>
 #include <optional>
 
 using namespace cd;
@@ -19,6 +23,33 @@ constexpr const char* kUniformSectorOrigin = "u_SectorOrigin";
 constexpr engine::StringCrc kUniformSectorOriginCrc(kUniformSectorOrigin);
 constexpr const char* kUniformSectorDimension = "u_SectorDimension";
 constexpr engine::StringCrc kUniformSectorDimensionCrc(kUniformSectorDimension);
+
+bx::AllocatorI* GetResourceAllocator()
+{
+	static bx::DefaultAllocator s_allocator;
+	return &s_allocator;
+}
+
+std::vector<std::byte> LoadFile(const char* pFilePath)
+{
+	std::vector<std::byte> fileData;
+
+	std::ifstream fin(pFilePath, std::ios::in | std::ios::binary);
+	if (!fin.is_open())
+	{
+		return fileData;
+	}
+
+	fin.seekg(0L, std::ios::end);
+	size_t fileSize = fin.tellg();
+	fin.seekg(0L, std::ios::beg);
+	fileData.resize(fileSize);
+	fin.read(reinterpret_cast<char*>(fileData.data()), fileSize);
+	fin.close();
+
+	return fileData;
+}
+
 }
 
 namespace engine
@@ -28,6 +59,13 @@ void TerrainRenderer::Init()
 {
 	bgfx::setViewName(GetViewID(), "TerrainRenderer");
 	m_updateUniforms = true;
+
+	m_dirtTexture = CreateTerrainTexture("terrain/dirty_baseColor", 0);
+	// TEMP CODE TODO move this to terrain editor
+	m_redChannelTexture = CreateTerrainTexture("terrain/dirty_baseColor", 3);
+	m_greenChannelTexture = CreateTerrainTexture("terrain/rockyGrass_baseColor", 4);
+	m_blueChannelTexture = CreateTerrainTexture("terrain/gravel_baseColor", 5);
+	m_alphaChannelTexture = CreateTerrainTexture("terrain/snowyRock_baseColor", 6);
 
 	u_terrainOrigin = m_pRenderContext->CreateUniform(kUniformSectorOrigin, bgfx::UniformType::Enum::Vec4, 1);
 	u_terrainDimension = m_pRenderContext->CreateUniform(kUniformSectorDimension, bgfx::UniformType::Vec4, 1);
@@ -72,8 +110,27 @@ void TerrainRenderer::Render(float deltaTime)
 		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle(pMeshComponent->GetVertexBuffer()));
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle(pMeshComponent->GetIndexBuffer()));
 
+		bgfx::setTexture(m_dirtTexture.slot, bgfx::UniformHandle(m_dirtTexture.samplerHandle), bgfx::TextureHandle(m_dirtTexture.textureHandle));
+		if (m_redChannelTexture.textureHandle != bgfx::kInvalidHandle && m_redChannelTexture.samplerHandle != bgfx::kInvalidHandle)
+		{
+			bgfx::setTexture(m_redChannelTexture.slot, bgfx::UniformHandle(m_redChannelTexture.samplerHandle), bgfx::TextureHandle(m_redChannelTexture.textureHandle));
+		}
+		if (m_greenChannelTexture.textureHandle != bgfx::kInvalidHandle && m_greenChannelTexture.samplerHandle != bgfx::kInvalidHandle)
+		{
+			bgfx::setTexture(m_greenChannelTexture.slot, bgfx::UniformHandle(m_greenChannelTexture.samplerHandle), bgfx::TextureHandle(m_greenChannelTexture.textureHandle));
+		}
+		if (m_blueChannelTexture.textureHandle != bgfx::kInvalidHandle && m_blueChannelTexture.samplerHandle != bgfx::kInvalidHandle)
+		{
+			bgfx::setTexture(m_blueChannelTexture.slot, bgfx::UniformHandle(m_blueChannelTexture.samplerHandle), bgfx::TextureHandle(m_blueChannelTexture.textureHandle));
+		}
+		if (m_alphaChannelTexture.textureHandle != bgfx::kInvalidHandle && m_alphaChannelTexture.samplerHandle != bgfx::kInvalidHandle)
+		{
+			bgfx::setTexture(m_alphaChannelTexture.slot, bgfx::UniformHandle(m_alphaChannelTexture.samplerHandle), bgfx::TextureHandle(m_alphaChannelTexture.textureHandle));
+		}
+
 		for (const auto& [textureType, textureInfo] : pMaterialComponent->GetTextureResources())
 		{
+			// TODO optimize by using textureInfo instead of GetTextureInfo
 			std::optional<const MaterialComponent::TextureInfo> optTextureInfo = pMaterialComponent->GetTextureInfo(textureType);
 			if (optTextureInfo.has_value())
 			{
@@ -91,6 +148,63 @@ void TerrainRenderer::Render(float deltaTime)
 
 		bgfx::submit(GetViewID(), bgfx::ProgramHandle(pMaterialComponent->GetShadingProgram()));
 	}
+}
+
+void TerrainRenderer::SetAndLoadAlphaMapTexture(const cdtools::AlphaMapChannel channel, const std::string& textureName)
+{
+	switch (channel)
+	{
+	case cdtools::AlphaMapChannel::Red:
+		m_redChannelTexture = CreateTerrainTexture(textureName.c_str(), 3);
+		break;
+	case cdtools::AlphaMapChannel::Green:
+		m_greenChannelTexture = CreateTerrainTexture(textureName.c_str(), 4);
+		break;
+	case cdtools::AlphaMapChannel::Blue:
+		m_blueChannelTexture = CreateTerrainTexture(textureName.c_str(), 5);
+		break;
+	case cdtools::AlphaMapChannel::Alpha:
+		m_alphaChannelTexture = CreateTerrainTexture(textureName.c_str(), 6);
+		break;
+	default:
+		assert(false);
+	}
+}
+
+TerrainRenderer::TerrainTexture TerrainRenderer::CreateTerrainTexture(const char* textureFileName, uint8_t slot) 
+{
+	TerrainTexture outTexture;
+	outTexture.slot = slot;
+	outTexture.samplerHandle = bgfx::kInvalidHandle;
+	outTexture.textureHandle = bgfx::kInvalidHandle;
+	outTexture.format = cd::TextureFormat::Count;
+
+	const std::string textureFilePath = engine::Path::GetTerrainTextureOutputFilePath(textureFileName, ".dds");
+	// Load the texture file
+	std::vector<std::byte> textureFileBlob = LoadFile(textureFilePath.c_str());
+	assert(!textureFileBlob.empty());
+	// Decode the texture
+	bimg::ImageContainer* pImageContainer = bimg::imageParse(GetResourceAllocator(), textureFileBlob.data(), static_cast<uint32_t>(textureFileBlob.size()));
+	const bgfx::Memory* pMemory = bgfx::makeRef(pImageContainer->m_data, pImageContainer->m_size);
+	outTexture.format = static_cast<cd::TextureFormat>(pImageContainer->m_format);
+	const uint64_t textureFlag = (BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_TEXTURE_SRGB);
+	outTexture.textureHandle = bgfx::createTexture2D(
+		pImageContainer->m_width, 
+		pImageContainer->m_height, 
+		pImageContainer->m_numMips, 
+		pImageContainer->m_numLayers, 
+		static_cast<bgfx::TextureFormat::Enum>(pImageContainer->m_format),
+		textureFlag, 
+		pMemory
+	).idx;
+
+	std::string samplerUniformName = "s_terrainTextureSampler";
+	samplerUniformName += std::to_string(slot);
+	outTexture.samplerHandle = bgfx::createUniform(samplerUniformName.c_str(), bgfx::UniformType::Sampler).idx;
+	assert(outTexture.textureHandle != bgfx::kInvalidHandle);
+	assert(outTexture.samplerHandle != bgfx::kInvalidHandle);
+	
+	return outTexture;
 }
 
 bool TerrainRenderer::IsTerrainMesh(Entity entity) const
@@ -141,7 +255,7 @@ void TerrainRenderer::UpdateUniforms()
 			renderInfo.m_origin[3] = 0.0f;
 
 			const MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
-			std::optional<const MaterialComponent::TextureInfo> elevationTexture = pMaterialComponent->GetTextureInfo(MaterialTextureType::Roughness);
+			std::optional<const MaterialComponent::TextureInfo> elevationTexture = pMaterialComponent->GetTextureInfo(MaterialTextureType::Elevation);
 			assert(elevationTexture.has_value());
 			renderInfo.m_dimension[0] = static_cast<float>(elevationTexture->width);
 			renderInfo.m_dimension[1] = static_cast<float>(elevationTexture->height);
