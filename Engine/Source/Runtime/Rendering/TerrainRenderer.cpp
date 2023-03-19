@@ -50,6 +50,22 @@ void TerrainRenderer::Render(float deltaTime)
 		{
 			continue;
 		}
+
+		if (m_entityToRenderInfo.find(entity) == m_entityToRenderInfo.cend())
+		{
+			m_updateUniforms = true;
+			UpdateUniforms();
+		}
+
+		// Check cull dist
+		const float dx = m_pCamera->GetPosition().x() - m_entityToRenderInfo[entity].m_origin[0];
+		const float dy = m_pCamera->GetPosition().y() - m_entityToRenderInfo[entity].m_origin[1];
+		const float dz = m_pCamera->GetPosition().z() - m_entityToRenderInfo[entity].m_origin[2];
+		if (m_cullDistanceSquared <= (dx * dx + dy * dy + dz * dz)) {
+			// skip
+			continue;
+		}
+
 		const MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
 		const StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
 
@@ -65,12 +81,7 @@ void TerrainRenderer::Render(float deltaTime)
 				bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle(textureInfo.samplerHandle), bgfx::TextureHandle(textureInfo.textureHandle));
 			}
 		}
-		
-		if (m_entityToRenderInfo.find(entity) == m_entityToRenderInfo.cend())
-		{
-			m_updateUniforms = true;
-			UpdateUniforms();
-		}
+
 		const TerrainRenderInfo& meshRenderInfo = m_entityToRenderInfo[entity];
 		bgfx::setUniform(u_terrainOrigin, static_cast<const void*>(meshRenderInfo.m_origin));
 		bgfx::setUniform(u_terrainDimension, static_cast<const void*>(meshRenderInfo.m_dimension));

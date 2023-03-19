@@ -21,6 +21,7 @@ public:
 	virtual void Render(float deltaTime) override;
 
 	void SetSceneWorld(SceneWorld* pSceneWorld) { m_pCurrentSceneWorld = pSceneWorld; }
+	void SetCullDistance(uint32_t dist) { m_cullDistanceSquared = dist * dist; }
 
 private:
 	struct TerrainRenderInfo
@@ -41,7 +42,9 @@ private:
 	bool m_updateUniforms = true;
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
 	std::unordered_map<Entity, TerrainRenderInfo> m_entityToRenderInfo;
+	uint32_t m_cullDistanceSquared = 20000;
 
+	// Uniforms
 	bgfx::UniformHandle u_terrainOrigin;	// bottom left corner in world coord; vec2
 	bgfx::UniformHandle u_terrainDimension;	// width and depth of the terrain; vec2
 };
