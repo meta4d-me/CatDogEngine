@@ -1,5 +1,7 @@
 # CatDogEngine
 
+[![Join the chat at https://discord.gg/M24Vabwh](https://img.shields.io/discord/1054285275133640794?color=%237289DA&label=CatDogEngine&logo=discord&logoColor=white)](https://discord.gg/M24Vabwh)
+
 ![win64_vs2019](https://github.com/CatDogEngine/CatDogEngine/actions/workflows/win64_vs2019.yml/badge.svg?branch=main)
 ![win64_vs2022](https://github.com/CatDogEngine/CatDogEngine/actions/workflows/win64_vs2022.yml/badge.svg?branch=main)
 
