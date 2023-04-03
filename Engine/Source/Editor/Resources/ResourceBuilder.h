@@ -62,16 +62,17 @@ public:
 	bool AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath);
 	void Update();
 
-	void UpdateModifyTimeCache();
-	void ClearModifyTimeCache();
-	void DeleteModifyTimeCache();
-
 private:
 	ResourceBuilder();
 	~ResourceBuilder();
 
 	void ReadModifyCacheFile();
 	void WriteModifyCacheFile();
+
+	bool HasNewModifyTimeCache() const;
+	void UpdateModifyTimeCache();
+	void ClearModifyTimeCache();
+	void DeleteModifyTimeCache();
 
 	std::string GetModifyCacheFilePath();
 

@@ -57,13 +57,18 @@ void ResourceBuilder::ReadModifyCacheFile()
 
 void ResourceBuilder::WriteModifyCacheFile()
 {
+	if (!HasNewModifyTimeCache())
+	{
+		return;
+	}
+
 	std::string modifyCachePath = GetModifyCacheFilePath();
 
 	if (!std::filesystem::exists(modifyCachePath))
 	{
 		std::filesystem::create_directories(std::filesystem::path(modifyCachePath).parent_path());
 	}
-		
+
 	std::ofstream outFile(modifyCachePath, std::ios::trunc);
 	if (!outFile.is_open())
 	{
@@ -257,6 +262,16 @@ void ResourceBuilder::Update()
 		process.Run();
 		m_buildTasks.pop();
 	}
+
+	if (m_buildTasks.empty())
+	{
+		WriteModifyCacheFile();
+	}
+}
+
+bool ResourceBuilder::HasNewModifyTimeCache() const
+{
+	return !m_newModifyTimeCache.empty();
 }
 
 void ResourceBuilder::UpdateModifyTimeCache()
@@ -265,6 +280,8 @@ void ResourceBuilder::UpdateModifyTimeCache()
 	{
 		m_modifyTimeCache[filePath] = cd::MoveTemp(fileTime);
 	}
+
+	m_newModifyTimeCache.clear();
 }
 
 void ResourceBuilder::ClearModifyTimeCache()
