@@ -50,9 +50,10 @@ ECWorldConsumer::ECWorldConsumer(engine::SceneWorld* pSceneWorld, engine::Render
 {
 }
 
-void ECWorldConsumer::SetSceneDatabaseIDs(uint32_t nodeID)
+void ECWorldConsumer::SetSceneDatabaseIDs(uint32_t nodeID, uint32_t meshID)
 {
 	m_nodeMinID = nodeID;
+	m_meshMinID = meshID;
 }
 
 void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
@@ -61,53 +62,80 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 	
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetPBRMaterialType());
 
+	auto ParseMeshID = [&](cd::MeshID meshID, const cd::Transform& tranform)
+	{
+		engine::Entity sceneEntity = m_pSceneWorld->GetWorld()->CreateEntity();
+		AddTransform(sceneEntity, tranform);
+
+		const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
+
+		// TODO : Or the user doesn't want to import animation data.
+		const bool isStaticMesh = 0U == mesh.GetVertexInfluenceCount();
+		if (isStaticMesh)
+		{
+			engine::MaterialType* pMaterialType = m_pSceneWorld->GetPBRMaterialType();
+			AddStaticMesh(sceneEntity, mesh, pMaterialType->GetRequiredVertexFormat());
+
+			cd::MaterialID meshMaterialID = mesh.GetMaterialID();
+			if (meshMaterialID.IsValid())
+			{
+				AddMaterial(sceneEntity, &pSceneDatabase->GetMaterial(meshMaterialID.Data()), pMaterialType, pSceneDatabase);
+			}
+		}
+		else
+		{
+			engine::MaterialType* pMaterialType = m_pSceneWorld->GetAnimationMaterialType();
+			AddSkinMesh(sceneEntity, mesh, pMaterialType->GetRequiredVertexFormat());
+
+			// TODO : Use a standalone .cdanim file to play animation.
+			// Currently, we assume that imported SkinMesh will play animation automatically for testing.
+			AddAnimation(sceneEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
+			AddMaterial(sceneEntity, nullptr, pMaterialType, pSceneDatabase);
+		}
+	};
+
+	// There are multiple kinds of cases in the SceneDatabase:
+	// 1. No nodes but have meshes in the SceneDatabase.
+	// 2. Only a root node with multiple meshes.
+	// 3. Node hierarchy.
+	// Another case is that we want to skip Node/Mesh which alreay parsed previously.
+
+	std::set<uint32_t> parsedMeshIDs;
+	for (const auto& mesh : pSceneDatabase->GetMeshes())
+	{
+		if (m_meshMinID > mesh.GetID().Data())
+		{
+			continue;
+		}
+
+		ParseMeshID(mesh.GetID(), cd::Transform::Identity());
+		parsedMeshIDs.insert(mesh.GetID().Data());
+	}
+
 	for (const auto& node : pSceneDatabase->GetNodes())
 	{
 		if (m_nodeMinID > node.GetID().Data())
 		{
-			// The SceneDatabase can be reused when we import assets multiple times.
 			continue;
 		}
 
 		for (cd::MeshID meshID : node.GetMeshIDs())
 		{
-			engine::Entity sceneEntity = m_pSceneWorld->GetWorld()->CreateEntity();
-			AddNode(sceneEntity, node);
-
-			const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
-
-			// TODO : Or the user doesn't want to import animation data.
-			const bool isStaticMesh = 0U == mesh.GetVertexInfluenceCount();
-			if (isStaticMesh)
+			if (parsedMeshIDs.contains(meshID.Data()))
 			{
-				engine::MaterialType* pMaterialType = m_pSceneWorld->GetPBRMaterialType();
-				AddStaticMesh(sceneEntity, mesh, pMaterialType->GetRequiredVertexFormat());
-
-				cd::MaterialID meshMaterialID = mesh.GetMaterialID();
-				if (meshMaterialID.IsValid())
-				{
-					AddMaterial(sceneEntity, &pSceneDatabase->GetMaterial(meshMaterialID.Data()), pMaterialType, pSceneDatabase);
-				}
+				continue;
 			}
-			else
-			{
-				engine::MaterialType* pMaterialType = m_pSceneWorld->GetAnimationMaterialType();
-				AddSkinMesh(sceneEntity, mesh, pMaterialType->GetRequiredVertexFormat());
 
-				// TODO : Use a standalone .cdanim file to play animation.
-				// Currently, we assume that imported SkinMesh will play animation automatically for testing.
-				AddAnimation(sceneEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
-				AddMaterial(sceneEntity, nullptr, pMaterialType, pSceneDatabase);
-			}
+			ParseMeshID(meshID, node.GetTransform());
 		}
 	}
 }
 
-void ECWorldConsumer::AddNode(engine::Entity entity, const cd::Node& node)
+void ECWorldConsumer::AddTransform(engine::Entity entity, const cd::Transform& transform)
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
 	engine::TransformComponent& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
-	transformComponent.SetTransform(node.GetTransform());
+	transformComponent.SetTransform(transform);
 	transformComponent.Build();
 }
 
