@@ -18,7 +18,7 @@ void ShaderBuilder::BuildUberShader(engine::MaterialType* pMaterialType)
 	ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Vertex,
 		shaderSchema.GetVertexShaderPath(), outputVSFilePath.c_str());
 
-	// Compile fragment shader with uber options.
+	// Compile fragment shaders with uber options.
 	for (const auto& combine : shaderSchema.GetUberCombines())
 	{
 		std::string outputFSFilePath = engine::Path::GetShaderOutputPath(shaderSchema.GetFragmentShaderPath(), combine);
@@ -29,7 +29,7 @@ void ShaderBuilder::BuildUberShader(engine::MaterialType* pMaterialType)
 	}
 	CD_ENGINE_INFO("Material type {0} have shader variant count : {1}.", pMaterialType->GetMaterialName(), shaderSchema.GetUberCombines().size());
 
-	// Compile fragment shader for indicating loadig status.
+	// Compile fragment shaders for indicating loadig status.
 	for (const auto& [status, path] : shaderSchema.GetLoadingStatusPath())
 	{
 		std::string outputFSFilePath = engine::Path::GetShaderOutputPath(path.c_str());

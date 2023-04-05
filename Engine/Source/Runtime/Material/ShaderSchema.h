@@ -42,7 +42,7 @@ class ShaderSchema
 {
 public:
 	static constexpr uint16_t InvalidProgramHandle = UINT16_MAX;
-	static constexpr StringCrc DefaultUberOption = StringCrc("DEFAULT;");
+	static constexpr StringCrc DefaultUberOption = StringCrc("");
 	using ShaderBlob = std::vector<std::byte>;
 
 public:
