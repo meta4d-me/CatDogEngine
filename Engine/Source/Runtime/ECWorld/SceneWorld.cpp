@@ -105,4 +105,10 @@ void SceneWorld::SetSelectedEntity(engine::Entity entity)
 	m_selectedEntity = entity;
 }
 
+void SceneWorld::SetMainCameraEntity(engine::Entity entity)
+{
+	CD_TRACE("Setup main camera entity : {0}", entity);
+	m_mainCameraEntity = entity;
+}
+
 }

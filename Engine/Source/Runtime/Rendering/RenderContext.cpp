@@ -1,6 +1,5 @@
 #include "RenderContext.h"
 
-#include "Display/Camera.h"
 #include "Renderer.h"
 #include "Rendering/Utility/VertexLayoutUtility.h"
 

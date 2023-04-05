@@ -26,18 +26,20 @@ public:
 	CD_FORCEINLINE engine::World* GetWorld() { return m_pWorld.get(); }
 	CD_FORCEINLINE const engine::World* GetWorld() const { return m_pWorld.get(); }
 
-	// Maybe not suitable to put selected entity here?
 	void SetSelectedEntity(engine::Entity entity);
 	CD_FORCEINLINE engine::Entity GetSelectedEntity() const { return m_selectedEntity; }
 
+	void SetMainCameraEntity(engine::Entity entity);
+	CD_FORCEINLINE engine::Entity GetMainCameraEntity() const { return m_mainCameraEntity; }
+
 	void CreatePBRMaterialType();
-	engine::MaterialType* GetPBRMaterialType() const { return m_pPBRMaterialType.get(); }
+	CD_FORCEINLINE engine::MaterialType* GetPBRMaterialType() const { return m_pPBRMaterialType.get(); }
 
 	void CreateAnimationMaterialType();
-	engine::MaterialType* GetAnimationMaterialType() const { return m_pAnimationMaterialType.get(); }
+	CD_FORCEINLINE engine::MaterialType* GetAnimationMaterialType() const { return m_pAnimationMaterialType.get(); }
 
 	void CreateTerrainMaterialType();
-	engine::MaterialType* GetTerrainMaterialType() const { return m_pTerrainMaterialType.get(); }
+	CD_FORCEINLINE engine::MaterialType* GetTerrainMaterialType() const { return m_pTerrainMaterialType.get(); }
 
 	// It can save performance on addressing the actual ComponentStorage.
 	// TODO : write a help macro ? Though I hate macro...
@@ -107,7 +109,9 @@ private:
 	engine::ComponentsStorage<engine::StaticMeshComponent>* m_pStaticMeshStorage;
 	engine::ComponentsStorage<engine::TransformComponent>* m_pTransformStorage;
 
+	// TODO : wrap them into another class?
 	engine::Entity m_selectedEntity = engine::INVALID_ENTITY;
+	engine::Entity m_mainCameraEntity = engine::INVALID_ENTITY;
 };
 
 }

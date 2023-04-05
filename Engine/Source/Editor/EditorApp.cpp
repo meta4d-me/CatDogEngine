@@ -2,7 +2,6 @@
 
 #include "Application/Engine.h"
 #include "Display/FirstPersonCameraController.h"
-#include "Display/FlybyCamera.h"
 #include "ECWorld/SceneWorld.h"
 #include "ImGui/EditorImGuiViewport.h"
 #include "ImGui/ImGuiContextInstance.h"
@@ -191,6 +190,33 @@ void EditorApp::RegisterImGuiUserData(engine::ImGuiContextInstance* pImGuiContex
 void EditorApp::InitECWorld()
 {
 	m_pSceneWorld = std::make_unique<engine::SceneWorld>();
+
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+	engine::Entity cameraEntity = pWorld->CreateEntity();
+	m_pSceneWorld->SetMainCameraEntity(cameraEntity);
+	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(cameraEntity);
+	nameComponent.SetName("MainCamera");
+
+	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
+	transformComponent.SetTransform(cd::Transform::Identity());
+	transformComponent.Build();
+
+	auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(cameraEntity);
+	cameraComponent.SetEye(cd::Point(0.0f, 50.0f, -200.0f));
+	cameraComponent.SetForward(cd::Direction(0.0f, 0.0f, 1.0f));
+	cameraComponent.SetUp(cd::Direction(0.0f, 1.0f, 0.0f));
+	cameraComponent.SetAspect(1.0f);
+	cameraComponent.SetFov(45.0f);
+	cameraComponent.SetNearPlane(0.1f);
+	cameraComponent.SetFarPlane(2000.0f);
+	cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
+
+	// Controller for Input events.
+	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(
+		&cameraComponent,
+		15.0f /* horizontal sensitivity */,
+		5.0f /* vertical sensitivity */,
+		160.0f /* Movement Speed*/);
 }
 
 void EditorApp::InitRenderContext()
@@ -204,21 +230,6 @@ void EditorApp::InitRenderContext()
 	engine::RenderTarget* pRenderTarget = m_pRenderContext->CreateRenderTarget(editorSwapChainName, GetMainWindow()->GetWidth(), GetMainWindow()->GetHeight(), GetMainWindow()->GetNativeHandle());
 	AddEditorRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pRenderTarget));
 
-	// Camera is prepared for other renderers except ImGuiRenderer.
-	m_pCamera = std::make_unique<engine::FlybyCamera>(cd::Point(0.0f, 50.0f, -200.0f));
-	m_pCamera->SetAspect(1.0f);
-	m_pCamera->SetFov(45.0f);
-	m_pCamera->SetNearPlane(0.1f);
-	m_pCamera->SetFarPlane(2000.0f);
-	m_pCamera->SetHomogeneousNdc(bgfx::getCaps()->homogeneousDepth);
-	m_pRenderContext->SetCamera(m_pCamera.get());
-
-	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(
-		m_pCamera.get(), 
-		15.0f /* horizontal sensitivity */,
-		5.0f /* vertical sensitivity */,
-		160.0f /* Movement Speed*/);
-
 	constexpr engine::StringCrc sceneViewRenderTargetName("SceneRenderTarget");
 	std::vector<engine::AttachmentDescriptor> attachmentDesc = {
 		{ .textureFormat = engine::TextureFormat::RGBA32F },
@@ -228,7 +239,11 @@ void EditorApp::InitRenderContext()
 
 	// The init size doesn't make sense. It will resize by SceneView.
 	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->CreateRenderTarget(sceneViewRenderTargetName, 1, 1, std::move(attachmentDesc));
-	pSceneRenderTarget->OnResize.Bind<engine::Camera, &engine::Camera::SetAspect>(m_pCamera.get());
+	
+	if (engine::CameraComponent* pCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity()))
+	{
+		pSceneRenderTarget->OnResize.Bind<engine::CameraComponent, &engine::CameraComponent::SetAspect>(pCameraComponent);
+	}
 
 	auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pPBRSkyRenderer = pPBRSkyRenderer.get();
@@ -287,7 +302,6 @@ void EditorApp::AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer)
 void EditorApp::AddEngineRenderer(std::unique_ptr<engine::Renderer> pRenderer)
 {
 	pRenderer->Init();
-	pRenderer->SetCamera(m_pCamera.get());
 	m_pEngineRenderers.emplace_back(cd::MoveTemp(pRenderer));
 }
 
@@ -295,9 +309,13 @@ bool EditorApp::Update(float deltaTime)
 {
 	GetMainWindow()->Update();
 
-	m_pCameraController->Update(deltaTime);
+	engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
+	assert(pMainCameraComponent);
+	pMainCameraComponent->Build();
 
+	m_pCameraController->Update(deltaTime);
 	m_pEditorImGuiContext->Update(deltaTime);
+
 	m_pRenderContext->BeginFrame();
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEditorRenderers)
 	{
@@ -308,12 +326,6 @@ bool EditorApp::Update(float deltaTime)
 
 		const float* pViewMatrix = nullptr;
 		const float* pProjectionMatrix = nullptr;
-		if (engine::Camera* pCamera = pRenderer->GetCamera())
-		{
-			pViewMatrix = pCamera->GetViewMatrix().Begin();
-			pProjectionMatrix = pCamera->GetProjectionMatrix().Begin();
-		}
-
 		pRenderer->UpdateView(pViewMatrix, pProjectionMatrix);
 		pRenderer->Render(deltaTime);
 	}
@@ -327,14 +339,8 @@ bool EditorApp::Update(float deltaTime)
 			continue;
 		}
 
-		const float* pViewMatrix = nullptr;
-		const float* pProjectionMatrix = nullptr;
-		if (engine::Camera* pCamera = pRenderer->GetCamera())
-		{
-			pViewMatrix = pCamera->GetViewMatrix().Begin();
-			pProjectionMatrix = pCamera->GetProjectionMatrix().Begin();
-		}
-
+		const float* pViewMatrix = pMainCameraComponent->GetViewMatrix().Begin();
+		const float* pProjectionMatrix = pMainCameraComponent->GetProjectionMatrix().Begin();
 		pRenderer->UpdateView(pViewMatrix, pProjectionMatrix);
 		pRenderer->Render(deltaTime);
 	}

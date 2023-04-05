@@ -29,9 +29,6 @@ public:
 	uint16_t GetViewID() const { return m_viewID; }
 	const RenderTarget* GetRenderTarget() const { return m_pRenderTarget; }
 
-	void SetCamera(Camera* pCamera) { m_pCamera = pCamera; }
-	Camera* GetCamera() const { return m_pCamera; }
-
 	void Enable() { m_isEnable = true; }
 	void Disable() { m_isEnable = false; }
 	bool IsEnable() const { return m_isEnable; }
@@ -43,7 +40,6 @@ protected:
 	uint16_t		m_viewID = 0;
 	RenderContext*	m_pRenderContext = nullptr;
 	RenderTarget*	m_pRenderTarget = nullptr;
-	Camera*			m_pCamera = nullptr;
 	bool			m_isEnable = true;
 };
 

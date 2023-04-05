@@ -1,7 +1,5 @@
 #include "TerrainRenderer.h"
 
-#include "BgfxConsumer.h"
-#include "Display/Camera.h"
 #include "Framework/Processor.h"
 #include "Log/Log.h"
 #include "Producers/CDProducer/CDProducer.h"

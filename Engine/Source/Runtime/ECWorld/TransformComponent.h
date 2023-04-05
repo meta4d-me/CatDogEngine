@@ -25,7 +25,7 @@ public:
 
 	const cd::Transform& GetTransform() const { return m_transform; }
 	cd::Transform& GetTransform() { return m_transform; }
-	void SetTransform(cd::Transform transform) { m_transform = cd::MoveTemp(transform); }
+	void SetTransform(cd::Transform transform) { m_transform = cd::MoveTemp(transform); m_isMatrixDirty = true;  }
 
 	const cd::Matrix4x4& GetWorldMatrix() const { return m_localToWorldMatrix; }
 
@@ -35,6 +35,9 @@ public:
 private:
 	// Input
 	cd::Transform m_transform;
+
+	// Status
+	bool m_isMatrixDirty;
 
 	// Output
 	cd::Matrix4x4 m_localToWorldMatrix;

@@ -79,9 +79,8 @@ private:
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEditorRenderers;
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEngineRenderers;
 
-	// TODO
+	// Controllers for processing input events.
 	std::unique_ptr<engine::FirstPersonCameraController> m_pCameraController;
-	std::unique_ptr<engine::FlybyCamera> m_pCamera;
 };
 
 }

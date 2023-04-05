@@ -1,6 +1,6 @@
 #include "SceneView.h"
 
-#include "Display/Camera.h"
+#include "ECWorld/CameraComponent.h"
 #include "ECWorld/NameComponent.h"
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
@@ -246,7 +246,10 @@ void SceneView::UpdateToolMenuButtons()
 		if (cd::SceneDatabase* pSceneDatabase = pImGuiContextInstance->GetSceneWorld()->GetSceneDatabase())
 		{
 			pSceneDatabase->UpdateAABB();
-			pRenderContext->GetCamera()->FrameAll(pSceneDatabase->GetAABB());
+
+			engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
+			engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
+			pCameraComponent->FrameAll(pSceneDatabase->GetAABB());
 		}
 	}
 
@@ -281,10 +284,10 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 	}
 
 	// Loop through scene's all static meshes' AABB to test intersections with Ray.
-	engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(ImGui::GetIO().BackendRendererUserData);
-	cd::Ray pickRay = pRenderContext->GetCamera()->EmitRay(screenX, screenY, screenWidth, screenHeight);
 	engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(ImGui::GetIO().UserData);
 	engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
+	engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
+	cd::Ray pickRay = pCameraComponent->EmitRay(screenX, screenY, screenWidth, screenHeight);
 
 	float minRayTime = FLT_MAX;
 	engine::Entity nearestEntity = engine::INVALID_ENTITY;
@@ -325,6 +328,10 @@ void SceneView::Update()
 	engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
 	assert(pRenderContext && "SceneView needs to access rendering resource.");
 
+	engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
+	engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
+	engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
+
 	if (nullptr == m_pRenderTarget)
 	{
 		constexpr engine::StringCrc sceneRenderTarget("SceneRenderTarget");
@@ -349,7 +356,7 @@ void SceneView::Update()
 		OnResize.Invoke(regionWidth, regionHeight);
 		m_lastContentWidth = regionWidth;
 		m_lastContentHeight = regionHeight;
-		pRenderContext->GetCamera()->SetAspect(static_cast<float>(regionWidth) / static_cast<float>(regionHeight));
+		pCameraComponent->SetAspect(static_cast<float>(regionWidth) / static_cast<float>(regionHeight));
 	}
 
 	// Check if mouse hover on the area of SceneView so it can control.

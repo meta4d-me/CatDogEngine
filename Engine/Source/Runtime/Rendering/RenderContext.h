@@ -41,9 +41,6 @@ public:
 
 	uint16_t CreateView();
 
-	void SetCamera(Camera* pCamera) { m_pCamera = pCamera; }
-	Camera* GetCamera() const { return m_pCamera; }
-
 	/////////////////////////////////////////////////////////////////////
 	// Resource related apis
 	/////////////////////////////////////////////////////////////////////
@@ -77,7 +74,6 @@ public:
 
 private:
 	uint8_t m_currentViewCount = 0;
-	Camera* m_pCamera = nullptr;
 	std::unordered_map<size_t, std::unique_ptr<RenderTarget>> m_renderTargetCaches;
 	std::unordered_map<size_t, bgfx::VertexLayout> m_vertexLayoutCaches;
 	std::unordered_map<size_t, bgfx::ShaderHandle> m_shaderHandleCaches;
