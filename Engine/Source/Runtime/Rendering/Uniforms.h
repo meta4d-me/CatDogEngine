@@ -57,12 +57,6 @@ struct Uniforms {
 				/*2*/ struct { float m_mtx2[4]; };
 				/*3*/ struct { float m_mtx3[4]; };
 			};
-			/*4*/ struct { float m_camPos[3], m_EV100; };
-			/*5*/ struct { float m_doDirDiffuse, m_doDirSpecular, m_doEnvDiffuse, m_doEnvSpecular; };
-			/*6*/ union {
-				  	  struct { float m_pointLightCount, m_spotLightCount, m_directionalLightCount, m_unused0; };
-				  	  struct { float m_doWireFrame, m_doSphericalHarmonics, m_unused1, m_unused2; };
-				  };
 		};
 
 		float basicParams[4 * vec4Count];

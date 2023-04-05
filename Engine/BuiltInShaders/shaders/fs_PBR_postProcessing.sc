@@ -47,7 +47,7 @@ void main()
 	vec3 color = texture2D(s_lightingColor, v_texcoord0).rgb;
 	
 	// Exposure
-	color *= ConvertEV100ToExposure(u_EV100);
+	color *= ConvertEV100ToExposure(0.0);
 	
 	// Tone Mapping
 	color = ACES(color);

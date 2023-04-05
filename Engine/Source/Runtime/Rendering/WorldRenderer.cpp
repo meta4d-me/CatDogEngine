@@ -25,6 +25,8 @@ void WorldRenderer::Init()
 	m_pRenderContext->CreateTexture("skybox/bolonga_lod.dds", samplerFlags);
 	m_pRenderContext->CreateTexture("skybox/bolonga_irr.dds", samplerFlags);
 
+	m_pRenderContext->CreateUniform("u_cameraPos", bgfx::UniformType::Vec4, 1);
+
 	bgfx::setViewName(GetViewID(), "WorldRenderer");
 }
 
@@ -96,6 +98,8 @@ void WorldRenderer::Render(float deltaTime)
 			constexpr StringCrc cubeIrrTexture("skybox/bolonga_irr.dds");
 			bgfx::setTexture(5, m_pRenderContext->GetUniform(cubeIrrSampler), m_pRenderContext->GetTexture(cubeIrrTexture));
 		}
+
+		m_pRenderContext->FillUniform(StringCrc("u_cameraPos"), &m_pRenderContext->GetCamera()->GetPosition().x(), 1);
 
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);

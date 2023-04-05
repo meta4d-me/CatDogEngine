@@ -81,12 +81,7 @@ void ECTerrainConsumer::AddMaterial(engine::Entity entity, const cd::Material* p
 	const cd::Texture& baseColorTexture = pSceneDatabase->GetTexture(optBaseColorTexture.value().Data());
 	const std::string baseColorTexturePath = GetTextureOutputFilePath(baseColorTexture.GetPath());
 	std::string textureDir = cd::string_format("%sTextures/textures/%s.png", CDENGINE_RESOURCES_ROOT_PATH, baseColorTexture.GetPath());
-	if (!ResourceBuilder::Get().AddTextureBuildTask(baseColorTexture.GetType(), textureDir.c_str(), baseColorTexturePath.c_str()))
-	{
-		CD_ERROR("Texture %s has an invalid path!", baseColorTexturePath.c_str());
-		// TODO add default texture?
-		return;
-	}
+	ResourceBuilder::Get().AddTextureBuildTask(baseColorTexture.GetType(), textureDir.c_str(), baseColorTexturePath.c_str());
 	
 	// Shaders
 	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();

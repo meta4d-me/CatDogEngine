@@ -21,7 +21,6 @@ start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADER
 rem Scene/World Renderer
 start /b shaderc --type v --platform windows -p vs_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/vs_PBR.sc -o %PROJECT%/vs_PBR.bin
 start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/fs_PBR.sc -o %PROJECT%/fs_PBR.bin
-start /b shaderc --type f --platform windows -p ps_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/fs_PBR.sc -o %PROJECT%/fs_PBR_IBL.bin --define USE_PBR_IBL
 
 rem Terrain Renderer
 start /b shaderc --type v --platform windows -p vs_5_0 -O 3 --varyingdef %SHADERS%/varying.def.sc -f %SHADERS%/vs_terrain.sc -o %PROJECT%/vs_terrain.bin
