@@ -188,9 +188,8 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 		commandArguments.push_back("vs_5_0");
 	}
 
-	if (pUberOptions && *pUberOptions != '\0' && 0 != strcmp("DEFAULT;", pUberOptions))
+	if (pUberOptions && *pUberOptions != '\0')
 	{
-		// Should never use DEFAULT as a compile parameter.
 		commandArguments.push_back("--define");
 		commandArguments.push_back(pUberOptions);
 	}
