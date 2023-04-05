@@ -4,6 +4,7 @@
 #include "ECWorld/Entity.h"
 #include "Framework/IConsumer.h"
 #include "Material/ShaderSchema.h"
+#include "Math/Transform.hpp"
 #include "Scene/MaterialTextureType.h"
 #include "Scene/ObjectID.h"
 
@@ -49,7 +50,7 @@ public:
 	ECWorldConsumer& operator=(ECWorldConsumer&&) = delete;
 	virtual ~ECWorldConsumer() = default;
 
-	void SetSceneDatabaseIDs(uint32_t nodeID);
+	void SetSceneDatabaseIDs(uint32_t nodeID, uint32_t meshID);
 	virtual void Execute(const cd::SceneDatabase* pSceneDatabase) override;
 
 	void ActivateUberOption(cd::MaterialTextureType textureType);
@@ -60,7 +61,7 @@ public:
 	const std::vector<engine::Uber>& GetActiveUberOptions() const { return m_activeUberOptions; }
 
 private:
-	void AddNode(engine::Entity entity, const cd::Node& node);
+	void AddTransform(engine::Entity entity, const cd::Transform& transform);
 	void AddStaticMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat);
 	void AddSkinMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat);
 	void AddAnimation(engine::Entity entity, const cd::Animation& animation, const cd::SceneDatabase* pSceneDatabase);
@@ -71,6 +72,7 @@ private:
 	engine::SceneWorld* m_pSceneWorld;
 
 	uint32_t m_nodeMinID;
+	uint32_t m_meshMinID;
 	std::vector<engine::Uber> m_activeUberOptions;
 };
 

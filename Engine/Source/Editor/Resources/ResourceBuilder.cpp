@@ -255,6 +255,11 @@ bool ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, c
 
 void ResourceBuilder::Update()
 {
+	if (m_buildTasks.empty())
+	{
+		return;
+	}
+
 	// It may wait until process exited which depends on process's setting.
 	while (!m_buildTasks.empty())
 	{

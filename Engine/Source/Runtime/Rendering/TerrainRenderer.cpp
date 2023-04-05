@@ -87,7 +87,8 @@ void TerrainRenderer::Render(float deltaTime)
 bool TerrainRenderer::IsTerrainMesh(Entity entity) const
 {
 	const MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
-	if (pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetTerrainMaterialType())
+	if (!pMaterialComponent ||
+		pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetTerrainMaterialType())
 	{
 		return false;
 	}

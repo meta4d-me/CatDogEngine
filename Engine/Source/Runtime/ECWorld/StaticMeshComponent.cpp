@@ -44,10 +44,7 @@ void StaticMeshComponent::BuildDebug()
 	cd::VertexFormat vertexFormat;
 	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
 
-	// Hack : use bitangents as barycentric coordinate...
-	// TODO : Vertex attribute type can have userdata storage and map to slot enum.
-	// It requires duplicated vertices so only used for debug/editor usage.
-	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Bitangent, cd::AttributeValueType::Float, 3);
+	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Color, cd::AttributeValueType::Float, 4);
 	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Box(m_aabb.Min(), m_aabb.Max()), vertexFormat);
 	if (!optMesh.has_value())
 	{
@@ -68,8 +65,8 @@ void StaticMeshComponent::BuildDebug()
 		currentDataSize += posDataSize;
 
 		// barycentric
-		const cd::Point& barycentricCoordinates = meshData.GetVertexBiTangent(vertexIndex);
-		constexpr uint32_t bcDataSize = cd::Point::Size * sizeof(cd::Point::ValueType);
+		const cd::Vec4f& barycentricCoordinates = meshData.GetVertexColor(0U, vertexIndex);
+		constexpr uint32_t bcDataSize = cd::Vec4f::Size * sizeof(cd::Vec4f::ValueType);
 		std::memcpy(&currentDataPtr[currentDataSize], barycentricCoordinates.Begin(), bcDataSize);
 		currentDataSize += bcDataSize;
 	}

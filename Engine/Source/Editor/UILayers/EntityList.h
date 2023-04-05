@@ -4,6 +4,13 @@
 
 #include <imgui/imgui.h>
 
+namespace engine
+{
+
+class SceneWorld;
+
+}
+
 namespace editor
 {
 
@@ -16,8 +23,8 @@ public:
 	virtual void Init() override;
 	virtual void Update() override;
 
-	void AddEntity();
-	void DrawEntity(engine::Entity entity);
+	void AddEntity(engine::SceneWorld* pSceneWorld);
+	void DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity entity);
 
 private:
 	ImGuiTextFilter m_entityFilter;

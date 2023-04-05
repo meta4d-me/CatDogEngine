@@ -191,14 +191,13 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 			pSceneDatabase->GetMaterialCount(), pSceneDatabase->GetTextureCount(), pSceneDatabase->GetLightCount());
 		genericProducer.ActivateBoundingBoxService();
 		genericProducer.ActivateCleanUnusedService();
-		// TODO : add a flatten option without breaking bone hierarchys.
-		genericProducer.ActivateFlattenHierarchyService();
 		genericProducer.ActivateTangentsSpaceService();
 		genericProducer.ActivateTriangulateService();
 		genericProducer.ActivateSimpleAnimationService();
 		ECWorldConsumer ecConsumer(pSceneWorld, pCurrentRenderContext);
-		ecConsumer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount());
+		ecConsumer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount(), pSceneDatabase->GetMeshCount());
 		cdtools::Processor processor(&genericProducer, &ecConsumer, pSceneDatabase);
+		processor.SetFlattenSceneDatabaseEnable(true);
 		processor.Run();
 	}
 	else if (ImportAssetType::CubeMap == m_importingAssetType)
