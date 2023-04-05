@@ -38,7 +38,6 @@ void PBRSkyRenderer::Init() {
 	m_programComputeIndirectIrradiance = m_pRenderContext->CreateProgram("ComputeIndirectIrradiance", "cs_ComputeIndirectIrradiance.bin");
 	m_programComputeMultipleScattering = m_pRenderContext->CreateProgram("ComputeMultipleScattering", "cs_ComputeMultipleScattering.bin");
 
-
 	m_textureTransmittance = m_pRenderContext->CreateTexture("m_textureTransmittance",
 		TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT, FLAG_2DTEXTURE);
 	m_textureIrradiance = m_pRenderContext->CreateTexture("m_textureIrradiance",
@@ -68,7 +67,7 @@ void PBRSkyRenderer::Init() {
 	m_pRenderContext->CreateVertexLayout(positionVertexLayout, vertexFormat.GetVertexLayout());
 
 	cd::Box box(cd::Point(-1.0f), cd::Point(1.0f));
-	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(box, vertexFormat);
+	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(box, vertexFormat, false);
 	assert(optMesh.has_value());
 
 	const cd::Mesh& meshData = optMesh.value();
@@ -85,14 +84,14 @@ void PBRSkyRenderer::UpdateView(const float *pViewMatrix, const float *pProjecti
 	// so that no matter how far the player moves, the skybox won't get any closer.
 	// Remove the translation part of the view matrix
 	// so only rotation will affect the skybox's position vectors.
-	float pView[16];
-	std::memcpy(pView, pViewMatrix, 12 * sizeof(float));
-	pView[12] = pView[13] = pView[14] = 0.0f;
-	pView[15] = 1.0f;
+	float fixedViewMatrix[16];
+	std::memcpy(fixedViewMatrix, pViewMatrix, 12 * sizeof(float));
+	fixedViewMatrix[12] = fixedViewMatrix[13] = fixedViewMatrix[14] = 0.0f;
+	fixedViewMatrix[15] = 1.0f;
 
 	bgfx::setViewFrameBuffer(GetViewID(), *GetRenderTarget()->GetFrameBufferHandle());
 	bgfx::setViewRect(GetViewID(), 0, 0, GetRenderTarget()->GetWidth(), GetRenderTarget()->GetHeight());
-	bgfx::setViewTransform(GetViewID(), pView, pProjectionMatrix);
+	bgfx::setViewTransform(GetViewID(), fixedViewMatrix, pProjectionMatrix);
 	bgfx::setViewClear(GetViewID(), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
 }
 

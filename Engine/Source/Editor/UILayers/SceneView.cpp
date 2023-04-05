@@ -42,7 +42,7 @@ constexpr ImGuizmoOperationMode OperationModes[] = {
 	{ ICON_MDI_ARROW_ALL, "Translate",  ImGuizmo::OPERATION::TRANSLATE, false},
 	{ ICON_MDI_ROTATE_ORBIT, "Rotate",  ImGuizmo::OPERATION::ROTATE, false},
 	{ ICON_MDI_ARROW_EXPAND_ALL, "Scale",  ImGuizmo::OPERATION::SCALE, false},
-	{ ICON_MDI_CROP_ROTATE, "Universal",  ImGuizmo::OPERATION::UNIVERSAL, true},
+	{ ICON_MDI_CROP_ROTATE, "Transform",  ImGuizmo::OPERATION::UNIVERSAL, true},
 };
 
 }
