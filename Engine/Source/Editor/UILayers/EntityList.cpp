@@ -31,7 +31,27 @@ void EntityList::AddEntity()
     {
         engine::Entity entity = pWorld->CreateEntity();
         auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
-        nameComponent.SetName("Untitled");
+        nameComponent.SetName(pDefaultName);
+
+        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+        transformComponent.SetTransform(cd::Transform::Identity());
+        transformComponent.Build();
+
+        engine::MaterialType* pPBRMaterialType = pSceneWorld->GetPBRMaterialType();
+        std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Box(cd::Point(-10.0f), cd::Point(10.0f)), pPBRMaterialType->GetRequiredVertexFormat());
+        assert(optMesh.has_value());
+
+        auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
+        meshComponent.SetMeshData(&optMesh.value());
+        meshComponent.SetRequiredVertexFormat(&pPBRMaterialType->GetRequiredVertexFormat());
+        meshComponent.Build();
+
+        auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
+        materialComponent.SetMaterialData(nullptr);
+        materialComponent.SetMaterialType(pPBRMaterialType);
+        materialComponent.SetUberShaderOption(engine::ShaderSchema::DefaultUberOption);
+        materialComponent.Build();
+
         return entity;
     };
 
