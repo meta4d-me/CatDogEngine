@@ -252,13 +252,11 @@ void SceneView::UpdateToolMenuButtons()
 
 	ImGui::SameLine();
 
-	Update2DAnd3DButtons();
+	//Update2DAnd3DButtons();
+	//ImGui::SameLine();
 
-	ImGui::SameLine();
-
-	UpdateSwitchIBLButton();
-
-	ImGui::SameLine();
+	//UpdateSwitchIBLButton();
+	//ImGui::SameLine();
 
 	UpdateSwitchAABBButton();
 

@@ -21,17 +21,15 @@ void EntityList::Init()
 
 }
 
-void EntityList::AddEntity()
+void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
 {
-    engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(ImGui::GetIO().UserData);
-    engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
     engine::World* pWorld = pSceneWorld->GetWorld();
 
-    auto AddShapeEntity = [&pWorld, &pSceneWorld](const char* pDefaultName) -> engine::Entity
+    auto AddShapeEntity = [&pWorld, &pSceneWorld](std::string defaultName) -> engine::Entity
     {
         engine::Entity entity = pWorld->CreateEntity();
         auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
-        nameComponent.SetName(pDefaultName);
+        nameComponent.SetName(defaultName + std::to_string(entity));
 
         auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
         transformComponent.SetTransform(cd::Transform::Identity());
@@ -57,7 +55,7 @@ void EntityList::AddEntity()
 
     if (ImGui::Selectable("Add Mesh"))
     {
-        engine::Entity entity = AddShapeEntity("Untitled_Mesh");
+        AddShapeEntity("Untitled_Mesh");
     }
     else if (ImGui::Selectable("Add Camera"))
     {
@@ -71,11 +69,8 @@ void EntityList::AddEntity()
     }
 }
 
-void EntityList::DrawEntity(engine::Entity entity)
+void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity entity)
 {
-    engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(ImGui::GetIO().UserData);
-    engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
-
     engine::NameComponent* pNameComponent = pSceneWorld->GetNameComponent(entity);
     if (!pNameComponent)
     {
@@ -92,7 +87,7 @@ void EntityList::DrawEntity(engine::Entity entity)
 
     ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_FramePadding |
         ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_SpanAvailWidth;
-    if (pSceneWorld->GetSelectedEntity() != engine::INVALID_ENTITY)
+    if (entity == pSceneWorld->GetSelectedEntity())
     {
         nodeFlags |= ImGuiTreeNodeFlags_Selected;
     }
@@ -192,6 +187,8 @@ void EntityList::DrawEntity(engine::Entity entity)
 void EntityList::Update()
 {
     ImGuiIO& io = ImGui::GetIO();
+    engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
+    engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
 
 	auto flags = ImGuiWindowFlags_NoCollapse;
 	ImGui::Begin(GetName(), &m_isEnable, flags);
@@ -204,7 +201,7 @@ void EntityList::Update()
 
     if (ImGui::BeginPopup("AddEntity"))
     {
-        AddEntity();
+        AddEntity(pSceneWorld);
         ImGui::EndPopup();
     }
 
@@ -257,11 +254,9 @@ void EntityList::Update()
 
     ImGui::BeginChild("Entites");
 
-    engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
-    engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
     for (engine::Entity entity : pSceneWorld->GetStaticMeshEntities())
     {
-        DrawEntity(entity);
+        DrawEntity(pSceneWorld, entity);
     }
 
     ImGui::Indent();
