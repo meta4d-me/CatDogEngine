@@ -111,4 +111,12 @@ void SceneWorld::SetMainCameraEntity(engine::Entity entity)
 	m_mainCameraEntity = entity;
 }
 
+void SceneWorld::OnResizeSceneView(uint16_t width, uint16_t height)
+{
+	if (engine::CameraComponent* pCameraComponent = GetCameraComponent(GetMainCameraEntity()))
+	{
+		pCameraComponent->SetAspect(width, height);
+	}
+}
+
 }

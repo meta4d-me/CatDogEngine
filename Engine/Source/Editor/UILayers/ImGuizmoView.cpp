@@ -58,16 +58,19 @@ void ImGuizmoView::Update()
 		if (ImGuizmo::OPERATION::TRANSLATE & operation)
 		{
 			pTransformComponent->GetTransform().SetTranslation(worldMatrix.GetTranslation());
+			pTransformComponent->Dirty();
 		}
 		
 		if (ImGuizmo::OPERATION::ROTATE & operation)
 		{
 			pTransformComponent->GetTransform().SetRotation(cd::Quaternion::FromMatrix(worldMatrix.GetRotation()));
+			pTransformComponent->Dirty();
 		}
 
 		if (ImGuizmo::OPERATION::SCALE & operation)
 		{
 			pTransformComponent->GetTransform().SetScale(worldMatrix.GetScale());
+			pTransformComponent->Dirty();
 		}
 
 		pTransformComponent->Build();

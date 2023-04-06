@@ -5,7 +5,9 @@
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
 #include "ImGui/ImGuiContextInstance.h"
 #include "Math/MeshGenerator.h"
+#include "Rendering/RenderContext.h"
 
+#include <bgfx/bgfx.h>
 #include <imgui/imgui_internal.h>
 
 namespace editor
@@ -31,10 +33,6 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
         nameComponent.SetName(defaultName + std::to_string(entity));
 
-        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
-        transformComponent.SetTransform(cd::Transform::Identity());
-        transformComponent.Build();
-
         return entity;
     };
 
@@ -55,16 +53,33 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         materialComponent.SetMaterialType(pPBRMaterialType);
         materialComponent.SetUberShaderOption(engine::ShaderSchema::DefaultUberOption);
         materialComponent.Build();
+
+        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+        transformComponent.SetTransform(cd::Transform::Identity());
+        transformComponent.Build();
     }
     else if (ImGui::Selectable("Add Camera"))
     {
         engine::Entity entity = AddNamedEntity("Untitled_Camera");
-        pWorld->CreateComponent<engine::CameraComponent>(entity);
+        auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(entity);
+        cameraComponent.SetEye(cd::Point(0.0f, 50.0f, -200.0f));
+        cameraComponent.SetLookAt(cd::Direction(0.0f, 0.0f, 1.0f));
+        cameraComponent.SetUp(cd::Direction(0.0f, 1.0f, 0.0f));
+        cameraComponent.SetAspect(1.0f);
+        cameraComponent.SetFov(45.0f);
+        cameraComponent.SetNearPlane(0.1f);
+        cameraComponent.SetFarPlane(2000.0f);
+        cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
+        cameraComponent.Build();
     }
     else if (ImGui::Selectable("Add Light"))
     {
         engine::Entity entity = AddNamedEntity("Untitled_Light");
         pWorld->CreateComponent<engine::LightComponent>(entity);
+
+        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+        transformComponent.SetTransform(cd::Transform::Identity());
+        transformComponent.Build();
     }
 }
 
@@ -133,17 +148,34 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
 
     if (ImGui::BeginPopupContextItem(pNameComponent->GetName()))
     {
-        if (ImGui::Selectable("Add Child"))
+        if (ImGui::Selectable(CD_TEXT("Add Child")))
         {
 
         }
-        else if (ImGui::Selectable("Rename"))
+
+        if (ImGui::Selectable(CD_TEXT("Rename")))
         {
            // m_editingEntityName = true;
         }
-        else if (ImGui::Selectable("Delete"))
+
+        if (ImGui::Selectable(CD_TEXT("Delete")))
         {
             pSceneWorld->DeleteEntity(entity);
+        }
+
+        engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(entity);
+        if (pCameraComponent &&
+            entity != pSceneWorld->GetMainCameraEntity())
+        {
+            if (ImGui::Selectable(CD_TEXT("Set Main Camera")))
+            {
+                pSceneWorld->SetMainCameraEntity(entity);
+                
+                engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(ImGui::GetIO().BackendRendererUserData);
+                constexpr engine::StringCrc sceneRenderTarget("SceneRenderTarget");
+                engine::RenderTarget* pRenderTarget = pCurrentRenderContext->GetRenderTarget(sceneRenderTarget);
+                pCameraComponent->SetAspect(pRenderTarget->GetAspect());
+            }
         }
 
         ImGui::EndPopup();

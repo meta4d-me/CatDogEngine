@@ -8,13 +8,14 @@ namespace engine
 {
 
 class CameraComponent;
+class SceneWorld;
 
 class FirstPersonCameraController final
 {
 public:
 	FirstPersonCameraController() = delete;
-	explicit FirstPersonCameraController(CameraComponent* pCamera, const float sensitivity, const float movement_speed);
-	explicit FirstPersonCameraController(CameraComponent* pCamera, const float horizontal_sensitivity, const float vertical_sensitivity, const float movement_speed);
+	explicit FirstPersonCameraController(const SceneWorld* pSceneWorld, const float sensitivity, const float movement_speed);
+	explicit FirstPersonCameraController(const SceneWorld* pSceneWorld, const float horizontal_sensitivity, const float vertical_sensitivity, const float movement_speed);
 	~FirstPersonCameraController() = default;
 
 	FirstPersonCameraController(const FirstPersonCameraController&) = delete;
@@ -22,7 +23,7 @@ public:
 	FirstPersonCameraController& operator=(const FirstPersonCameraController&) = delete;
 	FirstPersonCameraController& operator=(FirstPersonCameraController&&) = delete;
 
-	void Update(float dt);
+	void Update(float deltaTime);
 
 	// Configs
 	void SetMovementSpeed(const float speed);
@@ -47,7 +48,10 @@ public:
 	void RollLocal(float angleDegrees);
 
 private:
-	CameraComponent* m_pCameraComponent;
+	engine::CameraComponent* GetMainCameraComponent() const;
+
+private:
+	const SceneWorld* m_pSceneWorld;
 
 	float m_horizontalSensitivity;
 	float m_verticalSensitivity;
