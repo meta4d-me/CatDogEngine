@@ -25,7 +25,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
 {
     engine::World* pWorld = pSceneWorld->GetWorld();
 
-    auto AddShapeEntity = [&pWorld, &pSceneWorld](std::string defaultName) -> engine::Entity
+    auto AddNamedEntity = [&pWorld, &pSceneWorld](std::string defaultName) -> engine::Entity
     {
         engine::Entity entity = pWorld->CreateEntity();
         auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
@@ -35,6 +35,12 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         transformComponent.SetTransform(cd::Transform::Identity());
         transformComponent.Build();
 
+        return entity;
+    };
+
+    if (ImGui::Selectable("Add Mesh"))
+    {
+        engine::Entity entity = AddNamedEntity("Untitled_Mesh");
         engine::MaterialType* pPBRMaterialType = pSceneWorld->GetPBRMaterialType();
         std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Box(cd::Point(-10.0f), cd::Point(10.0f)), pPBRMaterialType->GetRequiredVertexFormat());
         assert(optMesh.has_value());
@@ -49,22 +55,15 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         materialComponent.SetMaterialType(pPBRMaterialType);
         materialComponent.SetUberShaderOption(engine::ShaderSchema::DefaultUberOption);
         materialComponent.Build();
-
-        return entity;
-    };
-
-    if (ImGui::Selectable("Add Mesh"))
-    {
-        AddShapeEntity("Untitled_Mesh");
     }
     else if (ImGui::Selectable("Add Camera"))
     {
-        engine::Entity entity = AddShapeEntity("Untitled_Camera");
+        engine::Entity entity = AddNamedEntity("Untitled_Camera");
         pWorld->CreateComponent<engine::CameraComponent>(entity);
     }
     else if (ImGui::Selectable("Add Light"))
     {
-        engine::Entity entity = AddShapeEntity("Untitled_Light");
+        engine::Entity entity = AddNamedEntity("Untitled_Light");
         pWorld->CreateComponent<engine::LightComponent>(entity);
     }
 }
@@ -254,7 +253,7 @@ void EntityList::Update()
 
     ImGui::BeginChild("Entites");
 
-    for (engine::Entity entity : pSceneWorld->GetStaticMeshEntities())
+    for (engine::Entity entity : pSceneWorld->GetNameEntities())
     {
         DrawEntity(pSceneWorld, entity);
     }

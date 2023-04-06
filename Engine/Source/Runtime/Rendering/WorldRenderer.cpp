@@ -1,10 +1,10 @@
 #include "WorldRenderer.h"
 
+#include "ECWorld/CameraComponent.h"
 #include "ECWorld/MaterialComponent.h"
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
-#include "Display/Camera.h"
 #include "Material/ShaderSchema.h"
 #include "RenderContext.h"
 #include "Scene/Texture.h"
@@ -39,6 +39,8 @@ void WorldRenderer::UpdateView(const float* pViewMatrix, const float* pProjectio
 
 void WorldRenderer::Render(float deltaTime)
 {
+	// TODO : Remove it. If every renderer need to submit camera related uniform, it should be done not inside Renderer class.
+	const engine::CameraComponent* pCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(m_pCurrentSceneWorld->GetMainCameraEntity());
 	for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
 	{
 		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
@@ -99,7 +101,7 @@ void WorldRenderer::Render(float deltaTime)
 			bgfx::setTexture(5, m_pRenderContext->GetUniform(cubeIrrSampler), m_pRenderContext->GetTexture(cubeIrrTexture));
 		}
 
-		m_pRenderContext->FillUniform(StringCrc("u_cameraPos"), &m_pRenderContext->GetCamera()->GetPosition().x(), 1);
+		m_pRenderContext->FillUniform(StringCrc("u_cameraPos"), &pCameraComponent->GetEye().x(), 1);
 
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);

@@ -1,11 +1,10 @@
 #include "ImGuizmoView.h"
 
-#include "Display/Camera.h"
+#include "ECWorld/CameraComponent.h"
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
 #include "ImGui/ImGuiContextInstance.h"
-#include "Rendering/RenderContext.h"
 
 // TODO : can use StringCrc to access other UILayers from ImGuiContextInstance.
 #include "UILayers/SceneView.h"
@@ -44,15 +43,14 @@ void ImGuizmoView::Update()
 	}
 
 	ImGuizmo::OPERATION operation = m_pSceneView->GetImGuizmoOperation();
-	engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
-	engine::Camera* pCamera = pRenderContext->GetCamera();
+	const engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
 
 	ImGuizmo::BeginFrame();
 	constexpr bool isPerspective = true;
 	ImGuizmo::SetOrthographic(!isPerspective);
 	ImGuizmo::SetRect(0.0f, 0.0f, io.DisplaySize.x, io.DisplaySize.y);
 	cd::Matrix4x4 worldMatrix = pTransformComponent->GetWorldMatrix();
-	ImGuizmo::Manipulate(pCamera->GetViewMatrix().Begin(), pCamera->GetProjectionMatrix().Begin(),
+	ImGuizmo::Manipulate(pCameraComponent->GetViewMatrix().Begin(), pCameraComponent->GetProjectionMatrix().Begin(),
 		operation, ImGuizmo::LOCAL, worldMatrix.Begin());
 
 	if (ImGuizmo::IsUsing())
@@ -64,8 +62,7 @@ void ImGuizmoView::Update()
 		
 		if (ImGuizmo::OPERATION::ROTATE & operation)
 		{
-			cd::Quaternion rotation = cd::Quaternion::FromMatrix(worldMatrix.GetRotation());
-			pTransformComponent->GetTransform().SetRotation(cd::MoveTemp(rotation));
+			pTransformComponent->GetTransform().SetRotation(cd::Quaternion::FromMatrix(worldMatrix.GetRotation()));
 		}
 
 		if (ImGuizmo::OPERATION::SCALE & operation)

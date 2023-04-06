@@ -17,6 +17,8 @@ namespace cd
 {
 
 class Animation;
+class Camera;
+class Light;
 class Material;
 class Mesh;
 class Node;
@@ -61,6 +63,8 @@ public:
 	const std::vector<engine::Uber>& GetActiveUberOptions() const { return m_activeUberOptions; }
 
 private:
+	void AddCamera(engine::Entity entity, const cd::Camera& camera);
+	void AddLight(engine::Entity entity, const cd::Light& light);
 	void AddTransform(engine::Entity entity, const cd::Transform& transform);
 	void AddStaticMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat);
 	void AddSkinMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat);

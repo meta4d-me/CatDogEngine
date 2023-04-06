@@ -113,7 +113,7 @@ dofile("engine.lua")
 dofile("editor.lua")
 
 -- game projects made by engine
-dofile("project.lua")
+-- dofile("project.lua")
 
 -- regression tests for engine core modules
 dofile("test.lua")

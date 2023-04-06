@@ -7,11 +7,16 @@ void TransformComponent::Reset()
 {
 	m_transform.Clear();
 	m_localToWorldMatrix.Clear();
+	m_isMatrixDirty = true;
 }
 
 void TransformComponent::Build()
 {
-	m_localToWorldMatrix = m_transform.GetMatrix();
+	if (m_isMatrixDirty)
+	{
+		m_localToWorldMatrix = m_transform.GetMatrix();
+		m_isMatrixDirty = false;
+	}
 }
 
 }

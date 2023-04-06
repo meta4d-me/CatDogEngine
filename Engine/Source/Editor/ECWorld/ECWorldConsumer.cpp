@@ -58,14 +58,15 @@ void ECWorldConsumer::SetSceneDatabaseIDs(uint32_t nodeID, uint32_t meshID)
 
 void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 {
-	assert(pSceneDatabase->GetMeshCount() > 0);
-	
-	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetPBRMaterialType());
-
-	auto ParseMeshID = [&](cd::MeshID meshID, const cd::Transform& tranform)
+	if (0U == pSceneDatabase->GetMeshCount())
 	{
-		engine::Entity sceneEntity = m_pSceneWorld->GetWorld()->CreateEntity();
-		AddTransform(sceneEntity, tranform);
+		CD_WARN("[ECWorldConsumer] No valid meshes in the consumed SceneDatabase.");
+	}
+
+	auto ParseMesh = [&](cd::MeshID meshID, const cd::Transform& tranform)
+	{
+		engine::Entity meshEntity = m_pSceneWorld->GetWorld()->CreateEntity();
+		AddTransform(meshEntity, tranform);
 
 		const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
 
@@ -74,23 +75,23 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 		if (isStaticMesh)
 		{
 			engine::MaterialType* pMaterialType = m_pSceneWorld->GetPBRMaterialType();
-			AddStaticMesh(sceneEntity, mesh, pMaterialType->GetRequiredVertexFormat());
+			AddStaticMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
 
 			cd::MaterialID meshMaterialID = mesh.GetMaterialID();
 			if (meshMaterialID.IsValid())
 			{
-				AddMaterial(sceneEntity, &pSceneDatabase->GetMaterial(meshMaterialID.Data()), pMaterialType, pSceneDatabase);
+				AddMaterial(meshEntity, &pSceneDatabase->GetMaterial(meshMaterialID.Data()), pMaterialType, pSceneDatabase);
 			}
 		}
 		else
 		{
 			engine::MaterialType* pMaterialType = m_pSceneWorld->GetAnimationMaterialType();
-			AddSkinMesh(sceneEntity, mesh, pMaterialType->GetRequiredVertexFormat());
+			AddSkinMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
 
 			// TODO : Use a standalone .cdanim file to play animation.
 			// Currently, we assume that imported SkinMesh will play animation automatically for testing.
-			AddAnimation(sceneEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
-			AddMaterial(sceneEntity, nullptr, pMaterialType, pSceneDatabase);
+			AddAnimation(meshEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
+			AddMaterial(meshEntity, nullptr, pMaterialType, pSceneDatabase);
 		}
 	};
 
@@ -99,7 +100,6 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 	// 2. Only a root node with multiple meshes.
 	// 3. Node hierarchy.
 	// Another case is that we want to skip Node/Mesh which alreay parsed previously.
-
 	std::set<uint32_t> parsedMeshIDs;
 	for (const auto& mesh : pSceneDatabase->GetMeshes())
 	{
@@ -108,7 +108,7 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 			continue;
 		}
 
-		ParseMeshID(mesh.GetID(), cd::Transform::Identity());
+		ParseMesh(mesh.GetID(), cd::Transform::Identity());
 		parsedMeshIDs.insert(mesh.GetID().Data());
 	}
 
@@ -126,9 +126,37 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 				continue;
 			}
 
-			ParseMeshID(meshID, node.GetTransform());
+			ParseMesh(meshID, node.GetTransform());
 		}
 	}
+
+	for (const auto& camera : pSceneDatabase->GetCameras())
+	{
+		engine::Entity cameraEntity = m_pSceneWorld->GetWorld()->CreateEntity();
+		AddCamera(cameraEntity, camera);
+	}
+}
+
+void ECWorldConsumer::AddCamera(engine::Entity entity, const cd::Camera& camera)
+{
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+	engine::NameComponent& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
+	nameComponent.SetName(camera.GetName());
+
+	engine::CameraComponent& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(entity);
+	cameraComponent.SetEye(camera.GetEye());
+	cameraComponent.SetLookAt(camera.GetLookAt());
+	cameraComponent.SetUp(camera.GetUp());
+	cameraComponent.SetNearPlane(camera.GetNearPlane());
+	cameraComponent.SetFarPlane(camera.GetFarPlane());
+	cameraComponent.SetAspect(camera.GetAspect());
+	cameraComponent.SetFov(camera.GetFov());
+	cameraComponent.Build();
+}
+
+void ECWorldConsumer::AddLight(engine::Entity entity, const cd::Light& light)
+{
+
 }
 
 void ECWorldConsumer::AddTransform(engine::Entity entity, const cd::Transform& transform)
