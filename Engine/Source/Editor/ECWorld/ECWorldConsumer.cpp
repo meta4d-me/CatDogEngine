@@ -135,6 +135,12 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 		engine::Entity cameraEntity = m_pSceneWorld->GetWorld()->CreateEntity();
 		AddCamera(cameraEntity, camera);
 	}
+
+	for (const auto& light : pSceneDatabase->GetLights())
+	{
+		engine::Entity lightEntity = m_pSceneWorld->GetWorld()->CreateEntity();
+		AddLight(lightEntity, light);
+	}
 }
 
 void ECWorldConsumer::AddCamera(engine::Entity entity, const cd::Camera& camera)
@@ -156,7 +162,27 @@ void ECWorldConsumer::AddCamera(engine::Entity entity, const cd::Camera& camera)
 
 void ECWorldConsumer::AddLight(engine::Entity entity, const cd::Light& light)
 {
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+	engine::NameComponent& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
+	nameComponent.SetName(light.GetName());
 
+	engine::LightComponent& lightComponent = pWorld->CreateComponent<engine::LightComponent>(entity);
+	lightComponent.SetType(light.GetType());
+	lightComponent.SetIntensity(light.GetIntensity());
+	lightComponent.SetRadius(light.GetRadius());
+	lightComponent.SetRange(light.GetRange());
+	lightComponent.SetWidth(light.GetWidth());
+	lightComponent.SetHeight(light.GetHeight());
+	lightComponent.SetAngleScale(light.GetAngleScale());
+	lightComponent.SetAngleOffset(light.GetAngleOffset());
+	lightComponent.SetColor(light.GetColor());
+	lightComponent.SetPosition(light.GetPosition());
+	lightComponent.SetDirection(light.GetDirection());
+	lightComponent.SetUp(light.GetUp());
+
+	engine::TransformComponent& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+	transformComponent.SetTransform(cd::Transform::Identity());
+	transformComponent.Build();
 }
 
 void ECWorldConsumer::AddTransform(engine::Entity entity, const cd::Transform& transform)
