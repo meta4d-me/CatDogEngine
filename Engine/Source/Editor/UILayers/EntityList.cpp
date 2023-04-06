@@ -36,9 +36,9 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         return entity;
     };
 
-    if (ImGui::Selectable("Add Mesh"))
+    if (ImGui::Selectable("Add Static Mesh"))
     {
-        engine::Entity entity = AddNamedEntity("Untitled_Mesh");
+        engine::Entity entity = AddNamedEntity("StaticMesh");
         engine::MaterialType* pPBRMaterialType = pSceneWorld->GetPBRMaterialType();
         std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Box(cd::Point(-10.0f), cd::Point(10.0f)), pPBRMaterialType->GetRequiredVertexFormat());
         assert(optMesh.has_value());
@@ -60,7 +60,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     }
     else if (ImGui::Selectable("Add Camera"))
     {
-        engine::Entity entity = AddNamedEntity("Untitled_Camera");
+        engine::Entity entity = AddNamedEntity("Camera");
         auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(entity);
         cameraComponent.SetEye(cd::Point(0.0f, 50.0f, -200.0f));
         cameraComponent.SetLookAt(cd::Direction(0.0f, 0.0f, 1.0f));
@@ -72,10 +72,27 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
         cameraComponent.Build();
     }
-    else if (ImGui::Selectable("Add Light"))
+    else if (ImGui::Selectable("Add Point Light"))
     {
-        engine::Entity entity = AddNamedEntity("Untitled_Light");
-        pWorld->CreateComponent<engine::LightComponent>(entity);
+        engine::Entity entity = AddNamedEntity("PointLight");
+        auto& lightComponent = pWorld->CreateComponent<engine::LightComponent>(entity);
+        lightComponent.SetType(cd::LightType::Point);
+        lightComponent.SetPosition(cd::Point(0.0f, -4.0f, 0.0f));
+        lightComponent.SetIntensity(1024.0f);
+        lightComponent.SetColor(cd::Vec3f(0.8f, 0.4f, 0.4f));
+        lightComponent.SetRange(1024.0f);
+
+        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+        transformComponent.SetTransform(cd::Transform::Identity());
+        transformComponent.Build();
+    }
+    else if (ImGui::Selectable("Add Direction Light"))
+    {
+        engine::Entity entity = AddNamedEntity("DirectionLight");
+        auto& lightComponent = pWorld->CreateComponent<engine::LightComponent>(entity);
+        lightComponent.SetType(cd::LightType::Directional);
+        lightComponent.SetIntensity(4.0f);
+        lightComponent.SetColor(cd::Vec3f(1.0f, 1.0f, 1.0f));
 
         auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
         transformComponent.SetTransform(cd::Transform::Identity());
@@ -88,6 +105,7 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
     engine::NameComponent* pNameComponent = pSceneWorld->GetNameComponent(entity);
     if (!pNameComponent)
     {
+        // Entity list requires entity to have name component to display.
         return;
     }
 
@@ -150,7 +168,6 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
     {
         if (ImGui::Selectable(CD_TEXT("Add Child")))
         {
-
         }
 
         if (ImGui::Selectable(CD_TEXT("Rename")))
@@ -163,6 +180,7 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
             pSceneWorld->DeleteEntity(entity);
         }
 
+        // Operation list only for camera entites.
         engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(entity);
         if (pCameraComponent &&
             entity != pSceneWorld->GetMainCameraEntity())
