@@ -293,26 +293,53 @@ void AssetBrowser::ExportAssetFile(const char* pFilePath)
 
 	if (ExportAssetType::SceneDatabase == m_exportingAssetType)
 	{
-		// Export camera and light component data to SceneDatabase.
-		if (const engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity()))
+		// Export main camera entity to scene.
+		engine::Entity mainCameraEntity = pSceneWorld->GetMainCameraEntity();
+		const engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(mainCameraEntity);
+		assert(pCameraComponent);
+		std::string cameraName = "Untitled_Camera";
+		if (const engine::NameComponent* pNameComponent = pSceneWorld->GetNameComponent(mainCameraEntity))
 		{
-			std::string cameraName = "Untitled_Camera";
-			if (const engine::NameComponent* pNameComponent = pSceneWorld->GetNameComponent(pSceneWorld->GetMainCameraEntity()))
+			cameraName = pNameComponent->GetName();
+		}
+
+		cd::Camera camera(cd::CameraID(pSceneDatabase->GetCameraCount()), cameraName.c_str());
+		camera.SetEye(pCameraComponent->GetEye());
+		camera.SetLookAt(pCameraComponent->GetLookAt());
+		camera.SetUp(pCameraComponent->GetUp());
+		camera.SetNearPlane(pCameraComponent->GetNearPlane());
+		camera.SetFarPlane(pCameraComponent->GetFarPlane());
+		camera.SetAspect(pCameraComponent->GetAspect());
+		camera.SetFov(pCameraComponent->GetFov());
+		pSceneDatabase->AddCamera(cd::MoveTemp(camera));
+		
+		// Export light entities to scene.
+		for (engine::Entity lightEntity : pSceneWorld->GetLightEntities())
+		{
+			const engine::LightComponent* pLightComponent = pSceneWorld->GetLightComponent(lightEntity);
+
+			std::string lightName = "Untitled_Light";
+			if (const engine::NameComponent* pNameComponent = pSceneWorld->GetNameComponent(lightEntity))
 			{
-				cameraName = pNameComponent->GetName();
+				lightName = pNameComponent->GetName();
 			}
 
-			cd::Camera camera(cd::CameraID(pSceneDatabase->GetCameraCount()), cameraName.c_str());
-			camera.SetEye(pCameraComponent->GetEye());
-			camera.SetLookAt(pCameraComponent->GetLookAt());
-			camera.SetUp(pCameraComponent->GetUp());
-			camera.SetNearPlane(pCameraComponent->GetNearPlane());
-			camera.SetFarPlane(pCameraComponent->GetFarPlane());
-			camera.SetAspect(pCameraComponent->GetAspect());
-			camera.SetFov(pCameraComponent->GetFov());
-			pSceneDatabase->AddCamera(cd::MoveTemp(camera));
+			cd::Light light(cd::LightID(pSceneDatabase->GetLightCount()), pLightComponent->GetType());
+			light.SetName(lightName.c_str());
+			light.SetIntensity(pLightComponent->GetIntensity());
+			light.SetRange(pLightComponent->GetRange());
+			light.SetRadius(pLightComponent->GetRadius());
+			light.SetWidth(pLightComponent->GetWidth());
+			light.SetHeight(pLightComponent->GetHeight());
+			light.SetAngleScale(pLightComponent->GetAngleScale());
+			light.SetAngleOffset(pLightComponent->GetAngleOffset());
+			light.SetPosition(pLightComponent->GetPosition());
+			light.SetColor(pLightComponent->GetColor());
+			light.SetDirection(pLightComponent->GetDirection());
+			light.SetUp(pLightComponent->GetUp());
+			pSceneDatabase->AddLight(cd::MoveTemp(light));
 		}
-		
+
 		std::filesystem::path selectFilePath(pFilePath);
 		std::filesystem::path outputFilePath = selectFilePath.replace_extension(".cdbin");
 
