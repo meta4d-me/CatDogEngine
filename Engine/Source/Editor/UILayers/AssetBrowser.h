@@ -1,5 +1,7 @@
 #include "ImGui/ImGuiBaseLayer.h"
 
+#include <memory>
+
 namespace ImGui
 {
 
@@ -33,6 +35,12 @@ enum class ImportAssetType
 	Unknown,
 };
 
+enum class ExportAssetType
+{
+	SceneDatabase,
+	Unknown,
+};
+
 class AssetBrowser : public engine::ImGuiBaseLayer
 {
 public:
@@ -43,6 +51,8 @@ public:
 	virtual void Update() override;
 
 	void ImportAssetFile(const char* pFilePath);
+	void ImportModelFile(const char* pFilePath);
+	void ExportAssetFile(const char* pFilePath);
 	void SetSceneRenderer(engine::Renderer* pRenderer) { m_pSceneRenderer = pRenderer; }
 
 private:
@@ -50,9 +60,11 @@ private:
 	void UpdateAssetFileView();
 
 private:
-	ImGui::FileBrowser* m_pImportFileBrowser = nullptr;
-	engine::Renderer* m_pSceneRenderer = nullptr;
 	ImportAssetType m_importingAssetType = ImportAssetType::Unknown;
+	ExportAssetType m_exportingAssetType = ExportAssetType::Unknown;
+	std::unique_ptr<ImGui::FileBrowser> m_pImportFileBrowser;
+	std::unique_ptr<ImGui::FileBrowser> m_pExportFileBrowser;
+	engine::Renderer* m_pSceneRenderer = nullptr;
 };
 
 }

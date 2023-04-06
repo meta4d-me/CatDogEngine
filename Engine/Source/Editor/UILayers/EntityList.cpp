@@ -253,7 +253,7 @@ void EntityList::Update()
 
     ImGui::BeginChild("Entites");
 
-    for (engine::Entity entity : pSceneWorld->GetTransformEntities())
+    for (engine::Entity entity : pSceneWorld->GetNameEntities())
     {
         DrawEntity(pSceneWorld, entity);
     }

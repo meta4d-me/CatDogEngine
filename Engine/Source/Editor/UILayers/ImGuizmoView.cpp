@@ -62,8 +62,7 @@ void ImGuizmoView::Update()
 		
 		if (ImGuizmo::OPERATION::ROTATE & operation)
 		{
-			cd::Quaternion rotation = cd::Quaternion::FromMatrix(worldMatrix.GetRotation());
-			pTransformComponent->GetTransform().SetRotation(cd::MoveTemp(rotation));
+			pTransformComponent->GetTransform().SetRotation(cd::Quaternion::FromMatrix(worldMatrix.GetRotation()));
 		}
 
 		if (ImGuizmo::OPERATION::SCALE & operation)

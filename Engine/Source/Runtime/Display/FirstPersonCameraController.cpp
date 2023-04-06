@@ -91,7 +91,7 @@ void FirstPersonCameraController::SetVerticalSensitivity(const float sensitivity
 
 void FirstPersonCameraController::MoveForward(float amount)
 {
-	m_pCameraComponent->SetEye(m_pCameraComponent->GetEye() + m_pCameraComponent->GetForward() * amount);
+	m_pCameraComponent->SetEye(m_pCameraComponent->GetEye() + m_pCameraComponent->GetLookAt() * amount);
 }
 
 void FirstPersonCameraController::MoveBackward(float amount)
@@ -122,8 +122,8 @@ void FirstPersonCameraController::MoveDown(float amount)
 void FirstPersonCameraController::Rotate(const cd::Vec3f& axis, float angleDegrees)
 {
 	cd::Quaternion rotation = cd::Quaternion::FromAxisAngle(axis, cd::Math::DegreeToRadian<float>(angleDegrees));
-	m_pCameraComponent->SetForward((rotation * m_pCameraComponent->GetForward()).Normalize());
-	m_pCameraComponent->SetUp((rotation * m_pCameraComponent->GetUp()).Normalize());
+	m_pCameraComponent->SetLookAt(rotation * m_pCameraComponent->GetLookAt());
+	m_pCameraComponent->SetUp(rotation * m_pCameraComponent->GetUp());
 }
 
 void FirstPersonCameraController::Rotate(float x, float y, float z, float angleDegrees)
@@ -158,7 +158,7 @@ void FirstPersonCameraController::PitchLocal(float angleDegrees)
 
 void FirstPersonCameraController::RollLocal(float angleDegrees)
 {
-	Rotate(m_pCameraComponent->GetForward(), angleDegrees);
+	Rotate(m_pCameraComponent->GetLookAt(), angleDegrees);
 }
 
 }	// namespace engine

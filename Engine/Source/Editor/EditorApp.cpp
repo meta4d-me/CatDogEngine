@@ -197,13 +197,13 @@ void EditorApp::InitECWorld()
 	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(cameraEntity);
 	nameComponent.SetName("MainCamera");
 
-	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
-	transformComponent.SetTransform(cd::Transform::Identity());
-	transformComponent.Build();
+	//auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
+	//transformComponent.SetTransform(cd::Transform::Identity());
+	//transformComponent.Build();
 
 	auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(cameraEntity);
 	cameraComponent.SetEye(cd::Point(0.0f, 50.0f, -200.0f));
-	cameraComponent.SetForward(cd::Direction(0.0f, 0.0f, 1.0f));
+	cameraComponent.SetLookAt(cd::Direction(0.0f, 0.0f, 1.0f));
 	cameraComponent.SetUp(cd::Direction(0.0f, 1.0f, 0.0f));
 	cameraComponent.SetAspect(1.0f);
 	cameraComponent.SetFov(45.0f);

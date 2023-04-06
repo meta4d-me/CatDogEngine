@@ -7,10 +7,10 @@ void CameraComponent::Build()
 {
 	if (m_isViewDirty)
 	{
-		m_forward.Normalize();
+		m_lookAt.Normalize();
 		m_up.Normalize();
-		m_cross = m_up.Cross(m_forward).Normalize();
-		m_viewMatrix = cd::Matrix4x4::LookAt<cd::Handedness::Left>(m_eye, m_eye + m_forward, m_up);
+		m_cross = m_up.Cross(m_lookAt);
+		m_viewMatrix = cd::Matrix4x4::LookAt<cd::Handedness::Left>(m_eye, m_eye + m_lookAt, m_up);
 		m_isViewDirty = false;
 	}
 
@@ -34,7 +34,7 @@ void CameraComponent::FrameAll(const cd::AABB& aabb)
 
 	cd::Point lookFrom = lookAt - lookDirection * aabb.Size().Length();
 	m_eye = lookFrom;
-	m_forward = lookDirection;
+	m_lookAt = lookDirection;
 	m_isViewDirty = true;
 }
 
