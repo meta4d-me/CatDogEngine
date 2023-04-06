@@ -10,8 +10,8 @@ int main()
 	initArgs.pTitle = "CatDogEditor";
 	initArgs.pIconFilePath = "editor_icon.png";
 	initArgs.language = Language::ChineseSimplied;
-	initArgs.width = 1200;
-	initArgs.height = 600;
+	initArgs.width = 1920;
+	initArgs.height = 1080;
 	pEngine->Init(std::move(initArgs));
 
 	pEngine->Run();
