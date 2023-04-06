@@ -1,6 +1,7 @@
 #include "FirstPersonCameraController.h"
 
 #include "ECWorld/CameraComponent.h"
+#include "ECWorld/SceneWorld.h"
 #include "Math/Quaternion.hpp"
 #include "Window/Input.h"
 
@@ -10,61 +11,62 @@ namespace engine
 {
 
 FirstPersonCameraController::FirstPersonCameraController(
-	CameraComponent* pCamera,
+	const SceneWorld* pSceneWorld,
 	const float sensitivity, 
 	const float movement_speed)
-	: FirstPersonCameraController(pCamera, sensitivity, sensitivity, movement_speed)
-{}
+	: FirstPersonCameraController(pSceneWorld, sensitivity, sensitivity, movement_speed)
+{
+}
 
 FirstPersonCameraController::FirstPersonCameraController(
-	CameraComponent* pCamera,
+	const SceneWorld* pSceneWorld,
 	const float horizontal_sensitivity, 
 	const float vertical_sensitivity, 
 	const float movement_speed)
-	: m_pCameraComponent(pCamera)
+	: m_pSceneWorld(pSceneWorld)
 	, m_horizontalSensitivity(horizontal_sensitivity)
 	, m_verticalSensitivity(vertical_sensitivity)
 	, m_movementSpeed(movement_speed)
 {
-	assert(pCamera && "pCamera is nullptr");
+	assert(pSceneWorld);
 }
 
-void FirstPersonCameraController::Update(float dt)
+void FirstPersonCameraController::Update(float deltaTime)
 {
 	if (Input::Get().IsKeyPressed(KeyCode::w))
 	{
-		MoveForward(m_movementSpeed * dt);
+		MoveForward(m_movementSpeed * deltaTime);
 	}
 
 	if (Input::Get().IsKeyPressed(KeyCode::a))
 	{
-		MoveLeft(m_movementSpeed * dt);
+		MoveLeft(m_movementSpeed * deltaTime);
 	}
 
 	if (Input::Get().IsKeyPressed(KeyCode::s))
 	{
-		MoveBackward(m_movementSpeed * dt);
+		MoveBackward(m_movementSpeed * deltaTime);
 	}
 
 	if (Input::Get().IsKeyPressed(KeyCode::d))
 	{
-		MoveRight(m_movementSpeed * dt);
+		MoveRight(m_movementSpeed * deltaTime);
 	}
 
 	if (Input::Get().IsKeyPressed(KeyCode::e))
 	{
-		MoveUp(m_movementSpeed * dt);
+		MoveUp(m_movementSpeed * deltaTime);
 	}
 
 	if (Input::Get().IsKeyPressed(KeyCode::q))
 	{
-		MoveDown(m_movementSpeed * dt);
+		MoveDown(m_movementSpeed * deltaTime);
 	}
 
 	if (Input::Get().IsMouseRBPressed())
 	{
-		PitchLocal(-m_horizontalSensitivity * Input::Get().GetMousePositionOffsetY() * dt);
-		Yaw(m_verticalSensitivity * Input::Get().GetMousePositionOffsetX() * dt);
+		PitchLocal(-m_horizontalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
+		Yaw(m_verticalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
 	}
 }
 
@@ -89,9 +91,15 @@ void FirstPersonCameraController::SetVerticalSensitivity(const float sensitivity
 	m_verticalSensitivity = sensitivity;
 }
 
+engine::CameraComponent* FirstPersonCameraController::GetMainCameraComponent() const
+{
+	return m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
+}
+
 void FirstPersonCameraController::MoveForward(float amount)
 {
-	m_pCameraComponent->SetEye(m_pCameraComponent->GetEye() + m_pCameraComponent->GetLookAt() * amount);
+	engine::CameraComponent* pCameraComponent = GetMainCameraComponent();
+	pCameraComponent->SetEye(pCameraComponent->GetEye() + pCameraComponent->GetLookAt() * amount);
 }
 
 void FirstPersonCameraController::MoveBackward(float amount)
@@ -101,7 +109,8 @@ void FirstPersonCameraController::MoveBackward(float amount)
 
 void FirstPersonCameraController::MoveLeft(float amount)
 {
-	m_pCameraComponent->SetEye(m_pCameraComponent->GetEye() - m_pCameraComponent->GetCross() * amount);
+	engine::CameraComponent* pCameraComponent = GetMainCameraComponent();
+	pCameraComponent->SetEye(pCameraComponent->GetEye() - pCameraComponent->GetCross() * amount);
 }
 
 void FirstPersonCameraController::MoveRight(float amount)
@@ -111,7 +120,8 @@ void FirstPersonCameraController::MoveRight(float amount)
 
 void FirstPersonCameraController::MoveUp(float amount)
 {
-	m_pCameraComponent->SetEye(m_pCameraComponent->GetEye() + m_pCameraComponent->GetUp() * amount);
+	engine::CameraComponent* pCameraComponent = GetMainCameraComponent();
+	pCameraComponent->SetEye(pCameraComponent->GetEye() + pCameraComponent->GetUp() * amount);
 }
 
 void FirstPersonCameraController::MoveDown(float amount)
@@ -121,9 +131,10 @@ void FirstPersonCameraController::MoveDown(float amount)
 
 void FirstPersonCameraController::Rotate(const cd::Vec3f& axis, float angleDegrees)
 {
+	engine::CameraComponent* pCameraComponent = GetMainCameraComponent();
 	cd::Quaternion rotation = cd::Quaternion::FromAxisAngle(axis, cd::Math::DegreeToRadian<float>(angleDegrees));
-	m_pCameraComponent->SetLookAt(rotation * m_pCameraComponent->GetLookAt());
-	m_pCameraComponent->SetUp(rotation * m_pCameraComponent->GetUp());
+	pCameraComponent->SetLookAt(rotation * pCameraComponent->GetLookAt());
+	pCameraComponent->SetUp(rotation * pCameraComponent->GetUp());
 }
 
 void FirstPersonCameraController::Rotate(float x, float y, float z, float angleDegrees)
@@ -148,17 +159,17 @@ void FirstPersonCameraController::Roll(float angleDegrees)
 
 void FirstPersonCameraController::YawLocal(float angleDegrees)
 {
-	Rotate(m_pCameraComponent->GetUp(), angleDegrees);
+	Rotate(GetMainCameraComponent()->GetUp(), angleDegrees);
 }
 
 void FirstPersonCameraController::PitchLocal(float angleDegrees)
 {
-	Rotate(m_pCameraComponent->GetCross(), angleDegrees);
+	Rotate(GetMainCameraComponent()->GetCross(), angleDegrees);
 }
 
 void FirstPersonCameraController::RollLocal(float angleDegrees)
 {
-	Rotate(m_pCameraComponent->GetLookAt(), angleDegrees);
+	Rotate(GetMainCameraComponent()->GetLookAt(), angleDegrees);
 }
 
 }	// namespace engine

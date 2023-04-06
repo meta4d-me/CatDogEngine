@@ -16,7 +16,9 @@ void Localization::SetLanguage(Language language)
 const char* Localization::GetText(const std::string& key)
 {
     if (TextMap.empty())
-    Localization::ReadCSV();
+    {
+        Localization::ReadCSV();
+    }
     
     auto itKeyValue = TextMap.find(key);
     if (itKeyValue != TextMap.end())
@@ -31,7 +33,7 @@ const char* Localization::GetText(const std::string& key)
         }
     }
 
-    return "Not Found";
+    return key.c_str();
 }
 
 void Localization::ReadCSV()

@@ -26,9 +26,9 @@ MainMenu::~MainMenu()
 
 void MainMenu::FileMenu()
 {
-	if (ImGui::BeginMenu(engine::Localization::GetText("TEXT_FILE")))
+	if (ImGui::BeginMenu(CD_TEXT("TEXT_FILE")))
 	{
-		if (ImGui::MenuItem(engine::Localization::GetText("TEXT_NEW"), "Ctrl N"))
+		if (ImGui::MenuItem(CD_TEXT("TEXT_NEW"), "Ctrl N"))
 		{
 			m_pCreatProjectDialog->SetTitle("Creat");
 			m_pCreatProjectDialog->Open();
@@ -36,7 +36,7 @@ void MainMenu::FileMenu()
 		if (ImGui::MenuItem("Open", "Ctrl O"))
 		{
 		}
-		if (ImGui::MenuItem(engine::Localization::GetText("TEXT_OPEN_RECENT")))
+		if (ImGui::MenuItem(CD_TEXT("TEXT_OPEN_RECENT")))
 		{
 		}
 
@@ -67,7 +67,7 @@ void MainMenu::EditMenu()
 {
 	ImGuiIO& io = ImGui::GetIO();
 
-	if (ImGui::BeginMenu(engine::Localization::GetText("TEXT_EDIT")))
+	if (ImGui::BeginMenu(CD_TEXT("TEXT_EDIT")))
 	{
 		if (ImGui::MenuItem("Undo", "Ctrl Z"))
 		{
@@ -82,7 +82,7 @@ void MainMenu::EditMenu()
 		{
 		}
 
-		if (ImGui::BeginMenu(engine::Localization::GetText("TEXT_STYLE")))
+		if (ImGui::BeginMenu(CD_TEXT("TEXT_STYLE")))
 		{
 			// It is not convenient in C++ to loop enum except define an extra array to wrap them.
 			// C++ 20/23 ranges may look better but still needs std::iota inside its implementation.
@@ -99,7 +99,7 @@ void MainMenu::EditMenu()
 			ImGui::EndMenu();
 		}
 
-		if (ImGui::BeginMenu(engine::Localization::GetText("TEXT_LANGUAGE")))
+		if (ImGui::BeginMenu(CD_TEXT("TEXT_LANGUAGE")))
 		{
 			for (engine::Language language = engine::Language::ChineseSimplied; language < engine::Language::Count;
 				 language = static_cast<engine::Language>(static_cast<int>(language) + 1))
@@ -121,7 +121,7 @@ void MainMenu::WindowMenu()
 {
 	ImGuiIO& io = ImGui::GetIO();
 
-	if (ImGui::BeginMenu(engine::Localization::GetText("TEXT_WINDOW")))
+	if (ImGui::BeginMenu(CD_TEXT("TEXT_WINDOW")))
 	{
 		engine::ImGuiContextInstance* pCurrentImguiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
 		for (const auto& pDockableLayer : pCurrentImguiContextInstance->GetDockableLayers())
@@ -138,21 +138,21 @@ void MainMenu::WindowMenu()
 
 void MainMenu::BuildMenu()
 {
-	if (ImGui::BeginMenu(engine::Localization::GetText("TEXT_BUILD")))
+	if (ImGui::BeginMenu(CD_TEXT("TEXT_BUILD")))
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
 		engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
 
-		if (ImGui::MenuItem(engine::Localization::GetText("TEXT_REBUILD_NONUBER_SHADERS")))
+		if (ImGui::MenuItem(CD_TEXT("TEXT_REBUILD_NONUBER_SHADERS")))
 		{
 			ShaderBuilder::BuildNonUberShader();
 		}
-		if (ImGui::MenuItem(engine::Localization::GetText("TEXT_REBUILD_PBR_SHADERS")))
+		if (ImGui::MenuItem(CD_TEXT("TEXT_REBUILD_PBR_SHADERS")))
 		{
 			ShaderBuilder::BuildUberShader(pSceneWorld->GetPBRMaterialType());
 		}
-		if (ImGui::MenuItem(engine::Localization::GetText("TEXT_REBUILD_ANIMATION_SHADERS")))
+		if (ImGui::MenuItem(CD_TEXT("TEXT_REBUILD_ANIMATION_SHADERS")))
 		{
 			ShaderBuilder::BuildUberShader(pSceneWorld->GetAnimationMaterialType());
 		}
@@ -163,9 +163,9 @@ void MainMenu::BuildMenu()
 
 void MainMenu::AboutMenu()
 {
-	if (ImGui::BeginMenu(engine::Localization::GetText("TEXT_ABOUT")))
+	if (ImGui::BeginMenu(CD_TEXT("TEXT_ABOUT")))
 	{
-		if (ImGui::MenuItem(engine::Localization::GetText("TEXT_DOCUMENTS")))
+		if (ImGui::MenuItem(CD_TEXT("TEXT_DOCUMENTS")))
 		{
 		}
 

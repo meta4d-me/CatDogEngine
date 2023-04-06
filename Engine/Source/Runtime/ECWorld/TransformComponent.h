@@ -16,7 +16,7 @@ public:
 	}
 
 public:
-	TransformComponent() { m_transform.Clear(); }
+	TransformComponent() = default;
 	TransformComponent(const TransformComponent&) = default;
 	TransformComponent& operator=(const TransformComponent&) = default;
 	TransformComponent(TransformComponent&&) = default;
@@ -29,6 +29,8 @@ public:
 
 	const cd::Matrix4x4& GetWorldMatrix() const { return m_localToWorldMatrix; }
 
+	void Dirty() const { m_isMatrixDirty = true; }
+
 	void Reset();
 	void Build();
 
@@ -37,7 +39,7 @@ private:
 	cd::Transform m_transform;
 
 	// Status
-	bool m_isMatrixDirty;
+	mutable bool m_isMatrixDirty;
 
 	// Output
 	cd::Matrix4x4 m_localToWorldMatrix;

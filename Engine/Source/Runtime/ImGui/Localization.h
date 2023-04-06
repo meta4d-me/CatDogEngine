@@ -25,5 +25,8 @@ private:
     static std::map<std::string, std::vector<std::string>> TextMap;
     static Language m_language;
 };
+
+#define CD_TEXT(TEXT_KEY) engine::Localization::GetText((TEXT_KEY))
+
 }
 

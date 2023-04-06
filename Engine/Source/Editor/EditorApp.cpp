@@ -213,7 +213,7 @@ void EditorApp::InitECWorld()
 
 	// Controller for Input events.
 	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(
-		&cameraComponent,
+		m_pSceneWorld.get(),
 		15.0f /* horizontal sensitivity */,
 		5.0f /* vertical sensitivity */,
 		160.0f /* Movement Speed*/);
@@ -239,11 +239,7 @@ void EditorApp::InitRenderContext()
 
 	// The init size doesn't make sense. It will resize by SceneView.
 	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->CreateRenderTarget(sceneViewRenderTargetName, 1, 1, std::move(attachmentDesc));
-	
-	if (engine::CameraComponent* pCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity()))
-	{
-		pSceneRenderTarget->OnResize.Bind<engine::CameraComponent, &engine::CameraComponent::SetAspect>(pCameraComponent);
-	}
+	pSceneRenderTarget->OnResize.Bind<engine::SceneWorld, &engine::SceneWorld::OnResizeSceneView>(m_pSceneWorld.get());
 
 	auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pPBRSkyRenderer = pPBRSkyRenderer.get();

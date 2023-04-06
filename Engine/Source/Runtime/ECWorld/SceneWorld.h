@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ECWorld/World.h"
+#include "Log/Log.h"
 #include "Material/MaterialType.h"
 #include "Scene/SceneDatabase.h"
 
@@ -31,6 +32,8 @@ public:
 
 	void SetMainCameraEntity(engine::Entity entity);
 	CD_FORCEINLINE engine::Entity GetMainCameraEntity() const { return m_mainCameraEntity; }
+
+	void OnResizeSceneView(uint16_t width, uint16_t height);
 
 	void CreatePBRMaterialType();
 	CD_FORCEINLINE engine::MaterialType* GetPBRMaterialType() const { return m_pPBRMaterialType.get(); }
@@ -67,6 +70,17 @@ public:
 
 	void DeleteEntity(engine::Entity entity)
 	{
+		if (entity == m_mainCameraEntity)
+		{
+			CD_WARN("You can't delete main camera entity.");
+			return;
+		}
+
+		if (entity == m_selectedEntity)
+		{
+			m_selectedEntity = engine::INVALID_ENTITY;
+		}
+
 		DeleteAnimationComponent(entity);
 		DeleteCameraComponent(entity);
 		DeleteCollisionMeshComponent(entity);
