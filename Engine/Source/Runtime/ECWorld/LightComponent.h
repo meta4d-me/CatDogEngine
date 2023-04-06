@@ -47,11 +47,11 @@ public:
 	void SetAngleOffset(float angleOffset) { m_angleOffset = angleOffset; }
 	float GetAngleOffset() const { return m_angleOffset; }
 
-	void SetPosition(cd::Point position) { m_position = cd::MoveTemp(position); }
-	const cd::Point& GetPosition() const { return m_position; }
-
 	void SetColor(cd::Vec3f color) { m_color = cd::MoveTemp(color); }
 	const cd::Vec3f& GetColor() const { return m_color; }
+
+	void SetPosition(cd::Point position) { m_position = cd::MoveTemp(position); }
+	const cd::Point& GetPosition() const { return m_position; }
 
 	void SetDirection(cd::Direction direction) { m_direction = cd::MoveTemp(direction); }
 	const cd::Direction& GetDirection() const { return m_direction; }
