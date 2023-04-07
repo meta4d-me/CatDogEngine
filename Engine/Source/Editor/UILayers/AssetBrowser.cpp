@@ -277,6 +277,7 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 		genericProducer.ActivateTangentsSpaceService();
 		genericProducer.ActivateTriangulateService();
 		genericProducer.ActivateSimpleAnimationService();
+		// genericProducer.ActivateFlattenHierarchyService();
 
 		cdtools::Processor processor(&genericProducer, &ecConsumer, pSceneDatabase);
 		processor.SetFlattenSceneDatabaseEnable(true);

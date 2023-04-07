@@ -86,13 +86,14 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         transformComponent.SetTransform(cd::Transform::Identity());
         transformComponent.Build();
     }
-    else if (ImGui::Selectable("Add Direction Light"))
+    else if (ImGui::Selectable("Add Directional Light"))
     {
-        engine::Entity entity = AddNamedEntity("DirectionLight");
+        engine::Entity entity = AddNamedEntity("DirectionalLight");
         auto& lightComponent = pWorld->CreateComponent<engine::LightComponent>(entity);
         lightComponent.SetType(cd::LightType::Directional);
         lightComponent.SetIntensity(4.0f);
         lightComponent.SetColor(cd::Vec3f(1.0f, 1.0f, 1.0f));
+        lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
 
         auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
         transformComponent.SetTransform(cd::Transform::Identity());
