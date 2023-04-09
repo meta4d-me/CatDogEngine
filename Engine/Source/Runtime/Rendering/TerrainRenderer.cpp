@@ -96,9 +96,11 @@ void TerrainRenderer::Render(float deltaTime)
 		}
 
 		// Check cull dist
-		const float dx = m_pCamera->GetPosition().x() - m_entityToRenderInfo[entity].m_origin[0];
-		const float dy = m_pCamera->GetPosition().y() - m_entityToRenderInfo[entity].m_origin[1];
-		const float dz = m_pCamera->GetPosition().z() - m_entityToRenderInfo[entity].m_origin[2];
+		const Entity& cameraEntity = m_pCurrentSceneWorld->GetMainCameraEntity();
+		const CameraComponent* cameraComponent = m_pCurrentSceneWorld->GetCameraComponent(cameraEntity);
+		const float dx = cameraComponent->GetEye().x() - m_entityToRenderInfo[entity].m_origin[0];
+		const float dy = cameraComponent->GetEye().y() - m_entityToRenderInfo[entity].m_origin[1];
+		const float dz = cameraComponent->GetEye().z() - m_entityToRenderInfo[entity].m_origin[2];
 		if (m_cullDistanceSquared <= (dx * dx + dy * dy + dz * dz)) {
 			// skip
 			continue;
