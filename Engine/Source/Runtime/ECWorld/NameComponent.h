@@ -26,6 +26,7 @@ public:
 
 	void SetName(std::string name);
 	const char* GetName() const { return m_name.c_str(); }
+	std::string& GetNameForWrite() { return m_name; }
 	StringCrc GetNameCrc() const { return m_nameCrc; }
 
 	bool operator==(const NameComponent& other) const { return m_nameCrc == other.m_nameCrc; }
