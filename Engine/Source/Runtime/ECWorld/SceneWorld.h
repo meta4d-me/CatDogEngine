@@ -44,6 +44,9 @@ public:
 	void CreateTerrainMaterialType();
 	CD_FORCEINLINE engine::MaterialType* GetTerrainMaterialType() const { return m_pTerrainMaterialType.get(); }
 
+	void CreateDDGIMaterialType();
+	CD_FORCEINLINE engine::MaterialType *GetDDGIMaterialType() const { return m_pDDGIMaterialType.get(); }
+
 	// It can save performance on addressing the actual ComponentStorage.
 	// TODO : write a help macro ? Though I hate macro...
 	CD_FORCEINLINE engine::AnimationComponent* GetAnimationComponent(engine::Entity entity) const { return m_pAnimationStorage->GetComponent(entity); }
@@ -56,6 +59,7 @@ public:
 	CD_FORCEINLINE engine::SkyComponent* GetSkyComponent(engine::Entity entity) const { return m_pSkyStorage->GetComponent(entity); }
 	CD_FORCEINLINE engine::StaticMeshComponent* GetStaticMeshComponent(engine::Entity entity) const { return m_pStaticMeshStorage->GetComponent(entity); }
 	CD_FORCEINLINE engine::TransformComponent* GetTransformComponent(engine::Entity entity) const { return m_pTransformStorage->GetComponent(entity); }
+	CD_FORCEINLINE engine::DDGIComponent* GetDDGIComponent(engine::Entity entity) const { return m_pDDGIStorage->GetComponent(entity); }
 
 	CD_FORCEINLINE const std::vector<engine::Entity>& GetAnimationEntities() const { return m_pAnimationStorage->GetEntities(); }
 	CD_FORCEINLINE const std::vector<engine::Entity>& GetCameraEntities() const { return m_pCameraStorage->GetEntities(); }
@@ -67,6 +71,7 @@ public:
 	CD_FORCEINLINE const std::vector<engine::Entity>& GetSkyEntities() const { return m_pSkyStorage->GetEntities(); }
 	CD_FORCEINLINE const std::vector<engine::Entity>& GetStaticMeshEntities() const { return m_pStaticMeshStorage->GetEntities(); }
 	CD_FORCEINLINE const std::vector<engine::Entity>& GetTransformEntities() const { return m_pTransformStorage->GetEntities(); }
+	CD_FORCEINLINE const std::vector<engine::Entity>& GetDDGIEntities() const { return m_pDDGIStorage->GetEntities(); }
 
 	void DeleteEntity(engine::Entity entity)
 	{
@@ -91,6 +96,7 @@ public:
 		DeleteSkyComponent(entity);
 		DeleteStaticMeshComponent(entity);
 		DeleteTransformComponent(entity);
+		DeleteDDGIComponent(entity);
 	}
 
 	CD_FORCEINLINE void DeleteAnimationComponent(engine::Entity entity) { m_pAnimationStorage->RemoveComponent(entity); }
@@ -103,6 +109,7 @@ public:
 	CD_FORCEINLINE void DeleteSkyComponent(engine::Entity entity) { m_pSkyStorage->RemoveComponent(entity); }
 	CD_FORCEINLINE void DeleteStaticMeshComponent(engine::Entity entity) { m_pStaticMeshStorage->RemoveComponent(entity); }
 	CD_FORCEINLINE void DeleteTransformComponent(engine::Entity entity) { m_pTransformStorage->RemoveComponent(entity); }
+	CD_FORCEINLINE void DeleteDDGIComponent(engine::Entity entity) { m_pDDGIStorage->RemoveComponent(entity); }
 
 private:
 	std::unique_ptr<cd::SceneDatabase> m_pSceneDatabase;
@@ -111,6 +118,7 @@ private:
 	std::unique_ptr<engine::MaterialType> m_pPBRMaterialType;
 	std::unique_ptr<engine::MaterialType> m_pAnimationMaterialType;
 	std::unique_ptr<engine::MaterialType> m_pTerrainMaterialType;
+	std::unique_ptr<engine::MaterialType> m_pDDGIMaterialType;
 
 	engine::ComponentsStorage<engine::AnimationComponent>* m_pAnimationStorage;
 	engine::ComponentsStorage<engine::CameraComponent>* m_pCameraStorage;
@@ -122,6 +130,7 @@ private:
 	engine::ComponentsStorage<engine::SkyComponent>* m_pSkyStorage;
 	engine::ComponentsStorage<engine::StaticMeshComponent>* m_pStaticMeshStorage;
 	engine::ComponentsStorage<engine::TransformComponent>* m_pTransformStorage;
+	engine::ComponentsStorage<engine::DDGIComponent>* m_pDDGIStorage;
 
 	// TODO : wrap them into another class?
 	engine::Entity m_selectedEntity = engine::INVALID_ENTITY;

@@ -21,10 +21,12 @@ SceneWorld::SceneWorld()
 	m_pSkyStorage = m_pWorld->Register<engine::SkyComponent>();
 	m_pStaticMeshStorage = m_pWorld->Register<engine::StaticMeshComponent>();
 	m_pTransformStorage = m_pWorld->Register<engine::TransformComponent>();
+	m_pDDGIStorage = m_pWorld->Register<engine::DDGIComponent>();
 
 	CreatePBRMaterialType();
 	CreateAnimationMaterialType();
 	CreateTerrainMaterialType();
+	CreateDDGIMaterialType();
 }
 
 void SceneWorld::CreatePBRMaterialType()
@@ -97,6 +99,24 @@ void SceneWorld::CreateTerrainMaterialType()
 
 	m_pTerrainMaterialType->AddRequiredTextureType(cd::MaterialTextureType::BaseColor, 0);
 	m_pTerrainMaterialType->AddRequiredTextureType(cd::MaterialTextureType::Roughness, 1);
+}
+
+void SceneWorld::CreateDDGIMaterialType()
+{
+	m_pDDGIMaterialType = std::make_unique<MaterialType>();
+	m_pDDGIMaterialType->SetMaterialName("CD_DDGI");
+
+	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("vs_DDGI"), Path::GetBuiltinShaderInputPath("fs_DDGI"));
+	m_pDDGIMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
+
+	cd::VertexFormat ddgiVertexFormat;
+	ddgiVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+	ddgiVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+	ddgiVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+	ddgiVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
+	m_pDDGIMaterialType->SetRequiredVertexFormat(cd::MoveTemp(ddgiVertexFormat));
+
+	m_pDDGIMaterialType->AddRequiredTextureType(cd::MaterialTextureType::BaseColor, 0);
 }
 
 void SceneWorld::SetSelectedEntity(engine::Entity entity)
