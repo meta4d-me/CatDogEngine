@@ -9,6 +9,7 @@
 #include "Log/Log.h"
 #include "Rendering/AnimationRenderer.h"
 #include "Rendering/BlitRenderTargetPass.h"
+#include "Rendering/DDGIRenderer.h"
 #include "Rendering/DebugRenderer.h"
 #include "Rendering/ImGuiRenderer.h"
 #include "Rendering/PBRSkyRenderer.h"
@@ -272,6 +273,10 @@ void EditorApp::InitRenderContext()
 	auto pBlitRTRenderPass = std::make_unique<engine::BlitRenderTargetPass>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	AddEngineRenderer(cd::MoveTemp(pBlitRTRenderPass));
 
+	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pDDGIRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pDDGIRenderer));
+
 	// We can debug vertex/material/texture information by just output that to screen as fragmentColor.
 	// But postprocess will bring unnecessary confusion.
 	// auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
@@ -287,6 +292,7 @@ void EditorApp::InitShaderPrograms() const
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetPBRMaterialType());
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetAnimationMaterialType());
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetTerrainMaterialType());
+	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetDDGIMaterialType());
 }
 
 void EditorApp::AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer)
