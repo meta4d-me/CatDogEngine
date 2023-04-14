@@ -9,6 +9,10 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 #define INV_PI2 0.1013211836
 
 SAMPLER2D(s_texBaseColor, 0);
+SAMPLER2D(s_texClassification, 1);
+SAMPLER2D(s_texDistance, 2);
+SAMPLER2D(s_texIrradiance, 3);
+SAMPLER2D(s_texRelocation, 4);
 
 vec3 SampleAlbedoTexture(vec2 uv) {
 	return texture2D(s_texBaseColor, uv).xyz;

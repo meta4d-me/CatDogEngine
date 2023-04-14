@@ -32,6 +32,7 @@ enum class ImportAssetType
 	Model,
 	Terrain,
 	Shader,
+	DDGI,
 	Unknown,
 };
 
