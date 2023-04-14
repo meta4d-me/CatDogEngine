@@ -26,12 +26,12 @@ constexpr const char *distanceTexture = "ddgi/distance.dds";
 constexpr const char *irradianceTexture = "ddgi/irradiance.dds";
 constexpr const char *relocationTexture = "ddgi/relocation.dds";
 
+constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
+
 }
 
 void DDGIRenderer::Init()
 {
-	constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
-
 	bgfx::setViewName(GetViewID(), "WorldRenderer");
 
 	m_pRenderContext->CreateUniform(classificationSampler, bgfx::UniformType::Sampler);
@@ -109,6 +109,31 @@ void DDGIRenderer::Render(float deltaTime)
 
 		bgfx::submit(GetViewID(), bgfx::ProgramHandle(pMaterialComponent->GetShadingProgram()));
 	}
+}
+
+void DDGIRenderer::UpdateClassificationTexture(const char *path)
+{
+	m_pRenderContext->Destory(StringCrc(classificationTexture));
+	m_pRenderContext->CreateTexture(classificationTexture, samplerFlags);
+
+}
+
+void DDGIRenderer::UpdateDistanceTexture(const char *path)
+{
+	m_pRenderContext->Destory(StringCrc(distanceTexture));
+	m_pRenderContext->CreateTexture(distanceTexture, samplerFlags);
+}
+
+void DDGIRenderer::UpdateIrradianceTexture(const char *path)
+{
+	m_pRenderContext->Destory(StringCrc(irradianceTexture));
+	m_pRenderContext->CreateTexture(irradianceTexture, samplerFlags);
+}
+
+void DDGIRenderer::UpdateRelocationTexture(const char *path)
+{
+	m_pRenderContext->Destory(StringCrc(relocationTexture));
+	m_pRenderContext->CreateTexture(relocationTexture, samplerFlags);
 }
 
 }
