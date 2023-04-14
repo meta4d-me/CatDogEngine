@@ -126,6 +126,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 		else if(ImGui::Selectable("Model")) {
 			m_importingAssetType = ImportAssetType::Model;
 			m_pImportFileBrowser->SetTitle("ImportAssets - Model");
+			//m_pImportFileBrowser->SetTypeFilters({ ".fbx", ".gltf" }); // ".obj", ".dae", ".ogex"
 			m_pImportFileBrowser->Open();
 		}
 		else if(ImGui::Selectable("DDGI Model")) {
