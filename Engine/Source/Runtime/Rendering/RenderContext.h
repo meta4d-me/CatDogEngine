@@ -62,7 +62,6 @@ public:
 	void SetVertexLayout(StringCrc resourceCrc, bgfx::VertexLayout textureHandle);
 	void SetTexture(StringCrc resourceCrc, bgfx::TextureHandle textureHandle);
 	void SetUniform(StringCrc resourceCrc, bgfx::UniformHandle uniformreHandle);
-
 	void FillUniform(StringCrc resourceCrc, const void *pData, uint16_t vec4Count = 1) const;
 
 	RenderTarget* GetRenderTarget(StringCrc resourceCrc) const;
@@ -71,6 +70,8 @@ public:
 	bgfx::ProgramHandle GetProgram(StringCrc resourceCrc) const;
 	bgfx::TextureHandle GetTexture(StringCrc resourceCrc) const;
 	bgfx::UniformHandle GetUniform(StringCrc resourceCrc) const;
+
+	void Destory(StringCrc resourceCrc);
 
 private:
 	uint8_t m_currentViewCount = 0;

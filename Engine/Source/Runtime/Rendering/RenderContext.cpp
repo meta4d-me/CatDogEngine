@@ -28,6 +28,15 @@ static void imageReleaseCb(void* _ptr, void* _userData)
 	bimg::imageFree(imageContainer);
 }
 
+template<class T>
+void DestoryImpl(engine::StringCrc resourceCrc, T &caches) {
+	auto itResource = caches.find(resourceCrc.Value());
+	if(itResource != caches.end()) {
+		bgfx::destroy(itResource->second);
+		caches.erase(itResource);
+	}
+};
+
 }
 
 namespace engine
@@ -446,6 +455,14 @@ bgfx::UniformHandle RenderContext::GetUniform(StringCrc resourceCrc) const
 	}
 
 	return bgfx::UniformHandle(bgfx::kInvalidHandle);
+}
+
+void RenderContext::Destory(StringCrc resourceCrc)
+{
+	DestoryImpl(resourceCrc, m_shaderHandleCaches);
+	DestoryImpl(resourceCrc, m_programHandleCaches);
+	DestoryImpl(resourceCrc, m_textureHandleCaches);
+	DestoryImpl(resourceCrc, m_uniformHandleCaches);
 }
 
 }
