@@ -41,6 +41,12 @@ class SceneWorld;
 namespace editor
 {
 
+enum class MeshAssetType : uint8_t
+{
+	Standard,
+	DDGI,
+};
+
 class ECWorldConsumer final : public cdtools::IConsumer
 {
 public:
@@ -62,6 +68,8 @@ public:
 	std::vector<engine::Uber>& GetActiveUberOptions() { return m_activeUberOptions; }
 	const std::vector<engine::Uber>& GetActiveUberOptions() const { return m_activeUberOptions; }
 
+	void ActivateDDGIService() { m_meshAssetType = MeshAssetType::DDGI; }
+
 private:
 	void AddCamera(engine::Entity entity, const cd::Camera& camera);
 	void AddLight(engine::Entity entity, const cd::Light& light);
@@ -79,6 +87,8 @@ private:
 	uint32_t m_nodeMinID;
 	uint32_t m_meshMinID;
 	std::vector<engine::Uber> m_activeUberOptions;
+
+	MeshAssetType m_meshAssetType = MeshAssetType::Standard;
 };
 
 }

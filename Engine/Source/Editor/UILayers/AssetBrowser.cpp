@@ -115,13 +115,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 			//m_pImportFileBrowser->SetTypeFilters({ ".dds", "*.exr", "*.hdr", "*.ktx", ".tga" });
 			m_pImportFileBrowser->Open();
 		}
-		else if (ImGui::Selectable("Model"))
-		{
-			m_importingAssetType = ImportAssetType::Model;
-			m_pImportFileBrowser->SetTitle("ImportAssets - Model");
-			//m_pImportFileBrowser->SetTypeFilters({ ".fbx", ".gltf" }); // ".obj", ".dae", ".ogex"
-			m_pImportFileBrowser->Open();
-		}
+
 		else if (ImGui::Selectable("Shader"))
 		{
 			m_importingAssetType = ImportAssetType::Shader;
@@ -129,10 +123,14 @@ void AssetBrowser::UpdateAssetFolderTree()
 			//m_pImportFileBrowser->SetTypeFilters({ ".sc" }); // ".hlsl"
 			m_pImportFileBrowser->Open();
 		}
-		else if(ImGui::Selectable("DDGI_Example")) {
-			m_importingAssetType = ImportAssetType::DDGI;
-			m_pImportFileBrowser->SetTitle("ImportAssets - DDGI_Example");
-			//m_pImportFileBrowser->SetTypeFilters({ ".fbx", ".gltf" }); // ".obj", ".dae", ".ogex"
+		else if(ImGui::Selectable("Model")) {
+			m_importingAssetType = ImportAssetType::Model;
+			m_pImportFileBrowser->SetTitle("ImportAssets - Model");
+			m_pImportFileBrowser->Open();
+		}
+		else if(ImGui::Selectable("DDGI Model")) {
+			m_importingAssetType = ImportAssetType::DDGIModel;
+			m_pImportFileBrowser->SetTitle("ImportAssets - DDGI Model");
 			m_pImportFileBrowser->Open();
 		}
 
@@ -204,7 +202,7 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		}
 	}
 
-	if (ImportAssetType::Model == m_importingAssetType)
+	if (ImportAssetType::Model == m_importingAssetType || ImportAssetType::DDGIModel == m_importingAssetType)
 	{
 		ImportModelFile(pFilePath);
 	}
@@ -284,6 +282,12 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 		genericProducer.ActivateTriangulateService();
 		genericProducer.ActivateSimpleAnimationService();
 		// genericProducer.ActivateFlattenHierarchyService();
+
+
+		if(m_importingAssetType == ImportAssetType::DDGIModel)
+		{
+			ecConsumer.ActivateDDGIService();
+		}
 
 		cdtools::Processor processor(&genericProducer, &ecConsumer, pSceneDatabase);
 		processor.SetFlattenSceneDatabaseEnable(true);

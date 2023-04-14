@@ -71,43 +71,45 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 
 		const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
 
-// Temporary code.
-#define USE_DDGI 1
+		if(m_meshAssetType == MeshAssetType::Standard)
+		{
+			// TODO : Or the user doesn't want to import animation data.
+			const bool isStaticMesh = 0U == mesh.GetVertexInfluenceCount();
+			if(isStaticMesh) {
+				engine::MaterialType *pMaterialType = m_pSceneWorld->GetPBRMaterialType();
+				AddStaticMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
 
-#if USE_DDGI
+				cd::MaterialID meshMaterialID = mesh.GetMaterialID();
+				if(meshMaterialID.IsValid()) {
+					AddMaterial(meshEntity, &pSceneDatabase->GetMaterial(meshMaterialID.Data()), pMaterialType, pSceneDatabase);
+				}
+			}
+			else {
+				engine::MaterialType *pMaterialType = m_pSceneWorld->GetAnimationMaterialType();
+				AddSkinMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
 
-		engine::MaterialType *pMaterialType = m_pSceneWorld->GetDDGIMaterialType();
-		AddStaticMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
-
-		AddDDGI(meshEntity, pSceneDatabase);
-		cd::MaterialID meshMaterialID = mesh.GetMaterialID();
-		if(meshMaterialID.IsValid()) {
-			AddMaterial(meshEntity, &pSceneDatabase->GetMaterial(meshMaterialID.Data()), pMaterialType, pSceneDatabase);
+				// TODO : Use a standalone .cdanim file to play animation.
+				// Currently, we assume that imported SkinMesh will play animation automatically for testing.
+				AddAnimation(meshEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
+				AddMaterial(meshEntity, nullptr, pMaterialType, pSceneDatabase);
+			}
 		}
-
-#else
-		// TODO : Or the user doesn't want to import animation data.
-		const bool isStaticMesh = 0U == mesh.GetVertexInfluenceCount();
-		if(isStaticMesh) {
-			engine::MaterialType *pMaterialType = m_pSceneWorld->GetPBRMaterialType();
+		else if(m_meshAssetType == MeshAssetType::DDGI)
+		{
+			engine::MaterialType *pMaterialType = m_pSceneWorld->GetDDGIMaterialType();
 			AddStaticMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
 
+			AddDDGI(meshEntity, pSceneDatabase);
 			cd::MaterialID meshMaterialID = mesh.GetMaterialID();
-			if(meshMaterialID.IsValid()) {
+			if(meshMaterialID.IsValid())
+			{
 				AddMaterial(meshEntity, &pSceneDatabase->GetMaterial(meshMaterialID.Data()), pMaterialType, pSceneDatabase);
 			}
 		}
-		else {
-			engine::MaterialType *pMaterialType = m_pSceneWorld->GetAnimationMaterialType();
-			AddSkinMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
-
-			// TODO : Use a standalone .cdanim file to play animation.
-			// Currently, we assume that imported SkinMesh will play animation automatically for testing.
-			AddAnimation(meshEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
-			AddMaterial(meshEntity, nullptr, pMaterialType, pSceneDatabase);
+		else
+		{
+			CD_ERROR("Unknown MeshAssetType!");
 		}
-#endif
-
 	};
 
 	// There are multiple kinds of cases in the SceneDatabase:

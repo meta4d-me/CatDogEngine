@@ -30,9 +30,9 @@ enum class ImportAssetType
 {
 	CubeMap,
 	Model,
+	DDGIModel,
 	Terrain,
 	Shader,
-	DDGI,
 	Unknown,
 };
 
