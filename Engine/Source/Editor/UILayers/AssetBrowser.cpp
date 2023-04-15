@@ -30,92 +30,93 @@
 namespace
 {
 
-	bool IsCubeMapInputFile(const char* pFileExtension)
+bool IsCubeMapInputFile(const char* pFileExtension)
+{
+	constexpr const char* pFileExtensions[] = { ".dds", ".exr", ".hdr", ".ktx", ".tga" };
+	constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
+
+	for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
 	{
-		constexpr const char* pFileExtensions[] = { ".dds", ".exr", ".hdr", ".ktx", ".tga" };
-		constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
-
-		for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
+		if (0 == strcmp(pFileExtensions[extensionIndex], pFileExtension))
 		{
-			if (0 == strcmp(pFileExtensions[extensionIndex], pFileExtension))
-			{
-				return true;
-			}
+			return true;
 		}
-
-		return false;
 	}
 
-	bool IsShaderInputFile(const char* pFileExtension)
+	return false;
+}
+
+bool IsShaderInputFile(const char* pFileExtension)
+{
+	constexpr const char* pFileExtensions[] = { ".sc" };
+	constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
+
+	for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
 	{
-		constexpr const char* pFileExtensions[] = { ".sc" };
-		constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
-
-		for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
+		if (0 == strcmp(pFileExtensions[extensionIndex], pFileExtension))
 		{
-			if (0 == strcmp(pFileExtensions[extensionIndex], pFileExtension))
-			{
-				return true;
-			}
+			return true;
 		}
-
-		return false;
 	}
 
-	bool IsModelInputFile(const char* pFileExtension)
-	{
-		constexpr const char* pFileExtensions[] = { ".cdbin", ".dae", ".fbx", ".glb", ".gltf", ".md5mesh" };
-		constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
-		for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
-		{
-			if (0 == strcmp(pFileExtensions[extensionIndex], pFileExtension))
-			{
-				return true;
-			}
-		}
+	return false;
+}
 
-		return false;
+bool IsModelInputFile(const char* pFileExtension)
+{
+	constexpr const char* pFileExtensions[] = { ".cdbin", ".dae", ".fbx", ".glb", ".gltf", ".md5mesh" };
+	constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
+	for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
+	{
+		if (0 == strcmp(pFileExtensions[extensionIndex], pFileExtension))
+		{
+			return true;
+		}
 	}
 
-	std::string GetFilePathExtension(const std::string& FileName)
+	return false;
+}
+
+std::string GetFilePathExtension(const std::string& FileName)
+{
+	auto pos = FileName.find_last_of('.');
+	if (pos != std::string::npos)
+		return FileName.substr(pos + 1);
+	return "";
+}
+
+const char* GetIconFontIconc(const std::string& filePath)
+{
+	std::string extension = GetFilePathExtension(filePath);
+	if (IsCubeMapInputFile(extension.data()))
 	{
-		auto pos = FileName.find_last_of('.');
-		if (pos != std::string::npos)
-			return FileName.substr(pos + 1);
-		return "";
+		return reinterpret_cast<const char*>(ICON_MDI_CUBE_UNFOLDED);
+	}
+	else if (IsModelInputFile(extension.data()))
+	{
+		return reinterpret_cast<const char*>(ICON_MDI_SHAPE);
+	}
+	else if (IsShaderInputFile(extension.data()))
+	{
+		return reinterpret_cast<const char*>(ICON_MDI_ALPHA_S_CIRCLE_OUTLINE);
 	}
 
-	const char* GetIconFontIconc(const std::string& filePath)
+	return reinterpret_cast<const char*>(ICON_MDI_FILE);
+}
+
+void Tooltip(const char* text)
+{
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
+
+	if (ImGui::IsItemHovered())
 	{
-		std::string extension = GetFilePathExtension(filePath);
-		if (IsCubeMapInputFile(extension.data()))
-		{
-			return reinterpret_cast<const char*>(ICON_MDI_CUBE_UNFOLDED);
-		}
-		if (IsModelInputFile(extension.data()))
-		{
-			return reinterpret_cast<const char*>(ICON_MDI_SHAPE);
-		}
-		if (IsShaderInputFile(extension.data()))
-		{
-			return reinterpret_cast<const char*>(ICON_MDI_ALPHA_S_CIRCLE_OUTLINE);
-		}
-		return reinterpret_cast<const char*>(ICON_MDI_FILE);
+		ImGui::BeginTooltip();
+		ImGui::TextUnformatted(text);
+		ImGui::EndTooltip();
 	}
 
-	void Tooltip(const char* text)
-	{
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
-
-		if (ImGui::IsItemHovered())
-		{
-			ImGui::BeginTooltip();
-			ImGui::TextUnformatted(text);
-			ImGui::EndTooltip();
-		}
-
-		ImGui::PopStyleVar();
-	}
+	ImGui::PopStyleVar();
+}
 
 }
 
@@ -251,27 +252,25 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 
 bool AssetBrowser::IsTextureFile(const std::string& extension)
 {
-	if (0 == strcmp(".png", extension.c_str()) || 0 == strcmp(".tga", extension.c_str()) || 0 == strcmp(".jpg", extension.c_str()) || 0 == strcmp(".bmp", extension.c_str()))
-	{
-		return true;
-	}
-	return false;
+	return 0 == strcmp(".png", extension.c_str()) ||
+		   0 == strcmp(".tga", extension.c_str()) ||
+		   0 == strcmp(".jpg", extension.c_str()) ||
+		   0 == strcmp(".bmp", extension.c_str());
 }
 
 bool AssetBrowser::IsHiddenFile(const std::string& path)
 {
-	if (path != ".." && path != "." && path[0] == '.')
-	{
-		return true;
-	}
-
-	return false;
+	return path != ".." &&
+		   path != "." &&
+		   path[0] == '.';
 }
 
 void AssetBrowser::ChangeDirectory(std::shared_ptr<DirectoryInformation>& directory)
 {
 	if (!directory)
+	{
 		return;
+	}
 
 	m_PreviousDirectory		= m_CurrentDir;
 	m_CurrentDir			= directory;
@@ -280,8 +279,7 @@ void AssetBrowser::ChangeDirectory(std::shared_ptr<DirectoryInformation>& direct
 
 std::shared_ptr<DirectoryInformation> AssetBrowser::CreateDirectoryInfoSharedPtr(const std::filesystem::path& directoryPath, bool isDirectory)
 {
-	auto ptr = new DirectoryInformation(directoryPath, isDirectory);
-	return std::shared_ptr<DirectoryInformation>(ptr);
+	return std::make_shared<DirectoryInformation>(directoryPath, isDirectory);
 }
 
 void AssetBrowser::UpdateAssetFolderTree()
@@ -346,10 +344,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 	std::filesystem::path path = CDPROJECT_RESOURCES_ROOT_PATH;
 	DrawFolder(m_BaseProjectDir, true);
 	ImGui::EndChild();
-
 }
-
-
 
 std::string AssetBrowser::StripExtras(const std::string& filename)
 {
@@ -363,27 +358,14 @@ std::string AssetBrowser::StripExtras(const std::string& filename)
 		out.push_back(filename.substr(start, end - start));
 	}
 
-	int maxChars = int(m_GridSize / (ImGui::GetFontSize() * 0.5f));
-
+	int maxChars = static_cast<int>(m_GridSize / (ImGui::GetFontSize() * 0.5f));
 	if (out[0].length() >= maxChars)
 	{
 		auto cutFilename = "     " + out[0].substr(0, maxChars - 3) + "...";
 		return cutFilename;
 	}
 
-	auto filenameLength = out[0].length();
-	//        auto paddingToAdd = maxChars - 1 - filenameLength;
-	//
-	std::string newFileName;
-	//
-	//        for(int i = 0; i <= paddingToAdd; i++)
-	//        {
-	//            newFileName += " ";
-	//        }
-
-	newFileName += out[0];
-
-	return newFileName;
+	return out[0];
 }
 
 void AssetBrowser::DrawFolder(const std::shared_ptr<DirectoryInformation>& dirInfo, bool defaultOpen)
@@ -485,23 +467,19 @@ void AssetBrowser::DrawFolder(const std::shared_ptr<DirectoryInformation>& dirIn
 		if (isOpen && !containsFolder)
 			ImGui::TreePop();
 	}
-
-	
 }
 
 std::string AssetBrowser::ProcessDirectory(const std::filesystem::path& directoryPath, const std::shared_ptr<DirectoryInformation>& parent)
 {
 	const auto& directory = m_Directories[directoryPath.string()];
 	if (directory)
+	{
 		return directory->FilePath.string();
+	}
 
 	std::shared_ptr<DirectoryInformation> directoryInfo = CreateDirectoryInfoSharedPtr(directoryPath, !std::filesystem::is_directory(directoryPath));
 	directoryInfo->Parent = parent;
-
-	if (directoryPath == m_BasePath)
-		directoryInfo->FilePath = m_BasePath;
-	else
-		directoryInfo->FilePath = std::filesystem::relative(directoryPath, m_BasePath);
+	directoryInfo->FilePath = directoryPath == m_BasePath ? m_BasePath : std::filesystem::relative(directoryPath, m_BasePath);
 
 	if (std::filesystem::is_directory(directoryPath))
 	{
@@ -511,10 +489,9 @@ std::string AssetBrowser::ProcessDirectory(const std::filesystem::path& director
 			{
 				continue;
 			}
-			{
-				std::string subdirHandle = ProcessDirectory(entry.path(), directoryInfo);
-				directoryInfo->Children.push_back(m_Directories[subdirHandle]);
-			}
+
+			std::string subdirHandle = ProcessDirectory(entry.path(), directoryInfo);
+			directoryInfo->Children.push_back(m_Directories[subdirHandle]);
 		}
 	}
 
@@ -536,6 +513,7 @@ void AssetBrowser::UpdateAssetFileView()
 				m_UpdateNavigationPath = true;
 			}
 		}
+
 		ImGui::SameLine();
 		if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_ARROW_RIGHT)))
 		{
@@ -583,6 +561,7 @@ void AssetBrowser::UpdateAssetFileView()
 			ImGui::SameLine();
 
 		}
+
 		ImGui::TextUnformatted(reinterpret_cast<const char*>(ICON_MDI_MAGNIFY));
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - ImGui::GetStyle().IndentSpacing);
@@ -599,64 +578,30 @@ void AssetBrowser::UpdateAssetFileView()
 		m_GridItemPerRow = (int)floor(xAvail / (m_GridSize + ImGui::GetStyle().ItemSpacing.x));
 		m_GridItemPerRow = 1 > m_GridItemPerRow ? 1 : m_GridItemPerRow;
 
-		if (m_IsInListView)
+		for (int i = 0; i < m_CurrentDir->Children.size(); i++)
 		{
-			for (int i = 0; i < m_CurrentDir->Children.size(); i++)
-			{
-				if (m_CurrentDir->Children.size() > 0)
-				{
-					if (!m_ShowHiddenFiles && IsHiddenFile(m_CurrentDir->Children[i]->FilePath.filename().string()))
-					{
-						continue;
-					}
-				}
-				bool doubleClicked = RenderFile(i, !m_CurrentDir->Children[i]->IsFile, shownIndex, !m_IsInListView);
-
-				if (doubleClicked)
-					break;
-				shownIndex++;
-			}
-		}
-		else
-		{
-			for (int i = 0; i < m_CurrentDir->Children.size(); i++)
+			bool checkHiddenFiles = m_IsInListView ? m_CurrentDir->Children.size() > 0 : true;
+			if (checkHiddenFiles)
 			{
 				if (!m_ShowHiddenFiles && IsHiddenFile(m_CurrentDir->Children[i]->FilePath.filename().string()))
 				{
 					continue;
 				}
-
-				bool doubelClicked = RenderFile(i, !m_CurrentDir->Children[i]->IsFile, shownIndex, !m_IsInListView);
-
-				if (doubelClicked)
-					break;
-				shownIndex++;
 			}
-		}
-		/*ImGuiIO& io = ImGui::GetIO();
-		engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
-		constexpr engine::StringCrc textureCrc("TestBaseColor");
-		bgfx::TextureHandle testTextureHandle = pRenderContext->GetTexture(textureCrc);
-		if (!bgfx::isValid(testTextureHandle))
-		{
-			ResourceBuilder::Get().AddTextureBuildTask(cd::MaterialTextureType::Normal,
-				"C:/Users/V/Desktop/engine/Work/CatDogEngine/Projects/PBRViewer/Resources/Textures/textures/sheild_dragone_normal.png",
-				"C:/Users/V/Desktop/engine/Work/CatDogEngine/Projects/PBRViewer/Resources/Textures/textures/sheild_dragone_normal.dds");
-			ResourceBuilder::Get().Update();
 
-			bgfx::TextureHandle textureHandle = pRenderContext->CreateTexture("Textures/textures/sheild_dragone_normal.dds");
-			pRenderContext->SetTexture(textureCrc, textureHandle);
+			bool doubleClicked = RenderFile(i, !m_CurrentDir->Children[i]->IsFile, shownIndex, !m_IsInListView);
+
+			if (doubleClicked)
+			{
+				break;
+			}
+
+			shownIndex++;
 		}
-		else
-		{
-			ImVec2 img_size(80.0f, 80.0f);
-			img_size = ImVec2(m_scale, m_scale); 
-			ImGui::Image(ImTextureID(testTextureHandle.idx), img_size);
-			ImGui::TextUnformatted("dddddddd");
-		
-		}*/
+
 		ImGui::EndChild();
 	}
+
 	ImGui::EndChild(); 
 	ImGui::SliderFloat(" ", &m_scale, 40.0f, 160.0f, " ", ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_Logarithmic);
 }
