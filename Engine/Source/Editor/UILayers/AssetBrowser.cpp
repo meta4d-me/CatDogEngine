@@ -14,7 +14,9 @@
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
 #include "ImGui/ImGuiContextInstance.h"
 #include "Rendering/WorldRenderer.h"
+#include "Rendering/RenderContext.h"
 #include "Resources/ResourceBuilder.h"
+#include "Resources/ResourceLoader.h"
 
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -28,52 +30,92 @@
 namespace
 {
 
-bool IsCubeMapInputFile(const char* pFileExtension)
-{
-	constexpr const char* pFileExtensions[] = {".dds", ".exr", ".hdr", ".ktx", ".tga"};
-	constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
-
-	for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
+	bool IsCubeMapInputFile(const char* pFileExtension)
 	{
-		if (0 == strcmp(pFileExtensions[extensionIndex], pFileExtension))
+		constexpr const char* pFileExtensions[] = { ".dds", ".exr", ".hdr", ".ktx", ".tga" };
+		constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
+
+		for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
 		{
-			return true;
+			if (0 == strcmp(pFileExtensions[extensionIndex], pFileExtension))
+			{
+				return true;
+			}
 		}
+
+		return false;
 	}
 
-	return false;
-}
-
-bool IsShaderInputFile(const char* pFileExtension)
-{
-	constexpr const char* pFileExtensions[] = { ".sc" };
-	constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
-
-	for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
+	bool IsShaderInputFile(const char* pFileExtension)
 	{
-		if (0 == strcmp(pFileExtensions[extensionIndex], pFileExtension))
+		constexpr const char* pFileExtensions[] = { ".sc" };
+		constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
+
+		for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
 		{
-			return true;
+			if (0 == strcmp(pFileExtensions[extensionIndex], pFileExtension))
+			{
+				return true;
+			}
 		}
+
+		return false;
 	}
 
-	return false;
-}
-
-bool IsModelInputFile(const char* pFileExtension)
-{
-	constexpr const char* pFileExtensions[] = { ".cdbin", ".dae", ".fbx", ".glb", ".gltf", ".md5mesh" };
-	constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
-	for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
+	bool IsModelInputFile(const char* pFileExtension)
 	{
-		if (0 == strcmp(pFileExtensions[extensionIndex], pFileExtension))
+		constexpr const char* pFileExtensions[] = { ".cdbin", ".dae", ".fbx", ".glb", ".gltf", ".md5mesh" };
+		constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
+		for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
 		{
-			return true;
+			if (0 == strcmp(pFileExtensions[extensionIndex], pFileExtension))
+			{
+				return true;
+			}
 		}
+
+		return false;
 	}
 
-	return false;
-}
+	std::string GetFilePathExtension(const std::string& FileName)
+	{
+		auto pos = FileName.find_last_of('.');
+		if (pos != std::string::npos)
+			return FileName.substr(pos + 1);
+		return "";
+	}
+
+	const char* GetIconFontIconc(const std::string& filePath)
+	{
+		std::string extension = GetFilePathExtension(filePath);
+		if (IsCubeMapInputFile(extension.data()))
+		{
+			return reinterpret_cast<const char*>(ICON_MDI_CUBE_UNFOLDED);
+		}
+		if (IsModelInputFile(extension.data()))
+		{
+			return reinterpret_cast<const char*>(ICON_MDI_SHAPE);
+		}
+		if (IsShaderInputFile(extension.data()))
+		{
+			return reinterpret_cast<const char*>(ICON_MDI_ALPHA_S_CIRCLE_OUTLINE);
+		}
+		return reinterpret_cast<const char*>(ICON_MDI_FILE);
+	}
+
+	void Tooltip(const char* text)
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
+
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::TextUnformatted(text);
+			ImGui::EndTooltip();
+		}
+
+		ImGui::PopStyleVar();
+	}
 
 }
 
@@ -88,11 +130,163 @@ void AssetBrowser::Init()
 {
 	m_pImportFileBrowser = std::make_unique<ImGui::FileBrowser>();
 	m_pExportFileBrowser = std::make_unique<ImGui::FileBrowser>();
+	m_BasePath = CDPROJECT_RESOURCES_ROOT_PATH;
+	std::string baseDirectoryHandle = ProcessDirectory(std::filesystem::path(m_BasePath), nullptr);
+	m_BaseProjectDir = m_Directories[baseDirectoryHandle];
+	m_CurrentDir = m_BaseProjectDir;
+}
+
+
+bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gridView)
+{
+	bool doubleClicked = false;
+	std::filesystem::path resourcesPath = CDPROJECT_RESOURCES_ROOT_PATH;
+
+	if (gridView)
+	{
+		ImGui::BeginGroup();
+		const std::string fileName = m_CurrentDir->Children[dirIndex]->FilePath.filename().string();
+		const std::string nameNoEx = m_CurrentDir->Children[dirIndex]->FilePath.filename().stem().string();
+		if (folder)
+		{
+			ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_FOLDER), ImVec2(m_scale, m_scale));	
+		}
+		 if (!folder)
+		{
+			 std::string extension = m_CurrentDir->Children[dirIndex]->FilePath.extension().generic_string();
+			 if (IsTextureFile(extension))
+			 {
+				 std::filesystem::path texturesPath = resourcesPath / "Textures/" / "textures/" / fileName.c_str();
+				 std::filesystem::path texviewPath = resourcesPath/ "Textures/" /"textures"/ (nameNoEx + ".dds");
+				 CD_ENGINE_INFO(texturesPath.string());
+				 CD_ENGINE_INFO(texviewPath.string());
+				 ImGuiIO& io = ImGui::GetIO();
+				 engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
+				 CD_ENGINE_INFO(nameNoEx);
+				 engine::StringCrc textureCrc(nameNoEx);
+				 bgfx::TextureHandle TextureHandle = pRenderContext->GetTexture(textureCrc);
+				 if (!bgfx::isValid(TextureHandle))
+				 {
+					 ResourceBuilder::Get().AddTextureBuildTask(cd::MaterialTextureType::Normal, texturesPath.string().c_str(), texviewPath.string().c_str());
+					 ResourceBuilder::Get().Update();
+					 std::string texview = "Textures/textures/";
+					 texview += (nameNoEx + ".dds");
+					 CD_ENGINE_INFO(texview.c_str());
+					 bgfx::TextureHandle textureHandle = pRenderContext->CreateTexture(texview.c_str());
+					 pRenderContext->SetTexture(textureCrc, textureHandle);
+				 }
+				 else
+				 {
+					 ImVec2 img_size(m_scale, m_scale);
+					 ImGui::Image(ImTextureID(TextureHandle.idx), img_size);
+				 }
+				//ImGuiIO& io = ImGui::GetIO();
+				//engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
+				//constexpr engine::StringCrc textureCrc("TestBaseColor");
+				//bgfx::TextureHandle testTextureHandle = pRenderContext->GetTexture(textureCrc);
+				//if (!bgfx::isValid(testTextureHandle))
+				//{
+				//	ResourceBuilder::Get().AddTextureBuildTask(cd::MaterialTextureType::Normal,
+				//		"C:/Users/V/Desktop/engine/Work/CatDogEngine/Projects/PBRViewer/Resources/Textures/textures/sheild_dragone_normal.png",
+				//		"C:/Users/V/Desktop/engine/Work/CatDogEngine/Projects/PBRViewer/Resources/Textures/textures/sheild_dragone_normal.dds");
+				//	ResourceBuilder::Get().Update();
+				//
+				//	bgfx::TextureHandle textureHandle = pRenderContext->CreateTexture("Textures/textures/sheild_dragone_normal.dds");
+				//	pRenderContext->SetTexture(textureCrc, textureHandle);
+				//}
+				//else
+				//{
+				//	ImVec2 img_size(80.0f, 80.0f);
+				//	img_size = ImVec2(m_scale, m_scale);
+				//	ImGui::Image(ImTextureID(testTextureHandle.idx), img_size);
+				//}
+			 }
+						
+		}
+		
+
+		if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+		{
+			doubleClicked = true;
+		}
+
+		auto newFname = StripExtras(fileName);
+
+		ImGui::TextUnformatted(newFname.c_str());
+		ImGui::EndGroup();
+
+		if ((shownIndex + 1) % m_GridItemPerRow != 0)
+			ImGui::SameLine();
+	}
+	else
+	{
+		ImGui::TextUnformatted(folder ? reinterpret_cast<const char*>(ICON_MDI_FOLDER) : GetIconFontIconc(m_CurrentDir->Children[dirIndex]->FilePath.string()));
+		//ImGui::TextUnformatted(reinterpret_cast<const char*>(ICON_MDI_FOLDER));
+		ImGui::SameLine();
+		if (ImGui::Selectable(m_CurrentDir->Children[dirIndex]->FilePath.filename().string().c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
+		{
+			if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+			{
+				doubleClicked = true;
+			}
+		}
+	}
+	Tooltip(m_CurrentDir->Children[dirIndex]->FilePath.filename().string().c_str());
+	if (doubleClicked)
+	{
+		if (folder)
+		{
+			m_PreviousDirectory = m_CurrentDir;
+			m_CurrentDir = m_CurrentDir->Children[dirIndex];
+			m_UpdateNavigationPath = true;
+		}
+		else
+		{
+			//TODO Put resource to scene if douleclicked
+		}
+	}
+
+	return doubleClicked;
+}
+
+bool AssetBrowser::IsTextureFile(const std::string& extension)
+{
+	if (0 == strcmp(".png", extension.c_str()) || 0 == strcmp(".tga", extension.c_str()) || 0 == strcmp(".jpg", extension.c_str()) || 0 == strcmp(".bmp", extension.c_str()))
+	{
+		return true;
+	}
+	return false;
+}
+
+bool AssetBrowser::IsHiddenFile(const std::string& path)
+{
+	if (path != ".." && path != "." && path[0] == '.')
+	{
+		return true;
+	}
+
+	return false;
+}
+
+void AssetBrowser::ChangeDirectory(std::shared_ptr<DirectoryInformation>& directory)
+{
+	if (!directory)
+		return;
+
+	m_PreviousDirectory		= m_CurrentDir;
+	m_CurrentDir			= directory;
+	m_UpdateNavigationPath  = true;
+}
+
+std::shared_ptr<DirectoryInformation> AssetBrowser::CreateDirectoryInfoSharedPtr(const std::filesystem::path& directoryPath, bool isDirectory)
+{
+	auto ptr = new DirectoryInformation(directoryPath, isDirectory);
+	return std::shared_ptr<DirectoryInformation>(ptr);
 }
 
 void AssetBrowser::UpdateAssetFolderTree()
 {
-	ImGui::BeginChild("TopMenuButtons", ImVec2(0, ImGui::GetWindowHeight() * 0.25f));
+	ImGui::BeginChild("TopMenuButtons");
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.16f, 0.16f, 0.21f, 1.0f));
 	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_FILE_IMPORT " Import")))
 	{
@@ -149,18 +343,322 @@ void AssetBrowser::UpdateAssetFolderTree()
 	}
 
 	ImGui::PopStyleColor();
+	std::filesystem::path path = CDPROJECT_RESOURCES_ROOT_PATH;
+	DrawFolder(m_BaseProjectDir, true);
 	ImGui::EndChild();
 
-	ImGui::BeginChild("FolderTree", ImVec2(ImGui::GetWindowWidth() * 0.5f, ImGui::GetWindowHeight() * 0.75f));
-
-	ImGui::EndChild();
 }
 
+
+
+std::string AssetBrowser::StripExtras(const std::string& filename)
+{
+	std::vector<std::string> out;
+	size_t start;
+	size_t end = 0;
+
+	while ((start = filename.find_first_not_of(".", end)) != std::string::npos)
+	{
+		end = filename.find(".", start);
+		out.push_back(filename.substr(start, end - start));
+	}
+
+	int maxChars = int(m_GridSize / (ImGui::GetFontSize() * 0.5f));
+
+	if (out[0].length() >= maxChars)
+	{
+		auto cutFilename = "     " + out[0].substr(0, maxChars - 3) + "...";
+		return cutFilename;
+	}
+
+	auto filenameLength = out[0].length();
+	//        auto paddingToAdd = maxChars - 1 - filenameLength;
+	//
+	std::string newFileName;
+	//
+	//        for(int i = 0; i <= paddingToAdd; i++)
+	//        {
+	//            newFileName += " ";
+	//        }
+
+	newFileName += out[0];
+
+	return newFileName;
+}
+
+void AssetBrowser::DrawFolder(const std::shared_ptr<DirectoryInformation>& dirInfo, bool defaultOpen)
+{
+	ImGuiTreeNodeFlags nodeFlags = ((dirInfo == m_CurrentDir) ? ImGuiTreeNodeFlags_Selected : 0);
+	nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+
+	if (dirInfo->Parent == nullptr)
+		nodeFlags |= ImGuiTreeNodeFlags_Framed;
+
+	const ImColor TreeLineColor = ImColor(128, 128, 128, 128);
+	const float SmallOffsetX = 6.0f; 
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+	if (!dirInfo->IsFile)
+	{
+		bool containsFolder = false;
+
+		for (auto& file : dirInfo->Children)
+		{
+			if (!file->IsFile)
+			{
+				containsFolder = true;
+				break;
+			}
+		}
+		if (!containsFolder)
+			nodeFlags |= ImGuiTreeNodeFlags_Leaf;
+		if (defaultOpen)
+			nodeFlags |= ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf;
+
+		nodeFlags |=ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_SpanAvailWidth;
+
+		bool isOpen = ImGui::TreeNodeEx((void*)(intptr_t)(dirInfo.get()), nodeFlags, "");
+
+		const char* folderIcon = reinterpret_cast<const char*>(((isOpen && containsFolder) || m_CurrentDir == dirInfo) ? ICON_MDI_FOLDER_OPEN : ICON_MDI_FOLDER);
+		ImGui::SameLine();
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+		ImGui::Text("%s ", folderIcon);
+		ImGui::PopStyleColor();
+		ImGui::SameLine();
+		ImGui::TextUnformatted((const char*)dirInfo->FilePath.filename().string().c_str());
+
+		ImVec2 verticalLineStart = ImGui::GetCursorScreenPos();
+
+		if (ImGui::IsItemClicked())
+		{
+			m_PreviousDirectory = m_CurrentDir;
+			m_CurrentDir = dirInfo;
+			m_UpdateNavigationPath = true;
+			std::filesystem::path a = m_CurrentDir->FilePath;
+			std::string str = a.string();
+			
+		}
+
+		if (isOpen && containsFolder)
+		{
+			verticalLineStart.x += SmallOffsetX; // to nicely line up with the arrow symbol
+			ImVec2 verticalLineEnd = verticalLineStart;
+
+			for (int i = 0; i < dirInfo->Children.size(); i++)
+			{
+				if (!dirInfo->Children[i]->IsFile)
+				{
+					auto currentPos = ImGui::GetCursorScreenPos();
+
+					ImGui::Indent(10.0f);
+
+					bool containsFolderTemp = false;
+					for (auto& file : dirInfo->Children[i]->Children)
+					{
+						if (!file->IsFile)
+						{
+							containsFolderTemp = true;
+							break;
+						}
+					}
+					float HorizontalTreeLineSize = 16.0f;// chosen arbitrarily
+
+					if (containsFolderTemp)
+						HorizontalTreeLineSize *= 0.5f;
+					DrawFolder(dirInfo->Children[i]);
+
+					const ImRect childRect = ImRect(currentPos, currentPos + ImVec2(0.0f, ImGui::GetFontSize()));
+
+					const float midpoint = (childRect.Min.y + childRect.Max.y) * 0.5f;
+					drawList->AddLine(ImVec2(verticalLineStart.x, midpoint), ImVec2(verticalLineStart.x + HorizontalTreeLineSize, midpoint), TreeLineColor);
+					verticalLineEnd.y = midpoint;
+
+					ImGui::Unindent(10.0f);
+				}
+			}
+
+			drawList->AddLine(verticalLineStart, verticalLineEnd, TreeLineColor);
+
+			ImGui::TreePop();
+		}
+
+		if (isOpen && !containsFolder)
+			ImGui::TreePop();
+	}
+
+	
+}
+
+std::string AssetBrowser::ProcessDirectory(const std::filesystem::path& directoryPath, const std::shared_ptr<DirectoryInformation>& parent)
+{
+	const auto& directory = m_Directories[directoryPath.string()];
+	if (directory)
+		return directory->FilePath.string();
+
+	std::shared_ptr<DirectoryInformation> directoryInfo = CreateDirectoryInfoSharedPtr(directoryPath, !std::filesystem::is_directory(directoryPath));
+	directoryInfo->Parent = parent;
+
+	if (directoryPath == m_BasePath)
+		directoryInfo->FilePath = m_BasePath;
+	else
+		directoryInfo->FilePath = std::filesystem::relative(directoryPath, m_BasePath);
+
+	if (std::filesystem::is_directory(directoryPath))
+	{
+		for (auto entry : std::filesystem::directory_iterator(directoryPath))
+		{
+			if (!m_ShowHiddenFiles && IsHiddenFile(entry.path().string()))
+			{
+				continue;
+			}
+			{
+				std::string subdirHandle = ProcessDirectory(entry.path(), directoryInfo);
+				directoryInfo->Children.push_back(m_Directories[subdirHandle]);
+			}
+		}
+	}
+
+	m_Directories[directoryInfo->FilePath.string()] = directoryInfo;
+	return directoryInfo->FilePath.string();
+}
 void AssetBrowser::UpdateAssetFileView()
 {
 	ImGui::BeginChild("FileView", ImVec2(ImGui::GetWindowWidth() * 0.5f, ImGui::GetWindowHeight() * 0.75f));
+	{
+		ImGui::BeginChild("directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth(), ImGui::GetFrameHeightWithSpacing()));
 
-	ImGui::EndChild();
+		if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_ARROW_LEFT)))
+		{
+			if (m_CurrentDir != m_BaseProjectDir)
+			{
+				m_PreviousDirectory = m_CurrentDir;
+				m_CurrentDir = m_CurrentDir->Parent;
+				m_UpdateNavigationPath = true;
+			}
+		}
+		ImGui::SameLine();
+		if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_ARROW_RIGHT)))
+		{
+			m_PreviousDirectory = m_CurrentDir;
+			m_UpdateNavigationPath = true;
+		}
+		ImGui::SameLine();
+
+		if (m_UpdateNavigationPath)
+		{
+			m_BreadCrumbData.clear();
+			auto current = m_CurrentDir;
+			while (current)
+			{
+				if (current->Parent != nullptr)
+				{
+					m_BreadCrumbData.push_back(current);
+					current = current->Parent;
+				}
+				else
+				{
+					m_BreadCrumbData.push_back(m_BaseProjectDir);
+					current = nullptr;
+				}
+			}
+
+			std::reverse(m_BreadCrumbData.begin(), m_BreadCrumbData.end());
+			m_UpdateNavigationPath = false;
+		}
+
+		if (m_IsInListView)
+		{
+			if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_VIEW_GRID)))
+			{
+				m_IsInListView = !m_IsInListView;
+			}
+			ImGui::SameLine();
+		}
+		else
+		{
+			if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_VIEW_LIST)))
+			{
+				m_IsInListView = !m_IsInListView;
+			}
+			ImGui::SameLine();
+
+		}
+		ImGui::TextUnformatted(reinterpret_cast<const char*>(ICON_MDI_MAGNIFY));
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - ImGui::GetStyle().IndentSpacing);
+		ImGui::EndChild();
+	}
+
+	{
+		ImGui::BeginChild("##Scrolling");
+
+		int shownIndex = 0;
+
+		float xAvail = ImGui::GetContentRegionAvail().x;
+
+		m_GridItemPerRow = (int)floor(xAvail / (m_GridSize + ImGui::GetStyle().ItemSpacing.x));
+		m_GridItemPerRow = 1 > m_GridItemPerRow ? 1 : m_GridItemPerRow;
+
+		if (m_IsInListView)
+		{
+			for (int i = 0; i < m_CurrentDir->Children.size(); i++)
+			{
+				if (m_CurrentDir->Children.size() > 0)
+				{
+					if (!m_ShowHiddenFiles && IsHiddenFile(m_CurrentDir->Children[i]->FilePath.filename().string()))
+					{
+						continue;
+					}
+				}
+				bool doubleClicked = RenderFile(i, !m_CurrentDir->Children[i]->IsFile, shownIndex, !m_IsInListView);
+
+				if (doubleClicked)
+					break;
+				shownIndex++;
+			}
+		}
+		else
+		{
+			for (int i = 0; i < m_CurrentDir->Children.size(); i++)
+			{
+				if (!m_ShowHiddenFiles && IsHiddenFile(m_CurrentDir->Children[i]->FilePath.filename().string()))
+				{
+					continue;
+				}
+
+				bool doubelClicked = RenderFile(i, !m_CurrentDir->Children[i]->IsFile, shownIndex, !m_IsInListView);
+
+				if (doubelClicked)
+					break;
+				shownIndex++;
+			}
+		}
+		/*ImGuiIO& io = ImGui::GetIO();
+		engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
+		constexpr engine::StringCrc textureCrc("TestBaseColor");
+		bgfx::TextureHandle testTextureHandle = pRenderContext->GetTexture(textureCrc);
+		if (!bgfx::isValid(testTextureHandle))
+		{
+			ResourceBuilder::Get().AddTextureBuildTask(cd::MaterialTextureType::Normal,
+				"C:/Users/V/Desktop/engine/Work/CatDogEngine/Projects/PBRViewer/Resources/Textures/textures/sheild_dragone_normal.png",
+				"C:/Users/V/Desktop/engine/Work/CatDogEngine/Projects/PBRViewer/Resources/Textures/textures/sheild_dragone_normal.dds");
+			ResourceBuilder::Get().Update();
+
+			bgfx::TextureHandle textureHandle = pRenderContext->CreateTexture("Textures/textures/sheild_dragone_normal.dds");
+			pRenderContext->SetTexture(textureCrc, textureHandle);
+		}
+		else
+		{
+			ImVec2 img_size(80.0f, 80.0f);
+			img_size = ImVec2(m_scale, m_scale); 
+			ImGui::Image(ImTextureID(testTextureHandle.idx), img_size);
+			ImGui::TextUnformatted("dddddddd");
+		
+		}*/
+		ImGui::EndChild();
+	}
+	ImGui::EndChild(); 
+	ImGui::SliderFloat(" ", &m_scale, 40.0f, 160.0f, " ", ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_Logarithmic);
 }
 
 void AssetBrowser::ImportAssetFile(const char* pFilePath)
@@ -206,7 +704,7 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 	{
 		std::filesystem::path inputFilePath(pFilePath);
 		std::string inputFileName = inputFilePath.stem().generic_string();
-		std::string outputFilePath = CDENGINE_RESOURCES_ROOT_PATH;
+		std::string outputFilePath = CDPROJECT_RESOURCES_ROOT_PATH;
 		outputFilePath += "Textures/skybox/" + inputFileName;
 		ResourceBuilder::Get().AddCubeMapBuildTask(pFilePath, outputFilePath.c_str());
 		ResourceBuilder::Get().Update();
@@ -235,7 +733,7 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 			return;
 		}
 
-		std::string outputFilePath = CDENGINE_RESOURCES_ROOT_PATH;
+		std::string outputFilePath = CDPROJECT_RESOURCES_ROOT_PATH;
 		outputFilePath += "Shaders/" + inputFileName + ".bin";
 		ResourceBuilder::Get().AddShaderBuildTask(shaderType, pFilePath, outputFilePath.c_str());
 		ResourceBuilder::Get().Update();
@@ -374,7 +872,9 @@ void AssetBrowser::Update()
 
 	// The next column is AssetFileView in the right.
 	ImGui::NextColumn();
+
 	UpdateAssetFileView();
+	//RenderBottom();
 	ImGui::EndColumns();
 
 	ImGui::End();

@@ -17,13 +17,13 @@ namespace engine
 void WorldRenderer::Init()
 {
 	m_pRenderContext->CreateUniform("s_texLUT", bgfx::UniformType::Sampler);
-	m_pRenderContext->CreateTexture("lut/ibl_brdf_lut.dds");
+	m_pRenderContext->CreateTexture("Textures/lut/ibl_brdf_lut.dds");
 
 	m_pRenderContext->CreateUniform("s_texCube", bgfx::UniformType::Sampler);
 	m_pRenderContext->CreateUniform("s_texCubeIrr", bgfx::UniformType::Sampler);
 	uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
-	m_pRenderContext->CreateTexture("skybox/bolonga_lod.dds", samplerFlags);
-	m_pRenderContext->CreateTexture("skybox/bolonga_irr.dds", samplerFlags);
+	m_pRenderContext->CreateTexture("Textures/skybox/bolonga_lod.dds", samplerFlags);
+	m_pRenderContext->CreateTexture("Textures/skybox/bolonga_irr.dds", samplerFlags);
 
 	m_pRenderContext->CreateUniform("u_cameraPos", bgfx::UniformType::Vec4, 1);
 

@@ -80,7 +80,7 @@ void ECTerrainConsumer::AddMaterial(engine::Entity entity, const cd::Material* p
 	assert(optBaseColorTexture.has_value());
 	const cd::Texture& baseColorTexture = pSceneDatabase->GetTexture(optBaseColorTexture.value().Data());
 	const std::string baseColorTexturePath = GetTextureOutputFilePath(baseColorTexture.GetPath());
-	std::string textureDir = cd::string_format("%sTextures/textures/%s.png", CDENGINE_RESOURCES_ROOT_PATH, baseColorTexture.GetPath());
+	std::string textureDir = cd::string_format("%sTextures/textures/%s.png", CDPROJECT_RESOURCES_ROOT_PATH, baseColorTexture.GetPath());
 	ResourceBuilder::Get().AddTextureBuildTask(baseColorTexture.GetType(), textureDir.c_str(), baseColorTexturePath.c_str());
 	
 	// Shaders
@@ -128,8 +128,8 @@ std::string ECTerrainConsumer::GetShaderOutputFilePath(const char* pInputFilePat
 {
 	std::filesystem::path inputShaderPath(pInputFilePath);
 	std::string inputShaderFileName = inputShaderPath.stem().generic_string();
-	std::string outputShaderPath = CDENGINE_RESOURCES_ROOT_PATH;
-	outputShaderPath += "Shaders/" + inputShaderFileName;
+	std::string outputShaderPath = CDPROJECT_RESOURCES_SHARED_PATH;
+	outputShaderPath += "BuiltInShaders/" + inputShaderFileName;
 	if (pAppendFileName)
 	{
 		if (engine::ShaderSchema::DefaultUberOption != engine::StringCrc(pAppendFileName))
@@ -147,7 +147,7 @@ std::string ECTerrainConsumer::GetTextureOutputFilePath(const char* pInputFilePa
 {
 	std::filesystem::path inputTexturePath(pInputFilePath);
 	std::string inputTextureFileName = inputTexturePath.stem().generic_string();
-	std::string outputTexturePath = CDENGINE_RESOURCES_ROOT_PATH;
+	std::string outputTexturePath = CDPROJECT_RESOURCES_ROOT_PATH;
 	outputTexturePath += "Textures/" + inputTextureFileName + ".dds";
 	return outputTexturePath;
 }

@@ -13,9 +13,19 @@ EngineSourcePath = path.join(EnginePath, "Source")
 
 -- Runtime
 RuntimeSourcePath = path.join(EngineSourcePath, "Runtime")
+BuiltInShaderSourcePath = RootPath.."/Engine/BuiltInShaders/shaders/"
+
+-- Tool
+ToolRootPath = path.join(EnginePath, "EditorTools", GetPlatformDisplayName())
 
 -- Editor
 EditorSourcePath = path.join(EngineSourcePath, "Editor")
+EditorResourceRootPath = RootPath.."/Engine/EditorResources/"
+
+-- Project
+ProjectSharedPath = RootPath.."/Projects/Shared/"
+DefaultProjectName = "Test"
+ProjectResourceRootPath = RootPath.."/Projects/"..DefaultProjectName.."/"
 
 -- ThirdParty
 ThirdPartySourcePath = path.join(EngineSourcePath, "ThirdParty")
