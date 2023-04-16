@@ -1,5 +1,5 @@
 $input a_position, a_texcoord0
-$output v_worldPos, v_normal, v_texcoord0
+$output v_worldPos, v_normal, v_texcoord0, v_alphaMapTexCoord
 
 #include "../common/common.sh"
 #include "uniforms.sh"
@@ -24,4 +24,5 @@ void main()
 	v_worldPos = mul(u_model[0], vec4(a_position, 1.0)).xyz;
 	v_normal = normalize(mul(u_modelInvTrans, vec4(0.0, 1.0, 0.0, 0.0)).xyz);
 	v_texcoord0 = a_texcoord0;
+    v_alphaMapTexCoord = vec2((a_position.x - u_SectorOrigin.x) / u_SectorDimension.x, (a_position.z - u_SectorOrigin.z) / u_SectorDimension.y);
 }
