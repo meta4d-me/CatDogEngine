@@ -51,7 +51,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
         materialComponent.SetMaterialData(nullptr);
         materialComponent.SetMaterialType(pPBRMaterialType);
-        materialComponent.SetUberShaderOption(engine::ShaderSchema::DefaultUberOption);
+        materialComponent.SetUberShaderOption(pPBRMaterialType->GetShaderSchema().GetProgramCrc(engine::LoadingStatus::MISSING_RESOURCES));
         materialComponent.Build();
 
         auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);

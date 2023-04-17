@@ -129,10 +129,11 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 	pSceneView->SetIBLSkyRenderer(m_pIBLSkyRenderer);
 	m_pSceneView = pSceneView.get();
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
-	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
 
 	auto pTerrainEditor = std::make_unique<TerrainEditor>("Terrain Editor");
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pTerrainEditor));
+
+	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
 
 	auto pAssetBrowser = std::make_unique<AssetBrowser>("AssetBrowser");
 	pAssetBrowser->SetSceneRenderer(m_pSceneRenderer);

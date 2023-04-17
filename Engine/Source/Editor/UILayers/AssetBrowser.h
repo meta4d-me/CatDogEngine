@@ -1,8 +1,8 @@
 #include "ImGui/ImGuiBaseLayer.h"
 
-#include<filesystem>
+#include <filesystem>
 #include <memory>
-#include<unordered_map>
+#include <unordered_map>
 
 namespace ImGui
 {
@@ -43,21 +43,22 @@ enum class ExportAssetType
 	Unknown,
 };
 
-struct DirectoryInformation
+class DirectoryInformation
 {
-	std::shared_ptr<DirectoryInformation> Parent;
-	std::vector<std::shared_ptr<DirectoryInformation>> Children;
-
-	std::filesystem::path FilePath;
-	bool IsFile;
-
 public:
 	DirectoryInformation(const std::filesystem::path& fname, bool isF)
 	{
 		FilePath = fname;
 		IsFile = isF;
 	}
+
+	std::shared_ptr<DirectoryInformation> Parent;
+	std::vector<std::shared_ptr<DirectoryInformation>> Children;
+
+	std::filesystem::path FilePath;
+	bool IsFile;
 };
+
 class AssetBrowser : public engine::ImGuiBaseLayer
 {
 public:
@@ -102,15 +103,12 @@ private:
 	std::string m_BasePath;
 	std::filesystem::path m_AssetPath;
 
-	std::shared_ptr <DirectoryInformation> m_CurrentDir;
+	std::shared_ptr<DirectoryInformation> m_CurrentDir;
 	std::shared_ptr<DirectoryInformation> m_BaseProjectDir;
 	std::shared_ptr<DirectoryInformation> m_NextDirectory;
 	std::shared_ptr<DirectoryInformation> m_PreviousDirectory;
 	std::unordered_map<std::string, std::shared_ptr<DirectoryInformation>> m_Directories;
 	std::vector<std::shared_ptr<DirectoryInformation>> m_BreadCrumbData;
-
-	//std::vector<bgfx::TextureHandle> m_Handel;
-
 };
 
 }
