@@ -21,6 +21,7 @@ public:
 	static std::filesystem::path GetEngineBuiltinShaderPath();
 	static std::filesystem::path GetEngineResourcesPath();
 	static std::filesystem::path GetEditorResourcesPath();
+	static std::filesystem::path GetProjectsSharedPath();
 
 	static std::string GetBuiltinShaderInputPath(const char* pShaderName);
 	static std::string GetShaderOutputPath(const char* pInputFilePath, const std::string& options = "");

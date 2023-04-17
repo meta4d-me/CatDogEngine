@@ -226,10 +226,10 @@ bool ResourceBuilder::AddCubeMapBuildTask(const char* pInputFilePath, const char
 
 bool ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath)
 {
-	if (s_SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
-	{
-		return false;
-	}
+	//if (s_SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
+	//{
+	//	return false;
+	//}
 
 	// Document : https://bkaradzic.github.io/bgfx/tools.html#texture-compiler-texturec
 	std::string texturecExePath = CDENGINE_TOOL_PATH;

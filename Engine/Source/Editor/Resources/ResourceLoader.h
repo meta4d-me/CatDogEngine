@@ -16,8 +16,8 @@ public:
 	ResourceLoader& operator=(ResourceLoader&&) = delete;
 	~ResourceLoader() = delete;
 
-	static std::vector<std::byte> LoadTextureFile(const char* pFilePath);
-	static std::vector<std::byte> LoadShader(const char* pFilePath);
+	static std::vector<std::byte> LoadTextureFile(const char* pFilePath) { return LoadFile(pFilePath); }
+	static std::vector<std::byte> LoadShader(const char* pFilePath) { return LoadFile(pFilePath); }
 
 private:
 	static std::vector<std::byte> LoadFile(const char* pFilePath);

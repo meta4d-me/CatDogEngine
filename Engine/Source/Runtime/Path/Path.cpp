@@ -56,12 +56,17 @@ std::filesystem::path Path::GetEngineBuiltinShaderPath()
 
 std::filesystem::path Path::GetEngineResourcesPath()
 {
-    return std::filesystem::path(CDENGINE_RESOURCES_ROOT_PATH);
+    return std::filesystem::path(CDPROJECT_RESOURCES_ROOT_PATH);
 }
 
 std::filesystem::path Path::GetEditorResourcesPath()
 {
     return std::filesystem::path(CDEDITOR_RESOURCES_ROOT_PATH);
+}
+
+std::filesystem::path Path::GetProjectsSharedPath()
+{
+    return std::filesystem::path(CDPROJECT_RESOURCES_SHARED_PATH);
 }
 
 std::string Path::GetBuiltinShaderInputPath(const char* pShaderName)
@@ -87,7 +92,7 @@ std::string Path::GetShaderOutputPath(const char* pInputFilePath, const std::str
         }
     }
 
-    return ((GetEngineResourcesPath() / "Shaders" / cd::MoveTemp(outputShaderFileName)).replace_extension(ShaderOutputExtension)).string();
+    return ((GetProjectsSharedPath() / "BuiltInShaders" / cd::MoveTemp(outputShaderFileName)).replace_extension(ShaderOutputExtension)).string();
 }
 
 std::string Path::GetTextureOutputFilePath(const char* pInputFilePath, const char* extension)
