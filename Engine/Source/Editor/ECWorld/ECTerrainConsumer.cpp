@@ -76,7 +76,7 @@ void ECTerrainConsumer::AddStaticMesh(engine::Entity entity, const cd::Mesh* mes
 
 void ECTerrainConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMaterial, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase)
 {
-<<<<<<< HEAD
+
 	const std::optional<cd::TextureID> optBaseColorTexture = pMaterial->GetTextureID(cd::MaterialTextureType::BaseColor);
 	assert(optBaseColorTexture.has_value());
 	const cd::Texture& baseColorTexture = pSceneDatabase->GetTexture(optBaseColorTexture.value().Data());
@@ -84,8 +84,6 @@ void ECTerrainConsumer::AddMaterial(engine::Entity entity, const cd::Material* p
 	std::string textureDir = cd::string_format("%sTextures/textures/%s.png", CDPROJECT_RESOURCES_ROOT_PATH, baseColorTexture.GetPath());
 	ResourceBuilder::Get().AddTextureBuildTask(baseColorTexture.GetType(), textureDir.c_str(), baseColorTexturePath.c_str());
 	
-=======
->>>>>>> 359fa8f93b93dbae01b823a297fc22658c820b84
 	// Shaders
 	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
 	const std::string outputVSFilePath = GetShaderOutputFilePath(shaderSchema.GetVertexShaderPath());
