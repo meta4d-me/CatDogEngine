@@ -148,6 +148,7 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 		ImGui::BeginGroup();
 		const std::string fileName = m_CurrentDir->Children[dirIndex]->FilePath.filename().string();
 		const std::string nameNoEx = m_CurrentDir->Children[dirIndex]->FilePath.filename().stem().string();
+		std::string extension = m_CurrentDir->Children[dirIndex]->FilePath.extension().generic_string();
 		if (folder)
 		{
 			ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_FOLDER), ImVec2(m_scale, m_scale));	
@@ -182,6 +183,7 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 			 {
 				 ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_DELTA), ImVec2(m_scale, m_scale));
 			 }
+	
 						
 		}
 		

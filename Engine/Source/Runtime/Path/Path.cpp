@@ -100,4 +100,9 @@ std::string Path::GetTextureOutputFilePath(const char* pInputFilePath, const cha
     return ((GetEngineResourcesPath() / "Textures" / std::filesystem::path(pInputFilePath).stem()).replace_extension(extension)).string();
 }
 
+std::string Path::GetTerrainTextureOutputFilePath(const char* pInputFilePath, const char* extension)
+{
+    return ((GetEngineResourcesPath() / "Textures" / "Terrain" / std::filesystem::path(pInputFilePath).stem()).replace_extension(extension)).string();
+}
+
 }

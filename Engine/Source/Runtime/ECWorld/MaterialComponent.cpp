@@ -178,6 +178,8 @@ void MaterialComponent::Build()
 		std::string samplerUniformName = "s_textureSampler";
 		samplerUniformName += std::to_string(textureIndex++);
 		textureInfo.samplerHandle = bgfx::createUniform(samplerUniformName.c_str(), bgfx::UniformType::Sampler).idx;
+		assert(textureInfo.textureHandle != bgfx::kInvalidHandle);
+		assert(textureInfo.samplerHandle != bgfx::kInvalidHandle);
 	}
 }
 
