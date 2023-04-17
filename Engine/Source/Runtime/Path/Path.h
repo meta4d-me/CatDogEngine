@@ -26,6 +26,7 @@ public:
 	static std::string GetBuiltinShaderInputPath(const char* pShaderName);
 	static std::string GetShaderOutputPath(const char* pInputFilePath, const std::string& options = "");
 	static std::string GetTextureOutputFilePath(const char* pInputFilePath, const char* extension);
+	static std::string GetTerrainTextureOutputFilePath(const char* pInputFilePath, const char* extension);
 
 private:
 	static const char* GetPlatformPathKey();
