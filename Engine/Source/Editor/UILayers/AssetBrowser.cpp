@@ -148,13 +148,13 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 		ImGui::BeginGroup();
 		const std::string fileName = m_CurrentDir->Children[dirIndex]->FilePath.filename().string();
 		const std::string nameNoEx = m_CurrentDir->Children[dirIndex]->FilePath.filename().stem().string();
+		std::string extension = m_CurrentDir->Children[dirIndex]->FilePath.extension().generic_string();
 		if (folder)
 		{
 			ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_FOLDER), ImVec2(m_scale, m_scale));	
 		}
 		 if (!folder)
 		{
-			 std::string extension = m_CurrentDir->Children[dirIndex]->FilePath.extension().generic_string();
 			 if (IsTextureFile(extension))
 			 {
 				 std::filesystem::path texturesPath = resourcesPath / "Textures/" / "textures/" / fileName.c_str();
@@ -181,27 +181,13 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 					 ImVec2 img_size(m_scale, m_scale);
 					 ImGui::Image(ImTextureID(TextureHandle.idx), img_size);
 				 }
-				//ImGuiIO& io = ImGui::GetIO();
-				//engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
-				//constexpr engine::StringCrc textureCrc("TestBaseColor");
-				//bgfx::TextureHandle testTextureHandle = pRenderContext->GetTexture(textureCrc);
-				//if (!bgfx::isValid(testTextureHandle))
-				//{
-				//	ResourceBuilder::Get().AddTextureBuildTask(cd::MaterialTextureType::Normal,
-				//		"C:/Users/V/Desktop/engine/Work/CatDogEngine/Projects/PBRViewer/Resources/Textures/textures/sheild_dragone_normal.png",
-				//		"C:/Users/V/Desktop/engine/Work/CatDogEngine/Projects/PBRViewer/Resources/Textures/textures/sheild_dragone_normal.dds");
-				//	ResourceBuilder::Get().Update();
-				//
-				//	bgfx::TextureHandle textureHandle = pRenderContext->CreateTexture("Textures/textures/sheild_dragone_normal.dds");
-				//	pRenderContext->SetTexture(textureCrc, textureHandle);
-				//}
-				//else
-				//{
-				//	ImVec2 img_size(80.0f, 80.0f);
-				//	img_size = ImVec2(m_scale, m_scale);
-				//	ImGui::Image(ImTextureID(testTextureHandle.idx), img_size);
-				//}
+		
 			 }
+			 if (0 == strcmp(".dds", extension.c_str()))
+			 {
+				 ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_DELTA), ImVec2(m_scale, m_scale));
+			 }
+	
 						
 		}
 		
@@ -222,7 +208,6 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 	else
 	{
 		ImGui::TextUnformatted(folder ? reinterpret_cast<const char*>(ICON_MDI_FOLDER) : GetIconFontIconc(m_CurrentDir->Children[dirIndex]->FilePath.string()));
-		//ImGui::TextUnformatted(reinterpret_cast<const char*>(ICON_MDI_FOLDER));
 		ImGui::SameLine();
 		if (ImGui::Selectable(m_CurrentDir->Children[dirIndex]->FilePath.filename().string().c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
 		{

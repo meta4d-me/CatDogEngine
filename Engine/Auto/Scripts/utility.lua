@@ -3,27 +3,27 @@
 --------------------------------------------------------------
 
 group("Build")
-project("CompileShaders")
-	kind("Utility")
-	location(path.join(IntermediatePath, "Engine/Misc"))
-	targetdir(BinariesPath)
-	local shadersFilePath = path.join(EnginePath, "BuiltInShaders")
-	vpaths {
-		["shaders"] = path.join(shadersFilePath, "shaders/**.*"),
-		[""] = path.join(shadersFilePath, "compile_dx11.bat"),
-	}
+--project("CompileShaders")
+--	kind("Utility")
+--	location(path.join(IntermediatePath, "Engine/Misc"))
+--	targetdir(BinariesPath)
+--	local shadersFilePath = path.join(EnginePath, "BuiltInShaders")
+--	vpaths {
+--		["shaders"] = path.join(shadersFilePath, "shaders/**.*"),
+--		[""] = path.join(shadersFilePath, "compile_dx11.bat"),
+--	}
 
-	files {
-		path.join(shadersFilePath, "shaders/**.*"),
-		path.join(shadersFilePath, "compile_dx11.bat"),
-	}
+--	files {
+--		path.join(shadersFilePath, "shaders/**.*"),
+--		path.join(shadersFilePath, "compile_dx11.bat"),
+--	}
 
-	filter { "system:windows" }
-		prebuildcommands {
-			"cd "..path.join(shadersFilePath),
-			"compile_dx11.bat",
-		}
-	filter {}
+--	filter { "system:windows" }
+--		prebuildcommands {
+--			"cd "..path.join(shadersFilePath),
+--			"compile_dx11.bat",
+--		}
+--	filter {}
 
 --project("CompileTextures")
 --	kind("Utility")
