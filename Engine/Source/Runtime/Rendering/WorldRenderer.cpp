@@ -86,18 +86,18 @@ void WorldRenderer::Render(float deltaTime)
 		}
 
 		constexpr StringCrc lutSampler("s_texLUT");
-		constexpr StringCrc lutTexture("lut/ibl_brdf_lut.dds");
+		constexpr StringCrc lutTexture("Textures/lut/ibl_brdf_lut.dds");
 		bgfx::setTexture(3, m_pRenderContext->GetUniform(lutSampler), m_pRenderContext->GetTexture(lutTexture));
 
 		constexpr StringCrc useIBLCrc("USE_PBR_IBL");
 		if (useIBLCrc == pMaterialComponent->GetUberShaderOption())
 		{
 			constexpr StringCrc cubeSampler("s_texCube");
-			constexpr StringCrc cubeTexture("skybox/bolonga_lod.dds");
+			constexpr StringCrc cubeTexture("Textures/skybox/bolonga_lod.dds");
 			bgfx::setTexture(4, m_pRenderContext->GetUniform(cubeSampler), m_pRenderContext->GetTexture(cubeTexture));
 
 			constexpr StringCrc cubeIrrSampler("s_texCubeIrr");
-			constexpr StringCrc cubeIrrTexture("skybox/bolonga_irr.dds");
+			constexpr StringCrc cubeIrrTexture("Textures/skybox/bolonga_irr.dds");
 			bgfx::setTexture(5, m_pRenderContext->GetUniform(cubeIrrSampler), m_pRenderContext->GetTexture(cubeIrrTexture));
 		}
 
