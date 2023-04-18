@@ -99,6 +99,13 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         transformComponent.SetTransform(cd::Transform::Identity());
         transformComponent.Build();
     }
+    else if (ImGui::Selectable("Add DDGI"))
+    {
+        engine::Entity entity = AddNamedEntity("DDGI");
+        auto &ddgiComponent = pWorld->CreateComponent<engine::DDGIComponent>(entity);
+        
+        pSceneWorld->SetDDGIEntity(entity);
+    }
 }
 
 void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity entity)

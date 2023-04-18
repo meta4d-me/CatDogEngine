@@ -131,6 +131,12 @@ void SceneWorld::SetMainCameraEntity(engine::Entity entity)
 	m_mainCameraEntity = entity;
 }
 
+void SceneWorld::SetDDGIEntity(engine::Entity entity)
+{
+	CD_TRACE("Setup DDGI entity : {0}", entity);
+	m_ddgiEntity = entity;
+}
+
 void SceneWorld::OnResizeSceneView(uint16_t width, uint16_t height)
 {
 	if (engine::CameraComponent* pCameraComponent = GetCameraComponent(GetMainCameraEntity()))

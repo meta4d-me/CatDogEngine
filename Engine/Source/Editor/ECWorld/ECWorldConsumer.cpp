@@ -99,7 +99,6 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 			engine::MaterialType *pMaterialType = m_pSceneWorld->GetDDGIMaterialType();
 			AddStaticMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
 
-			AddDDGI(meshEntity, pSceneDatabase);
 			cd::MaterialID meshMaterialID = mesh.GetMaterialID();
 			if(meshMaterialID.IsValid())
 			{
@@ -240,11 +239,6 @@ void ECWorldConsumer::AddAnimation(engine::Entity entity, const cd::Animation& a
 
 	bgfx::UniformHandle boneMatricesUniform = bgfx::createUniform("u_boneMatrices", bgfx::UniformType::Mat4, 128);
 	animationComponent.SetBoneMatricesUniform(boneMatricesUniform.idx);
-}
-
-void ECWorldConsumer::AddDDGI(engine::Entity entity, const cd::SceneDatabase *pSceneDatabase) {
-	engine::World *pWorld = m_pSceneWorld->GetWorld();
-	engine::DDGIComponent &ddgiComponent = pWorld->CreateComponent<engine::DDGIComponent>(entity);
 }
 
 void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMaterial, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase)

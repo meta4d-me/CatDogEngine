@@ -69,12 +69,6 @@ void DDGIRenderer::Render(float deltaTime)
 			continue;
 		}
 
-		// non-DDGI
-		if(!m_pCurrentSceneWorld->GetDDGIComponent(entity))
-		{
-			continue;
-		}
-
 		// Transform
 		if(TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 		{
