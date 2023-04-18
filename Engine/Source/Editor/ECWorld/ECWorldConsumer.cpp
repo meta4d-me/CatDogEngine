@@ -244,7 +244,7 @@ void ECWorldConsumer::AddAnimation(engine::Entity entity, const cd::Animation& a
 
 void ECWorldConsumer::AddDDGI(engine::Entity entity, const cd::SceneDatabase *pSceneDatabase) {
 	engine::World *pWorld = m_pSceneWorld->GetWorld();
-	engine::DDGIComponent &animationComponent = pWorld->CreateComponent<engine::DDGIComponent>(entity);
+	engine::DDGIComponent &ddgiComponent = pWorld->CreateComponent<engine::DDGIComponent>(entity);
 }
 
 void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMaterial, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase)
