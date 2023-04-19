@@ -218,6 +218,23 @@ void EditorApp::InitECWorld()
 		15.0f /* horizontal sensitivity */,
 		5.0f /* vertical sensitivity */,
 		160.0f /* Movement Speed*/);
+
+	engine::Entity ddgiEntity = pWorld->CreateEntity();
+	m_pSceneWorld->SetDDGIEntity(ddgiEntity);
+	auto &ddgiNameComponent = pWorld->CreateComponent<engine::NameComponent>(ddgiEntity);
+	ddgiNameComponent.SetName("DDGI");
+	auto &ddgiComponent = pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
+
+	// Temporary code.
+	ddgiComponent.SetClassificationTexturePath("ddgi/classification.dds");
+	ddgiComponent.SetDistanceTexturePath("ddgi/distance.dds");
+	ddgiComponent.SetIrradianceTexturePath("ddgi/irradiance.dds");
+	ddgiComponent.SetRelocationTexturePath("ddgi/relocation.dds");
+	ddgiComponent.SetAmbientMultiplier(1.0);
+	ddgiComponent.SetDimension(cd::Vec3f(4.0f, 5.0f, 2.0f));
+	ddgiComponent.SetNormalBias(0.0f);
+	ddgiComponent.SetSpacing(cd::Vec3f(1.0f, 1.0f, 1.0f));
+	ddgiComponent.SetViewBias(0.0f);
 }
 
 void EditorApp::InitRenderContext()

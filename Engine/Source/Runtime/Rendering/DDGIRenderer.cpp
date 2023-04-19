@@ -20,18 +20,16 @@ constexpr const char* distanceSampler = "s_texDistance";
 constexpr const char* irradianceSampler = "s_texIrradiance";
 constexpr const char* relocationSampler = "s_texRelocation";
 
-// Temporary file path.
-constexpr const char *classificationTexture = "ddgi/classification.dds";
-constexpr const char *distanceTexture = "ddgi/distance.dds";
-constexpr const char *irradianceTexture = "ddgi/irradiance.dds";
-constexpr const char *relocationTexture = "ddgi/relocation.dds";
-
 constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 
 }
 
 void DDGIRenderer::Init()
 {
+	assert(m_pCurrentSceneWorld && "Unknown Scene World pointer!");
+	m_pDDGIComponent = m_pCurrentSceneWorld->GetDDGIComponent(m_pCurrentSceneWorld->GetDDGIEntity());
+	assert(m_pDDGIComponent && "Unknown DDGI Component pointer!");
+
 	bgfx::setViewName(GetViewID(), "WorldRenderer");
 
 	m_pRenderContext->CreateUniform(classificationSampler, bgfx::UniformType::Sampler);
@@ -39,10 +37,10 @@ void DDGIRenderer::Init()
 	m_pRenderContext->CreateUniform(irradianceSampler, bgfx::UniformType::Sampler);
 	m_pRenderContext->CreateUniform(relocationSampler, bgfx::UniformType::Sampler);
 
-	m_pRenderContext->CreateTexture(classificationTexture, samplerFlags);
-	m_pRenderContext->CreateTexture(distanceTexture, samplerFlags);
-	m_pRenderContext->CreateTexture(irradianceTexture, samplerFlags);
-	m_pRenderContext->CreateTexture(relocationTexture, samplerFlags);
+	m_pRenderContext->CreateTexture(m_pDDGIComponent->GetClassificationTexturePath().c_str(), samplerFlags);
+	m_pRenderContext->CreateTexture(m_pDDGIComponent->GetDistanceTexturePath().c_str(), samplerFlags);
+	m_pRenderContext->CreateTexture(m_pDDGIComponent->GetIrradianceTexturePath().c_str() , samplerFlags);
+	m_pRenderContext->CreateTexture(m_pDDGIComponent->GetRelocationTexturePath().c_str(), samplerFlags);
 }
 
 void DDGIRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -90,13 +88,13 @@ void DDGIRenderer::Render(float deltaTime)
 		}
 
 		bgfx::setTexture(1, m_pRenderContext->GetUniform(StringCrc(classificationSampler)),
-						 m_pRenderContext->GetTexture(StringCrc(classificationTexture)));
+						 m_pRenderContext->GetTexture(StringCrc(m_pDDGIComponent->GetClassificationTexturePath().c_str())));
 		bgfx::setTexture(2, m_pRenderContext->GetUniform(StringCrc(distanceSampler)),
-						 m_pRenderContext->GetTexture(StringCrc(distanceTexture)));
+						 m_pRenderContext->GetTexture(StringCrc(m_pDDGIComponent->GetDistanceTexturePath().c_str())));
 		bgfx::setTexture(3, m_pRenderContext->GetUniform(StringCrc(irradianceSampler)),
-						 m_pRenderContext->GetTexture(StringCrc(irradianceTexture)));
+						 m_pRenderContext->GetTexture(StringCrc(m_pDDGIComponent->GetIrradianceTexturePath().c_str())));
 		bgfx::setTexture(4, m_pRenderContext->GetUniform(StringCrc(relocationSampler)),
-						 m_pRenderContext->GetTexture(StringCrc(relocationTexture)));
+						 m_pRenderContext->GetTexture(StringCrc(m_pDDGIComponent->GetRelocationTexturePath().c_str())));
 
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);
@@ -105,29 +103,32 @@ void DDGIRenderer::Render(float deltaTime)
 	}
 }
 
-void DDGIRenderer::UpdateClassificationTexture(const char *path)
+void DDGIRenderer::UpdateClassificationTexture(const char* path)
 {
-	m_pRenderContext->Destory(StringCrc(classificationTexture));
-	m_pRenderContext->CreateTexture(classificationTexture, samplerFlags);
-
+	m_pRenderContext->Destory(StringCrc(m_pDDGIComponent->GetClassificationTexturePath().c_str()));
+	m_pRenderContext->CreateTexture(path, samplerFlags);
+	m_pDDGIComponent->SetClassificationTexturePath(path);
 }
 
-void DDGIRenderer::UpdateDistanceTexture(const char *path)
+void DDGIRenderer::UpdateDistanceTexture(const char* path)
 {
-	m_pRenderContext->Destory(StringCrc(distanceTexture));
-	m_pRenderContext->CreateTexture(distanceTexture, samplerFlags);
+	m_pRenderContext->Destory(StringCrc(m_pDDGIComponent->GetDistanceTexturePath().c_str()));
+	m_pRenderContext->CreateTexture(path, samplerFlags);
+	m_pDDGIComponent->SetDistanceTexturePath(path);
 }
 
-void DDGIRenderer::UpdateIrradianceTexture(const char *path)
+void DDGIRenderer::UpdateIrradianceTexture(const char* path)
 {
-	m_pRenderContext->Destory(StringCrc(irradianceTexture));
-	m_pRenderContext->CreateTexture(irradianceTexture, samplerFlags);
+	m_pRenderContext->Destory(StringCrc(m_pDDGIComponent->GetIrradianceTexturePath().c_str()));
+	m_pRenderContext->CreateTexture(path, samplerFlags);
+	m_pDDGIComponent->SetIrradianceTexturePath(path);
 }
 
-void DDGIRenderer::UpdateRelocationTexture(const char *path)
+void DDGIRenderer::UpdateRelocationTexture(const char* path)
 {
-	m_pRenderContext->Destory(StringCrc(relocationTexture));
-	m_pRenderContext->CreateTexture(relocationTexture, samplerFlags);
+	m_pRenderContext->Destory(StringCrc(m_pDDGIComponent->GetRelocationTexturePath().c_str()));
+	m_pRenderContext->CreateTexture(path, samplerFlags);
+	m_pDDGIComponent->SetRelocationTexturePath(path);
 }
 
 }
