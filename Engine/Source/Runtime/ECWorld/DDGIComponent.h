@@ -31,10 +31,10 @@ public:
 	const std::string &GetRelocationTexturePath() const { return m_relocationTexturePath; }
 
 	void SetDimension(const cd::Vec3f &dimension) { m_dimension = dimension; }
-	const cd::Vec3f GetDimension() const { return m_dimension; }
+	const cd::Vec3f &GetDimension() const { return m_dimension; }
 
 	void SetSpacing(const cd::Vec3f &spacing) { m_spacing = spacing; }
-	const cd::Vec3f GetSpacing() const { return m_spacing; }
+	const cd::Vec3f &GetSpacing() const { return m_spacing; }
 
 	void SetAmbientMultiplier(float multiplier) { m_ambientMultiplier = multiplier; }
 	const float GetAmbientMultiplier() const { return m_ambientMultiplier; }
