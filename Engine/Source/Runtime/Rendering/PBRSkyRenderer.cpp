@@ -39,21 +39,21 @@ void PBRSkyRenderer::Init() {
 	m_programComputeMultipleScattering = m_pRenderContext->CreateProgram("ComputeMultipleScattering", "cs_ComputeMultipleScattering.bin");
 
 	m_textureTransmittance = m_pRenderContext->CreateTexture("m_textureTransmittance",
-		TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT, FLAG_2DTEXTURE);
+		TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT, 1, bgfx::TextureFormat::RGBA32F, FLAG_2DTEXTURE);
 	m_textureIrradiance = m_pRenderContext->CreateTexture("m_textureIrradiance",
-		IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT, FLAG_2DTEXTURE);
+		IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT, 1, bgfx::TextureFormat::RGBA32F, FLAG_2DTEXTURE);
 	m_textureDeltaIrradiance = m_pRenderContext->CreateTexture("m_textureDeltaIrradiance",
-		IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT, FLAG_2DTEXTURE);
+		IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT, 1, bgfx::TextureFormat::RGBA32F, FLAG_2DTEXTURE);
 	m_textureDeltaRayleighScattering = m_pRenderContext->CreateTexture("m_textureDeltaRayleighScattering",
-		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, FLAG_3DTEXTURE);
+		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, bgfx::TextureFormat::RGBA32F, FLAG_3DTEXTURE);
 	m_textureDeltaMieScattering = m_pRenderContext->CreateTexture("m_textureDeltaMieScattering",
-		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, FLAG_3DTEXTURE);
+		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, bgfx::TextureFormat::RGBA32F, FLAG_3DTEXTURE);
 	m_textureScattering = m_pRenderContext->CreateTexture("m_textureScattering",
-		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, FLAG_3DTEXTURE);
+		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, bgfx::TextureFormat::RGBA32F, FLAG_3DTEXTURE);
 	m_textureDeltaScatteringDensity = m_pRenderContext->CreateTexture("m_textureDeltaScatteringDensity",
-		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, FLAG_3DTEXTURE);
+		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, bgfx::TextureFormat::RGBA32F, FLAG_3DTEXTURE);
 	m_textureDeltaMultipleScattering = m_pRenderContext->CreateTexture("m_textureDeltaMultipleScattering",
-		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, FLAG_3DTEXTURE);
+		SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH, bgfx::TextureFormat::RGBA32F, FLAG_3DTEXTURE);
 
 	u_LightDir              = m_pRenderContext->CreateUniform("u_LightDir", bgfx::UniformType::Enum::Vec4, 1);
 	u_cameraPos             = m_pRenderContext->CreateUniform("u_cameraPos", bgfx::UniformType::Enum::Vec4, 1);

@@ -53,8 +53,7 @@ public:
 	bgfx::ProgramHandle CreateProgram(const char *pName, const char *pCSName);
 	bgfx::ProgramHandle CreateProgram(const char *pName, bgfx::ShaderHandle csh);
 	bgfx::TextureHandle CreateTexture(const char* filePath, uint64_t flags = 0UL);
-	bgfx::TextureHandle CreateTexture(const char *pName, const uint16_t _width, const uint16_t _height, uint64_t flags = 0UL);
-	bgfx::TextureHandle CreateTexture(const char *pName, const uint16_t _width, const uint16_t _height, const uint16_t _depth, uint64_t flags = 0UL);
+	bgfx::TextureHandle CreateTexture(const char *pName, uint16_t width, uint16_t height, uint16_t depth, bgfx::TextureFormat::Enum formet, uint64_t flags = 0UL, const void* data = nullptr, uint32_t size = 0);
 	bgfx::UniformHandle CreateUniform(const char* pName, bgfx::UniformType::Enum uniformType, uint16_t number = 1);
 
 	bgfx::VertexLayout CreateVertexLayout(StringCrc resourceCrc, const std::vector<cd::VertexAttributeLayout>& vertexAttributes);

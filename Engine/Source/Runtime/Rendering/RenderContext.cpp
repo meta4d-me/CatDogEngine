@@ -1,6 +1,9 @@
 #include "RenderContext.h"
 
+#include "Log/Log.h"
+
 #include "Renderer.h"
+#include "Rendering/DDGIDefinition.h"
 #include "Rendering/Utility/VertexLayoutUtility.h"
 
 #include <bgfx/bgfx.h>
@@ -286,39 +289,44 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pFilePath, uint64_t
 	return handle;
 }
 
-bgfx::TextureHandle RenderContext::CreateTexture(const char* pName, const uint16_t _width, const uint16_t _height, uint64_t flags)
+bgfx::TextureHandle RenderContext::CreateTexture(const char* pName, uint16_t width, uint16_t height, uint16_t depth, bgfx::TextureFormat::Enum formet, uint64_t flags, const void* data, uint32_t size)
 {
 	StringCrc textureName(pName);
 	auto itTextureCache = m_textureHandleCaches.find(textureName.Value());
-	if (itTextureCache != m_textureHandleCaches.end())
+	if(itTextureCache != m_textureHandleCaches.end())
 	{
 		return itTextureCache->second;
 	}
 
-	bgfx::TextureHandle texture = bgfx::createTexture2D(_width, _height, false, 1, bgfx::TextureFormat::RGBA32F, flags);
-	if (bgfx::isValid(texture))
+	const bgfx::Memory *mem = nullptr;
+	bgfx::TextureHandle texture = BGFX_INVALID_HANDLE;
+
+	if(nullptr != data && 0 != size)
+	{
+		mem = bgfx::makeRef(data, size);
+	}
+
+	if(depth > 1)
+	{
+		texture = nullptr == mem ?
+			bgfx::createTexture3D(width, height, depth, false, formet, flags) :
+			bgfx::createTexture3D(width, height, depth, false, formet, flags, mem);
+	}
+	else
+	{
+		texture = nullptr == mem ?
+			bgfx::createTexture2D(width, height, false, 1, formet, flags) :
+			bgfx::createTexture2D(width, height, false, 1, formet, flags, mem);
+	}
+
+	if(bgfx::isValid(texture))
 	{
 		bgfx::setName(texture, pName);
 		m_textureHandleCaches[textureName.Value()] = texture;
 	}
-
-	return texture;
-}
-
-bgfx::TextureHandle RenderContext::CreateTexture(const char *pName, const uint16_t _width, const uint16_t _height, const uint16_t _depth, uint64_t flags)
-{
-	StringCrc textureName(pName);
-	auto itTextureCache = m_textureHandleCaches.find(textureName.Value());
-	if (itTextureCache != m_textureHandleCaches.end())
+	else
 	{
-		return itTextureCache->second;
-	}
-
-	bgfx::TextureHandle texture = bgfx::createTexture3D(_width, _height, _depth, false, bgfx::TextureFormat::RGBA32F, flags);
-	if (bgfx::isValid(texture))
-	{
-		bgfx::setName(texture, pName);
-		m_textureHandleCaches[textureName.Value()] = texture;
+		CD_ENGINE_ERROR("Faild to create texture {0}!", pName);
 	}
 
 	return texture;
