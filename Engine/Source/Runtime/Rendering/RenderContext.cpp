@@ -3,7 +3,6 @@
 #include "Log/Log.h"
 
 #include "Renderer.h"
-#include "Rendering/DDGIDefinition.h"
 #include "Rendering/Utility/VertexLayoutUtility.h"
 
 #include <bgfx/bgfx.h>
@@ -32,9 +31,11 @@ static void imageReleaseCb(void* _ptr, void* _userData)
 }
 
 template<class T>
-void DestoryImpl(engine::StringCrc resourceCrc, T &caches) {
+void DestoryImpl(engine::StringCrc resourceCrc, T& caches)
+{
 	auto itResource = caches.find(resourceCrc.Value());
-	if(itResource != caches.end()) {
+	if(itResource != caches.end())
+	{
 		bgfx::destroy(itResource->second);
 		caches.erase(itResource);
 	}
@@ -301,7 +302,7 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pName, uint16_t wid
 	const bgfx::Memory *mem = nullptr;
 	bgfx::TextureHandle texture = BGFX_INVALID_HANDLE;
 
-	if(nullptr != data && 0 != size)
+	if(nullptr != data && size > 0)
 	{
 		mem = bgfx::makeRef(data, size);
 	}

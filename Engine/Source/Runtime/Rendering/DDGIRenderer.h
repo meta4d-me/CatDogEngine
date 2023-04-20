@@ -27,7 +27,7 @@ public:
 
 private:
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
-	DDGIComponent *m_pDDGIComponent = nullptr;
+	DDGIComponent* m_pDDGIComponent = nullptr;
 };
 
 }

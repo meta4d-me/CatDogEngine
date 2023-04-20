@@ -226,10 +226,6 @@ void EditorApp::InitECWorld()
 	auto &ddgiComponent = pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
 
 	// Temporary code.
-	ddgiComponent.SetClassificationTexturePath("ddgi/classification.dds");
-	ddgiComponent.SetDistanceTexturePath("ddgi/distance.dds");
-	ddgiComponent.SetIrradianceTexturePath("ddgi/irradiance.dds");
-	ddgiComponent.SetRelocationTexturePath("ddgi/relocation.dds");
 	ddgiComponent.SetAmbientMultiplier(1.0);
 	ddgiComponent.SetDimension(cd::Vec3f(4.0f, 5.0f, 2.0f));
 	ddgiComponent.SetNormalBias(0.0f);

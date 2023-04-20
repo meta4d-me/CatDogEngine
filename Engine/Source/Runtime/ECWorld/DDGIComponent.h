@@ -3,7 +3,6 @@
 #include "Core/StringCrc.h"
 #include "Math/Matrix.hpp"
 
-#include <span>
 #include <vector>
 
 namespace engine
@@ -18,17 +17,19 @@ public:
 		return className;
 	}
 
-	void SetClassificationTexturePath(const std::string &path) { m_classificationTexturePath = path; }
-	const std::string &GetClassificationTexturePath() const { return m_classificationTexturePath; }
+	// TODO : Set interface.
 
-	void SetDistanceTexturePath(const std::string &path) { m_distanceTexturePath = path; }
-	const std::string &GetDistanceTexturePath() const { return m_distanceTexturePath; }
+	const uint8_t* GetClassificationRawData() const { return m_classificationRawData.data(); }
+	uint32_t GetClassificationSize() const { return static_cast<uint32_t>(m_classificationRawData.size()); }
 
-	void SetIrradianceTexturePath(const std::string &path) { m_irradianceTexturePath = path; }
-	const std::string &GetIrradianceTexturePath() const { return m_irradianceTexturePath; }
+	const uint8_t* GetDistanceRawData() const { return m_distanceRawData.data(); }
+	uint32_t GetDistanceSize() const { return static_cast<uint32_t>(m_distanceRawData.size()); }
 
-	void SetRelocationTexturePath(const std::string &path) { m_relocationTexturePath = path; }
-	const std::string &GetRelocationTexturePath() const { return m_relocationTexturePath; }
+	const uint8_t* GetIrradianceRawData() const { return m_irradianceRawData.data(); }
+	uint32_t GetIrradianceSize() const { return static_cast<uint32_t>(m_irradianceRawData.size()); }
+
+	const uint8_t* GetRelocationRawData() const { return m_relocationRawData.data(); }
+	uint32_t GetRelocationSize() const { return static_cast<uint32_t>(m_relocationRawData.size()); }
 
 	void SetDimension(const cd::Vec3f &dimension) { m_dimension = dimension; }
 	const cd::Vec3f &GetDimension() const { return m_dimension; }
@@ -46,10 +47,10 @@ public:
 	const float GetNormalBias() const { return m_normalBias; }
 
 private:
-	std::string m_classificationTexturePath;
-	std::string m_distanceTexturePath;
-	std::string m_irradianceTexturePath;
-	std::string m_relocationTexturePath;
+	std::vector<uint8_t> m_classificationRawData;
+	std::vector<uint8_t> m_distanceRawData;
+	std::vector<uint8_t> m_irradianceRawData;
+	std::vector<uint8_t> m_relocationRawData;
 
 	cd::Vec3f m_dimension;
 	cd::Vec3f m_spacing;
