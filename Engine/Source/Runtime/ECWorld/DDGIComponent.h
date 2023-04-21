@@ -17,17 +17,19 @@ public:
 		return className;
 	}
 
-	// TODO : Set interface.
-
+	void SetClassificationRawData(const std::string& path);
 	const uint8_t* GetClassificationRawData() const { return m_classificationRawData.data(); }
 	uint32_t GetClassificationSize() const { return static_cast<uint32_t>(m_classificationRawData.size()); }
 
+	void SetDistanceRawData(const std::string& path);
 	const uint8_t* GetDistanceRawData() const { return m_distanceRawData.data(); }
 	uint32_t GetDistanceSize() const { return static_cast<uint32_t>(m_distanceRawData.size()); }
 
+	void SetIrradianceRawData(const std::string& path);
 	const uint8_t* GetIrradianceRawData() const { return m_irradianceRawData.data(); }
 	uint32_t GetIrradianceSize() const { return static_cast<uint32_t>(m_irradianceRawData.size()); }
 
+	void SetRelocationRawData(const std::string& path);
 	const uint8_t* GetRelocationRawData() const { return m_relocationRawData.data(); }
 	uint32_t GetRelocationSize() const { return static_cast<uint32_t>(m_relocationRawData.size()); }
 

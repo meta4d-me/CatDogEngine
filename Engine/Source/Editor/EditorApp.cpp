@@ -224,13 +224,6 @@ void EditorApp::InitECWorld()
 	auto &ddgiNameComponent = pWorld->CreateComponent<engine::NameComponent>(ddgiEntity);
 	ddgiNameComponent.SetName("DDGI");
 	auto &ddgiComponent = pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
-
-	// Temporary code.
-	ddgiComponent.SetAmbientMultiplier(1.0);
-	ddgiComponent.SetDimension(cd::Vec3f(4.0f, 5.0f, 2.0f));
-	ddgiComponent.SetNormalBias(0.0f);
-	ddgiComponent.SetSpacing(cd::Vec3f(1.0f, 1.0f, 1.0f));
-	ddgiComponent.SetViewBias(0.0f);
 }
 
 void EditorApp::InitRenderContext()

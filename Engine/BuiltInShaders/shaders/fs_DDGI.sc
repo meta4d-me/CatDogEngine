@@ -15,7 +15,8 @@ SAMPLER2D(s_texIrradiance, 3);
 SAMPLER2D(s_texRelocation, 4);
 
 vec3 SampleAlbedoTexture(vec2 uv) {
-	return texture2D(s_texBaseColor, uv).xyz;
+	return texture2D(s_texDistance, uv).xyz;
+	// return vec3_splat(5.0) * texture2D(s_texIrradiance, uv).xyz;
 }
 
 void main()

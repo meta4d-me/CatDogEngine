@@ -56,7 +56,8 @@ void CreatDDGITexture(DDGITextureType type, DDGIComponent* pDDGIComponent, Rende
 			break;
 		case DDGITextureType::Irradiance:
 			textureSize = cd::Vec2f(probNum.y() * probNum.z(), probNum.x()) * IRRADIANCE_GRID_SIZE;
-			format = bgfx::TextureFormat::Enum::RGBA16U;
+			// TODO : RGBA16U
+			format = bgfx::TextureFormat::Enum::RGBA16F;
 			data = reinterpret_cast<const void *>(pDDGIComponent->GetIrradianceRawData());
 			dataSize = pDDGIComponent->GetIrradianceSize();
 			break;
@@ -92,6 +93,18 @@ void DDGIRenderer::Init()
 	m_pRenderContext->CreateUniform(distanceSampler, bgfx::UniformType::Sampler);
 	m_pRenderContext->CreateUniform(irradianceSampler, bgfx::UniformType::Sampler);
 	m_pRenderContext->CreateUniform(relocationSampler, bgfx::UniformType::Sampler);
+
+	// Temporary code.
+	m_pDDGIComponent->SetAmbientMultiplier(1.0);
+	m_pDDGIComponent->SetDimension(cd::Vec3f(4.0f, 5.0f, 2.0f));
+	m_pDDGIComponent->SetNormalBias(0.0f);
+	m_pDDGIComponent->SetSpacing(cd::Vec3f(1.0f, 1.0f, 1.0f));
+	m_pDDGIComponent->SetViewBias(0.0f);
+
+	m_pDDGIComponent->SetClassificationRawData("ddgi/classification.bin");
+	m_pDDGIComponent->SetDistanceRawData("ddgi/distance.bin");
+	m_pDDGIComponent->SetIrradianceRawData("ddgi/irradiance.bin");
+	m_pDDGIComponent->SetRelocationRawData("ddgi/relocation.bin");
 
 	CreatDDGITexture(DDGITextureType::Classification, m_pDDGIComponent, m_pRenderContext);
 	CreatDDGITexture(DDGITextureType::Distance, m_pDDGIComponent, m_pRenderContext);
