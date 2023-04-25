@@ -73,6 +73,7 @@ private:
 	engine::Renderer* m_pDebugRenderer;
 	engine::Renderer* m_pPBRSkyRenderer;
 	engine::Renderer* m_pIBLSkyRenderer;
+	engine::Renderer* m_pDDGIRenderer;
 
 	// Rendering
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;
