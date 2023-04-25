@@ -97,8 +97,8 @@ void SceneWorld::CreateTerrainMaterialType()
 	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
 	m_pTerrainMaterialType->SetRequiredVertexFormat(cd::MoveTemp(terrainVertexFormat));
 
-	m_pTerrainMaterialType->AddRequiredTextureType(cd::MaterialTextureType::BaseColor, 0);
-	m_pTerrainMaterialType->AddRequiredTextureType(cd::MaterialTextureType::Roughness, 1);
+	m_pTerrainMaterialType->AddRequiredTextureType(cd::MaterialTextureType::Elevation, 1);
+	m_pTerrainMaterialType->AddOptionalTextureType(cd::MaterialTextureType::AlphaMap, 2);
 }
 
 void SceneWorld::CreateDDGIMaterialType()

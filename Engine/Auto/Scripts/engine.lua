@@ -90,9 +90,6 @@ project("Engine")
 		table.insert(platformDefines, "ENGINE_BUILD_SHARED")
 	end
 
-	local engineBuiltInShaderPath = RootPath.."/Engine/BuiltInShaders/shaders/"
-	local editorResourcesPath = RootPath.."/Engine/EditorResources/"
-	local projectResourcesPath = RootPath.."/Projects/PBRViewer/Resources/"
 	defines {
 		"SDL_MAIN_HANDLED", -- don't use SDL_main() as entry point
 		"__STDC_LIMIT_MACROS", "__STDC_FORMAT_MACROS", "__STDC_CONSTANT_MACROS",
@@ -101,9 +98,10 @@ project("Engine")
 		"SPDLOG_NO_EXCEPTIONS", "FMT_USE_NONTYPE_TEMPLATE_ARGS=0",
 		GetPlatformMacroName(),
 		table.unpack(platformDefines),
-		"CDENGINE_BUILTIN_SHADER_PATH=\""..engineBuiltInShaderPath.."\"",
-		"CDENGINE_RESOURCES_ROOT_PATH=\""..projectResourcesPath.."\"",
-		"CDEDITOR_RESOURCES_ROOT_PATH=\""..editorResourcesPath.."\"",
+		"CDENGINE_BUILTIN_SHADER_PATH=\""..BuiltInShaderSourcePath.."\"",
+		"CDPROJECT_RESOURCES_SHARED_PATH=\""..ProjectSharedPath.."\"",
+		"CDPROJECT_RESOURCES_ROOT_PATH=\""..ProjectResourceRootPath.."\"",
+		"CDEDITOR_RESOURCES_ROOT_PATH=\""..EditorResourceRootPath.."\"",
 	}
 
 	-- use /MT /MTd, not /MD /MDd

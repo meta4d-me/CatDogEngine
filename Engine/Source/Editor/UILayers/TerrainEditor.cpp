@@ -23,12 +23,11 @@ TerrainEditor::TerrainEditor(const char* pName)
 	, m_sectorMetadata(1, 1, 10, 10)
 	, m_terrainProducer(m_terrainMetadata, m_sectorMetadata)
 	, m_terrainEntities()
+	, m_generateAlphaMap(false)
 {}
 
 TerrainEditor::~TerrainEditor()
-{
-
-}
+{}
 
 void TerrainEditor::Init()
 {
@@ -49,6 +48,18 @@ void TerrainEditor::Init()
 	m_sectorMetadata.numQuadsInZ = 5;
 	m_sectorMetadata.quadLenInX = 5;
 	m_sectorMetadata.quadLenInZ = 5;
+
+	m_redGreenBlendRegion.blendStart = 0;
+	m_redGreenBlendRegion.blendEnd = 0;
+	m_greenBlueBlendRegion.blendStart = 0;
+	m_greenBlueBlendRegion.blendEnd = 0;
+	m_blueAlphaBlendRegion.blendStart = 0;
+	m_blueAlphaBlendRegion.blendEnd = 0;
+
+	strcpy_s(m_redChannelTextureName, "dirty_baseColor.dds");
+	strcpy_s(m_greenChannelTextureName, "rockyGrass_baseColor.dds");
+	strcpy_s(m_blueChannelTextureName, "roughRock_baseColor.dds");
+	strcpy_s(m_alphaChannelTextureName, "snowyRock_baseColor.dds");
 
 	m_pSceneDatabase = std::make_unique<cd::SceneDatabase>();
 }
@@ -77,8 +88,16 @@ void TerrainEditor::Update()
 		m_terrainProducer.SetSceneDatabaseIDs(m_pSceneDatabase.get());
 		m_terrainProducer.SetTerrainMetadata(m_terrainMetadata);
 		m_terrainProducer.SetSectorMetadata(m_sectorMetadata);
+		if (m_generateAlphaMap)
+		{
+			// m_terrainProducer.SetAlphaMapTextureName(AlphaMapChannel::Red, m_redChannelTextureName);
+			// m_terrainProducer.SetAlphaMapTextureName(AlphaMapChannel::Green, m_greenChannelTextureName);
+			// m_terrainProducer.SetAlphaMapTextureName(AlphaMapChannel::Blue, m_blueChannelTextureName);
+			// m_terrainProducer.SetAlphaMapTextureName(AlphaMapChannel::Alpha, m_alphaChannelTextureName);
+			m_terrainProducer.GenerateAlphaMapWithElevation(m_redGreenBlendRegion, m_greenBlueBlendRegion, m_blueAlphaBlendRegion, AlphaMapBlendFunction::SmoothStep);
+		}
 		m_terrainProducer.Initialize();
-
+		 
 		Processor processor(&m_terrainProducer, m_pEcTerrainConsumer.get(), m_pSceneDatabase.get());
 		processor.Run();
 	}
@@ -159,6 +178,29 @@ void TerrainEditor::Update()
 		const float redistPowBigStep = 1.0f;
 		ImGui::SetNextItemWidth(kInputItemWidth);
 		ImGui::InputScalar("Power", ImGuiDataType_Float, &m_terrainMetadata.redistPow, &redistPowStep, &redistPowBigStep, "%.2f", ImGuiInputTextFlags_CharsDecimal);
+	}
+	ImGui::EndGroup();
+
+	// Alpha mapping
+	ImGui::BeginGroup();
+	{
+		ImGui::Checkbox("Elevation Alpha Map", &m_generateAlphaMap);
+		if (m_generateAlphaMap)
+		{
+			ImGui::InputInt("RGBlend Start", &m_redGreenBlendRegion.blendStart);
+			ImGui::InputInt("RGBlend End", &m_redGreenBlendRegion.blendEnd);
+
+			ImGui::InputInt("GBBlend Start", &m_greenBlueBlendRegion.blendStart);
+			ImGui::InputInt("GBBlend End", &m_greenBlueBlendRegion.blendEnd);
+
+			ImGui::InputInt("BABlend Start", &m_blueAlphaBlendRegion.blendStart);
+			ImGui::InputInt("BABlend End", &m_blueAlphaBlendRegion.blendEnd);
+
+			ImGui::InputText("Red Texture", m_redChannelTextureName, 128);
+			ImGui::InputText("Green Texture", m_greenChannelTextureName, 128);
+			ImGui::InputText("Blue Texture", m_blueChannelTextureName, 128);
+			ImGui::InputText("Alpha Texture", m_alphaChannelTextureName, 128);
+		}
 	}
 	ImGui::EndGroup();
 

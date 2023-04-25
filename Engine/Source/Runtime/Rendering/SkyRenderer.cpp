@@ -14,9 +14,9 @@ void SkyRenderer::Init()
 
 	m_lightProbeEV100 = -2.0f;
 	uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
-	m_lightProbeTex = m_pRenderContext->CreateTexture("skybox/bolonga_lod.dds", samplerFlags);
-	m_lightProbeTexIrr = m_pRenderContext->CreateTexture("skybox/bolonga_irr.dds", samplerFlags);
-	m_iblLUTTex = m_pRenderContext->CreateTexture("lut/ibl_brdf_lut.dds");
+	m_lightProbeTex = m_pRenderContext->CreateTexture("Textures/skybox/bolonga_lod.dds", samplerFlags);
+	m_lightProbeTexIrr = m_pRenderContext->CreateTexture("Textures/skybox/bolonga_irr.dds", samplerFlags);
+	m_iblLUTTex = m_pRenderContext->CreateTexture("Textures/lut/ibl_brdf_lut.dds");
 
 	bgfx::ShaderHandle vsh = m_pRenderContext->CreateShader("vs_PBR_skybox.bin");
 	bgfx::ShaderHandle fsh = m_pRenderContext->CreateShader("fs_PBR_skybox.bin");

@@ -25,14 +25,4 @@ std::vector<std::byte> ResourceLoader::LoadFile(const char* pFilePath)
 	return fileData;
 }
 
-std::vector<std::byte> ResourceLoader::LoadTextureFile(const char* pFilePath)
-{
-	return LoadFile(pFilePath);
-}
-
-std::vector<std::byte> ResourceLoader::LoadShader(const char* pFilePath)
-{
-	return LoadFile(pFilePath);
-}
-
 }

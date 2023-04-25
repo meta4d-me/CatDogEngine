@@ -138,7 +138,7 @@ bgfx::ShaderHandle RenderContext::CreateShader(const char* pFilePath)
 		return itShaderCache->second;
 	}
 
-	std::string shaderFileFullPath = std::format("{}Shaders/{}", CDENGINE_RESOURCES_ROOT_PATH, pFilePath);
+	std::string shaderFileFullPath = std::format("{}BuiltInShaders/{}", CDPROJECT_RESOURCES_SHARED_PATH, pFilePath);
 	std::ifstream fin(shaderFileFullPath, std::ios::in | std::ios::binary);
 	if (!fin.is_open())
 	{
@@ -219,7 +219,7 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pFilePath, uint64_t
 		return itTextureCache->second;
 	}
 
-	std::string textureFileFullPath = std::format("{}Textures/{}", CDENGINE_RESOURCES_ROOT_PATH, pFilePath);
+	std::string textureFileFullPath = std::format("{}{}", CDPROJECT_RESOURCES_ROOT_PATH, pFilePath);
 	std::ifstream fin(textureFileFullPath, std::ios::in | std::ios::binary);
 	if (!fin.is_open())
 	{
