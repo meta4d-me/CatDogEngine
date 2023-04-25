@@ -10,3 +10,4 @@
 #include "ECWorld/SkyComponent.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
+#include "ECWorld/DDGIComponent.h"
