@@ -12,7 +12,7 @@ namespace
 
 CD_FORCEINLINE std::string GetBinaryFileRealPath(const std::string &path)
 {
-    return std::format("{}Textures/{}", CDENGINE_RESOURCES_ROOT_PATH, path);
+    return std::format("{}Textures/{}", CDPROJECT_RESOURCES_ROOT_PATH, path);
 }
 
 }
