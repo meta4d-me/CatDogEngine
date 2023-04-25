@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/StringCrc.h"
+#include "Graphics/GraphicsBackend.h"
 #include "Math/Matrix.hpp"
 #include "RenderTarget.h"
 #include "Scene/VertexAttribute.h"
@@ -33,7 +34,7 @@ public:
 	RenderContext& operator=(RenderContext&&) = delete;
 	~RenderContext();
 
-	void Init();
+	void Init(GraphicsBackend backend);
 	void OnResize(uint16_t width, uint16_t height);
 	void BeginFrame();
 	void EndFrame();

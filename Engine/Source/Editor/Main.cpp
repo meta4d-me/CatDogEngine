@@ -7,12 +7,9 @@ int main()
 	Engine* pEngine = Engine::Create(std::make_unique<editor::EditorApp>());
 
 	EngineInitArgs initArgs;
-	initArgs.pTitle = "CatDogEditor";
-	initArgs.pIconFilePath = "editor_icon.png";
-	initArgs.language = Language::ChineseSimplied;
-	initArgs.width = 1280;
-	initArgs.height = 720;
-	pEngine->Init(std::move(initArgs));
+	pEngine->Init({ .pTitle = "CatDogEditor", .pIconFilePath = "editor_icon.png",
+		.width = 1920, .height = 1080,
+		.language = Language::ChineseSimplied, .backend = GraphicsBackend::Direct3D11 });
 
 	pEngine->Run();
 
