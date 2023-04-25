@@ -222,9 +222,9 @@ void EditorApp::InitECWorld()
 
 	engine::Entity ddgiEntity = pWorld->CreateEntity();
 	m_pSceneWorld->SetDDGIEntity(ddgiEntity);
-	auto &ddgiNameComponent = pWorld->CreateComponent<engine::NameComponent>(ddgiEntity);
+	auto& ddgiNameComponent = pWorld->CreateComponent<engine::NameComponent>(ddgiEntity);
 	ddgiNameComponent.SetName("DDGI");
-	auto &ddgiComponent = pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
+	auto& ddgiComponent = pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
 }
 
 void EditorApp::InitRenderContext()

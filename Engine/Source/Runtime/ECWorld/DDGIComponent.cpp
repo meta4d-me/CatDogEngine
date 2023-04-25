@@ -40,7 +40,8 @@ void DDGIComponent::SetDistanceRawData(const std::string& path)
 {
     std::string absolutePath = GetBinaryFileRealPath(path);
     std::ifstream file(absolutePath, std::ios::binary | std::ios::in);
-    if(!file.is_open()) {
+    if(!file.is_open())
+    {
         CD_ENGINE_ERROR("Failed to open file: {0}", absolutePath);
         return;
     }
@@ -55,7 +56,8 @@ void DDGIComponent::SetIrradianceRawData(const std::string& path)
 {
     std::string absolutePath = GetBinaryFileRealPath(path);
     std::ifstream file(absolutePath, std::ios::binary | std::ios::in);
-    if(!file.is_open()) {
+    if(!file.is_open())
+    {
         CD_ENGINE_ERROR("Failed to open file: {0}", absolutePath);
         return;
     }
@@ -70,7 +72,8 @@ void DDGIComponent::SetRelocationRawData(const std::string& path)
 {
     std::string absolutePath = GetBinaryFileRealPath(path);
     std::ifstream file(absolutePath, std::ios::binary | std::ios::in);
-    if(!file.is_open()) {
+    if(!file.is_open())
+    {
         CD_ENGINE_ERROR("Failed to open file: {0}", absolutePath);
         return;
     }

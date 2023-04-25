@@ -296,13 +296,15 @@ void AssetBrowser::UpdateAssetFolderTree()
 			//m_pImportFileBrowser->SetTypeFilters({ ".sc" }); // ".hlsl"
 			m_pImportFileBrowser->Open();
 		}
-		else if(ImGui::Selectable("Model")) {
+		else if(ImGui::Selectable("Model"))
+		{
 			m_importingAssetType = ImportAssetType::Model;
 			m_pImportFileBrowser->SetTitle("ImportAssets - Model");
 			//m_pImportFileBrowser->SetTypeFilters({ ".fbx", ".gltf" }); // ".obj", ".dae", ".ogex"
 			m_pImportFileBrowser->Open();
 		}
-		else if(ImGui::Selectable("DDGI Model")) {
+		else if(ImGui::Selectable("DDGI Model"))
+		{
 			m_importingAssetType = ImportAssetType::DDGIModel;
 			m_pImportFileBrowser->SetTitle("ImportAssets - DDGI Model");
 			m_pImportFileBrowser->Open();

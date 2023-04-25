@@ -33,10 +33,10 @@ public:
 	const uint8_t* GetRelocationRawData() const { return m_relocationRawData.data(); }
 	uint32_t GetRelocationSize() const { return static_cast<uint32_t>(m_relocationRawData.size()); }
 
-	void SetDimension(const cd::Vec3f &dimension) { m_dimension = dimension; }
+	void SetDimension(const cd::Vec3f& dimension) { m_dimension = dimension; }
 	const cd::Vec3f &GetDimension() const { return m_dimension; }
 
-	void SetSpacing(const cd::Vec3f &spacing) { m_spacing = spacing; }
+	void SetSpacing(const cd::Vec3f& spacing) { m_spacing = spacing; }
 	const cd::Vec3f &GetSpacing() const { return m_spacing; }
 
 	void SetAmbientMultiplier(float multiplier) { m_ambientMultiplier = multiplier; }

@@ -299,7 +299,7 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pName, uint16_t wid
 		return itTextureCache->second;
 	}
 
-	const bgfx::Memory *mem = nullptr;
+	const bgfx::Memory* mem = nullptr;
 	bgfx::TextureHandle texture = BGFX_INVALID_HANDLE;
 
 	if(nullptr != data && size > 0)
@@ -309,15 +309,11 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pName, uint16_t wid
 
 	if(depth > 1)
 	{
-		texture = nullptr == mem ?
-			bgfx::createTexture3D(width, height, depth, false, formet, flags) :
-			bgfx::createTexture3D(width, height, depth, false, formet, flags, mem);
+		texture = bgfx::createTexture3D(width, height, depth, false, formet, flags, mem);
 	}
 	else
 	{
-		texture = nullptr == mem ?
-			bgfx::createTexture2D(width, height, false, 1, formet, flags) :
-			bgfx::createTexture2D(width, height, false, 1, formet, flags, mem);
+		texture = bgfx::createTexture2D(width, height, false, 1, formet, flags, mem);
 	}
 
 	if(bgfx::isValid(texture))

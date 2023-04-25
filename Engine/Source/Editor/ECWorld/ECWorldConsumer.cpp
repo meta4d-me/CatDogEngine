@@ -75,17 +75,20 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 		{
 			// TODO : Or the user doesn't want to import animation data.
 			const bool isStaticMesh = 0U == mesh.GetVertexInfluenceCount();
-			if(isStaticMesh) {
-				engine::MaterialType *pMaterialType = m_pSceneWorld->GetPBRMaterialType();
+			if(isStaticMesh)
+			{
+				engine::MaterialType* pMaterialType = m_pSceneWorld->GetPBRMaterialType();
 				AddStaticMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
 
 				cd::MaterialID meshMaterialID = mesh.GetMaterialID();
-				if(meshMaterialID.IsValid()) {
+				if(meshMaterialID.IsValid())
+				{
 					AddMaterial(meshEntity, &pSceneDatabase->GetMaterial(meshMaterialID.Data()), pMaterialType, pSceneDatabase);
 				}
 			}
-			else {
-				engine::MaterialType *pMaterialType = m_pSceneWorld->GetAnimationMaterialType();
+			else
+			{
+				engine::MaterialType* pMaterialType = m_pSceneWorld->GetAnimationMaterialType();
 				AddSkinMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
 
 				// TODO : Use a standalone .cdanim file to play animation.
