@@ -7,6 +7,7 @@
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/UILayers/DebugPanel.h"
 #include "Log/Log.h"
+#include "Path/Path.h"
 #include "Rendering/AnimationRenderer.h"
 #include "Rendering/BlitRenderTargetPass.h"
 #include "Rendering/DebugRenderer.h"
@@ -53,6 +54,8 @@ EditorApp::~EditorApp()
 void EditorApp::Init(engine::EngineInitArgs initArgs)
 {
 	CD_INFO("Init ediotr");
+	CD_INFO("Graphics backend : {}", engine::GetGraphicsBackendName(initArgs.backend));
+	engine::Path::SetGraphicsBackend(initArgs.backend);
 
 	uint16_t width = initArgs.width;
 	uint16_t height = initArgs.height;
@@ -61,7 +64,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 
 	InitECWorld();
 
-	InitRenderContext();
+	InitRenderContext(initArgs.backend);
 
 	// Init ImGuiContext in the editor side which used to draw editor ui.
 	InitEditorImGuiContext(initArgs.language);
@@ -69,12 +72,13 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	// Init ImGuiContext in the engine side which used to draw in game ui.
 	InitEngineImGuiContext(initArgs.language);
 
-	InitShaderPrograms();
-
 	// Enable multiple viewports which means that we can drop any imgui window outside the main window.
 	// Then the imgui window will become a new standalone window. Drop back to convert it back.
 	// TODO : should be only used in the editor ImGuiContext.
 	// InitImGuiViewports(m_pRenderContext);
+
+	// Builtin shaders will be compiled automatically when initialization or detect changes.
+	InitShaderPrograms();
 }
 
 void EditorApp::Shutdown()
@@ -220,10 +224,10 @@ void EditorApp::InitECWorld()
 		160.0f /* Movement Speed*/);
 }
 
-void EditorApp::InitRenderContext()
+void EditorApp::InitRenderContext(engine::GraphicsBackend backend)
 {
 	m_pRenderContext = std::make_unique<engine::RenderContext>();
-	m_pRenderContext->Init();
+	m_pRenderContext->Init(backend);
 
 	GetMainWindow()->OnResize.Bind<engine::RenderContext, &engine::RenderContext::OnResize>(m_pRenderContext.get());
 

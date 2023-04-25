@@ -45,7 +45,7 @@ public:
 	engine::Window* GetMainWindow() const;
 	size_t AddWindow(std::unique_ptr<engine::Window> pWindow);
 
-	void InitRenderContext();
+	void InitRenderContext(engine::GraphicsBackend backend);
 	void InitShaderPrograms() const;
 	void AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer);
 	void AddEngineRenderer(std::unique_ptr<engine::Renderer> pRenderer);

@@ -8,6 +8,7 @@
 #include "ECWorld/World.h"
 #include "Log/Log.h"
 #include "Material/MaterialType.h"
+#include "Path/Path.h"
 #include "Rendering/RenderContext.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ResourceLoader.h"
@@ -135,8 +136,7 @@ std::string ECTerrainConsumer::GetShaderOutputFilePath(const char* pInputFilePat
 {
 	std::filesystem::path inputShaderPath(pInputFilePath);
 	std::string inputShaderFileName = inputShaderPath.stem().generic_string();
-	std::string outputShaderPath = CDPROJECT_RESOURCES_SHARED_PATH;
-	outputShaderPath += "BuiltInShaders/" + inputShaderFileName;
+	std::filesystem::path outputShaderPath = engine::Path::GetShaderOutputDirectory() / inputShaderFileName;
 	if (pAppendFileName)
 	{
 		if (engine::ShaderSchema::DefaultUberOption != engine::StringCrc(pAppendFileName))
@@ -146,7 +146,7 @@ std::string ECTerrainConsumer::GetShaderOutputFilePath(const char* pInputFilePat
 		}
 	}
 	outputShaderPath += ".bin";
-	return outputShaderPath;
+	return outputShaderPath.string();
 }
 
 

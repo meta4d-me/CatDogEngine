@@ -1,5 +1,7 @@
 #pragma once 
 
+#include "Graphics/GraphicsBackend.h"
+
 #include <cstdlib>
 #include <filesystem>
 #include <optional>
@@ -23,7 +25,9 @@ public:
 	static std::filesystem::path GetEditorResourcesPath();
 	static std::filesystem::path GetProjectsSharedPath();
 
+	static void SetGraphicsBackend(engine::GraphicsBackend backend);
 	static std::string GetBuiltinShaderInputPath(const char* pShaderName);
+	static std::filesystem::path GetShaderOutputDirectory();
 	static std::string GetShaderOutputPath(const char* pInputFilePath, const std::string& options = "");
 	static std::string GetTextureOutputFilePath(const char* pInputFilePath, const char* extension);
 	static std::string GetTerrainTextureOutputFilePath(const char* pInputFilePath, const char* extension);
@@ -31,6 +35,9 @@ public:
 private:
 	static const char* GetPlatformPathKey();
 	static std::filesystem::path GetPlatformAppDataPath(char(&value)[MAX_PATH_SIZE]);
+
+private:
+	static engine::GraphicsBackend s_backend;
 };
 
 }

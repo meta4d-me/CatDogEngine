@@ -1,5 +1,6 @@
 #include "RenderContext.h"
 
+#include "Path/Path.h"
 #include "Renderer.h"
 #include "Rendering/Utility/VertexLayoutUtility.h"
 
@@ -38,12 +39,55 @@ RenderContext::~RenderContext()
 	bgfx::shutdown();
 }
 
-void RenderContext::Init()
+void RenderContext::Init(GraphicsBackend backend)
 {
 	bgfx::Init initDesc;
-	initDesc.type = bgfx::RendererType::Direct3D11;
-	bgfx::init(initDesc);
+	switch (backend)
+	{
+	case GraphicsBackend::OpenGL:
+	{
+		initDesc.type = bgfx::RendererType::OpenGL;
+		break;
+	}
+	case GraphicsBackend::OpenGLES:
+	{
+		initDesc.type = bgfx::RendererType::OpenGLES;
+		break;
+	}
+	case GraphicsBackend::Direct3D9:
+	{
+		initDesc.type = bgfx::RendererType::Direct3D9;
+		break;
+	}
+	case GraphicsBackend::Direct3D11:
+	{
+		initDesc.type = bgfx::RendererType::Direct3D11;
+		break;
+	}
+	case GraphicsBackend::Direct3D12:
+	{
+		initDesc.type = bgfx::RendererType::Direct3D12;
+		break;
+	}
+	case GraphicsBackend::Vulkan:
+	{
+		initDesc.type = bgfx::RendererType::Vulkan;
+		break;
+	}
+	case GraphicsBackend::Metal:
+	{
+		initDesc.type = bgfx::RendererType::Metal;
+		break;
+	}
+	case GraphicsBackend::Noop:
+	default:
+	{
+		initDesc.type = bgfx::RendererType::Noop;
+		break;
+	}
+	}
 
+	bgfx::init(initDesc);
 	bgfx::setDebug(BGFX_DEBUG_NONE);
 }
 
@@ -125,7 +169,7 @@ bgfx::ShaderHandle RenderContext::CreateShader(const char* pFilePath)
 		return itShaderCache->second;
 	}
 
-	std::string shaderFileFullPath = std::format("{}BuiltInShaders/{}", CDPROJECT_RESOURCES_SHARED_PATH, pFilePath);
+	std::string shaderFileFullPath = Path::GetShaderOutputPath(pFilePath);
 	std::ifstream fin(shaderFileFullPath, std::ios::in | std::ios::binary);
 	if (!fin.is_open())
 	{
