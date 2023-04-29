@@ -3,7 +3,7 @@
 namespace engine
 {
 
-void CameraComponent::Build()
+void CameraComponent::Build(TransformComponent* pTransformComponent)
 {
 	if (m_isViewDirty)
 	{

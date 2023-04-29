@@ -70,7 +70,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         cameraComponent.SetNearPlane(0.1f);
         cameraComponent.SetFarPlane(2000.0f);
         cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
-        cameraComponent.Build();
+        cameraComponent.Build(pSceneWorld->GetTransformComponent(entity));
     }
     else if (ImGui::Selectable("Add Point Light"))
     {

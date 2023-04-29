@@ -176,7 +176,7 @@ void ECWorldConsumer::AddCamera(engine::Entity entity, const cd::Camera& camera)
 	cameraComponent.SetFarPlane(camera.GetFarPlane());
 	cameraComponent.SetAspect(camera.GetAspect());
 	cameraComponent.SetFov(camera.GetFov());
-	cameraComponent.Build();
+	cameraComponent.Build(m_pSceneWorld->GetTransformComponent(entity));
 }
 
 void ECWorldConsumer::AddLight(engine::Entity entity, const cd::Light& light)

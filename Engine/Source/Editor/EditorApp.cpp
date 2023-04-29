@@ -322,9 +322,11 @@ bool EditorApp::Update(float deltaTime)
 {
 	GetMainWindow()->Update();
 
-	engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
+	engine::Entity mainCameraEntity = m_pSceneWorld->GetMainCameraEntity();
+	engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(mainCameraEntity);
 	assert(pMainCameraComponent);
-	pMainCameraComponent->Build();
+
+	pMainCameraComponent->Build(m_pSceneWorld->GetTransformComponent(mainCameraEntity));
 
 	m_pCameraController->Update(deltaTime);
 	m_pEditorImGuiContext->Update(deltaTime);

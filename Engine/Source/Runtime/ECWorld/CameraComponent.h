@@ -15,6 +15,8 @@ class Camera;
 namespace engine
 {
 
+class TransformComponent;
+
 class CameraComponent final
 {
 public:
@@ -32,7 +34,7 @@ public:
 	CameraComponent& operator=(CameraComponent&&) = default;
 	~CameraComponent() = default;
 
-	void Build();
+	void Build(TransformComponent* pTransformComponent);
 
 	void FrameAll(const cd::AABB& aabb);
 	cd::Ray EmitRay(float screenX, float screenY, float width, float height) const;
