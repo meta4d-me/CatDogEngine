@@ -34,6 +34,11 @@ public:
 	void Reset();
 	void Build();
 
+#ifdef EDITOR_MODE
+	static bool DoUseUniformScale() { return m_doUseUniformScale; }
+	static void SetUseUniformScale(bool use) { m_doUseUniformScale = use; }
+#endif
+
 private:
 	// Input
 	cd::Transform m_transform;
@@ -43,6 +48,10 @@ private:
 
 	// Output
 	cd::Matrix4x4 m_localToWorldMatrix;
+
+#ifdef EDITOR_MODE
+	static bool m_doUseUniformScale;
+#endif
 };
 
 }

@@ -26,6 +26,7 @@ void EntityList::Init()
 void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
 {
     engine::World* pWorld = pSceneWorld->GetWorld();
+    ImVec2 popupSize = ImGui::GetContentRegionAvail();
 
     auto AddNamedEntity = [&pWorld, &pSceneWorld](std::string defaultName) -> engine::Entity
     {
@@ -36,7 +37,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         return entity;
     };
 
-    if (ImGui::Selectable("Add Static Mesh"))
+    if (ImGui::MenuItem("Add Static Mesh"))
     {
         engine::Entity entity = AddNamedEntity("StaticMesh");
         engine::MaterialType* pPBRMaterialType = pSceneWorld->GetPBRMaterialType();
@@ -58,11 +59,11 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         transformComponent.SetTransform(cd::Transform::Identity());
         transformComponent.Build();
     }
-    else if (ImGui::Selectable("Add Camera"))
+    else if (ImGui::MenuItem("Add Camera"))
     {
         engine::Entity entity = AddNamedEntity("Camera");
         auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(entity);
-        cameraComponent.SetEye(cd::Point(0.0f, 50.0f, -200.0f));
+        cameraComponent.SetEye(cd::Point(0.0f, 0.0f, -100.0f));
         cameraComponent.SetLookAt(cd::Direction(0.0f, 0.0f, 1.0f));
         cameraComponent.SetUp(cd::Direction(0.0f, 1.0f, 0.0f));
         cameraComponent.SetAspect(1.0f);
@@ -71,8 +72,13 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         cameraComponent.SetFarPlane(2000.0f);
         cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
         cameraComponent.Build();
+
+        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+        transformComponent.SetTransform(cd::Transform::Identity());
+        transformComponent.Build();
     }
-    else if (ImGui::Selectable("Add Point Light"))
+
+    else if (ImGui::MenuItem("Add Point Light"))
     {
         engine::Entity entity = AddNamedEntity("PointLight");
         auto& lightComponent = pWorld->CreateComponent<engine::LightComponent>(entity);
@@ -86,7 +92,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         transformComponent.SetTransform(cd::Transform::Identity());
         transformComponent.Build();
     }
-    else if (ImGui::Selectable("Add Directional Light"))
+    else if (ImGui::MenuItem("Add Directional Light", NULL, false))
     {
         engine::Entity entity = AddNamedEntity("DirectionalLight");
         auto& lightComponent = pWorld->CreateComponent<engine::LightComponent>(entity);
@@ -173,7 +179,7 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
 
         if (ImGui::Selectable(CD_TEXT("Rename")))
         {
-           // m_editingEntityName = true;
+            // m_editingEntityName = true;
         }
 
         if (ImGui::Selectable(CD_TEXT("Delete")))
@@ -189,7 +195,7 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
             if (ImGui::Selectable(CD_TEXT("Set Main Camera")))
             {
                 pSceneWorld->SetMainCameraEntity(entity);
-                
+
                 engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(ImGui::GetIO().BackendRendererUserData);
                 constexpr engine::StringCrc sceneRenderTarget("SceneRenderTarget");
                 engine::RenderTarget* pRenderTarget = pCurrentRenderContext->GetRenderTarget(sceneRenderTarget);
@@ -240,10 +246,10 @@ void EntityList::Update()
     engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
     engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
 
-	auto flags = ImGuiWindowFlags_NoCollapse;
-	ImGui::Begin(GetName(), &m_isEnable, flags);
+    auto flags = ImGuiWindowFlags_NoCollapse;
+    ImGui::Begin(GetName(), &m_isEnable, flags);
 
-	ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImGui::GetStyleColorVec4(ImGuiCol_TabActive));
+    ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImGui::GetStyleColorVec4(ImGuiCol_TabActive));
     if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_PLUS)))
     {
         ImGui::OpenPopup("AddEntity");
@@ -313,7 +319,7 @@ void EntityList::Update()
 
     ImGui::EndChild();
 
-	ImGui::End();
+    ImGui::End();
 }
 
 }

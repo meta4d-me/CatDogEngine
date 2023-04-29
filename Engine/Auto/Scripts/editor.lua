@@ -35,6 +35,7 @@ project("Editor")
 		"CDPROJECT_RESOURCES_ROOT_PATH=\""..ProjectResourceRootPath.."\"",
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..EditorResourceRootPath.."\"",
 		"CDENGINE_TOOL_PATH=\""..ToolRootPath.."\"",
+		"EDITOR_MODE",
 	}
 
 	includedirs {

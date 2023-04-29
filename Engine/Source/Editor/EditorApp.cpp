@@ -1,6 +1,7 @@
 ﻿#include "EditorApp.h"
 
 #include "Application/Engine.h"
+#include "Display/CameraController.h"
 #include "Display/FirstPersonCameraController.h"
 #include "ECWorld/SceneWorld.h"
 #include "ImGui/EditorImGuiViewport.h"
@@ -208,7 +209,7 @@ void EditorApp::InitECWorld()
 	//transformComponent.Build();
 
 	auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(cameraEntity);
-	cameraComponent.SetEye(cd::Point(0.0f, 50.0f, -200.0f));
+	cameraComponent.SetEye(cd::Point(0.0f, 0.0f, -100.0f));
 	cameraComponent.SetLookAt(cd::Direction(0.0f, 0.0f, 1.0f));
 	cameraComponent.SetUp(cd::Direction(0.0f, 1.0f, 0.0f));
 	cameraComponent.SetAspect(1.0f);
@@ -229,6 +230,12 @@ void EditorApp::InitECWorld()
 	auto& ddgiNameComponent = pWorld->CreateComponent<engine::NameComponent>(ddgiEntity);
 	ddgiNameComponent.SetName("DDGI");
 	auto& ddgiComponent = pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
+
+	m_pNewCameraController = std::make_unique<engine::CameraController>(
+		m_pSceneWorld.get(),
+		5.0f /* horizontal sensitivity */,
+		5.0f /* vertical sensitivity */,
+		5.0f /* Movement Speed*/);
 }
 
 void EditorApp::InitRenderContext(engine::GraphicsBackend backend)
@@ -251,8 +258,7 @@ void EditorApp::InitRenderContext(engine::GraphicsBackend backend)
 
 	// The init size doesn't make sense. It will resize by SceneView.
 	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->CreateRenderTarget(sceneViewRenderTargetName, 1, 1, std::move(attachmentDesc));
-	pSceneRenderTarget->OnResize.Bind<engine::SceneWorld, &engine::SceneWorld::OnResizeSceneView>(m_pSceneWorld.get());
-
+	
 	auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pPBRSkyRenderer = pPBRSkyRenderer.get();
 	AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
@@ -323,12 +329,21 @@ bool EditorApp::Update(float deltaTime)
 	GetMainWindow()->Update();
 
 	engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
+	if(engine::TransformComponent* pTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity()))
+	{
+		cd::Transform transform = pTransformComponent->GetTransform();
+		pMainCameraComponent->SetEye(transform.GetTranslation());
+		cd::Matrix4x4 rotMatrix = transform.GetRotation().ToMatrix4x4();
+		pMainCameraComponent->SetLookAt(cd::Vec3f(rotMatrix.Data(8), rotMatrix.Data(9), rotMatrix.Data(10)));
+		pMainCameraComponent->SetUp(cd::Vec3f(rotMatrix.Data(4), rotMatrix.Data(5), rotMatrix.Data(6)));
+	}
+	
 	assert(pMainCameraComponent);
-	pMainCameraComponent->Build();
-
+	
+	m_pNewCameraController->Update(deltaTime);
 	m_pCameraController->Update(deltaTime);
 	m_pEditorImGuiContext->Update(deltaTime);
-
+	pMainCameraComponent->Build();
 	m_pRenderContext->BeginFrame();
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEditorRenderers)
 	{

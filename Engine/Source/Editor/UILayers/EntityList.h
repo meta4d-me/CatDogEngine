@@ -28,7 +28,6 @@ public:
 
 private:
 	ImGuiTextFilter m_entityFilter;
-	//bool m_editingEntityName = false;
 };
 
 }

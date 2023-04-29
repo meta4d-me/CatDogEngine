@@ -137,12 +137,5 @@ void SceneWorld::SetDDGIEntity(engine::Entity entity)
 	m_ddgiEntity = entity;
 }
 
-void SceneWorld::OnResizeSceneView(uint16_t width, uint16_t height)
-{
-	if (engine::CameraComponent* pCameraComponent = GetCameraComponent(GetMainCameraEntity()))
-	{
-		pCameraComponent->SetAspect(width, height);
-	}
-}
 
 }

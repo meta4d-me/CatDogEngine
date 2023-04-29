@@ -36,7 +36,6 @@ public:
 	void SetDDGIEntity(engine::Entity entity);
 	CD_FORCEINLINE engine::Entity GetDDGIEntity() const { return m_ddgiEntity; }
 
-	void OnResizeSceneView(uint16_t width, uint16_t height);
 
 	void CreatePBRMaterialType();
 	CD_FORCEINLINE engine::MaterialType* GetPBRMaterialType() const { return m_pPBRMaterialType.get(); }

@@ -4,6 +4,7 @@
 #include "Math/Box.hpp"
 #include "Math/Matrix.hpp"
 #include "Math/Ray.hpp"
+#include "TransformComponent.h"
 
 namespace cd
 {
@@ -36,7 +37,6 @@ public:
 
 	void FrameAll(const cd::AABB& aabb);
 	cd::Ray EmitRay(float screenX, float screenY, float width, float height) const;
-
 	// Projection
 	const cd::Matrix4x4& GetProjectionMatrix() const { return m_projectionMatrix; }
 
@@ -69,6 +69,11 @@ public:
 	const cd::Direction& GetUp() const { return m_up; }
 
 	const cd::Direction& GetCross() const { return m_cross; }
+#ifdef EDITOR_MODE
+	bool DoConstrainAspectRatio() { return m_doConstainAspectRatio; }
+	void SetConstrainAspectRatio(bool use) { m_doConstainAspectRatio = use; }
+#endif
+
 
 private:
 	// Input
@@ -89,6 +94,11 @@ private:
 	cd::Direction m_cross;
 	cd::Matrix4x4 m_viewMatrix;
 	cd::Matrix4x4 m_projectionMatrix;
+
+#ifdef EDITOR_MODE
+	bool m_doConstainAspectRatio;
+#endif
+
 };
 
 }

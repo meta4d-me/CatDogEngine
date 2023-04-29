@@ -102,6 +102,7 @@ project("Engine")
 		"CDPROJECT_RESOURCES_SHARED_PATH=\""..ProjectSharedPath.."\"",
 		"CDPROJECT_RESOURCES_ROOT_PATH=\""..ProjectResourceRootPath.."\"",
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..EditorResourceRootPath.."\"",
+		"EDITOR_MODE",
 	}
 
 	-- use /MT /MTd, not /MD /MDd
