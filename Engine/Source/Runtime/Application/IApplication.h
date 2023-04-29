@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Graphics/GraphicsBackend.h"
 #include "ImGui/Language.h"
 
 #include <inttypes.h>
@@ -17,6 +18,7 @@ struct EngineInitArgs
 	uint16_t height = 600;
 
 	Language language = Language::English;
+	GraphicsBackend backend = GraphicsBackend::Direct3D11;
 };
 
 class IApplication

@@ -5,10 +5,6 @@ Engine/Binaries
 Engine/Intermediate
 Engine/ThirdPartyProjects
 
-Projects/PBRViewer/Resources/Textures/*
-!Projects/PBRViewer/Resources/Textures/*/
-
 # tmp
-!Projects/PBRViewer/Resources/Textures/texture.bat
-!Projects/PBRViewer/Resources/Textures/texture.py
-!Projects/PBRViewer/Resources/Textures/texturec.exe
+Projects/Shared
+Projects/Test/Textures

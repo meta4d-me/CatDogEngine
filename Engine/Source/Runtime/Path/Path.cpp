@@ -5,6 +5,8 @@
 namespace engine
 {
 
+GraphicsBackend Path::s_backend = engine::GraphicsBackend::Noop;
+
 std::optional<std::filesystem::path> Path::GetApplicationDataPath()
 {
 
@@ -69,9 +71,25 @@ std::filesystem::path Path::GetProjectsSharedPath()
     return std::filesystem::path(CDPROJECT_RESOURCES_SHARED_PATH);
 }
 
+void Path::SetGraphicsBackend(engine::GraphicsBackend backend)
+{
+    s_backend = backend;
+
+    std::filesystem::path directoryPath = GetShaderOutputDirectory();
+    if (!std::filesystem::is_directory(directoryPath))
+    {
+        std::filesystem::create_directories(directoryPath);
+    }
+}
+
 std::string Path::GetBuiltinShaderInputPath(const char* pShaderName)
 {
     return (GetEngineBuiltinShaderPath() / std::filesystem::path(pShaderName).stem()).replace_extension(ShaderInputExtension).string();
+}
+
+std::filesystem::path Path::GetShaderOutputDirectory()
+{
+    return GetProjectsSharedPath() / "BuiltInShaders" / GetGraphicsBackendName(s_backend);
 }
 
 std::string Path::GetShaderOutputPath(const char* pInputFilePath, const std::string& options)
@@ -92,7 +110,7 @@ std::string Path::GetShaderOutputPath(const char* pInputFilePath, const std::str
         }
     }
 
-    return ((GetProjectsSharedPath() / "BuiltInShaders" / cd::MoveTemp(outputShaderFileName)).replace_extension(ShaderOutputExtension)).string();
+    return (GetShaderOutputDirectory() / cd::MoveTemp(outputShaderFileName)).replace_extension(ShaderOutputExtension).string();
 }
 
 std::string Path::GetTextureOutputFilePath(const char* pInputFilePath, const char* extension)

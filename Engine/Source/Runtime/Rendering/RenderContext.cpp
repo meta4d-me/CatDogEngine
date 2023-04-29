@@ -1,5 +1,7 @@
 #include "RenderContext.h"
 
+#include "Log/Log.h"
+#include "Path/Path.h"
 #include "Renderer.h"
 #include "Rendering/Utility/VertexLayoutUtility.h"
 
@@ -28,6 +30,17 @@ static void imageReleaseCb(void* _ptr, void* _userData)
 	bimg::imageFree(imageContainer);
 }
 
+template<class T>
+void DestoryImpl(engine::StringCrc resourceCrc, T& caches)
+{
+	auto itResource = caches.find(resourceCrc.Value());
+	if(itResource != caches.end())
+	{
+		bgfx::destroy(itResource->second);
+		caches.erase(itResource);
+	}
+};
+
 }
 
 namespace engine
@@ -38,12 +51,55 @@ RenderContext::~RenderContext()
 	bgfx::shutdown();
 }
 
-void RenderContext::Init()
+void RenderContext::Init(GraphicsBackend backend)
 {
 	bgfx::Init initDesc;
-	initDesc.type = bgfx::RendererType::Direct3D11;
-	bgfx::init(initDesc);
+	switch (backend)
+	{
+	case GraphicsBackend::OpenGL:
+	{
+		initDesc.type = bgfx::RendererType::OpenGL;
+		break;
+	}
+	case GraphicsBackend::OpenGLES:
+	{
+		initDesc.type = bgfx::RendererType::OpenGLES;
+		break;
+	}
+	case GraphicsBackend::Direct3D9:
+	{
+		initDesc.type = bgfx::RendererType::Direct3D9;
+		break;
+	}
+	case GraphicsBackend::Direct3D11:
+	{
+		initDesc.type = bgfx::RendererType::Direct3D11;
+		break;
+	}
+	case GraphicsBackend::Direct3D12:
+	{
+		initDesc.type = bgfx::RendererType::Direct3D12;
+		break;
+	}
+	case GraphicsBackend::Vulkan:
+	{
+		initDesc.type = bgfx::RendererType::Vulkan;
+		break;
+	}
+	case GraphicsBackend::Metal:
+	{
+		initDesc.type = bgfx::RendererType::Metal;
+		break;
+	}
+	case GraphicsBackend::Noop:
+	default:
+	{
+		initDesc.type = bgfx::RendererType::Noop;
+		break;
+	}
+	}
 
+	bgfx::init(initDesc);
 	bgfx::setDebug(BGFX_DEBUG_NONE);
 }
 
@@ -125,7 +181,7 @@ bgfx::ShaderHandle RenderContext::CreateShader(const char* pFilePath)
 		return itShaderCache->second;
 	}
 
-	std::string shaderFileFullPath = std::format("{}BuiltInShaders/{}", CDPROJECT_RESOURCES_SHARED_PATH, pFilePath);
+	std::string shaderFileFullPath = Path::GetShaderOutputPath(pFilePath);
 	std::ifstream fin(shaderFileFullPath, std::ios::in | std::ios::binary);
 	if (!fin.is_open())
 	{
@@ -277,39 +333,40 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pFilePath, uint64_t
 	return handle;
 }
 
-bgfx::TextureHandle RenderContext::CreateTexture(const char* pName, const uint16_t _width, const uint16_t _height, uint64_t flags)
+bgfx::TextureHandle RenderContext::CreateTexture(const char* pName, uint16_t width, uint16_t height, uint16_t depth, bgfx::TextureFormat::Enum formet, uint64_t flags, const void* data, uint32_t size)
 {
 	StringCrc textureName(pName);
 	auto itTextureCache = m_textureHandleCaches.find(textureName.Value());
-	if (itTextureCache != m_textureHandleCaches.end())
+	if(itTextureCache != m_textureHandleCaches.end())
 	{
 		return itTextureCache->second;
 	}
 
-	bgfx::TextureHandle texture = bgfx::createTexture2D(_width, _height, false, 1, bgfx::TextureFormat::RGBA32F, flags);
-	if (bgfx::isValid(texture))
+	const bgfx::Memory* mem = nullptr;
+	bgfx::TextureHandle texture = BGFX_INVALID_HANDLE;
+
+	if(nullptr != data && size > 0)
+	{
+		mem = bgfx::makeRef(data, size);
+	}
+
+	if(depth > 1)
+	{
+		texture = bgfx::createTexture3D(width, height, depth, false, formet, flags, mem);
+	}
+	else
+	{
+		texture = bgfx::createTexture2D(width, height, false, 1, formet, flags, mem);
+	}
+
+	if(bgfx::isValid(texture))
 	{
 		bgfx::setName(texture, pName);
 		m_textureHandleCaches[textureName.Value()] = texture;
 	}
-
-	return texture;
-}
-
-bgfx::TextureHandle RenderContext::CreateTexture(const char *pName, const uint16_t _width, const uint16_t _height, const uint16_t _depth, uint64_t flags)
-{
-	StringCrc textureName(pName);
-	auto itTextureCache = m_textureHandleCaches.find(textureName.Value());
-	if (itTextureCache != m_textureHandleCaches.end())
+	else
 	{
-		return itTextureCache->second;
-	}
-
-	bgfx::TextureHandle texture = bgfx::createTexture3D(_width, _height, _depth, false, bgfx::TextureFormat::RGBA32F, flags);
-	if (bgfx::isValid(texture))
-	{
-		bgfx::setName(texture, pName);
-		m_textureHandleCaches[textureName.Value()] = texture;
+		CD_ENGINE_ERROR("Faild to create texture {0}!", pName);
 	}
 
 	return texture;
@@ -446,6 +503,14 @@ bgfx::UniformHandle RenderContext::GetUniform(StringCrc resourceCrc) const
 	}
 
 	return bgfx::UniformHandle(bgfx::kInvalidHandle);
+}
+
+void RenderContext::Destory(StringCrc resourceCrc)
+{
+	DestoryImpl(resourceCrc, m_shaderHandleCaches);
+	DestoryImpl(resourceCrc, m_programHandleCaches);
+	DestoryImpl(resourceCrc, m_textureHandleCaches);
+	DestoryImpl(resourceCrc, m_uniformHandleCaches);
 }
 
 }

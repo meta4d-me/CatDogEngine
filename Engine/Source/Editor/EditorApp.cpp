@@ -8,8 +8,10 @@
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/UILayers/DebugPanel.h"
 #include "Log/Log.h"
+#include "Path/Path.h"
 #include "Rendering/AnimationRenderer.h"
 #include "Rendering/BlitRenderTargetPass.h"
+#include "Rendering/DDGIRenderer.h"
 #include "Rendering/DebugRenderer.h"
 #include "Rendering/ImGuiRenderer.h"
 #include "Rendering/PBRSkyRenderer.h"
@@ -54,6 +56,8 @@ EditorApp::~EditorApp()
 void EditorApp::Init(engine::EngineInitArgs initArgs)
 {
 	CD_INFO("Init ediotr");
+	CD_INFO("Graphics backend : {}", engine::GetGraphicsBackendName(initArgs.backend));
+	engine::Path::SetGraphicsBackend(initArgs.backend);
 
 	uint16_t width = initArgs.width;
 	uint16_t height = initArgs.height;
@@ -62,7 +66,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 
 	InitECWorld();
 
-	InitRenderContext();
+	InitRenderContext(initArgs.backend);
 
 	// Init ImGuiContext in the editor side which used to draw editor ui.
 	InitEditorImGuiContext(initArgs.language);
@@ -70,12 +74,13 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	// Init ImGuiContext in the engine side which used to draw in game ui.
 	InitEngineImGuiContext(initArgs.language);
 
-	InitShaderPrograms();
-
 	// Enable multiple viewports which means that we can drop any imgui window outside the main window.
 	// Then the imgui window will become a new standalone window. Drop back to convert it back.
 	// TODO : should be only used in the editor ImGuiContext.
 	// InitImGuiViewports(m_pRenderContext);
+
+	// Builtin shaders will be compiled automatically when initialization or detect changes.
+	InitShaderPrograms();
 }
 
 void EditorApp::Shutdown()
@@ -220,6 +225,12 @@ void EditorApp::InitECWorld()
 		5.0f /* vertical sensitivity */,
 		160.0f /* Movement Speed*/);
 
+	engine::Entity ddgiEntity = pWorld->CreateEntity();
+	m_pSceneWorld->SetDDGIEntity(ddgiEntity);
+	auto& ddgiNameComponent = pWorld->CreateComponent<engine::NameComponent>(ddgiEntity);
+	ddgiNameComponent.SetName("DDGI");
+	auto& ddgiComponent = pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
+
 	m_pNewCameraController = std::make_unique<engine::CameraController>(
 		m_pSceneWorld.get(),
 		5.0f /* horizontal sensitivity */,
@@ -227,10 +238,10 @@ void EditorApp::InitECWorld()
 		5.0f /* Movement Speed*/);
 }
 
-void EditorApp::InitRenderContext()
+void EditorApp::InitRenderContext(engine::GraphicsBackend backend)
 {
 	m_pRenderContext = std::make_unique<engine::RenderContext>();
-	m_pRenderContext->Init();
+	m_pRenderContext->Init(backend);
 
 	GetMainWindow()->OnResize.Bind<engine::RenderContext, &engine::RenderContext::OnResize>(m_pRenderContext.get());
 
@@ -280,6 +291,10 @@ void EditorApp::InitRenderContext()
 	auto pBlitRTRenderPass = std::make_unique<engine::BlitRenderTargetPass>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	AddEngineRenderer(cd::MoveTemp(pBlitRTRenderPass));
 
+	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pDDGIRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pDDGIRenderer));
+
 	// We can debug vertex/material/texture information by just output that to screen as fragmentColor.
 	// But postprocess will bring unnecessary confusion.
 	// auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
@@ -295,6 +310,7 @@ void EditorApp::InitShaderPrograms() const
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetPBRMaterialType());
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetAnimationMaterialType());
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetTerrainMaterialType());
+	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetDDGIMaterialType());
 }
 
 void EditorApp::AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer)
