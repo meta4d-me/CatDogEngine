@@ -65,11 +65,6 @@ bool ImGuiProperty(const char* pName, T& value)
 			dirty = true;
 		}
 
-		if (ImGui::IsItemActivated() && ImGui::GetIO().MouseDelta.x != 0)
-		{
-
-		}
-
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
 
