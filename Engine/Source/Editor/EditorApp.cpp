@@ -339,8 +339,7 @@ bool EditorApp::Update(float deltaTime)
 	}
 	
 	assert(pMainCameraComponent);
-	//pMainCameraComponent->Build();
-
+	
 	m_pNewCameraController->Update(deltaTime);
 	m_pCameraController->Update(deltaTime);
 	m_pEditorImGuiContext->Update(deltaTime);
