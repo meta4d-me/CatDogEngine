@@ -78,10 +78,6 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         transformComponent.Build();
     }
 
-    else if (ImGui::MenuItem("Add Light"))
-    {
-        m_isLight = true;
-    }
     else if (ImGui::MenuItem("Add Point Light"))
     {
         engine::Entity entity = AddNamedEntity("PointLight");
