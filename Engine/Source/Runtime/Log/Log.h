@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Math/Vector.hpp"
+#include "Math/Quaternion.hpp"
 
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
@@ -45,6 +45,11 @@ inline std::ostream &operator<<(std::ostream &os, const cd::Vec3f &vec)
 inline std::ostream &operator<<(std::ostream &os, const cd::Vec4f &vec)
 {
 	return os << std::format("({0}, {1}, {2}, {3})", vec.x(), vec.y(), vec.z(), vec.w());
+}
+
+inline std::ostream& operator<<(std::ostream& os, const cd::Quaternion& quaternion)
+{
+	return os << std::format("Vector = ({0}, {1}, {2}), Scalar = {3}", quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
 }
 
 #ifndef NDEBUG

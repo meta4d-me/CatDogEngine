@@ -97,8 +97,7 @@ private:
 	bool m_ShowHiddenFiles;
 	bool m_IsInListView;
 	int m_GridItemPerRow;
-	float m_GridSize = 50.0f;
-	float m_scale = 40.0f;
+	float m_GridSize = 40.0f;
 
 	std::string m_BasePath;
 	std::filesystem::path m_AssetPath;

@@ -33,7 +33,7 @@ public:
 	void SetMainCameraEntity(engine::Entity entity);
 	CD_FORCEINLINE engine::Entity GetMainCameraEntity() const { return m_mainCameraEntity; }
 
-	void OnResizeSceneView(uint16_t width, uint16_t height);
+	/*void OnResizeSceneView(uint16_t width, uint16_t height);*/
 
 	void CreatePBRMaterialType();
 	CD_FORCEINLINE engine::MaterialType* GetPBRMaterialType() const { return m_pPBRMaterialType.get(); }

@@ -7,7 +7,7 @@
 
 namespace engine
 {
-
+class CameraController;
 class FirstPersonCameraController;
 class FlybyCamera;
 class ImGuiBaseLayer;
@@ -81,6 +81,7 @@ private:
 
 	// Controllers for processing input events.
 	std::unique_ptr<engine::FirstPersonCameraController> m_pCameraController;
+	std::unique_ptr<engine::CameraController> m_pNewCameraController;
 };
 
 }

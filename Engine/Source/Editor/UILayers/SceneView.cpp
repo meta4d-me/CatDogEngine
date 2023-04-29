@@ -356,7 +356,11 @@ void SceneView::Update()
 		OnResize.Invoke(regionWidth, regionHeight);
 		m_lastContentWidth = regionWidth;
 		m_lastContentHeight = regionHeight;
-		pCameraComponent->SetAspect(static_cast<float>(regionWidth) / static_cast<float>(regionHeight));
+		if (!pCameraComponent->DoConstrainAspectRatio())
+		{
+			pCameraComponent->SetAspect(static_cast<float>(regionWidth) / static_cast<float>(regionHeight));
+		}
+
 	}
 
 	// Check if mouse hover on the area of SceneView so it can control.

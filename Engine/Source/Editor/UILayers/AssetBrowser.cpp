@@ -151,7 +151,7 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 		std::string extension = m_CurrentDir->Children[dirIndex]->FilePath.extension().generic_string();
 		if (folder)
 		{
-			ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_FOLDER), ImVec2(m_scale, m_scale));	
+			ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_FOLDER), ImVec2(m_GridSize, m_GridSize));
 		}
 		 if (!folder)
 		{
@@ -174,14 +174,14 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 				 }
 				 else
 				 {
-					 ImVec2 img_size(m_scale, m_scale);
+					 ImVec2 img_size(m_GridSize, m_GridSize);
 					 ImGui::Image(ImTextureID(TextureHandle.idx), img_size);
 				 }
 
 			 }
 			 if (0 == strcmp(".dds", extension.c_str()))
 			 {
-				 ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_DELTA), ImVec2(m_scale, m_scale));
+				 ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_DELTA), ImVec2(m_GridSize, m_GridSize));
 			 }
 	
 						
@@ -198,7 +198,7 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 		ImGui::TextUnformatted(newFname.c_str());
 		ImGui::EndGroup();
 
-		if ((shownIndex + 1) % m_GridItemPerRow != 0)
+		if ((shownIndex + 1) % (m_GridItemPerRow ) != 0)
 			ImGui::SameLine();
 	}
 	else
@@ -481,7 +481,7 @@ std::string AssetBrowser::ProcessDirectory(const std::filesystem::path& director
 }
 void AssetBrowser::UpdateAssetFileView()
 {
-	ImGui::BeginChild("FileView", ImVec2(ImGui::GetWindowWidth() * 0.5f, ImGui::GetWindowHeight() * 0.75f));
+	ImGui::BeginChild("FileView", ImVec2(0 , ImGui::GetWindowHeight() * 0.85f));
 	{
 		ImGui::BeginChild("directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth(), ImGui::GetFrameHeightWithSpacing()));
 
@@ -550,13 +550,13 @@ void AssetBrowser::UpdateAssetFileView()
 	}
 
 	{
-		ImGui::BeginChild("##Scrolling");
+		ImGui::BeginChild("##Scrolling", ImVec2(ImGui::GetWindowWidth() * 1.0f, ImGui::GetWindowHeight() * 0.75f));
 
 		int shownIndex = 0;
 
-		float xAvail = ImGui::GetContentRegionAvail().x;
+		float xAvail = ImGui::GetContentRegionAvail().x * 0.812f;
 
-		m_GridItemPerRow = (int)floor(xAvail / (m_GridSize + ImGui::GetStyle().ItemSpacing.x));
+		m_GridItemPerRow = (int)floor(xAvail / (m_GridSize + ImGui::GetStyle().ItemSpacing.x)) ; 
 		m_GridItemPerRow = 1 > m_GridItemPerRow ? 1 : m_GridItemPerRow;
 
 		for (int i = 0; i < m_CurrentDir->Children.size(); i++)
@@ -584,7 +584,7 @@ void AssetBrowser::UpdateAssetFileView()
 	}
 
 	ImGui::EndChild(); 
-	ImGui::SliderFloat(" ", &m_scale, 40.0f, 160.0f, " ", ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_Logarithmic);
+	ImGui::SliderFloat(" ", &m_GridSize, 40.0f, 160.0f, " ", ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_Logarithmic);
 }
 
 void AssetBrowser::ImportAssetFile(const char* pFilePath)
@@ -791,14 +791,14 @@ void AssetBrowser::Update()
 		// https://stackoverflow.com/questions/72068188/how-do-i-change-the-border-size-for-a-table-in-dear-imgui
 
 		// Colomn width doesn't have a flag to set only in the first frame.
-		ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x * 0.4f);
+		ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x * 0.3f);
 		bFirstUpdate = false;
 	}
 	UpdateAssetFolderTree();
 
 	// The next column is AssetFileView in the right.
-	ImGui::NextColumn();
 
+	ImGui::NextColumn();
 	UpdateAssetFileView();
 	//RenderBottom();
 	ImGui::EndColumns();

@@ -18,5 +18,8 @@ void TransformComponent::Build()
 		m_isMatrixDirty = false;
 	}
 }
+#ifdef EDITOR_MODE
+bool TransformComponent::m_doUseUniformScale = false;
+#endif
 
 }
