@@ -258,8 +258,7 @@ void EditorApp::InitRenderContext(engine::GraphicsBackend backend)
 
 	// The init size doesn't make sense. It will resize by SceneView.
 	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->CreateRenderTarget(sceneViewRenderTargetName, 1, 1, std::move(attachmentDesc));
-	//pSceneRenderTarget->OnResize.Bind<engine::SceneWorld, &engine::SceneWorld::OnResizeSceneView>(m_pSceneWorld.get());
-
+	
 	auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pPBRSkyRenderer = pPBRSkyRenderer.get();
 	AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
