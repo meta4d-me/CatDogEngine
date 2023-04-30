@@ -139,6 +139,11 @@ void RenderContext::EndFrame()
 
 void RenderContext::OnResize(uint16_t width, uint16_t height)
 {
+	// Update swap chain RT size which presents main window.
+	constexpr engine::StringCrc editorSwapChainName("EditorUISwapChain");
+	engine::RenderTarget* pRenderTarget = GetRenderTarget(editorSwapChainName);
+	pRenderTarget->Resize(width, height);
+
 	bgfx::reset(width, height, BGFX_RESET_MSAA_X16 | BGFX_RESET_VSYNC);
 }
 
