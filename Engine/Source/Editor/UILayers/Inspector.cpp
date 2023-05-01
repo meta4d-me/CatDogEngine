@@ -72,32 +72,15 @@ bool ImGuiProperty(const char* pName, T& value)
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
-		cd::Vec3f originEulerAngles = value.GetRotation().ToEulerAngles();
-		cd::Vec3f eulerAngles = originEulerAngles;
-		if (ImGui::DragFloat3("##Rotation", eulerAngles.Begin()))
+		cd::Vec3f eulerAngles = value.GetRotation().ToEulerAngles();
+		if (ImGui::DragFloat3("##Rotation", eulerAngles.Begin(), 3.0f, 0.05f))
 		{
-			if (!cd::Math::IsEqualTo(eulerAngles.x(), originEulerAngles.x()))
-			{
-				cd::Quaternion quaternion = cd::Quaternion::FromAxisAngle(cd::Vec3f(1.0f, 0.0f, 0.0f), cd::Math::DegreeToRadian(eulerAngles.x()));
-				value.SetRotation(quaternion);
-				dirty = true;
-			}
-			
-			if (!cd::Math::IsEqualTo(eulerAngles.y(), originEulerAngles.y()))
-			{
-				cd::Quaternion quaternion = cd::Quaternion::FromAxisAngle(cd::Vec3f(0.0f, 1.0f, 0.0f), cd::Math::DegreeToRadian(eulerAngles.y()));
-				value.SetRotation(quaternion);
-				dirty = true;
-			}
-			
-			if (!cd::Math::IsEqualTo(eulerAngles.z(), originEulerAngles.z()))
-			{
-				cd::Quaternion quaternion = cd::Quaternion::FromAxisAngle(cd::Vec3f(0.0f, 0.0f, 1.0f), cd::Math::DegreeToRadian(eulerAngles.z()));
-				value.SetRotation(quaternion);
-				dirty = true;
-			}
-		}
+			float pitch = std::min(eulerAngles.x(), 89.9f);
+			pitch = std::max(pitch, -89.9f);
 
+			value.SetRotation(cd::Quaternion::FromPitchYawRoll(pitch, eulerAngles.y(), eulerAngles.z()));
+			dirty = true;
+		}
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
