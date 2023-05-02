@@ -37,31 +37,31 @@ void CreatDDGITexture(DDGITextureType type, DDGIComponent* pDDGIComponent, Rende
 	const void* data = nullptr;
 	uint32_t dataSize = 0;
 
-	cd::Vec3f probeNum = pDDGIComponent->GetProbeNum();
+	cd::Vec3f probeCount = pDDGIComponent->GetProbeCount();
 
 	switch(type)
 	{
 		case DDGITextureType::Classification:
-			textureSize = cd::Vec2f(probeNum.y() * probeNum.z(), probeNum.x()) * CLASSIFICATICON_GRID_SIZE;
+			textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * CLASSIFICATICON_GRID_SIZE;
 			format = bgfx::TextureFormat::Enum::R32F;
 			data = reinterpret_cast<const void*>(pDDGIComponent->GetClassificationRawData());
 			dataSize = pDDGIComponent->GetClassificationSize();
 			break;
 		case DDGITextureType::Distance:
-			textureSize = cd::Vec2f(probeNum.y() * probeNum.z(), probeNum.x()) * DISTANCE_GRID_SIZE;
+			textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * DISTANCE_GRID_SIZE;
 			format = bgfx::TextureFormat::Enum::RG32F;
 			data = reinterpret_cast<const void*>(pDDGIComponent->GetDistanceRawData());
 			dataSize = pDDGIComponent->GetDistanceSize();
 			break;
 		case DDGITextureType::Irradiance:
-			textureSize = cd::Vec2f(probeNum.y() * probeNum.z(), probeNum.x()) * IRRADIANCE_GRID_SIZE;
+			textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * IRRADIANCE_GRID_SIZE;
 			// TODO : RGBA16U
 			format = bgfx::TextureFormat::Enum::RGBA16F;
 			data = reinterpret_cast<const void*>(pDDGIComponent->GetIrradianceRawData());
 			dataSize = pDDGIComponent->GetIrradianceSize();
 			break;
 		case DDGITextureType::Relocation:
-			textureSize = cd::Vec2f(probeNum.y() * probeNum.z(), probeNum.x()) * RELOCATION_GRID_SIZE;
+			textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * RELOCATION_GRID_SIZE;
 			format = bgfx::TextureFormat::Enum::RGBA16F;
 			data = reinterpret_cast<const void*>(pDDGIComponent->GetRelocationRawData());
 			dataSize = pDDGIComponent->GetRelocationSize();
@@ -94,10 +94,11 @@ void DDGIRenderer::Init()
 	m_pRenderContext->CreateUniform(irradianceSampler, bgfx::UniformType::Sampler);
 	m_pRenderContext->CreateUniform(relocationSampler, bgfx::UniformType::Sampler);
 
-	// Temporary code.
+	// Hard code the centre of current test model(wood room) here.
+	m_pDDGIComponent->SetVolumeOrigin(cd::Vec3f(3.5786f, 1.5051485f, -4.23065f));
+	m_pDDGIComponent->SetProbeSpacing(cd::Vec3f(2.0f, 2.0f, 2.0f));
+	m_pDDGIComponent->SetProbeCount(cd::Vec3f(4.0f, 5.0f, 2.0f));
 	m_pDDGIComponent->SetAmbientMultiplier(1.0);
-	m_pDDGIComponent->SetDimension(cd::Vec3f(8.0f, 10.0f, 4.0f));
-	m_pDDGIComponent->SetProbeNum(cd::Vec3f(4.0f, 5.0f, 2.0f));
 	m_pDDGIComponent->SetNormalBias(0.0f);
 	m_pDDGIComponent->SetViewBias(0.0f);
 

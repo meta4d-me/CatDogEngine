@@ -33,11 +33,14 @@ public:
 	const uint8_t* GetRelocationRawData() const { return m_relocationRawData.data(); }
 	uint32_t GetRelocationSize() const { return static_cast<uint32_t>(m_relocationRawData.size()); }
 
-	void SetDimension(const cd::Vec3f& dimension) { m_dimension = dimension; }
-	const cd::Vec3f &GetDimension() const { return m_dimension; }
+	void SetVolumeOrigin(const cd::Vec3f& origin) { m_volumeOrigin = origin; }
+	const cd::Vec3f& GetVolumeOrigin() const { return m_volumeOrigin; }
 
-	void SetProbeNum(const cd::Vec3f& num) { m_probeNum = num; }
-	const cd::Vec3f &GetProbeNum() const { return m_probeNum; }
+	void SetProbeSpacing(const cd::Vec3f& spacing) { m_probeSpacing = spacing; }
+	const cd::Vec3f& GetProbeSpacing() const { return m_probeSpacing; }
+
+	void SetProbeCount(const cd::Vec3f& count) { m_probeCount = count; }
+	const cd::Vec3f& GetProbeCount() const { return m_probeCount; }
 
 	void SetAmbientMultiplier(float multiplier) { m_ambientMultiplier = multiplier; }
 	const float GetAmbientMultiplier() const { return m_ambientMultiplier; }
@@ -54,8 +57,9 @@ private:
 	std::vector<uint8_t> m_irradianceRawData;
 	std::vector<uint8_t> m_relocationRawData;
 
-	cd::Vec3f m_dimension;
-	cd::Vec3f m_probeNum;
+	cd::Vec3f m_volumeOrigin;
+	cd::Vec3f m_probeSpacing;
+	cd::Vec3f m_probeCount;
 
 	float m_ambientMultiplier;
 	float m_viewBias;
