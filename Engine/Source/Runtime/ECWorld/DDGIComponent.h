@@ -36,8 +36,8 @@ public:
 	void SetDimension(const cd::Vec3f& dimension) { m_dimension = dimension; }
 	const cd::Vec3f &GetDimension() const { return m_dimension; }
 
-	void SetSpacing(const cd::Vec3f& spacing) { m_spacing = spacing; }
-	const cd::Vec3f &GetSpacing() const { return m_spacing; }
+	void SetProbeNum(const cd::Vec3f& num) { m_probeNum = num; }
+	const cd::Vec3f &GetProbeNum() const { return m_probeNum; }
 
 	void SetAmbientMultiplier(float multiplier) { m_ambientMultiplier = multiplier; }
 	const float GetAmbientMultiplier() const { return m_ambientMultiplier; }
@@ -55,7 +55,7 @@ private:
 	std::vector<uint8_t> m_relocationRawData;
 
 	cd::Vec3f m_dimension;
-	cd::Vec3f m_spacing;
+	cd::Vec3f m_probeNum;
 
 	float m_ambientMultiplier;
 	float m_viewBias;
