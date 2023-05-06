@@ -13,7 +13,7 @@ class Window
 {
 public:
     Window() = delete;
-    Window(const char* pTitle, uint16_t width, uint16_t height);
+    Window(const char* pTitle, uint16_t width, uint16_t height, bool useFullScreen = false);
     Window(const Window&) = delete;
     Window& operator=(const Window&) = delete;
     Window(Window&&) = delete;
