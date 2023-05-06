@@ -61,7 +61,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 
 	uint16_t width = initArgs.width;
 	uint16_t height = initArgs.height;
-	AddWindow(std::make_unique<engine::Window>(initArgs.pTitle, width, height));
+	AddWindow(std::make_unique<engine::Window>(initArgs.pTitle, width, height, initArgs.useFullScreen));
 	GetMainWindow()->SetWindowIcon(initArgs.pIconFilePath);
 
 	InitECWorld();
