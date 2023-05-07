@@ -17,13 +17,13 @@ namespace
 {
 
 constexpr const char* classificationSampler = "s_texClassification";
-constexpr const char* distanceSampler = "s_texDistance";
-constexpr const char* irradianceSampler = "s_texIrradiance";
-constexpr const char* relocationSampler = "s_texRelocation";
+constexpr const char* distanceSampler       = "s_texDistance";
+constexpr const char* irradianceSampler     = "s_texIrradiance";
+constexpr const char* relocationSampler     = "s_texRelocation";
 
-constexpr const char* volumeOrigin = "u_volumeOrigin";
-constexpr const char* volumeProbeSpacing = "u_volumeProbeSpacing";
-constexpr const char* volumeProbeCounts = "u_volumeProbeCounts";
+constexpr const char* volumeOrigin          = "u_volumeOrigin";
+constexpr const char* volumeProbeSpacing    = "u_volumeProbeSpacing";
+constexpr const char* volumeProbeCounts     = "u_volumeProbeCounts";
 
 constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 

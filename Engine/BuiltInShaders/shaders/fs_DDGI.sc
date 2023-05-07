@@ -21,13 +21,11 @@ SAMPLER2D(s_texDistance, 2);
 USAMPLER2D(s_texIrradiance, 3);
 SAMPLER2D(s_texRelocation, 4);
 
-vec3 SampleIrradiance(vec2 uv)
-{
+vec3 SampleIrradiance(vec2 uv) {
 	return vec3(texelFetch(s_texIrradiance, ivec2(uv * ivec2(80, 32)), 0).xyz);
 }
 
-vec3 SampleDistance(vec2 uv)
-{
+vec3 SampleDistance(vec2 uv) {
 	return texture2D(s_texDistance, uv).xyz;
 }
 
@@ -38,8 +36,7 @@ struct DDGIVolume
 	vec3 probeCounts;
 };
 
-DDGIVolume GetVolumeData()
-{
+DDGIVolume GetVolumeData() {
 	DDGIVolume volume;
 	volume.origin = u_volumeOrigin.xyz;
 	volume.probeSpacing = u_volumeProbeSpacing.xyz;
@@ -49,8 +46,7 @@ DDGIVolume GetVolumeData()
 
 // Computes the world-space position of a probe from the probe's 3D grid-space coordinates.
 // Probe relocation is not considered.
-vec3 DDGIGetProbeWorldPosition(vec3 probeCoords, DDGIVolume volume)
-{
+vec3 DDGIGetProbeWorldPosition(vec3 probeCoords, DDGIVolume volume) {
 	// Multiply the grid coordinates by the probe spacing.
 	vec3 probeGridWorldPosition = probeCoords * volume.probeSpacing;
 	// Shift the grid of probes by half of each axis extent to center the volume about its origin.
@@ -63,34 +59,28 @@ vec3 DDGIGetProbeWorldPosition(vec3 probeCoords, DDGIVolume volume)
 
 // ----- Math ----- //
 
-float SignNotZero(float v)
-{
+float SignNotZero(float v) {
 	return (v >= 0.0) ? 1.0 : -1.0;
 }
 
-vec2 SignNotZero(vec2 v)
-{
+vec2 SignNotZero(vec2 v) {
 	return vec2(SignNotZero(v.x), SignNotZero(v.y));
 }
 
 // Computes the normalized octahedral direction that corresponds to the given normalized coordinates on the [-1, 1] square.
-vec3 DDGIGetOctahedralDirection(vec2 coords)
-{
+vec3 DDGIGetOctahedralDirection(vec2 coords) {
 	vec3 direction = vec3(coords.x, coords.y, 1.0 - abs(coords.x) - abs(coords.y));
-	if (direction.z < 0.0)
-	{
+	if (direction.z < 0.0) {
 		direction.xy = (1.0 - abs(direction.yx)) * SignNotZero(direction.xy);
 	}
 	return normalize(direction);
 }
 
 // Computes the octant coordinates in the normalized [-1, 1] square, for the given a unit direction vector.
-vec2 DDGIGetOctahedralCoordinates(vec3 direction)
-{
+vec2 DDGIGetOctahedralCoordinates(vec3 direction) {
 	float l1norm = abs(direction.x) + abs(direction.y) + abs(direction.z);
 	vec2 uv = direction.xy * (1.0 / l1norm);
-	if (direction.z < 0.0)
-	{
+	if (direction.z < 0.0) {
 		uv = (1.0 - abs(uv.yx)) * SignNotZero(uv.xy);
 	}
 	return uv;
@@ -102,8 +92,7 @@ vec2 DDGIGetOctahedralCoordinates(vec3 direction)
 // cube that surrounds the given world space position. The other seven probes of the cube
 // are offset by 0 or 1 in grid space along each axis.
 // This function accounts for scroll offsets to adjust the volume's origin.
-ivec3 DDGIGetBaseProbeGridCoords(vec3 worldPosition, DDGIVolume volume)
-{
+ivec3 DDGIGetBaseProbeGridCoords(vec3 worldPosition, DDGIVolume volume) {
 	// Get the vector from the volume origin to the surface point.
 	vec3 position = worldPosition - (volume.origin + volume.probeSpacing);
 	
@@ -120,29 +109,24 @@ ivec3 DDGIGetBaseProbeGridCoords(vec3 worldPosition, DDGIVolume volume)
 	return probeCoords;
 }
 
-
 // Get the number of probes on a horizontal plane, in the active coordinate system.
-int DDGIGetProbesPerPlane(ivec3 probeCounts)
-{
+int DDGIGetProbesPerPlane(ivec3 probeCounts) {
 	return (probeCounts.x * probeCounts.z);
 }
 
 // Get the index of the horizontal plane, in the active coordinate system.
-int DDGIGetPlaneIndex(ivec3 probeCoords)
-{
+int DDGIGetPlaneIndex(ivec3 probeCoords) {
 	return probeCoords.y;
 }
 
 // Get the index of a probe within a horizontal plane that the probe coordinates map to, in the active coordinate system.
-int DDGIGetProbeIndexInPlane(ivec3 probeCoords, ivec3 probeCounts)
-{
+int DDGIGetProbeIndexInPlane(ivec3 probeCoords, ivec3 probeCounts) {
 	return probeCoords.x + (probeCounts.x * probeCoords.z);
 }
 
 // Computes the probe index from 3D grid coordinates.
 // The opposite of DDGIGetProbeCoords(probeIndex,...).
-int DDGIGetProbeIndex(int3 probeCoords, DDGIVolume volume)
-{
+int DDGIGetProbeIndex(int3 probeCoords, DDGIVolume volume) {
 	int probesPerPlane = DDGIGetProbesPerPlane(volume.probeCounts);
 	int planeIndex = DDGIGetPlaneIndex(probeCoords);
 	int probeIndexInPlane = DDGIGetProbeIndexInPlane(probeCoords, volume.probeCounts);
@@ -153,8 +137,7 @@ int DDGIGetProbeIndex(int3 probeCoords, DDGIVolume volume)
 // Computes the Texture2DArray coordinates of the probe at the given probe index.
 // When infinite scrolling is enabled, probeIndex is expected to be the scroll adjusted probe index.
 // Obtain the adjusted index with DDGIGetScrollingProbeIndex().
-ivec3 DDGIGetProbeTexelCoords(int probeIndex, DDGIVolume volume)
-{
+ivec3 DDGIGetProbeTexelCoords(int probeIndex, DDGIVolume volume) {
 	// Find the probe's plane index.
 	int probesPerPlane = DDGIGetProbesPerPlane(volume.probeCounts);
 	int planeIndex = int(probeIndex / probesPerPlane);
@@ -169,8 +152,7 @@ ivec3 DDGIGetProbeTexelCoords(int probeIndex, DDGIVolume volume)
 // given the probe index and 2D normalized octant coordinates [-1, 1]. Used when sampling the texture arrays.
 // When infinite scrolling is enabled, probeIndex is expected to be the scroll adjusted probe index.
 // Obtain the adjusted index with DDGIGetScrollingProbeIndex().
-vec3 DDGIGetProbeUV(int probeIndex, vec2 octantCoordinates, int numProbeInteriorTexels, DDGIVolume volume)
-{
+vec3 DDGIGetProbeUV(int probeIndex, vec2 octantCoordinates, int numProbeInteriorTexels, DDGIVolume volume) {
 	// Get the probe's texel coordinates, assuming one texel per probe.
 	ivec3 coords = DDGIGetProbeTexelCoords(probeIndex, volume);
 	
@@ -187,8 +169,7 @@ vec3 DDGIGetProbeUV(int probeIndex, vec2 octantCoordinates, int numProbeInterior
 }
 
 // Computes irradiance for the given world-position using the given volume, surface bias, sampling direction, and volume resources.
-vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volume)
-{
+vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volume) {
 	// Surface bias, useless for now.
 	const vec3 surfaceBias = vec3_splat(0.0);
 	
@@ -209,8 +190,7 @@ vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volu
 	vec3 alpha = clamp((gridSpaceDistance / volume.probeSpacing), vec3_splat(0.0), vec3_splat(1.0));
 	
 	// Iterate over the 8 closest probes and accumulate their contributions
-	for(int probeIndex = 0; probeIndex < 8; probeIndex++)
-	{
+	for(int probeIndex = 0; probeIndex < 8; probeIndex++) {
 		float weight = 1.0;
 		
 		// Compute the offset to the adjacent probe in grid coordinates by
@@ -265,8 +245,7 @@ vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volu
 		
 		// Occlusion test.
 		float chebyshevWeight = 1.0;
-		if(biasedPosToAdjProbeDist > filteredDistance.x)
-		{
+		if(biasedPosToAdjProbeDist > filteredDistance.x) {
 			// v must be greater than 0, which is guaranteed by the if condition above.
 			float v = biasedPosToAdjProbeDist - filteredDistance.x;
 			chebyshevWeight = variance / (variance + (v * v));
@@ -284,8 +263,7 @@ vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volu
 		// A small amount of light is visible due to logarithmic perception, so
 		// crush tiny weights but keep the curve continuous.
 		const float crushThreshold = 0.2;
-		if (weight < crushThreshold)
-		{
+		if (weight < crushThreshold) {
 			weight *= (weight * weight) * (1.0 / (crushThreshold * crushThreshold));
 		}
 		
@@ -303,8 +281,9 @@ vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volu
 		accumulatedWeights += weight;
 	}
 	
-	if(accumulatedWeights <= 0.0)
+	if(accumulatedWeights <= 0.0) {
 		return vec3_splat(0.0);
+	}
 	
 	// Normalize by the accumulated weights.
 	irradiance *= (1.0 / accumulatedWeights);
