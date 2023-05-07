@@ -21,6 +21,10 @@ constexpr const char* distanceSampler = "s_texDistance";
 constexpr const char* irradianceSampler = "s_texIrradiance";
 constexpr const char* relocationSampler = "s_texRelocation";
 
+constexpr const char* volumeOrigin = "u_volumeOrigin";
+constexpr const char* volumeProbeSpacing = "u_volumeProbeSpacing";
+constexpr const char* volumeProbeCounts = "u_volumeProbeCounts";
+
 constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 
 static constexpr uint8_t CLASSIFICATICON_GRID_SIZE = 1;
@@ -55,8 +59,7 @@ void CreatDDGITexture(DDGITextureType type, DDGIComponent* pDDGIComponent, Rende
 			break;
 		case DDGITextureType::Irradiance:
 			textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * IRRADIANCE_GRID_SIZE;
-			// TODO : RGBA16U
-			format = bgfx::TextureFormat::Enum::RGBA16F;
+			format = bgfx::TextureFormat::Enum::RGBA16U;
 			data = reinterpret_cast<const void*>(pDDGIComponent->GetIrradianceRawData());
 			dataSize = pDDGIComponent->GetIrradianceSize();
 			break;
@@ -106,6 +109,10 @@ void DDGIRenderer::Init()
 	m_pDDGIComponent->SetDistanceRawData("ddgi/distance.bin");
 	m_pDDGIComponent->SetIrradianceRawData("ddgi/irradiance.bin");
 	m_pDDGIComponent->SetRelocationRawData("ddgi/relocation.bin");
+
+	m_pRenderContext->CreateUniform(volumeOrigin, bgfx::UniformType::Vec4, 1);
+	m_pRenderContext->CreateUniform(volumeProbeSpacing, bgfx::UniformType::Vec4, 1);
+	m_pRenderContext->CreateUniform(volumeProbeCounts, bgfx::UniformType::Vec4, 1);
 
 	CreatDDGITexture(DDGITextureType::Classification, m_pDDGIComponent, m_pRenderContext);
 	CreatDDGITexture(DDGITextureType::Distance, m_pDDGIComponent, m_pRenderContext);
@@ -166,39 +173,15 @@ void DDGIRenderer::Render(float deltaTime)
 		bgfx::setTexture(4, m_pRenderContext->GetUniform(StringCrc(relocationSampler)),
 						 m_pRenderContext->GetTexture(StringCrc(GetDDGITextureTypeName(DDGITextureType::Relocation))));
 
+		m_pRenderContext->FillUniform(StringCrc(volumeOrigin), &m_pDDGIComponent->GetVolumeOrigin().x(), 1);
+		m_pRenderContext->FillUniform(StringCrc(volumeProbeSpacing), &m_pDDGIComponent->GetProbeSpacing().x(), 1);
+		m_pRenderContext->FillUniform(StringCrc(volumeProbeCounts), &m_pDDGIComponent->GetProbeCount().x(), 1);
+
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);
 
 		bgfx::submit(GetViewID(), bgfx::ProgramHandle(pMaterialComponent->GetShadingProgram()));
 	}
-}
-
-void DDGIRenderer::UpdateClassificationTexture(const char* path)
-{
-	// m_pRenderContext->Destory(StringCrc(m_pDDGIComponent->GetClassificationTexturePath().c_str()));
-	// m_pRenderContext->CreateTexture(path, samplerFlags);
-	// m_pDDGIComponent->SetClassificationTexturePath(path);
-}
-
-void DDGIRenderer::UpdateDistanceTexture(const char* path)
-{
-	// m_pRenderContext->Destory(StringCrc(m_pDDGIComponent->GetDistanceTexturePath().c_str()));
-	// m_pRenderContext->CreateTexture(path, samplerFlags);
-	// m_pDDGIComponent->SetDistanceTexturePath(path);
-}
-
-void DDGIRenderer::UpdateIrradianceTexture(const char* path)
-{
-	// m_pRenderContext->Destory(StringCrc(m_pDDGIComponent->GetIrradianceTexturePath().c_str()));
-	// m_pRenderContext->CreateTexture(path, samplerFlags);
-	// m_pDDGIComponent->SetIrradianceTexturePath(path);
-}
-
-void DDGIRenderer::UpdateRelocationTexture(const char* path)
-{
-	// m_pRenderContext->Destory(StringCrc(m_pDDGIComponent->GetRelocationTexturePath().c_str()));
-	// m_pRenderContext->CreateTexture(path, samplerFlags);
-	// m_pDDGIComponent->SetRelocationTexturePath(path);
 }
 
 }
