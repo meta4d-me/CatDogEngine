@@ -3,23 +3,39 @@
 namespace engine
 {
 
-void CameraComponent::Build()
+void CameraComponent::Build(TransformComponent* pTransformcomponent)
 {
-	if (m_isViewDirty)
-	{
-		m_lookAt.Normalize();
-		m_up.Normalize();
-		m_cross = m_up.Cross(m_lookAt);
-		m_viewMatrix = cd::Matrix4x4::LookAt<cd::Handedness::Left>(m_eye, m_eye + m_lookAt, m_up);
-		m_isViewDirty = false;
-	}
+	//if (m_isViewDirty)
+	//{
+	//	m_lookAt.Normalize();
+	//	m_up.Normalize();
+	//	m_cross = m_up.Cross(m_lookAt);
+	//	m_viewMatrix = cd::Matrix4x4::LookAt<cd::Handedness::Left>(m_eye, m_eye + m_lookAt, m_up);
+	//	m_isViewDirty = false;
+	//}
 
 	if (m_isProjectionDirty)
 	{
 		m_projectionMatrix = cd::Matrix4x4::Perspective(m_fov, m_aspect, m_nearPlane, m_farPlane, cd::NDCDepth::MinusOneToOne == m_ndcDepth);
 		m_isProjectionDirty = false;
 	}
+	//if (pTransformcomponent->GetDirty())
+	{
+		cd::Vec3f Translation = pTransformcomponent->GetTransform().GetTranslation();
+		cd::Matrix3x3 Rotation = pTransformcomponent->GetTransform().GetRotation().ToMatrix3x3();
+		cd::Vec3f xAxis(Rotation.Data(0), Rotation.Data(3), Rotation.Data(6));
+		cd::Vec3f yAxis(Rotation.Data(1), Rotation.Data(4), Rotation.Data(7));
+		cd::Vec3f zAxis(Rotation.Data(2), Rotation.Data(5), Rotation.Data(8));
+
+		cd::Matrix4x4 matrix(xAxis.x(), yAxis.x(), zAxis.x(), 0.0f,
+							 xAxis.y(), yAxis.y(), zAxis.y(), 0.0f,
+							 xAxis.z(), yAxis.z(), zAxis.z(), 0.0f,
+						    -xAxis.Dot(Translation), -yAxis.Dot(Translation), -zAxis.Dot(Translation), 1.0f);
+		m_viewMatrix = matrix;
+	}
+
 }
+
 
 void CameraComponent::FrameAll(const cd::AABB& aabb)
 {
@@ -33,9 +49,9 @@ void CameraComponent::FrameAll(const cd::AABB& aabb)
 	lookDirection.Normalize();
 
 	cd::Point lookFrom = lookAt - lookDirection * aabb.Size().Length();
-	m_eye = lookFrom;
+	/*m_eye = lookFrom;
 	m_lookAt = lookDirection;
-	m_isViewDirty = true;
+	m_isViewDirty = true;*/
 }
 
 cd::Ray CameraComponent::EmitRay(float screenX, float screenY, float width, float height) const

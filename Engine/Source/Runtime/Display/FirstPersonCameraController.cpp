@@ -99,7 +99,7 @@ engine::CameraComponent* FirstPersonCameraController::GetMainCameraComponent() c
 void FirstPersonCameraController::MoveForward(float amount)
 {
 	engine::CameraComponent* pCameraComponent = GetMainCameraComponent();
-	pCameraComponent->SetEye(pCameraComponent->GetEye() + pCameraComponent->GetLookAt() * amount);
+	//pCameraComponent->SetEye(pCameraComponent->GetEye() + pCameraComponent->GetLookAt() * amount);
 }
 
 void FirstPersonCameraController::MoveBackward(float amount)
@@ -110,7 +110,7 @@ void FirstPersonCameraController::MoveBackward(float amount)
 void FirstPersonCameraController::MoveLeft(float amount)
 {
 	engine::CameraComponent* pCameraComponent = GetMainCameraComponent();
-	pCameraComponent->SetEye(pCameraComponent->GetEye() - pCameraComponent->GetCross() * amount);
+	//pCameraComponent->SetEye(pCameraComponent->GetEye() - pCameraComponent->GetCross() * amount);
 }
 
 void FirstPersonCameraController::MoveRight(float amount)
@@ -121,7 +121,7 @@ void FirstPersonCameraController::MoveRight(float amount)
 void FirstPersonCameraController::MoveUp(float amount)
 {
 	engine::CameraComponent* pCameraComponent = GetMainCameraComponent();
-	pCameraComponent->SetEye(pCameraComponent->GetEye() + pCameraComponent->GetUp() * amount);
+	//pCameraComponent->SetEye(pCameraComponent->GetEye() + pCameraComponent->GetUp() * amount);
 }
 
 void FirstPersonCameraController::MoveDown(float amount)
@@ -133,8 +133,8 @@ void FirstPersonCameraController::Rotate(const cd::Vec3f& axis, float angleDegre
 {
 	engine::CameraComponent* pCameraComponent = GetMainCameraComponent();
 	cd::Quaternion rotation = cd::Quaternion::FromAxisAngle(axis, cd::Math::DegreeToRadian<float>(angleDegrees));
-	pCameraComponent->SetLookAt(rotation * pCameraComponent->GetLookAt());
-	pCameraComponent->SetUp(rotation * pCameraComponent->GetUp());
+	//pCameraComponent->SetLookAt(rotation * pCameraComponent->GetLookAt());
+	//pCameraComponent->SetUp(rotation * pCameraComponent->GetUp());
 }
 
 void FirstPersonCameraController::Rotate(float x, float y, float z, float angleDegrees)
@@ -159,17 +159,17 @@ void FirstPersonCameraController::Roll(float angleDegrees)
 
 void FirstPersonCameraController::YawLocal(float angleDegrees)
 {
-	Rotate(GetMainCameraComponent()->GetUp(), angleDegrees);
+	//Rotate(GetMainCameraComponent()->GetUp(), angleDegrees);
 }
 
 void FirstPersonCameraController::PitchLocal(float angleDegrees)
 {
-	Rotate(GetMainCameraComponent()->GetCross(), angleDegrees);
+	//Rotate(GetMainCameraComponent()->GetCross(), angleDegrees);
 }
 
 void FirstPersonCameraController::RollLocal(float angleDegrees)
 {
-	Rotate(GetMainCameraComponent()->GetLookAt(), angleDegrees);
+	//Rotate(GetMainCameraComponent()->GetLookAt(), angleDegrees);
 }
 
 }	// namespace engine

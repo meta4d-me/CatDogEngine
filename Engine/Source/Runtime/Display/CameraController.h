@@ -26,7 +26,8 @@ public:
 	CameraController& operator=(CameraController&&) = delete;
 
 	void Update(float deltaTime);
-	void Rotate(float amount);
+	void RotateHorizon(float amount);
+	void RotatedVertical(float amount);
 
 private:
 	CameraComponent* GetMainCameraComponent() const;

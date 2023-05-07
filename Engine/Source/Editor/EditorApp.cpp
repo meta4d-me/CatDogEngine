@@ -204,14 +204,14 @@ void EditorApp::InitECWorld()
 	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(cameraEntity);
 	nameComponent.SetName("MainCamera");
 
-	//auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
-	//transformComponent.SetTransform(cd::Transform::Identity());
-	//transformComponent.Build();
+	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
+	transformComponent.SetTransform(cd::Transform::Identity());
+	transformComponent.Build();
 
 	auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(cameraEntity);
-	cameraComponent.SetEye(cd::Point(0.0f, 0.0f, -100.0f));
-	cameraComponent.SetLookAt(cd::Direction(0.0f, 0.0f, 1.0f));
-	cameraComponent.SetUp(cd::Direction(0.0f, 1.0f, 0.0f));
+	//cameraComponent.SetEye(cd::Point(0.0f, 0.0f, -100.0f));
+	//cameraComponent.SetLookAt(cd::Direction(0.0f, 0.0f, 1.0f));
+	//cameraComponent.SetUp(cd::Direction(0.0f, 1.0f, 0.0f));
 	cameraComponent.SetAspect(1.0f);
 	cameraComponent.SetFov(45.0f);
 	cameraComponent.SetNearPlane(0.1f);
@@ -233,8 +233,8 @@ void EditorApp::InitECWorld()
 
 	m_pNewCameraController = std::make_unique<engine::CameraController>(
 		m_pSceneWorld.get(),
-		5.0f /* horizontal sensitivity */,
-		5.0f /* vertical sensitivity */,
+		8.0f /* horizontal sensitivity */,
+		8.0f /* vertical sensitivity */,
 		5.0f /* Movement Speed*/);
 }
 
@@ -331,19 +331,19 @@ bool EditorApp::Update(float deltaTime)
 	engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
 	if(engine::TransformComponent* pTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity()))
 	{
-		cd::Transform transform = pTransformComponent->GetTransform();
-		pMainCameraComponent->SetEye(transform.GetTranslation());
-		cd::Matrix4x4 rotMatrix = transform.GetRotation().ToMatrix4x4();
-		pMainCameraComponent->SetLookAt(cd::Vec3f(rotMatrix.Data(8), rotMatrix.Data(9), rotMatrix.Data(10)));
-		pMainCameraComponent->SetUp(cd::Vec3f(rotMatrix.Data(4), rotMatrix.Data(5), rotMatrix.Data(6)));
+		//cd::Transform transform = pTransformComponent->GetTransform();
+		//pMainCameraComponent->SetEye(transform.GetTranslation());
+		//cd::Matrix4x4 rotMatrix = transform.GetRotation().ToMatrix4x4();
+		//pMainCameraComponent->SetLookAt(cd::Vec3f(rotMatrix.Data(8), rotMatrix.Data(9), rotMatrix.Data(10)));
+		//pMainCameraComponent->SetUp(cd::Vec3f(rotMatrix.Data(4), rotMatrix.Data(5), rotMatrix.Data(6)));
+		pMainCameraComponent->Build(pTransformComponent);
 	}
 	
 	assert(pMainCameraComponent);
 	
 	m_pNewCameraController->Update(deltaTime);
-	m_pCameraController->Update(deltaTime);
+	//m_pCameraController->Update(deltaTime);
 	m_pEditorImGuiContext->Update(deltaTime);
-	pMainCameraComponent->Build();
 	m_pRenderContext->BeginFrame();
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEditorRenderers)
 	{

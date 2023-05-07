@@ -97,10 +97,14 @@ void TerrainRenderer::Render(float deltaTime)
 
 		// Check cull dist
 		const Entity& cameraEntity = m_pCurrentSceneWorld->GetMainCameraEntity();
-		const CameraComponent* cameraComponent = m_pCurrentSceneWorld->GetCameraComponent(cameraEntity);
-		const float dx = cameraComponent->GetEye().x() - m_entityToRenderInfo[entity].m_origin[0];
-		const float dy = cameraComponent->GetEye().y() - m_entityToRenderInfo[entity].m_origin[1];
-		const float dz = cameraComponent->GetEye().z() - m_entityToRenderInfo[entity].m_origin[2];
+		//const CameraComponent* cameraComponent = m_pCurrentSceneWorld->GetCameraComponent(cameraEntity);
+		//const float dx = cameraComponent->GetEye().x() - m_entityToRenderInfo[entity].m_origin[0];
+		//const float dy = cameraComponent->GetEye().y() - m_entityToRenderInfo[entity].m_origin[1];
+		//const float dz = cameraComponent->GetEye().z() - m_entityToRenderInfo[entity].m_origin[2];
+		const TransformComponent* transformComponent = m_pCurrentSceneWorld->GetTransformComponent(cameraEntity);
+		const float dx = transformComponent->GetTransform().GetTranslation().x() - m_entityToRenderInfo[entity].m_origin[0];
+		const float dy = transformComponent->GetTransform().GetTranslation().y() - m_entityToRenderInfo[entity].m_origin[1];
+		const float dz = transformComponent->GetTransform().GetTranslation().z() - m_entityToRenderInfo[entity].m_origin[2];
 		if (m_cullDistanceSquared <= (dx * dx + dy * dy + dz * dz)) {
 			// skip
 			continue;

@@ -740,16 +740,20 @@ void AssetBrowser::ExportAssetFile(const char* pFilePath)
 		{
 			cameraName = pNameComponent->GetName();
 		}
-
+		
 		cd::Camera camera(cd::CameraID(pSceneDatabase->GetCameraCount()), cameraName.c_str());
-		camera.SetEye(pCameraComponent->GetEye());
-		camera.SetLookAt(pCameraComponent->GetLookAt());
-		camera.SetUp(pCameraComponent->GetUp());
 		camera.SetNearPlane(pCameraComponent->GetNearPlane());
 		camera.SetFarPlane(pCameraComponent->GetFarPlane());
 		camera.SetAspect(pCameraComponent->GetAspect());
 		camera.SetFov(pCameraComponent->GetFov());
 		pSceneDatabase->AddCamera(cd::MoveTemp(camera));
+		if (const engine::TransformComponent* pTransformComponent = pSceneWorld->GetTransformComponent(mainCameraEntity))
+		{
+			cd::Matrix4x4 rotMatrix = pTransformComponent->GetTransform().GetRotation().ToMatrix4x4();
+			camera.SetEye(pTransformComponent->GetTransform().GetTranslation());
+			camera.SetLookAt(cd::Vec3f(rotMatrix.Data(8), rotMatrix.Data(9), rotMatrix.Data(10)));
+			camera.SetUp(cd::Vec3f(rotMatrix.Data(4), rotMatrix.Data(5), rotMatrix.Data(6)));
+		}
 		
 		// Export light entities to scene.
 		for (engine::Entity lightEntity : pSceneWorld->GetLightEntities())
