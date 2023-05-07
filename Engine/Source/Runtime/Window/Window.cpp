@@ -16,7 +16,7 @@
 namespace engine
 {
 
-Window::Window(const char* pTitle, uint16_t width, uint16_t height)
+Window::Window(const char* pTitle, uint16_t width, uint16_t height, bool useFullScreen)
 	: m_width(width)
 	, m_height(height)
 {
@@ -30,6 +30,7 @@ Window::Window(const char* pTitle, uint16_t width, uint16_t height)
 	// Then you also need to simulate minimize and maxmize buttons.
 	m_pSDLWindow = SDL_CreateWindow(pTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 		width, height, SDL_WINDOW_RESIZABLE);
+	SDL_SetWindowFullscreen(m_pSDLWindow, useFullScreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 	SDL_WarpMouseInWindow(m_pSDLWindow, static_cast<int>(width * 0.5f), static_cast<int>(height * 0.5f));
 
 	SDL_SysWMinfo wmi;

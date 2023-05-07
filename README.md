@@ -8,22 +8,24 @@
 ## Snapshots
 ![image](https://user-images.githubusercontent.com/75730859/220918348-eb03325a-9b14-4523-956b-88e15cec052c.png)
 
-## Developing Features in 3 levels (Basic/Standard/Advance)
-* [Standard] Atomosphere Scattering
-* [Developing] Cross Platform Editor based on ImGui
-* [Basic] Entity/Component Framework
-* [Basic] Lighting System
-* [Developing] Modern RHI except bgfx
-* [Basic] Physically Based Rendering
-* [Developing] Procedural Generated Terrain
-* [Basic] Scalable SceneData SDK
-* [Developing] Skeleton Animation
+## Features
+* Basic Entity/Component Framework
+* Basic Physically Based Rendering
+* Basic Scene Graph SDK
+* Standard Atomosphere Scattering
+
+## Developing Features
+* Cross Platform Editor based on ImGui
+* Modern RHI except bgfx
+* Procedural Generated Terrain
+* BlendShape
+* Skeleton Animation
 
 ## Features in Plan
 * Audio System
+* Character Rendering
 * Cloud Rendering
-* Foliage Rendering by importing SpeedTree assets
-* Human Eye Rendering
+* Foliage Rendering
 * Memory Management based on multiple allocators
 * Multithreading JobSystem
 * Optimized STL specific for GameEngine
@@ -31,8 +33,7 @@
 * Physical Engine
 * Profiler for CPU/Memory/GPU
 * RenderGraph
-* ShadowMap
-* Subsurface Scattering Skin Rendering
+* ...
 
 ## ThirdParty in the development
 * Font

@@ -61,12 +61,17 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 
 	uint16_t width = initArgs.width;
 	uint16_t height = initArgs.height;
-	AddWindow(std::make_unique<engine::Window>(initArgs.pTitle, width, height));
+	AddWindow(std::make_unique<engine::Window>(initArgs.pTitle, width, height, initArgs.useFullScreen));
 	GetMainWindow()->SetWindowIcon(initArgs.pIconFilePath);
 
 	InitECWorld();
 
 	InitRenderContext(initArgs.backend);
+
+	// Builtin shaders will be compiled automatically when initialization or detect changes.
+	InitShaderPrograms();
+
+	InitRenderGraph();
 
 	// Init ImGuiContext in the editor side which used to draw editor ui.
 	InitEditorImGuiContext(initArgs.language);
@@ -78,9 +83,6 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	// Then the imgui window will become a new standalone window. Drop back to convert it back.
 	// TODO : should be only used in the editor ImGuiContext.
 	// InitImGuiViewports(m_pRenderContext);
-
-	// Builtin shaders will be compiled automatically when initialization or detect changes.
-	InitShaderPrograms();
 }
 
 void EditorApp::Shutdown()
@@ -244,21 +246,24 @@ void EditorApp::InitRenderContext(engine::GraphicsBackend backend)
 	m_pRenderContext->Init(backend);
 
 	GetMainWindow()->OnResize.Bind<engine::RenderContext, &engine::RenderContext::OnResize>(m_pRenderContext.get());
+}
 
+void EditorApp::InitRenderGraph()
+{
 	constexpr engine::StringCrc editorSwapChainName("EditorUISwapChain");
 	engine::RenderTarget* pRenderTarget = m_pRenderContext->CreateRenderTarget(editorSwapChainName, GetMainWindow()->GetWidth(), GetMainWindow()->GetHeight(), GetMainWindow()->GetNativeHandle());
 	AddEditorRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pRenderTarget));
 
 	constexpr engine::StringCrc sceneViewRenderTargetName("SceneRenderTarget");
 	std::vector<engine::AttachmentDescriptor> attachmentDesc = {
-		{ .textureFormat = engine::TextureFormat::RGBA32F },
-		{ .textureFormat = engine::TextureFormat::RGBA32F },
-		{ .textureFormat = engine::TextureFormat::D32F },
+		{.textureFormat = engine::TextureFormat::RGBA32F },
+		{.textureFormat = engine::TextureFormat::RGBA32F },
+		{.textureFormat = engine::TextureFormat::D32F },
 	};
 
 	// The init size doesn't make sense. It will resize by SceneView.
 	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->CreateRenderTarget(sceneViewRenderTargetName, 1, 1, std::move(attachmentDesc));
-	
+
 	auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pPBRSkyRenderer = pPBRSkyRenderer.get();
 	AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
