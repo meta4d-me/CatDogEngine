@@ -5,6 +5,7 @@
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
+#include "LightUniforms.h"
 #include "Material/ShaderSchema.h"
 #include "RenderContext.h"
 #include "Scene/Texture.h"
@@ -16,6 +17,7 @@ namespace engine
 
 void WorldRenderer::Init()
 {
+	m_pRenderContext->CreateUniform("u_lightParams", bgfx::UniformType::Vec4, LightUniform::VEC4_COUNT);
 	m_pRenderContext->CreateUniform("s_texLUT", bgfx::UniformType::Sampler);
 	m_pRenderContext->CreateTexture("Textures/lut/ibl_brdf_lut.dds");
 
@@ -99,6 +101,16 @@ void WorldRenderer::Render(float deltaTime)
 			constexpr StringCrc cubeIrrSampler("s_texCubeIrr");
 			constexpr StringCrc cubeIrrTexture("Textures/skybox/bolonga_irr.dds");
 			bgfx::setTexture(5, m_pRenderContext->GetUniform(cubeIrrSampler), m_pRenderContext->GetTexture(cubeIrrTexture));
+		}
+
+		auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();
+		size_t lightEntityCount = lightEntities.size();
+		if (lightEntityCount > 0)
+		{
+			// Light component storage has continus memory address and layout.
+			float* pLightDataBegin = reinterpret_cast<float*>(m_pCurrentSceneWorld->GetLightComponent(lightEntities[0]));
+			constexpr engine::StringCrc lightParams("u_lightParams");
+			m_pRenderContext->FillUniform(lightParams, pLightDataBegin, static_cast<uint16_t>(lightEntityCount * LightUniform::LIGHT_STRIDE));
 		}
 
 		m_pRenderContext->FillUniform(StringCrc("u_cameraPos"), &pCameraComponent->GetEye().x(), 1);

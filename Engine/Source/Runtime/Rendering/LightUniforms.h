@@ -11,7 +11,9 @@ namespace engine
 
 namespace
 {
-	constexpr uint16_t MAX_LIGHT_COUNT = 16;
+
+constexpr uint16_t MAX_LIGHT_COUNT = 16;
+
 }
 
 constexpr uint16_t ConstexprCeil(const float num) {
@@ -36,7 +38,7 @@ public:
 	LightUniform(LightUniform &&) = delete;
 	LightUniform &operator=(LightUniform &&) = delete;
 
-	void Update(std::vector<U_Light> &lights);
+	void Update(const std::vector<U_Light> &lights);
 	void Submit(const uint16_t lightNum);
 	void Submit();
 
