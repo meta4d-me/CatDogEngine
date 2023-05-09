@@ -1,5 +1,7 @@
 #include "LightUniforms.h"
 
+#include "RenderContext.h"
+
 namespace engine
 {
 

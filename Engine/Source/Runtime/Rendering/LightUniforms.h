@@ -1,13 +1,14 @@
 #pragma once
 
 #include "Light.h"
-#include "RenderContext.h"
 
 #include <cassert>
 #include <vector>
 
 namespace engine
 {
+
+class RenderContext;
 
 namespace
 {
