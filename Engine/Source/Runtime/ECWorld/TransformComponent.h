@@ -26,7 +26,6 @@ public:
 	const cd::Transform& GetTransform() const { return m_transform; }
 	cd::Transform& GetTransform() { return m_transform; }
 
-	const bool GetDirty() const { return m_isMatrixDirty; }
 
 	void SetTransform(cd::Transform transform) { m_transform = cd::MoveTemp(transform); m_isMatrixDirty = true;  }
 

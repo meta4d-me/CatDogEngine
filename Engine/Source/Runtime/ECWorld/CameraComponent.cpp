@@ -5,21 +5,14 @@ namespace engine
 
 void CameraComponent::Build(TransformComponent* pTransformcomponent)
 {
-	//if (m_isViewDirty)
-	//{
-	//	m_lookAt.Normalize();
-	//	m_up.Normalize();
-	//	m_cross = m_up.Cross(m_lookAt);
-	//	m_viewMatrix = cd::Matrix4x4::LookAt<cd::Handedness::Left>(m_eye, m_eye + m_lookAt, m_up);
-	//	m_isViewDirty = false;
-	//}
+
 
 	if (m_isProjectionDirty)
 	{
 		m_projectionMatrix = cd::Matrix4x4::Perspective(m_fov, m_aspect, m_nearPlane, m_farPlane, cd::NDCDepth::MinusOneToOne == m_ndcDepth);
 		m_isProjectionDirty = false;
 	}
-	//if (pTransformcomponent->GetDirty())
+	// add if
 	{
 		cd::Vec3f Translation = pTransformcomponent->GetTransform().GetTranslation();
 		cd::Matrix3x3 Rotation = pTransformcomponent->GetTransform().GetRotation().ToMatrix3x3();
