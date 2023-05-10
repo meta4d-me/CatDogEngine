@@ -5,6 +5,7 @@
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
 #include "ImGui/ImGuiContextInstance.h"
 #include "Math/MeshGenerator.h"
+#include "Math/Sphere.hpp"
 #include "Rendering/RenderContext.h"
 
 #include <bgfx/bgfx.h>
@@ -37,11 +38,33 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         return entity;
     };
 
-    if (ImGui::MenuItem("Add Static Mesh"))
+    if (ImGui::MenuItem("Add Cube Mesh"))
     {
-        engine::Entity entity = AddNamedEntity("StaticMesh");
+        engine::Entity entity = AddNamedEntity("CubeMesh");
         engine::MaterialType* pPBRMaterialType = pSceneWorld->GetPBRMaterialType();
         std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Box(cd::Point(-10.0f), cd::Point(10.0f)), pPBRMaterialType->GetRequiredVertexFormat());
+        assert(optMesh.has_value());
+
+        auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
+        meshComponent.SetMeshData(&optMesh.value());
+        meshComponent.SetRequiredVertexFormat(&pPBRMaterialType->GetRequiredVertexFormat());
+        meshComponent.Build();
+
+        auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
+        materialComponent.SetMaterialData(nullptr);
+        materialComponent.SetMaterialType(pPBRMaterialType);
+        materialComponent.SetUberShaderOption(pPBRMaterialType->GetShaderSchema().GetProgramCrc(engine::LoadingStatus::MISSING_RESOURCES));
+        materialComponent.Build();
+
+        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+        transformComponent.SetTransform(cd::Transform::Identity());
+        transformComponent.Build();
+    }
+    else if (ImGui::MenuItem("Add Sphere Mesh"))
+    {
+        engine::Entity entity = AddNamedEntity("Sphere");
+        engine::MaterialType* pPBRMaterialType = pSceneWorld->GetPBRMaterialType();
+        std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Sphere(cd::Point(0.0f), 10.0f), 100U, 100U, pPBRMaterialType->GetRequiredVertexFormat());
         assert(optMesh.has_value());
 
         auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
