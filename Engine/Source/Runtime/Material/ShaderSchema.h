@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Base/Template.h"
 #include "Core/StringCrc.h"
 
 #include <map>
@@ -28,15 +29,7 @@ enum class Uber : uint32_t
 	COUNT,
 };
 
-enum class LoadingStatus : uint8_t
-{
-	MISSING_RESOURCES = 0,
-	LOADING_SHADERS,
-	LOADING_TEXTURES,
-	LOADING_ERROR,
-
-	COUNT,
-};
+DEFINE_ENUM_WITH_NAMES(LoadingStatus, MISSING_RESOURCES, LOADING_SHADERS, LOADING_TEXTURES, LOADING_ERROR);
 
 class ShaderSchema
 {
