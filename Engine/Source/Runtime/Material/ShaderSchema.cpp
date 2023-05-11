@@ -10,7 +10,7 @@
 namespace engine
 {
 
-namespace
+namespace details
 {
 
 constexpr const char* UberNames[] =
@@ -33,7 +33,23 @@ constexpr const char* GetUberName(Uber uber)
 	return UberNames[static_cast<size_t>(uber)];
 }
 
+constexpr const char* LoadingStatusName[] =
+{
+	"MISSING_RESOURCES",
+	"LOADING_SHADERS",
+	"LOADING_TEXTURES",
+	"LOADING_ERROR",
+};
+
+static_assert(static_cast<int>(LoadingStatus::COUNT) == sizeof(LoadingStatusName) / sizeof(char*),
+	"LoadingStatus and names mismatch.");
+
+CD_FORCEINLINE const char* GetLoadingStatusName(LoadingStatus status)
+{
+	return LoadingStatusName[static_cast<size_t>(status)];
 }
+
+} // namespace Detail
 
 
 ShaderSchema::ShaderSchema(std::string vsPath, std::string fsPath)
@@ -42,8 +58,8 @@ ShaderSchema::ShaderSchema(std::string vsPath, std::string fsPath)
 	m_fragmentShaderPath = cd::MoveTemp(fsPath);
 
 	// Always register DEFAULT at the begining.
-	m_uberCombines.emplace_back(GetUberName(Uber::DEFAULT));
-	m_compiledProgramHandles[StringCrc(GetUberName(Uber::DEFAULT)).Value()] = InvalidProgramHandle;
+	m_uberCombines.emplace_back(details::GetUberName(Uber::DEFAULT));
+	m_compiledProgramHandles[StringCrc(details::GetUberName(Uber::DEFAULT)).Value()] = InvalidProgramHandle;
 	m_uberOptions.emplace_back(Uber::DEFAULT);
 }
 
@@ -51,11 +67,11 @@ void ShaderSchema::RegisterUberOption(Uber uberOption)
 {
 	if (std::find(m_uberOptions.begin(), m_uberOptions.end(), uberOption) != m_uberOptions.end())
 	{
-		CD_ENGINE_WARN("Uber option {0} already has been registered!", GetUberName(uberOption));
+		CD_ENGINE_WARN("Uber option {0} already has been registered!", details::GetUberName(uberOption));
 		return;
 	}
 
-	std::string newOption = GetUberName(uberOption);
+	std::string newOption = details::GetUberName(uberOption);
 	std::vector<std::string> newOptions = { newOption };
 	
 	assert(!m_uberCombines.empty());
@@ -80,12 +96,12 @@ void ShaderSchema::AddSingleUberOption(LoadingStatus status, std::string path)
 {
 	if (m_loadingStatusFSPath.contains(status))
 	{
-		CD_ENGINE_WARN("Single uber opertion {0} has already been added!", GetLoadingStatusName(status));
+		CD_ENGINE_WARN("Single uber opertion {0} has already been added!", details::GetLoadingStatusName(status));
 		return;
 	}
 	m_loadingStatusFSPath[status] = cd::MoveTemp(path);
 
-	std::string loadingStatusName = GetLoadingStatusName(status);
+	std::string loadingStatusName = details::GetLoadingStatusName(status);
 	assert(!IsUberOptionValid(StringCrc(loadingStatusName)));
 	m_compiledProgramHandles[StringCrc(loadingStatusName).Value()] = InvalidProgramHandle;
 }
@@ -126,7 +142,7 @@ StringCrc ShaderSchema::GetProgramCrc(const std::vector<Uber>& options) const
 	{
 		if (std::find(options.begin(), options.end(), registered) != options.end())
 		{
-			ss << GetUberName(registered);
+			ss << details::GetUberName(registered);
 		}
 	}
 	return StringCrc(ss.str());
@@ -134,7 +150,7 @@ StringCrc ShaderSchema::GetProgramCrc(const std::vector<Uber>& options) const
 
 StringCrc ShaderSchema::GetProgramCrc(const LoadingStatus& status) const
 {
-	return StringCrc(GetLoadingStatusName(status));
+	return StringCrc(details::GetLoadingStatusName(status));
 }
 
 void ShaderSchema::AddUberOptionVSBlob(ShaderBlob shaderBlob)
