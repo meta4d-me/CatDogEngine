@@ -2,7 +2,7 @@
 
 #include "Core/StringCrc.h"
 #include "Rendering/LightUniforms.h"
-#include "Scene/Light.h"
+#include "Scene/LightType.h"
 
 namespace engine
 {

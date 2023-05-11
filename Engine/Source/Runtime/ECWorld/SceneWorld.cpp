@@ -11,17 +11,19 @@ SceneWorld::SceneWorld()
 	m_pSceneDatabase = std::make_unique<cd::SceneDatabase>();
 
 	m_pWorld = std::make_unique<engine::World>();
-	m_pAnimationStorage = m_pWorld->Register<engine::AnimationComponent>();
-	m_pCameraStorage = m_pWorld->Register<engine::CameraComponent>();
-	m_pCollisionMeshStorage = m_pWorld->Register<engine::CollisionMeshComponent>();
-	m_pHierarchyStorage = m_pWorld->Register<engine::HierarchyComponent>();
-	m_pLightStorage = m_pWorld->Register<engine::LightComponent>();
-	m_pMaterialStorage = m_pWorld->Register<engine::MaterialComponent>();
-	m_pNameStorage = m_pWorld->Register<engine::NameComponent>();
-	m_pSkyStorage = m_pWorld->Register<engine::SkyComponent>();
-	m_pStaticMeshStorage = m_pWorld->Register<engine::StaticMeshComponent>();
-	m_pTransformStorage = m_pWorld->Register<engine::TransformComponent>();
-	m_pDDGIStorage = m_pWorld->Register<engine::DDGIComponent>();
+
+	// To add a new component : 2. Init component type here.
+	m_pAnimationComponentStorage = m_pWorld->Register<engine::AnimationComponent>();
+	m_pCameraComponentStorage = m_pWorld->Register<engine::CameraComponent>();
+	m_pCollisionMeshComponentStorage = m_pWorld->Register<engine::CollisionMeshComponent>();
+	m_pDDGIComponentStorage = m_pWorld->Register<engine::DDGIComponent>();
+	m_pHierarchyComponentStorage = m_pWorld->Register<engine::HierarchyComponent>();
+	m_pLightComponentStorage = m_pWorld->Register<engine::LightComponent>();
+	m_pMaterialComponentStorage = m_pWorld->Register<engine::MaterialComponent>();
+	m_pNameComponentStorage = m_pWorld->Register<engine::NameComponent>();
+	m_pSkyComponentStorage = m_pWorld->Register<engine::SkyComponent>();
+	m_pStaticMeshComponentStorage = m_pWorld->Register<engine::StaticMeshComponent>();
+	m_pTransformComponentStorage = m_pWorld->Register<engine::TransformComponent>();
 
 	CreatePBRMaterialType();
 	CreateAnimationMaterialType();

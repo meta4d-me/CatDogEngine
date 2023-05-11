@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Light.h"
+#include "Rendering/Light.h"
 
 #include <cassert>
 #include <vector>
