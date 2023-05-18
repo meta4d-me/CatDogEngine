@@ -5,7 +5,7 @@
 project("Editor")
 	kind("ConsoleApp")
 	language("C++")
-	cppdialect("C++latest")
+	cppdialect("C++20")
 	dependson { "Engine" }
 
 	location(path.join(IntermediatePath, "Editor"))
