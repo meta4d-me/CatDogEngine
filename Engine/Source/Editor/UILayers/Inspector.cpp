@@ -267,6 +267,32 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 				pCameraComponent->SetFov(fov);
 			}
 
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::TextUnformatted("NearPlane");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+
+			float nearPlane = pCameraComponent->GetNearPlane();
+			if (ImGui::DragFloat("##NearPlane", &nearPlane))
+			{
+				pCameraComponent->SetNearPlane(nearPlane);
+			}
+
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::TextUnformatted("FarPlane");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+
+			float farPlane = pCameraComponent->GetFarPlane();
+			if (ImGui::DragFloat("##FarPlane", &farPlane))
+			{
+				pCameraComponent->SetFarPlane(farPlane);
+			}
 		}
 
 		ImGui::Columns(1);
