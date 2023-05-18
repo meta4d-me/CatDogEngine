@@ -12,7 +12,7 @@ function MakeTest(testName)
 	project(testName)
 		kind("ConsoleApp")
 		language("C++")
-		cppdialect("C++latest")
+		cppdialect("C++20")
 		
 		location(path.join(IntermediatePath, "Tests/"..testName))
 		targetdir(BinariesPath)
