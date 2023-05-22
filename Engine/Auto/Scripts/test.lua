@@ -27,6 +27,8 @@ function MakeTest(testName)
 
 		includedirs {
 			path.join(EngineSourcePath, "Runtime/"),
+			path.join(ThirdPartySourcePath, "AssetPipeline/public"),
+			path.join(EnginePath, "BuiltInShaders/UniformDefines"),
 		}
 
 		-- convenient to test multiple threads
