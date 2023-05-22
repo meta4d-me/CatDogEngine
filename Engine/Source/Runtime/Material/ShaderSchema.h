@@ -20,6 +20,7 @@ enum class Uber : uint32_t
 	OCCLUSION,
 	ROUGHNESS,
 	METALLIC,
+	EMISSIVE,
 
 	// Techniques
 	IBL,
