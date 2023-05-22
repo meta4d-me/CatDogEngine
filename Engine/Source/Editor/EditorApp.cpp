@@ -355,13 +355,6 @@ bool EditorApp::Update(float deltaTime)
 		pMainCameraComponent->SetUp(cd::Vec3f(rotMatrix.Data(4), rotMatrix.Data(5), rotMatrix.Data(6)));
 	}
 
-	engine::TransformComponent* pTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetPBRSkyEntity());
-	cd::Transform transform = pTransformComponent->GetTransform();
-	cd::Vec4f data(transform.GetTranslation().x(),
-		transform.GetTranslation().y(),
-		transform.GetTranslation().z(),
-		0.0f);
-
 
 	
 	assert(pMainCameraComponent);
