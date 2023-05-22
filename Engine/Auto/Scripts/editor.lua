@@ -42,6 +42,7 @@ project("Editor")
 		path.join(EngineSourcePath, "Editor/"),
 		path.join(EngineSourcePath, "Runtime/"),
 		path.join(ThirdPartySourcePath, "AssetPipeline/public"),
+		path.join(EnginePath, "BuiltInShaders/shaders"),
 		path.join(EnginePath, "BuiltInShaders/UniformDefines"),
 		-- TODO : Editor should not include bgfx files.
 		path.join(ThirdPartySourcePath, "bgfx/include"),

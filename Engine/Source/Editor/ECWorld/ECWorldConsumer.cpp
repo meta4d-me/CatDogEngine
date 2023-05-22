@@ -36,6 +36,7 @@ const std::unordered_map<cd::MaterialTextureType, engine::Uber> materialTextureT
 	{cd::MaterialTextureType::Occlusion, engine::Uber::OCCLUSION},
 	{cd::MaterialTextureType::Roughness, engine::Uber::ROUGHNESS},
 	{cd::MaterialTextureType::Metallic, engine::Uber::METALLIC},
+	{cd::MaterialTextureType::Emissive, engine::Uber::EMISSIVE},
 };
 
 CD_FORCEINLINE bool IsMaterialTextureTypeValid(cd::MaterialTextureType type)

@@ -55,6 +55,7 @@ project("Engine")
 		path.join(ThirdPartySourcePath, "imgui"),
 		path.join(ThirdPartySourcePath, "freetype/include"),
 		table.unpack(platformIncludeDirs),
+		path.join(EnginePath, "BuiltInShaders/shaders"),
 		path.join(EnginePath, "BuiltInShaders/UniformDefines"),
 		path.join(ThirdPartySourcePath, "spdlog/include"),
 	}

@@ -1,6 +1,7 @@
 $input v_worldPos, v_normal, v_texcoord0, v_TBN
 
 #include "../common/common.sh"
+#include "fs_PBR_definitions.sh"
 #include "uniforms.sh"
 
 #define PI 3.1415926536
@@ -25,7 +26,7 @@ uniform vec4 u_lightStride[1];
 #endif
 
 #if defined(ALBEDO)
-SAMPLER2D(s_texBaseColor, 0);
+SAMPLER2D(s_texBaseColor, ALBEDO_MAP_SLOT);
 
 vec3 SampleAlbedoTexture(vec2 uv) {
 	// We assume that albedo texture is already in linear space.
@@ -34,7 +35,7 @@ vec3 SampleAlbedoTexture(vec2 uv) {
 #endif
 
 #if defined(NORMAL_MAP)
-SAMPLER2D(s_texNormal, 1);
+SAMPLER2D(s_texNormal, NORMAL_MAP_SLOT);
 
 vec3 SampleNormalTexture(vec2 uv, mat3 TBN) {
 	// We assume that normal texture is already in linear space.
@@ -44,7 +45,7 @@ vec3 SampleNormalTexture(vec2 uv, mat3 TBN) {
 #endif
 
 #if defined(USE_ORM) || defined(USE_RM)
-SAMPLER2D(s_texORM, 2);
+SAMPLER2D(s_texORM, ORM_MAP_SLOT);
 
 vec3 SampleORMTexture(vec2 uv) {
 	// We assume that ORM texture is already in linear space.
@@ -60,11 +61,20 @@ vec3 SampleORMTexture(vec2 uv) {
 }
 #endif
 
-SAMPLER2D(s_texLUT, 3);
+#if defined(EMISSIVE)
+SAMPLER2D(s_texEmissive, EMISSIVE_MAP_SLOT);
+
+vec3 SampleEmissiveTexture(vec2 uv) {
+	// We assume that emissive texture is already in linear space.
+	return texture2D(s_texEmissive, uv).xyz;
+}
+#endif
+
+SAMPLER2D(s_texLUT, LUT_SLOT);
 
 #if defined(IBL)
-SAMPLERCUBE(s_texCube, 4);
-SAMPLERCUBE(s_texCubeIrr, 5);
+SAMPLERCUBE(s_texCube, IBL_ALBEDO_SLOT);
+SAMPLERCUBE(s_texCubeIrr, IBL_IRRADIANCE_SLOT);
 #endif
 
 struct Material {
@@ -119,6 +129,10 @@ Material GetMaterial(vec2 uv, vec3 normal, mat3 TBN) {
 	material.occlusion = orm.x;
 	material.roughness = orm.y;
 	material.metallic = orm.z;
+#endif
+
+#if defined(EMISSIVE)
+	material.emissive = SampleEmissiveTexture(uv);
 #endif
 	
 	material.F0 = CalcuateF0(material.albedo, material.metallic);
@@ -213,6 +227,5 @@ void main()
 	vec3 envColor = KD * material.albedo * envIrradiance * material.occlusion + envSpecularBRDF * envRadiance * min(specularOcclusion, horizonOcclusion);
 	
 	// ------------------------------------ Fragment Color -----------------------------------------
-
-	gl_FragColor = vec4(dirColor + envColor, 1.0);
+	gl_FragColor = vec4(dirColor + envColor + material.emissive, 1.0);
 }
