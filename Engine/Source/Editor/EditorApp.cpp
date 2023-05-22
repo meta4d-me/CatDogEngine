@@ -315,6 +315,7 @@ void EditorApp::InitShaderPrograms() const
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetAnimationMaterialType());
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetTerrainMaterialType());
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetDDGIMaterialType());
+	ResourceBuilder::Get().Update();
 }
 
 void EditorApp::AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer)
