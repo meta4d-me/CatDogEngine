@@ -6,7 +6,7 @@
 #include "Scene/Mesh.h"
 
 #include <bgfx/bgfx.h>
-#include <ECWorld\SceneWorld.h>
+#include <ECWorld/SceneWorld.h>
 
 namespace engine
 {

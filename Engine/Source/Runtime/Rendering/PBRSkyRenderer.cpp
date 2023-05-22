@@ -114,15 +114,7 @@ void PBRSkyRenderer::Render(float deltaTime) {
 
 	Entity entity = m_pCurrentSceneWorld->GetPBRSkyEntity();
 	TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity);
-	cd::Vec4f data (pTransformComponent->GetTransform().GetTranslation().x(),
-				pTransformComponent->GetTransform().GetTranslation().y(),
-				pTransformComponent->GetTransform().GetTranslation().z(),
-				0.0f);
-	bgfx::setUniform(u_LightDir, &data.x(), 1);
-		
-   
-	
-	
+	bgfx::setUniform(u_LightDir, &pTransformComponent->GetTransform().GetTranslation(), 1);
 
 	bgfx::setState(RENDERING_STATE);
 	bgfx::submit(GetViewID(), m_programAtmosphericScattering_LUT);
