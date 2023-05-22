@@ -6,6 +6,7 @@
 #include "Scene/Mesh.h"
 
 #include <bgfx/bgfx.h>
+#include <ECWorld\SceneWorld.h>
 
 namespace engine
 {
@@ -19,6 +20,7 @@ public:
 	virtual void Init() override;
 	virtual void UpdateView(const float *pViewMatrix, const float *pProjectionMatrix) override;
 	virtual void Render(float deltaTime) override;
+	void SetSceneWorld(SceneWorld* pSceneWorld) { m_pCurrentSceneWorld = pSceneWorld; }
 
 private:
 	void Precompute();
@@ -60,6 +62,9 @@ private:
 	std::vector<cd::Polygon> m_indexBufferSkybox;
 	bgfx::VertexBufferHandle m_vbhSkybox;
 	bgfx::IndexBufferHandle m_ibhSkybox;
+
+
+	SceneWorld* m_pCurrentSceneWorld = nullptr;
 };
 
 } // namespace engine

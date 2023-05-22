@@ -233,6 +233,15 @@ void EditorApp::InitECWorld()
 	ddgiNameComponent.SetName("DDGI");
 	auto& ddgiComponent = pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
 
+	engine::Entity skyEntity = pWorld->CreateEntity();
+	m_pSceneWorld->SetPBRSkyEntity(skyEntity);
+	auto& skyNameComponent = pWorld->CreateComponent<engine::NameComponent>(skyEntity);
+	skyNameComponent.SetName("Sky");
+
+	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(skyEntity);
+	transformComponent.SetTransform(cd::Transform::Identity());
+	transformComponent.Build();
+
 	m_pNewCameraController = std::make_unique<engine::CameraController>(
 		m_pSceneWorld.get(),
 		5.0f /* horizontal sensitivity */,
@@ -266,6 +275,7 @@ void EditorApp::InitRenderGraph()
 
 	auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pPBRSkyRenderer = pPBRSkyRenderer.get();
+	pPBRSkyRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
 
 	auto pIBLSkyRenderer = std::make_unique<engine::SkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
@@ -298,6 +308,8 @@ void EditorApp::InitRenderGraph()
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pDDGIRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pDDGIRenderer));
+
+
 
 	// We can debug vertex/material/texture information by just output that to screen as fragmentColor.
 	// But postprocess will bring unnecessary confusion.
@@ -342,6 +354,15 @@ bool EditorApp::Update(float deltaTime)
 		pMainCameraComponent->SetLookAt(cd::Vec3f(rotMatrix.Data(8), rotMatrix.Data(9), rotMatrix.Data(10)));
 		pMainCameraComponent->SetUp(cd::Vec3f(rotMatrix.Data(4), rotMatrix.Data(5), rotMatrix.Data(6)));
 	}
+
+	engine::TransformComponent* pTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetPBRSkyEntity());
+	cd::Transform transform = pTransformComponent->GetTransform();
+	cd::Vec4f data(transform.GetTranslation().x(),
+		transform.GetTranslation().y(),
+		transform.GetTranslation().z(),
+		0.0f);
+
+
 	
 	assert(pMainCameraComponent);
 	
@@ -376,6 +397,7 @@ bool EditorApp::Update(float deltaTime)
 		const float* pProjectionMatrix = pMainCameraComponent->GetProjectionMatrix().Begin();
 		pRenderer->UpdateView(pViewMatrix, pProjectionMatrix);
 		pRenderer->Render(deltaTime);
+		
 	}
 
 	m_pRenderContext->EndFrame();

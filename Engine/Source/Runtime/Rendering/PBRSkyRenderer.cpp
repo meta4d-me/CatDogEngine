@@ -95,6 +95,7 @@ void PBRSkyRenderer::UpdateView(const float *pViewMatrix, const float *pProjecti
 	bgfx::setViewClear(GetViewID(), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
 }
 
+
 void PBRSkyRenderer::Render(float deltaTime) {
 	Precompute();
 
@@ -110,8 +111,18 @@ void PBRSkyRenderer::Render(float deltaTime) {
 	// Uniform, temporary code, unit: km
 	m_uniformData = cd::Vec4f(0.0f, 1.0f, -0.5f, 1.0f);
 	bgfx::setUniform(u_cameraPos, &m_uniformData.x(), 1);
-	m_uniformData = cd::Vec4f(0.0f, -1.0f, -1.0f, 0.0f);
-	bgfx::setUniform(u_LightDir, &m_uniformData.x(), 1);
+
+	Entity entity = m_pCurrentSceneWorld->GetPBRSkyEntity();
+	TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity);
+	cd::Vec4f data (pTransformComponent->GetTransform().GetTranslation().x(),
+				pTransformComponent->GetTransform().GetTranslation().y(),
+				pTransformComponent->GetTransform().GetTranslation().z(),
+				0.0f);
+	bgfx::setUniform(u_LightDir, &data.x(), 1);
+		
+   
+	
+	
 
 	bgfx::setState(RENDERING_STATE);
 	bgfx::submit(GetViewID(), m_programAtmosphericScattering_LUT);
