@@ -145,5 +145,4 @@ void SceneWorld::SetPBRSkyEntity(engine::Entity entity)
 	m_pbrskyEntity = entity;
 }
 
-
 }
