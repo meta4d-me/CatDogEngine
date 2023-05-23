@@ -156,6 +156,7 @@ void MainMenu::BuildMenu()
 		{
 			ShaderBuilder::BuildUberShader(pSceneWorld->GetAnimationMaterialType());
 		}
+		ResourceBuilder::Get().Update();
 
 		ImGui::EndMenu();
 	}

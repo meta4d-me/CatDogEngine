@@ -5,6 +5,7 @@
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
+#include "fs_PBR_definitions.sh"
 #include "LightUniforms.h"
 #include "Material/ShaderSchema.h"
 #include "RenderContext.h"
@@ -89,18 +90,18 @@ void WorldRenderer::Render(float deltaTime)
 
 		constexpr StringCrc lutSampler("s_texLUT");
 		constexpr StringCrc lutTexture("Textures/lut/ibl_brdf_lut.dds");
-		bgfx::setTexture(3, m_pRenderContext->GetUniform(lutSampler), m_pRenderContext->GetTexture(lutTexture));
+		bgfx::setTexture(LUT_SLOT, m_pRenderContext->GetUniform(lutSampler), m_pRenderContext->GetTexture(lutTexture));
 
 		constexpr StringCrc useIBLCrc("USE_PBR_IBL");
 		if (useIBLCrc == pMaterialComponent->GetUberShaderOption())
 		{
 			constexpr StringCrc cubeSampler("s_texCube");
 			constexpr StringCrc cubeTexture("Textures/skybox/bolonga_lod.dds");
-			bgfx::setTexture(4, m_pRenderContext->GetUniform(cubeSampler), m_pRenderContext->GetTexture(cubeTexture));
+			bgfx::setTexture(IBL_ALBEDO_SLOT, m_pRenderContext->GetUniform(cubeSampler), m_pRenderContext->GetTexture(cubeTexture));
 
 			constexpr StringCrc cubeIrrSampler("s_texCubeIrr");
 			constexpr StringCrc cubeIrrTexture("Textures/skybox/bolonga_irr.dds");
-			bgfx::setTexture(5, m_pRenderContext->GetUniform(cubeIrrSampler), m_pRenderContext->GetTexture(cubeIrrTexture));
+			bgfx::setTexture(IBL_IRRADIANCE_SLOT, m_pRenderContext->GetUniform(cubeIrrSampler), m_pRenderContext->GetTexture(cubeIrrTexture));
 		}
 
 		auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();

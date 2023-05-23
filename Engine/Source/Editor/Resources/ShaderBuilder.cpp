@@ -81,8 +81,6 @@ void ShaderBuilder::BuildNonUberShader()
 		ResourceBuilder::Get().AddShaderBuildTask(shaderType,
 			inputFilePath.string().c_str(), outputShaderPath.c_str());
 	}
-
-	ResourceBuilder::Get().Update();
 }
 
 const ShaderType ShaderBuilder::GetShaderType(const std::string& fileName)

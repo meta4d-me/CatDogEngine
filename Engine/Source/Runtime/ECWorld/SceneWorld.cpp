@@ -1,5 +1,6 @@
 #include "SceneWorld.h"
 
+#include "fs_PBR_definitions.sh"
 #include "Log/Log.h"
 #include "Path/Path.h"
 
@@ -42,6 +43,7 @@ void SceneWorld::CreatePBRMaterialType()
 	shaderSchema.RegisterUberOption(Uber::OCCLUSION);
 	shaderSchema.RegisterUberOption(Uber::ROUGHNESS);
 	shaderSchema.RegisterUberOption(Uber::METALLIC);
+	shaderSchema.RegisterUberOption(Uber::EMISSIVE);
 	shaderSchema.RegisterUberOption(Uber::IBL);
 	// Technically, option LoadingStatus:: is an actual shader.
 	// We can use AddSingleUberOption to add it to shaderSchema,
@@ -61,12 +63,12 @@ void SceneWorld::CreatePBRMaterialType()
 
 	// Slot index should align to shader codes.
 	// We want basic PBR materials to be flexible.
-	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::BaseColor, 0);
-	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Normal, 1);
-	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Occlusion, 2);
-	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Roughness, 2);
-	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Metallic, 2);
-	//m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Emissive, );
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::BaseColor, ALBEDO_MAP_SLOT);
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Normal, NORMAL_MAP_SLOT);
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Occlusion, ORM_MAP_SLOT);
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Roughness, ORM_MAP_SLOT);
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Metallic, ORM_MAP_SLOT);
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Emissive, EMISSIVE_MAP_SLOT);
 }
 
 void SceneWorld::CreateAnimationMaterialType()
