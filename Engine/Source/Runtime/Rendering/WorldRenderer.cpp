@@ -104,15 +104,15 @@ void WorldRenderer::Render(float deltaTime)
 			bgfx::setTexture(IBL_IRRADIANCE_SLOT, m_pRenderContext->GetUniform(cubeIrrSampler), m_pRenderContext->GetTexture(cubeIrrTexture));
 		}
 
-		auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();
-		size_t lightEntityCount = lightEntities.size();
-		if (lightEntityCount > 0)
-		{
-			// Light component storage has continus memory address and layout.
-			float* pLightDataBegin = reinterpret_cast<float*>(m_pCurrentSceneWorld->GetLightComponent(lightEntities[0]));
-			constexpr engine::StringCrc lightParams("u_lightParams");
-			m_pRenderContext->FillUniform(lightParams, pLightDataBegin, static_cast<uint16_t>(lightEntityCount * LightUniform::LIGHT_STRIDE));
-		}
+		//auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();
+		//size_t lightEntityCount = lightEntities.size();
+		//if (lightEntityCount > 0)
+		//{
+		//	// Light component storage has continus memory address and layout.
+		//	float* pLightDataBegin = reinterpret_cast<float*>(m_pCurrentSceneWorld->GetLightComponent(lightEntities[0]));
+		//	constexpr engine::StringCrc lightParams("u_lightParams");
+		//	m_pRenderContext->FillUniform(lightParams, pLightDataBegin, static_cast<uint16_t>(lightEntityCount * LightUniform::LIGHT_STRIDE));
+		//}
 
 		m_pRenderContext->FillUniform(StringCrc("u_cameraPos"), &pCameraComponent->GetEye().x(), 1);
 

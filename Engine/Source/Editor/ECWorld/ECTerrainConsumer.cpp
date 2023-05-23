@@ -109,13 +109,15 @@ void ECTerrainConsumer::AddMaterial(engine::Entity entity, const cd::Material* p
 	assert(optElevationTexture.has_value());
 	// Don't need to load as this is generated
 	const cd::Texture& elevationTexture = pSceneDatabase->GetTexture(optElevationTexture.value().Data());
-	materialComponent.AddTextureBlob(elevationTexture.GetType(), elevationTexture.GetTextureFormat(), engine::MaterialComponent::TextureBlob(elevationTexture.GetRawTexture()), elevationTexture.GetWidth(), elevationTexture.GetHeight());
+	materialComponent.AddTextureBlob(elevationTexture.GetType(), elevationTexture.GetTextureFormat(), cd::TextureMapMode::Clamp, cd::TextureMapMode::Clamp,
+		engine::MaterialComponent::TextureBlob(elevationTexture.GetRawTexture()), elevationTexture.GetWidth(), elevationTexture.GetHeight());
 
 	const std::optional<cd::TextureID> optAlphaMapTexture = pMaterial->GetTextureID(cd::MaterialTextureType::AlphaMap);
 	if (optAlphaMapTexture.has_value())
 	{
 		const cd::Texture& alphaMapTexture = pSceneDatabase->GetTexture(optAlphaMapTexture.value().Data());
-		materialComponent.AddTextureBlob(alphaMapTexture.GetType(), alphaMapTexture.GetTextureFormat(), engine::MaterialComponent::TextureBlob(alphaMapTexture.GetRawTexture()), alphaMapTexture.GetWidth(), alphaMapTexture.GetHeight());
+		materialComponent.AddTextureBlob(alphaMapTexture.GetType(), alphaMapTexture.GetTextureFormat(), cd::TextureMapMode::Clamp, cd::TextureMapMode::Clamp,
+			engine::MaterialComponent::TextureBlob(alphaMapTexture.GetRawTexture()), alphaMapTexture.GetWidth(), alphaMapTexture.GetHeight());
 	}
 
 	// Shaders
