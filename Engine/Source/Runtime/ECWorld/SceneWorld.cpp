@@ -141,5 +141,10 @@ void SceneWorld::SetDDGIEntity(engine::Entity entity)
 	m_ddgiEntity = entity;
 }
 
+void SceneWorld::SetPBRSkyEntity(engine::Entity entity)
+{
+	CD_TRACE("Setup PBRSky entity : {0}", entity);
+	m_pbrskyEntity = entity;
+}
 
 }

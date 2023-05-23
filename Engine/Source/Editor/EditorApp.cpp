@@ -233,6 +233,15 @@ void EditorApp::InitECWorld()
 	ddgiNameComponent.SetName("DDGI");
 	auto& ddgiComponent = pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
 
+	engine::Entity skyEntity = pWorld->CreateEntity();
+	m_pSceneWorld->SetPBRSkyEntity(skyEntity);
+	auto& skyNameComponent = pWorld->CreateComponent<engine::NameComponent>(skyEntity);
+	skyNameComponent.SetName("Sky");
+
+	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(skyEntity);
+	transformComponent.SetTransform(cd::Transform::Identity());
+	transformComponent.Build();
+
 	m_pNewCameraController = std::make_unique<engine::CameraController>(
 		m_pSceneWorld.get(),
 		5.0f /* horizontal sensitivity */,
@@ -266,6 +275,7 @@ void EditorApp::InitRenderGraph()
 
 	auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pPBRSkyRenderer = pPBRSkyRenderer.get();
+	pPBRSkyRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
 
 	auto pIBLSkyRenderer = std::make_unique<engine::SkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
