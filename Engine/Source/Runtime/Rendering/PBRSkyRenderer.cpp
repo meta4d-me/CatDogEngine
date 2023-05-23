@@ -95,7 +95,6 @@ void PBRSkyRenderer::UpdateView(const float *pViewMatrix, const float *pProjecti
 	bgfx::setViewClear(GetViewID(), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
 }
 
-
 void PBRSkyRenderer::Render(float deltaTime) {
 	Precompute();
 

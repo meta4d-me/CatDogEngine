@@ -309,8 +309,6 @@ void EditorApp::InitRenderGraph()
 	pDDGIRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pDDGIRenderer));
 
-
-
 	// We can debug vertex/material/texture information by just output that to screen as fragmentColor.
 	// But postprocess will bring unnecessary confusion.
 	// auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
@@ -354,8 +352,6 @@ bool EditorApp::Update(float deltaTime)
 		pMainCameraComponent->SetLookAt(cd::Vec3f(rotMatrix.Data(8), rotMatrix.Data(9), rotMatrix.Data(10)));
 		pMainCameraComponent->SetUp(cd::Vec3f(rotMatrix.Data(4), rotMatrix.Data(5), rotMatrix.Data(6)));
 	}
-
-
 	
 	assert(pMainCameraComponent);
 	
@@ -390,7 +386,6 @@ bool EditorApp::Update(float deltaTime)
 		const float* pProjectionMatrix = pMainCameraComponent->GetProjectionMatrix().Begin();
 		pRenderer->UpdateView(pViewMatrix, pProjectionMatrix);
 		pRenderer->Render(deltaTime);
-		
 	}
 
 	m_pRenderContext->EndFrame();
