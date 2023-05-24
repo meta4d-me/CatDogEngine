@@ -72,6 +72,12 @@ public:
 #ifdef EDITOR_MODE
 	bool DoConstrainAspectRatio() { return m_doConstainAspectRatio; }
 	void SetConstrainAspectRatio(bool use) { m_doConstainAspectRatio = use; }
+
+	bool DoPostProcessRender() { return m_doPostProcessRender; }
+	void SetPostProcessRender(bool use) { m_doPostProcessRender = use; }
+
+	cd::Vec3f getCameraGamma() { return m_setCameraGamma; }
+	void setCameraGamma(cd::Vec3f use) { m_setCameraGamma = use; }
 #endif
 
 
@@ -97,6 +103,8 @@ private:
 
 #ifdef EDITOR_MODE
 	bool m_doConstainAspectRatio;
+	bool m_doPostProcessRender;
+	cd::Vec3f  m_setCameraGamma;
 #endif
 
 };

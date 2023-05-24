@@ -308,6 +308,24 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 			bool constrain = pCameraComponent->DoConstrainAspectRatio();
 			ImGui::Checkbox(" ", &constrain);
 			pCameraComponent->SetConstrainAspectRatio(constrain);
+
+			ImGui::NextColumn();
+			ImGui::TextUnformatted("PostProssingRender");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+
+		    bool PPRstate = pCameraComponent->DoPostProcessRender();
+			ImGui::Checkbox("check", &PPRstate);
+			pCameraComponent->SetPostProcessRender(PPRstate);
+
+			ImGui::NextColumn();
+			ImGui::TextUnformatted("Gammafix");
+			ImGui::NextColumn();
+			cd::Vec3f CameraGamma = pCameraComponent->getCameraGamma();
+			if (ImGui::InputFloat3(" ", &CameraGamma.x()))
+			{
+				pCameraComponent->setCameraGamma(CameraGamma);
+			}
 		}
 	
 

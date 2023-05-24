@@ -1,6 +1,5 @@
 #include "SceneWorld.h"
 
-#include "fs_PBR_definitions.sh"
 #include "Log/Log.h"
 #include "Path/Path.h"
 
@@ -63,12 +62,6 @@ void SceneWorld::CreatePBRMaterialType()
 
 	// Slot index should align to shader codes.
 	// We want basic PBR materials to be flexible.
-	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::BaseColor, ALBEDO_MAP_SLOT);
-	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Normal, NORMAL_MAP_SLOT);
-	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Occlusion, ORM_MAP_SLOT);
-	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Roughness, ORM_MAP_SLOT);
-	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Metallic, ORM_MAP_SLOT);
-	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Emissive, EMISSIVE_MAP_SLOT);
 }
 
 void SceneWorld::CreateAnimationMaterialType()

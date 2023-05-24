@@ -8,6 +8,7 @@ namespace engine
 void PostProcessRenderer::Init()
 {
 	m_pRenderContext->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
+	m_pRenderContext->CreateUniform("s_gamma", bgfx::UniformType::Vec4);
 	m_pRenderContext->CreateProgram("PostProcessProgram", "vs_fullscreen.bin", "fs_PBR_postProcessing.bin");
 
 	bgfx::setViewName(GetViewID(), "PostProcessRenderer");
@@ -34,6 +35,7 @@ void PostProcessRenderer::Render(float deltaTime)
 	const RenderTarget* pInputRT = m_pRenderContext->GetRenderTarget(sceneRenderTarget);
 	const RenderTarget* pOutputRT = GetRenderTarget();
 
+
 	bgfx::TextureHandle screenTextureHandle;
 	if (pInputRT == pOutputRT)
 	{
@@ -45,14 +47,27 @@ void PostProcessRenderer::Render(float deltaTime)
 		screenTextureHandle = pInputRT->GetTextureHandle(0);
 	}
 
+	Entity entity = m_pCurrentSceneWorld->GetMainCameraEntity();
+	CameraComponent* pCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(entity);
+
+	m_fGammaCorrection[0] = pCameraComponent->getCameraGamma().x();
+	m_fGammaCorrection[1] = pCameraComponent->getCameraGamma().y();
+	m_fGammaCorrection[2] = pCameraComponent->getCameraGamma().z();
+	m_fGammaCorrection[3] = 0.0f;
+	constexpr StringCrc gammaUniformName("s_gamma");
+	bgfx::setUniform(m_pRenderContext->GetUniform(gammaUniformName), &m_fGammaCorrection);
+
 	constexpr StringCrc lightingResultSampler("s_lightingColor");
 	bgfx::setTexture(0, m_pRenderContext->GetUniform(lightingResultSampler), screenTextureHandle);
 
 	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 	Renderer::ScreenSpaceQuad(static_cast<float>(GetRenderTarget()->GetWidth()), static_cast<float>(GetRenderTarget()->GetHeight()), false);
 
-	constexpr StringCrc programName("PostProcessProgram");
-	bgfx::submit(GetViewID(), m_pRenderContext->GetProgram(programName));
+	if (pCameraComponent->DoPostProcessRender())
+	{
+		constexpr StringCrc programName("PostProcessProgram");
+		bgfx::submit(GetViewID(), m_pRenderContext->GetProgram(programName));
+	}
 }
 
 }
