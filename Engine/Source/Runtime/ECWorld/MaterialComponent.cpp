@@ -150,10 +150,12 @@ void MaterialComponent::AddTextureBlob(cd::MaterialTextureType textureType, cd::
 	textureInfo.format = textureFormat;
 	textureInfo.data = bgfx::makeRef(textureBlob.data(), static_cast<uint32_t>(textureBlob.size()));
 	textureInfo.flag = GetBGFXTextureFlag(textureType, uMapMode, vMapMode);
+	textureInfo.uvOffset = cd::Vec2f::Zero();
+	textureInfo.uvScale = cd::Vec2f::One();
 	m_textureResources[textureType] = cd::MoveTemp(textureInfo);
 }
 
-void MaterialComponent::AddTextureFileBlob(cd::MaterialTextureType textureType, cd::TextureMapMode uMapMode, cd::TextureMapMode vMapMode, TextureBlob textureBlob)
+void MaterialComponent::AddTextureFileBlob(cd::MaterialTextureType textureType, const cd::Texture& texture, TextureBlob textureBlob)
 {
 	std::optional<uint8_t> optTextureSlot = m_pMaterialType->GetTextureSlot(textureType);
 	if (!optTextureSlot.has_value())
@@ -170,7 +172,9 @@ void MaterialComponent::AddTextureFileBlob(cd::MaterialTextureType textureType, 
 	textureInfo.mipCount = pImageContainer->m_numMips;
 	textureInfo.format = static_cast<cd::TextureFormat>(pImageContainer->m_format);
 	textureInfo.data = bgfx::makeRef(pImageContainer->m_data, pImageContainer->m_size);
-	textureInfo.flag = GetBGFXTextureFlag(textureType, uMapMode, vMapMode);
+	textureInfo.flag = GetBGFXTextureFlag(textureType, texture.GetUMapMode(), texture.GetVMapMode());
+	textureInfo.uvOffset = texture.GetUVOffset();
+	textureInfo.uvScale = texture.GetUVScale();
 	m_textureResources[textureType] = cd::MoveTemp(textureInfo);
 }
 

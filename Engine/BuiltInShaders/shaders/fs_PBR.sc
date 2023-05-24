@@ -9,6 +9,7 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 #define INV_PI 0.3183098862
 #define INV_PI2 0.1013211836
 
+uniform vec4 u_albedoUVOffsetAndScale;
 uniform vec4 u_cameraPos[1];
 #define cameraPos u_cameraPos[0].xyz
 
@@ -115,7 +116,9 @@ Material GetMaterial(vec2 uv, vec3 normal, mat3 TBN) {
 	Material material = CreateMaterial();
 
 #if defined(ALBEDO)
-	material.albedo = SampleAlbedoTexture(uv);
+	vec2 uvOffset = vec2(u_albedoUVOffsetAndScale.x, u_albedoUVOffsetAndScale.y);
+	vec2 uvScale = vec2(u_albedoUVOffsetAndScale.z, u_albedoUVOffsetAndScale.w);
+	material.albedo = SampleAlbedoTexture(uv * uvScale + uvOffset);
 #endif
 
 #if defined(NORMAL_MAP)
