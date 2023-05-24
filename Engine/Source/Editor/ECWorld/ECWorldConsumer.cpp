@@ -345,7 +345,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 		auto textureFileBlob = ResourceLoader::LoadTextureFile(outputTextureFilePath.c_str());
 		if(!textureFileBlob.empty())
 		{
-			materialComponent.AddTextureFileBlob(pTextureData->GetType(), pTextureData->GetUMapMode(), pTextureData->GetVMapMode(), cd::MoveTemp(textureFileBlob));
+			materialComponent.AddTextureFileBlob(pTextureData->GetType(), *pTextureData, cd::MoveTemp(textureFileBlob));
 		}
 	}
 

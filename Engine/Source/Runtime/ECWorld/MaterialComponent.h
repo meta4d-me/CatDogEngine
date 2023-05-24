@@ -47,6 +47,8 @@ public:
 		uint32_t height;
 		uint32_t depth;
 		cd::TextureFormat format;
+		cd::Vec2f uvOffset;
+		cd::Vec2f uvScale;
 		uint16_t samplerHandle;
 		uint16_t textureHandle;
 		uint8_t slot;
@@ -66,7 +68,7 @@ public:
 	const engine::MaterialType* GetMaterialType() const { return m_pMaterialType; }
 
 	void AddTextureBlob(cd::MaterialTextureType textureType, cd::TextureFormat textureFormat, cd::TextureMapMode uMapMode, cd::TextureMapMode vMapMode, TextureBlob textureBlob, uint32_t width, uint32_t height, uint32_t depth = 1);
-	void AddTextureFileBlob(cd::MaterialTextureType textureType, cd::TextureMapMode uMapMode, cd::TextureMapMode vMapMode, TextureBlob textureBlob);
+	void AddTextureFileBlob(cd::MaterialTextureType textureType, const cd::Texture& texture, TextureBlob textureBlob);
 
 	void SetUberShaderOption(StringCrc uberOption);
 	StringCrc GetUberShaderOption() const;
