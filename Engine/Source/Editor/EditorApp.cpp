@@ -219,6 +219,7 @@ void EditorApp::InitECWorld()
 	cameraComponent.SetNearPlane(0.1f);
 	cameraComponent.SetFarPlane(2000.0f);
 	cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
+	cameraComponent.SetGammaCorrection(cd::Vec4f(0.45f));
 
 	// Controller for Input events.
 	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(
@@ -310,9 +311,10 @@ void EditorApp::InitRenderGraph()
 	AddEngineRenderer(cd::MoveTemp(pDDGIRenderer));
 
 	// We can debug vertex/material/texture information by just output that to screen as fragmentColor.
-	// But postprocess will bring unnecessary confusion.
-	// auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
-	// AddEngineRenderer(cd::MoveTemp(pPostProcessRenderer));
+	// But postprocess will bring unnecessary confusion. 
+	auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pPostProcessRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pPostProcessRenderer));
 
 	// Note that if you don't want to use ImGuiRenderer for engine, you should also disable EngineImGuiContext.
 	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget));

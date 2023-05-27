@@ -8,6 +8,7 @@ namespace engine
 void PostProcessRenderer::Init()
 {
 	m_pRenderContext->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
+	m_pRenderContext->CreateUniform("u_gamma", bgfx::UniformType::Vec4);
 	m_pRenderContext->CreateProgram("PostProcessProgram", "vs_fullscreen.bin", "fs_PBR_postProcessing.bin");
 
 	bgfx::setViewName(GetViewID(), "PostProcessRenderer");
@@ -44,6 +45,12 @@ void PostProcessRenderer::Render(float deltaTime)
 	{
 		screenTextureHandle = pInputRT->GetTextureHandle(0);
 	}
+
+	Entity entity = m_pCurrentSceneWorld->GetMainCameraEntity();
+	CameraComponent* pCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(entity);
+
+	constexpr StringCrc gammaUniformName("u_gamma");
+	bgfx::setUniform(m_pRenderContext->GetUniform(gammaUniformName), &pCameraComponent->GetGammaCorrection());
 
 	constexpr StringCrc lightingResultSampler("s_lightingColor");
 	bgfx::setTexture(0, m_pRenderContext->GetUniform(lightingResultSampler), screenTextureHandle);

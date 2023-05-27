@@ -69,11 +69,20 @@ public:
 	const cd::Direction& GetUp() const { return m_up; }
 
 	const cd::Direction& GetCross() const { return m_cross; }
-#ifdef EDITOR_MODE
-	bool DoConstrainAspectRatio() { return m_doConstainAspectRatio; }
-	void SetConstrainAspectRatio(bool use) { m_doConstainAspectRatio = use; }
-#endif
 
+#ifdef EDITOR_MODE
+	bool* GetDoConstrainAspectRatio() { return &m_doConstainAspectRatio; }
+	bool DoConstrainAspectRatio() const { return m_doConstainAspectRatio; }
+	void SetConstrainAspectRatio(bool use) { m_doConstainAspectRatio = use; }
+
+	bool* GetIsPostProcessEnable() { return &m_enablePostProcess; }
+	bool IsPostProcessEnable() { return m_enablePostProcess; }
+	void SetPostProcessEnable(bool use) { m_enablePostProcess = use; }
+
+	cd::Vec4f& GetGammaCorrection() { return m_gammaCorrection; }
+	const cd::Vec4f& GetGammaCorrection() const { return m_gammaCorrection; }
+	void SetGammaCorrection(cd::Vec4f gamma) { m_gammaCorrection = cd::MoveTemp(gamma); }
+#endif
 
 private:
 	// Input
@@ -97,8 +106,9 @@ private:
 
 #ifdef EDITOR_MODE
 	bool m_doConstainAspectRatio;
+	bool m_enablePostProcess;
+	cd::Vec4f m_gammaCorrection;
 #endif
-
 };
 
 }
