@@ -239,7 +239,7 @@ void EditorApp::InitECWorld()
 	skyNameComponent.SetName("Sky");
 
 	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(skyEntity);
-	transformComponent.SetTransform(cd::Transform::Identity());
+	transformComponent.SetTransform(cd::Transform(cd::Vec3f(0.0f, -1.0f, 0.0f), cd::Quaternion::Identity(), cd::Vec3f::One()));
 	transformComponent.Build();
 
 	m_pNewCameraController = std::make_unique<engine::CameraController>(
