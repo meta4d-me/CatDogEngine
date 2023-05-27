@@ -73,11 +73,11 @@ public:
 	bool DoConstrainAspectRatio() { return m_doConstainAspectRatio; }
 	void SetConstrainAspectRatio(bool use) { m_doConstainAspectRatio = use; }
 
-	bool DoPostProcessRender() { return m_doPostProcessRender; }
-	void SetPostProcessRender(bool use) { m_doPostProcessRender = use; }
+	bool IsPostProcessEnable() { return m_enablePostProcess; }
+	void SetPostProcessEnable(bool use) { m_enablePostProcess = use; }
 
-	cd::Vec3f getCameraGamma() { return m_setCameraGamma; }
-	void setCameraGamma(cd::Vec3f use) { m_setCameraGamma = use; }
+	cd::Vec3f GetGammaCorrection() { return m_gammaCorrection; }
+	void SetGammaCorrection(cd::Vec3f gamma) { m_gammaCorrection = cd::MoveTemp(gamma); }
 #endif
 
 
@@ -103,8 +103,8 @@ private:
 
 #ifdef EDITOR_MODE
 	bool m_doConstainAspectRatio;
-	bool m_doPostProcessRender;
-	cd::Vec3f  m_setCameraGamma;
+	bool m_enablePostProcess;
+	cd::Vec3f  m_gammaCorrection;
 #endif
 
 };

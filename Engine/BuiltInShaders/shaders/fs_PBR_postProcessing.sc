@@ -4,7 +4,7 @@ $input v_texcoord0
 #include "uniforms.sh"
 
 SAMPLER2D(s_lightingColor, 0);
-uniform vec4 s_gamma;
+uniform vec4 u_gamma;
 
 vec3 ACES(vec3 color) {
 	mat3 ACESInputMat  = mtxFromRows(vec3(0.59719,  0.35458,  0.04823), vec3( 0.07600, 0.90834,  0.01566), vec3( 0.02840,  0.13383, 0.83777));
@@ -54,7 +54,7 @@ void main()
 	color = ACES(color);
 	
 	// Gamma Correction
-	color = pow(color, vec3(s_gamma.xyz));
+	color = pow(color, vec3(u_gamma.xyz));
 	
 	gl_FragColor = vec4(color, 1.0);
 }

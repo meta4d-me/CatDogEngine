@@ -8,7 +8,7 @@ namespace engine
 void PostProcessRenderer::Init()
 {
 	m_pRenderContext->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
-	m_pRenderContext->CreateUniform("s_gamma", bgfx::UniformType::Vec4);
+	m_pRenderContext->CreateUniform("u_gamma", bgfx::UniformType::Vec4);
 	m_pRenderContext->CreateProgram("PostProcessProgram", "vs_fullscreen.bin", "fs_PBR_postProcessing.bin");
 
 	bgfx::setViewName(GetViewID(), "PostProcessRenderer");
@@ -50,11 +50,11 @@ void PostProcessRenderer::Render(float deltaTime)
 	Entity entity = m_pCurrentSceneWorld->GetMainCameraEntity();
 	CameraComponent* pCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(entity);
 
-	m_fGammaCorrection[0] = pCameraComponent->getCameraGamma().x();
-	m_fGammaCorrection[1] = pCameraComponent->getCameraGamma().y();
-	m_fGammaCorrection[2] = pCameraComponent->getCameraGamma().z();
+	m_fGammaCorrection[0] = pCameraComponent->GetGammaCorrection().x();
+	m_fGammaCorrection[1] = pCameraComponent->GetGammaCorrection().y();
+	m_fGammaCorrection[2] = pCameraComponent->GetGammaCorrection().z();
 	m_fGammaCorrection[3] = 0.0f;
-	constexpr StringCrc gammaUniformName("s_gamma");
+	constexpr StringCrc gammaUniformName("u_gamma");
 	bgfx::setUniform(m_pRenderContext->GetUniform(gammaUniformName), &m_fGammaCorrection);
 
 	constexpr StringCrc lightingResultSampler("s_lightingColor");
@@ -63,7 +63,7 @@ void PostProcessRenderer::Render(float deltaTime)
 	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 	Renderer::ScreenSpaceQuad(static_cast<float>(GetRenderTarget()->GetWidth()), static_cast<float>(GetRenderTarget()->GetHeight()), false);
 
-	if (pCameraComponent->DoPostProcessRender())
+	if (pCameraComponent->IsPostProcessEnable())
 	{
 		constexpr StringCrc programName("PostProcessProgram");
 		bgfx::submit(GetViewID(), m_pRenderContext->GetProgram(programName));
