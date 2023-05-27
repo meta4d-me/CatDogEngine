@@ -280,7 +280,7 @@ void EditorApp::InitRenderGraph()
 	AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
 
 	auto pIBLSkyRenderer = std::make_unique<engine::SkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
-	pIBLSkyRenderer->Disable();
+	pIBLSkyRenderer->SetEnable(false);
 	m_pIBLSkyRenderer = pIBLSkyRenderer.get();
 	AddEngineRenderer(cd::MoveTemp(pIBLSkyRenderer));
 
@@ -299,7 +299,7 @@ void EditorApp::InitRenderGraph()
 
 	auto pDebugRenderer = std::make_unique<engine::DebugRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pDebugRenderer = pDebugRenderer.get();
-	pDebugRenderer->Disable();
+	pDebugRenderer->SetEnable(false);
 	pDebugRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pDebugRenderer));
 

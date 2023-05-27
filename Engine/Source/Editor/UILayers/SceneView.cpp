@@ -161,8 +161,8 @@ void SceneView::UpdateSwitchIBLButton()
 		engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
 		if (m_isIBLActive)
 		{
-			m_pIBLSkyRenderer->Enable();
-			m_pPBRSkyRenderer->Disable();
+			m_pIBLSkyRenderer->SetEnable(true);
+			m_pPBRSkyRenderer->SetEnable(false);
 
 			constexpr engine::StringCrc iblPBRCrc("IBL");
 			for (engine::Entity entity : pSceneWorld->GetMaterialEntities())
@@ -173,8 +173,8 @@ void SceneView::UpdateSwitchIBLButton()
 		}
 		else
 		{
-			m_pIBLSkyRenderer->Disable();
-			m_pPBRSkyRenderer->Enable();
+			m_pIBLSkyRenderer->SetEnable(false);
+			m_pPBRSkyRenderer->SetEnable(true);
 
 			for (engine::Entity entity : pSceneWorld->GetMaterialEntities())
 			{
@@ -200,11 +200,7 @@ void SceneView::UpdateSwitchAABBButton()
 
 	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CUBE " AABB")))
 	{
-		if (isAABBActive) {
-			m_pAABBRenderer->Disable();
-		} else {
-			m_pAABBRenderer->Enable();
-		}
+		m_pAABBRenderer->SetEnable(isAABBActive);
 	}
 
 	if (isAABBActive)
