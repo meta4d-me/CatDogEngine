@@ -18,6 +18,20 @@ PostProcessRenderer::~PostProcessRenderer()
 {
 }
 
+void PostProcessRenderer::SetEnable(bool value)
+{
+	Entity entity = m_pCurrentSceneWorld->GetMainCameraEntity();
+	CameraComponent* pCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(entity);
+	pCameraComponent->SetPostProcessEnable(value);
+}
+
+bool PostProcessRenderer::IsEnable() const
+{
+	Entity entity = m_pCurrentSceneWorld->GetMainCameraEntity();
+	CameraComponent* pCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(entity);
+	return pCameraComponent->IsPostProcessEnable();
+}
+
 void PostProcessRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
 	// Output to swap chain
