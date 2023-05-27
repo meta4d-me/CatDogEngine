@@ -280,7 +280,6 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 				pCameraComponent->SetNearPlane(nearPlane);
 			}
 
-
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
@@ -300,41 +299,15 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 		bool isCamOptOpen = ImGui::CollapsingHeader("Camera Option", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 		if (isCamOptOpen)
 		{
-			ImGui::Columns(2);
-			ImGui::TextUnformatted("Constrain Aspect Ratio");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-
-			bool constrain = pCameraComponent->DoConstrainAspectRatio();
-			ImGui::Checkbox(" ", &constrain);
-			pCameraComponent->SetConstrainAspectRatio(constrain);
-
-			ImGui::NextColumn();
-			ImGui::TextUnformatted("PostProssing");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-
-		    bool enablePostProcess = pCameraComponent->IsPostProcessEnable();
-			ImGui::Checkbox("check", &enablePostProcess);
-			pCameraComponent->SetPostProcessEnable(enablePostProcess);
-
-			ImGui::NextColumn();
-			ImGui::TextUnformatted("GammaCorrection");
-			ImGui::NextColumn();
-			cd::Vec3f CameraGamma = pCameraComponent->GetGammaCorrection();
-			if (ImGui::InputFloat3(" ", &CameraGamma.x()))
-			{
-				pCameraComponent->SetGammaCorrection(CameraGamma);
-			}
+			ImGui::Checkbox("Constrain Aspect Ratio", pCameraComponent->GetDoConstrainAspectRatio());
+			ImGui::Checkbox("Post Prossing", pCameraComponent->GetIsPostProcessEnable());
+			ImGui::InputFloat3("Gamma Correction", pCameraComponent->GetGammaCorrection().Begin());
 		}
-	
-
 	}
+
 	ImGui::Columns(1);
 	ImGui::Separator();
 	ImGui::PopStyleVar();
-
-
 }
 
 template<>

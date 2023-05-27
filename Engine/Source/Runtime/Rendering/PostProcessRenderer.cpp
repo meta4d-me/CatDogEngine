@@ -35,7 +35,6 @@ void PostProcessRenderer::Render(float deltaTime)
 	const RenderTarget* pInputRT = m_pRenderContext->GetRenderTarget(sceneRenderTarget);
 	const RenderTarget* pOutputRT = GetRenderTarget();
 
-
 	bgfx::TextureHandle screenTextureHandle;
 	if (pInputRT == pOutputRT)
 	{
@@ -50,12 +49,8 @@ void PostProcessRenderer::Render(float deltaTime)
 	Entity entity = m_pCurrentSceneWorld->GetMainCameraEntity();
 	CameraComponent* pCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(entity);
 
-	m_fGammaCorrection[0] = pCameraComponent->GetGammaCorrection().x();
-	m_fGammaCorrection[1] = pCameraComponent->GetGammaCorrection().y();
-	m_fGammaCorrection[2] = pCameraComponent->GetGammaCorrection().z();
-	m_fGammaCorrection[3] = 0.0f;
 	constexpr StringCrc gammaUniformName("u_gamma");
-	bgfx::setUniform(m_pRenderContext->GetUniform(gammaUniformName), &m_fGammaCorrection);
+	bgfx::setUniform(m_pRenderContext->GetUniform(gammaUniformName), &pCameraComponent->GetGammaCorrection());
 
 	constexpr StringCrc lightingResultSampler("s_lightingColor");
 	bgfx::setTexture(0, m_pRenderContext->GetUniform(lightingResultSampler), screenTextureHandle);
@@ -63,11 +58,8 @@ void PostProcessRenderer::Render(float deltaTime)
 	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 	Renderer::ScreenSpaceQuad(static_cast<float>(GetRenderTarget()->GetWidth()), static_cast<float>(GetRenderTarget()->GetHeight()), false);
 
-	if (pCameraComponent->IsPostProcessEnable())
-	{
-		constexpr StringCrc programName("PostProcessProgram");
-		bgfx::submit(GetViewID(), m_pRenderContext->GetProgram(programName));
-	}
+	constexpr StringCrc programName("PostProcessProgram");
+	bgfx::submit(GetViewID(), m_pRenderContext->GetProgram(programName));
 }
 
 }

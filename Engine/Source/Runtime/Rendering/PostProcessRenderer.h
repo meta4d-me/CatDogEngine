@@ -1,7 +1,7 @@
 #pragma once
 
+#include "ECWorld/SceneWorld.h"
 #include "Renderer.h"
-#include <ECWorld/SceneWorld.h>
 
 namespace engine
 {
@@ -18,8 +18,7 @@ public:
 	void SetSceneWorld(SceneWorld* pSceneWorld) { m_pCurrentSceneWorld = pSceneWorld; }
 
 private:
-		SceneWorld* m_pCurrentSceneWorld = nullptr;
-		float m_fGammaCorrection[4] ;
+	SceneWorld* m_pCurrentSceneWorld = nullptr;
 };
 
 }
