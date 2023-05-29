@@ -115,14 +115,16 @@ vec3 CalcuateF0(vec3 albedo, float metallic) {
 Material GetMaterial(vec2 uv, vec3 normal, mat3 TBN) {
 	Material material = CreateMaterial();
 
-#if defined(ALBEDO)
 	vec2 uvOffset = vec2(u_albedoUVOffsetAndScale.x, u_albedoUVOffsetAndScale.y);
 	vec2 uvScale = vec2(u_albedoUVOffsetAndScale.z, u_albedoUVOffsetAndScale.w);
-	material.albedo = SampleAlbedoTexture(uv * uvScale + uvOffset);
+	vec2 albedoUV = uv * uvScale + uvOffset;
+#if defined(ALBEDO)
+	material.albedo = SampleAlbedoTexture(albedoUV);
 #endif
 
 #if defined(NORMAL_MAP)
-	material.normal = SampleNormalTexture(uv, TBN);
+	// Same to unity standard PBR, let normal uv same with albedo uv.
+	material.normal = SampleNormalTexture(albedoUV, TBN);
 #else
 	material.normal = normalize(normal);
 #endif
