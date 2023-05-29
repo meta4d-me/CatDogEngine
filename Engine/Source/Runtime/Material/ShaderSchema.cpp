@@ -18,9 +18,7 @@ constexpr const char* UberNames[] =
 	"", // Use empty string to represent default shader option in the name so we can reuse non-uber built shader.
 	"ALBEDO;",
 	"NORMAL_MAP;",
-	"OCCLUSION;",
-	"ROUGHNESS;",
-	"METALLIC;",
+	"USE_ORM;",
 	"EMISSIVE;",
 	"IBL;",
 	"AREAL_LIGHT;",

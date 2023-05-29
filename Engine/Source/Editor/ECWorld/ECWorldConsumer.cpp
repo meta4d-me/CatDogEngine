@@ -33,9 +33,9 @@ const std::unordered_map<cd::MaterialTextureType, engine::Uber> materialTextureT
 	// TODO : IBL
 	{cd::MaterialTextureType::BaseColor, engine::Uber::ALBEDO},
 	{cd::MaterialTextureType::Normal, engine::Uber::NORMAL_MAP},
-	{cd::MaterialTextureType::Occlusion, engine::Uber::OCCLUSION},
-	{cd::MaterialTextureType::Roughness, engine::Uber::ROUGHNESS},
-	{cd::MaterialTextureType::Metallic, engine::Uber::METALLIC},
+	{cd::MaterialTextureType::Occlusion, engine::Uber::ORM},
+	{cd::MaterialTextureType::Roughness, engine::Uber::ORM},
+	{cd::MaterialTextureType::Metallic, engine::Uber::ORM},
 	{cd::MaterialTextureType::Emissive, engine::Uber::EMISSIVE},
 };
 

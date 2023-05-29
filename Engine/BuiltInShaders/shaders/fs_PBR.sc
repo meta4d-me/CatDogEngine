@@ -16,16 +16,6 @@ uniform vec4 u_cameraPos[1];
 uniform vec4 u_lightCount[1];
 uniform vec4 u_lightStride[1];
 
-// Simplify some common cases.
-// TODO : More generic.
-#if defined(ROUGHNESS) && defined(METALLIC)
-	#if defined(OCCLUSION)
-		#define USE_ORM
-	#else
-		#define USE_RM
-	#endif
-#endif
-
 #if defined(ALBEDO)
 SAMPLER2D(s_texBaseColor, ALBEDO_MAP_SLOT);
 
@@ -45,7 +35,7 @@ vec3 SampleNormalTexture(vec2 uv, mat3 TBN) {
 }
 #endif
 
-#if defined(USE_ORM) || defined(USE_RM)
+#if defined(USE_ORM)
 SAMPLER2D(s_texORM, ORM_MAP_SLOT);
 
 vec3 SampleORMTexture(vec2 uv) {
@@ -53,11 +43,6 @@ vec3 SampleORMTexture(vec2 uv) {
 	vec3 orm = texture2D(s_texORM, uv).xyz;
 	orm.y = clamp(orm.y, 0.04, 1.0); // roughness
 	
-#if defined(USE_RM)
-	// Occlusion must be 1.0 if material does not have occlusion.
-	orm.x = 1.0;
-#endif
-
 	return orm;
 }
 #endif
@@ -129,7 +114,7 @@ Material GetMaterial(vec2 uv, vec3 normal, mat3 TBN) {
 	material.normal = normalize(normal);
 #endif
 	
-#if defined(USE_ORM) || defined(USE_RM)
+#if defined(USE_ORM)
 	vec3 orm = SampleORMTexture(uv);
 	material.occlusion = orm.x;
 	material.roughness = orm.y;
@@ -192,11 +177,11 @@ void main()
 	Material material = GetMaterial(v_texcoord0, v_normal, v_TBN);
 	
 	vec3 viewDir  = normalize(cameraPos - v_worldPos);
-	vec3 diffuseBRDF = material.albedo * INV_PI;
 	float NdotV = max(dot(material.normal, viewDir), 0.0);
 	
 	// ------------------------------------ Directional Light ----------------------------------------
 	
+	vec3 diffuseBRDF = material.albedo * INV_PI;
 	vec3 dirColor = CalculateLights(material, v_worldPos, viewDir, diffuseBRDF);
 	
 	// ----------------------------------- Environment Light ----------------------------------------
@@ -229,7 +214,12 @@ void main()
 	vec3 F = FresnelSchlick(NdotV, material.F0);
 	vec3 KD = mix(1.0 - F, vec3_splat(0.0), material.metallic);
 	
+#if defined(USE_ORM)
 	vec3 envColor = KD * material.albedo * envIrradiance * material.occlusion + envSpecularBRDF * envRadiance * min(specularOcclusion, horizonOcclusion);
+#else
+	// TODO : ORM is required or we will just show albedo color.
+	vec3 envColor = material.albedo;
+#endif
 	
 	// ------------------------------------ Fragment Color -----------------------------------------
 	gl_FragColor = vec4(dirColor + envColor + material.emissive, 1.0);

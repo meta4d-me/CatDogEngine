@@ -17,9 +17,7 @@ enum class Uber : uint32_t
 	// PBR parameters
 	ALBEDO,
 	NORMAL_MAP,
-	OCCLUSION,
-	ROUGHNESS,
-	METALLIC,
+	ORM,
 	EMISSIVE,
 
 	// Techniques
