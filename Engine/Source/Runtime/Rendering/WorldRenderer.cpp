@@ -29,6 +29,8 @@ void WorldRenderer::Init()
 	m_pRenderContext->CreateTexture("Textures/skybox/bolonga_irr.dds", samplerFlags);
 
 	m_pRenderContext->CreateUniform("u_cameraPos", bgfx::UniformType::Vec4, 1);
+	m_pRenderContext->CreateUniform("u_albedoColor", bgfx::UniformType::Vec4, 1);
+	m_pRenderContext->CreateUniform("u_emissiveColor", bgfx::UniformType::Vec4, 1);
 	m_pRenderContext->CreateUniform("u_albedoUVOffsetAndScale", bgfx::UniformType::Vec4, 1);
 
 	bgfx::setViewName(GetViewID(), "WorldRenderer");
@@ -79,6 +81,7 @@ void WorldRenderer::Render(float deltaTime)
 		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle(pMeshComponent->GetVertexBuffer()));
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle(pMeshComponent->GetIndexBuffer()));
 
+		// Material
 		for (const auto& [textureType, textureInfo] : pMaterialComponent->GetTextureResources())
 		{
 			std::optional<MaterialComponent::TextureInfo> optTextureInfo = pMaterialComponent->GetTextureInfo(textureType);
@@ -95,6 +98,12 @@ void WorldRenderer::Render(float deltaTime)
 				bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle(textureInfo.samplerHandle), bgfx::TextureHandle(textureInfo.textureHandle));
 			}
 		}
+
+		constexpr StringCrc albedoColor("u_albedoColor");
+		m_pRenderContext->FillUniform(albedoColor, pMaterialComponent->GetAlbedoColor().Begin(), 1);
+
+		constexpr StringCrc emissiveColor("u_emissiveColor");
+		m_pRenderContext->FillUniform(emissiveColor, pMaterialComponent->GetEmissiveColor().Begin(), 1);
 
 		constexpr StringCrc lutSampler("s_texLUT");
 		constexpr StringCrc lutTexture("Textures/lut/ibl_brdf_lut.dds");

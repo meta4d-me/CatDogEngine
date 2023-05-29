@@ -4,6 +4,7 @@
 
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -15,10 +16,10 @@ enum class Uber : uint32_t
 	DEFAULT = 0,
 
 	// PBR parameters
-	ALBEDO,
+	ALBEDO_MAP,
 	NORMAL_MAP,
-	ORM,
-	EMISSIVE,
+	ORM_MAP,
+	EMISSIVE_MAP,
 
 	// Techniques
 	IBL,
@@ -62,7 +63,7 @@ public:
 	void AddSingleUberOption(LoadingStatus status, std::string path);
 
 	bool IsUberOptionValid(StringCrc uberOption) const;
-	StringCrc GetProgramCrc(const std::vector<Uber>& options) const;
+	StringCrc GetProgramCrc(const std::set<Uber>& options) const;
 	StringCrc GetProgramCrc(const LoadingStatus& status) const;
 
 	void SetCompiledProgram(StringCrc uberOption, uint16_t programHandle);

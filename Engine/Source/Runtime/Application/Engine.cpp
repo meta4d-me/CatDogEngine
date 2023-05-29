@@ -20,6 +20,8 @@ Engine::~Engine()
 void Engine::Init(EngineInitArgs args)
 {
 	CD_ENGINE_INFO("Init engine");
+	Window::Init();
+
 	m_pApplication->Init(args);
 }
 
@@ -41,7 +43,7 @@ void Engine::Run()
 
 void Engine::Shutdown()
 {
-
+	Window::Shutdown();
 }
 
 //

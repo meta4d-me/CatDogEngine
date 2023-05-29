@@ -31,12 +31,12 @@ namespace Detail
 const std::unordered_map<cd::MaterialTextureType, engine::Uber> materialTextureType2Uber
 {
 	// TODO : IBL
-	{cd::MaterialTextureType::BaseColor, engine::Uber::ALBEDO},
-	{cd::MaterialTextureType::Normal, engine::Uber::NORMAL_MAP},
-	{cd::MaterialTextureType::Occlusion, engine::Uber::ORM},
-	{cd::MaterialTextureType::Roughness, engine::Uber::ORM},
-	{cd::MaterialTextureType::Metallic, engine::Uber::ORM},
-	{cd::MaterialTextureType::Emissive, engine::Uber::EMISSIVE},
+	{ cd::MaterialTextureType::BaseColor, engine::Uber::ALBEDO_MAP },
+	{ cd::MaterialTextureType::Normal, engine::Uber::NORMAL_MAP },
+	{ cd::MaterialTextureType::Occlusion, engine::Uber::ORM_MAP },
+	{ cd::MaterialTextureType::Roughness, engine::Uber::ORM_MAP },
+	{ cd::MaterialTextureType::Metallic, engine::Uber::ORM_MAP },
+	{ cd::MaterialTextureType::Emissive, engine::Uber::EMISSIVE_MAP },
 };
 
 CD_FORCEINLINE bool IsMaterialTextureTypeValid(cd::MaterialTextureType type)
@@ -356,7 +356,7 @@ void ECWorldConsumer::ActivateUberOption(cd::MaterialTextureType textureType)
 {
 	if (Detail::IsMaterialTextureTypeValid(textureType))
 	{
-		m_activeUberOptions.push_back(Detail::materialTextureType2Uber.at(textureType));
+		m_activeUberOptions.insert(Detail::materialTextureType2Uber.at(textureType));
 	}
 	else
 	{

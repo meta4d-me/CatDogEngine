@@ -16,10 +16,10 @@ namespace details
 constexpr const char* UberNames[] =
 {
 	"", // Use empty string to represent default shader option in the name so we can reuse non-uber built shader.
-	"ALBEDO;",
+	"ALBEDO_MAP;",
 	"NORMAL_MAP;",
-	"USE_ORM;",
-	"EMISSIVE;",
+	"ORM_MAP;",
+	"EMISSIVE_MAP;",
 	"IBL;",
 	"AREAL_LIGHT;",
 };
@@ -128,7 +128,7 @@ uint16_t ShaderSchema::GetCompiledProgram(StringCrc uberOption) const
 	return programHandle;
 }
 
-StringCrc ShaderSchema::GetProgramCrc(const std::vector<Uber>& options) const
+StringCrc ShaderSchema::GetProgramCrc(const std::set<Uber>& options) const
 {
 	if (options.empty())
 	{

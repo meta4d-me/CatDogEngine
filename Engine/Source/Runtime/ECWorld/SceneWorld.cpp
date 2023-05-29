@@ -38,10 +38,10 @@ void SceneWorld::CreatePBRMaterialType()
 	m_pPBRMaterialType->SetMaterialName("CD_PBR");
 
 	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("vs_PBR"), Path::GetBuiltinShaderInputPath("fs_PBR"));
-	shaderSchema.RegisterUberOption(Uber::ALBEDO);
+	shaderSchema.RegisterUberOption(Uber::ALBEDO_MAP);
 	shaderSchema.RegisterUberOption(Uber::NORMAL_MAP);
-	shaderSchema.RegisterUberOption(Uber::ORM);
-	shaderSchema.RegisterUberOption(Uber::EMISSIVE);
+	shaderSchema.RegisterUberOption(Uber::ORM_MAP);
+	shaderSchema.RegisterUberOption(Uber::EMISSIVE_MAP);
 	// TODO : Revert it back after we can import CubeMap such as CmftStudio.
 	//shaderSchema.RegisterUberOption(Uber::IBL);
 
