@@ -12,6 +12,10 @@ namespace engine
 class Window
 {
 public:
+    static void Init();
+    static void Shutdown();
+
+public:
     Window() = delete;
     Window(const char* pTitle, uint16_t width, uint16_t height, bool useFullScreen = false);
     Window(const Window&) = delete;

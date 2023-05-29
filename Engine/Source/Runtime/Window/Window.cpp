@@ -16,15 +16,23 @@
 namespace engine
 {
 
-Window::Window(const char* pTitle, uint16_t width, uint16_t height, bool useFullScreen)
-	: m_width(width)
-	, m_height(height)
+void Window::Init()
 {
 	// JoyStick : SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER
 	SDL_Init(SDL_INIT_EVENTS);
 	SDL_SetHintWithPriority("SDL_BORDERLESS_RESIZABLE_STYLE", "1", SDL_HINT_OVERRIDE);
 	SDL_SetHintWithPriority("SDL_BORDERLESS_WINDOWED_STYLE", "1", SDL_HINT_OVERRIDE);
+}
 
+void Window::Shutdown()
+{
+	SDL_Quit();
+}
+
+Window::Window(const char* pTitle, uint16_t width, uint16_t height, bool useFullScreen)
+	: m_width(width)
+	, m_height(height)
+{
 	// If you want to implement window like Visual Studio without titlebar provided by system OS, open SDL_WINDOW_BORDERLESS.
 	// But the issue is that you can't drag it unless you provide an implementation about hit test.
 	// Then you also need to simulate minimize and maxmize buttons.
@@ -48,7 +56,6 @@ Window::Window(const char* pTitle, uint16_t width, uint16_t height, bool useFull
 
 Window::~Window()
 {
-	SDL_Quit();
 	SDL_DestroyWindow(m_pSDLWindow);
 }
 

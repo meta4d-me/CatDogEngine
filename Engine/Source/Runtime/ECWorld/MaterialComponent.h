@@ -72,6 +72,15 @@ public:
 
 	void SetUberShaderOption(StringCrc uberOption);
 	StringCrc GetUberShaderOption() const;
+
+	void SetAlbedoColor(cd::Vec3f color) { m_albedoColor = cd::MoveTemp(color); }
+	cd::Vec3f& GetAlbedoColor() { return m_albedoColor; }
+	const cd::Vec3f& GetAlbedoColor() const { return m_albedoColor; }
+
+	void SetEmissiveColor(cd::Vec3f color) { m_emissiveColor = cd::MoveTemp(color); }
+	cd::Vec3f& GetEmissiveColor() { return m_emissiveColor; }
+	const cd::Vec3f& GetEmissiveColor() const { return m_emissiveColor; }
+
 	uint16_t GetShadingProgram() const;
 
 	std::optional<const TextureInfo> GetTextureInfo(cd::MaterialTextureType textureType) const;
@@ -85,6 +94,9 @@ private:
 	const cd::Material* m_pMaterialData = nullptr;
 	const engine::MaterialType* m_pMaterialType = nullptr;
 	StringCrc m_uberShaderOption;
+
+	cd::Vec3f m_albedoColor;
+	cd::Vec3f m_emissiveColor;
 
 	// Output
 	std::map<cd::MaterialTextureType, TextureInfo> m_textureResources;

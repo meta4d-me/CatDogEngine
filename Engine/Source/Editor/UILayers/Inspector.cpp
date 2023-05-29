@@ -227,6 +227,47 @@ void UpdateComponentWidget<engine::StaticMeshComponent>(engine::SceneWorld* pSce
 }
 
 template<>
+void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+{
+	auto* pMaterialComponent = pSceneWorld->GetMaterialComponent(entity);
+	if (!pMaterialComponent)
+	{
+		return;
+	}
+
+	bool isOpen = ImGui::CollapsingHeader("MaterialComponent", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+	ImGui::Columns(1);
+	ImGui::Separator();
+	if (isOpen)
+	{
+		ImGui::Columns(2);
+
+		ImGui::TextUnformatted("AlbedoColor");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		ImGui::DragFloat3("##AlbedoColor", pMaterialComponent->GetAlbedoColor().Begin(), 0.01f, 0.0f, 1.0f);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		ImGui::TextUnformatted("EmissiveColor");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		ImGui::DragFloat3("##EmissiveColor", pMaterialComponent->GetEmissiveColor().Begin(), 0.01f, 0.0f, 1.0f);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+	}
+
+	ImGui::Columns(1);
+	ImGui::Separator();
+	ImGui::PopStyleVar();
+}
+
+template<>
 void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
 {
 	auto* pCameraComponent = pSceneWorld->GetCameraComponent(entity);
@@ -370,8 +411,6 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 	ImGui::Separator();
 	ImGui::PopStyleVar();
 }
-
-
 
 }
 
