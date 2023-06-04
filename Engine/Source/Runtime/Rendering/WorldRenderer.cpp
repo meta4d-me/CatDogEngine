@@ -18,7 +18,9 @@ namespace engine
 
 void WorldRenderer::Init()
 {
+	m_pRenderContext->CreateUniform("u_lightCountAndStride", bgfx::UniformType::Vec4, 1);
 	m_pRenderContext->CreateUniform("u_lightParams", bgfx::UniformType::Vec4, LightUniform::VEC4_COUNT);
+
 	m_pRenderContext->CreateUniform("s_texLUT", bgfx::UniformType::Sampler);
 	m_pRenderContext->CreateTexture("Textures/lut/ibl_brdf_lut.dds");
 
@@ -99,12 +101,6 @@ void WorldRenderer::Render(float deltaTime)
 			}
 		}
 
-		constexpr StringCrc albedoColor("u_albedoColor");
-		m_pRenderContext->FillUniform(albedoColor, pMaterialComponent->GetAlbedoColor().Begin(), 1);
-
-		constexpr StringCrc emissiveColor("u_emissiveColor");
-		m_pRenderContext->FillUniform(emissiveColor, pMaterialComponent->GetEmissiveColor().Begin(), 1);
-
 		constexpr StringCrc lutSampler("s_texLUT");
 		constexpr StringCrc lutTexture("Textures/lut/ibl_brdf_lut.dds");
 		bgfx::setTexture(LUT_SLOT, m_pRenderContext->GetUniform(lutSampler), m_pRenderContext->GetTexture(lutTexture));
@@ -121,19 +117,33 @@ void WorldRenderer::Render(float deltaTime)
 			bgfx::setTexture(IBL_IRRADIANCE_SLOT, m_pRenderContext->GetUniform(cubeIrrSampler), m_pRenderContext->GetTexture(cubeIrrTexture));
 		}
 
-		//auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();
-		//size_t lightEntityCount = lightEntities.size();
-		//if (lightEntityCount > 0)
-		//{
-		//	// Light component storage has continus memory address and layout.
-		//	float* pLightDataBegin = reinterpret_cast<float*>(m_pCurrentSceneWorld->GetLightComponent(lightEntities[0]));
-		//	constexpr engine::StringCrc lightParams("u_lightParams");
-		//	m_pRenderContext->FillUniform(lightParams, pLightDataBegin, static_cast<uint16_t>(lightEntityCount * LightUniform::LIGHT_STRIDE));
-		//}
+		// Submit uniform values : material settings
+		constexpr StringCrc albedoColor("u_albedoColor");
+		m_pRenderContext->FillUniform(albedoColor, pMaterialComponent->GetAlbedoColor().Begin(), 1);
 
+		constexpr StringCrc emissiveColor("u_emissiveColor");
+		m_pRenderContext->FillUniform(emissiveColor, pMaterialComponent->GetEmissiveColor().Begin(), 1);
+
+
+		// Submit uniform values : camera settings
 		constexpr StringCrc cameraPos("u_cameraPos");
 		m_pRenderContext->FillUniform(cameraPos, &pCameraComponent->GetEye().x(), 1);
 
+		// Submit uniform values : light settings
+		auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();
+		size_t lightEntityCount = lightEntities.size();
+		constexpr engine::StringCrc lightCountAndStride("u_lightCountAndStride");
+		static cd::Vec4f lightInfoData(lightEntityCount, LightUniform::LIGHT_STRIDE, 0.0f, 0.0f);
+		m_pRenderContext->FillUniform(lightCountAndStride, lightInfoData.Begin(), 1);
+		if (lightEntityCount > 0)
+		{
+			// Light component storage has continus memory address and layout.
+			float* pLightDataBegin = reinterpret_cast<float*>(m_pCurrentSceneWorld->GetLightComponent(lightEntities[0]));
+			constexpr engine::StringCrc lightParams("u_lightParams");
+			m_pRenderContext->FillUniform(lightParams, pLightDataBegin, static_cast<uint16_t>(lightEntityCount * LightUniform::LIGHT_STRIDE));
+		}
+
+		//
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);
 

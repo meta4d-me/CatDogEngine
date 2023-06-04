@@ -285,13 +285,13 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 		}
 	}
 
-	cd::Vec3f albedoColor(0.0f);
+	cd::Vec3f albedoColor(1.0f);
 	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
 	engine::StringCrc currentUberOption(shaderSchema.GetUberCombines().at(0));
 	if (missRequiredTextures || unknownTextureSlot)
 	{
 		// Give a special red color to notify.
-		albedoColor = cd::Vec3f(1.0f);
+		albedoColor = cd::Vec3f(1.0f, 0.0f, 0.0f);
 	}
 	else
 	{
@@ -336,8 +336,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	// TODO : create material component before ResourceBuilder done.
 	// Assign a special color for loading resource status.
 	engine::MaterialComponent& materialComponent = m_pSceneWorld->GetWorld()->CreateComponent<engine::MaterialComponent>(entity);
-	materialComponent.SetMaterialData(pMaterial);
-	materialComponent.SetMaterialType(pMaterialType);
+	materialComponent.Init(pMaterialType, pMaterial);
 	materialComponent.SetUberShaderOption(currentUberOption);
 	materialComponent.SetAlbedoColor(cd::MoveTemp(albedoColor));
 

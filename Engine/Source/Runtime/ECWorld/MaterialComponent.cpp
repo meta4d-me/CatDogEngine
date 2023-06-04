@@ -98,6 +98,14 @@ uint64_t GetBGFXTextureFlag(cd::MaterialTextureType textureType, cd::TextureMapM
 namespace engine
 {
 
+void MaterialComponent::Init(const engine::MaterialType* pMaterialType, const cd::Material* pMaterialData)
+{
+	Reset();
+
+	m_pMaterialData = pMaterialData;
+	m_pMaterialType = pMaterialType;
+}
+
 std::optional<const MaterialComponent::TextureInfo> MaterialComponent::GetTextureInfo(cd::MaterialTextureType textureType) const
 {
 	auto itTextureInfo = m_textureResources.find(textureType);
@@ -129,6 +137,8 @@ void MaterialComponent::Reset()
 	m_pMaterialData = nullptr;
 	m_pMaterialType = nullptr;
 	m_uberShaderOption = ShaderSchema::DefaultUberOption;
+	m_albedoColor = cd::Vec3f::One();
+	m_emissiveColor = cd::Vec3f::One();
 	m_textureResources.clear();
 }
 

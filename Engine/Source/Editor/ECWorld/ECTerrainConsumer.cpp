@@ -100,8 +100,7 @@ void ECTerrainConsumer::AddMaterial(engine::Entity entity, const cd::Material* p
 
 	// TODO : create material component before ResourceBuilder done.
 	engine::MaterialComponent& materialComponent = m_pSceneWorld->GetWorld()->CreateComponent<engine::MaterialComponent>(entity);
-	materialComponent.SetMaterialData(pMaterial);
-	materialComponent.SetMaterialType(pMaterialType);
+	materialComponent.Init(pMaterialType, pMaterial);
 	materialComponent.SetUberShaderOption(currentUberOption);
 
 	// Textures
