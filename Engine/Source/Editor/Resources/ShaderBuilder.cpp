@@ -29,16 +29,6 @@ void ShaderBuilder::BuildUberShader(engine::MaterialType* pMaterialType)
 	}
 	CD_ENGINE_INFO("Material type {0} have shader variant count : {1}.", pMaterialType->GetMaterialName(), shaderSchema.GetUberCombines().size());
 
-	// Compile fragment shaders for indicating loadig status.
-	for (const auto& [status, path] : shaderSchema.GetLoadingStatusPath())
-	{
-		std::string outputFSFilePath = engine::Path::GetShaderOutputPath(path.c_str());
-		ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Fragment,
-			path.c_str(), outputFSFilePath.c_str());
-		engine::StringCrc statusCrc = shaderSchema.GetProgramCrc(status);
-		outputFSPathToUberOption[cd::MoveTemp(outputFSFilePath)] = statusCrc;
-	}
-
 	// TODO : ResourceBuilder will move to EditorApp::Update in the future.
 	ResourceBuilder::Get().Update();
 

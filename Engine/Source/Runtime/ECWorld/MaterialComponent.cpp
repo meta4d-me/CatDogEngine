@@ -180,9 +180,6 @@ void MaterialComponent::AddTextureFileBlob(cd::MaterialTextureType textureType, 
 
 void MaterialComponent::Build()
 {
-	m_albedoColor = cd::Vec3f(1.0f, 1.0f, 1.0f);
-	m_emissiveColor = cd::Vec3f(1.0f, 1.0f, 1.0f);
-
 	for (auto& [textureType, textureInfo] : m_textureResources)
 	{
 		textureInfo.textureHandle = BGFXCreateTexture(textureInfo.width, textureInfo.height, textureInfo.depth, false, textureInfo.mipCount > 1,
