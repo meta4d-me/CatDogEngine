@@ -285,12 +285,13 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 		}
 	}
 
+	cd::Vec3f albedoColor(0.0f);
 	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
 	engine::StringCrc currentUberOption(shaderSchema.GetUberCombines().at(0));
 	if (missRequiredTextures || unknownTextureSlot)
 	{
-		// treat missing resources case as a special uber option in the CPU side.
-		currentUberOption = shaderSchema.GetProgramCrc(engine::LoadingStatus::MISSING_RESOURCES);
+		// Give a special red color to notify.
+		albedoColor = cd::Vec3f(1.0f);
 	}
 	else
 	{
@@ -338,6 +339,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	materialComponent.SetMaterialData(pMaterial);
 	materialComponent.SetMaterialType(pMaterialType);
 	materialComponent.SetUberShaderOption(currentUberOption);
+	materialComponent.SetAlbedoColor(cd::MoveTemp(albedoColor));
 
 	// Textures.
 	for (const auto& [outputTextureFilePath, pTextureData] : outputTexturePathToData)

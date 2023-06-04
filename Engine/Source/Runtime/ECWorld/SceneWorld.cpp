@@ -44,14 +44,6 @@ void SceneWorld::CreatePBRMaterialType()
 	shaderSchema.RegisterUberOption(Uber::EMISSIVE_MAP);
 	// TODO : Revert it back after we can import CubeMap such as CmftStudio.
 	//shaderSchema.RegisterUberOption(Uber::IBL);
-
-	// Technically, option LoadingStatus:: is an actual shader.
-	// We can use AddSingleUberOption to add it to shaderSchema,
-	// whithout combine with any other option.
-	shaderSchema.AddSingleUberOption(LoadingStatus::MISSING_RESOURCES, Path::GetBuiltinShaderInputPath("fs_unlit_flat_red"));
-	shaderSchema.AddSingleUberOption(LoadingStatus::LOADING_SHADERS, Path::GetBuiltinShaderInputPath("fs_unlit_flat_blue"));
-	shaderSchema.AddSingleUberOption(LoadingStatus::LOADING_TEXTURES, Path::GetBuiltinShaderInputPath("fs_unlit_flat_green"));
-	shaderSchema.AddSingleUberOption(LoadingStatus::LOADING_ERROR, Path::GetBuiltinShaderInputPath("fs_unlit_flat_pink"));
 	m_pPBRMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat pbrVertexFormat;

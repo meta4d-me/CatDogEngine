@@ -53,7 +53,9 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
         materialComponent.SetMaterialData(nullptr);
         materialComponent.SetMaterialType(pPBRMaterialType);
-        materialComponent.SetUberShaderOption(pPBRMaterialType->GetShaderSchema().GetProgramCrc(engine::LoadingStatus::MISSING_RESOURCES));
+        engine::StringCrc currentUberOption(pPBRMaterialType->GetShaderSchema().GetUberCombines().at(0));
+        materialComponent.SetUberShaderOption(currentUberOption);
+        materialComponent.SetAlbedoColor(cd::Vec3f(0.2f));
         materialComponent.Build();
 
         auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
@@ -75,7 +77,9 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
         materialComponent.SetMaterialData(nullptr);
         materialComponent.SetMaterialType(pPBRMaterialType);
-        materialComponent.SetUberShaderOption(pPBRMaterialType->GetShaderSchema().GetProgramCrc(engine::LoadingStatus::MISSING_RESOURCES));
+        engine::StringCrc currentUberOption(pPBRMaterialType->GetShaderSchema().GetUberCombines().at(0));
+        materialComponent.SetUberShaderOption(currentUberOption);
+        materialComponent.SetAlbedoColor(cd::Vec3f(0.2f));
         materialComponent.Build();
 
         auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);

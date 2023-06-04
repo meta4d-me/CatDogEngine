@@ -42,15 +42,19 @@ public:
 
 	void SetAspect(float aspect) { m_aspect = aspect; m_isProjectionDirty = true; }
 	void SetAspect(uint16_t width, uint16_t height) { SetAspect(static_cast<float>(width) / static_cast<float>(height)); }
+	float& GetAspect() { return m_aspect; }
 	float GetAspect() const { return m_aspect; }
 
 	void SetFov(float fov) { m_fov = fov; m_isProjectionDirty = true; }
+	float& GetFov() { return m_fov; }
 	float GetFov() const { return m_fov; }
 
 	void SetNearPlane(float nearPlane) { m_nearPlane = nearPlane; m_isProjectionDirty = true; }
+	float& GetNearPlane() { return m_nearPlane; }
 	float GetNearPlane() const { return m_nearPlane; }
 
 	void SetFarPlane(float farPlane) { m_farPlane = farPlane; m_isProjectionDirty = true; }
+	float& GetFarPlane() { return m_farPlane; }
 	float GetFarPlane() const { return m_farPlane; }
 
 	void SetNDCDepth(cd::NDCDepth ndcDepth) { m_ndcDepth = ndcDepth; m_isProjectionDirty = true; }
@@ -71,17 +75,17 @@ public:
 	const cd::Direction& GetCross() const { return m_cross; }
 
 #ifdef EDITOR_MODE
-	bool* GetDoConstrainAspectRatio() { return &m_doConstainAspectRatio; }
+	bool& GetDoConstrainAspectRatio() { return m_doConstainAspectRatio; }
 	bool DoConstrainAspectRatio() const { return m_doConstainAspectRatio; }
 	void SetConstrainAspectRatio(bool use) { m_doConstainAspectRatio = use; }
 
-	bool* GetIsPostProcessEnable() { return &m_enablePostProcess; }
+	bool& GetIsPostProcessEnable() { return m_enablePostProcess; }
 	bool IsPostProcessEnable() { return m_enablePostProcess; }
 	void SetPostProcessEnable(bool use) { m_enablePostProcess = use; }
 
-	cd::Vec4f& GetGammaCorrection() { return m_gammaCorrection; }
-	const cd::Vec4f& GetGammaCorrection() const { return m_gammaCorrection; }
-	void SetGammaCorrection(cd::Vec4f gamma) { m_gammaCorrection = cd::MoveTemp(gamma); }
+	cd::Vec3f& GetGammaCorrection() { return m_gammaCorrection; }
+	const cd::Vec3f& GetGammaCorrection() const { return m_gammaCorrection; }
+	void SetGammaCorrection(cd::Vec3f gamma) { m_gammaCorrection = cd::MoveTemp(gamma); }
 #endif
 
 private:
@@ -107,7 +111,7 @@ private:
 #ifdef EDITOR_MODE
 	bool m_doConstainAspectRatio;
 	bool m_enablePostProcess;
-	cd::Vec4f m_gammaCorrection;
+	cd::Vec3f m_gammaCorrection;
 #endif
 };
 

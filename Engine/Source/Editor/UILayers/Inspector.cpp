@@ -10,13 +10,14 @@ namespace details
 {
 
 template<typename T>
-bool ImGuiProperty(const char* pName, T& value)
+bool ImGuiProperty(const char* pName, T& value, const T& minValue = {}, const T& maxValue = {})
 {
 	bool dirty = false;
 	bool isUniform = true;
 
 	if constexpr (std::is_same<T, std::string>())
 	{
+		ImGui::Columns(2);
 		ImGui::TextUnformatted(pName);
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
@@ -25,65 +26,83 @@ bool ImGuiProperty(const char* pName, T& value)
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
+		ImGui::Columns(1);
 	}
 	else if constexpr (std::is_same<T, bool>())
 	{
-		ImGui::TextUnformatted(pName);
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-
 		if (ImGui::Checkbox(pName, &value))
 		{
 			dirty = true;
 		}
-
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
 	}
 	else if constexpr (std::is_same<T, float>())
 	{
+		ImGui::Columns(2);
 		ImGui::TextUnformatted(pName);
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
-		if (ImGui::DragFloat(pName, &value))
+		std::string labelName = std::format("##{}", pName);
+		if (ImGui::DragFloat(labelName.c_str(), &value, 1.0f, minValue, maxValue))
 		{
 			dirty = true;
 		}
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
+		ImGui::Columns(1);
+	}
+	else if constexpr (std::is_same<T, cd::Vec2f>() || std::is_same<T, cd::Vec3f>() || std::is_same<T, cd::Vec4f>())
+	{
+		ImGui::Columns(2);
+		ImGui::TextUnformatted(pName);
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		std::string labelName = std::format("##{}", pName);
+		float speed = (maxValue.x() - minValue.x()) * 0.05f;
+		if constexpr (std::is_same<T, cd::Vec2f>())
+		{
+			if (ImGui::DragFloat2(labelName.c_str(), value.Begin(), speed, minValue.x(), maxValue.x()))
+			{
+				dirty = true;
+			}
+		}
+		else if constexpr (std::is_same<T, cd::Vec3f>())
+		{
+			if (ImGui::DragFloat3(labelName.c_str(), value.Begin(), speed, minValue.x(), maxValue.x()))
+			{
+				dirty = true;
+			}
+		}
+		else if constexpr (std::is_same<T, cd::Vec4f>())
+		{
+			if (ImGui::DragFloat4(labelName.c_str(), value.Begin(), speed, minValue.x(), maxValue.x()))
+			{
+				dirty = true;
+			}
+		}
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+		ImGui::Columns(1);
 	}
 	else if constexpr (std::is_same<T, cd::Transform>())
 	{
-		ImGui::TextUnformatted("Translation");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-
-		if (ImGui::DragFloat3("##Translation", value.GetTranslation().Begin()))
+		if (ImGuiProperty<cd::Vec3f>("Translation", value.GetTranslation()))
 		{
 			dirty = true;
 		}
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
-
-		ImGui::TextUnformatted("Rotation");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-
-		cd::Vec3f eulerAngles = value.GetRotation().ToEulerAngles();
-		if (ImGui::DragFloat3("##Rotation", eulerAngles.Begin(), 3.0f, 0.05f))
+		cd::Vec3f eularAngles = value.GetRotation().ToEulerAngles();
+		if (ImGuiProperty<cd::Vec3f>("Rotation", eularAngles, cd::Vec3f::Zero(), cd::Vec3f(360.0f)))
 		{
-			float pitch = std::min(eulerAngles.x(), 89.9f);
+			float pitch = std::min(eularAngles.x(), 89.9f);
 			pitch = std::max(pitch, -89.9f);
 
-			value.SetRotation(cd::Quaternion::FromPitchYawRoll(pitch, eulerAngles.y(), eulerAngles.z()));
+			value.SetRotation(cd::Quaternion::FromPitchYawRoll(pitch, eularAngles.y(), eularAngles.z()));
 			dirty = true;
 		}
-
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
 
 		cd::Vec3f originScale = value.GetScale();
 		cd::Vec3f scale = originScale;
@@ -153,6 +172,11 @@ bool ImGuiProperty(const char* pName, T& value)
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
+		ImGui::Columns(1);
+	}
+	else
+	{
+		static_assert("Unsupported data type for imgui property.");
 	}
 
 	return dirty;
@@ -174,7 +198,6 @@ void UpdateComponentWidget<engine::NameComponent>(engine::SceneWorld* pSceneWorl
 
 	bool isHeaderOpen = ImGui::CollapsingHeader("NameComponent", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-	ImGui::Columns(2);
 	ImGui::Separator();
 
 	if (isHeaderOpen)
@@ -182,7 +205,6 @@ void UpdateComponentWidget<engine::NameComponent>(engine::SceneWorld* pSceneWorl
 		ImGuiProperty<std::string>("Name", pNameComponent->GetNameForWrite());
 	}
 
-	ImGui::Columns(1);
 	ImGui::Separator();
 	ImGui::PopStyleVar();
 }
@@ -198,7 +220,6 @@ void UpdateComponentWidget<engine::TransformComponent>(engine::SceneWorld* pScen
 
 	bool isHeaderOpen = ImGui::CollapsingHeader("TransformComponent", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-	ImGui::Columns(2);
 	ImGui::Separator();
 
 	if (isHeaderOpen)
@@ -210,7 +231,6 @@ void UpdateComponentWidget<engine::TransformComponent>(engine::SceneWorld* pScen
 		}
 	}
 
-	ImGui::Columns(1);
 	ImGui::Separator();
 	ImGui::PopStyleVar();
 }
@@ -218,12 +238,6 @@ void UpdateComponentWidget<engine::TransformComponent>(engine::SceneWorld* pScen
 template<>
 void UpdateComponentWidget<engine::StaticMeshComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
 {
-	auto* pStaticMeshComponent = pSceneWorld->GetStaticMeshComponent(entity);
-	if (!pStaticMeshComponent)
-	{
-		return;
-	}
-
 }
 
 template<>
@@ -237,32 +251,14 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 
 	bool isOpen = ImGui::CollapsingHeader("MaterialComponent", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-	ImGui::Columns(1);
 	ImGui::Separator();
+
 	if (isOpen)
 	{
-		ImGui::Columns(2);
-
-		ImGui::TextUnformatted("AlbedoColor");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-
-		ImGui::DragFloat3("##AlbedoColor", pMaterialComponent->GetAlbedoColor().Begin(), 0.01f, 0.0f, 1.0f);
-
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
-
-		ImGui::TextUnformatted("EmissiveColor");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-
-		ImGui::DragFloat3("##EmissiveColor", pMaterialComponent->GetEmissiveColor().Begin(), 0.01f, 0.0f, 1.0f);
-
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+		ImGuiProperty<cd::Vec3f>("AlbedoColor", pMaterialComponent->GetAlbedoColor(), cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiProperty<cd::Vec3f>("EmissiveColor", pMaterialComponent->GetEmissiveColor(), cd::Vec3f::Zero(), cd::Vec3f::One());
 	}
 
-	ImGui::Columns(1);
 	ImGui::Separator();
 	ImGui::PopStyleVar();
 }
@@ -275,78 +271,22 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 	{
 		return;
 	}
-	bool isCamOpen = ImGui::CollapsingHeader("CameraComponent", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+
+	bool isOpen = ImGui::CollapsingHeader("CameraComponent", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-	ImGui::Columns(1);
 	ImGui::Separator();
-	if (isCamOpen)
+
+	if (isOpen)
 	{
-		bool isCamSetOpen = ImGui::CollapsingHeader("Camera Setting", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
-		if (isCamSetOpen)
-		{
-			ImGui::Columns(2);
-			ImGui::TextUnformatted("Aspect");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-
-			float aspect = pCameraComponent->GetAspect();
-			if (ImGui::DragFloat("##Aspect", &aspect,0.005f, 0.1f,5.0f))
-			{
-				pCameraComponent->SetAspect(aspect);
-			}
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::TextUnformatted("Fov");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-
-			float fov = pCameraComponent->GetFov();
-			if (ImGui::DragFloat("##Fov", &fov,0.1f,5.0f, 170.f ))
-			{
-				pCameraComponent->SetFov(fov);
-			}
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::TextUnformatted("NearPlane");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-
-			float nearPlane = pCameraComponent->GetNearPlane();
-			if (ImGui::DragFloat("##NearPlane", &nearPlane))
-			{
-				pCameraComponent->SetNearPlane(nearPlane);
-			}
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::TextUnformatted("FarPlane");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-
-			float farPlane = pCameraComponent->GetFarPlane();
-			if (ImGui::DragFloat("##FarPlane", &farPlane))
-			{
-				pCameraComponent->SetFarPlane(farPlane);
-			}
-		}
-
-		ImGui::Columns(1);
-
-		bool isCamOptOpen = ImGui::CollapsingHeader("Camera Option", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
-		if (isCamOptOpen)
-		{
-			ImGui::Checkbox("Constrain Aspect Ratio", pCameraComponent->GetDoConstrainAspectRatio());
-			ImGui::Checkbox("Post Prossing", pCameraComponent->GetIsPostProcessEnable());
-			ImGui::InputFloat3("Gamma Correction", pCameraComponent->GetGammaCorrection().Begin());
-		}
+		ImGuiProperty<float>("Aspect", pCameraComponent->GetAspect());
+		ImGuiProperty<float>("Field Of View", pCameraComponent->GetFov());
+		ImGuiProperty<float>("NearPlane", pCameraComponent->GetNearPlane());
+		ImGuiProperty<float>("FarPlane", pCameraComponent->GetFarPlane());
+		ImGuiProperty<bool>("Constrain Aspect Ratio", pCameraComponent->GetDoConstrainAspectRatio());
+		ImGuiProperty<bool>("Post Processing", pCameraComponent->GetIsPostProcessEnable());
+		ImGuiProperty<cd::Vec3f>("Gamma Correction", pCameraComponent->GetGammaCorrection(), cd::Vec3f::Zero(), cd::Vec3f::One());
 	}
 
-	ImGui::Columns(1);
 	ImGui::Separator();
 	ImGui::PopStyleVar();
 }
@@ -359,55 +299,23 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 	{
 		return;
 	}
-	bool isLightOpen = ImGui::CollapsingHeader("LightComponent", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+
+	bool isOpen = ImGui::CollapsingHeader("LightComponent", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-	ImGui::Columns(1);
 	ImGui::Separator();
-	if (isLightOpen)
-	{
-		bool isTraOpen = ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
-		if (isTraOpen)
-		{
-		/*	ImGui::Columns(2);
-			if (ImGuiProperty<cd::Transform>("Transform", pLightComponent->GetTransform()))
-			{
 	
-			}*/
-		}
-
-		ImGui::Columns(1);
-
-		bool isLitSetOpen = ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
-		if (isLitSetOpen)
-		{
-			ImGui::Columns(2);
-			ImGui::TextUnformatted("Intensity");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-
-			float intensity = pLightComponent->GetIntensity();
-			if (ImGui::DragFloat("##Aspect", &intensity))
-			{
-				pLightComponent->SetIntensity(intensity);
-			}
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::TextUnformatted("Range");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-
-			float range = pLightComponent->GetRange();
-			if (ImGui::DragFloat("##Fov", &range))
-			{
-				pLightComponent->SetRange(range);
-			}
-
-		}
-		
+	if (isOpen)
+	{
+		ImGuiProperty<cd::Vec3f>("Color", pLightComponent->GetColor());
+		ImGuiProperty<float>("Intensity", pLightComponent->GetIntensity());
+		ImGuiProperty<float>("Range", pLightComponent->GetRange());
+		ImGuiProperty<float>("Radius", pLightComponent->GetRadius());
+		ImGuiProperty<float>("Width", pLightComponent->GetWidth());
+		ImGuiProperty<float>("Height", pLightComponent->GetHeight());
+		ImGuiProperty<float>("AngleScale", pLightComponent->GetAngleScale());
+		ImGuiProperty<float>("AngleOffset", pLightComponent->GetAngleOffset());
 	}
-	ImGui::Columns(1);
+
 	ImGui::Separator();
 	ImGui::PopStyleVar();
 }
