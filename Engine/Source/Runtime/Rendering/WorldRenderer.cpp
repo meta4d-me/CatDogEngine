@@ -133,7 +133,8 @@ void WorldRenderer::Render(float deltaTime)
 		auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();
 		size_t lightEntityCount = lightEntities.size();
 		constexpr engine::StringCrc lightCountAndStride("u_lightCountAndStride");
-		static cd::Vec4f lightInfoData(lightEntityCount, LightUniform::LIGHT_STRIDE, 0.0f, 0.0f);
+		static cd::Vec4f lightInfoData(0, LightUniform::LIGHT_STRIDE, 0.0f, 0.0f);
+		lightInfoData.x() = static_cast<float>(lightEntityCount);
 		m_pRenderContext->FillUniform(lightCountAndStride, lightInfoData.Begin(), 1);
 		if (lightEntityCount > 0)
 		{
