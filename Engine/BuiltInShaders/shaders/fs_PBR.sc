@@ -15,8 +15,7 @@ uniform vec4 u_albedoUVOffsetAndScale;
 uniform vec4 u_cameraPos[1];
 #define cameraPos u_cameraPos[0].xyz
 
-uniform vec4 u_lightCount[1];
-uniform vec4 u_lightStride[1];
+uniform vec4 u_lightCountAndStride[1];
 
 #if defined(ALBEDO_MAP)
 SAMPLER2D(s_texBaseColor, ALBEDO_MAP_SLOT);
@@ -180,7 +179,7 @@ void main()
 {
 	Material material = GetMaterial(v_texcoord0, v_normal, v_TBN);
 	
-	vec3 viewDir  = normalize(cameraPos - v_worldPos);
+	vec3 viewDir = normalize(cameraPos - v_worldPos);
 	float NdotV = max(dot(material.normal, viewDir), 0.0);
 	
 	// ------------------------------------ Directional Light ----------------------------------------

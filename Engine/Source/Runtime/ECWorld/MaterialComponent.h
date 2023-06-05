@@ -63,8 +63,7 @@ public:
 	MaterialComponent& operator=(MaterialComponent&&) = default;
 	~MaterialComponent() = default;
 
-	void SetMaterialData(const cd::Material* pMaterialData) { m_pMaterialData = pMaterialData; }
-	void SetMaterialType(const engine::MaterialType* pMaterialType) { m_pMaterialType = pMaterialType; }
+	void Init(const engine::MaterialType* pMaterialType, const cd::Material* pMaterialData = nullptr);
 	const engine::MaterialType* GetMaterialType() const { return m_pMaterialType; }
 
 	void AddTextureBlob(cd::MaterialTextureType textureType, cd::TextureFormat textureFormat, cd::TextureMapMode uMapMode, cd::TextureMapMode vMapMode, TextureBlob textureBlob, uint32_t width, uint32_t height, uint32_t depth = 1);

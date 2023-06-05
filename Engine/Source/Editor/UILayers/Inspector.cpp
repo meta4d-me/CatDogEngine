@@ -43,7 +43,9 @@ bool ImGuiProperty(const char* pName, T& value, const T& minValue = {}, const T&
 		ImGui::PushItemWidth(-1);
 
 		std::string labelName = std::format("##{}", pName);
-		if (ImGui::DragFloat(labelName.c_str(), &value, 1.0f, minValue, maxValue))
+		float delta = maxValue - minValue;
+		float speed = cd::Math::IsEqualToZero(delta) ? 1.0f : delta * 0.05f;
+		if (ImGui::DragFloat(labelName.c_str(), &value, speed, minValue, maxValue))
 		{
 			dirty = true;
 		}
@@ -60,7 +62,8 @@ bool ImGuiProperty(const char* pName, T& value, const T& minValue = {}, const T&
 		ImGui::PushItemWidth(-1);
 
 		std::string labelName = std::format("##{}", pName);
-		float speed = (maxValue.x() - minValue.x()) * 0.05f;
+		float delta = maxValue.x() - minValue.x();
+		float speed = cd::Math::IsEqualToZero(delta) ? 1.0f : delta * 0.05f;
 		if constexpr (std::is_same<T, cd::Vec2f>())
 		{
 			if (ImGui::DragFloat2(labelName.c_str(), value.Begin(), speed, minValue.x(), maxValue.x()))
@@ -306,14 +309,37 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 	
 	if (isOpen)
 	{
+		cd::LightType lightType = pLightComponent->GetType();
+		std::string lightTypeName = cd::GetLightTypeName(lightType);
+
+		ImGuiProperty<std::string>("Type", lightTypeName);
 		ImGuiProperty<cd::Vec3f>("Color", pLightComponent->GetColor());
 		ImGuiProperty<float>("Intensity", pLightComponent->GetIntensity());
-		ImGuiProperty<float>("Range", pLightComponent->GetRange());
-		ImGuiProperty<float>("Radius", pLightComponent->GetRadius());
-		ImGuiProperty<float>("Width", pLightComponent->GetWidth());
-		ImGuiProperty<float>("Height", pLightComponent->GetHeight());
-		ImGuiProperty<float>("AngleScale", pLightComponent->GetAngleScale());
-		ImGuiProperty<float>("AngleOffset", pLightComponent->GetAngleOffset());
+
+		switch (lightType)
+		{
+		case cd::LightType::Point:
+			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
+			ImGuiProperty<float>("Range", pLightComponent->GetRange());
+			break;
+		case cd::LightType::Directional:
+			ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
+			break;
+		case cd::LightType::Spot:
+			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
+			ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
+			ImGuiProperty<float>("Range", pLightComponent->GetRange());
+			ImGuiProperty<float>("AngleScale", pLightComponent->GetAngleScale());
+			ImGuiProperty<float>("AngleOffset", pLightComponent->GetAngleOffset());
+			break;
+		case cd::LightType::Disk:
+		case cd::LightType::Rectangle:
+		case cd::LightType::Sphere:
+		case cd::LightType::Tube:
+		default:
+			assert("TODO");
+			break;
+		}
 	}
 
 	ImGui::Separator();

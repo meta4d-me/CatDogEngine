@@ -508,8 +508,8 @@ vec3 CalculateLight(U_Light light, Material material, vec3 worldPos, vec3 viewDi
 
 vec3 CalculateLights(Material material, vec3 worldPos, vec3 viewDir, vec3 diffuseBRDF) {
 	vec3 color = vec3_splat(0.0);
-	for(int lightIndex = 0; lightIndex < int(u_lightCount[0].x); ++lightIndex) {
-		int pointer = lightIndex * u_lightStride[0].x;
+	for(int lightIndex = 0; lightIndex < int(u_lightCountAndStride[0].x); ++lightIndex) {
+		int pointer = lightIndex * u_lightCountAndStride[0].y;
 		U_Light light = GetLightParams(pointer);
 		color += CalculateLight(light, material, worldPos, viewDir, diffuseBRDF);
 	}
