@@ -691,13 +691,8 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 	{
 		cdtools::CDProducer cdProducer(pFilePath);
 		cdtools::Processor processor(&cdProducer, &ecConsumer, pSceneDatabase);
-		processor.SetFlattenSceneDatabaseEnable(true);
 		processor.Run();
 	}
-	//else if (0 == inputFileExtension.compare(".fbx"))
-	//{
-	//
-	//}
 	else
 	{
 		cdtools::GenericProducer genericProducer(pFilePath);
@@ -708,9 +703,7 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 		genericProducer.ActivateTangentsSpaceService();
 		genericProducer.ActivateTriangulateService();
 		genericProducer.ActivateSimpleAnimationService();
-		// genericProducer.ActivateFlattenHierarchyService();
-
-
+		
 		if(m_importingAssetType == ImportAssetType::DDGIModel)
 		{
 			ecConsumer.ActivateDDGIService();
@@ -782,10 +775,7 @@ void AssetBrowser::ExportAssetFile(const char* pFilePath)
 		std::filesystem::path outputFilePath = selectFilePath.replace_extension(".cdbin");
 
 		cdtools::CDConsumer consumer(outputFilePath.string().c_str());
-		consumer.SetExportMode(cdtools::ExportMode::PureBinary);
-
 		cdtools::Processor processor(nullptr, &consumer, pSceneDatabase);
-		processor.SetFlattenSceneDatabaseEnable(true);
 		processor.Run();
 	}
 }
