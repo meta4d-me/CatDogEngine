@@ -74,6 +74,8 @@ public:
 
 	const cd::Direction& GetCross() const { return m_cross; }
 
+	void Dirty() const { m_isViewDirty = true; m_isProjectionDirty = true; }
+
 #ifdef EDITOR_MODE
 	bool& GetDoConstrainAspectRatio() { return m_doConstainAspectRatio; }
 	bool DoConstrainAspectRatio() const { return m_doConstainAspectRatio; }

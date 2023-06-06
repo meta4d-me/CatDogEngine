@@ -281,10 +281,15 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 
 	if (isOpen)
 	{
-		ImGuiProperty<float>("Aspect", pCameraComponent->GetAspect());
-		ImGuiProperty<float>("Field Of View", pCameraComponent->GetFov());
-		ImGuiProperty<float>("NearPlane", pCameraComponent->GetNearPlane());
-		ImGuiProperty<float>("FarPlane", pCameraComponent->GetFarPlane());
+		if (ImGuiProperty<float>("Aspect", pCameraComponent->GetAspect()) ||
+			ImGuiProperty<float>("Field Of View", pCameraComponent->GetFov()) ||
+			ImGuiProperty<float>("NearPlane", pCameraComponent->GetNearPlane()) ||
+			ImGuiProperty<float>("FarPlane", pCameraComponent->GetFarPlane()))
+		{
+			pCameraComponent->Dirty();
+			pCameraComponent->Build();
+		}
+
 		ImGuiProperty<bool>("Constrain Aspect Ratio", pCameraComponent->GetDoConstrainAspectRatio());
 		ImGuiProperty<bool>("Post Processing", pCameraComponent->GetIsPostProcessEnable());
 		ImGuiProperty<cd::Vec3f>("Gamma Correction", pCameraComponent->GetGammaCorrection(), cd::Vec3f::Zero(), cd::Vec3f::One());
