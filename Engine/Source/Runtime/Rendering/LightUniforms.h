@@ -13,7 +13,7 @@ class RenderContext;
 namespace
 {
 
-constexpr uint16_t MAX_LIGHT_COUNT = 16;
+constexpr uint16_t MAX_LIGHT_COUNT = 512;
 
 }
 
