@@ -253,6 +253,7 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
         if (ImGui::Selectable(CD_TEXT("Delete")))
         {
             pSceneWorld->DeleteEntity(entity);
+            pSceneWorld->GetSceneDatabase()->UpdateAABB();
         }
 
         // Operation list only for camera entites.
