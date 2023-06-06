@@ -82,10 +82,7 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 				AddStaticMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
 
 				cd::MaterialID meshMaterialID = mesh.GetMaterialID();
-				if(meshMaterialID.IsValid())
-				{
-					AddMaterial(meshEntity, &pSceneDatabase->GetMaterial(meshMaterialID.Data()), pMaterialType, pSceneDatabase);
-				}
+				AddMaterial(meshEntity, meshMaterialID.IsValid() ? &pSceneDatabase->GetMaterial(meshMaterialID.Data()) : nullptr, pMaterialType, pSceneDatabase);
 			}
 			else
 			{
@@ -252,36 +249,39 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 
 	bool missRequiredTextures = false;
 	bool unknownTextureSlot = false;
-	for (cd::MaterialTextureType requiredTextureType : pMaterialType->GetRequiredTextureTypes())
+	if (pMaterial)
 	{
-		std::optional<cd::TextureID> optTexture = pMaterial->GetTextureID(requiredTextureType);
-		if (!optTexture.has_value())
+		for (cd::MaterialTextureType requiredTextureType : pMaterialType->GetRequiredTextureTypes())
 		{
-			missRequiredTextures = true;
-			CD_ENGINE_ERROR("Material {0} massing required texture {1}!", pMaterial->GetName(),
-				GetMaterialPropertyGroupName(requiredTextureType));
-			break;
-		}
+			std::optional<cd::TextureID> optTexture = pMaterial->GetTextureID(requiredTextureType);
+			if (!optTexture.has_value())
+			{
+				missRequiredTextures = true;
+				CD_ENGINE_ERROR("Material {0} massing required texture {1}!", pMaterial->GetName(),
+					GetMaterialPropertyGroupName(requiredTextureType));
+				break;
+			}
 
-		std::optional<uint8_t> optTextureSlot = pMaterialType->GetTextureSlot(requiredTextureType);
-		if(!optTextureSlot.has_value())
-		{
-			unknownTextureSlot = true;
-			CD_ENGINE_ERROR("Material {0} unknown texture slot of textuere type {1}!", pMaterial->GetName(), GetMaterialPropertyGroupName(requiredTextureType));
-			break;
-		}
+			std::optional<uint8_t> optTextureSlot = pMaterialType->GetTextureSlot(requiredTextureType);
+			if (!optTextureSlot.has_value())
+			{
+				unknownTextureSlot = true;
+				CD_ENGINE_ERROR("Material {0} unknown texture slot of textuere type {1}!", pMaterial->GetName(), GetMaterialPropertyGroupName(requiredTextureType));
+				break;
+			}
 
-		uint8_t textureSlot = optTextureSlot.value();
-		const cd::Texture& requiredTexture = pSceneDatabase->GetTexture(optTexture.value().Data());
-		std::string outputTexturePath = engine::Path::GetTextureOutputFilePath(requiredTexture.GetPath(), ".dds");
-		if(!compiledTextureSlot.contains(textureSlot))
-		{
-			// When multiple textures have the same texture slot, it implies that these textures are packed in one file.
-			// For example, AO + Metalness + Roughness are packed so they have same slots which mean we only need to build it once.
-			// Note that these texture types can only have same setting to build texture.
-			compiledTextureSlot.insert(textureSlot);
-			ResourceBuilder::Get().AddTextureBuildTask(requiredTexture.GetType(), requiredTexture.GetPath(), outputTexturePath.c_str());
-			outputTexturePathToData[cd::MoveTemp(outputTexturePath)] = &requiredTexture;
+			uint8_t textureSlot = optTextureSlot.value();
+			const cd::Texture& requiredTexture = pSceneDatabase->GetTexture(optTexture.value().Data());
+			std::string outputTexturePath = engine::Path::GetTextureOutputFilePath(requiredTexture.GetPath(), ".dds");
+			if (!compiledTextureSlot.contains(textureSlot))
+			{
+				// When multiple textures have the same texture slot, it implies that these textures are packed in one file.
+				// For example, AO + Metalness + Roughness are packed so they have same slots which mean we only need to build it once.
+				// Note that these texture types can only have same setting to build texture.
+				compiledTextureSlot.insert(textureSlot);
+				ResourceBuilder::Get().AddTextureBuildTask(requiredTexture.GetType(), requiredTexture.GetPath(), outputTexturePath.c_str());
+				outputTexturePathToData[cd::MoveTemp(outputTexturePath)] = &requiredTexture;
+			}
 		}
 	}
 
@@ -295,38 +295,45 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	}
 	else
 	{
-		// Expected textures are ready to build. Add more optional texture data.
-		for (cd::MaterialTextureType optionalTextureType : pMaterialType->GetOptionalTextureTypes())
+		if (pMaterial)
 		{
-			std::optional<cd::TextureID> optTexture = pMaterial->GetTextureID(optionalTextureType);
-			if (!optTexture.has_value())
+			// Expected textures are ready to build. Add more optional texture data.
+			for (cd::MaterialTextureType optionalTextureType : pMaterialType->GetOptionalTextureTypes())
 			{
-				CD_WARN("Material {0} does not have optional texture type {1}!", pMaterial->GetName(), GetMaterialPropertyGroupName(optionalTextureType));
-				continue;
+				std::optional<cd::TextureID> optTexture = pMaterial->GetTextureID(optionalTextureType);
+				if (!optTexture.has_value())
+				{
+					CD_WARN("Material {0} does not have optional texture type {1}!", pMaterial->GetName(), GetMaterialPropertyGroupName(optionalTextureType));
+					continue;
+				}
+
+				std::optional<uint8_t> optTextureSlot = pMaterialType->GetTextureSlot(optionalTextureType);
+				if (!optTextureSlot.has_value())
+				{
+					unknownTextureSlot = true;
+					CD_ERROR("Unknow texture {0} slot!", GetMaterialPropertyGroupName(optionalTextureType));
+					break;
+				}
+
+				ActivateUberOption(optionalTextureType);
+
+				uint8_t textureSlot = optTextureSlot.value();
+				const cd::Texture& optionalTexture = pSceneDatabase->GetTexture(optTexture.value().Data());
+				std::string outputTexturePath = engine::Path::GetTextureOutputFilePath(optionalTexture.GetPath(), ".dds");
+				if (!compiledTextureSlot.contains(textureSlot))
+				{
+					compiledTextureSlot.insert(textureSlot);
+					ResourceBuilder::Get().AddTextureBuildTask(optionalTexture.GetType(), optionalTexture.GetPath(), outputTexturePath.c_str());
+					outputTexturePathToData[cd::MoveTemp(outputTexturePath)] = &optionalTexture;
+				}
 			}
 
-			std::optional<uint8_t> optTextureSlot = pMaterialType->GetTextureSlot(optionalTextureType);
-			if (!optTextureSlot.has_value())
-			{
-				unknownTextureSlot = true;
-				CD_ERROR("Unknow texture {0} slot!", GetMaterialPropertyGroupName(optionalTextureType));
-				break;
-			}
-
-			ActivateUberOption(optionalTextureType);
-
-			uint8_t textureSlot = optTextureSlot.value();
-			const cd::Texture& optionalTexture = pSceneDatabase->GetTexture(optTexture.value().Data());
-			std::string outputTexturePath = engine::Path::GetTextureOutputFilePath(optionalTexture.GetPath(), ".dds");
-			if (!compiledTextureSlot.contains(textureSlot))
-			{
-				compiledTextureSlot.insert(textureSlot);
-				ResourceBuilder::Get().AddTextureBuildTask(optionalTexture.GetType(), optionalTexture.GetPath(), outputTexturePath.c_str());
-				outputTexturePathToData[cd::MoveTemp(outputTexturePath)] = &optionalTexture;
-			}
+			currentUberOption = shaderSchema.GetProgramCrc(m_activeUberOptions);
 		}
-
-		currentUberOption = shaderSchema.GetProgramCrc(m_activeUberOptions);
+		else
+		{
+			albedoColor = cd::Vec3f(0.2f);
+		}
 	}
 
 	// TODO : ResourceBuilder will move to EditorApp::Update in the future.
