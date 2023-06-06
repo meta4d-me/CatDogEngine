@@ -333,9 +333,30 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 			ImGuiProperty<float>("AngleOffset", pLightComponent->GetAngleOffset());
 			break;
 		case cd::LightType::Disk:
+			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
+			ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
+			ImGuiProperty<float>("Range", pLightComponent->GetRange());
+			ImGuiProperty<float>("Radius", pLightComponent->GetRadius());
+			break;
 		case cd::LightType::Rectangle:
+			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
+			ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
+			ImGuiProperty<cd::Vec3f>("Up", pLightComponent->GetUp());
+			ImGuiProperty<float>("Range", pLightComponent->GetRange());
+			ImGuiProperty<float>("Width", pLightComponent->GetWidth());
+			ImGuiProperty<float>("Height", pLightComponent->GetHeight());
+			break;
 		case cd::LightType::Sphere:
+			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
+			ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
+			ImGuiProperty<float>("Radius", pLightComponent->GetRadius());
+			break;
 		case cd::LightType::Tube:
+			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
+			ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
+			ImGuiProperty<float>("Range", pLightComponent->GetRange());
+			ImGuiProperty<float>("Width", pLightComponent->GetWidth());
+			break;
 		default:
 			assert("TODO");
 			break;

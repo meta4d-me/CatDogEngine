@@ -62,6 +62,20 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         transformComponent.Build();
     };
 
+    auto CreateLightComponents = [&pWorld](engine::Entity entity, cd::LightType lightType, float intensity, cd::Vec3f color) -> engine::LightComponent&
+    {
+        auto& lightComponent = pWorld->CreateComponent<engine::LightComponent>(entity);
+        lightComponent.SetType(lightType);
+        lightComponent.SetIntensity(intensity);
+        lightComponent.SetColor(color);
+
+        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+        transformComponent.SetTransform(cd::Transform::Identity());
+        transformComponent.Build();
+
+        return lightComponent;
+    };
+
     if (ImGui::MenuItem("Add Cube Mesh"))
     {
         engine::Entity entity = AddNamedEntity("CubeMesh");
@@ -98,49 +112,66 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     else if (ImGui::MenuItem("Add Point Light"))
     {
         engine::Entity entity = AddNamedEntity("PointLight");
-        auto& lightComponent = pWorld->CreateComponent<engine::LightComponent>(entity);
-        lightComponent.SetType(cd::LightType::Point);
-        lightComponent.SetIntensity(1024.0f);
-        lightComponent.SetColor(cd::Vec3f(1.0f, 0.0f, 0.0f));
-        
+        auto& lightComponent = CreateLightComponents(entity, cd::LightType::Point, 1024.0f, cd::Vec3f(1.0f, 0.0f, 0.0f));
         lightComponent.SetPosition(cd::Point(0.0f, 0.0f, -12.0f));
         lightComponent.SetRange(1024.0f);
-
-        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
-        transformComponent.SetTransform(cd::Transform::Identity());
-        transformComponent.Build();
     }
     else if (ImGui::MenuItem("Add Spot Light"))
     {
         engine::Entity entity = AddNamedEntity("SpotLight");
-        auto& lightComponent = pWorld->CreateComponent<engine::LightComponent>(entity);
-        lightComponent.SetType(cd::LightType::Spot);
-        lightComponent.SetIntensity(1024.0f);
-        lightComponent.SetColor(cd::Vec3f(0.0f, 1.0f, 0.0f));
-
+        auto& lightComponent = CreateLightComponents(entity, cd::LightType::Spot, 1024.0f, cd::Vec3f(0.0f, 1.0f, 0.0f));
         lightComponent.SetPosition(cd::Point(0.0f, 0.0f, -12.0f));
         lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
         lightComponent.SetRange(1024.0f);
         lightComponent.SetAngleScale(1.0f);
         lightComponent.SetAngleOffset(10.0f);
-
-        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
-        transformComponent.SetTransform(cd::Transform::Identity());
-        transformComponent.Build();
     }
     else if (ImGui::MenuItem("Add Directional Light"))
     {
         engine::Entity entity = AddNamedEntity("DirectionalLight");
-        auto& lightComponent = pWorld->CreateComponent<engine::LightComponent>(entity);
-        lightComponent.SetType(cd::LightType::Directional);
-        lightComponent.SetIntensity(4.0f);
-        lightComponent.SetColor(cd::Vec3f(0.0f, 0.0f, 1.0f));
-        
+        auto& lightComponent = CreateLightComponents(entity, cd::LightType::Directional, 4.0f, cd::Vec3f(0.0f, 0.0f, 1.0f));
         lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
+    }
+    else if (ImGui::MenuItem("Add Rectangle Light"))
+    {
+        engine::Entity entity = AddNamedEntity("RectangleLight");
+        auto& lightComponent = CreateLightComponents(entity, cd::LightType::Rectangle, 1024.0f, cd::Vec3f(1.0f, 0.0f, 0.0f));
 
-        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
-        transformComponent.SetTransform(cd::Transform::Identity());
-        transformComponent.Build();
+        lightComponent.SetPosition(cd::Point(0.0f, 0.0f, -12.0f));
+        lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
+        lightComponent.SetUp(cd::Direction(0.0f, 1.0f, 0.0f));
+        lightComponent.SetRange(1024.0f);
+        lightComponent.SetWidth(10.0f);
+        lightComponent.SetHeight(10.0f);
+    }
+    else if (ImGui::MenuItem("Add Disk Light"))
+    {
+        engine::Entity entity = AddNamedEntity("DiskLight");
+        auto& lightComponent = CreateLightComponents(entity, cd::LightType::Disk, 1024.0f, cd::Vec3f(1.0f, 0.0f, 0.0f));
+
+        lightComponent.SetPosition(cd::Point(0.0f, 0.0f, -12.0f));
+        lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
+        lightComponent.SetRange(1024.0f);
+        lightComponent.SetRadius(1024.0f);
+    }
+    else if (ImGui::MenuItem("Add Sphere Light"))
+    {
+        engine::Entity entity = AddNamedEntity("SphereLight");
+        auto& lightComponent = CreateLightComponents(entity, cd::LightType::Sphere, 1024.0f, cd::Vec3f(1.0f, 0.0f, 0.0f));
+
+        lightComponent.SetPosition(cd::Point(0.0f, 0.0f, -12.0f));
+        lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
+        lightComponent.SetRadius(1024.0f);
+    }
+    else if (ImGui::MenuItem("Add Tube Light"))
+    {
+        engine::Entity entity = AddNamedEntity("TubeLight");
+        auto& lightComponent = CreateLightComponents(entity, cd::LightType::Tube, 1024.0f, cd::Vec3f(1.0f, 0.0f, 0.0f));
+
+        lightComponent.SetPosition(cd::Point(0.0f, 0.0f, -12.0f));
+        lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
+        lightComponent.SetRange(1024.0f);
+        lightComponent.SetWidth(10.0f);
     }
 }
 
