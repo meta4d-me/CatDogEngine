@@ -55,7 +55,7 @@ void MainMenu::FileMenu()
 		{
 			if (auto* pMainWindow = reinterpret_cast<engine::Window*>(ImGui::GetIO().BackendPlatformUserData))
 			{
-				pMainWindow->Closed();
+				pMainWindow->Close();
 			}
 		}
 
@@ -198,7 +198,7 @@ void MainMenu::Update()
 	{
 		if (auto* pMainWindow = reinterpret_cast<engine::Window*>(ImGui::GetIO().BackendPlatformUserData))
 		{
-			pMainWindow->Closed();
+			pMainWindow->Close();
 		}
 	}
 }

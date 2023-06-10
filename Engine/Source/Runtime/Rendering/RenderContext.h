@@ -41,6 +41,7 @@ public:
 	void Shutdown();
 
 	uint16_t CreateView();
+	void ResetViewCount() { m_currentViewCount = 0; }
 
 	/////////////////////////////////////////////////////////////////////
 	// Resource related apis
@@ -73,6 +74,7 @@ public:
 	bgfx::UniformHandle GetUniform(StringCrc resourceCrc) const;
 
 	void Destory(StringCrc resourceCrc);
+	void DestoryRenderTarget(StringCrc resourceCrc);
 
 private:
 	uint8_t m_currentViewCount = 0;

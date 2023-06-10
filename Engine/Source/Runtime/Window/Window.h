@@ -28,15 +28,19 @@ public:
     
 	uint16_t GetWidth() const { return m_width; }
 	uint16_t GetHeight() const { return m_height; }
-    void SetSize(uint16_t width, uint16_t height) { m_width = width; m_height = height; }
 
+    void SetTitle(const char* pTitle);
+    void SetFullScreen(bool flag);
+    void SetResizeable(bool flag);
+    void SetBordedLess(bool flag);
+    void SetSize(uint16_t width, uint16_t height);
     void SetWindowIcon(const char* pFilePath) const;
 
     void Update();
 
-    bool ShouldClose() const { return m_IsClosed; }
-    void Closed(bool bPushSdlEvent = true);
-
+    bool ShouldClose() const { return m_isClosed; }
+    void Close(bool bPushSdlEvent = true);
+     
 public:
     // Window
     Delegate<void(const char*)> OnDropFile;
@@ -48,7 +52,7 @@ private:
 
     uint16_t m_width = 1;
     uint16_t m_height = 1;
-    bool m_IsClosed = false;
+    bool m_isClosed = false;
 };
 
 }

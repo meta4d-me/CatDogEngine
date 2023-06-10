@@ -141,9 +141,11 @@ void RenderContext::OnResize(uint16_t width, uint16_t height)
 {
 	// Update swap chain RT size which presents main window.
 	constexpr engine::StringCrc editorSwapChainName("EditorUISwapChain");
-	engine::RenderTarget* pRenderTarget = GetRenderTarget(editorSwapChainName);
-	pRenderTarget->Resize(width, height);
-
+	if (engine::RenderTarget* pRenderTarget = GetRenderTarget(editorSwapChainName))
+	{
+		pRenderTarget->Resize(width, height);
+	}
+	
 	bgfx::reset(width, height, BGFX_RESET_MSAA_X16 | BGFX_RESET_VSYNC);
 }
 
@@ -516,6 +518,11 @@ void RenderContext::Destory(StringCrc resourceCrc)
 	DestoryImpl(resourceCrc, m_programHandleCaches);
 	DestoryImpl(resourceCrc, m_textureHandleCaches);
 	DestoryImpl(resourceCrc, m_uniformHandleCaches);
+}
+
+void RenderContext::DestoryRenderTarget(StringCrc resourceCrc)
+{
+	m_renderTargetCaches.erase(resourceCrc.Value());
 }
 
 }

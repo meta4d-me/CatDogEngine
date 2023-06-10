@@ -161,9 +161,6 @@ void SceneView::UpdateSwitchIBLButton()
 		engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
 		if (m_isIBLActive)
 		{
-			m_pIBLSkyRenderer->SetEnable(true);
-			m_pPBRSkyRenderer->SetEnable(false);
-
 			constexpr engine::StringCrc iblPBRCrc("IBL");
 			for (engine::Entity entity : pSceneWorld->GetMaterialEntities())
 			{
@@ -173,9 +170,6 @@ void SceneView::UpdateSwitchIBLButton()
 		}
 		else
 		{
-			m_pIBLSkyRenderer->SetEnable(false);
-			m_pPBRSkyRenderer->SetEnable(true);
-
 			for (engine::Entity entity : pSceneWorld->GetMaterialEntities())
 			{
 				engine::MaterialComponent* pMaterialComponent = pSceneWorld->GetMaterialComponent(entity);
@@ -192,7 +186,7 @@ void SceneView::UpdateSwitchIBLButton()
 
 void SceneView::UpdateSwitchAABBButton()
 {
-	bool isAABBActive = m_pAABBRenderer->IsEnable();
+	bool isAABBActive = false;
 	if (isAABBActive)
 	{
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
@@ -200,7 +194,7 @@ void SceneView::UpdateSwitchAABBButton()
 
 	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CUBE " AABB")))
 	{
-		m_pAABBRenderer->SetEnable(isAABBActive);
+		// TODO : ...
 	}
 
 	if (isAABBActive)
@@ -356,7 +350,6 @@ void SceneView::Update()
 		{
 			pCameraComponent->SetAspect(static_cast<float>(regionWidth) / static_cast<float>(regionHeight));
 		}
-
 	}
 
 	// Check if mouse hover on the area of SceneView so it can control.

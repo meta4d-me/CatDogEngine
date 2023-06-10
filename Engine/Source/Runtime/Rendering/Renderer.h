@@ -13,7 +13,7 @@ class Renderer
 {
 public:
 	Renderer() = delete;
-	explicit Renderer(RenderContext* pRenderContext, uint16_t viewID, RenderTarget* pRenderTarget);
+	explicit Renderer(RenderContext* pRenderContext, uint16_t viewID, RenderTarget* pRenderTarget = nullptr);
 	Renderer(const Renderer&) = delete;
 	Renderer& operator=(const Renderer&) = delete;
 	Renderer(Renderer&&) = delete;
@@ -25,6 +25,7 @@ public:
 	virtual void Render(float deltaTime) = 0;
 
 	uint16_t GetViewID() const { return m_viewID; }
+	void SetRenderTarget(RenderTarget* pRenderTarget) { m_pRenderTarget = pRenderTarget; }
 	const RenderTarget* GetRenderTarget() const { return m_pRenderTarget; }
 
 	virtual void SetEnable(bool value) { m_isEnable = value; }
