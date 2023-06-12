@@ -180,19 +180,9 @@ void main()
 	Material material = GetMaterial(v_texcoord0, v_normal, v_TBN);
 	
 	vec3 viewDir = normalize(cameraPos - v_worldPos);
-	float NdotV = max(dot(material.normal, viewDir), 0.0);
-	
-	// ------------------------------------ Directional Light ----------------------------------------
-	
-	vec3 diffuseBRDF = material.albedo * INV_PI;
-	vec3 dirColor = CalculateLights(material, v_worldPos, viewDir, diffuseBRDF);
+	vec3 reflectDir = normalize(reflect(-viewDir, material.normal));	
 	
 	// ----------------------------------- Environment Light ----------------------------------------
-
-	// Environment Specular BRDF
-	vec2 lut = texture2D(s_texLUT, vec2(NdotV, 1.0 - material.roughness)).xy;
-	vec3 envSpecularBRDF = (material.F0 * lut.x + lut.y);
-	vec3 reflectDir = normalize(reflect(-viewDir, material.normal));
 
 	vec3 envIrradiance = vec3_splat(1.0);
 	vec3 envRadiance = vec3_splat(1.0);
@@ -209,6 +199,11 @@ void main()
 	envRadiance = toLinear(textureCubeLod(s_texCube, cubeReflectDir, mip).xyz);
 #endif
 
+	// Environment Specular BRDF
+	float NdotV = max(dot(material.normal, viewDir), 0.0);
+	vec2 lut = texture2D(s_texLUT, vec2(NdotV, 1.0 - material.roughness)).xy;
+	vec3 envSpecularBRDF = (material.F0 * lut.x + lut.y);
+
 	// Occlusion
 	float specularOcclusion = lerp(pow(material.occlusion, 4.0), 1.0, saturate(-0.3 + NdotV * NdotV));
 	float horizonOcclusion = saturate(1.0 + 1.2 * dot(reflectDir, v_normal));
@@ -220,9 +215,14 @@ void main()
 #if defined(ORM_MAP)
 	vec3 envColor = KD * material.albedo * envIrradiance * material.occlusion + envSpecularBRDF * envRadiance * min(specularOcclusion, horizonOcclusion);
 #else
-	// TODO : ORM is required or we will just show albedo color.
+	// ORM is required or we will just show albedo color.
 	vec3 envColor = material.albedo;
 #endif
+	
+	// ------------------------------------ Directional Light ----------------------------------------
+	
+	vec3 diffuseBRDF = material.albedo * INV_PI;
+	vec3 dirColor = CalculateLights(material, v_worldPos, viewDir, diffuseBRDF);	
 	
 	// ------------------------------------ Fragment Color -----------------------------------------
 	gl_FragColor = vec4(dirColor + envColor + material.emissive * u_emissiveColor, 1.0);
