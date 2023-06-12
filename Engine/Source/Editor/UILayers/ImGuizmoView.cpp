@@ -26,9 +26,7 @@ void ImGuizmoView::Init()
 
 void ImGuizmoView::Update()
 {
-	ImGuiIO& io = ImGui::GetIO();
-	engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
-	engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
+	engine::SceneWorld* pSceneWorld = GetSceneWorld();
 	engine::Entity selectedEntity = pSceneWorld->GetSelectedEntity();
 
 	if (engine::INVALID_ENTITY == selectedEntity)
@@ -48,7 +46,8 @@ void ImGuizmoView::Update()
 	ImGuizmo::BeginFrame();
 	constexpr bool isPerspective = true;
 	ImGuizmo::SetOrthographic(!isPerspective);
-	ImGuizmo::SetRect(0.0f, 0.0f, io.DisplaySize.x, io.DisplaySize.y);
+	ImGuiIO& io = ImGui::GetIO();
+	ImGuizmo::SetRect(0.0f, 0.0f, ImGui::GetIO().DisplaySize.x, io.DisplaySize.y);
 	cd::Matrix4x4 worldMatrix = pTransformComponent->GetWorldMatrix();
 	ImGuizmo::Manipulate(pCameraComponent->GetViewMatrix().Begin(), pCameraComponent->GetProjectionMatrix().Begin(),
 		operation, ImGuizmo::LOCAL, worldMatrix.Begin());

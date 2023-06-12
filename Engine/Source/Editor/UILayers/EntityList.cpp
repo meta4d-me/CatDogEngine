@@ -258,16 +258,14 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
 
         // Operation list only for camera entites.
         engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(entity);
-        if (pCameraComponent &&
-            entity != pSceneWorld->GetMainCameraEntity())
+        if (pCameraComponent && entity != pSceneWorld->GetMainCameraEntity())
         {
             if (ImGui::Selectable(CD_TEXT("Set Main Camera")))
             {
                 pSceneWorld->SetMainCameraEntity(entity);
 
-                engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(ImGui::GetIO().BackendRendererUserData);
                 constexpr engine::StringCrc sceneRenderTarget("SceneRenderTarget");
-                engine::RenderTarget* pRenderTarget = pCurrentRenderContext->GetRenderTarget(sceneRenderTarget);
+                engine::RenderTarget* pRenderTarget = GetRenderContext()->GetRenderTarget(sceneRenderTarget);
                 pCameraComponent->SetAspect(pRenderTarget->GetAspect());
             }
         }
@@ -311,9 +309,7 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
 
 void EntityList::Update()
 {
-    ImGuiIO& io = ImGui::GetIO();
-    engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
-    engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
+    engine::SceneWorld* pSceneWorld = GetSceneWorld();
 
     auto flags = ImGuiWindowFlags_NoCollapse;
     ImGui::Begin(GetName(), &m_isEnable, flags);
@@ -334,7 +330,7 @@ void EntityList::Update()
     ImGui::TextUnformatted(reinterpret_cast<const char*>(ICON_MDI_MAGNIFY));
     ImGui::SameLine();
 
-    ImGui::PushFont(io.Fonts->Fonts[0]);
+    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
     ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
     m_entityFilter.Draw("##EntityFilter", ImGui::GetContentRegionAvail().x - ImGui::GetStyle().IndentSpacing);
@@ -365,7 +361,7 @@ void EntityList::Update()
     if (!m_entityFilter.IsActive())
     {
         ImGui::SameLine();
-        ImGui::PushFont(io.Fonts->Fonts[0]);
+        ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
         ImGui::SetCursorPosX(ImGui::GetFontSize() * 4.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, ImGui::GetStyle().FramePadding.y));
         ImGui::TextUnformatted("Search...");

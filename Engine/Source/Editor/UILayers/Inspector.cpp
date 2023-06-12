@@ -392,9 +392,7 @@ void Inspector::Update()
 	auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 	ImGui::Begin(GetName(), &m_isEnable, flags);
 
-	ImGuiIO& io = ImGui::GetIO();
-	engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
-	engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
+	engine::SceneWorld* pSceneWorld = GetSceneWorld();
 	engine::Entity selectedEntity = pSceneWorld->GetSelectedEntity();
 	if (engine::INVALID_ENTITY == selectedEntity)
 	{

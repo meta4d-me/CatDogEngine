@@ -55,7 +55,7 @@ void MainMenu::FileMenu()
 		{
 			if (auto* pMainWindow = reinterpret_cast<engine::Window*>(ImGui::GetIO().BackendPlatformUserData))
 			{
-				pMainWindow->Closed();
+				pMainWindow->Close();
 			}
 		}
 
@@ -89,7 +89,7 @@ void MainMenu::EditMenu()
 			for (engine::ThemeColor theme = engine::ThemeColor::Black; theme < engine::ThemeColor::Count;
 				theme = static_cast<engine::ThemeColor>(static_cast<int>(theme) + 1))
 			{
-				engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
+				engine::ImGuiContextInstance* pImGuiContextInstance = GetImGuiContextInstance();
 				if (ImGui::MenuItem(GetThemeColorName(theme), "", pImGuiContextInstance->GetImGuiThemeColor() == theme))
 				{
 					pImGuiContextInstance->SetImGuiThemeColor(theme);
@@ -104,7 +104,7 @@ void MainMenu::EditMenu()
 			for (engine::Language language = engine::Language::ChineseSimplied; language < engine::Language::Count;
 				 language = static_cast<engine::Language>(static_cast<int>(language) + 1))
 			{
-				engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
+				engine::ImGuiContextInstance* pImGuiContextInstance = GetImGuiContextInstance();
 				if (ImGui::MenuItem(GetLanguageName(language), "", pImGuiContextInstance->GetImGuiLanguage() == language))
 				{
 					pImGuiContextInstance->SetImGuiLanguage(language);
@@ -123,8 +123,7 @@ void MainMenu::WindowMenu()
 
 	if (ImGui::BeginMenu(CD_TEXT("TEXT_WINDOW")))
 	{
-		engine::ImGuiContextInstance* pCurrentImguiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
-		for (const auto& pDockableLayer : pCurrentImguiContextInstance->GetDockableLayers())
+		for (const auto& pDockableLayer : GetImGuiContextInstance()->GetDockableLayers())
 		{
 			if (ImGui::MenuItem(pDockableLayer->GetName(), "", pDockableLayer->IsEnable()))
 			{
@@ -140,9 +139,7 @@ void MainMenu::BuildMenu()
 {
 	if (ImGui::BeginMenu(CD_TEXT("TEXT_BUILD")))
 	{
-		ImGuiIO& io = ImGui::GetIO();
-		engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
-		engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
+		engine::SceneWorld* pSceneWorld = GetSceneWorld();
 
 		if (ImGui::MenuItem(CD_TEXT("TEXT_REBUILD_NONUBER_SHADERS")))
 		{
@@ -198,7 +195,7 @@ void MainMenu::Update()
 	{
 		if (auto* pMainWindow = reinterpret_cast<engine::Window*>(ImGui::GetIO().BackendPlatformUserData))
 		{
-			pMainWindow->Closed();
+			pMainWindow->Close();
 		}
 	}
 }
