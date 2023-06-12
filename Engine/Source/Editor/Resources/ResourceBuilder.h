@@ -60,7 +60,9 @@ public:
 	bool AddCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
 	bool AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char *pUberOptions = nullptr);
 	bool AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath);
+	
 	void Update();
+	size_t GetCurrentTaskCount() const { return m_buildTasks.size(); }
 
 private:
 	ResourceBuilder();

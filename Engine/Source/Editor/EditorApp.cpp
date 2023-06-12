@@ -31,6 +31,7 @@
 #include "UILayers/MainMenu.h"
 #include "UILayers/OutputLog.h"
 #include "UILayers/SceneView.h"
+#include "UILayers/Splash.h"
 #include "UILayers/TerrainEditor.h"
 #include "Window/Input.h"
 #include "Window/Window.h"
@@ -41,6 +42,7 @@
 #include "ImGui/imfilebrowser.h"
 
 #include <format>
+#include <thread>
 
 namespace editor
 {
@@ -55,57 +57,36 @@ EditorApp::~EditorApp()
 
 void EditorApp::Init(engine::EngineInitArgs initArgs)
 {
-	// Phase 1 - Splash
-	//		* Init graphics backend
-	//		* Init editor renderers so that it can use imgui to display ui widgets
-	//		* Init editor imgui context without any UI layer
-	//		* Compile uber shader permutations automatically when initialization or detect changes
-	InitRenderContext(initArgs.backend);
+	m_initArgs = cd::MoveTemp(initArgs);
 
-	AddWindow(std::make_unique<engine::Window>("Splash", 500, 300));
-	GetMainWindow()->SetWindowIcon(initArgs.pIconFilePath);
-	GetMainWindow()->SetBordedLess(true);
-	GetMainWindow()->SetResizeable(false);
-	GetMainWindow()->OnResize.Bind<engine::RenderContext, &engine::RenderContext::OnResize>(m_pRenderContext.get());
+	// Init graphics backend
+	InitRenderContext(m_initArgs.backend);
+
+	// Phase 1 - Splash
+	//		* Compile uber shader permutations automatically when initialization or detect changes
+	//		* Show compile progresses so it still needs to update ui
+	auto pSplashWindow = std::make_unique<engine::Window>("Splash", 500, 300);
+	pSplashWindow->SetWindowIcon(m_initArgs.pIconFilePath);
+	pSplashWindow->SetBordedLess(true);
+	pSplashWindow->SetResizeable(false);
+	pSplashWindow->OnResize.Bind<engine::RenderContext, &engine::RenderContext::OnResize>(m_pRenderContext.get());
+	AddWindow(cd::MoveTemp(pSplashWindow));
 
 	InitEditorRenderers();
-	InitEditorImGuiContext(initArgs.language);
+	InitEditorImGuiContext(m_initArgs.language);
 	
 	InitECWorld();
 	m_pEditorImGuiContext->SetSceneWorld(m_pSceneWorld.get());
 
+	// Add shader build tasks and create a thread to update tasks.
 	InitShaderPrograms();
+	m_pEditorImGuiContext->AddStaticLayer(std::make_unique<Splash>("Splash"));
 
-	// Phase 2 - Project Manager
-	//		* TODO : Show project selector
-	//GetMainWindow()->SetTitle("Project Manager");
-	//GetMainWindow()->SetSize(800, 600);
-
-	// Phase 3 - Editor
-	//		* Load selected project to create assets, components, entities, ...
-	//		* Init ECWorld
-	//		* Init engine renderers in SceneView to display visual results
-	//		* Init editor ui layers
-	//		* Init engine imgui context for ingame debug UI
-	//		* Init engine ui layers
-	GetMainWindow()->SetTitle(initArgs.pTitle);
-	GetMainWindow()->SetSize(initArgs.width, initArgs.height);
-	GetMainWindow()->SetFullScreen(initArgs.useFullScreen);
-	GetMainWindow()->SetBordedLess(false);
-	GetMainWindow()->SetResizeable(true);
-
-	InitEngineRenderers();
-	InitEditorUILayers();
-	
-	InitEngineImGuiContext(initArgs.language);
-	m_pEngineImGuiContext->SetSceneWorld(m_pSceneWorld.get());
-	
-	InitEngineUILayers();
-
-	// Enable multiple viewports which means that we can drop any imgui window outside the main window.
-	// Then the imgui window will become a new standalone window. Drop back to convert it back.
-	// TODO : should be only used in the editor ImGuiContext.
-	// InitImGuiViewports(m_pRenderContext);
+	std::thread resourceThread([]()
+	{
+		ResourceBuilder::Get().Update();
+	});
+	resourceThread.detach();
 }
 
 void EditorApp::Shutdown()
@@ -356,7 +337,6 @@ void EditorApp::InitShaderPrograms() const
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetAnimationMaterialType());
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetTerrainMaterialType());
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetDDGIMaterialType());
-	ResourceBuilder::Get().Update();
 }
 
 void EditorApp::AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer)
@@ -373,6 +353,43 @@ void EditorApp::AddEngineRenderer(std::unique_ptr<engine::Renderer> pRenderer)
 
 bool EditorApp::Update(float deltaTime)
 {
+	// TODO : it is better to remove these logics about splash -> editor switch here.
+	// Better implementation is to have multiple Application or Window classes and they can switch.
+	if (!m_bInitEditor && 0 == ResourceBuilder::Get().GetCurrentTaskCount())
+	{
+		m_bInitEditor = true;
+		ShaderBuilder::UploadUberShader(m_pSceneWorld->GetPBRMaterialType());
+		ShaderBuilder::UploadUberShader(m_pSceneWorld->GetAnimationMaterialType());
+		ShaderBuilder::UploadUberShader(m_pSceneWorld->GetTerrainMaterialType());
+		ShaderBuilder::UploadUberShader(m_pSceneWorld->GetDDGIMaterialType());
+
+		// Phase 2 - Project Manager
+		//		* TODO : Show project selector
+		//GetMainWindow()->SetTitle("Project Manager");
+		//GetMainWindow()->SetSize(800, 600);
+
+		// Phase 3 - Editor
+		//		* Load selected project to create assets, components, entities, ...s
+		//		* Init engine renderers in SceneView to display visual results
+		//		* Init editor ui layers
+		//		* Init engine imgui context for ingame debug UI
+		//		* Init engine ui layers
+		GetMainWindow()->SetTitle(m_initArgs.pTitle);
+		GetMainWindow()->SetSize(m_initArgs.width, m_initArgs.height);
+		GetMainWindow()->SetFullScreen(m_initArgs.useFullScreen);
+		GetMainWindow()->SetBordedLess(false);
+		GetMainWindow()->SetResizeable(true);
+
+		InitEngineRenderers();
+		m_pEditorImGuiContext->ClearUILayers();
+		InitEditorUILayers();
+
+		InitEngineImGuiContext(m_initArgs.language);
+		m_pEngineImGuiContext->SetSceneWorld(m_pSceneWorld.get());
+
+		InitEngineUILayers();
+	}
+
 	GetMainWindow()->Update();
 
 	m_pEditorImGuiContext->Update(deltaTime);

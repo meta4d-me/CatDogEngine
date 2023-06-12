@@ -224,6 +224,12 @@ void ImGuiContextInstance::AddDynamicLayer(std::unique_ptr<ImGuiBaseLayer> pLaye
 	m_pImGuiDockableLayers.emplace_back(std::move(pLayer));
 }
 
+void ImGuiContextInstance::ClearUILayers()
+{
+	m_pImGuiStaticLayers.clear();
+	m_pImGuiDockableLayers.clear();
+}
+
 void ImGuiContextInstance::BeginDockSpace()
 {
 	// To create a dock space, we need to create a window to host it at first.

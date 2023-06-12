@@ -64,6 +64,9 @@ public:
 	void InitECWorld();
 
 private:
+	bool m_bInitEditor = false;
+	engine::EngineInitArgs m_initArgs;
+
 	// Windows
 	std::vector<std::unique_ptr<engine::Window>> m_pAllWindows;
 
