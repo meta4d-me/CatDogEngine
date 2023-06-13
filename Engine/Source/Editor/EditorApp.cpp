@@ -65,7 +65,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	// Phase 1 - Splash
 	//		* Compile uber shader permutations automatically when initialization or detect changes
 	//		* Show compile progresses so it still needs to update ui
-	auto pSplashWindow = std::make_unique<engine::Window>("Splash", 500, 300);
+	auto pSplashWindow = std::make_unique<engine::Window>("Loading", 500,400);
 	pSplashWindow->SetWindowIcon(m_initArgs.pIconFilePath);
 	pSplashWindow->SetBordedLess(true);
 	pSplashWindow->SetResizeable(false);
