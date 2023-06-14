@@ -3,6 +3,8 @@
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/TransformComponent.h"
 #include "ImGui/ImGuiContextInstance.h"
+#include "Rendering/RenderContext.h"
+#include "Resources/ResourceBuilder.h"
 
 #include <imgui/imgui.h>
 
@@ -258,6 +260,47 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 
 	if (isOpen)
 	{
+		std::vector<std::string> filenames;
+		editor::Inspector* imguibaselayer = nullptr; 
+		std::filesystem::path dirPath{ "C:/CatDogEngine/Projects/Test/test" };
+		std::filesystem::path fontpath{ "test" }; 
+		for (const auto& entry : std::filesystem::directory_iterator(dirPath))
+		{
+			std::string filename = entry.path().filename().string();
+			filenames.push_back(filename);
+		}
+		std::vector<const char*> items;
+		for (int i = 0; i < filenames.size(); i++)
+		{
+			items.push_back(filenames[i].c_str());
+			std::string fullpath = (fontpath / filenames[i]).string(); 
+			imguibaselayer->GetRenderContext()->CreateTexture(fullpath.c_str());
+		}
+
+		std::string renderpath = fontpath.string(); 
+		static int currentItem = 0;
+		if (ImGui::BeginCombo("Select Texture", items[currentItem]))
+		{
+			for (int i = 0; i < items.size(); i++)
+			{
+				bool isSelected = (currentItem == i);
+				if (ImGui::Selectable(items[i], isSelected))
+				{
+					currentItem = i;
+					renderpath = (fontpath / filenames[currentItem]).string(); 
+				}
+				if (isSelected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+		engine::StringCrc Texture(renderpath.c_str());
+		bgfx::TextureHandle textureHandle = imguibaselayer->GetRenderContext()->GetTexture(Texture);
+		ImGui::Separator();
+		bool a = bgfx::isValid(textureHandle);
+		ImGui::Image(ImTextureID(textureHandle.idx), ImVec2(64, 64));
+
+		ImGui::Separator();
 		ImGuiProperty<cd::Vec3f>("AlbedoColor", pMaterialComponent->GetAlbedoColor(), cd::Vec3f::Zero(), cd::Vec3f::One());
 		ImGuiProperty<cd::Vec3f>("EmissiveColor", pMaterialComponent->GetEmissiveColor(), cd::Vec3f::Zero(), cd::Vec3f::One());
 	}
