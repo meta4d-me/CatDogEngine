@@ -234,7 +234,8 @@ void SceneView::UpdateToolMenuButtons()
 	}
 	if (show_slider) {
 		ImGui::Begin("Slider", &show_slider); 
-		ImGui::SliderFloat("Speed", &m_MainCameraSpeed, 0.0f, 1000.0f);
+	    ImGui::InputFloat2("Slider Range", sliderRange);
+		ImGui::SliderFloat("Speed", &m_MainCameraSpeed, sliderRange[0], sliderRange[1]);
 		ImGui::End();
 	}
 	ImGui::PopStyleColor();

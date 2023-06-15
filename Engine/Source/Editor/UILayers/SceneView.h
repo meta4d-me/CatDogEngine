@@ -59,6 +59,8 @@ private:
 
 	engine::RenderTarget* m_pRenderTarget = nullptr;
 	bool m_isMouseDownFirstTime = true;
+
+	float sliderRange[2] = { 0.0f, 1000.0f };
 };
 
 }
