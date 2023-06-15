@@ -38,13 +38,14 @@ public:
 
 	ImGuizmo::OPERATION GetImGuizmoOperation() const { return m_currentOperation; }
 
+	float m_MainCameraSpeed  = 0;
 private:
 	void UpdateToolMenuButtons();
 	void Update2DAnd3DButtons();
 	void UpdateSwitchIBLButton();
 	void UpdateSwitchAABBButton();
 	void UpdateOperationButtons();
-	
+
 private:
 	uint16_t m_lastContentWidth = 0;
 	uint16_t m_lastContentHeight = 0;

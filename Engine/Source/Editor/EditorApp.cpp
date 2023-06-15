@@ -231,8 +231,7 @@ void EditorApp::InitECWorld()
 	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(
 		m_pSceneWorld.get(),
 		15.0f /* horizontal sensitivity */,
-		5.0f /* vertical sensitivity */,
-		160.0f /* Movement Speed*/);
+		5.0f /* vertical sensitivity */);
 
 	engine::Entity ddgiEntity = pWorld->CreateEntity();
 	m_pSceneWorld->SetDDGIEntity(ddgiEntity);
@@ -420,6 +419,7 @@ bool EditorApp::Update(float deltaTime)
 
 		assert(pMainCameraComponent);
 		m_pNewCameraController->Update(deltaTime);
+		m_pCameraController->SetMovementSpeed(m_pSceneView->m_MainCameraSpeed);
 		m_pCameraController->Update(deltaTime);
 		pMainCameraComponent->Build();
 

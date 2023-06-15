@@ -227,6 +227,16 @@ void SceneView::UpdateToolMenuButtons()
 
 	UpdateSwitchAABBButton();
 
+	ImGui::SameLine();
+	static bool show_slider = false;
+	if (ImGui::Button("Camera Speed")) {
+		show_slider = true;
+	}
+	if (show_slider) {
+		ImGui::Begin("Slider", &show_slider); 
+		ImGui::SliderFloat("Speed", &m_MainCameraSpeed, 0.0f, 1000.0f);
+		ImGui::End();
+	}
 	ImGui::PopStyleColor();
 }
 
