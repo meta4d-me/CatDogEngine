@@ -231,8 +231,7 @@ void EditorApp::InitECWorld()
 	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(
 		m_pSceneWorld.get(),
 		15.0f /* horizontal sensitivity */,
-		5.0f /* vertical sensitivity */);
-
+		5.0f/* vertical sensitivity */);
 	engine::Entity ddgiEntity = pWorld->CreateEntity();
 	m_pSceneWorld->SetDDGIEntity(ddgiEntity);
 	auto& ddgiNameComponent = pWorld->CreateComponent<engine::NameComponent>(ddgiEntity);
