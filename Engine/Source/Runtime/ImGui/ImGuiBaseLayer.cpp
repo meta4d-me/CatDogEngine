@@ -8,17 +8,17 @@
 namespace engine
 {
 
-ImGuiContextInstance* ImGuiBaseLayer::GetImGuiContextInstance() const
+ImGuiContextInstance* ImGuiBaseLayer::GetImGuiContextInstance()
 {
 	return reinterpret_cast<engine::ImGuiContextInstance*>(ImGui::GetIO().UserData);
 }
 
-RenderContext* ImGuiBaseLayer::GetRenderContext() const
+RenderContext* ImGuiBaseLayer::GetRenderContext()
 {
 	return reinterpret_cast<engine::RenderContext*>(ImGui::GetIO().BackendRendererUserData);
 }
 
-SceneWorld* ImGuiBaseLayer::GetSceneWorld() const
+SceneWorld* ImGuiBaseLayer::GetSceneWorld()
 {
 	return GetImGuiContextInstance()->GetSceneWorld();
 }

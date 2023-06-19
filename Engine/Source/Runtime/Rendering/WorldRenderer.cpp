@@ -100,7 +100,7 @@ void WorldRenderer::Render(float deltaTime)
 				bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle(textureInfo.samplerHandle), bgfx::TextureHandle(textureInfo.textureHandle));
 			}
 		}
-
+	    
 		constexpr StringCrc lutSampler("s_texLUT");
 		constexpr StringCrc lutTexture("Textures/lut/ibl_brdf_lut.dds");
 		bgfx::setTexture(LUT_SLOT, m_pRenderContext->GetUniform(lutSampler), m_pRenderContext->GetTexture(lutTexture));

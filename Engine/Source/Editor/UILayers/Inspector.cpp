@@ -261,9 +261,9 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 	if (isOpen)
 	{
 		std::vector<std::string> fileNames;
-		editor::Inspector* imguiBaseLayer = nullptr; 
 		std::filesystem::path dirPath{ "C:/CatDogEngine/Projects/Test/test" };
 		std::filesystem::path frontPath{ "test" }; 
+		engine::RenderContext* pRenderContext = engine::ImGuiBaseLayer::GetRenderContext();
 
 		for (const auto& it : std::filesystem::directory_iterator(dirPath))
 		{
@@ -275,7 +275,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		for (int i = 0;  i < fileNames.size();  ++i)
 		{
 			std::string fullpath = (frontPath / fileNames[i]).string(); 
-			imguiBaseLayer->GetRenderContext()->CreateTexture(fullpath.c_str());
+			pRenderContext->CreateTexture(fullpath.c_str());
 			textyrePaths.emplace_back(std::move(fullpath));
 		}
 
@@ -294,7 +294,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 			ImGui::EndCombo();
 		}
 
-		bgfx::TextureHandle textureHandle = imguiBaseLayer->GetRenderContext()->GetTexture(engine::StringCrc(textyrePaths[currentItem].c_str()));
+		bgfx::TextureHandle textureHandle = pRenderContext->GetTexture(engine::StringCrc(textyrePaths[currentItem].c_str()));
 		ImGui::Separator();
 		ImGui::Image(ImTextureID(textureHandle.idx), ImVec2(64, 64));
 

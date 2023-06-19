@@ -38,7 +38,7 @@ public:
 
 	ImGuizmo::OPERATION GetImGuizmoOperation() const { return m_currentOperation; }
 
-	float m_MainCameraSpeed  = 0;
+	float m_MainCameraSpeed  = 160.0f;
 private:
 	void UpdateToolMenuButtons();
 	void Update2DAnd3DButtons();
