@@ -115,7 +115,8 @@ vec3 CalculateSpotLight(U_Light light, Material material, vec3 worldPos, vec3 vi
 	
 	float distance = length(light.position - worldPos);
 	float attenuation = GetDistanceAtt(distance * distance, 1.0 / (light.range * light.range));
-	attenuation *= GetAngleAtt(lightDir, -light.direction, light.lightAngleScale, light.lightAngleOffeset);
+	// TODO : Remove this normalize in the future.
+	attenuation *= GetAngleAtt(lightDir, normalize(-light.direction), light.lightAngleScale, light.lightAngleOffeset);
 	vec3 radiance = light.color * light.intensity * INV_PI * attenuation;
 	
 	vec3  Fre = FresnelSchlick(HdotV, material.F0);
@@ -130,7 +131,8 @@ vec3 CalculateSpotLight(U_Light light, Material material, vec3 worldPos, vec3 vi
 // -------------------- Directional -------------------- //
 
 vec3 CalculateDirectionalLight(U_Light light, Material material, vec3 worldPos, vec3 viewDir, vec3 diffuseBRDF) {
-	vec3 lightDir = -light.direction;
+	// TODO : Remove this normalize in the future.
+	vec3 lightDir = normalize(-light.direction);
 	vec3 harfDir  = normalize(lightDir + viewDir);
 	
 	float NdotV = max(dot(material.normal, viewDir), 0.0);
