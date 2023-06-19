@@ -117,6 +117,69 @@ void MainMenu::EditMenu()
 	}
 }
 
+void MainMenu::ViewMenu()
+{
+	auto FrameEntities = [](engine::SceneWorld* pSceneWorld, const std::vector<engine::Entity>& entities)
+	{
+		if (entities.empty())
+		{
+			return;
+		}
+
+		std::optional<cd::AABB> optAABB;
+		for (auto entity : entities)
+		{
+			if (engine::StaticMeshComponent* pStaticMesh = pSceneWorld->GetStaticMeshComponent(entity))
+			{
+				cd::AABB meshAABB = pStaticMesh->GetAABB();
+				if (engine::TransformComponent* pTransform = pSceneWorld->GetTransformComponent(entity))
+				{
+					meshAABB = meshAABB.Transform(pTransform->GetWorldMatrix());
+				}
+
+				if (optAABB.has_value())
+				{
+					optAABB.value().Merge(meshAABB);
+				}
+				else
+				{
+					optAABB = meshAABB;
+				}
+			}
+		}
+
+		engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
+		pCameraComponent->FrameAll(optAABB.value());
+	};
+
+	if (ImGui::BeginMenu("View"))
+	{
+		if (ImGui::MenuItem("Frame All"))
+		{
+			engine::SceneWorld* pSceneWorld = GetSceneWorld();
+			if (size_t meshCount = pSceneWorld->GetStaticMeshEntities().size(); meshCount > 0)
+			{
+				FrameEntities(pSceneWorld, pSceneWorld->GetStaticMeshEntities());
+			}
+		}
+
+		if (ImGui::MenuItem("Frame Selection"))
+		{
+			engine::SceneWorld* pSceneWorld = GetSceneWorld();
+			if (engine::Entity selectedEntity = pSceneWorld->GetSelectedEntity(); selectedEntity != engine::INVALID_ENTITY)
+			{
+				FrameEntities(pSceneWorld, { selectedEntity });
+			}
+		}
+
+		//if (ImGui::MenuItem("Frame Selection with Children"))
+		//{
+		//}
+
+		ImGui::EndMenu();
+	}
+}
+
 void MainMenu::WindowMenu()
 {
 	ImGuiIO& io = ImGui::GetIO();
@@ -182,6 +245,7 @@ void MainMenu::Update()
 	{
 		FileMenu();
 		EditMenu();
+		ViewMenu();
 		WindowMenu();
 		BuildMenu();
 		AboutMenu();

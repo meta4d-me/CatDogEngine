@@ -203,28 +203,14 @@ void SceneView::UpdateToolMenuButtons()
 
 	//ImGui::SameLine();
 	//ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-	ImGui::SameLine();
-
-	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CAMERA " FrameAll")))
-	{
-		engine::SceneWorld* pSceneWorld = GetSceneWorld();
-		if (cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase())
-		{
-			pSceneDatabase->UpdateAABB();
-
-			engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
-			pCameraComponent->FrameAll(pSceneDatabase->GetAABB());
-		}
-	}
-
-	ImGui::SameLine();
-
+	
 	//Update2DAnd3DButtons();
 	//ImGui::SameLine();
 
 	//UpdateSwitchIBLButton();
 	//ImGui::SameLine();
 
+	ImGui::SameLine();
 	UpdateSwitchAABBButton();
 
 	ImGui::PopStyleColor();
