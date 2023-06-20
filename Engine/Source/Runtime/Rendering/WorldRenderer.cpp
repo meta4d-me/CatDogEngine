@@ -5,11 +5,11 @@
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
-#include "fs_PBR_definitions.sh"
 #include "LightUniforms.h"
 #include "Material/ShaderSchema.h"
 #include "RenderContext.h"
 #include "Scene/Texture.h"
+#include "U_PBR.sh"
 
 #include <format>
 
