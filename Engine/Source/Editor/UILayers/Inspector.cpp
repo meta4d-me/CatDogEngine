@@ -334,8 +334,9 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
 			ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
 			ImGuiProperty<float>("Range", pLightComponent->GetRange());
-			ImGuiProperty<float>("AngleScale", pLightComponent->GetAngleScale());
-			ImGuiProperty<float>("AngleOffset", pLightComponent->GetAngleOffset());
+			ImGuiProperty<float>("InnerDegree", pLightComponent->GetInnerDegree());
+			ImGuiProperty<float>("OuterDegree", pLightComponent->GetOuterDegree());
+			pLightComponent->RecalculateScalAndOffset();
 			break;
 		case cd::LightType::Disk:
 			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());

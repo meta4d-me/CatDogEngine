@@ -35,8 +35,9 @@ float GetAngleAtt(vec3 lightDir, vec3 lightForward, float lightAngleScale, float
 	// float lightAngleScale = 1.0f / max(0.001f, cosInner - cosOuter);
 	// float lightAngleOffeset = -cosOuter * angleScale;
 	
-	float cd = dot(lightDir, lightForward);
-	float attenuation = saturate(cd * lightAngleScale + lightAngleOffeset);
+	// lightDir: Start from fragment, lightForward: Start from light source.
+	float theta = dot(-lightDir, lightForward);
+	float attenuation = saturate(theta * lightAngleScale + lightAngleOffeset);
 	attenuation *= attenuation;
 	return attenuation;
 }
@@ -116,7 +117,7 @@ vec3 CalculateSpotLight(U_Light light, Material material, vec3 worldPos, vec3 vi
 	float distance = length(light.position - worldPos);
 	float attenuation = GetDistanceAtt(distance * distance, 1.0 / (light.range * light.range));
 	// TODO : Remove this normalize in the future.
-	attenuation *= GetAngleAtt(lightDir, normalize(-light.direction), light.lightAngleScale, light.lightAngleOffeset);
+	attenuation *= GetAngleAtt(lightDir, normalize(light.direction), light.lightAngleScale, light.lightAngleOffeset);
 	vec3 radiance = light.color * light.intensity * INV_PI * attenuation;
 	
 	vec3  Fre = FresnelSchlick(HdotV, material.F0);

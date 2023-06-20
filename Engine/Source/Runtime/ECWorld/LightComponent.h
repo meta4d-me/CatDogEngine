@@ -51,10 +51,22 @@ public:
 	float& GetHeight() { return m_lightUniformData.height; }
 	float GetHeight() const { return m_lightUniformData.height; }
 
+	void RecalculateScalAndOffset();
+
+	void SetInnerDegree(float inner);
+	float &GetInnerDegree() { return m_spotInnerDegree; }
+	float GetInnerDegree() const { return m_spotInnerDegree; }
+
+	void SetOuterDegree(float outer);
+	float &GetOuterDegree() { return m_spotOuterDegree; }
+	float GetOuterDegree() const { return m_spotOuterDegree; }
+
+	// It is recommended to access the inside and outside angle of the spotlight through the functions of the Degree series.
 	void SetAngleScale(float angleScale) { m_lightUniformData.lightAngleScale = angleScale; }
 	float& GetAngleScale() { return m_lightUniformData.lightAngleScale; }
 	float GetAngleScale() const { return m_lightUniformData.lightAngleScale; }
 
+	// It is recommended to access the inside and outside angle of the spotlight through the functions of the Degree series.
 	void SetAngleOffset(float angleOffset) { m_lightUniformData.lightAngleOffeset = angleOffset; }
 	float& GetAngleOffset() { return m_lightUniformData.lightAngleOffeset; }
 	float GetAngleOffset() const { return m_lightUniformData.lightAngleOffeset; }
@@ -73,6 +85,10 @@ public:
 
 private:
 	U_Light m_lightUniformData;
+
+	// Just for UI.
+	float m_spotInnerDegree = -1.0f;
+	float m_spotOuterDegree = -1.0f;
 };
 
 }

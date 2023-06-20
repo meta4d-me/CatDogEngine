@@ -222,7 +222,7 @@ void main()
 	// ------------------------------------ Directional Light ----------------------------------------
 	
 	vec3 diffuseBRDF = material.albedo * INV_PI;
-	vec3 dirColor = CalculateLights(material, v_worldPos, viewDir, diffuseBRDF);	
+	vec3 dirColor = CalculateLights(material, v_worldPos, viewDir, diffuseBRDF);
 	
 	// ------------------------------------ Fragment Color -----------------------------------------
 	gl_FragColor = vec4(dirColor + envColor + material.emissive * u_emissiveColor, 1.0);
