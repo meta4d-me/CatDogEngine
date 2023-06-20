@@ -6,14 +6,15 @@ namespace engine
 namespace
 {
 
-float DegToRad(float deg)
+CD_FORCEINLINE float DegToRad(float deg)
 {
-	return deg * 3.1415926536f / 180.0f;
+	// pi / 180
+	return deg * 0.01745329251994329576923690768489f;
 }
 
 }
 
-void LightComponent::RecalculateScalAndOffset()
+void LightComponent::RecalculateScaleAndOffset()
 {
 	float outerCos = std::cos(DegToRad(m_spotOuterDegree));
 	float scale = 1.0f / std::max(std::cos(DegToRad(m_spotInnerDegree)) - outerCos, 0.001f);
@@ -29,7 +30,7 @@ void LightComponent::SetInnerDegree(float inner) {
 		// A little trick to avoid uninitialized angle.
 		m_spotOuterDegree = 1.25f * m_spotInnerDegree;
 	}
-	RecalculateScalAndOffset();
+	RecalculateScaleAndOffset();
 }
 
 void LightComponent::SetOuterDegree(float outer) {
@@ -39,7 +40,7 @@ void LightComponent::SetOuterDegree(float outer) {
 		// A little trick to avoid uninitialized angle.
 		m_spotInnerDegree = 0.75f * m_spotOuterDegree;
 	}
-	RecalculateScalAndOffset();
+	RecalculateScaleAndOffset();
 }
 
 }

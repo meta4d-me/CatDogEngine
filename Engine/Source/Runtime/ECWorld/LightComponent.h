@@ -51,7 +51,7 @@ public:
 	float& GetHeight() { return m_lightUniformData.height; }
 	float GetHeight() const { return m_lightUniformData.height; }
 
-	void RecalculateScalAndOffset();
+	void RecalculateScaleAndOffset();
 
 	void SetInnerDegree(float inner);
 	float &GetInnerDegree() { return m_spotInnerDegree; }
