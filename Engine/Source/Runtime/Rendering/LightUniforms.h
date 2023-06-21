@@ -15,14 +15,14 @@ namespace
 
 constexpr uint16_t MAX_LIGHT_COUNT = 64;
 
+constexpr uint16_t ConstexprCeil(float x)
+{
+	// In C++ 23, we can simply use std::ceil as a constexpr function.
+	return x == static_cast<float>(static_cast<uint16_t>(x))
+		? static_cast<uint16_t>(x)
+		: static_cast<uint16_t>(x) + 1;
 }
 
-constexpr uint16_t ConstexprCeil(const float num) {
-	const uint16_t inum = (uint16_t)num;
-	if (num == (float)inum) {
-		return inum;
-	}
-	return inum + 1;
 }
 
 class LightUniform final {
