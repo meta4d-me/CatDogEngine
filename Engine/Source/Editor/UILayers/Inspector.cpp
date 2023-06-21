@@ -155,16 +155,16 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
 			break;
 		case cd::LightType::Spot:
-			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
-			ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
-			ImGuiProperty<float>("Range", pLightComponent->GetRange());
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
+			ImGuiUtils::ImGuiProperty<float>("Range", pLightComponent->GetRange());
 
 			cd::Vec2f innerAndOuter = pLightComponent->GetInnerAndOuter();
 			s_spotInnerAngle = innerAndOuter.x();
 			s_spotOuterAngle = innerAndOuter.y();
 
-			spotInnerDirty = ImGuiProperty<float>("InnerAngle", s_spotInnerAngle);
-			spotOuterDirty = ImGuiProperty<float>("OuterAngle", s_spotOuterAngle);
+			spotInnerDirty = ImGuiUtils::ImGuiProperty<float>("InnerAngle", s_spotInnerAngle);
+			spotOuterDirty = ImGuiUtils::ImGuiProperty<float>("OuterAngle", s_spotOuterAngle);
 			if(spotInnerDirty || spotOuterDirty)
 			{
 				pLightComponent->SetInnerAndOuter(s_spotInnerAngle, s_spotOuterAngle);
