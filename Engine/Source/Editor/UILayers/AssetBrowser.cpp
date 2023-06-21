@@ -926,7 +926,6 @@ void AssetBrowser::Update()
 
 	if (m_pImportFileBrowser->HasSelected())
 	{
-		//ImportAssetFile(m_pImportFileBrowser->GetSelected().string().c_str());
 		m_openImportPopup = true;
 	}
 	
