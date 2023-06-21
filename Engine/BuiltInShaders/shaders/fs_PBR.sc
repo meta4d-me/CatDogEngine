@@ -1,6 +1,7 @@
 $input v_worldPos, v_normal, v_texcoord0, v_TBN
 
 #include "../common/common.sh"
+#include "../UniformDefines/U_PBR.sh"
 #include "uniforms.sh"
 
 #define PI 3.1415926536
@@ -8,24 +9,16 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 #define INV_PI 0.3183098862
 #define INV_PI2 0.1013211836
 
+uniform vec4 u_albedoColor;
+uniform vec4 u_emissiveColor;
+uniform vec4 u_albedoUVOffsetAndScale;
 uniform vec4 u_cameraPos[1];
 #define cameraPos u_cameraPos[0].xyz
 
-uniform vec4 u_lightCount[1];
-uniform vec4 u_lightStride[1];
+uniform vec4 u_lightCountAndStride[1];
 
-// Simplify some common cases.
-// TODO : More generic.
-#if defined(ROUGHNESS) && defined(METALLIC)
-	#if defined(OCCLUSION)
-		#define USE_ORM
-	#else
-		#define USE_RM
-	#endif
-#endif
-
-#if defined(ALBEDO)
-SAMPLER2D(s_texBaseColor, 0);
+#if defined(ALBEDO_MAP)
+SAMPLER2D(s_texBaseColor, ALBEDO_MAP_SLOT);
 
 vec3 SampleAlbedoTexture(vec2 uv) {
 	// We assume that albedo texture is already in linear space.
@@ -34,7 +27,7 @@ vec3 SampleAlbedoTexture(vec2 uv) {
 #endif
 
 #if defined(NORMAL_MAP)
-SAMPLER2D(s_texNormal, 1);
+SAMPLER2D(s_texNormal, NORMAL_MAP_SLOT);
 
 vec3 SampleNormalTexture(vec2 uv, mat3 TBN) {
 	// We assume that normal texture is already in linear space.
@@ -43,28 +36,32 @@ vec3 SampleNormalTexture(vec2 uv, mat3 TBN) {
 }
 #endif
 
-#if defined(USE_ORM) || defined(USE_RM)
-SAMPLER2D(s_texORM, 2);
+#if defined(ORM_MAP)
+SAMPLER2D(s_texORM, ORM_MAP_SLOT);
 
 vec3 SampleORMTexture(vec2 uv) {
 	// We assume that ORM texture is already in linear space.
 	vec3 orm = texture2D(s_texORM, uv).xyz;
 	orm.y = clamp(orm.y, 0.04, 1.0); // roughness
 	
-#if defined(USE_RM)
-	// Occlusion must be 1.0 if material does not have occlusion.
-	orm.x = 1.0;
-#endif
-
 	return orm;
 }
 #endif
 
-SAMPLER2D(s_texLUT, 3);
+#if defined(EMISSIVE_MAP)
+SAMPLER2D(s_texEmissive, EMISSIVE_MAP_SLOT);
+
+vec3 SampleEmissiveTexture(vec2 uv) {
+	// We assume that emissive texture is already in linear space.
+	return texture2D(s_texEmissive, uv).xyz;
+}
+#endif
+
+SAMPLER2D(s_texLUT, LUT_SLOT);
 
 #if defined(IBL)
-SAMPLERCUBE(s_texCube, 4);
-SAMPLERCUBE(s_texCubeIrr, 5);
+SAMPLERCUBE(s_texCube, IBL_ALBEDO_SLOT);
+SAMPLERCUBE(s_texCubeIrr, IBL_IRRADIANCE_SLOT);
 #endif
 
 struct Material {
@@ -104,21 +101,31 @@ vec3 CalcuateF0(vec3 albedo, float metallic) {
 Material GetMaterial(vec2 uv, vec3 normal, mat3 TBN) {
 	Material material = CreateMaterial();
 
-#if defined(ALBEDO)
-	material.albedo = SampleAlbedoTexture(uv);
+	vec2 uvOffset = vec2(u_albedoUVOffsetAndScale.x, u_albedoUVOffsetAndScale.y);
+	vec2 uvScale = vec2(u_albedoUVOffsetAndScale.z, u_albedoUVOffsetAndScale.w);
+	vec2 albedoUV = uv * uvScale + uvOffset;
+	
+#if defined(ALBEDO_MAP)
+	material.albedo = SampleAlbedoTexture(albedoUV);
 #endif
+	material.albedo *= u_albedoColor.xyz;
 
 #if defined(NORMAL_MAP)
-	material.normal = SampleNormalTexture(uv, TBN);
+	// Same to unity standard PBR, let normal uv same with albedo uv.
+	material.normal = SampleNormalTexture(albedoUV, TBN);
 #else
 	material.normal = normalize(normal);
 #endif
 	
-#if defined(USE_ORM) || defined(USE_RM)
+#if defined(ORM_MAP)
 	vec3 orm = SampleORMTexture(uv);
 	material.occlusion = orm.x;
 	material.roughness = orm.y;
 	material.metallic = orm.z;
+#endif
+
+#if defined(EMISSIVE_MAP)
+	material.emissive = SampleEmissiveTexture(uv);
 #endif
 	
 	material.F0 = CalcuateF0(material.albedo, material.metallic);
@@ -172,20 +179,10 @@ void main()
 {
 	Material material = GetMaterial(v_texcoord0, v_normal, v_TBN);
 	
-	vec3 viewDir  = normalize(cameraPos - v_worldPos);
-	vec3 diffuseBRDF = material.albedo * INV_PI;
-	float NdotV = max(dot(material.normal, viewDir), 0.0);
-	
-	// ------------------------------------ Directional Light ----------------------------------------
-	
-	vec3 dirColor = CalculateLights(material, v_worldPos, viewDir, diffuseBRDF);
+	vec3 viewDir = normalize(cameraPos - v_worldPos);
+	vec3 reflectDir = normalize(reflect(-viewDir, material.normal));
 	
 	// ----------------------------------- Environment Light ----------------------------------------
-
-	// Environment Specular BRDF
-	vec2 lut = texture2D(s_texLUT, vec2(NdotV, 1.0 - material.roughness)).xy;
-	vec3 envSpecularBRDF = (material.F0 * lut.x + lut.y);
-	vec3 reflectDir = normalize(reflect(-viewDir, material.normal));
 
 	vec3 envIrradiance = vec3_splat(1.0);
 	vec3 envRadiance = vec3_splat(1.0);
@@ -202,6 +199,11 @@ void main()
 	envRadiance = toLinear(textureCubeLod(s_texCube, cubeReflectDir, mip).xyz);
 #endif
 
+	// Environment Specular BRDF
+	float NdotV = max(dot(material.normal, viewDir), 0.0);
+	vec2 lut = texture2D(s_texLUT, vec2(NdotV, 1.0 - material.roughness)).xy;
+	vec3 envSpecularBRDF = (material.F0 * lut.x + lut.y);
+
 	// Occlusion
 	float specularOcclusion = lerp(pow(material.occlusion, 4.0), 1.0, saturate(-0.3 + NdotV * NdotV));
 	float horizonOcclusion = saturate(1.0 + 1.2 * dot(reflectDir, v_normal));
@@ -210,9 +212,18 @@ void main()
 	vec3 F = FresnelSchlick(NdotV, material.F0);
 	vec3 KD = mix(1.0 - F, vec3_splat(0.0), material.metallic);
 	
+#if defined(ORM_MAP)
 	vec3 envColor = KD * material.albedo * envIrradiance * material.occlusion + envSpecularBRDF * envRadiance * min(specularOcclusion, horizonOcclusion);
+#else
+	// ORM is required or we will just show albedo color.
+	vec3 envColor = material.albedo;
+#endif
+	
+	// ------------------------------------ Directional Light ----------------------------------------
+	
+	vec3 diffuseBRDF = material.albedo * INV_PI;
+	vec3 dirColor = CalculateLights(material, v_worldPos, viewDir, diffuseBRDF);
 	
 	// ------------------------------------ Fragment Color -----------------------------------------
-
-	gl_FragColor = vec4(dirColor + envColor, 1.0);
+	gl_FragColor = vec4(dirColor + envColor + material.emissive * u_emissiveColor, 1.0);
 }

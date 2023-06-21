@@ -5,7 +5,7 @@
 project("Editor")
 	kind("ConsoleApp")
 	language("C++")
-	cppdialect("C++latest")
+	cppdialect("C++20")
 	dependson { "Engine" }
 
 	location(path.join(IntermediatePath, "Editor"))
@@ -42,6 +42,8 @@ project("Editor")
 		path.join(EngineSourcePath, "Editor/"),
 		path.join(EngineSourcePath, "Runtime/"),
 		path.join(ThirdPartySourcePath, "AssetPipeline/public"),
+		path.join(EnginePath, "BuiltInShaders/shaders"),
+		path.join(EnginePath, "BuiltInShaders/UniformDefines"),
 		-- TODO : Editor should not include bgfx files.
 		path.join(ThirdPartySourcePath, "bgfx/include"),
 		path.join(ThirdPartySourcePath, "bimg/include"),

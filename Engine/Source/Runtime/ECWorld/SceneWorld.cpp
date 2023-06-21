@@ -2,6 +2,7 @@
 
 #include "Log/Log.h"
 #include "Path/Path.h"
+#include "U_PBR.sh"
 
 namespace engine
 {
@@ -11,17 +12,19 @@ SceneWorld::SceneWorld()
 	m_pSceneDatabase = std::make_unique<cd::SceneDatabase>();
 
 	m_pWorld = std::make_unique<engine::World>();
-	m_pAnimationStorage = m_pWorld->Register<engine::AnimationComponent>();
-	m_pCameraStorage = m_pWorld->Register<engine::CameraComponent>();
-	m_pCollisionMeshStorage = m_pWorld->Register<engine::CollisionMeshComponent>();
-	m_pHierarchyStorage = m_pWorld->Register<engine::HierarchyComponent>();
-	m_pLightStorage = m_pWorld->Register<engine::LightComponent>();
-	m_pMaterialStorage = m_pWorld->Register<engine::MaterialComponent>();
-	m_pNameStorage = m_pWorld->Register<engine::NameComponent>();
-	m_pSkyStorage = m_pWorld->Register<engine::SkyComponent>();
-	m_pStaticMeshStorage = m_pWorld->Register<engine::StaticMeshComponent>();
-	m_pTransformStorage = m_pWorld->Register<engine::TransformComponent>();
-	m_pDDGIStorage = m_pWorld->Register<engine::DDGIComponent>();
+
+	// To add a new component : 2. Init component type here.
+	m_pAnimationComponentStorage = m_pWorld->Register<engine::AnimationComponent>();
+	m_pCameraComponentStorage = m_pWorld->Register<engine::CameraComponent>();
+	m_pCollisionMeshComponentStorage = m_pWorld->Register<engine::CollisionMeshComponent>();
+	m_pDDGIComponentStorage = m_pWorld->Register<engine::DDGIComponent>();
+	m_pHierarchyComponentStorage = m_pWorld->Register<engine::HierarchyComponent>();
+	m_pLightComponentStorage = m_pWorld->Register<engine::LightComponent>();
+	m_pMaterialComponentStorage = m_pWorld->Register<engine::MaterialComponent>();
+	m_pNameComponentStorage = m_pWorld->Register<engine::NameComponent>();
+	m_pSkyComponentStorage = m_pWorld->Register<engine::SkyComponent>();
+	m_pStaticMeshComponentStorage = m_pWorld->Register<engine::StaticMeshComponent>();
+	m_pTransformComponentStorage = m_pWorld->Register<engine::TransformComponent>();
 
 	CreatePBRMaterialType();
 	CreateAnimationMaterialType();
@@ -35,19 +38,12 @@ void SceneWorld::CreatePBRMaterialType()
 	m_pPBRMaterialType->SetMaterialName("CD_PBR");
 
 	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("vs_PBR"), Path::GetBuiltinShaderInputPath("fs_PBR"));
-	shaderSchema.RegisterUberOption(Uber::ALBEDO);
+	shaderSchema.RegisterUberOption(Uber::ALBEDO_MAP);
 	shaderSchema.RegisterUberOption(Uber::NORMAL_MAP);
-	shaderSchema.RegisterUberOption(Uber::OCCLUSION);
-	shaderSchema.RegisterUberOption(Uber::ROUGHNESS);
-	shaderSchema.RegisterUberOption(Uber::METALLIC);
-	shaderSchema.RegisterUberOption(Uber::IBL);
-	// Technically, option LoadingStatus:: is an actual shader.
-	// We can use AddSingleUberOption to add it to shaderSchema,
-	// whithout combine with any other option.
-	shaderSchema.AddSingleUberOption(LoadingStatus::MISSING_RESOURCES, Path::GetBuiltinShaderInputPath("fs_unlit_flat_red"));
-	shaderSchema.AddSingleUberOption(LoadingStatus::LOADING_SHADERS, Path::GetBuiltinShaderInputPath("fs_unlit_flat_blue"));
-	shaderSchema.AddSingleUberOption(LoadingStatus::LOADING_TEXTURES, Path::GetBuiltinShaderInputPath("fs_unlit_flat_green"));
-	shaderSchema.AddSingleUberOption(LoadingStatus::LOADING_ERROR, Path::GetBuiltinShaderInputPath("fs_unlit_flat_pink"));
+	shaderSchema.RegisterUberOption(Uber::ORM_MAP);
+	shaderSchema.RegisterUberOption(Uber::EMISSIVE_MAP);
+	// TODO : Revert it back after we can import CubeMap such as CmftStudio.
+	//shaderSchema.RegisterUberOption(Uber::IBL);
 	m_pPBRMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat pbrVertexFormat;
@@ -59,12 +55,12 @@ void SceneWorld::CreatePBRMaterialType()
 
 	// Slot index should align to shader codes.
 	// We want basic PBR materials to be flexible.
-	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::BaseColor, 0);
-	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Normal, 1);
-	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Occlusion, 2);
-	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Roughness, 2);
-	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Metallic, 2);
-	//m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Emissive, );
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::BaseColor, ALBEDO_MAP_SLOT);
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Normal, NORMAL_MAP_SLOT);
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Occlusion, ORM_MAP_SLOT);
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Roughness, ORM_MAP_SLOT);
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Metallic, ORM_MAP_SLOT);
+	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Emissive, EMISSIVE_MAP_SLOT);
 }
 
 void SceneWorld::CreateAnimationMaterialType()
@@ -137,5 +133,10 @@ void SceneWorld::SetDDGIEntity(engine::Entity entity)
 	m_ddgiEntity = entity;
 }
 
+void SceneWorld::SetPBRSkyEntity(engine::Entity entity)
+{
+	CD_TRACE("Setup PBRSky entity : {0}", entity);
+	m_pbrskyEntity = entity;
+}
 
 }

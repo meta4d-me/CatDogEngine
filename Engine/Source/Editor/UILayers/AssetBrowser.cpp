@@ -160,7 +160,7 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 				 std::filesystem::path texturesPath = resourcesPath / "Textures/" / "textures/" / fileName.c_str();
 				 std::filesystem::path texviewPath = resourcesPath/ "Textures/" /"textures"/ (nameNoEx + ".dds");
 				 ImGuiIO& io = ImGui::GetIO();
-				 engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
+				 engine::RenderContext* pRenderContext = GetRenderContext();
 				 engine::StringCrc textureCrc(nameNoEx);
 				 bgfx::TextureHandle TextureHandle = pRenderContext->GetTexture(textureCrc);
 				 if (!bgfx::isValid(TextureHandle))
@@ -676,10 +676,8 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 // Translate different 3D model file formats to memory data.
 void AssetBrowser::ImportModelFile(const char* pFilePath)
 {
-	ImGuiIO& io = ImGui::GetIO();
-	engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
-	engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
-	engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
+	engine::RenderContext* pCurrentRenderContext = GetRenderContext();
+	engine::SceneWorld* pSceneWorld = GetImGuiContextInstance()->GetSceneWorld();
 	ECWorldConsumer ecConsumer(pSceneWorld, pCurrentRenderContext);
 
 	cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
@@ -691,13 +689,8 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 	{
 		cdtools::CDProducer cdProducer(pFilePath);
 		cdtools::Processor processor(&cdProducer, &ecConsumer, pSceneDatabase);
-		processor.SetFlattenSceneDatabaseEnable(true);
 		processor.Run();
 	}
-	//else if (0 == inputFileExtension.compare(".fbx"))
-	//{
-	//
-	//}
 	else
 	{
 		cdtools::GenericProducer genericProducer(pFilePath);
@@ -708,9 +701,7 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 		genericProducer.ActivateTangentsSpaceService();
 		genericProducer.ActivateTriangulateService();
 		genericProducer.ActivateSimpleAnimationService();
-		// genericProducer.ActivateFlattenHierarchyService();
-
-
+		
 		if(m_importingAssetType == ImportAssetType::DDGIModel)
 		{
 			ecConsumer.ActivateDDGIService();
@@ -724,9 +715,7 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 
 void AssetBrowser::ExportAssetFile(const char* pFilePath)
 {
-	ImGuiIO& io = ImGui::GetIO();
-	engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
-	engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
+	engine::SceneWorld* pSceneWorld = GetImGuiContextInstance()->GetSceneWorld();
 	cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
 
 	if (ExportAssetType::SceneDatabase == m_exportingAssetType)
@@ -782,10 +771,7 @@ void AssetBrowser::ExportAssetFile(const char* pFilePath)
 		std::filesystem::path outputFilePath = selectFilePath.replace_extension(".cdbin");
 
 		cdtools::CDConsumer consumer(outputFilePath.string().c_str());
-		consumer.SetExportMode(cdtools::ExportMode::PureBinary);
-
 		cdtools::Processor processor(nullptr, &consumer, pSceneDatabase);
-		processor.SetFlattenSceneDatabaseEnable(true);
 		processor.Run();
 	}
 }

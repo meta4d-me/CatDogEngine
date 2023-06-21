@@ -55,7 +55,7 @@ void MainMenu::FileMenu()
 		{
 			if (auto* pMainWindow = reinterpret_cast<engine::Window*>(ImGui::GetIO().BackendPlatformUserData))
 			{
-				pMainWindow->Closed();
+				pMainWindow->Close();
 			}
 		}
 
@@ -89,7 +89,7 @@ void MainMenu::EditMenu()
 			for (engine::ThemeColor theme = engine::ThemeColor::Black; theme < engine::ThemeColor::Count;
 				theme = static_cast<engine::ThemeColor>(static_cast<int>(theme) + 1))
 			{
-				engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
+				engine::ImGuiContextInstance* pImGuiContextInstance = GetImGuiContextInstance();
 				if (ImGui::MenuItem(GetThemeColorName(theme), "", pImGuiContextInstance->GetImGuiThemeColor() == theme))
 				{
 					pImGuiContextInstance->SetImGuiThemeColor(theme);
@@ -104,7 +104,7 @@ void MainMenu::EditMenu()
 			for (engine::Language language = engine::Language::ChineseSimplied; language < engine::Language::Count;
 				 language = static_cast<engine::Language>(static_cast<int>(language) + 1))
 			{
-				engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
+				engine::ImGuiContextInstance* pImGuiContextInstance = GetImGuiContextInstance();
 				if (ImGui::MenuItem(GetLanguageName(language), "", pImGuiContextInstance->GetImGuiLanguage() == language))
 				{
 					pImGuiContextInstance->SetImGuiLanguage(language);
@@ -117,14 +117,76 @@ void MainMenu::EditMenu()
 	}
 }
 
+void MainMenu::ViewMenu()
+{
+	auto FrameEntities = [](engine::SceneWorld* pSceneWorld, const std::vector<engine::Entity>& entities)
+	{
+		if (entities.empty())
+		{
+			return;
+		}
+
+		std::optional<cd::AABB> optAABB;
+		for (auto entity : entities)
+		{
+			if (engine::StaticMeshComponent* pStaticMesh = pSceneWorld->GetStaticMeshComponent(entity))
+			{
+				cd::AABB meshAABB = pStaticMesh->GetAABB();
+				if (engine::TransformComponent* pTransform = pSceneWorld->GetTransformComponent(entity))
+				{
+					meshAABB = meshAABB.Transform(pTransform->GetWorldMatrix());
+				}
+
+				if (optAABB.has_value())
+				{
+					optAABB.value().Merge(meshAABB);
+				}
+				else
+				{
+					optAABB = meshAABB;
+				}
+			}
+		}
+
+		engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
+		pCameraComponent->FrameAll(optAABB.value());
+	};
+
+	if (ImGui::BeginMenu("View"))
+	{
+		if (ImGui::MenuItem("Frame All"))
+		{
+			engine::SceneWorld* pSceneWorld = GetSceneWorld();
+			if (size_t meshCount = pSceneWorld->GetStaticMeshEntities().size(); meshCount > 0)
+			{
+				FrameEntities(pSceneWorld, pSceneWorld->GetStaticMeshEntities());
+			}
+		}
+
+		if (ImGui::MenuItem("Frame Selection"))
+		{
+			engine::SceneWorld* pSceneWorld = GetSceneWorld();
+			if (engine::Entity selectedEntity = pSceneWorld->GetSelectedEntity(); selectedEntity != engine::INVALID_ENTITY)
+			{
+				FrameEntities(pSceneWorld, { selectedEntity });
+			}
+		}
+
+		//if (ImGui::MenuItem("Frame Selection with Children"))
+		//{
+		//}
+
+		ImGui::EndMenu();
+	}
+}
+
 void MainMenu::WindowMenu()
 {
 	ImGuiIO& io = ImGui::GetIO();
 
 	if (ImGui::BeginMenu(CD_TEXT("TEXT_WINDOW")))
 	{
-		engine::ImGuiContextInstance* pCurrentImguiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
-		for (const auto& pDockableLayer : pCurrentImguiContextInstance->GetDockableLayers())
+		for (const auto& pDockableLayer : GetImGuiContextInstance()->GetDockableLayers())
 		{
 			if (ImGui::MenuItem(pDockableLayer->GetName(), "", pDockableLayer->IsEnable()))
 			{
@@ -140,9 +202,7 @@ void MainMenu::BuildMenu()
 {
 	if (ImGui::BeginMenu(CD_TEXT("TEXT_BUILD")))
 	{
-		ImGuiIO& io = ImGui::GetIO();
-		engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
-		engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
+		engine::SceneWorld* pSceneWorld = GetSceneWorld();
 
 		if (ImGui::MenuItem(CD_TEXT("TEXT_REBUILD_NONUBER_SHADERS")))
 		{
@@ -156,6 +216,7 @@ void MainMenu::BuildMenu()
 		{
 			ShaderBuilder::BuildUberShader(pSceneWorld->GetAnimationMaterialType());
 		}
+		ResourceBuilder::Get().Update();
 
 		ImGui::EndMenu();
 	}
@@ -184,6 +245,7 @@ void MainMenu::Update()
 	{
 		FileMenu();
 		EditMenu();
+		ViewMenu();
 		WindowMenu();
 		BuildMenu();
 		AboutMenu();
@@ -197,7 +259,7 @@ void MainMenu::Update()
 	{
 		if (auto* pMainWindow = reinterpret_cast<engine::Window*>(ImGui::GetIO().BackendPlatformUserData))
 		{
-			pMainWindow->Closed();
+			pMainWindow->Close();
 		}
 	}
 }

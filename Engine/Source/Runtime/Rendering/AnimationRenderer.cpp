@@ -165,11 +165,8 @@ void AnimationRenderer::Render(float deltaTime)
 			continue;
 		}
 
-		if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
-		{
-			pTransformComponent->Build();
-			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
-		}
+		TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity);
+		bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
 
 		AnimationComponent* pAnimationComponent = m_pCurrentSceneWorld->GetAnimationComponent(entity);
 
@@ -185,10 +182,9 @@ void AnimationRenderer::Render(float deltaTime)
 			boneMatrices.push_back(cd::Matrix4x4::Identity());
 		}
 
-		const cd::Node& rootNode = pSceneDatabase->GetNode(0);
 		const cd::Bone& rootBone = pSceneDatabase->GetBone(0);
 		detail::CalculateBoneTransform(boneMatrices, pSceneDatabase, animationTime, rootBone,
-			cd::Matrix4x4::Identity(), rootNode.GetTransform().GetMatrix().Inverse());
+			cd::Matrix4x4::Identity(), pTransformComponent->GetWorldMatrix().Inverse());
 		bgfx::setUniform(bgfx::UniformHandle(pAnimationComponent->GetBoneMatrixsUniform()), boneMatrices.data(), static_cast<uint16_t>(boneMatrices.size()));
 		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle(pMeshComponent->GetVertexBuffer()));
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle(pMeshComponent->GetIndexBuffer()));

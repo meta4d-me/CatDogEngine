@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Core/StringCrc.h"
-#include "Scene/Light.h"
+#include "Rendering/LightUniforms.h"
+#include "Scene/LightType.h"
 
 namespace engine
 {
@@ -23,57 +24,55 @@ public:
 	LightComponent& operator=(LightComponent&&) = default;
 	~LightComponent() = default;
 
-	void SetType(cd::LightType type) { m_lightType = type; }
-	cd::LightType GetType() const { return m_lightType; }
+	void SetType(cd::LightType type) { m_lightUniformData.type = static_cast<float>(type); }
+	cd::LightType GetType() const { return static_cast<cd::LightType>(m_lightUniformData.type); }
 
-	void SetIntensity(float intensity) { m_intensity = intensity; }
-	float GetIntensity() const { return m_intensity; }
+	void SetColor(cd::Vec3f color) { m_lightUniformData.color = cd::MoveTemp(color); }
+	cd::Vec3f& GetColor() { return m_lightUniformData.color; }
+	const cd::Vec3f& GetColor() const { return m_lightUniformData.color; }
 
-	void SetRange(float range) { m_range = range; }
-	float GetRange() const { return m_range; }
+	void SetIntensity(float intensity) { m_lightUniformData.intensity = intensity; }
+	float& GetIntensity() { return m_lightUniformData.intensity; }
+	float GetIntensity() const { return m_lightUniformData.intensity; }
 
-	void SetRadius(float radius) { m_radius = radius; }
-	float GetRadius() const { return m_radius; }
+	void SetRange(float range) { m_lightUniformData.range = range; }
+	float& GetRange() { return m_lightUniformData.range; }
+	float GetRange() const { return m_lightUniformData.range; }
 
-	void SetWidth(float width) { m_width = width; }
-	float GetWidth() const { return m_width; }
+	void SetRadius(float radius) { m_lightUniformData.radius = radius; }
+	float& GetRadius() { return m_lightUniformData.radius; }
+	float GetRadius() const { return m_lightUniformData.radius; }
 
-	void SetHeight(float height) { m_height = height; }
-	float GetHeight() const { return m_height; }
+	void SetWidth(float width) { m_lightUniformData.width = width; }
+	float& GetWidth() { return m_lightUniformData.width; }
+	float GetWidth() const { return m_lightUniformData.width; }
 
-	void SetAngleScale(float angleScale) { m_angleScale = angleScale; }
-	float GetAngleScale() const { return m_angleScale; }
+	void SetHeight(float height) { m_lightUniformData.height = height; }
+	float& GetHeight() { return m_lightUniformData.height; }
+	float GetHeight() const { return m_lightUniformData.height; }
 
-	void SetAngleOffset(float angleOffset) { m_angleOffset = angleOffset; }
-	float GetAngleOffset() const { return m_angleOffset; }
+	void SetAngleScale(float angleScale) { m_lightUniformData.lightAngleScale = angleScale; }
+	float& GetAngleScale() { return m_lightUniformData.lightAngleScale; }
+	float GetAngleScale() const { return m_lightUniformData.lightAngleScale; }
 
-	void SetColor(cd::Vec3f color) { m_color = cd::MoveTemp(color); }
-	const cd::Vec3f& GetColor() const { return m_color; }
+	void SetAngleOffset(float angleOffset) { m_lightUniformData.lightAngleOffeset = angleOffset; }
+	float& GetAngleOffset() { return m_lightUniformData.lightAngleOffeset; }
+	float GetAngleOffset() const { return m_lightUniformData.lightAngleOffeset; }
 
-	void SetPosition(cd::Point position) { m_position = cd::MoveTemp(position); }
-	const cd::Point& GetPosition() const { return m_position; }
+	void SetPosition(cd::Point position) { m_lightUniformData.position = cd::MoveTemp(position); }
+	cd::Point& GetPosition() { return m_lightUniformData.position; }
+	const cd::Point& GetPosition() const { return m_lightUniformData.position; }
 
-	void SetDirection(cd::Direction direction) { m_direction = cd::MoveTemp(direction); }
-	const cd::Direction& GetDirection() const { return m_direction; }
+	void SetDirection(cd::Direction direction) { m_lightUniformData.direction = cd::MoveTemp(direction); }
+	cd::Direction& GetDirection() { return m_lightUniformData.direction; }
+	const cd::Direction& GetDirection() const { return m_lightUniformData.direction; }
 
-	void SetUp(cd::Direction up) { m_up = cd::MoveTemp(up); }
-	const cd::Direction& GetUp() const { return m_up; }
+	void SetUp(cd::Direction up) { m_lightUniformData.up = cd::MoveTemp(up); }
+	cd::Direction& GetUp() { return m_lightUniformData.up; }
+	const cd::Direction& GetUp() const { return m_lightUniformData.up; }
 
 private:
-	cd::LightType m_lightType;
-
-	float m_intensity;
-	float m_range;
-	float m_radius;
-	float m_width;
-	float m_height;
-	float m_angleScale;
-	float m_angleOffset;
-
-	cd::Point m_position;
-	cd::Vec3f m_color;
-	cd::Direction m_direction;
-	cd::Direction m_up;
+	U_Light m_lightUniformData;
 };
 
 }

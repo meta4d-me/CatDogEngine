@@ -31,6 +31,7 @@
 #include "UILayers/MainMenu.h"
 #include "UILayers/OutputLog.h"
 #include "UILayers/SceneView.h"
+#include "UILayers/Splash.h"
 #include "UILayers/TerrainEditor.h"
 #include "Window/Input.h"
 #include "Window/Window.h"
@@ -41,6 +42,7 @@
 #include "ImGui/imfilebrowser.h"
 
 #include <format>
+#include <thread>
 
 namespace editor
 {
@@ -55,34 +57,36 @@ EditorApp::~EditorApp()
 
 void EditorApp::Init(engine::EngineInitArgs initArgs)
 {
-	CD_INFO("Init ediotr");
-	CD_INFO("Graphics backend : {}", engine::GetGraphicsBackendName(initArgs.backend));
-	engine::Path::SetGraphicsBackend(initArgs.backend);
+	m_initArgs = cd::MoveTemp(initArgs);
 
-	uint16_t width = initArgs.width;
-	uint16_t height = initArgs.height;
-	AddWindow(std::make_unique<engine::Window>(initArgs.pTitle, width, height));
-	GetMainWindow()->SetWindowIcon(initArgs.pIconFilePath);
+	// Init graphics backend
+	InitRenderContext(m_initArgs.backend);
 
+	// Phase 1 - Splash
+	//		* Compile uber shader permutations automatically when initialization or detect changes
+	//		* Show compile progresses so it still needs to update ui
+	auto pSplashWindow = std::make_unique<engine::Window>("Splash", 500, 300);
+	pSplashWindow->SetWindowIcon(m_initArgs.pIconFilePath);
+	pSplashWindow->SetBordedLess(true);
+	pSplashWindow->SetResizeable(false);
+	pSplashWindow->OnResize.Bind<engine::RenderContext, &engine::RenderContext::OnResize>(m_pRenderContext.get());
+	AddWindow(cd::MoveTemp(pSplashWindow));
+
+	InitEditorRenderers();
+	InitEditorImGuiContext(m_initArgs.language);
+	
 	InitECWorld();
+	m_pEditorImGuiContext->SetSceneWorld(m_pSceneWorld.get());
 
-	InitRenderContext(initArgs.backend);
-
-	// Builtin shaders will be compiled automatically when initialization or detect changes.
+	// Add shader build tasks and create a thread to update tasks.
 	InitShaderPrograms();
+	m_pEditorImGuiContext->AddStaticLayer(std::make_unique<Splash>("Splash"));
 
-	InitRenderGraph();
-
-	// Init ImGuiContext in the editor side which used to draw editor ui.
-	InitEditorImGuiContext(initArgs.language);
-
-	// Init ImGuiContext in the engine side which used to draw in game ui.
-	InitEngineImGuiContext(initArgs.language);
-
-	// Enable multiple viewports which means that we can drop any imgui window outside the main window.
-	// Then the imgui window will become a new standalone window. Drop back to convert it back.
-	// TODO : should be only used in the editor ImGuiContext.
-	// InitImGuiViewports(m_pRenderContext);
+	std::thread resourceThread([]()
+	{
+		ResourceBuilder::Get().Update();
+	});
+	resourceThread.detach();
 }
 
 void EditorApp::Shutdown()
@@ -94,16 +98,18 @@ engine::Window* EditorApp::GetWindow(size_t index) const
 	return m_pAllWindows[index].get();
 }
 
-engine::Window* EditorApp::GetMainWindow() const
-{
-	return GetWindow(0);
-}
-
 size_t EditorApp::AddWindow(std::unique_ptr<engine::Window> pWindow)
 {
 	size_t windowIndex = m_pAllWindows.size();
-	m_pAllWindows.emplace_back(std::move(pWindow));
+	m_pAllWindows.emplace_back(cd::MoveTemp(pWindow));
 	return windowIndex;
+}
+
+void EditorApp::RemoveWindow(size_t index)
+{
+	assert(index < m_pAllWindows.size());
+	m_pAllWindows[index]->Close();
+	m_pAllWindows.erase(m_pAllWindows.begin() + index);
 }
 
 void EditorApp::InitEditorImGuiContext(engine::Language language)
@@ -122,7 +128,10 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 
 	// Set style settings.
 	m_pEditorImGuiContext->SetImGuiThemeColor(engine::ThemeColor::Dark);
+}
 
+void EditorApp::InitEditorUILayers()
+{
 	// Add UI layers after finish imgui and rendering contexts' initialization.
 	m_pEditorImGuiContext->AddStaticLayer(std::make_unique<MainMenu>("MainMenu"));
 
@@ -132,9 +141,6 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 	//m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<GameView>("GameView"));
 
 	auto pSceneView = std::make_unique<SceneView>("SceneView");
-	pSceneView->SetAABBRenderer(m_pDebugRenderer);
-	pSceneView->SetPBRSkyRenderer(m_pPBRSkyRenderer);
-	pSceneView->SetIBLSkyRenderer(m_pIBLSkyRenderer);
 	m_pSceneView = pSceneView.get();
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
 
@@ -162,15 +168,17 @@ void EditorApp::InitEngineImGuiContext(engine::Language language)
 	std::vector<std::string> ttfFileNames = { "FanWunMing-SB.ttf" };
 	m_pEngineImGuiContext->LoadFontFiles(ttfFileNames, language);
 
-	// Set style settings.
 	m_pEngineImGuiContext->SetImGuiThemeColor(engine::ThemeColor::Light);
 
+	pSceneRenderTarget->OnResize.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnResize>(m_pEngineImGuiContext.get());
+}
+
+void EditorApp::InitEngineUILayers()
+{
 	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<engine::DebugPanel>("DebugPanel"));
 	auto pImGuizmoView = std::make_unique<editor::ImGuizmoView>("ImGuizmoView");
 	pImGuizmoView->SetSceneView(m_pSceneView);
 	m_pEngineImGuiContext->AddDynamicLayer(cd::MoveTemp(pImGuizmoView));
-
-	pSceneRenderTarget->OnResize.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnResize>(m_pEngineImGuiContext.get());
 }
 
 void EditorApp::InitImGuiViewports(engine::RenderContext* pRenderContext)
@@ -192,8 +200,6 @@ void EditorApp::RegisterImGuiUserData(engine::ImGuiContextInstance* pImGuiContex
 
 	io.BackendPlatformUserData = GetMainWindow();
 	io.BackendRendererUserData = m_pRenderContext.get();
-
-	pImGuiContext->SetSceneWorld(m_pSceneWorld.get());
 }
 
 void EditorApp::InitECWorld()
@@ -219,6 +225,7 @@ void EditorApp::InitECWorld()
 	cameraComponent.SetNearPlane(0.1f);
 	cameraComponent.SetFarPlane(2000.0f);
 	cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
+	cameraComponent.SetGammaCorrection(cd::Vec3f(0.45f));
 
 	// Controller for Input events.
 	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(
@@ -233,6 +240,15 @@ void EditorApp::InitECWorld()
 	ddgiNameComponent.SetName("DDGI");
 	auto& ddgiComponent = pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
 
+	engine::Entity skyEntity = pWorld->CreateEntity();
+	m_pSceneWorld->SetPBRSkyEntity(skyEntity);
+	auto& skyNameComponent = pWorld->CreateComponent<engine::NameComponent>(skyEntity);
+	skyNameComponent.SetName("Sky");
+
+	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(skyEntity);
+	transformComponent.SetTransform(cd::Transform(cd::Vec3f(0.0f, -1.0f, 0.0f), cd::Quaternion::Identity(), cd::Vec3f::One()));
+	transformComponent.Build();
+
 	m_pNewCameraController = std::make_unique<engine::CameraController>(
 		m_pSceneWorld.get(),
 		5.0f /* horizontal sensitivity */,
@@ -242,18 +258,22 @@ void EditorApp::InitECWorld()
 
 void EditorApp::InitRenderContext(engine::GraphicsBackend backend)
 {
+	CD_INFO("Init graphics backend : {}", engine::GetGraphicsBackendName(backend));
+
+	engine::Path::SetGraphicsBackend(backend);
 	m_pRenderContext = std::make_unique<engine::RenderContext>();
 	m_pRenderContext->Init(backend);
-
-	GetMainWindow()->OnResize.Bind<engine::RenderContext, &engine::RenderContext::OnResize>(m_pRenderContext.get());
 }
 
-void EditorApp::InitRenderGraph()
+void EditorApp::InitEditorRenderers()
 {
 	constexpr engine::StringCrc editorSwapChainName("EditorUISwapChain");
-	engine::RenderTarget* pRenderTarget = m_pRenderContext->CreateRenderTarget(editorSwapChainName, GetMainWindow()->GetWidth(), GetMainWindow()->GetHeight(), GetMainWindow()->GetNativeHandle());
-	AddEditorRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pRenderTarget));
+	m_pEditorRenderTarget = m_pRenderContext->CreateRenderTarget(editorSwapChainName, GetMainWindow()->GetWidth(), GetMainWindow()->GetHeight(), GetMainWindow()->GetNativeHandle());
+	AddEditorRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), m_pEditorRenderTarget));
+}
 
+void EditorApp::InitEngineRenderers()
+{
 	constexpr engine::StringCrc sceneViewRenderTargetName("SceneRenderTarget");
 	std::vector<engine::AttachmentDescriptor> attachmentDesc = {
 		{.textureFormat = engine::TextureFormat::RGBA32F },
@@ -266,10 +286,11 @@ void EditorApp::InitRenderGraph()
 
 	auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pPBRSkyRenderer = pPBRSkyRenderer.get();
+	pPBRSkyRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
 
 	auto pIBLSkyRenderer = std::make_unique<engine::SkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
-	pIBLSkyRenderer->Disable();
+	pIBLSkyRenderer->SetEnable(false);
 	m_pIBLSkyRenderer = pIBLSkyRenderer.get();
 	AddEngineRenderer(cd::MoveTemp(pIBLSkyRenderer));
 
@@ -288,7 +309,7 @@ void EditorApp::InitRenderGraph()
 
 	auto pDebugRenderer = std::make_unique<engine::DebugRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pDebugRenderer = pDebugRenderer.get();
-	pDebugRenderer->Disable();
+	pDebugRenderer->SetEnable(false);
 	pDebugRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pDebugRenderer));
 
@@ -300,9 +321,10 @@ void EditorApp::InitRenderGraph()
 	AddEngineRenderer(cd::MoveTemp(pDDGIRenderer));
 
 	// We can debug vertex/material/texture information by just output that to screen as fragmentColor.
-	// But postprocess will bring unnecessary confusion.
-	// auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
-	// AddEngineRenderer(cd::MoveTemp(pPostProcessRenderer));
+	// But postprocess will bring unnecessary confusion. 
+	auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pPostProcessRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pPostProcessRenderer));
 
 	// Note that if you don't want to use ImGuiRenderer for engine, you should also disable EngineImGuiContext.
 	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget));
@@ -331,51 +353,88 @@ void EditorApp::AddEngineRenderer(std::unique_ptr<engine::Renderer> pRenderer)
 
 bool EditorApp::Update(float deltaTime)
 {
+	// TODO : it is better to remove these logics about splash -> editor switch here.
+	// Better implementation is to have multiple Application or Window classes and they can switch.
+	if (!m_bInitEditor && 0 == ResourceBuilder::Get().GetCurrentTaskCount())
+	{
+		m_bInitEditor = true;
+		ShaderBuilder::UploadUberShader(m_pSceneWorld->GetPBRMaterialType());
+		ShaderBuilder::UploadUberShader(m_pSceneWorld->GetAnimationMaterialType());
+		ShaderBuilder::UploadUberShader(m_pSceneWorld->GetTerrainMaterialType());
+		ShaderBuilder::UploadUberShader(m_pSceneWorld->GetDDGIMaterialType());
+
+		// Phase 2 - Project Manager
+		//		* TODO : Show project selector
+		//GetMainWindow()->SetTitle("Project Manager");
+		//GetMainWindow()->SetSize(800, 600);
+
+		// Phase 3 - Editor
+		//		* Load selected project to create assets, components, entities, ...s
+		//		* Init engine renderers in SceneView to display visual results
+		//		* Init editor ui layers
+		//		* Init engine imgui context for ingame debug UI
+		//		* Init engine ui layers
+		GetMainWindow()->SetTitle(m_initArgs.pTitle);
+		GetMainWindow()->SetSize(m_initArgs.width, m_initArgs.height);
+		GetMainWindow()->SetFullScreen(m_initArgs.useFullScreen);
+		GetMainWindow()->SetBordedLess(false);
+		GetMainWindow()->SetResizeable(true);
+
+		InitEngineRenderers();
+		m_pEditorImGuiContext->ClearUILayers();
+		InitEditorUILayers();
+
+		InitEngineImGuiContext(m_initArgs.language);
+		m_pEngineImGuiContext->SetSceneWorld(m_pSceneWorld.get());
+
+		InitEngineUILayers();
+	}
+
 	GetMainWindow()->Update();
 
-	engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
-	if(engine::TransformComponent* pTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity()))
-	{
-		cd::Transform transform = pTransformComponent->GetTransform();
-		pMainCameraComponent->SetEye(transform.GetTranslation());
-		cd::Matrix4x4 rotMatrix = transform.GetRotation().ToMatrix4x4();
-		pMainCameraComponent->SetLookAt(cd::Vec3f(rotMatrix.Data(8), rotMatrix.Data(9), rotMatrix.Data(10)));
-		pMainCameraComponent->SetUp(cd::Vec3f(rotMatrix.Data(4), rotMatrix.Data(5), rotMatrix.Data(6)));
-	}
-	
-	assert(pMainCameraComponent);
-	
-	m_pNewCameraController->Update(deltaTime);
-	m_pCameraController->Update(deltaTime);
 	m_pEditorImGuiContext->Update(deltaTime);
-	pMainCameraComponent->Build();
+	
 	m_pRenderContext->BeginFrame();
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEditorRenderers)
 	{
-		if (!pRenderer->IsEnable())
+		if (pRenderer->IsEnable())
 		{
-			continue;
+			const float* pViewMatrix = nullptr;
+			const float* pProjectionMatrix = nullptr;
+			pRenderer->UpdateView(pViewMatrix, pProjectionMatrix);
+			pRenderer->Render(deltaTime);
 		}
-
-		const float* pViewMatrix = nullptr;
-		const float* pProjectionMatrix = nullptr;
-		pRenderer->UpdateView(pViewMatrix, pProjectionMatrix);
-		pRenderer->Render(deltaTime);
 	}
 
-	m_pEngineImGuiContext->SetWindowPosOffset(m_pSceneView->GetWindowPosX(), m_pSceneView->GetWindowPosY());
-	m_pEngineImGuiContext->Update(deltaTime);
-	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
+	if (m_pEngineImGuiContext)
 	{
-		if (!pRenderer->IsEnable())
+		engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
+		if (engine::TransformComponent* pTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity()))
 		{
-			continue;
+			cd::Transform transform = pTransformComponent->GetTransform();
+			pMainCameraComponent->SetEye(transform.GetTranslation());
+			cd::Matrix4x4 rotMatrix = transform.GetRotation().ToMatrix4x4();
+			pMainCameraComponent->SetLookAt(cd::Vec3f(rotMatrix.Data(8), rotMatrix.Data(9), rotMatrix.Data(10)));
+			pMainCameraComponent->SetUp(cd::Vec3f(rotMatrix.Data(4), rotMatrix.Data(5), rotMatrix.Data(6)));
 		}
 
-		const float* pViewMatrix = pMainCameraComponent->GetViewMatrix().Begin();
-		const float* pProjectionMatrix = pMainCameraComponent->GetProjectionMatrix().Begin();
-		pRenderer->UpdateView(pViewMatrix, pProjectionMatrix);
-		pRenderer->Render(deltaTime);
+		assert(pMainCameraComponent);
+		m_pNewCameraController->Update(deltaTime);
+		m_pCameraController->Update(deltaTime);
+		pMainCameraComponent->Build();
+
+		m_pEngineImGuiContext->SetWindowPosOffset(m_pSceneView->GetWindowPosX(), m_pSceneView->GetWindowPosY());
+		m_pEngineImGuiContext->Update(deltaTime);
+		for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
+		{
+			if (pRenderer->IsEnable())
+			{
+				const float* pViewMatrix = pMainCameraComponent->GetViewMatrix().Begin();
+				const float* pProjectionMatrix = pMainCameraComponent->GetProjectionMatrix().Begin();
+				pRenderer->UpdateView(pViewMatrix, pProjectionMatrix);
+				pRenderer->Render(deltaTime);
+			}
+		}
 	}
 
 	m_pRenderContext->EndFrame();

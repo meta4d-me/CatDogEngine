@@ -60,7 +60,9 @@ public:
 	bool AddCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
 	bool AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char *pUberOptions = nullptr);
 	bool AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath);
+	
 	void Update();
+	size_t GetCurrentTaskCount() const { return m_buildTasks.size(); }
 
 private:
 	ResourceBuilder();
@@ -81,7 +83,8 @@ private:
 	std::queue<Process> m_buildTasks;
 	
 	std::unordered_map<std::string, long long> m_modifyTimeCache;
-	// We always access to fragment ahsder multiple times by using ubre options.
+
+	// We always access to fragment shader multiple times by using ubre options.
 	// So we can not update fragment shader's modify time every time we found it has been modified.
 	std::unordered_map<std::string, long long> m_newModifyTimeCache;
 };

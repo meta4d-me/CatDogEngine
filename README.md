@@ -6,33 +6,33 @@
 ![win64_vs2022](https://github.com/CatDogEngine/CatDogEngine/actions/workflows/win64_vs2022.yml/badge.svg?branch=main)
 
 ## Snapshots
-![image](https://user-images.githubusercontent.com/75730859/220918348-eb03325a-9b14-4523-956b-88e15cec052c.png)
+![1686593017747](https://github.com/CatDogEngine/CatDogEngine/assets/75730859/8836be81-3358-42c8-a922-78c6b5001130)
 
-## Developing Features in 3 levels (Basic/Standard/Advance)
-* [Standard] Atomosphere Scattering
-* [Developing] Cross Platform Editor based on ImGui
-* [Basic] Entity/Component Framework
-* [Basic] Lighting System
-* [Developing] Modern RHI except bgfx
-* [Basic] Physically Based Rendering
-* [Developing] Procedural Generated Terrain
-* [Basic] Scalable SceneData SDK
-* [Developing] Skeleton Animation
+## Features
+* Basic Cross Platform Editor based on ImGui
+* Basic Entity/Component Framework
+* Basic Physically Based Rendering
+* Basic Scene Graph SDK
+* Standard Atomosphere Scattering
+
+## Developing Features
+* JobSystem
+* Modern RHI except bgfx
+* Procedural Generated Terrain
+* RenderGraph
+* Skeleton Animation
 
 ## Features in Plan
 * Audio System
+* Character Rendering
 * Cloud Rendering
-* Foliage Rendering by importing SpeedTree assets
-* Human Eye Rendering
+* Foliage Rendering
 * Memory Management based on multiple allocators
-* Multithreading JobSystem
 * Optimized STL specific for GameEngine
 * Particle System
 * Physical Engine
 * Profiler for CPU/Memory/GPU
-* RenderGraph
-* ShadowMap
-* Subsurface Scattering Skin Rendering
+* ...
 
 ## ThirdParty in the development
 * Font

@@ -23,6 +23,7 @@ public:
 
 	void FileMenu();
 	void EditMenu();
+	void ViewMenu();
 	void WindowMenu();
 	void BuildMenu();
 	void AboutMenu();

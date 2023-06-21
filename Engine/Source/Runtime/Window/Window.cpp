@@ -16,20 +16,29 @@
 namespace engine
 {
 
-Window::Window(const char* pTitle, uint16_t width, uint16_t height)
-	: m_width(width)
-	, m_height(height)
+void Window::Init()
 {
 	// JoyStick : SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER
 	SDL_Init(SDL_INIT_EVENTS);
 	SDL_SetHintWithPriority("SDL_BORDERLESS_RESIZABLE_STYLE", "1", SDL_HINT_OVERRIDE);
 	SDL_SetHintWithPriority("SDL_BORDERLESS_WINDOWED_STYLE", "1", SDL_HINT_OVERRIDE);
+}
 
+void Window::Shutdown()
+{
+	SDL_Quit();
+}
+
+Window::Window(const char* pTitle, uint16_t width, uint16_t height, bool useFullScreen)
+	: m_width(width)
+	, m_height(height)
+{
 	// If you want to implement window like Visual Studio without titlebar provided by system OS, open SDL_WINDOW_BORDERLESS.
 	// But the issue is that you can't drag it unless you provide an implementation about hit test.
 	// Then you also need to simulate minimize and maxmize buttons.
 	m_pSDLWindow = SDL_CreateWindow(pTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		width, height, SDL_WINDOW_RESIZABLE);
+		width, height, SDL_WINDOW_SHOWN);
+	SDL_SetWindowFullscreen(m_pSDLWindow, useFullScreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 	SDL_WarpMouseInWindow(m_pSDLWindow, static_cast<int>(width * 0.5f), static_cast<int>(height * 0.5f));
 
 	SDL_SysWMinfo wmi;
@@ -47,13 +56,12 @@ Window::Window(const char* pTitle, uint16_t width, uint16_t height)
 
 Window::~Window()
 {
-	SDL_Quit();
 	SDL_DestroyWindow(m_pSDLWindow);
 }
 
-void Window::Closed(bool bPushSdlEvent)
+void Window::Close(bool bPushSdlEvent)
 {
-	m_IsClosed = true;
+	m_isClosed = true;
 	if (!bPushSdlEvent) { return; }
 
 	SDL_Event sdlEvent;
@@ -73,7 +81,7 @@ void Window::Update()
 		{
 		case SDL_QUIT:
 		{
-			Closed(false);
+			Close(false);
 		}
 		break;
 
@@ -210,6 +218,44 @@ void Window::Update()
 			break;
 		}
 	}
+}
+
+void Window::SetTitle(const char* pTitle)
+{
+	SDL_SetWindowTitle(m_pSDLWindow, pTitle);
+}
+
+void Window::SetFullScreen(bool flag)
+{
+	SDL_SetWindowFullscreen(m_pSDLWindow, static_cast<SDL_bool>(flag));
+}
+
+void Window::SetResizeable(bool flag)
+{
+	SDL_SetWindowResizable(m_pSDLWindow, static_cast<SDL_bool>(flag));
+}
+
+void Window::SetBordedLess(bool flag)
+{
+	SDL_SetWindowBordered(m_pSDLWindow, static_cast<SDL_bool>(!flag));
+}
+
+void Window::SetSize(uint16_t width, uint16_t height)
+{
+	m_width = width;
+	m_height = height;
+	SDL_SetWindowSize(m_pSDLWindow, width, height);
+
+	// Center the window
+	SDL_DisplayMode dm;
+	SDL_GetDesktopDisplayMode(0, &dm);
+	int screenWidth = dm.w;
+	int screenHeight = dm.h;
+	int windowX = (screenWidth - width) / 2;
+	int windowY = (screenHeight - height) / 2;
+	SDL_SetWindowPosition(m_pSDLWindow, windowX, windowY);
+
+	OnResize.Invoke(width, height);
 }
 
 void Window::SetWindowIcon(const char* pFilePath) const

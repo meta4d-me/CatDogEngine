@@ -86,6 +86,13 @@ public:
 		// Instead, we mark it as it unused which will be removed in the future.
 		m_unusedEntityIndexes.push_back(itIndex->second);
 		m_entityToIndex.erase(entity);
+
+		// 2023/06/06 : Sometimes we want to keep a continus component array.
+		// For example, light component needs to submit uniform data but we don't want to memcpy.
+		// So it is better to submit the begin address of light component array.
+		// But if you don't call CleanUnused, it will have bubbles to break this rule.
+		// TODO : Maybe we should do swap(move to last, update entity to index) in the RemoveComponent.
+		CleanUnused();
 	}
 
 	// Remove unused components.

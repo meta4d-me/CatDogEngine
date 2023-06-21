@@ -57,12 +57,8 @@ SceneView::~SceneView()
 
 void SceneView::Init()
 {
-	ImGuiIO& io = ImGui::GetIO();
-	engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
-	assert(pCurrentRenderContext && "RenderContext should be initilized at first.");
-
 	constexpr engine::StringCrc sceneRenderTarget("SceneRenderTarget");
-	engine::RenderTarget* pRenderTarget = pCurrentRenderContext->GetRenderTarget(sceneRenderTarget);
+	engine::RenderTarget* pRenderTarget = GetRenderContext()->GetRenderTarget(sceneRenderTarget);
 	OnResize.Bind<engine::RenderTarget, &engine::RenderTarget::Resize>(pRenderTarget);
 
 	m_currentOperation = SelectOperation;
@@ -157,31 +153,7 @@ void SceneView::UpdateSwitchIBLButton()
 	{
 		m_isIBLActive = !m_isIBLActive;
 		
-		engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(ImGui::GetIO().UserData);
-		engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
-		if (m_isIBLActive)
-		{
-			m_pIBLSkyRenderer->Enable();
-			m_pPBRSkyRenderer->Disable();
-
-			constexpr engine::StringCrc iblPBRCrc("IBL");
-			for (engine::Entity entity : pSceneWorld->GetMaterialEntities())
-			{
-				engine::MaterialComponent* pMaterialComponent = pSceneWorld->GetMaterialComponent(entity);
-				pMaterialComponent->SetUberShaderOption(iblPBRCrc);
-			}
-		}
-		else
-		{
-			m_pIBLSkyRenderer->Disable();
-			m_pPBRSkyRenderer->Enable();
-
-			for (engine::Entity entity : pSceneWorld->GetMaterialEntities())
-			{
-				engine::MaterialComponent* pMaterialComponent = pSceneWorld->GetMaterialComponent(entity);
-				pMaterialComponent->SetUberShaderOption(engine::ShaderSchema::DefaultUberOption);
-			}
-		}
+		// TODO
 	}
 
 	if (isIBLActive)
@@ -192,7 +164,7 @@ void SceneView::UpdateSwitchIBLButton()
 
 void SceneView::UpdateSwitchAABBButton()
 {
-	bool isAABBActive = m_pAABBRenderer->IsEnable();
+	bool isAABBActive = false;
 	if (isAABBActive)
 	{
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
@@ -200,11 +172,7 @@ void SceneView::UpdateSwitchAABBButton()
 
 	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CUBE " AABB")))
 	{
-		if (isAABBActive) {
-			m_pAABBRenderer->Disable();
-		} else {
-			m_pAABBRenderer->Enable();
-		}
+		GetRenderContext();
 	}
 
 	if (isAABBActive)
@@ -235,32 +203,14 @@ void SceneView::UpdateToolMenuButtons()
 
 	//ImGui::SameLine();
 	//ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-	ImGui::SameLine();
-
-	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CAMERA " FrameAll")))
-	{
-		ImGuiIO& io = ImGui::GetIO();
-		engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
-		engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
-
-		if (cd::SceneDatabase* pSceneDatabase = pImGuiContextInstance->GetSceneWorld()->GetSceneDatabase())
-		{
-			pSceneDatabase->UpdateAABB();
-
-			engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
-			engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
-			pCameraComponent->FrameAll(pSceneDatabase->GetAABB());
-		}
-	}
-
-	ImGui::SameLine();
-
+	
 	//Update2DAnd3DButtons();
 	//ImGui::SameLine();
 
 	//UpdateSwitchIBLButton();
 	//ImGui::SameLine();
 
+	ImGui::SameLine();
 	UpdateSwitchAABBButton();
 
 	ImGui::PopStyleColor();
@@ -284,8 +234,7 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 	}
 
 	// Loop through scene's all static meshes' AABB to test intersections with Ray.
-	engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(ImGui::GetIO().UserData);
-	engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
+	engine::SceneWorld* pSceneWorld = GetSceneWorld();
 	engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
 	cd::Ray pickRay = pCameraComponent->EmitRay(screenX, screenY, screenWidth, screenHeight);
 
@@ -324,18 +273,13 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 
 void SceneView::Update()
 {
-	ImGuiIO& io = ImGui::GetIO();
-	engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
-	assert(pRenderContext && "SceneView needs to access rendering resource.");
-
-	engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
-	engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
+	engine::SceneWorld* pSceneWorld = GetSceneWorld();
 	engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
 
 	if (nullptr == m_pRenderTarget)
 	{
 		constexpr engine::StringCrc sceneRenderTarget("SceneRenderTarget");
-		m_pRenderTarget = pRenderContext->GetRenderTarget(sceneRenderTarget);
+		m_pRenderTarget = GetRenderContext()->GetRenderTarget(sceneRenderTarget);
 	}
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
@@ -360,7 +304,6 @@ void SceneView::Update()
 		{
 			pCameraComponent->SetAspect(static_cast<float>(regionWidth) / static_cast<float>(regionHeight));
 		}
-
 	}
 
 	// Check if mouse hover on the area of SceneView so it can control.

@@ -1,7 +1,5 @@
 #pragma once
 
-//#include <bgfx/bgfx.h>
-
 #include <string>
 
 namespace engine
@@ -15,7 +13,7 @@ class Renderer
 {
 public:
 	Renderer() = delete;
-	explicit Renderer(RenderContext* pRenderContext, uint16_t viewID, RenderTarget* pRenderTarget);
+	explicit Renderer(RenderContext* pRenderContext, uint16_t viewID, RenderTarget* pRenderTarget = nullptr);
 	Renderer(const Renderer&) = delete;
 	Renderer& operator=(const Renderer&) = delete;
 	Renderer(Renderer&&) = delete;
@@ -27,20 +25,20 @@ public:
 	virtual void Render(float deltaTime) = 0;
 
 	uint16_t GetViewID() const { return m_viewID; }
+	void SetRenderTarget(RenderTarget* pRenderTarget) { m_pRenderTarget = pRenderTarget; }
 	const RenderTarget* GetRenderTarget() const { return m_pRenderTarget; }
 
-	void Enable() { m_isEnable = true; }
-	void Disable() { m_isEnable = false; }
-	bool IsEnable() const { return m_isEnable; }
+	virtual void SetEnable(bool value) { m_isEnable = value; }
+	virtual bool IsEnable() const { return m_isEnable; }
 
 public:
 	static void ScreenSpaceQuad(float _textureWidth, float _textureHeight, bool _originBottomLeft = false, float _width = 1.0f, float _height = 1.0f);
 
 protected:
-	uint16_t		m_viewID = 0;
+	uint16_t m_viewID = 0;
 	RenderContext*	m_pRenderContext = nullptr;
 	RenderTarget*	m_pRenderTarget = nullptr;
-	bool			m_isEnable = true;
+	bool m_isEnable = true;
 };
 
 }

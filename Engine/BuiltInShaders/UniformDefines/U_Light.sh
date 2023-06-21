@@ -10,7 +10,7 @@
 #define RECTANGLE_LIGHT 5
 #define TUBE_LIGHT 6
 
-#define LIGHT_LENGTH 80
+#define LIGHT_LENGTH 320
 
 struct U_Light {
 	// vec4 * 5

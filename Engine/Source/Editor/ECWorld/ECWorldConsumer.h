@@ -10,6 +10,7 @@
 
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -65,8 +66,8 @@ public:
 	void DeactivateUberOption(cd::MaterialTextureType textureType);
 	void ClearActiveUberOption();
 
-	std::vector<engine::Uber>& GetActiveUberOptions() { return m_activeUberOptions; }
-	const std::vector<engine::Uber>& GetActiveUberOptions() const { return m_activeUberOptions; }
+	std::set<engine::Uber>& GetActiveUberOptions() { return m_activeUberOptions; }
+	const std::set<engine::Uber>& GetActiveUberOptions() const { return m_activeUberOptions; }
 
 	void ActivateDDGIService() { m_meshAssetType = MeshAssetType::DDGI; }
 
@@ -85,7 +86,7 @@ private:
 
 	uint32_t m_nodeMinID;
 	uint32_t m_meshMinID;
-	std::vector<engine::Uber> m_activeUberOptions;
+	std::set<engine::Uber> m_activeUberOptions;
 
 	MeshAssetType m_meshAssetType = MeshAssetType::Standard;
 };
