@@ -266,7 +266,6 @@ std::shared_ptr<DirectoryInformation> AssetBrowser::CreateDirectoryInfoSharedPtr
 
 void AssetBrowser::UpdateAssetFolderTree()
 {
-	bool openReloadScenePopup = false;
 	ImGui::BeginChild("TopMenuButtons");
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.16f, 0.16f, 0.21f, 1.0f));
 	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_FILE_IMPORT " Import")))
