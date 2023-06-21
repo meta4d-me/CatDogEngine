@@ -78,6 +78,8 @@ public:
 
 private:
 	U_Light m_lightUniformData;
+	// Warning : We treat multiple light components as a complete and contiguous memory.
+	// any non-U_Light member of LightComponent will destroy this layout. --2023/6/21
 };
 
 }
