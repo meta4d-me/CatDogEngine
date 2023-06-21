@@ -91,7 +91,7 @@ private:
 	bool m_importOptionsPopup = false;
 	bool m_importMesh = true;
 	bool m_importMaterial = true;
-	bool m_importLight = true;
+	bool m_importLight = false;
 	bool m_importCamera = false;
 	bool m_impotrTexture = true;
 	const char* m_ImportFilePath;
