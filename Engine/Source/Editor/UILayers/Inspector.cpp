@@ -321,6 +321,11 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 		ImGuiProperty<cd::Vec3f>("Color", pLightComponent->GetColor());
 		ImGuiProperty<float>("Intensity", pLightComponent->GetIntensity());
 
+		static float s_spotInnerAngle = 8.0f;
+		static float s_spotOuterAngle = 16.0f;
+		bool spotInnerDirty = false;
+		bool spotOuterDirty = false;
+
 		switch (lightType)
 		{
 		case cd::LightType::Point:
@@ -334,8 +339,18 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
 			ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
 			ImGuiProperty<float>("Range", pLightComponent->GetRange());
-			ImGuiProperty<float>("AngleScale", pLightComponent->GetAngleScale());
-			ImGuiProperty<float>("AngleOffset", pLightComponent->GetAngleOffset());
+
+			cd::Vec2f innerAndOuter = pLightComponent->GetInnerAndOuter();
+			s_spotInnerAngle = innerAndOuter.x();
+			s_spotOuterAngle = innerAndOuter.y();
+
+			spotInnerDirty = ImGuiProperty<float>("InnerAngle", s_spotInnerAngle);
+			spotOuterDirty = ImGuiProperty<float>("OuterAngle", s_spotOuterAngle);
+			if(spotInnerDirty || spotOuterDirty)
+			{
+				pLightComponent->SetInnerAndOuter(s_spotInnerAngle, s_spotOuterAngle);
+			}
+			
 			break;
 		case cd::LightType::Disk:
 			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());

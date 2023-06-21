@@ -51,10 +51,15 @@ public:
 	float& GetHeight() { return m_lightUniformData.height; }
 	float GetHeight() const { return m_lightUniformData.height; }
 
+	cd::Vec2f GetInnerAndOuter() const;
+	void SetInnerAndOuter(float inner, float outer);
+
+	// It is recommended to access the inside and outside angle through GetInnerAndOuter/SetInnerAndOuter.
 	void SetAngleScale(float angleScale) { m_lightUniformData.lightAngleScale = angleScale; }
 	float& GetAngleScale() { return m_lightUniformData.lightAngleScale; }
 	float GetAngleScale() const { return m_lightUniformData.lightAngleScale; }
 
+	// It is recommended to access the inside and outside angle through GetInnerAndOuter/SetInnerAndOuter.
 	void SetAngleOffset(float angleOffset) { m_lightUniformData.lightAngleOffeset = angleOffset; }
 	float& GetAngleOffset() { return m_lightUniformData.lightAngleOffeset; }
 	float GetAngleOffset() const { return m_lightUniformData.lightAngleOffeset; }
@@ -73,6 +78,8 @@ public:
 
 private:
 	U_Light m_lightUniformData;
+	// Warning : We treat multiple light components as a complete and contiguous memory.
+	// any non-U_Light member of LightComponent will destroy this layout. --2023/6/21
 };
 
 }
