@@ -83,11 +83,18 @@ public:
 	bool IsTextureFile(const std::string& extension);
 	bool RenderFile(int dirIndex, bool folder, int shownIndex, bool gridView);
 
-private:
 	void UpdateAssetFolderTree();
 	void UpdateAssetFileView();
+	void UpdateImportSetting();
 
 private:
+	bool m_openImportPopup = false;
+	bool m_importMesh = true;
+	bool m_importMaterial = true;
+	bool m_importLight = true;
+	bool m_importCamera = false;
+	bool m_impotrTexture = true;
+	const char* m_ImportFilePath;
 	ImportAssetType m_importingAssetType = ImportAssetType::Unknown;
 	ExportAssetType m_exportingAssetType = ExportAssetType::Unknown;
 	std::unique_ptr<ImGui::FileBrowser> m_pImportFileBrowser;

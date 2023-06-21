@@ -1,190 +1,9 @@
+#include "UILayers/ImGuiUtils.hpp"
 #include "Inspector.h"
 
-#include "ECWorld/SceneWorld.h"
-#include "ECWorld/TransformComponent.h"
-#include "ImGui/ImGuiContextInstance.h"
-
-#include <imgui/imgui.h>
 
 namespace details
 {
-
-template<typename T>
-bool ImGuiProperty(const char* pName, T& value, const T& minValue = {}, const T& maxValue = {})
-{
-	bool dirty = false;
-	bool isUniform = true;
-
-	if constexpr (std::is_same<T, std::string>())
-	{
-		ImGui::Columns(2);
-		ImGui::TextUnformatted(pName);
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-
-		ImGui::TextUnformatted(value.c_str());
-
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
-		ImGui::Columns(1);
-	}
-	else if constexpr (std::is_same<T, bool>())
-	{
-		if (ImGui::Checkbox(pName, &value))
-		{
-			dirty = true;
-		}
-	}
-	else if constexpr (std::is_same<T, float>())
-	{
-		ImGui::Columns(2);
-		ImGui::TextUnformatted(pName);
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-
-		std::string labelName = std::format("##{}", pName);
-		float delta = maxValue - minValue;
-		float speed = cd::Math::IsEqualToZero(delta) ? 1.0f : delta * 0.05f;
-		if (ImGui::DragFloat(labelName.c_str(), &value, speed, minValue, maxValue))
-		{
-			dirty = true;
-		}
-
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
-		ImGui::Columns(1);
-	}
-	else if constexpr (std::is_same<T, cd::Vec2f>() || std::is_same<T, cd::Vec3f>() || std::is_same<T, cd::Vec4f>())
-	{
-		ImGui::Columns(2);
-		ImGui::TextUnformatted(pName);
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-
-		std::string labelName = std::format("##{}", pName);
-		float delta = maxValue.x() - minValue.x();
-		float speed = cd::Math::IsEqualToZero(delta) ? 1.0f : delta * 0.05f;
-		if constexpr (std::is_same<T, cd::Vec2f>())
-		{
-			if (ImGui::DragFloat2(labelName.c_str(), value.Begin(), speed, minValue.x(), maxValue.x()))
-			{
-				dirty = true;
-			}
-		}
-		else if constexpr (std::is_same<T, cd::Vec3f>())
-		{
-			if (ImGui::DragFloat3(labelName.c_str(), value.Begin(), speed, minValue.x(), maxValue.x()))
-			{
-				dirty = true;
-			}
-		}
-		else if constexpr (std::is_same<T, cd::Vec4f>())
-		{
-			if (ImGui::DragFloat4(labelName.c_str(), value.Begin(), speed, minValue.x(), maxValue.x()))
-			{
-				dirty = true;
-			}
-		}
-
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
-		ImGui::Columns(1);
-	}
-	else if constexpr (std::is_same<T, cd::Transform>())
-	{
-		if (ImGuiProperty<cd::Vec3f>("Translation", value.GetTranslation()))
-		{
-			dirty = true;
-		}
-
-		cd::Vec3f eularAngles = value.GetRotation().ToEulerAngles();
-		if (ImGuiProperty<cd::Vec3f>("Rotation", eularAngles, cd::Vec3f::Zero(), cd::Vec3f(360.0f)))
-		{
-			float pitch = std::min(eularAngles.x(), 89.9f);
-			pitch = std::max(pitch, -89.9f);
-
-			value.SetRotation(cd::Quaternion::FromPitchYawRoll(pitch, eularAngles.y(), eularAngles.z()));
-			dirty = true;
-		}
-
-		cd::Vec3f originScale = value.GetScale();
-		cd::Vec3f scale = originScale;
-		ImGui::TextUnformatted("Scale");
-		ImGui::SameLine();
-		bool UniformScaleEnabled = engine::TransformComponent::DoUseUniformScale();
-		ImGui::Checkbox("Uniform",&UniformScaleEnabled);
-		engine::TransformComponent::SetUseUniformScale(UniformScaleEnabled);
-
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-
-		if (ImGui::DragFloat3("##Scale", scale.Begin(),0.1f,0.001f,999.0f))
-		{
-			if (!cd::Math::IsEqualTo(scale.x(), originScale.x()))
-			{
-				if (UniformScaleEnabled)
-				{
-					float ratio = scale.x() / originScale.x();
-					cd::Vec3f _scale = value.GetScale();
-					_scale *= ratio;
-					value.SetScale(_scale);
-					
-					dirty = true;
-				}
-				else
-				{
-					value.SetScale(scale);
-					dirty = true;
-				}
-			}
-
-			if (!cd::Math::IsEqualTo(scale.y(), originScale.y()))
-			{
-				if (UniformScaleEnabled)
-				{
-					float ratio = scale.y() / originScale.y();
-					cd::Vec3f _scale = value.GetScale();
-					_scale *= ratio;
-					value.SetScale(_scale);
-					dirty = true;
-				}
-				else
-				{
-					value.SetScale(scale);
-					dirty = true;
-				}
-			}
-
-			if (!cd::Math::IsEqualTo(scale.z(), originScale.z()))
-			{
-				if (UniformScaleEnabled)
-				{
-					float ratio = scale.z() / originScale.z();
-					cd::Vec3f _scale = value.GetScale();
-					_scale *= ratio;
-					value.SetScale(_scale);
-					dirty = true;
-				}
-				else
-				{
-					value.SetScale(scale);
-					dirty = true;
-				}
-			}
-		}
-
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
-		ImGui::Columns(1);
-	}
-	else
-	{
-		static_assert("Unsupported data type for imgui property.");
-	}
-
-	return dirty;
-}
-
 template<typename Component>
 void UpdateComponentWidget(engine::SceneWorld* pSceneWorld, engine::Entity entity)
 {
@@ -205,7 +24,7 @@ void UpdateComponentWidget<engine::NameComponent>(engine::SceneWorld* pSceneWorl
 
 	if (isHeaderOpen)
 	{
-		ImGuiProperty<std::string>("Name", pNameComponent->GetNameForWrite());
+		ImGuiUtils::ImGuiProperty<std::string>("Name", pNameComponent->GetNameForWrite());
 	}
 
 	ImGui::Separator();
@@ -227,7 +46,7 @@ void UpdateComponentWidget<engine::TransformComponent>(engine::SceneWorld* pScen
 
 	if (isHeaderOpen)
 	{
-		if (ImGuiProperty<cd::Transform>("Transform", pTransformComponent->GetTransform()))
+		if (ImGuiUtils::ImGuiProperty<cd::Transform>("Transform", pTransformComponent->GetTransform()))
 		{
 			pTransformComponent->Dirty();
 			pTransformComponent->Build();
@@ -258,8 +77,8 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 
 	if (isOpen)
 	{
-		ImGuiProperty<cd::Vec3f>("AlbedoColor", pMaterialComponent->GetAlbedoColor(), cd::Vec3f::Zero(), cd::Vec3f::One());
-		ImGuiProperty<cd::Vec3f>("EmissiveColor", pMaterialComponent->GetEmissiveColor(), cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ImGuiProperty<cd::Vec3f>("AlbedoColor", pMaterialComponent->GetAlbedoColor(), cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ImGuiProperty<cd::Vec3f>("EmissiveColor", pMaterialComponent->GetEmissiveColor(), cd::Vec3f::Zero(), cd::Vec3f::One());
 	}
 
 	ImGui::Separator();
@@ -281,18 +100,18 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 
 	if (isOpen)
 	{
-		if (ImGuiProperty<float>("Aspect", pCameraComponent->GetAspect()) ||
-			ImGuiProperty<float>("Field Of View", pCameraComponent->GetFov()) ||
-			ImGuiProperty<float>("NearPlane", pCameraComponent->GetNearPlane()) ||
-			ImGuiProperty<float>("FarPlane", pCameraComponent->GetFarPlane()))
+		if (ImGuiUtils::ImGuiProperty<float>("Aspect", pCameraComponent->GetAspect()) ||
+			ImGuiUtils::ImGuiProperty<float>("Field Of View", pCameraComponent->GetFov()) ||
+			ImGuiUtils::ImGuiProperty<float>("NearPlane", pCameraComponent->GetNearPlane()) ||
+			ImGuiUtils::ImGuiProperty<float>("FarPlane", pCameraComponent->GetFarPlane()))
 		{
 			pCameraComponent->Dirty();
 			pCameraComponent->Build();
 		}
 
-		ImGuiProperty<bool>("Constrain Aspect Ratio", pCameraComponent->GetDoConstrainAspectRatio());
-		ImGuiProperty<bool>("Post Processing", pCameraComponent->GetIsPostProcessEnable());
-		ImGuiProperty<cd::Vec3f>("Gamma Correction", pCameraComponent->GetGammaCorrection(), cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ImGuiProperty<bool>("Constrain Aspect Ratio", pCameraComponent->GetDoConstrainAspectRatio());
+		ImGuiUtils::ImGuiProperty<bool>("Post Processing", pCameraComponent->GetIsPostProcessEnable());
+		ImGuiUtils::ImGuiProperty<cd::Vec3f>("Gamma Correction", pCameraComponent->GetGammaCorrection(), cd::Vec3f::Zero(), cd::Vec3f::One());
 	}
 
 	ImGui::Separator();
@@ -317,50 +136,50 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 		cd::LightType lightType = pLightComponent->GetType();
 		std::string lightTypeName = cd::GetLightTypeName(lightType);
 
-		ImGuiProperty<std::string>("Type", lightTypeName);
-		ImGuiProperty<cd::Vec3f>("Color", pLightComponent->GetColor());
-		ImGuiProperty<float>("Intensity", pLightComponent->GetIntensity());
+		ImGuiUtils::ImGuiProperty<std::string>("Type", lightTypeName);
+		ImGuiUtils::ImGuiProperty<cd::Vec3f>("Color", pLightComponent->GetColor());
+		ImGuiUtils::ImGuiProperty<float>("Intensity", pLightComponent->GetIntensity());
 
 		switch (lightType)
 		{
 		case cd::LightType::Point:
-			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
-			ImGuiProperty<float>("Range", pLightComponent->GetRange());
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
+			ImGuiUtils::ImGuiProperty<float>("Range", pLightComponent->GetRange());
 			break;
 		case cd::LightType::Directional:
-			ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
 			break;
 		case cd::LightType::Spot:
-			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
-			ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
-			ImGuiProperty<float>("Range", pLightComponent->GetRange());
-			ImGuiProperty<float>("AngleScale", pLightComponent->GetAngleScale());
-			ImGuiProperty<float>("AngleOffset", pLightComponent->GetAngleOffset());
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
+			ImGuiUtils::ImGuiProperty<float>("Range", pLightComponent->GetRange());
+			ImGuiUtils::ImGuiProperty<float>("AngleScale", pLightComponent->GetAngleScale());
+			ImGuiUtils::ImGuiProperty<float>("AngleOffset", pLightComponent->GetAngleOffset());
 			break;
 		case cd::LightType::Disk:
-			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
-			ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
-			ImGuiProperty<float>("Range", pLightComponent->GetRange());
-			ImGuiProperty<float>("Radius", pLightComponent->GetRadius());
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
+			ImGuiUtils::ImGuiProperty<float>("Range", pLightComponent->GetRange());
+			ImGuiUtils::ImGuiProperty<float>("Radius", pLightComponent->GetRadius());
 			break;
 		case cd::LightType::Rectangle:
-			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
-			ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
-			ImGuiProperty<cd::Vec3f>("Up", pLightComponent->GetUp());
-			ImGuiProperty<float>("Range", pLightComponent->GetRange());
-			ImGuiProperty<float>("Width", pLightComponent->GetWidth());
-			ImGuiProperty<float>("Height", pLightComponent->GetHeight());
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Up", pLightComponent->GetUp());
+			ImGuiUtils::ImGuiProperty<float>("Range", pLightComponent->GetRange());
+			ImGuiUtils::ImGuiProperty<float>("Width", pLightComponent->GetWidth());
+			ImGuiUtils::ImGuiProperty<float>("Height", pLightComponent->GetHeight());
 			break;
 		case cd::LightType::Sphere:
-			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
-			ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
-			ImGuiProperty<float>("Radius", pLightComponent->GetRadius());
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
+			ImGuiUtils::ImGuiProperty<float>("Radius", pLightComponent->GetRadius());
 			break;
 		case cd::LightType::Tube:
-			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
-			ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
-			ImGuiProperty<float>("Range", pLightComponent->GetRange());
-			ImGuiProperty<float>("Width", pLightComponent->GetWidth());
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
+			ImGuiUtils::ImGuiProperty<float>("Range", pLightComponent->GetRange());
+			ImGuiUtils::ImGuiProperty<float>("Width", pLightComponent->GetWidth());
 			break;
 		default:
 			assert("TODO");
