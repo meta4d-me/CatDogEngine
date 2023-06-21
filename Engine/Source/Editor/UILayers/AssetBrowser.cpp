@@ -596,13 +596,15 @@ void AssetBrowser::UpdateAssetFileView()
 
 void AssetBrowser::UpdateImportSetting()
 {
-	if (m_openImportPopup)
+	if (m_importOptionsPopup)
+	{
 		ImGui::OpenPopup("Import Option");
+	}
 
 	ImVec2 center = ImGui::GetMainViewport()->GetCenter();
 	ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-	if (ImGui::BeginPopupModal("Import Option", NULL, ImGuiWindowFlags_AlwaysVerticalScrollbar))
+	if (ImGui::BeginPopupModal("Import Option", nullptr, ImGuiWindowFlags_AlwaysVerticalScrollbar))
 	{
 		ImGui::SetWindowSize(ImVec2(400, 800));
 		bool isMeshOpen = ImGui::CollapsingHeader("Mesh", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
@@ -657,7 +659,7 @@ void AssetBrowser::UpdateImportSetting()
 			ImportAssetFile(m_pImportFileBrowser->GetSelected().string().c_str());
 			m_pImportFileBrowser->ClearSelected();
 			ImGui::CloseCurrentPopup();
-			m_openImportPopup = false;
+			m_importOptionsPopup = false;
 
 		}
 		ImGui::SetItemDefaultFocus();
@@ -666,7 +668,7 @@ void AssetBrowser::UpdateImportSetting()
 		{
 			m_pImportFileBrowser->ClearSelected();
 			ImGui::CloseCurrentPopup();
-			m_openImportPopup = false;
+			m_importOptionsPopup = false;
 		}
 		ImGui::EndPopup();
 	}
@@ -925,7 +927,7 @@ void AssetBrowser::Update()
 
 	if (m_pImportFileBrowser->HasSelected())
 	{
-		m_openImportPopup = true;
+		m_importOptionsPopup = true;
 	}
 	
 	m_pExportFileBrowser->Display();
