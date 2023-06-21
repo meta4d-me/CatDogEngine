@@ -130,8 +130,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         lightComponent.SetPosition(cd::Point(0.0f, 0.0f, -16.0f));
         lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
         lightComponent.SetRange(1024.0f);
-        lightComponent.SetInnerDegree(24.0f);
-        lightComponent.SetOuterDegree(40.0f);
+        lightComponent.SetInnerAndOuter(24.0f, 40.0f);
     }
     else if (ImGui::MenuItem("Add Directional Light"))
     {
