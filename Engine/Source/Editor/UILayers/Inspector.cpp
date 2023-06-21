@@ -1,5 +1,6 @@
-#include "UILayers/ImGuiUtils.hpp"
 #include "Inspector.h"
+
+#include "UILayers/ImGuiUtils.hpp"
 
 
 namespace details
