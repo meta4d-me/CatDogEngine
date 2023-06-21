@@ -331,7 +331,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 
 	ImGui::PopStyleColor();
 	DrawFolder(m_BaseProjectDir, true);
-	ImGui::EndChild();	
+	ImGui::EndChild();
 }
 
 std::string AssetBrowser::StripExtras(const std::string& filename)
