@@ -1,7 +1,7 @@
 $input v_worldPos, v_normal, v_texcoord0, v_TBN
 
 #include "../common/common.sh"
-#include "fs_PBR_definitions.sh"
+#include "../UniformDefines/U_PBR.sh"
 #include "uniforms.sh"
 
 #define PI 3.1415926536
@@ -180,7 +180,7 @@ void main()
 	Material material = GetMaterial(v_texcoord0, v_normal, v_TBN);
 	
 	vec3 viewDir = normalize(cameraPos - v_worldPos);
-	vec3 reflectDir = normalize(reflect(-viewDir, material.normal));	
+	vec3 reflectDir = normalize(reflect(-viewDir, material.normal));
 	
 	// ----------------------------------- Environment Light ----------------------------------------
 
