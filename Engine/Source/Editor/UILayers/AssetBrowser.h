@@ -88,7 +88,7 @@ public:
 	void UpdateImportSetting();
 
 private:
-	bool m_openImportPopup = false;
+	bool m_importOptionsPopup = false;
 	bool m_importMesh = true;
 	bool m_importMaterial = true;
 	bool m_importLight = true;
