@@ -64,7 +64,7 @@ bool IsShaderInputFile(const char* pFileExtension)
 
 bool IsModelInputFile(const char* pFileExtension)
 {
-	constexpr const char* pFileExtensions[] = { ".cdbin", ".dae", ".fbx", ".glb", ".gltf", ".md5mesh" };
+	constexpr const char* pFileExtensions[] = { ".cdbin", ".dae", ".fbx", ".glb", ".gltf", ".md5mesh", ".obj"};
 	constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
 	for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
 	{
