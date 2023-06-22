@@ -4,12 +4,8 @@
 
 project("Editor")
 	kind("ConsoleApp")
-	language("C++")
-	cppdialect("C++20")
+	SetLanguageAndToolset("Editor")
 	dependson { "Engine" }
-
-	location(path.join(IntermediatePath, "Editor"))
-	targetdir(BinariesPath)
 
 	files {
 		path.join(EditorSourcePath, "**.*"),

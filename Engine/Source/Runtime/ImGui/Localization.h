@@ -2,9 +2,6 @@
 
 #include "Language.h"
 
-#include <fstream>
-#include <filesystem>
-#include <iostream>
 #include <map>
 #include <string>
 #include <vector>
@@ -17,9 +14,7 @@ class Localization
 public:
     static void SetLanguage(Language language);
     static const char* GetText(const std::string& key);
-
-private:
-    static void ReadCSV();
+    static bool ReadCSV(std::string filePath);
 
 private:
     static std::map<std::string, std::vector<std::string>> TextMap;

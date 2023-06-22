@@ -2,7 +2,7 @@
 
 #include "Input.h"
 
-#include <sdl.h>
+#include <SDL.h>
 #include <SDL_syswm.h>
 #include <SDL_video.h>
 #include <SDL_joystick.h>

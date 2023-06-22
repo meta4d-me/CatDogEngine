@@ -6,6 +6,7 @@
 #include "ECWorld/SceneWorld.h"
 #include "ImGui/EditorImGuiViewport.h"
 #include "ImGui/ImGuiContextInstance.h"
+#include "ImGui/Localization.h"
 #include "ImGui/UILayers/DebugPanel.h"
 #include "Log/Log.h"
 #include "Path/Path.h"
@@ -58,6 +59,14 @@ EditorApp::~EditorApp()
 void EditorApp::Init(engine::EngineInitArgs initArgs)
 {
 	m_initArgs = cd::MoveTemp(initArgs);
+
+	// Load config files
+	std::filesystem::path rootPath = CDEDITOR_RESOURCES_ROOT_PATH;
+	rootPath /= "Text.csv";
+	if (!engine::Localization::ReadCSV(rootPath.string()))
+	{
+		CD_ERROR("Failed to open CSV file");
+	}
 
 	// Init graphics backend
 	InitRenderContext(m_initArgs.backend);
