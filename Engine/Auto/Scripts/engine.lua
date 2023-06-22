@@ -14,6 +14,7 @@ project("Engine")
 		path.join(ThirdPartySourcePath, "imgui/*.cpp"),
 		path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
 		path.join(ThirdPartySourcePath, "spdlog/include/spdlog/**.*"),
+		path.join(ThirdPartySourcePath, "tracy/public/TracyClient.cpp"),
 	}
 	
 	vpaths {
@@ -25,6 +26,9 @@ project("Engine")
 			path.join(ThirdPartySourcePath, "imgui/*.cpp"),
 			path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
 		},
+		["Tracy"] = {
+			path.join(ThirdPartySourcePath, "tracy/public/TracyClient.cpp"),
+		}
 	}
 	
 	local bgfxBuildBinPath = nil
@@ -54,6 +58,7 @@ project("Engine")
 		path.join(EnginePath, "BuiltInShaders/shaders"),
 		path.join(EnginePath, "BuiltInShaders/UniformDefines"),
 		path.join(ThirdPartySourcePath, "spdlog/include"),
+		path.join(ThirdPartySourcePath, "tracy/public"),
 	}
 
 	filter { "configurations:Debug" }
@@ -99,7 +104,8 @@ project("Engine")
 		"CDPROJECT_RESOURCES_SHARED_PATH=\""..ProjectSharedPath.."\"",
 		"CDPROJECT_RESOURCES_ROOT_PATH=\""..ProjectResourceRootPath.."\"",
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..EditorResourceRootPath.."\"",
-		"EDITOR_MODE"
+		"EDITOR_MODE",
+		"TRACY_ENABLE",
 	}
 
 	-- use /MT /MTd, not /MD /MDd
