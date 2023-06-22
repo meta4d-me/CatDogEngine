@@ -9,6 +9,7 @@
 #include "Framework/Processor.h"
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
 #include "ImGui/ImGuiContextInstance.h"
+#include "ImGui/ImGuiUtils.hpp"
 #include "Log/Log.h"
 #include "Material/MaterialType.h"
 #include "Producers/CDProducer/CDProducer.h"
@@ -17,7 +18,6 @@
 #include "Rendering/RenderContext.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ResourceLoader.h"
-#include "UILayers/ImGuiUtils.hpp"
 
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
