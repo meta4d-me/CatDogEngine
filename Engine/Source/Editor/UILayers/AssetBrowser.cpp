@@ -7,12 +7,13 @@
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/World.h"
 #include "Framework/Processor.h"
+#include "ImGui/IconFont/IconsMaterialDesignIcons.h"
+#include "ImGui/ImGuiContextInstance.h"
+#include "ImGui/ImGuiUtils.hpp"
 #include "Log/Log.h"
 #include "Material/MaterialType.h"
 #include "Producers/CDProducer/CDProducer.h"
 #include "Producers/GenericProducer/GenericProducer.h"
-#include "ImGui/IconFont/IconsMaterialDesignIcons.h"
-#include "ImGui/ImGuiContextInstance.h"
 #include "Rendering/WorldRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Resources/ResourceBuilder.h"
@@ -329,7 +330,6 @@ void AssetBrowser::UpdateAssetFolderTree()
 	}
 
 	ImGui::PopStyleColor();
-	std::filesystem::path path = CDPROJECT_RESOURCES_ROOT_PATH;
 	DrawFolder(m_BaseProjectDir, true);
 	ImGui::EndChild();
 }
@@ -594,6 +594,86 @@ void AssetBrowser::UpdateAssetFileView()
 	ImGui::SliderFloat(" ", &m_GridSize, 40.0f, 160.0f, " ", ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_Logarithmic);
 }
 
+void AssetBrowser::UpdateImportSetting()
+{
+	if (m_importOptionsPopup)
+	{
+		ImGui::OpenPopup("Import Option");
+	}
+
+	ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+	ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+	if (ImGui::BeginPopupModal("Import Option", nullptr, ImGuiWindowFlags_AlwaysVerticalScrollbar))
+	{
+		ImGui::SetWindowSize(ImVec2(400, 800));
+		bool isMeshOpen = ImGui::CollapsingHeader("Mesh", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+		ImGui::Separator();
+
+		if (isMeshOpen)
+		{
+			ImGuiUtils::ImGuiProperty<bool>("Static Mesh", m_importMesh);
+		}
+
+		ImGui::Separator();
+		ImGui::PopStyleVar();
+
+		bool isMaterialOpen = ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+		ImGui::Separator();
+
+		if (isMaterialOpen)
+		{
+			ImGuiUtils::ImGuiProperty<bool>("Materials", m_importMaterial);
+		}
+
+		ImGui::Separator();
+		ImGui::PopStyleVar();
+
+		bool isLightOpen = ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+		ImGui::Separator();
+		if (isLightOpen)
+		{
+			ImGuiUtils::ImGuiProperty<bool>("Lights", m_importLight);
+		}
+		ImGui::Separator();
+		ImGui::PopStyleVar();
+
+
+		bool isOtherOpen = ImGui::CollapsingHeader("Other", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+		ImGui::Separator();
+		if (isOtherOpen)
+		{
+			ImGuiUtils::ImGuiProperty<bool>("Camera", m_importCamera);
+		}
+		ImGui::Separator();
+		ImGui::PopStyleVar();
+
+		ImGui::Separator();
+
+		if (ImGui::Button("OK", ImVec2(120, 0)))
+		{
+			ImportAssetFile(m_pImportFileBrowser->GetSelected().string().c_str());
+			m_pImportFileBrowser->ClearSelected();
+			ImGui::CloseCurrentPopup();
+			m_importOptionsPopup = false;
+
+		}
+		ImGui::SetItemDefaultFocus();
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel", ImVec2(120, 0)))
+		{
+			m_pImportFileBrowser->ClearSelected();
+			ImGui::CloseCurrentPopup();
+			m_importOptionsPopup = false;
+		}
+		ImGui::EndPopup();
+	}
+}
+
 void AssetBrowser::ImportAssetFile(const char* pFilePath)
 {
 	CD_INFO("Importing asset file : {0}", pFilePath);
@@ -678,39 +758,78 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 {
 	engine::RenderContext* pCurrentRenderContext = GetRenderContext();
 	engine::SceneWorld* pSceneWorld = GetImGuiContextInstance()->GetSceneWorld();
-	ECWorldConsumer ecConsumer(pSceneWorld, pCurrentRenderContext);
 
 	cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
-	ecConsumer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount(), pSceneDatabase->GetMeshCount());
+	uint32_t oldNodeCount = pSceneDatabase->GetNodeCount();
+	uint32_t oldMeshCount = pSceneDatabase->GetMeshCount();
 
+	// Step 1 : Convert model file to cd::SceneDatabase
 	std::filesystem::path inputFilePath(pFilePath);
 	std::filesystem::path inputFileExtension = inputFilePath.extension();
 	if (0 == inputFileExtension.compare(".cdbin"))
 	{
 		cdtools::CDProducer cdProducer(pFilePath);
-		cdtools::Processor processor(&cdProducer, &ecConsumer, pSceneDatabase);
+		cdtools::Processor processor(&cdProducer, nullptr, pSceneDatabase);
 		processor.Run();
 	}
 	else
 	{
 		cdtools::GenericProducer genericProducer(pFilePath);
 		genericProducer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount(), pSceneDatabase->GetMeshCount(),
-			pSceneDatabase->GetMaterialCount(), pSceneDatabase->GetTextureCount(), pSceneDatabase->GetLightCount());
+		pSceneDatabase->GetMaterialCount(), pSceneDatabase->GetTextureCount(), pSceneDatabase->GetLightCount());
 		genericProducer.ActivateBoundingBoxService();
 		genericProducer.ActivateCleanUnusedService();
 		genericProducer.ActivateTangentsSpaceService();
 		genericProducer.ActivateTriangulateService();
 		genericProducer.ActivateSimpleAnimationService();
-		
-		if(m_importingAssetType == ImportAssetType::DDGIModel)
-		{
-			ecConsumer.ActivateDDGIService();
-		}
 
-		cdtools::Processor processor(&genericProducer, &ecConsumer, pSceneDatabase);
+		cdtools::Processor processor(&genericProducer, nullptr, pSceneDatabase);
+		processor.SetDumpSceneDatabaseEnable(false);
 		processor.SetFlattenSceneDatabaseEnable(true);
 		processor.Run();
 	}
+
+	// Step 2 : Process generated cd::SceneDatabase
+	if (!m_importMaterial)
+	{
+		pSceneDatabase->GetMaterials().clear();
+		for (auto& mesh : pSceneDatabase->GetMeshes())
+		{
+			mesh.SetMaterialID(cd::MaterialID::InvalidID);
+		}
+	}
+	if (!m_importMesh)
+	{
+		pSceneDatabase->GetMeshes().clear();
+	}
+	if (!m_importLight)
+	{
+		pSceneDatabase->GetLights().clear();
+
+	}
+	/*if (!m_impotrTexture)
+	{
+		for (auto& material : pSceneDatabase->GetMaterials())
+		{
+			
+		}
+		pSceneDatabase->GetTextures().clear();
+	}*/
+	if (!m_importCamera)
+	{
+		pSceneDatabase->GetCameras().clear();
+	}
+
+	// Step 3 : Convert cd::SceneDatabase to entities and components
+	ECWorldConsumer ecConsumer(pSceneWorld, pCurrentRenderContext);
+	ecConsumer.SetSceneDatabaseIDs(oldNodeCount, oldMeshCount);
+	if (m_importingAssetType == ImportAssetType::DDGIModel)
+	{
+		ecConsumer.ActivateDDGIService();
+	}
+	cdtools::Processor processor(nullptr, &ecConsumer, pSceneDatabase);
+	processor.SetDumpSceneDatabaseEnable(true);
+	processor.Run();
 }
 
 void AssetBrowser::ExportAssetFile(const char* pFilePath)
@@ -799,24 +918,26 @@ void AssetBrowser::Update()
 
 	ImGui::NextColumn();
 	UpdateAssetFileView();
-	//RenderBottom();
 	ImGui::EndColumns();
 
 	ImGui::End();
 
+
 	m_pImportFileBrowser->Display();
+
 	if (m_pImportFileBrowser->HasSelected())
 	{
-		ImportAssetFile(m_pImportFileBrowser->GetSelected().string().c_str());
-		m_pImportFileBrowser->ClearSelected();
+		m_importOptionsPopup = true;
 	}
-
+	
 	m_pExportFileBrowser->Display();
 	if (m_pExportFileBrowser->HasSelected())
 	{
 		ExportAssetFile(m_pExportFileBrowser->GetSelected().string().c_str());
 		m_pExportFileBrowser->ClearSelected();
 	}
+	UpdateImportSetting();
+	
 }
 
 }
