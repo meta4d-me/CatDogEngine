@@ -48,8 +48,8 @@ public:
 public:
 	ShaderSchema() = default;
 	explicit ShaderSchema(std::string vsPath, std::string fsPath);
-	ShaderSchema(const ShaderSchema&) = default;
-	ShaderSchema& operator=(const ShaderSchema&) = default;
+	ShaderSchema(const ShaderSchema&) = delete;
+	ShaderSchema& operator=(const ShaderSchema&) = delete;
 	ShaderSchema(ShaderSchema&&) = default;
 	ShaderSchema& operator=(ShaderSchema&&) = default;
 	~ShaderSchema() = default;

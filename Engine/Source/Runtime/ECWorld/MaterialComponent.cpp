@@ -33,7 +33,7 @@ bgfx::TextureHandle BGFXCreateTexture(
 	uint64_t textureFlags, 
 	const bgfx::Memory* pMemory)
 {
-	bgfx::TextureHandle textureHandle(bgfx::kInvalidHandle);
+	bgfx::TextureHandle textureHandle = BGFX_INVALID_HANDLE;
 	if (isCubeMap)
 	{
 		textureHandle = bgfx::createTextureCube(width, hasMips, numLayers, textureFormat, textureFlags, pMemory);

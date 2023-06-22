@@ -2,8 +2,6 @@
 
 #include "Math/Vector.hpp"
 
-#include <cinttypes>
-
 namespace engine
 {
 
