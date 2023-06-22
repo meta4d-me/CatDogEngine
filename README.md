@@ -35,7 +35,6 @@
 * Optimized STL specific for GameEngine
 * Particle System
 * Physical Engine
-* 
 
 ## ThirdParty in the development
 
