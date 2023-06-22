@@ -24,11 +24,11 @@ public:
 	void Update();
 	float GetFramerate() const { return 1.0f / m_deltaTime; }
 	float GetDeltaTime() const { return m_deltaTime; }
-	float GetTimeSinceStart() const { m_timeSinceStart; }
+	//float GetTimeSinceStart() const { m_timeSinceStart; }
 
 private:
 	float m_deltaTime = 0.0f;
-	float m_timeSinceStart = 0.0f;
+	//float m_timeSinceStart = 0.0f;
 
 	std::chrono::duration<float> m_elapsed;
 	std::chrono::steady_clock::time_point m_lastTime;

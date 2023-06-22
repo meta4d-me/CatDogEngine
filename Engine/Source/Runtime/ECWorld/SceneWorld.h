@@ -40,8 +40,8 @@ class SceneWorld
 
 public:
 	SceneWorld();
-	SceneWorld(const SceneWorld&) = default;
-	SceneWorld& operator=(const SceneWorld&) = default;
+	SceneWorld(const SceneWorld&) = delete;
+	SceneWorld& operator=(const SceneWorld&) = delete;
 	SceneWorld(SceneWorld&&) = default;
 	SceneWorld& operator=(SceneWorld&&) = default;
 	~SceneWorld() = default;

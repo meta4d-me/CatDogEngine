@@ -4,12 +4,8 @@
 
 project("Engine")
 	kind(EngineBuildLibKind)
-	language("C++")
-	cppdialect("C++20")
+	SetLanguageAndToolset("Engine/Runtime")
 	dependson { "bx", "bimg", "bimg_decode", "bgfx" } -- sdl is pre-built in makefile.
-	
-	location(path.join(IntermediatePath, "Engine/Runtime"))
-	targetdir(BinariesPath)
 
 	files {
 		path.join(RuntimeSourcePath, "**.*"),
@@ -103,7 +99,7 @@ project("Engine")
 		"CDPROJECT_RESOURCES_SHARED_PATH=\""..ProjectSharedPath.."\"",
 		"CDPROJECT_RESOURCES_ROOT_PATH=\""..ProjectResourceRootPath.."\"",
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..EditorResourceRootPath.."\"",
-		"EDITOR_MODE",
+		"EDITOR_MODE"
 	}
 
 	-- use /MT /MTd, not /MD /MDd
