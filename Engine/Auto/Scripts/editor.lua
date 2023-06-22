@@ -36,6 +36,7 @@ project("Editor")
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..EditorResourceRootPath.."\"",
 		"CDENGINE_TOOL_PATH=\""..ToolRootPath.."\"",
 		"EDITOR_MODE",
+		"TRACY_ENABLE",
 	}
 
 	includedirs {
@@ -53,6 +54,7 @@ project("Editor")
 		path.join(ThirdPartySourcePath, "imgui"),
 		path.join(ThirdPartySourcePath, "imguizmo"),
 		path.join(ThirdPartySourcePath, "spdlog/include"),
+		path.join(ThirdPartySourcePath, "tracy/public"),
 		ThirdPartySourcePath,
 	}
 
