@@ -47,10 +47,10 @@ enum class ExportAssetType
 class DirectoryInformation
 {
 public:
-	DirectoryInformation(const std::filesystem::path& fname, bool isF)
+	DirectoryInformation(const std::filesystem::path& fileName, bool isFile)
 	{
-		FilePath = fname;
-		IsFile = isF;
+		FilePath = fileName;
+		IsFile = isFile;
 	}
 
 	std::shared_ptr<DirectoryInformation> Parent;
@@ -101,21 +101,19 @@ private:
 	std::unique_ptr<ImGui::FileBrowser> m_pExportFileBrowser;
 	engine::Renderer* m_pSceneRenderer = nullptr;
 
-	bool m_UpdateNavigationPath = true;
-	bool m_ShowHiddenFiles;
-	bool m_IsInListView;
-	int m_GridItemPerRow;
-	float m_GridSize = 40.0f;
+	bool m_updateNavigationPath = true;
+	bool m_showHiddenFiles;
+	bool m_isInListView;
+	int m_gridItemPerRow;
+	float m_gridSize = 40.0f;
 
-	std::string m_BasePath;
-	std::filesystem::path m_AssetPath;
-
-	std::shared_ptr<DirectoryInformation> m_CurrentDir;
-	std::shared_ptr<DirectoryInformation> m_BaseProjectDir;
-	std::shared_ptr<DirectoryInformation> m_NextDirectory;
-	std::shared_ptr<DirectoryInformation> m_PreviousDirectory;
-	std::unordered_map<std::string, std::shared_ptr<DirectoryInformation>> m_Directories;
-	std::vector<std::shared_ptr<DirectoryInformation>> m_BreadCrumbData;
+	std::string m_basePath;
+	std::shared_ptr<DirectoryInformation> m_currentDirectory;
+	std::shared_ptr<DirectoryInformation> m_baseProjectDirectory;
+	std::shared_ptr<DirectoryInformation> m_nextDirectory;
+	std::shared_ptr<DirectoryInformation> m_previousDirectory;
+	std::unordered_map<std::string, std::shared_ptr<DirectoryInformation>> m_directories;
+	std::vector<std::shared_ptr<DirectoryInformation>> m_breadCrumbData;
 };
 
 }
