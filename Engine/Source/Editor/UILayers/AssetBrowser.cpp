@@ -132,27 +132,27 @@ void AssetBrowser::Init()
 {
 	m_pImportFileBrowser = std::make_unique<ImGui::FileBrowser>();
 	m_pExportFileBrowser = std::make_unique<ImGui::FileBrowser>();
-	m_BasePath = CDPROJECT_RESOURCES_ROOT_PATH;
-	std::string baseDirectoryHandle = ProcessDirectory(std::filesystem::path(m_BasePath), nullptr);
-	m_BaseProjectDir = m_Directories[baseDirectoryHandle];
-	m_CurrentDir = m_BaseProjectDir;
+	m_basePath = CDPROJECT_RESOURCES_ROOT_PATH;
+	std::string baseDirectoryHandle = ProcessDirectory(std::filesystem::path(m_basePath), nullptr);
+	m_baseProjectDirectory = m_directories[baseDirectoryHandle];
+	m_currentDirectory = m_baseProjectDirectory;
 }
 
 
 bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gridView)
 {
 	bool doubleClicked = false;
-	std::filesystem::path resourcesPath = CDPROJECT_RESOURCES_ROOT_PATH;
-	std::string extension = m_CurrentDir->Children[dirIndex]->FilePath.extension().generic_string();
+	std::filesystem::path resourcesPath = m_basePath;
+	std::string extension = m_currentDirectory->Children[dirIndex]->FilePath.extension().generic_string();
 	if (gridView)
 	{
 		ImGui::BeginGroup();
-		const std::string fileName = m_CurrentDir->Children[dirIndex]->FilePath.filename().string();
-		const std::string nameNoEx = m_CurrentDir->Children[dirIndex]->FilePath.filename().stem().string();
-		std::string extension = m_CurrentDir->Children[dirIndex]->FilePath.extension().generic_string();
+		const std::string fileName = m_currentDirectory->Children[dirIndex]->FilePath.filename().string();
+		const std::string nameNoEx = m_currentDirectory->Children[dirIndex]->FilePath.filename().stem().string();
+		std::string extension = m_currentDirectory->Children[dirIndex]->FilePath.extension().generic_string();
 		if (folder)
 		{
-			ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_FOLDER), ImVec2(m_GridSize, m_GridSize));
+			ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_FOLDER), ImVec2(m_gridSize, m_gridSize));
 		}
 		 if (!folder)
 		{
@@ -175,14 +175,14 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 				 }
 				 else
 				 {
-					 ImVec2 img_size(m_GridSize, m_GridSize);
+					 ImVec2 img_size(m_gridSize, m_gridSize);
 					 ImGui::Image(ImTextureID(TextureHandle.idx), img_size);
 				 }
 
 			 }
 			 if (0 == strcmp(".dds", extension.c_str()))
 			 {
-				 ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_DELTA), ImVec2(m_GridSize, m_GridSize));
+				 ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_DELTA), ImVec2(m_gridSize, m_gridSize));
 			 }
 	
 						
@@ -199,14 +199,14 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 		ImGui::TextUnformatted(newFname.c_str());
 		ImGui::EndGroup();
 
-		if ((shownIndex + 1) % (m_GridItemPerRow ) != 0)
+		if ((shownIndex + 1) % (m_gridItemPerRow ) != 0)
 			ImGui::SameLine();
 	}
 	else
 	{
-		ImGui::TextUnformatted(folder ? reinterpret_cast<const char*>(ICON_MDI_FOLDER) : GetIconFontIconc(m_CurrentDir->Children[dirIndex]->FilePath.string()));
+		ImGui::TextUnformatted(folder ? reinterpret_cast<const char*>(ICON_MDI_FOLDER) : GetIconFontIconc(m_currentDirectory->Children[dirIndex]->FilePath.string()));
 		ImGui::SameLine();
-		if (ImGui::Selectable(m_CurrentDir->Children[dirIndex]->FilePath.filename().string().c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
+		if (ImGui::Selectable(m_currentDirectory->Children[dirIndex]->FilePath.filename().string().c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
 		{
 			if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 			{
@@ -214,14 +214,14 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 			}
 		}
 	}
-	Tooltip(m_CurrentDir->Children[dirIndex]->FilePath.filename().string().c_str());
+	Tooltip(m_currentDirectory->Children[dirIndex]->FilePath.filename().string().c_str());
 	if (doubleClicked)
 	{
 		if (folder)
 		{
-			m_PreviousDirectory = m_CurrentDir;
-			m_CurrentDir = m_CurrentDir->Children[dirIndex];
-			m_UpdateNavigationPath = true;
+			m_previousDirectory = m_currentDirectory;
+			m_currentDirectory = m_currentDirectory->Children[dirIndex];
+			m_updateNavigationPath = true;
 		}
 		else
 		{
@@ -254,9 +254,9 @@ void AssetBrowser::ChangeDirectory(std::shared_ptr<DirectoryInformation>& direct
 		return;
 	}
 
-	m_PreviousDirectory		= m_CurrentDir;
-	m_CurrentDir			= directory;
-	m_UpdateNavigationPath  = true;
+	m_previousDirectory		= m_currentDirectory;
+	m_currentDirectory			= directory;
+	m_updateNavigationPath  = true;
 }
 
 std::shared_ptr<DirectoryInformation> AssetBrowser::CreateDirectoryInfoSharedPtr(const std::filesystem::path& directoryPath, bool isDirectory)
@@ -330,7 +330,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 	}
 
 	ImGui::PopStyleColor();
-	DrawFolder(m_BaseProjectDir, true);
+	DrawFolder(m_baseProjectDirectory, true);
 	ImGui::EndChild();
 }
 
@@ -346,7 +346,7 @@ std::string AssetBrowser::StripExtras(const std::string& filename)
 		out.push_back(filename.substr(start, end - start));
 	}
 
-	int maxChars = static_cast<int>(m_GridSize / (ImGui::GetFontSize() * 0.5f));
+	int maxChars = static_cast<int>(m_gridSize / (ImGui::GetFontSize() * 0.5f));
 	if (out[0].length() >= maxChars)
 	{
 		auto cutFilename = "     " + out[0].substr(0, maxChars - 3) + "...";
@@ -358,7 +358,7 @@ std::string AssetBrowser::StripExtras(const std::string& filename)
 
 void AssetBrowser::DrawFolder(const std::shared_ptr<DirectoryInformation>& dirInfo, bool defaultOpen)
 {
-	ImGuiTreeNodeFlags nodeFlags = ((dirInfo == m_CurrentDir) ? ImGuiTreeNodeFlags_Selected : 0);
+	ImGuiTreeNodeFlags nodeFlags = ((dirInfo == m_currentDirectory) ? ImGuiTreeNodeFlags_Selected : 0);
 	nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
 
 	if (dirInfo->Parent == nullptr)
@@ -389,7 +389,7 @@ void AssetBrowser::DrawFolder(const std::shared_ptr<DirectoryInformation>& dirIn
 
 		bool isOpen = ImGui::TreeNodeEx((void*)(intptr_t)(dirInfo.get()), nodeFlags, "");
 
-		const char* folderIcon = reinterpret_cast<const char*>(((isOpen && containsFolder) || m_CurrentDir == dirInfo) ? ICON_MDI_FOLDER_OPEN : ICON_MDI_FOLDER);
+		const char* folderIcon = reinterpret_cast<const char*>(((isOpen && containsFolder) || m_currentDirectory == dirInfo) ? ICON_MDI_FOLDER_OPEN : ICON_MDI_FOLDER);
 		ImGui::SameLine();
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
 		ImGui::Text("%s ", folderIcon);
@@ -401,10 +401,10 @@ void AssetBrowser::DrawFolder(const std::shared_ptr<DirectoryInformation>& dirIn
 
 		if (ImGui::IsItemClicked())
 		{
-			m_PreviousDirectory = m_CurrentDir;
-			m_CurrentDir = dirInfo;
-			m_UpdateNavigationPath = true;
-			std::filesystem::path a = m_CurrentDir->FilePath;
+			m_previousDirectory = m_currentDirectory;
+			m_currentDirectory = dirInfo;
+			m_updateNavigationPath = true;
+			std::filesystem::path a = m_currentDirectory->FilePath;
 			std::string str = a.string();
 			
 		}
@@ -459,7 +459,7 @@ void AssetBrowser::DrawFolder(const std::shared_ptr<DirectoryInformation>& dirIn
 
 std::string AssetBrowser::ProcessDirectory(const std::filesystem::path& directoryPath, const std::shared_ptr<DirectoryInformation>& parent)
 {
-	const auto& directory = m_Directories[directoryPath.string()];
+	const auto& directory = m_directories[directoryPath.string()];
 	if (directory)
 	{
 		return directory->FilePath.string();
@@ -467,23 +467,23 @@ std::string AssetBrowser::ProcessDirectory(const std::filesystem::path& director
 
 	std::shared_ptr<DirectoryInformation> directoryInfo = CreateDirectoryInfoSharedPtr(directoryPath, !std::filesystem::is_directory(directoryPath));
 	directoryInfo->Parent = parent;
-	directoryInfo->FilePath = directoryPath == m_BasePath ? m_BasePath : std::filesystem::relative(directoryPath, m_BasePath);
+	directoryInfo->FilePath = directoryPath == m_basePath ? m_basePath : std::filesystem::relative(directoryPath, m_basePath);
 
 	if (std::filesystem::is_directory(directoryPath))
 	{
 		for (auto entry : std::filesystem::directory_iterator(directoryPath))
 		{
-			if (!m_ShowHiddenFiles && IsHiddenFile(entry.path().string()))
+			if (!m_showHiddenFiles && IsHiddenFile(entry.path().string()))
 			{
 				continue;
 			}
 
 			std::string subdirHandle = ProcessDirectory(entry.path(), directoryInfo);
-			directoryInfo->Children.push_back(m_Directories[subdirHandle]);
+			directoryInfo->Children.push_back(m_directories[subdirHandle]);
 		}
 	}
 
-	m_Directories[directoryInfo->FilePath.string()] = directoryInfo;
+	m_directories[directoryInfo->FilePath.string()] = directoryInfo;
 	return directoryInfo->FilePath.string();
 }
 void AssetBrowser::UpdateAssetFileView()
@@ -494,49 +494,49 @@ void AssetBrowser::UpdateAssetFileView()
 
 		if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_ARROW_LEFT)))
 		{
-			if (m_CurrentDir != m_BaseProjectDir)
+			if (m_currentDirectory != m_baseProjectDirectory)
 			{
-				m_PreviousDirectory = m_CurrentDir;
-				m_CurrentDir = m_CurrentDir->Parent;
-				m_UpdateNavigationPath = true;
+				m_previousDirectory = m_currentDirectory;
+				m_currentDirectory = m_currentDirectory->Parent;
+				m_updateNavigationPath = true;
 			}
 		}
 
 		ImGui::SameLine();
 		if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_ARROW_RIGHT)))
 		{
-			m_PreviousDirectory = m_CurrentDir;
-			m_UpdateNavigationPath = true;
+			m_previousDirectory = m_currentDirectory;
+			m_updateNavigationPath = true;
 		}
 		ImGui::SameLine();
 
-		if (m_UpdateNavigationPath)
+		if (m_updateNavigationPath)
 		{
-			m_BreadCrumbData.clear();
-			auto current = m_CurrentDir;
+			m_breadCrumbData.clear();
+			auto current = m_currentDirectory;
 			while (current)
 			{
 				if (current->Parent != nullptr)
 				{
-					m_BreadCrumbData.push_back(current);
+					m_breadCrumbData.push_back(current);
 					current = current->Parent;
 				}
 				else
 				{
-					m_BreadCrumbData.push_back(m_BaseProjectDir);
+					m_breadCrumbData.push_back(m_baseProjectDirectory);
 					current = nullptr;
 				}
 			}
 
-			std::reverse(m_BreadCrumbData.begin(), m_BreadCrumbData.end());
-			m_UpdateNavigationPath = false;
+			std::reverse(m_breadCrumbData.begin(), m_breadCrumbData.end());
+			m_updateNavigationPath = false;
 		}
 
-		if (m_IsInListView)
+		if (m_isInListView)
 		{
 			if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_VIEW_GRID)))
 			{
-				m_IsInListView = !m_IsInListView;
+				m_isInListView = !m_isInListView;
 			}
 			ImGui::SameLine();
 		}
@@ -544,7 +544,7 @@ void AssetBrowser::UpdateAssetFileView()
 		{
 			if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_VIEW_LIST)))
 			{
-				m_IsInListView = !m_IsInListView;
+				m_isInListView = !m_isInListView;
 			}
 			ImGui::SameLine();
 
@@ -563,21 +563,21 @@ void AssetBrowser::UpdateAssetFileView()
 
 		float xAvail = ImGui::GetContentRegionAvail().x * 0.812f;
 
-		m_GridItemPerRow = (int)floor(xAvail / (m_GridSize + ImGui::GetStyle().ItemSpacing.x)) ; 
-		m_GridItemPerRow = 1 > m_GridItemPerRow ? 1 : m_GridItemPerRow;
+		m_gridItemPerRow = (int)floor(xAvail / (m_gridSize + ImGui::GetStyle().ItemSpacing.x)) ; 
+		m_gridItemPerRow = 1 > m_gridItemPerRow ? 1 : m_gridItemPerRow;
 
-		for (int i = 0; i < m_CurrentDir->Children.size(); i++)
+		for (int i = 0; i < m_currentDirectory->Children.size(); i++)
 		{
-			bool checkHiddenFiles = m_IsInListView ? m_CurrentDir->Children.size() > 0 : true;
+			bool checkHiddenFiles = m_isInListView ? m_currentDirectory->Children.size() > 0 : true;
 			if (checkHiddenFiles)
 			{
-				if (!m_ShowHiddenFiles && IsHiddenFile(m_CurrentDir->Children[i]->FilePath.filename().string()))
+				if (!m_showHiddenFiles && IsHiddenFile(m_currentDirectory->Children[i]->FilePath.filename().string()))
 				{
 					continue;
 				}
 			}
 
-			bool doubleClicked = RenderFile(i, !m_CurrentDir->Children[i]->IsFile, shownIndex, !m_IsInListView);
+			bool doubleClicked = RenderFile(i, !m_currentDirectory->Children[i]->IsFile, shownIndex, !m_isInListView);
 
 			if (doubleClicked)
 			{
@@ -591,7 +591,7 @@ void AssetBrowser::UpdateAssetFileView()
 	}
 
 	ImGui::EndChild(); 
-	ImGui::SliderFloat(" ", &m_GridSize, 40.0f, 160.0f, " ", ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_Logarithmic);
+	ImGui::SliderFloat(" ", &m_gridSize, 40.0f, 160.0f, " ", ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_Logarithmic);
 }
 
 void AssetBrowser::UpdateImportSetting()
@@ -821,15 +821,26 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 	}
 
 	// Step 3 : Convert cd::SceneDatabase to entities and components
-	ECWorldConsumer ecConsumer(pSceneWorld, pCurrentRenderContext);
-	ecConsumer.SetSceneDatabaseIDs(oldNodeCount, oldMeshCount);
-	if (m_importingAssetType == ImportAssetType::DDGIModel)
 	{
-		ecConsumer.ActivateDDGIService();
+		ECWorldConsumer ecConsumer(pSceneWorld, pCurrentRenderContext);
+		ecConsumer.SetSceneDatabaseIDs(oldNodeCount, oldMeshCount);
+		if (m_importingAssetType == ImportAssetType::DDGIModel)
+		{
+			ecConsumer.ActivateDDGIService();
+		}
+		cdtools::Processor processor(nullptr, &ecConsumer, pSceneDatabase);
+		processor.SetDumpSceneDatabaseEnable(true);
+		processor.Run();
 	}
-	cdtools::Processor processor(nullptr, &ecConsumer, pSceneDatabase);
-	processor.SetDumpSceneDatabaseEnable(true);
-	processor.Run();
+
+	// Step 4 : Convert cd::SceneDatabase to cd asset files and save in disk
+	{
+		cdtools::CDConsumer cdConsumer(m_currentDirectory->FilePath.string().c_str());
+		cdConsumer.SetExportMode(cdtools::ExportMode::XmlBinary);
+		cdtools::Processor processor(nullptr, &cdConsumer, pSceneDatabase);
+		processor.SetDumpSceneDatabaseEnable(false);
+		processor.Run();
+	}
 }
 
 void AssetBrowser::ExportAssetFile(const char* pFilePath)
