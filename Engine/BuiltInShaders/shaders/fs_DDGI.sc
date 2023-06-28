@@ -19,6 +19,10 @@ SAMPLER2D(s_texDistance, 2);
 SAMPLER2D(s_texIrradiance, 3);
 SAMPLER2D(s_texRelocation, 4);
 
+vec3 SampleAlbedo(vec2 uv) {
+	return texture2D(s_texBaseColor, uv).xyz;
+}
+
 vec3 SampleIrradiance(vec2 uv) {
 	return texture2D(s_texIrradiance, uv).xyz;
 }
@@ -121,18 +125,18 @@ int DDGIGetProbeIndex(ivec3 probeCoords, ivec3 probeCounts) {
 // Computes the normalized texture UVs within the Probe Irradiance and Probe Distance texture arrays
 // given the probe index and 2D normalized octant coordinates [-1, 1]. Used when sampling the texture arrays.
 vec2 DDGIGetProbeUV(int probeIndex, vec2 octantCoordinates, int numProbeInteriorTexels, ivec3 probeCounts) {
-	// Get the probe's texel coordinates, assuming one texel per probe.
 	vec2 coords = vec2(probeIndex / probeCounts.x, probeIndex % probeCounts.x);
 	
 	// Add the border texels to get the total texels per probe.
-	float numProbeTexels = numProbeInteriorTexels + 2.0;
+	float numProbeTexels = (float)numProbeInteriorTexels + 2.0;
 	float textureWidth = numProbeTexels * probeCounts.y * probeCounts.z;
 	float textureHeight = numProbeTexels * probeCounts.x;
 	
 	// Move to the center of the probe and move to the octant texel before normalizing.
-	vec2 uv = vec2(coords.x * numProbeTexels, coords.y * numProbeTexels) + (numProbeTexels * vec2_splat(0.5));
+	vec2 uv = vec2(coords.x * numProbeTexels, coords.y * numProbeTexels) + vec2_splat(numProbeTexels * 0.5);
 	uv += (octantCoordinates * vec2_splat((float)numProbeInteriorTexels * 0.5));
 	uv /= vec2(textureWidth, textureHeight);
+	return vec2(uv.x, 1.0 - uv.y);
 	return uv;
 }
 
@@ -268,10 +272,12 @@ void main()
 {
 	DDGIVolume volume = GetVolumeData();
 	
+	// TODO : Its a temporary solution.
 	vec3 fixedNormal = vec3(v_normal.x, v_normal.z, -v_normal.y);
 	
 	vec3 irradiance = DDGIGetVolumeIrradiance(v_worldPos, fixedNormal, volume);
 	
 	vec3 albedo = vec3(1.0, 1.0, 1.0);
-	gl_FragColor = vec4(albedo * vec3_splat(INV_PI) * irradiance * vec3_splat(10.0), 1.0);
+	//albedo = SampleAlbedo(v_texcoord0);
+	gl_FragColor = vec4(albedo * vec3_splat(INV_PI) * irradiance * vec3_splat(5.0), 1.0);
 }

@@ -97,7 +97,10 @@ void DDGIRenderer::Init()
 	m_pRenderContext->CreateUniform(irradianceSampler, bgfx::UniformType::Sampler);
 	m_pRenderContext->CreateUniform(relocationSampler, bgfx::UniformType::Sampler);
 
-	// Hard code the centre of current test model(wood room) here.
+	// TODO : Hard code the centre of current test model(wood room) here.
+	// Warning : The coordinate system is different between CD and HWs Engine.
+	//   CD: Left-hand, Y-up
+	//   HW: Right-hand, Z-up
 	m_pDDGIComponent->SetVolumeOrigin(cd::Vec3f(3.5786f, 1.5051485f, -4.23065f));
 	m_pDDGIComponent->SetProbeSpacing(cd::Vec3f(2.0f, 2.0f, 2.0f));
 	m_pDDGIComponent->SetProbeCount(cd::Vec3f(4.0f, 2.0f, 5.0f));
@@ -154,6 +157,7 @@ void DDGIRenderer::Render(float deltaTime)
 		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle(pMeshComponent->GetVertexBuffer()));
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle(pMeshComponent->GetIndexBuffer()));
 
+		// Material, only albedo texture will be used for ddgi at now.
 		for(const auto& [textureType, textureInfo] : pMaterialComponent->GetTextureResources())
 		{
 			std::optional<MaterialComponent::TextureInfo> optTextureInfo = pMaterialComponent->GetTextureInfo(textureType);
