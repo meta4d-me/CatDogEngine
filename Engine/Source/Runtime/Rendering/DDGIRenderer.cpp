@@ -59,7 +59,7 @@ void CreatDDGITexture(DDGITextureType type, DDGIComponent* pDDGIComponent, Rende
 			break;
 		case DDGITextureType::Irradiance:
 			textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * IRRADIANCE_GRID_SIZE;
-			format = bgfx::TextureFormat::Enum::RGBA16U;
+			format = bgfx::TextureFormat::Enum::RGBA16;
 			data = reinterpret_cast<const void*>(pDDGIComponent->GetIrradianceRawData());
 			dataSize = pDDGIComponent->GetIrradianceSize();
 			break;
@@ -84,7 +84,7 @@ void CreatDDGITexture(DDGITextureType type, DDGIComponent* pDDGIComponent, Rende
 
 }
 
-void DDGIRenderer::Init()
+void DDGIRenderer::Init()	
 {
 	assert(m_pCurrentSceneWorld && "Unknown Scene World pointer!");
 	m_pDDGIComponent = m_pCurrentSceneWorld->GetDDGIComponent(m_pCurrentSceneWorld->GetDDGIEntity());
@@ -100,7 +100,7 @@ void DDGIRenderer::Init()
 	// Hard code the centre of current test model(wood room) here.
 	m_pDDGIComponent->SetVolumeOrigin(cd::Vec3f(3.5786f, 1.5051485f, -4.23065f));
 	m_pDDGIComponent->SetProbeSpacing(cd::Vec3f(2.0f, 2.0f, 2.0f));
-	m_pDDGIComponent->SetProbeCount(cd::Vec3f(4.0f, 5.0f, 2.0f));
+	m_pDDGIComponent->SetProbeCount(cd::Vec3f(4.0f, 2.0f, 5.0f));
 	m_pDDGIComponent->SetAmbientMultiplier(1.0);
 	m_pDDGIComponent->SetNormalBias(0.0f);
 	m_pDDGIComponent->SetViewBias(0.0f);
@@ -173,6 +173,7 @@ void DDGIRenderer::Render(float deltaTime)
 		bgfx::setTexture(4, m_pRenderContext->GetUniform(StringCrc(relocationSampler)),
 						 m_pRenderContext->GetTexture(StringCrc(GetDDGITextureTypeName(DDGITextureType::Relocation))));
 
+		// TODO : Do we need to change the origin at runtime?
 		m_pRenderContext->FillUniform(StringCrc(volumeOrigin), &m_pDDGIComponent->GetVolumeOrigin().x(), 1);
 		m_pRenderContext->FillUniform(StringCrc(volumeProbeSpacing), &m_pDDGIComponent->GetProbeSpacing().x(), 1);
 		m_pRenderContext->FillUniform(StringCrc(volumeProbeCounts), &m_pDDGIComponent->GetProbeCount().x(), 1);
