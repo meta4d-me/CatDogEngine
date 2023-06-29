@@ -31,6 +31,10 @@ vec3 SampleDistance(vec2 uv) {
 	return texture2D(s_texDistance, uv).xyz;
 }
 
+vec3 DDGILoadProbeDataOffset(ivec2 coord, vec3 probeSpacing) {
+	return texelFetch(s_texRelocation, coord, 0).xyz * probeSpacing;
+}
+
 struct DDGIVolume
 {
 	vec3 origin;
@@ -75,23 +79,6 @@ vec2 DDGIGetOctahedralCoordinates(vec3 direction) {
 	return uv;
 }
 
-// ----- Word Position ----- //
-
-// Computes the world-space position of a probe from the probe's 3D grid-space coordinates.
-// Probe relocation is not considered.
-vec3 DDGIGetProbeWorldPosition(ivec3 probeCoords, DDGIVolume volume) {
-	// Multiply the grid coordinates by the probe spacing.
-	vec3 probeGridWorldPosition = probeCoords * volume.probeSpacing;
-	// Shift the grid of probes by half of each axis extent to center the volume about its origin.
-	vec3 probeGridShift = volume.probeSpacing * vec3(volume.probeCounts - ivec3(1, 1, 1)) * vec3_splat(0.5);
-	// Center the probe grid about the origin.
-	float3 probeWorldPosition = probeGridWorldPosition - probeGridShift;
-	// Translate the grid to the volume's center
-	probeWorldPosition += volume.origin;
-
-	return probeWorldPosition;
-}
-
 // ----- Probe Indexing ----- //
 
 // Computes the 3D grid-space coordinates of the "base" probe (i.e. floor of xyz) of the 8-probe
@@ -113,31 +100,77 @@ ivec3 DDGIGetBaseProbeGridCoords(vec3 worldPosition, DDGIVolume volume) {
 
 // Computes the probe index from 3D grid coordinates.
 // The opposite of DDGIGetProbeCoords(probeIndex,...).
-// Return [0, probeCounts.x * probeCounts.y * probeCounts.z - 1]
 int DDGIGetProbeIndex(ivec3 probeCoords, ivec3 probeCounts) {
 	int planeIndex = probeCoords.y;
 	int probesPerPlane = probeCounts.x * probeCounts.z;
 	int probeIndexInPlane = probeCounts.x * probeCoords.z + probeCoords.x;
 	
+	// Return [0, probeCounts.x * probeCounts.y * probeCounts.z - 1]
 	return planeIndex * probesPerPlane + probeIndexInPlane;
+}
+
+// Computes the Texture2DArray coordinates of the probe at the given probe index.
+ivec3 DDGIGetProbeTexelCoords(int probeIndex, ivec3 probeCounts) {
+	// Find the probe's plane index.
+	int probesPerPlane = probeCounts.x * probeCounts.z;
+	int planeIndex = int(probeIndex / probesPerPlane);
+	
+	int x = probeIndex % probeCounts.x;
+	int y = (probeIndex / probeCounts.x) % probeCounts.z;
+	
+	return ivec3(x, y, planeIndex);
 }
 
 // Computes the normalized texture UVs within the Probe Irradiance and Probe Distance texture arrays
 // given the probe index and 2D normalized octant coordinates [-1, 1]. Used when sampling the texture arrays.
 vec2 DDGIGetProbeUV(int probeIndex, vec2 octantCoordinates, int numProbeInteriorTexels, ivec3 probeCounts) {
-	vec2 coords = vec2(probeIndex / probeCounts.x, probeIndex % probeCounts.x);
+	// 30, (4, 2, 5)
+	vec2 coords = vec2(probeIndex / probeCounts.x, probeIndex % probeCounts.x); // (7, 2)
 	
 	// Add the border texels to get the total texels per probe.
-	float numProbeTexels = (float)numProbeInteriorTexels + 2.0;
-	float textureWidth = numProbeTexels * probeCounts.y * probeCounts.z;
-	float textureHeight = numProbeTexels * probeCounts.x;
+	float numProbeTexels = float(numProbeInteriorTexels) + 2.0; // 8
+	float textureWidth = numProbeTexels * float(probeCounts.y * probeCounts.z); // 80
+	float textureHeight = numProbeTexels * float(probeCounts.x); // 32
 	
 	// Move to the center of the probe and move to the octant texel before normalizing.
-	vec2 uv = vec2(coords.x * numProbeTexels, coords.y * numProbeTexels) + vec2_splat(numProbeTexels * 0.5);
-	uv += (octantCoordinates * vec2_splat((float)numProbeInteriorTexels * 0.5));
+	vec2 uv = vec2(coords.x * numProbeTexels, coords.y * numProbeTexels) + vec2_splat(numProbeTexels * 0.5); // (56, 16) + (4, 4)
+	uv += (octantCoordinates * vec2_splat(float(numProbeInteriorTexels) * 0.5));
 	uv /= vec2(textureWidth, textureHeight);
-	return vec2(uv.x, 1.0 - uv.y);
 	return uv;
+}
+
+ivec2 DDGIGetProbeCoord(int probeIndex, ivec3 probeCounts) {
+	int x = probeIndex / probeCounts.x;
+	int y = probeIndex % probeCounts.x;
+	return ivec2(x, y);
+}
+
+// ----- Word Position ----- //
+
+// Computes the world-space position of a probe from the probe's 3D grid-space coordinates.
+// Probe relocation is not considered.
+vec3 DDGIGetProbeWorldPosition(ivec3 probeCoords, DDGIVolume volume) {
+	// Multiply the grid coordinates by the probe spacing.
+	vec3 probeGridWorldPosition = probeCoords * volume.probeSpacing;
+	// Shift the grid of probes by half of each axis extent to center the volume about its origin.
+	vec3 probeGridShift = volume.probeSpacing * vec3(volume.probeCounts - ivec3(1, 1, 1)) * vec3_splat(0.5);
+	// Center the probe grid about the origin.
+	vec3 probeWorldPosition = probeGridWorldPosition - probeGridShift;
+	// Translate the grid to the volume's center.
+	probeWorldPosition += volume.origin;
+	
+	// return probeWorldPosition;
+	
+	// Get the probe index.
+	int probeIndex = DDGIGetProbeIndex(probeCoords, volume.probeCounts);
+	// Find the texture coordinates of the probe.
+	ivec2 coords = DDGIGetProbeCoord(probeIndex, volume.probeCounts);
+	// Load the probe's world-space position offset and add it to the current world position.
+	vec3 offset = DDGILoadProbeDataOffset(coords, volume.probeSpacing);
+	offset = vec3(offset.x, offset.z, offset.y);
+	probeWorldPosition += DDGILoadProbeDataOffset(coords, volume.probeSpacing);
+	
+	return probeWorldPosition;
 }
 
 // Computes irradiance for the given world-position using the given volume, surface bias, sampling direction, and volume resources.
@@ -150,7 +183,7 @@ vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volu
 	
 	// Get the 3D grid coordinates of the probe nearest the biased world position (i.e. the "base" probe).
 	ivec3 baseProbeCoords = DDGIGetBaseProbeGridCoords(biasedWorldPosition, volume);
-	//return vec3(baseProbeCoords) / vec3(volume.probeCounts - ivec3(1, 1, 1));
+	// return vec3(baseProbeCoords) / vec3(volume.probeCounts - ivec3(1, 1, 1));
 	
 	// Get the world-space position of the base probe (ignore relocation).
 	vec3 baseProbeWorldPosition = DDGIGetProbeWorldPosition(baseProbeCoords, volume);
@@ -163,7 +196,7 @@ vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volu
 	float accumulatedWeights = 0.0;
 	
 	// Iterate over the 8 closest probes and accumulate their contributions
-	for(int probeIndex = 1; probeIndex < 8; probeIndex++) {
+	for(int probeIndex = 0; probeIndex < 8; probeIndex++) {
 		float weight = 1.0;
 		
 		// Compute the offset to the adjacent probe in grid coordinates by
@@ -209,6 +242,7 @@ vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volu
 		vec2 probeTextureUV = DDGIGetProbeUV(adjacentProbeIndex, octantCoords, DISTANCE_TEXELS - 2, volume.probeCounts);
 		// Sample the probe's distance texture to get the mean distance to nearby surfaces.
 		vec2 filteredDistance = 2.0 * SampleDistance(probeTextureUV).xy;
+		
 		// Find the variance of the mean distance.
 		float variance = abs(filteredDistance.x * filteredDistance.x - filteredDistance.y);
 		
@@ -278,6 +312,6 @@ void main()
 	vec3 irradiance = DDGIGetVolumeIrradiance(v_worldPos, fixedNormal, volume);
 	
 	vec3 albedo = vec3(1.0, 1.0, 1.0);
-	//albedo = SampleAlbedo(v_texcoord0);
-	gl_FragColor = vec4(albedo * vec3_splat(INV_PI) * irradiance * vec3_splat(5.0), 1.0);
+	// albedo = SampleAlbedo(v_texcoord0);
+	gl_FragColor = vec4(albedo * vec3_splat(INV_PI) * irradiance * vec3_splat(4.0), 1.0);
 }
