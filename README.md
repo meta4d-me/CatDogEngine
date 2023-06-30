@@ -15,7 +15,7 @@
 * Basic Entity/Component Framework
 * Basic Physically Based Rendering
 * Basic Scene Graph SDK
-* Standard Atomosphere Scattering
+* Standard Atmospheric Scattering
 
 ## Developing Features
 
