@@ -139,4 +139,63 @@ void SceneWorld::SetPBRSkyEntity(engine::Entity entity)
 	m_pbrskyEntity = entity;
 }
 
+void SceneWorld::AddCameraToSceneDatabase(engine::Entity entity)
+{
+	engine::CameraComponent* pCameraComponent = GetCameraComponent(entity);
+	if (!pCameraComponent)
+	{
+		assert("Invalid entity");
+		return;
+	}
+
+	std::string cameraName = "Untitled_Camera";
+	if (const engine::NameComponent* pNameComponent = GetNameComponent(entity))
+	{
+		cameraName = pNameComponent->GetName();
+	}
+
+	cd::SceneDatabase* pSceneDatabase = GetSceneDatabase();
+	cd::Camera camera(cd::CameraID(pSceneDatabase->GetCameraCount()), cameraName.c_str());
+	camera.SetEye(pCameraComponent->GetEye());
+	camera.SetLookAt(pCameraComponent->GetLookAt());
+	camera.SetUp(pCameraComponent->GetUp());
+	camera.SetNearPlane(pCameraComponent->GetNearPlane());
+	camera.SetFarPlane(pCameraComponent->GetFarPlane());
+	camera.SetAspect(pCameraComponent->GetAspect());
+	camera.SetFov(pCameraComponent->GetFov());
+	pSceneDatabase->AddCamera(cd::MoveTemp(camera));
+}
+
+void SceneWorld::AddLightToSceneDatabase(engine::Entity entity)
+{
+	engine::LightComponent* pLightComponent = GetLightComponent(entity);
+	if (!pLightComponent)
+	{
+		assert("Invalid entity");
+		return;
+	}
+
+	std::string lightName = "Untitled_Light";
+	if (const engine::NameComponent* pNameComponent = GetNameComponent(entity))
+	{
+		lightName = pNameComponent->GetName();
+	}
+
+	cd::SceneDatabase* pSceneDatabase = GetSceneDatabase();
+	cd::Light light(cd::LightID(pSceneDatabase->GetLightCount()), pLightComponent->GetType());
+	light.SetName(lightName.c_str());
+	light.SetIntensity(pLightComponent->GetIntensity());
+	light.SetRange(pLightComponent->GetRange());
+	light.SetRadius(pLightComponent->GetRadius());
+	light.SetWidth(pLightComponent->GetWidth());
+	light.SetHeight(pLightComponent->GetHeight());
+	light.SetAngleScale(pLightComponent->GetAngleScale());
+	light.SetAngleOffset(pLightComponent->GetAngleOffset());
+	light.SetPosition(pLightComponent->GetPosition());
+	light.SetColor(pLightComponent->GetColor());
+	light.SetDirection(pLightComponent->GetDirection());
+	light.SetUp(pLightComponent->GetUp());
+	pSceneDatabase->AddLight(cd::MoveTemp(light));
+}
+
 }
