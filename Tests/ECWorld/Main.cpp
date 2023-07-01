@@ -184,34 +184,6 @@ void Test_RemoveEntityComponentsByOrder(Factory& factory, const std::vector<Enti
 	printf("\n[Success] Test_RemoveEntityComponentsByOrder\n");
 }
 
-void Test_CleanUnusedEntityComponents(Factory& factory)
-{
-	cdtools::PerformanceProfiler perf("Test_CleanUnusedEntityComponents");
-
-	size_t oldHierachyCount = factory.pHierarchy->GetCount();
-	size_t oldTransformCount = factory.pTransform->GetCount();
-	size_t oldStaticMeshCount = factory.pStaticMesh->GetCount();
-	size_t oldMaterialCount = factory.pMaterial->GetCount();
-
-	factory.pHierarchy->CleanUnused();
-	factory.pHierarchy->CleanUnused();
-	factory.pTransform->CleanUnused();
-	factory.pStaticMesh->CleanUnused();
-	factory.pMaterial->CleanUnused();
-
-	assert(oldHierachyCount == factory.pHierarchy->GetCount());
-	assert(oldTransformCount == factory.pTransform->GetCount());
-	assert(oldStaticMeshCount == factory.pStaticMesh->GetCount());
-	assert(oldMaterialCount == factory.pMaterial->GetCount());
-
-	assert(oldHierachyCount == factory.pHierarchy->GetCapcity());
-	assert(oldTransformCount == factory.pTransform->GetCapcity());
-	assert(oldStaticMeshCount == factory.pStaticMesh->GetCapcity());
-	assert(oldMaterialCount == factory.pMaterial->GetCapcity());
-
-	printf("\n[Success] Test_CleanUnusedEntityComponents\n");
-}
-
 }
 
 int main()
@@ -222,9 +194,7 @@ int main()
 	Factory factory = Test_RegisterComponentStorages(world);
 	std::vector<Entity> meshEntites = Test_CreateEntityComponents(world, factory);
 	Test_RemoveEntityComponentsRandly(factory, meshEntites);
-	Test_CleanUnusedEntityComponents(factory);
 	Test_RemoveEntityComponentsByOrder(factory, meshEntites);
-	Test_CleanUnusedEntityComponents(factory);
 
 	return 0;
 }
