@@ -31,11 +31,8 @@ bool ImGuiProperty(const char* pName, T& value, const T& minValue = {}, const T&
 	}
 	else if constexpr (std::is_same<T, bool>())
 	{
-		//CD_INFO("This is checkbox1");
 		if (ImGui::Checkbox(pName, &value))
 		{
-			CD_INFO("This is checkbox2");
-			CD_INFO(value);
 			dirty = true;
 		}
 	}

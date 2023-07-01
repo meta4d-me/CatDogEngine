@@ -284,7 +284,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 	{
 		if (ImGui::Selectable("Cubemap"))
 		{
-			m_importingAssetType = ImportAssetType::CubeMap;
+			m_importOptions.AssetType = ImportAssetType::CubeMap;
 			m_pImportFileBrowser->SetTitle("ImportAssets - Cubemap");
 			//m_pImportFileBrowser->SetTypeFilters({ ".dds", "*.exr", "*.hdr", "*.ktx", ".tga" });
 			m_pImportFileBrowser->Open();
@@ -292,21 +292,21 @@ void AssetBrowser::UpdateAssetFolderTree()
 
 		else if (ImGui::Selectable("Shader"))
 		{
-			m_importingAssetType = ImportAssetType::Shader;
+			m_importOptions.AssetType = ImportAssetType::Shader;
 			m_pImportFileBrowser->SetTitle("ImportAssets - Shader");
 			//m_pImportFileBrowser->SetTypeFilters({ ".sc" }); // ".hlsl"
 			m_pImportFileBrowser->Open();
 		}
 		else if(ImGui::Selectable("Model"))
 		{
-			m_importingAssetType = ImportAssetType::Model;
+			m_importOptions.AssetType = ImportAssetType::Model;
 			m_pImportFileBrowser->SetTitle("ImportAssets - Model");
 			//m_pImportFileBrowser->SetTypeFilters({ ".fbx", ".gltf" }); // ".obj", ".dae", ".ogex"
 			m_pImportFileBrowser->Open();
 		}
 		else if(ImGui::Selectable("DDGI Model"))
 		{
-			m_importingAssetType = ImportAssetType::DDGIModel;
+			m_importOptions.AssetType = ImportAssetType::DDGIModel;
 			m_pImportFileBrowser->SetTitle("ImportAssets - DDGI Model");
 			m_pImportFileBrowser->Open();
 		}
@@ -318,7 +318,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 	{
 		if (ImGui::Selectable("SceneDatabase"))
 		{
-			m_exportingAssetType = ExportAssetType::SceneDatabase;
+			m_exportOptions.AssetType = ExportAssetType::SceneDatabase;
 
 			// TODO : The file browser seems impossible to export file.
 			// Here I will use the select file as file name of exported file name.
@@ -594,91 +594,85 @@ void AssetBrowser::UpdateAssetFileView()
 	ImGui::SliderFloat(" ", &m_gridSize, 40.0f, 160.0f, " ", ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_Logarithmic);
 }
 
-void AssetBrowser::UpdateImportSetting()
+bool AssetBrowser::UpdateOptionDialog(const char* pTitle, bool& active, bool& importMesh, bool& importMaterial, bool& importTexture, bool& importCamera, bool& importLight)
 {
-	if (m_importOptionsPopup)
+	if (!active)
 	{
-		ImGui::OpenPopup("Import Option");
+		return false;
 	}
 
-	ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-	ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	bool finish = false;
 
-	if (ImGui::BeginPopupModal("Import Option", nullptr, ImGuiWindowFlags_AlwaysVerticalScrollbar))
+	ImGui::OpenPopup(pTitle);
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	if (ImGui::BeginPopupModal(pTitle, nullptr, ImGuiWindowFlags_AlwaysVerticalScrollbar))
 	{
 		ImGui::SetWindowSize(ImVec2(400, 800));
-		bool isMeshOpen = ImGui::CollapsingHeader("Mesh", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+		bool isMeshOpen = ImGui::CollapsingHeader("Mesh Options", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 		ImGui::Separator();
 
 		if (isMeshOpen)
 		{
-			ImGuiUtils::ImGuiProperty<bool>("Static Mesh", m_importMesh);
+			ImGuiUtils::ImGuiProperty<bool>("Mesh", importMesh);
 		}
 
 		ImGui::Separator();
 		ImGui::PopStyleVar();
 
-		bool isMaterialOpen = ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+		bool isMaterialOpen = ImGui::CollapsingHeader("Material Options", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 		ImGui::Separator();
-
 		if (isMaterialOpen)
 		{
-			ImGuiUtils::ImGuiProperty<bool>("Materials", m_importMaterial);
-		}
-
-		ImGui::Separator();
-		ImGui::PopStyleVar();
-
-		bool isLightOpen = ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-		ImGui::Separator();
-		if (isLightOpen)
-		{
-			ImGuiUtils::ImGuiProperty<bool>("Lights", m_importLight);
+			ImGuiUtils::ImGuiProperty<bool>("Material", importMaterial);
+			ImGuiUtils::ImGuiProperty<bool>("Texture", importTexture);
 		}
 		ImGui::Separator();
 		ImGui::PopStyleVar();
-
 
 		bool isOtherOpen = ImGui::CollapsingHeader("Other", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 		ImGui::Separator();
 		if (isOtherOpen)
 		{
-			ImGuiUtils::ImGuiProperty<bool>("Camera", m_importCamera);
+			ImGuiUtils::ImGuiProperty<bool>("Camera", importCamera);
+			ImGuiUtils::ImGuiProperty<bool>("Light", importLight);
 		}
 		ImGui::Separator();
 		ImGui::PopStyleVar();
 
 		ImGui::Separator();
 
+		auto CloseOptionDialog = [&]()
+		{
+			ImGui::CloseCurrentPopup();
+			active = false;
+		};
+
 		if (ImGui::Button("OK", ImVec2(120, 0)))
 		{
-			ImportAssetFile(m_pImportFileBrowser->GetSelected().string().c_str());
-			m_pImportFileBrowser->ClearSelected();
-			ImGui::CloseCurrentPopup();
-			m_importOptionsPopup = false;
-
+			finish = true;
+			CloseOptionDialog();
 		}
+
 		ImGui::SetItemDefaultFocus();
 		ImGui::SameLine();
 		if (ImGui::Button("Cancel", ImVec2(120, 0)))
 		{
-			m_pImportFileBrowser->ClearSelected();
-			ImGui::CloseCurrentPopup();
-			m_importOptionsPopup = false;
+			CloseOptionDialog();
 		}
 		ImGui::EndPopup();
 	}
+
+	return finish;
 }
 
 void AssetBrowser::ImportAssetFile(const char* pFilePath)
 {
 	CD_INFO("Importing asset file : {0}", pFilePath);
 	// Unknown is used by outside window event such as DragAndDrop a file.
-	if (ImportAssetType::Unknown == m_importingAssetType)
+	if (ImportAssetType::Unknown == m_importOptions.AssetType)
 	{
 		// We will deduce file's asset type by its file extension.
 		std::filesystem::path inputFilePath(pFilePath);
@@ -691,15 +685,15 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		std::string pFileExtension = fileExtension.generic_string();
 		if (IsCubeMapInputFile(pFileExtension.c_str()))
 		{
-			m_importingAssetType = ImportAssetType::CubeMap;
+			m_importOptions.AssetType = ImportAssetType::CubeMap;
 		}
 		else if (IsShaderInputFile(pFileExtension.c_str()))
 		{
-			m_importingAssetType = ImportAssetType::Shader;
+			m_importOptions.AssetType = ImportAssetType::Shader;
 		}
 		else if (IsModelInputFile(pFileExtension.c_str()))
 		{
-			m_importingAssetType = ImportAssetType::Model;
+			m_importOptions.AssetType = ImportAssetType::Model;
 		}
 		else
 		{
@@ -709,11 +703,11 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		}
 	}
 
-	if (ImportAssetType::Model == m_importingAssetType || ImportAssetType::DDGIModel == m_importingAssetType)
+	if (ImportAssetType::Model == m_importOptions.AssetType || ImportAssetType::DDGIModel == m_importOptions.AssetType)
 	{
 		ImportModelFile(pFilePath);
 	}
-	else if (ImportAssetType::CubeMap == m_importingAssetType)
+	else if (ImportAssetType::CubeMap == m_importOptions.AssetType)
 	{
 		std::filesystem::path inputFilePath(pFilePath);
 		std::string inputFileName = inputFilePath.stem().generic_string();
@@ -722,7 +716,7 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		ResourceBuilder::Get().AddCubeMapBuildTask(pFilePath, outputFilePath.c_str());
 		ResourceBuilder::Get().Update();
 	}
-	else if (ImportAssetType::Shader == m_importingAssetType)
+	else if (ImportAssetType::Shader == m_importOptions.AssetType)
 	{
 		std::filesystem::path inputFilePath(pFilePath);
 		std::string inputFileName = inputFilePath.stem().generic_string();
@@ -750,6 +744,45 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		outputFilePath += "Shaders/" + inputFileName + ".bin";
 		ResourceBuilder::Get().AddShaderBuildTask(shaderType, pFilePath, outputFilePath.c_str());
 		ResourceBuilder::Get().Update();
+	}
+}
+
+void AssetBrowser::ProcessSceneDatabase(cd::SceneDatabase* pSceneDatabase, bool keepMesh, bool keepMaterial, bool keepTexture, bool keepCamera, bool keepLight)
+{
+	if (!keepMesh)
+	{
+		pSceneDatabase->GetMeshes().clear();
+	}
+
+	if (!keepMaterial)
+	{
+		pSceneDatabase->GetMaterials().clear();
+		for (auto& mesh : pSceneDatabase->GetMeshes())
+		{
+			mesh.SetMaterialID(cd::MaterialID::InvalidID);
+		}
+	}
+
+	if (!keepTexture)
+	{
+		pSceneDatabase->GetTextures().clear();
+		for (auto& material : pSceneDatabase->GetMaterials())
+		{
+			for (int textureTypeIndex = 0; textureTypeIndex < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeIndex)
+			{
+				material.RemoveTexture(static_cast<cd::MaterialTextureType>(textureTypeIndex));
+			}
+		}
+	}
+
+	if (!keepCamera)
+	{
+		pSceneDatabase->GetCameras().clear();
+	}
+
+	if (!keepLight)
+	{
+		pSceneDatabase->GetLights().clear();
 	}
 }
 
@@ -790,41 +823,14 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 	}
 
 	// Step 2 : Process generated cd::SceneDatabase
-	if (!m_importMaterial)
-	{
-		pSceneDatabase->GetMaterials().clear();
-		for (auto& mesh : pSceneDatabase->GetMeshes())
-		{
-			mesh.SetMaterialID(cd::MaterialID::InvalidID);
-		}
-	}
-	if (!m_importMesh)
-	{
-		pSceneDatabase->GetMeshes().clear();
-	}
-	if (!m_importLight)
-	{
-		pSceneDatabase->GetLights().clear();
-
-	}
-	/*if (!m_impotrTexture)
-	{
-		for (auto& material : pSceneDatabase->GetMaterials())
-		{
-			
-		}
-		pSceneDatabase->GetTextures().clear();
-	}*/
-	if (!m_importCamera)
-	{
-		pSceneDatabase->GetCameras().clear();
-	}
+	ProcessSceneDatabase(pSceneDatabase, m_importOptions.ImportMesh, m_importOptions.ImportMaterial, m_importOptions.ImportTexture,
+		m_importOptions.ImportCamera, m_importOptions.ImportLight);
 
 	// Step 3 : Convert cd::SceneDatabase to entities and components
 	{
 		ECWorldConsumer ecConsumer(pSceneWorld, pCurrentRenderContext);
 		ecConsumer.SetSceneDatabaseIDs(oldNodeCount, oldMeshCount);
-		if (m_importingAssetType == ImportAssetType::DDGIModel)
+		if (m_importOptions.AssetType == ImportAssetType::DDGIModel)
 		{
 			ecConsumer.ActivateDDGIService();
 		}
@@ -848,58 +854,13 @@ void AssetBrowser::ExportAssetFile(const char* pFilePath)
 	engine::SceneWorld* pSceneWorld = GetImGuiContextInstance()->GetSceneWorld();
 	cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
 
-	if (ExportAssetType::SceneDatabase == m_exportingAssetType)
+	if (ExportAssetType::SceneDatabase == m_exportOptions.AssetType)
 	{
-		// Export main camera entity to scene.
-		engine::Entity mainCameraEntity = pSceneWorld->GetMainCameraEntity();
-		const engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(mainCameraEntity);
-		assert(pCameraComponent);
-		std::string cameraName = "Untitled_Camera";
-		if (const engine::NameComponent* pNameComponent = pSceneWorld->GetNameComponent(mainCameraEntity))
-		{
-			cameraName = pNameComponent->GetName();
-		}
-
-		cd::Camera camera(cd::CameraID(pSceneDatabase->GetCameraCount()), cameraName.c_str());
-		camera.SetEye(pCameraComponent->GetEye());
-		camera.SetLookAt(pCameraComponent->GetLookAt());
-		camera.SetUp(pCameraComponent->GetUp());
-		camera.SetNearPlane(pCameraComponent->GetNearPlane());
-		camera.SetFarPlane(pCameraComponent->GetFarPlane());
-		camera.SetAspect(pCameraComponent->GetAspect());
-		camera.SetFov(pCameraComponent->GetFov());
-		pSceneDatabase->AddCamera(cd::MoveTemp(camera));
-		
-		// Export light entities to scene.
-		for (engine::Entity lightEntity : pSceneWorld->GetLightEntities())
-		{
-			const engine::LightComponent* pLightComponent = pSceneWorld->GetLightComponent(lightEntity);
-
-			std::string lightName = "Untitled_Light";
-			if (const engine::NameComponent* pNameComponent = pSceneWorld->GetNameComponent(lightEntity))
-			{
-				lightName = pNameComponent->GetName();
-			}
-
-			cd::Light light(cd::LightID(pSceneDatabase->GetLightCount()), pLightComponent->GetType());
-			light.SetName(lightName.c_str());
-			light.SetIntensity(pLightComponent->GetIntensity());
-			light.SetRange(pLightComponent->GetRange());
-			light.SetRadius(pLightComponent->GetRadius());
-			light.SetWidth(pLightComponent->GetWidth());
-			light.SetHeight(pLightComponent->GetHeight());
-			light.SetAngleScale(pLightComponent->GetAngleScale());
-			light.SetAngleOffset(pLightComponent->GetAngleOffset());
-			light.SetPosition(pLightComponent->GetPosition());
-			light.SetColor(pLightComponent->GetColor());
-			light.SetDirection(pLightComponent->GetDirection());
-			light.SetUp(pLightComponent->GetUp());
-			pSceneDatabase->AddLight(cd::MoveTemp(light));
-		}
+		ProcessSceneDatabase(pSceneDatabase, m_exportOptions.ExportMesh, m_exportOptions.ExportMaterial, m_exportOptions.ExportTexture,
+			m_exportOptions.ExportCamera, m_exportOptions.ExportLight);
 
 		std::filesystem::path selectFilePath(pFilePath);
 		std::filesystem::path outputFilePath = selectFilePath.replace_extension(".cdbin");
-
 		cdtools::CDConsumer consumer(outputFilePath.string().c_str());
 		cdtools::Processor processor(nullptr, &consumer, pSceneDatabase);
 		processor.Run();
@@ -933,22 +894,31 @@ void AssetBrowser::Update()
 
 	ImGui::End();
 
-
 	m_pImportFileBrowser->Display();
-
 	if (m_pImportFileBrowser->HasSelected())
 	{
-		m_importOptionsPopup = true;
+		m_importOptions.Active = true;
 	}
 	
+	if (UpdateOptionDialog("Import Options", m_importOptions.Active, m_importOptions.ImportMesh, m_importOptions.ImportMaterial, m_importOptions.ImportTexture,
+		m_importOptions.ImportCamera, m_importOptions.ImportLight))
+	{
+		ImportAssetFile(m_pImportFileBrowser->GetSelected().string().c_str());
+		m_pImportFileBrowser->ClearSelected();
+	}
+
 	m_pExportFileBrowser->Display();
 	if (m_pExportFileBrowser->HasSelected())
+	{
+		m_exportOptions.Active = true;
+	}
+
+	if (UpdateOptionDialog("Export Options", m_exportOptions.Active, m_exportOptions.ExportMesh, m_exportOptions.ExportMaterial, m_exportOptions.ExportTexture,
+		m_exportOptions.ExportCamera, m_exportOptions.ExportLight))
 	{
 		ExportAssetFile(m_pExportFileBrowser->GetSelected().string().c_str());
 		m_pExportFileBrowser->ClearSelected();
 	}
-	UpdateImportSetting();
-	
 }
 
 }

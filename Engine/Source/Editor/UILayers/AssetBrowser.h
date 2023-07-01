@@ -44,6 +44,29 @@ enum class ExportAssetType
 	Unknown,
 };
 
+struct AssetImportOptions
+{
+	ImportAssetType AssetType = ImportAssetType::Unknown;
+	bool Active = false;
+	bool ImportCamera = false;
+	bool ImportLight = false;
+	bool ImportMaterial = true;
+	bool ImportMesh = true;
+	bool ImportTexture = true;
+
+};
+
+struct AssetExportOptions
+{
+	ExportAssetType AssetType = ExportAssetType::Unknown;
+	bool Active = false;
+	bool ExportCamera = true;
+	bool ExportLight = true;
+	bool ExportMaterial = true;
+	bool ExportMesh = true;
+	bool ExportTexture = true;
+};
+
 class DirectoryInformation
 {
 public:
@@ -69,10 +92,13 @@ public:
 	virtual void Init() override;
 	virtual void Update() override;
 
-	void ImportAssetFile(const char* pFilePath);
-	void ImportModelFile(const char* pFilePath);
-	void ExportAssetFile(const char* pFilePath);
 	void SetSceneRenderer(engine::Renderer* pRenderer) { m_pSceneRenderer = pRenderer; }
+	void ImportAssetFile(const char* pFilePath);
+	void ExportAssetFile(const char* pFilePath);
+
+private:
+	void ProcessSceneDatabase(cd::SceneDatabase* pSceneDatabase, bool keepMesh, bool keepMaterial, bool keepTexture, bool keepCamera, bool keepLight);
+	void ImportModelFile(const char* pFilePath);
 	void DrawFolder(const std::shared_ptr<DirectoryInformation>& dirInfo, bool defaultOpen = false);
 	void ChangeDirectory(std::shared_ptr<DirectoryInformation>& directory);
 
@@ -85,20 +111,14 @@ public:
 
 	void UpdateAssetFolderTree();
 	void UpdateAssetFileView();
-	void UpdateImportSetting();
+	bool UpdateOptionDialog(const char* pTitle, bool& active, bool& importMesh, bool& importMaterial, bool& importTexture, bool& importCamera, bool& importLight);
 
 private:
-	bool m_importOptionsPopup = false;
-	bool m_importMesh = true;
-	bool m_importMaterial = true;
-	bool m_importLight = false;
-	bool m_importCamera = false;
-	bool m_impotrTexture = true;
-	const char* m_ImportFilePath;
-	ImportAssetType m_importingAssetType = ImportAssetType::Unknown;
-	ExportAssetType m_exportingAssetType = ExportAssetType::Unknown;
+	AssetImportOptions m_importOptions;
+	AssetExportOptions m_exportOptions;
 	std::unique_ptr<ImGui::FileBrowser> m_pImportFileBrowser;
 	std::unique_ptr<ImGui::FileBrowser> m_pExportFileBrowser;
+
 	engine::Renderer* m_pSceneRenderer = nullptr;
 
 	bool m_updateNavigationPath = true;
