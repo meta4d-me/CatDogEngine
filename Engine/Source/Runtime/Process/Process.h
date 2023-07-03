@@ -15,8 +15,8 @@ class Process final
 public:
 	Process() = delete;
 	explicit Process(const char* pProcessName);
-	Process(const Process&) = default;
-	Process& operator=(const Process&) = default;
+	Process(const Process&) = delete;
+	Process& operator=(const Process&) = delete;
 	Process(Process&&) = default;
 	Process& operator=(Process&&) = default;
 	~Process();

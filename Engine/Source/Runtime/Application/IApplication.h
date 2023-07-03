@@ -16,7 +16,7 @@ struct EngineInitArgs
 	const char* pIconFilePath = nullptr;
 	uint16_t width = 800;
 	uint16_t height = 600;
-	bool useFullScreen = true;
+	bool useFullScreen = false;
 	Language language = Language::English;
 	GraphicsBackend backend = GraphicsBackend::Direct3D11;
 };

@@ -4,12 +4,8 @@
 
 project("Editor")
 	kind("ConsoleApp")
-	language("C++")
-	cppdialect("C++20")
+	SetLanguageAndToolset("Editor")
 	dependson { "Engine" }
-
-	location(path.join(IntermediatePath, "Editor"))
-	targetdir(BinariesPath)
 
 	files {
 		path.join(EditorSourcePath, "**.*"),
@@ -36,6 +32,7 @@ project("Editor")
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..EditorResourceRootPath.."\"",
 		"CDENGINE_TOOL_PATH=\""..ToolRootPath.."\"",
 		"EDITOR_MODE",
+		"TRACY_ENABLE",
 	}
 
 	includedirs {
@@ -53,6 +50,7 @@ project("Editor")
 		path.join(ThirdPartySourcePath, "imgui"),
 		path.join(ThirdPartySourcePath, "imguizmo"),
 		path.join(ThirdPartySourcePath, "spdlog/include"),
+		path.join(ThirdPartySourcePath, "tracy/public"),
 		ThirdPartySourcePath,
 	}
 
@@ -107,3 +105,26 @@ project("Editor")
 		"FatalWarnings", -- treat warnings as errors
 		"MultiProcessorCompile", -- compiler uses multiple thread
 	}
+
+	-- copy dll into binary folder automatically.
+	filter { "configurations:Debug" }
+		postbuildcommands {
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Debug/SDL2d.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDProducer.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/GenericProducer.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/TerrainProducer.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDConsumer.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/assimp-*-mtd.*").."\" \""..BinariesPath.."\"",
+		}
+	filter { "configurations:Release" }
+		postbuildcommands {
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Release/SDL2.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CDProducer.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/GenericProducer.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/TerrainProducer.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CDConsumer.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/assimp-*-mt.*").."\" \""..BinariesPath.."\"",
+		}
+	filter {}

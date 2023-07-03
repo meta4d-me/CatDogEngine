@@ -253,8 +253,8 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	{
 		for (cd::MaterialTextureType requiredTextureType : pMaterialType->GetRequiredTextureTypes())
 		{
-			std::optional<cd::TextureID> optTexture = pMaterial->GetTextureID(requiredTextureType);
-			if (!optTexture.has_value())
+			cd::TextureID textureID = pMaterial->GetTextureID(requiredTextureType);
+			if (!textureID.IsValid())
 			{
 				missRequiredTextures = true;
 				CD_ENGINE_ERROR("Material {0} massing required texture {1}!", pMaterial->GetName(),
@@ -271,7 +271,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 			}
 
 			uint8_t textureSlot = optTextureSlot.value();
-			const cd::Texture& requiredTexture = pSceneDatabase->GetTexture(optTexture.value().Data());
+			const cd::Texture& requiredTexture = pSceneDatabase->GetTexture(textureID.Data());
 			std::string outputTexturePath = engine::Path::GetTextureOutputFilePath(requiredTexture.GetPath(), ".dds");
 			if (!compiledTextureSlot.contains(textureSlot))
 			{
@@ -300,8 +300,8 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 			// Expected textures are ready to build. Add more optional texture data.
 			for (cd::MaterialTextureType optionalTextureType : pMaterialType->GetOptionalTextureTypes())
 			{
-				std::optional<cd::TextureID> optTexture = pMaterial->GetTextureID(optionalTextureType);
-				if (!optTexture.has_value())
+				cd::TextureID textureID = pMaterial->GetTextureID(optionalTextureType);
+				if (!textureID.IsValid())
 				{
 					CD_WARN("Material {0} does not have optional texture type {1}!", pMaterial->GetName(), GetMaterialPropertyGroupName(optionalTextureType));
 					continue;
@@ -318,7 +318,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 				ActivateUberOption(optionalTextureType);
 
 				uint8_t textureSlot = optTextureSlot.value();
-				const cd::Texture& optionalTexture = pSceneDatabase->GetTexture(optTexture.value().Data());
+				const cd::Texture& optionalTexture = pSceneDatabase->GetTexture(textureID.Data());
 				std::string outputTexturePath = engine::Path::GetTextureOutputFilePath(optionalTexture.GetPath(), ".dds");
 				if (!compiledTextureSlot.contains(textureSlot))
 				{

@@ -19,8 +19,8 @@ class MaterialType
 {
 public:
 	MaterialType() = default;
-	MaterialType(const MaterialType&) = default;
-	MaterialType& operator=(const MaterialType&) = default;
+	MaterialType(const MaterialType&) = delete;
+	MaterialType& operator=(const MaterialType&) = delete;
 	MaterialType(MaterialType&&) = default;
 	MaterialType& operator=(MaterialType&&) = default;
 	~MaterialType() = default;

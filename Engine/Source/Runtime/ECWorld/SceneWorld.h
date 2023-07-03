@@ -40,8 +40,8 @@ class SceneWorld
 
 public:
 	SceneWorld();
-	SceneWorld(const SceneWorld&) = default;
-	SceneWorld& operator=(const SceneWorld&) = default;
+	SceneWorld(const SceneWorld&) = delete;
+	SceneWorld& operator=(const SceneWorld&) = delete;
 	SceneWorld(SceneWorld&&) = default;
 	SceneWorld& operator=(SceneWorld&&) = default;
 	~SceneWorld() = default;
@@ -100,6 +100,9 @@ public:
 
 	void CreateDDGIMaterialType();
 	CD_FORCEINLINE engine::MaterialType* GetDDGIMaterialType() const { return m_pDDGIMaterialType.get(); }
+
+	void AddCameraToSceneDatabase(engine::Entity entity);
+	void AddLightToSceneDatabase(engine::Entity entity);
 
 private:
 	std::unique_ptr<cd::SceneDatabase> m_pSceneDatabase;

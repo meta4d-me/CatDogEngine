@@ -44,13 +44,36 @@ enum class ExportAssetType
 	Unknown,
 };
 
+struct AssetImportOptions
+{
+	ImportAssetType AssetType = ImportAssetType::Unknown;
+	bool Active = false;
+	bool ImportCamera = false;
+	bool ImportLight = false;
+	bool ImportMaterial = true;
+	bool ImportMesh = true;
+	bool ImportTexture = true;
+
+};
+
+struct AssetExportOptions
+{
+	ExportAssetType AssetType = ExportAssetType::Unknown;
+	bool Active = false;
+	bool ExportCamera = true;
+	bool ExportLight = true;
+	bool ExportMaterial = true;
+	bool ExportMesh = true;
+	bool ExportTexture = true;
+};
+
 class DirectoryInformation
 {
 public:
-	DirectoryInformation(const std::filesystem::path& fname, bool isF)
+	DirectoryInformation(const std::filesystem::path& fileName, bool isFile)
 	{
-		FilePath = fname;
-		IsFile = isF;
+		FilePath = fileName;
+		IsFile = isFile;
 	}
 
 	std::shared_ptr<DirectoryInformation> Parent;
@@ -69,10 +92,13 @@ public:
 	virtual void Init() override;
 	virtual void Update() override;
 
-	void ImportAssetFile(const char* pFilePath);
-	void ImportModelFile(const char* pFilePath);
-	void ExportAssetFile(const char* pFilePath);
 	void SetSceneRenderer(engine::Renderer* pRenderer) { m_pSceneRenderer = pRenderer; }
+	void ImportAssetFile(const char* pFilePath);
+	void ExportAssetFile(const char* pFilePath);
+
+private:
+	void ProcessSceneDatabase(cd::SceneDatabase* pSceneDatabase, bool keepMesh, bool keepMaterial, bool keepTexture, bool keepCamera, bool keepLight);
+	void ImportModelFile(const char* pFilePath);
 	void DrawFolder(const std::shared_ptr<DirectoryInformation>& dirInfo, bool defaultOpen = false);
 	void ChangeDirectory(std::shared_ptr<DirectoryInformation>& directory);
 
@@ -83,32 +109,31 @@ public:
 	bool IsTextureFile(const std::string& extension);
 	bool RenderFile(int dirIndex, bool folder, int shownIndex, bool gridView);
 
-private:
 	void UpdateAssetFolderTree();
 	void UpdateAssetFileView();
+	bool UpdateOptionDialog(const char* pTitle, bool& active, bool& importMesh, bool& importMaterial, bool& importTexture, bool& importCamera, bool& importLight);
 
 private:
-	ImportAssetType m_importingAssetType = ImportAssetType::Unknown;
-	ExportAssetType m_exportingAssetType = ExportAssetType::Unknown;
+	AssetImportOptions m_importOptions;
+	AssetExportOptions m_exportOptions;
 	std::unique_ptr<ImGui::FileBrowser> m_pImportFileBrowser;
 	std::unique_ptr<ImGui::FileBrowser> m_pExportFileBrowser;
+
 	engine::Renderer* m_pSceneRenderer = nullptr;
 
-	bool m_UpdateNavigationPath = true;
-	bool m_ShowHiddenFiles;
-	bool m_IsInListView;
-	int m_GridItemPerRow;
-	float m_GridSize = 40.0f;
+	bool m_updateNavigationPath = true;
+	bool m_showHiddenFiles;
+	bool m_isInListView;
+	int m_gridItemPerRow;
+	float m_gridSize = 40.0f;
 
-	std::string m_BasePath;
-	std::filesystem::path m_AssetPath;
-
-	std::shared_ptr<DirectoryInformation> m_CurrentDir;
-	std::shared_ptr<DirectoryInformation> m_BaseProjectDir;
-	std::shared_ptr<DirectoryInformation> m_NextDirectory;
-	std::shared_ptr<DirectoryInformation> m_PreviousDirectory;
-	std::unordered_map<std::string, std::shared_ptr<DirectoryInformation>> m_Directories;
-	std::vector<std::shared_ptr<DirectoryInformation>> m_BreadCrumbData;
+	std::string m_basePath;
+	std::shared_ptr<DirectoryInformation> m_currentDirectory;
+	std::shared_ptr<DirectoryInformation> m_baseProjectDirectory;
+	std::shared_ptr<DirectoryInformation> m_nextDirectory;
+	std::shared_ptr<DirectoryInformation> m_previousDirectory;
+	std::unordered_map<std::string, std::shared_ptr<DirectoryInformation>> m_directories;
+	std::vector<std::shared_ptr<DirectoryInformation>> m_breadCrumbData;
 };
 
 }
