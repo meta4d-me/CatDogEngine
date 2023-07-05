@@ -99,9 +99,9 @@ void DDGIRenderer::Init()
 
 	// TODO : Hard code the centre of current test model(wood room) here.
 	// Warning : The coordinate system is different between CD and HWs Engine.
-	//   CD: Left-hand, Y-up
-	//   HW: Right-hand, Z-up
-	m_pDDGIComponent->SetVolumeOrigin(cd::Vec3f(3.5786f, 1.5051485f, -4.23065f));
+	//   CD: Left-hand, +Y Up
+	//   HW: Right-hand, +Z Up
+	m_pDDGIComponent->SetVolumeOrigin(cd::Vec3f(0.097981f, 0.4972445f, 0.361437f));
 	m_pDDGIComponent->SetProbeSpacing(cd::Vec3f(2.0f, 2.0f, 2.0f));
 	m_pDDGIComponent->SetProbeCount(cd::Vec3f(4.0f, 2.0f, 5.0f));
 	m_pDDGIComponent->SetAmbientMultiplier(1.0);
