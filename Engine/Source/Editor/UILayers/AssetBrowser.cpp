@@ -815,6 +815,7 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 		genericProducer.ActivateTangentsSpaceService();
 		genericProducer.ActivateTriangulateService();
 		genericProducer.ActivateSimpleAnimationService();
+		// genericProducer.ActivateFlattenHierarchyService();
 
 		cdtools::Processor processor(&genericProducer, nullptr, pSceneDatabase);
 		processor.SetDumpSceneDatabaseEnable(false);
@@ -899,12 +900,20 @@ void AssetBrowser::Update()
 	{
 		m_importOptions.Active = true;
 	}
+	else
+	{
+		m_importOptions.AssetType = ImportAssetType::Unknown;
+	}
 	
 	if (UpdateOptionDialog("Import Options", m_importOptions.Active, m_importOptions.ImportMesh, m_importOptions.ImportMaterial, m_importOptions.ImportTexture,
 		m_importOptions.ImportCamera, m_importOptions.ImportLight))
 	{
 		ImportAssetFile(m_pImportFileBrowser->GetSelected().string().c_str());
+	}
+	if (!m_importOptions.Active)
+	{
 		m_pImportFileBrowser->ClearSelected();
+		m_importOptions.Active = false;
 	}
 
 	m_pExportFileBrowser->Display();
