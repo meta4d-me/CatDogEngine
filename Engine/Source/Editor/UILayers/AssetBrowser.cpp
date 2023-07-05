@@ -856,8 +856,19 @@ void AssetBrowser::ExportAssetFile(const char* pFilePath)
 
 	if (ExportAssetType::SceneDatabase == m_exportOptions.AssetType)
 	{
+		// Clean cameras and lights. Then convert current latest camera/light component data to SceneDatabase.
 		ProcessSceneDatabase(pSceneDatabase, m_exportOptions.ExportMesh, m_exportOptions.ExportMaterial, m_exportOptions.ExportTexture,
-			m_exportOptions.ExportCamera, m_exportOptions.ExportLight);
+			false/*keepCamera*/, false/*keepLight*/);
+
+		for (auto entity : pSceneWorld->GetCameraEntities())
+		{
+			pSceneWorld->AddCameraToSceneDatabase(entity);
+		}
+
+		for (auto entity : pSceneWorld->GetLightEntities())
+		{
+			pSceneWorld->AddLightToSceneDatabase(entity);
+		}
 
 		std::filesystem::path selectFilePath(pFilePath);
 		std::filesystem::path outputFilePath = selectFilePath.replace_extension(".cdbin");
