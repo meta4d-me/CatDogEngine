@@ -174,6 +174,9 @@ vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volu
 	// Get the world-space position of the base probe (ignore relocation).
 	vec3 baseProbeWorldPosition = DDGIGetProbeWorldPosition(baseProbeCoords, volume);
 	
+	// ivec2 tmpCoords = DDGIGetProbeOffsetCoord(baseProbeCoords, volume.probeCounts);
+	// return DDGILoadProbeDataOffset(tmpCoords);
+	
 	// Clamp the distance (in grid space) between the given point and the base probe's world position (on each axis) to [0, 1].
 	vec3 alpha = clamp(((worldPosition - baseProbeWorldPosition) / volume.probeSpacing), vec3_splat(0.0), vec3_splat(1.0));
 	
@@ -291,13 +294,10 @@ void main()
 {
 	DDGIVolume volume = GetVolumeData();
 	
-	// TODO : Its a temporary solution.
-	vec3 fixedNormal = vec3(v_normal.x, v_normal.z, -v_normal.y);
-	
-	vec3 irradiance = DDGIGetVolumeIrradiance(v_worldPos, fixedNormal, volume);
+	vec3 irradiance = DDGIGetVolumeIrradiance(v_worldPos, v_normal, volume);
 	
 	vec3 albedo = vec3(1.0, 1.0, 1.0);
-	// albedo = SampleAlbedo(v_texcoord0);
-	gl_FragColor = vec4(albedo * vec3_splat(INV_PI) * irradiance * vec3_splat(4.0), 1.0);
-	// gl_FragColor = vec4(irradiance, 1.0);
+	albedo = SampleAlbedo(v_texcoord0);
+	//gl_FragColor = vec4(albedo * vec3_splat(INV_PI) * irradiance * vec3_splat(4.0), 1.0);
+	gl_FragColor = vec4(irradiance, 1.0);
 }
