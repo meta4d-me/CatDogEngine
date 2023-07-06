@@ -815,7 +815,7 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 		genericProducer.ActivateTangentsSpaceService();
 		genericProducer.ActivateTriangulateService();
 		genericProducer.ActivateSimpleAnimationService();
-		// genericProducer.ActivateFlattenHierarchyService();
+		genericProducer.ActivateFlattenHierarchyService();
 
 		cdtools::Processor processor(&genericProducer, nullptr, pSceneDatabase);
 		processor.SetDumpSceneDatabaseEnable(false);
@@ -924,7 +924,6 @@ void AssetBrowser::Update()
 	if (!m_importOptions.Active)
 	{
 		m_pImportFileBrowser->ClearSelected();
-		m_importOptions.Active = false;
 	}
 
 	m_pExportFileBrowser->Display();
@@ -937,6 +936,10 @@ void AssetBrowser::Update()
 		m_exportOptions.ExportCamera, m_exportOptions.ExportLight))
 	{
 		ExportAssetFile(m_pExportFileBrowser->GetSelected().string().c_str());
+		m_pExportFileBrowser->ClearSelected();
+	}
+	if (!m_exportOptions.Active)
+	{
 		m_pExportFileBrowser->ClearSelected();
 	}
 }
