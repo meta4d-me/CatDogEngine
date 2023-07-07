@@ -221,6 +221,4 @@ bool ImGuiProperty(const char* pName, T& value, const std::string unit = {}, con
 	return dirty;
 }
 
-
-
 }
