@@ -815,6 +815,7 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 		genericProducer.ActivateTangentsSpaceService();
 		genericProducer.ActivateTriangulateService();
 		genericProducer.ActivateSimpleAnimationService();
+		genericProducer.ActivateFlattenHierarchyService();
 
 		cdtools::Processor processor(&genericProducer, nullptr, pSceneDatabase);
 		processor.SetDumpSceneDatabaseEnable(false);
@@ -856,8 +857,19 @@ void AssetBrowser::ExportAssetFile(const char* pFilePath)
 
 	if (ExportAssetType::SceneDatabase == m_exportOptions.AssetType)
 	{
+		// Clean cameras and lights. Then convert current latest camera/light component data to SceneDatabase.
 		ProcessSceneDatabase(pSceneDatabase, m_exportOptions.ExportMesh, m_exportOptions.ExportMaterial, m_exportOptions.ExportTexture,
-			m_exportOptions.ExportCamera, m_exportOptions.ExportLight);
+			false/*keepCamera*/, false/*keepLight*/);
+
+		for (auto entity : pSceneWorld->GetCameraEntities())
+		{
+			pSceneWorld->AddCameraToSceneDatabase(entity);
+		}
+
+		for (auto entity : pSceneWorld->GetLightEntities())
+		{
+			pSceneWorld->AddLightToSceneDatabase(entity);
+		}
 
 		std::filesystem::path selectFilePath(pFilePath);
 		std::filesystem::path outputFilePath = selectFilePath.replace_extension(".cdbin");
@@ -899,11 +911,18 @@ void AssetBrowser::Update()
 	{
 		m_importOptions.Active = true;
 	}
+	else
+	{
+		m_importOptions.AssetType = ImportAssetType::Unknown;
+	}
 	
 	if (UpdateOptionDialog("Import Options", m_importOptions.Active, m_importOptions.ImportMesh, m_importOptions.ImportMaterial, m_importOptions.ImportTexture,
 		m_importOptions.ImportCamera, m_importOptions.ImportLight))
 	{
 		ImportAssetFile(m_pImportFileBrowser->GetSelected().string().c_str());
+	}
+	if (!m_importOptions.Active)
+	{
 		m_pImportFileBrowser->ClearSelected();
 	}
 
@@ -917,6 +936,10 @@ void AssetBrowser::Update()
 		m_exportOptions.ExportCamera, m_exportOptions.ExportLight))
 	{
 		ExportAssetFile(m_pExportFileBrowser->GetSelected().string().c_str());
+		m_pExportFileBrowser->ClearSelected();
+	}
+	if (!m_exportOptions.Active)
+	{
 		m_pExportFileBrowser->ClearSelected();
 	}
 }

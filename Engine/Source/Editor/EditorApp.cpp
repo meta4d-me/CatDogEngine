@@ -235,7 +235,6 @@ void EditorApp::InitECWorld()
 	cameraComponent.SetFarPlane(2000.0f);
 	cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
 	cameraComponent.SetGammaCorrection(cd::Vec3f(0.45f));
-	m_pSceneWorld->AddCameraToSceneDatabase(cameraEntity);
 
 	// Controller for Input events.
 	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(

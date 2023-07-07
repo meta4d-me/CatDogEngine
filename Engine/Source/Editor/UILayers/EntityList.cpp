@@ -112,8 +112,6 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
         transformComponent.SetTransform(cd::Transform::Identity());
         transformComponent.Build();
-
-        pSceneWorld->AddCameraToSceneDatabase(entity);
     }
 
     // ---------------------------------------- Add Light ---------------------------------------- //
@@ -124,8 +122,6 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         auto& lightComponent = CreateLightComponents(entity, cd::LightType::Point, 1024.0f, cd::Vec3f(1.0f, 0.0f, 0.0f));
         lightComponent.SetPosition(cd::Point(0.0f, 0.0f, -16.0f));
         lightComponent.SetRange(1024.0f);
-
-        pSceneWorld->AddLightToSceneDatabase(entity);
     }
     else if (ImGui::MenuItem("Add Spot Light"))
     {
@@ -135,16 +131,12 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
         lightComponent.SetRange(1024.0f);
         lightComponent.SetInnerAndOuter(24.0f, 40.0f);
-
-        pSceneWorld->AddLightToSceneDatabase(entity);
     }
     else if (ImGui::MenuItem("Add Directional Light"))
     {
         engine::Entity entity = AddNamedEntity("DirectionalLight");
         auto& lightComponent = CreateLightComponents(entity, cd::LightType::Directional, 4.0f, cd::Vec3f(0.0f, 0.0f, 1.0f));
         lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
-
-        pSceneWorld->AddLightToSceneDatabase(entity);
     }
 
     // ---------------------------------------- Add Area Light ---------------------------------------- //
@@ -159,8 +151,6 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         lightComponent.SetRange(1024.0f);
         lightComponent.SetWidth(10.0f);
         lightComponent.SetHeight(10.0f);
-
-        pSceneWorld->AddLightToSceneDatabase(entity);
     }
     else if (ImGui::MenuItem("Add Disk Light"))
     {
@@ -170,8 +160,6 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
         lightComponent.SetRange(1024.0f);
         lightComponent.SetRadius(1024.0f);
-
-        pSceneWorld->AddLightToSceneDatabase(entity);
     }
     else if (ImGui::MenuItem("Add Sphere Light"))
     {
@@ -181,8 +169,6 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         lightComponent.SetPosition(cd::Point(0.0f, 0.0f, -12.0f));
         lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
         lightComponent.SetRadius(1024.0f);
-
-        pSceneWorld->AddLightToSceneDatabase(entity);
     }
     else if (ImGui::MenuItem("Add Tube Light"))
     {
@@ -192,8 +178,6 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
         lightComponent.SetRange(1024.0f);
         lightComponent.SetWidth(10.0f);
-
-        pSceneWorld->AddLightToSceneDatabase(entity);
     }
 }
 
