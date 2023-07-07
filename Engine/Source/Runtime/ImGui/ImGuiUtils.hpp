@@ -109,7 +109,7 @@ bool ImGuiProperty(const char* pName, T& value, const std::string unit = {}, con
 		}
 		else if constexpr (std::is_same<T, cd::Vec3f>())
 		{
-			if (ImGui::DragFloat3(labelName.c_str(), value.Begin(), dragSpeed, minValue.x(), maxValue.x(),metricName.c_str()))
+			if (ImGui::DragFloat3(labelName.c_str(), value.Begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
 			{
 				dirty = true;
 			}
