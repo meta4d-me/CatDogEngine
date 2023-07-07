@@ -134,7 +134,7 @@ bool ImGuiProperty(const char* pName, T& value, const std::string unit = {}, con
 		}
 
 		cd::Vec3f eularAngles = value.GetRotation().ToEulerAngles();
-		if (ImGuiProperty<cd::Vec3f>("Rotation", eularAngles,"", cd::Vec3f::Zero(), cd::Vec3f(360.0f)))
+		if (ImGuiProperty<cd::Vec3f>("Rotation", eularAngles, "", cd::Vec3f::Zero(), cd::Vec3f(360.0f)))
 		{
 			float pitch = std::min(eularAngles.x(), 89.9f);
 			pitch = std::max(pitch, -89.9f);
