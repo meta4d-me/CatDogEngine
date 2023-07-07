@@ -138,8 +138,8 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 		std::string lightTypeName = cd::GetLightTypeName(lightType);
 
 		ImGuiUtils::ImGuiProperty<std::string>("Type", lightTypeName);
-		ImGuiUtils::ImGuiProperty<cd::Vec3f>("Color", pLightComponent->GetColor(),"",cd::Vec3f(0.0f, 0.0f, 0.0f), cd::Vec3f(1.0f, 1.0f, 1.0f));
-		ImGuiUtils::ImGuiProperty<float>("Intensity", pLightComponent->GetIntensity(), "Lumen", 0.0f, 10000.0f, false, 10.0);
+		ImGuiUtils::ImGuiProperty<cd::Vec3f>("Color", pLightComponent->GetColor(), "", cd::Vec3f(0.0f, 0.0f, 0.0f), cd::Vec3f(1.0f, 1.0f, 1.0f));
+		ImGuiUtils::ImGuiProperty<float>("Intensity", pLightComponent->GetIntensity(), "lm", 0.0f, 10000.0f, false, 10.0f);
 
 		float s_spotInnerAngle = 8.0f;
 		float s_spotOuterAngle = 16.0f;
