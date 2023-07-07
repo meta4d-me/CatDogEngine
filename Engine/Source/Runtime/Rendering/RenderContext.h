@@ -34,7 +34,7 @@ public:
 	RenderContext& operator=(RenderContext&&) = delete;
 	~RenderContext();
 
-	void Init(GraphicsBackend backend);
+	void Init(GraphicsBackend backend, void* hwnd = nullptr);
 	void OnResize(uint16_t width, uint16_t height);
 	void BeginFrame();
 	void EndFrame();

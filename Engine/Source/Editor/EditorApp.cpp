@@ -68,9 +68,6 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 		CD_ERROR("Failed to open CSV file");
 	}
 
-	// Init graphics backend
-	InitRenderContext(m_initArgs.backend);
-
 	// Phase 1 - Splash
 	//		* Compile uber shader permutations automatically when initialization or detect changes
 	//		* Show compile progresses so it still needs to update ui
@@ -78,6 +75,10 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	pSplashWindow->SetWindowIcon(m_initArgs.pIconFilePath);
 	pSplashWindow->SetBordedLess(true);
 	pSplashWindow->SetResizeable(false);
+	
+	// Init graphics backend
+	//		OpenGL GLContext::Create requires to know native window handle.
+	InitRenderContext(m_initArgs.backend, pSplashWindow->GetNativeHandle());
 	pSplashWindow->OnResize.Bind<engine::RenderContext, &engine::RenderContext::OnResize>(m_pRenderContext.get());
 	AddWindow(cd::MoveTemp(pSplashWindow));
 
@@ -266,13 +267,13 @@ void EditorApp::InitECWorld()
 		5.0f /* Movement Speed*/);
 }
 
-void EditorApp::InitRenderContext(engine::GraphicsBackend backend)
+void EditorApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
 {
 	CD_INFO("Init graphics backend : {}", engine::GetGraphicsBackendName(backend));
 
 	engine::Path::SetGraphicsBackend(backend);
 	m_pRenderContext = std::make_unique<engine::RenderContext>();
-	m_pRenderContext->Init(backend);
+	m_pRenderContext->Init(backend, hwnd);
 }
 
 void EditorApp::InitEditorRenderers()
