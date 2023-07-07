@@ -1,4 +1,4 @@
-#include "Inspector.h"
+﻿#include "Inspector.h"
 
 #include "ImGui/ImGuiUtils.hpp"
 
@@ -78,8 +78,8 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 
 	if (isOpen)
 	{
-		ImGuiUtils::ImGuiProperty<cd::Vec3f>("AlbedoColor", pMaterialComponent->GetAlbedoColor(), cd::Vec3f::Zero(), cd::Vec3f::One());
-		ImGuiUtils::ImGuiProperty<cd::Vec3f>("EmissiveColor", pMaterialComponent->GetEmissiveColor(), cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ImGuiProperty<cd::Vec3f>("AlbedoColor", pMaterialComponent->GetAlbedoColor(),"", cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ImGuiProperty<cd::Vec3f>("EmissiveColor", pMaterialComponent->GetEmissiveColor(),"", cd::Vec3f::Zero(), cd::Vec3f::One());
 	}
 
 	ImGui::Separator();
@@ -112,7 +112,7 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 
 		ImGuiUtils::ImGuiProperty<bool>("Constrain Aspect Ratio", pCameraComponent->GetDoConstrainAspectRatio());
 		ImGuiUtils::ImGuiProperty<bool>("Post Processing", pCameraComponent->GetIsPostProcessEnable());
-		ImGuiUtils::ImGuiProperty<cd::Vec3f>("Gamma Correction", pCameraComponent->GetGammaCorrection(), cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ImGuiProperty<cd::Vec3f>("Gamma Correction", pCameraComponent->GetGammaCorrection(),"", cd::Vec3f::Zero(), cd::Vec3f::One());
 	}
 
 	ImGui::Separator();
@@ -138,34 +138,34 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 		std::string lightTypeName = cd::GetLightTypeName(lightType);
 
 		ImGuiUtils::ImGuiProperty<std::string>("Type", lightTypeName);
-		ImGuiUtils::ImGuiProperty<cd::Vec3f>("Color", pLightComponent->GetColor());
-		ImGuiUtils::ImGuiProperty<float>("Intensity", pLightComponent->GetIntensity());
+		ImGuiUtils::ImGuiProperty<cd::Vec3f>("Color", pLightComponent->GetColor(),"",cd::Vec3f(0.0f, 0.0f, 0.0f), cd::Vec3f(1.0f, 1.0f, 1.0f));
+		ImGuiUtils::ImGuiProperty<float>("Intensity", pLightComponent->GetIntensity(), "Lumen", 0.0f, 10000.0f, false, 10.0);
 
-		static float s_spotInnerAngle = 8.0f;
-		static float s_spotOuterAngle = 16.0f;
+		float s_spotInnerAngle = 8.0f;
+		float s_spotOuterAngle = 16.0f;
 		bool spotInnerDirty = false;
 		bool spotOuterDirty = false;
 
 		switch (lightType)
 		{
 		case cd::LightType::Point:
-			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
-			ImGuiUtils::ImGuiProperty<float>("Range", pLightComponent->GetRange());
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition(),"cm");
+			ImGuiUtils::ImGuiProperty<float>("Range", pLightComponent->GetRange(), " Lumen",0.0f);
 			break;
 		case cd::LightType::Directional:
-			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection(),"Deg", cd::Vec3f(-1.0f, -1.0f, -1.0f), cd::Vec3f(1.0f, 1.0f, 1.0f));
 			break;
 		case cd::LightType::Spot:
-			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
-			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
-			ImGuiUtils::ImGuiProperty<float>("Range", pLightComponent->GetRange());
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition(),"cm");
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection(), "Deg", cd::Vec3f(-1.0f, -1.0f, -1.0f), cd::Vec3f(1.0f, 1.0f, 1.0f),true);
+			ImGuiUtils::ImGuiProperty<float>("Range", pLightComponent->GetRange(),"cm",0.0f);
 
 			cd::Vec2f innerAndOuter = pLightComponent->GetInnerAndOuter();
 			s_spotInnerAngle = innerAndOuter.x();
 			s_spotOuterAngle = innerAndOuter.y();
 
-			spotInnerDirty = ImGuiUtils::ImGuiProperty<float>("InnerAngle", s_spotInnerAngle);
-			spotOuterDirty = ImGuiUtils::ImGuiProperty<float>("OuterAngle", s_spotOuterAngle);
+			spotInnerDirty = ImGuiUtils::ImGuiProperty<float>("InnerAngle", s_spotInnerAngle, "Deg", 0.1f, 90.f);
+			spotOuterDirty = ImGuiUtils::ImGuiProperty<float>("OuterAngle", s_spotOuterAngle, "Deg", 0.1f,90.0f);
 			if(spotInnerDirty || spotOuterDirty)
 			{
 				pLightComponent->SetInnerAndOuter(s_spotInnerAngle, s_spotOuterAngle);
@@ -173,9 +173,9 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 			
 			break;
 		case cd::LightType::Disk:
-			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
-			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
-			ImGuiUtils::ImGuiProperty<float>("Range", pLightComponent->GetRange());
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition(),"cm");
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection(), "Deg", cd::Vec3f(-1.0f, -1.0f, -1.0f), cd::Vec3f(1.0f, 1.0f, 1.0f), true);
+			ImGuiUtils::ImGuiProperty<float>("Range", pLightComponent->GetRange(), "cm", 0.0f);
 			ImGuiUtils::ImGuiProperty<float>("Radius", pLightComponent->GetRadius());
 			break;
 		case cd::LightType::Rectangle:
