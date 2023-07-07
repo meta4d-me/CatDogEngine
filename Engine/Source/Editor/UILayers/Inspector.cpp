@@ -156,7 +156,7 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection(), "Deg", cd::Vec3f(-1.0f, -1.0f, -1.0f), cd::Vec3f::One(), true);
 			break;
 		case cd::LightType::Spot:
-			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition(),"cm");
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition(), "cm");
 			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection(), "Deg", cd::Vec3f(-1.0f, -1.0f, -1.0f), cd::Vec3f::One(), true);
 			ImGuiUtils::ImGuiProperty<float>("Range", pLightComponent->GetRange(), "cm", 0.0f, 10000.0f, false, 1.0f);
 
