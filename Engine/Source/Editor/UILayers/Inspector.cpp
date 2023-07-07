@@ -78,8 +78,8 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 
 	if (isOpen)
 	{
-		ImGuiUtils::ImGuiProperty<cd::Vec3f>("AlbedoColor", pMaterialComponent->GetAlbedoColor(),"", cd::Vec3f::Zero(), cd::Vec3f::One());
-		ImGuiUtils::ImGuiProperty<cd::Vec3f>("EmissiveColor", pMaterialComponent->GetEmissiveColor(),"", cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ImGuiProperty<cd::Vec3f>("AlbedoColor", pMaterialComponent->GetAlbedoColor(), "", cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ImGuiProperty<cd::Vec3f>("EmissiveColor", pMaterialComponent->GetEmissiveColor(), "", cd::Vec3f::Zero(), cd::Vec3f::One());
 	}
 
 	ImGui::Separator();
