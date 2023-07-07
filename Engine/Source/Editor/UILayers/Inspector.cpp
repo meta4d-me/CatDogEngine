@@ -112,7 +112,7 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 
 		ImGuiUtils::ImGuiProperty<bool>("Constrain Aspect Ratio", pCameraComponent->GetDoConstrainAspectRatio());
 		ImGuiUtils::ImGuiProperty<bool>("Post Processing", pCameraComponent->GetIsPostProcessEnable());
-		ImGuiUtils::ImGuiProperty<cd::Vec3f>("Gamma Correction", pCameraComponent->GetGammaCorrection(),"", cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ImGuiProperty<cd::Vec3f>("Gamma Correction", pCameraComponent->GetGammaCorrection(), "", cd::Vec3f::Zero(), cd::Vec3f::One());
 	}
 
 	ImGui::Separator();
