@@ -173,7 +173,7 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 			
 			break;
 		case cd::LightType::Disk:
-			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition(),"cm");
+			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition(), "cm");
 			ImGuiUtils::ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection(), "Deg", cd::Vec3f(-1.0f, -1.0f, -1.0f), cd::Vec3f(1.0f, 1.0f, 1.0f), true);
 			ImGuiUtils::ImGuiProperty<float>("Range", pLightComponent->GetRange(), "cm", 0.0f);
 			ImGuiUtils::ImGuiProperty<float>("Radius", pLightComponent->GetRadius());
