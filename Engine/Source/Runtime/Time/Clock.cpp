@@ -30,7 +30,7 @@ void Clock::Update()
 	m_elapsed = m_currentTime - m_lastTime;
 
 	m_deltaTime = m_elapsed.count();
-	m_timeSinceStart += m_deltaTime;
+	//m_timeSinceStart += m_deltaTime;
 }
 
 }

@@ -10,6 +10,13 @@
 #include <optional>
 #include <vector>
 
+namespace bgfx
+{
+
+struct Memory;
+
+}
+
 namespace cd
 {
 
@@ -31,20 +38,21 @@ public:
 		return className;
 	}
 
-	using TextureFileBlob = std::vector<std::byte>;
-
 	using TextureBlob = std::vector<std::byte>;
-
 	struct TextureInfo
 	{
-		uint8_t slot;
-		uint16_t samplerHandle;
-		uint16_t textureHandle;
+		const bgfx::Memory* data;
+		uint64_t flag;
 		uint32_t width;
 		uint32_t height;
 		uint32_t depth;
-		uint8_t mipCount;
 		cd::TextureFormat format;
+		cd::Vec2f uvOffset;
+		cd::Vec2f uvScale;
+		uint16_t samplerHandle;
+		uint16_t textureHandle;
+		uint8_t slot;
+		uint8_t mipCount;
 	};
 
 public:
@@ -55,15 +63,23 @@ public:
 	MaterialComponent& operator=(MaterialComponent&&) = default;
 	~MaterialComponent() = default;
 
-	void SetMaterialData(const cd::Material* pMaterialData) { m_pMaterialData = pMaterialData; }
-	void SetMaterialType(const engine::MaterialType* pMaterialType) { m_pMaterialType = pMaterialType; }
+	void Init(const engine::MaterialType* pMaterialType, const cd::Material* pMaterialData = nullptr);
 	const engine::MaterialType* GetMaterialType() const { return m_pMaterialType; }
 
-	void AddTextureBlob(cd::MaterialTextureType textureType, cd::TextureFormat textureFormat, TextureBlob textureFileBlob, uint32_t width, uint32_t height, uint32_t depth = 1);
-	void AddTextureFileBlob(cd::MaterialTextureType textureType, TextureFileBlob textureFileBlob) { m_textureTypeToFileBlob[textureType] = cd::MoveTemp(textureFileBlob); }
+	void AddTextureBlob(cd::MaterialTextureType textureType, cd::TextureFormat textureFormat, cd::TextureMapMode uMapMode, cd::TextureMapMode vMapMode, TextureBlob textureBlob, uint32_t width, uint32_t height, uint32_t depth = 1);
+	void AddTextureFileBlob(cd::MaterialTextureType textureType, const cd::Texture& texture, TextureBlob textureBlob);
 
 	void SetUberShaderOption(StringCrc uberOption);
 	StringCrc GetUberShaderOption() const;
+
+	void SetAlbedoColor(cd::Vec3f color) { m_albedoColor = cd::MoveTemp(color); }
+	cd::Vec3f& GetAlbedoColor() { return m_albedoColor; }
+	const cd::Vec3f& GetAlbedoColor() const { return m_albedoColor; }
+
+	void SetEmissiveColor(cd::Vec3f color) { m_emissiveColor = cd::MoveTemp(color); }
+	cd::Vec3f& GetEmissiveColor() { return m_emissiveColor; }
+	const cd::Vec3f& GetEmissiveColor() const { return m_emissiveColor; }
+
 	uint16_t GetShadingProgram() const;
 
 	std::optional<const TextureInfo> GetTextureInfo(cd::MaterialTextureType textureType) const;
@@ -76,8 +92,10 @@ private:
 	// Input
 	const cd::Material* m_pMaterialData = nullptr;
 	const engine::MaterialType* m_pMaterialType = nullptr;
-	std::map<cd::MaterialTextureType, TextureFileBlob> m_textureTypeToFileBlob;
 	StringCrc m_uberShaderOption;
+
+	cd::Vec3f m_albedoColor;
+	cd::Vec3f m_emissiveColor;
 
 	// Output
 	std::map<cd::MaterialTextureType, TextureInfo> m_textureResources;

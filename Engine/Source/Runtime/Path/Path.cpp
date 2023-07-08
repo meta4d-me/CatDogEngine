@@ -71,6 +71,11 @@ std::filesystem::path Path::GetProjectsSharedPath()
     return std::filesystem::path(CDPROJECT_RESOURCES_SHARED_PATH);
 }
 
+engine::GraphicsBackend Path::GetGraphicsBackend()
+{
+    return s_backend;
+}
+
 void Path::SetGraphicsBackend(engine::GraphicsBackend backend)
 {
     s_backend = backend;

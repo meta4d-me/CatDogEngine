@@ -6,36 +6,38 @@
 ![win64_vs2022](https://github.com/CatDogEngine/CatDogEngine/actions/workflows/win64_vs2022.yml/badge.svg?branch=main)
 
 ## Snapshots
-![image](https://user-images.githubusercontent.com/75730859/220918348-eb03325a-9b14-4523-956b-88e15cec052c.png)
+
+![1686593017747](https://github.com/CatDogEngine/CatDogEngine/assets/75730859/8836be81-3358-42c8-a922-78c6b5001130)
 
 ## Features
+
+* Basic Cross Platform Editor based on ImGui
 * Basic Entity/Component Framework
 * Basic Physically Based Rendering
 * Basic Scene Graph SDK
-* Standard Atomosphere Scattering
+* Standard Atmospheric Scattering
 
 ## Developing Features
-* Cross Platform Editor based on ImGui
+
+* JobSystem
 * Modern RHI except bgfx
 * Procedural Generated Terrain
-* BlendShape
+* RenderGraph
 * Skeleton Animation
 
 ## Features in Plan
+
 * Audio System
 * Character Rendering
 * Cloud Rendering
 * Foliage Rendering
 * Memory Management based on multiple allocators
-* Multithreading JobSystem
 * Optimized STL specific for GameEngine
 * Particle System
 * Physical Engine
-* Profiler for CPU/Memory/GPU
-* RenderGraph
-* ...
 
 ## ThirdParty in the development
+
 * Font
   * [freetype](https://github.com/freetype/freetype)
 * Graphics
@@ -52,6 +54,8 @@
   * [premake](https://github.com/premake/premake-core)
 * Process
   * [subprocess.h](https://github.com/sheredom/subprocess.h)
+* Profiler
+  * [tracy](https://github.com/wolfpld/tracy)
 * UI Resources
   * Font
     * [FanWunMing](https://github.com/ayaka14732/FanWunMing)
@@ -63,9 +67,11 @@
   * [SDL](https://github.com/libsdl-org/SDL)
 
 ## Assets for testing
+
 * https://github.com/CatDogEngine/TestAssets
 
 ## Other open-source game engines to learn
+
 * [DiligentEngine](https://github.com/DiligentGraphics/DiligentEngine)
 * [GodotEngine](https://github.com/godotengine/godot)
 * [LumixEngine](https://github.com/nem0/LumixEngine)

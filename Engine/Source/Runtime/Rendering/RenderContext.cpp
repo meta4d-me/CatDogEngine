@@ -6,6 +6,7 @@
 #include "Rendering/Utility/VertexLayoutUtility.h"
 
 #include <bgfx/bgfx.h>
+#include <bgfx/platform.h>
 #include <bimg/decode.h>
 #include <bx/allocator.h>
 
@@ -51,7 +52,7 @@ RenderContext::~RenderContext()
 	bgfx::shutdown();
 }
 
-void RenderContext::Init(GraphicsBackend backend)
+void RenderContext::Init(GraphicsBackend backend, void* hwnd)
 {
 	bgfx::Init initDesc;
 	switch (backend)
@@ -64,11 +65,6 @@ void RenderContext::Init(GraphicsBackend backend)
 	case GraphicsBackend::OpenGLES:
 	{
 		initDesc.type = bgfx::RendererType::OpenGLES;
-		break;
-	}
-	case GraphicsBackend::Direct3D9:
-	{
-		initDesc.type = bgfx::RendererType::Direct3D9;
 		break;
 	}
 	case GraphicsBackend::Direct3D11:
@@ -99,8 +95,8 @@ void RenderContext::Init(GraphicsBackend backend)
 	}
 	}
 
+	initDesc.platformData.nwh = hwnd;
 	bgfx::init(initDesc);
-	bgfx::setDebug(BGFX_DEBUG_NONE);
 }
 
 void RenderContext::Shutdown()
@@ -139,11 +135,6 @@ void RenderContext::EndFrame()
 
 void RenderContext::OnResize(uint16_t width, uint16_t height)
 {
-	// Update swap chain RT size which presents main window.
-	constexpr engine::StringCrc editorSwapChainName("EditorUISwapChain");
-	engine::RenderTarget* pRenderTarget = GetRenderTarget(editorSwapChainName);
-	pRenderTarget->Resize(width, height);
-
 	bgfx::reset(width, height, BGFX_RESET_MSAA_X16 | BGFX_RESET_VSYNC);
 }
 
@@ -338,7 +329,7 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pFilePath, uint64_t
 	return handle;
 }
 
-bgfx::TextureHandle RenderContext::CreateTexture(const char* pName, uint16_t width, uint16_t height, uint16_t depth, bgfx::TextureFormat::Enum formet, uint64_t flags, const void* data, uint32_t size)
+bgfx::TextureHandle RenderContext::CreateTexture(const char* pName, uint16_t width, uint16_t height, uint16_t depth, bgfx::TextureFormat::Enum format, uint64_t flags, const void* data, uint32_t size)
 {
 	StringCrc textureName(pName);
 	auto itTextureCache = m_textureHandleCaches.find(textureName.Value());
@@ -357,11 +348,11 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pName, uint16_t wid
 
 	if(depth > 1)
 	{
-		texture = bgfx::createTexture3D(width, height, depth, false, formet, flags, mem);
+		texture = bgfx::createTexture3D(width, height, depth, false, format, flags, mem);
 	}
 	else
 	{
-		texture = bgfx::createTexture2D(width, height, false, 1, formet, flags, mem);
+		texture = bgfx::createTexture2D(width, height, false, 1, format, flags, mem);
 	}
 
 	if(bgfx::isValid(texture))
@@ -516,6 +507,11 @@ void RenderContext::Destory(StringCrc resourceCrc)
 	DestoryImpl(resourceCrc, m_programHandleCaches);
 	DestoryImpl(resourceCrc, m_textureHandleCaches);
 	DestoryImpl(resourceCrc, m_uniformHandleCaches);
+}
+
+void RenderContext::DestoryRenderTarget(StringCrc resourceCrc)
+{
+	m_renderTargetCaches.erase(resourceCrc.Value());
 }
 
 }

@@ -7,12 +7,13 @@
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/World.h"
 #include "Framework/Processor.h"
+#include "ImGui/IconFont/IconsMaterialDesignIcons.h"
+#include "ImGui/ImGuiContextInstance.h"
+#include "ImGui/ImGuiUtils.hpp"
 #include "Log/Log.h"
 #include "Material/MaterialType.h"
 #include "Producers/CDProducer/CDProducer.h"
 #include "Producers/GenericProducer/GenericProducer.h"
-#include "ImGui/IconFont/IconsMaterialDesignIcons.h"
-#include "ImGui/ImGuiContextInstance.h"
 #include "Rendering/WorldRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Resources/ResourceBuilder.h"
@@ -64,7 +65,7 @@ bool IsShaderInputFile(const char* pFileExtension)
 
 bool IsModelInputFile(const char* pFileExtension)
 {
-	constexpr const char* pFileExtensions[] = { ".cdbin", ".dae", ".fbx", ".glb", ".gltf", ".md5mesh" };
+	constexpr const char* pFileExtensions[] = { ".cdbin", ".dae", ".fbx", ".glb", ".gltf", ".md5mesh", ".obj"};
 	constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
 	for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
 	{
@@ -131,27 +132,27 @@ void AssetBrowser::Init()
 {
 	m_pImportFileBrowser = std::make_unique<ImGui::FileBrowser>();
 	m_pExportFileBrowser = std::make_unique<ImGui::FileBrowser>();
-	m_BasePath = CDPROJECT_RESOURCES_ROOT_PATH;
-	std::string baseDirectoryHandle = ProcessDirectory(std::filesystem::path(m_BasePath), nullptr);
-	m_BaseProjectDir = m_Directories[baseDirectoryHandle];
-	m_CurrentDir = m_BaseProjectDir;
+	m_basePath = CDPROJECT_RESOURCES_ROOT_PATH;
+	std::string baseDirectoryHandle = ProcessDirectory(std::filesystem::path(m_basePath), nullptr);
+	m_baseProjectDirectory = m_directories[baseDirectoryHandle];
+	m_currentDirectory = m_baseProjectDirectory;
 }
 
 
 bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gridView)
 {
 	bool doubleClicked = false;
-	std::filesystem::path resourcesPath = CDPROJECT_RESOURCES_ROOT_PATH;
-	std::string extension = m_CurrentDir->Children[dirIndex]->FilePath.extension().generic_string();
+	std::filesystem::path resourcesPath = m_basePath;
+	std::string extension = m_currentDirectory->Children[dirIndex]->FilePath.extension().generic_string();
 	if (gridView)
 	{
 		ImGui::BeginGroup();
-		const std::string fileName = m_CurrentDir->Children[dirIndex]->FilePath.filename().string();
-		const std::string nameNoEx = m_CurrentDir->Children[dirIndex]->FilePath.filename().stem().string();
-		std::string extension = m_CurrentDir->Children[dirIndex]->FilePath.extension().generic_string();
+		const std::string fileName = m_currentDirectory->Children[dirIndex]->FilePath.filename().string();
+		const std::string nameNoEx = m_currentDirectory->Children[dirIndex]->FilePath.filename().stem().string();
+		std::string extension = m_currentDirectory->Children[dirIndex]->FilePath.extension().generic_string();
 		if (folder)
 		{
-			ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_FOLDER), ImVec2(m_GridSize, m_GridSize));
+			ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_FOLDER), ImVec2(m_gridSize, m_gridSize));
 		}
 		 if (!folder)
 		{
@@ -160,7 +161,7 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 				 std::filesystem::path texturesPath = resourcesPath / "Textures/" / "textures/" / fileName.c_str();
 				 std::filesystem::path texviewPath = resourcesPath/ "Textures/" /"textures"/ (nameNoEx + ".dds");
 				 ImGuiIO& io = ImGui::GetIO();
-				 engine::RenderContext* pRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
+				 engine::RenderContext* pRenderContext = GetRenderContext();
 				 engine::StringCrc textureCrc(nameNoEx);
 				 bgfx::TextureHandle TextureHandle = pRenderContext->GetTexture(textureCrc);
 				 if (!bgfx::isValid(TextureHandle))
@@ -174,14 +175,14 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 				 }
 				 else
 				 {
-					 ImVec2 img_size(m_GridSize, m_GridSize);
+					 ImVec2 img_size(m_gridSize, m_gridSize);
 					 ImGui::Image(ImTextureID(TextureHandle.idx), img_size);
 				 }
 
 			 }
 			 if (0 == strcmp(".dds", extension.c_str()))
 			 {
-				 ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_DELTA), ImVec2(m_GridSize, m_GridSize));
+				 ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_DELTA), ImVec2(m_gridSize, m_gridSize));
 			 }
 	
 						
@@ -198,14 +199,14 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 		ImGui::TextUnformatted(newFname.c_str());
 		ImGui::EndGroup();
 
-		if ((shownIndex + 1) % (m_GridItemPerRow ) != 0)
+		if ((shownIndex + 1) % (m_gridItemPerRow ) != 0)
 			ImGui::SameLine();
 	}
 	else
 	{
-		ImGui::TextUnformatted(folder ? reinterpret_cast<const char*>(ICON_MDI_FOLDER) : GetIconFontIconc(m_CurrentDir->Children[dirIndex]->FilePath.string()));
+		ImGui::TextUnformatted(folder ? reinterpret_cast<const char*>(ICON_MDI_FOLDER) : GetIconFontIconc(m_currentDirectory->Children[dirIndex]->FilePath.string()));
 		ImGui::SameLine();
-		if (ImGui::Selectable(m_CurrentDir->Children[dirIndex]->FilePath.filename().string().c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
+		if (ImGui::Selectable(m_currentDirectory->Children[dirIndex]->FilePath.filename().string().c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
 		{
 			if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 			{
@@ -213,14 +214,14 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 			}
 		}
 	}
-	Tooltip(m_CurrentDir->Children[dirIndex]->FilePath.filename().string().c_str());
+	Tooltip(m_currentDirectory->Children[dirIndex]->FilePath.filename().string().c_str());
 	if (doubleClicked)
 	{
 		if (folder)
 		{
-			m_PreviousDirectory = m_CurrentDir;
-			m_CurrentDir = m_CurrentDir->Children[dirIndex];
-			m_UpdateNavigationPath = true;
+			m_previousDirectory = m_currentDirectory;
+			m_currentDirectory = m_currentDirectory->Children[dirIndex];
+			m_updateNavigationPath = true;
 		}
 		else
 		{
@@ -253,9 +254,9 @@ void AssetBrowser::ChangeDirectory(std::shared_ptr<DirectoryInformation>& direct
 		return;
 	}
 
-	m_PreviousDirectory		= m_CurrentDir;
-	m_CurrentDir			= directory;
-	m_UpdateNavigationPath  = true;
+	m_previousDirectory		= m_currentDirectory;
+	m_currentDirectory			= directory;
+	m_updateNavigationPath  = true;
 }
 
 std::shared_ptr<DirectoryInformation> AssetBrowser::CreateDirectoryInfoSharedPtr(const std::filesystem::path& directoryPath, bool isDirectory)
@@ -283,7 +284,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 	{
 		if (ImGui::Selectable("Cubemap"))
 		{
-			m_importingAssetType = ImportAssetType::CubeMap;
+			m_importOptions.AssetType = ImportAssetType::CubeMap;
 			m_pImportFileBrowser->SetTitle("ImportAssets - Cubemap");
 			//m_pImportFileBrowser->SetTypeFilters({ ".dds", "*.exr", "*.hdr", "*.ktx", ".tga" });
 			m_pImportFileBrowser->Open();
@@ -291,21 +292,21 @@ void AssetBrowser::UpdateAssetFolderTree()
 
 		else if (ImGui::Selectable("Shader"))
 		{
-			m_importingAssetType = ImportAssetType::Shader;
+			m_importOptions.AssetType = ImportAssetType::Shader;
 			m_pImportFileBrowser->SetTitle("ImportAssets - Shader");
 			//m_pImportFileBrowser->SetTypeFilters({ ".sc" }); // ".hlsl"
 			m_pImportFileBrowser->Open();
 		}
 		else if(ImGui::Selectable("Model"))
 		{
-			m_importingAssetType = ImportAssetType::Model;
+			m_importOptions.AssetType = ImportAssetType::Model;
 			m_pImportFileBrowser->SetTitle("ImportAssets - Model");
 			//m_pImportFileBrowser->SetTypeFilters({ ".fbx", ".gltf" }); // ".obj", ".dae", ".ogex"
 			m_pImportFileBrowser->Open();
 		}
 		else if(ImGui::Selectable("DDGI Model"))
 		{
-			m_importingAssetType = ImportAssetType::DDGIModel;
+			m_importOptions.AssetType = ImportAssetType::DDGIModel;
 			m_pImportFileBrowser->SetTitle("ImportAssets - DDGI Model");
 			m_pImportFileBrowser->Open();
 		}
@@ -317,7 +318,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 	{
 		if (ImGui::Selectable("SceneDatabase"))
 		{
-			m_exportingAssetType = ExportAssetType::SceneDatabase;
+			m_exportOptions.AssetType = ExportAssetType::SceneDatabase;
 
 			// TODO : The file browser seems impossible to export file.
 			// Here I will use the select file as file name of exported file name.
@@ -329,8 +330,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 	}
 
 	ImGui::PopStyleColor();
-	std::filesystem::path path = CDPROJECT_RESOURCES_ROOT_PATH;
-	DrawFolder(m_BaseProjectDir, true);
+	DrawFolder(m_baseProjectDirectory, true);
 	ImGui::EndChild();
 }
 
@@ -346,7 +346,7 @@ std::string AssetBrowser::StripExtras(const std::string& filename)
 		out.push_back(filename.substr(start, end - start));
 	}
 
-	int maxChars = static_cast<int>(m_GridSize / (ImGui::GetFontSize() * 0.5f));
+	int maxChars = static_cast<int>(m_gridSize / (ImGui::GetFontSize() * 0.5f));
 	if (out[0].length() >= maxChars)
 	{
 		auto cutFilename = "     " + out[0].substr(0, maxChars - 3) + "...";
@@ -358,7 +358,7 @@ std::string AssetBrowser::StripExtras(const std::string& filename)
 
 void AssetBrowser::DrawFolder(const std::shared_ptr<DirectoryInformation>& dirInfo, bool defaultOpen)
 {
-	ImGuiTreeNodeFlags nodeFlags = ((dirInfo == m_CurrentDir) ? ImGuiTreeNodeFlags_Selected : 0);
+	ImGuiTreeNodeFlags nodeFlags = ((dirInfo == m_currentDirectory) ? ImGuiTreeNodeFlags_Selected : 0);
 	nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
 
 	if (dirInfo->Parent == nullptr)
@@ -389,7 +389,7 @@ void AssetBrowser::DrawFolder(const std::shared_ptr<DirectoryInformation>& dirIn
 
 		bool isOpen = ImGui::TreeNodeEx((void*)(intptr_t)(dirInfo.get()), nodeFlags, "");
 
-		const char* folderIcon = reinterpret_cast<const char*>(((isOpen && containsFolder) || m_CurrentDir == dirInfo) ? ICON_MDI_FOLDER_OPEN : ICON_MDI_FOLDER);
+		const char* folderIcon = reinterpret_cast<const char*>(((isOpen && containsFolder) || m_currentDirectory == dirInfo) ? ICON_MDI_FOLDER_OPEN : ICON_MDI_FOLDER);
 		ImGui::SameLine();
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
 		ImGui::Text("%s ", folderIcon);
@@ -401,10 +401,10 @@ void AssetBrowser::DrawFolder(const std::shared_ptr<DirectoryInformation>& dirIn
 
 		if (ImGui::IsItemClicked())
 		{
-			m_PreviousDirectory = m_CurrentDir;
-			m_CurrentDir = dirInfo;
-			m_UpdateNavigationPath = true;
-			std::filesystem::path a = m_CurrentDir->FilePath;
+			m_previousDirectory = m_currentDirectory;
+			m_currentDirectory = dirInfo;
+			m_updateNavigationPath = true;
+			std::filesystem::path a = m_currentDirectory->FilePath;
 			std::string str = a.string();
 			
 		}
@@ -459,7 +459,7 @@ void AssetBrowser::DrawFolder(const std::shared_ptr<DirectoryInformation>& dirIn
 
 std::string AssetBrowser::ProcessDirectory(const std::filesystem::path& directoryPath, const std::shared_ptr<DirectoryInformation>& parent)
 {
-	const auto& directory = m_Directories[directoryPath.string()];
+	const auto& directory = m_directories[directoryPath.string()];
 	if (directory)
 	{
 		return directory->FilePath.string();
@@ -467,23 +467,23 @@ std::string AssetBrowser::ProcessDirectory(const std::filesystem::path& director
 
 	std::shared_ptr<DirectoryInformation> directoryInfo = CreateDirectoryInfoSharedPtr(directoryPath, !std::filesystem::is_directory(directoryPath));
 	directoryInfo->Parent = parent;
-	directoryInfo->FilePath = directoryPath == m_BasePath ? m_BasePath : std::filesystem::relative(directoryPath, m_BasePath);
+	directoryInfo->FilePath = directoryPath == m_basePath ? m_basePath : std::filesystem::relative(directoryPath, m_basePath);
 
 	if (std::filesystem::is_directory(directoryPath))
 	{
 		for (auto entry : std::filesystem::directory_iterator(directoryPath))
 		{
-			if (!m_ShowHiddenFiles && IsHiddenFile(entry.path().string()))
+			if (!m_showHiddenFiles && IsHiddenFile(entry.path().string()))
 			{
 				continue;
 			}
 
 			std::string subdirHandle = ProcessDirectory(entry.path(), directoryInfo);
-			directoryInfo->Children.push_back(m_Directories[subdirHandle]);
+			directoryInfo->Children.push_back(m_directories[subdirHandle]);
 		}
 	}
 
-	m_Directories[directoryInfo->FilePath.string()] = directoryInfo;
+	m_directories[directoryInfo->FilePath.string()] = directoryInfo;
 	return directoryInfo->FilePath.string();
 }
 void AssetBrowser::UpdateAssetFileView()
@@ -494,49 +494,49 @@ void AssetBrowser::UpdateAssetFileView()
 
 		if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_ARROW_LEFT)))
 		{
-			if (m_CurrentDir != m_BaseProjectDir)
+			if (m_currentDirectory != m_baseProjectDirectory)
 			{
-				m_PreviousDirectory = m_CurrentDir;
-				m_CurrentDir = m_CurrentDir->Parent;
-				m_UpdateNavigationPath = true;
+				m_previousDirectory = m_currentDirectory;
+				m_currentDirectory = m_currentDirectory->Parent;
+				m_updateNavigationPath = true;
 			}
 		}
 
 		ImGui::SameLine();
 		if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_ARROW_RIGHT)))
 		{
-			m_PreviousDirectory = m_CurrentDir;
-			m_UpdateNavigationPath = true;
+			m_previousDirectory = m_currentDirectory;
+			m_updateNavigationPath = true;
 		}
 		ImGui::SameLine();
 
-		if (m_UpdateNavigationPath)
+		if (m_updateNavigationPath)
 		{
-			m_BreadCrumbData.clear();
-			auto current = m_CurrentDir;
+			m_breadCrumbData.clear();
+			auto current = m_currentDirectory;
 			while (current)
 			{
 				if (current->Parent != nullptr)
 				{
-					m_BreadCrumbData.push_back(current);
+					m_breadCrumbData.push_back(current);
 					current = current->Parent;
 				}
 				else
 				{
-					m_BreadCrumbData.push_back(m_BaseProjectDir);
+					m_breadCrumbData.push_back(m_baseProjectDirectory);
 					current = nullptr;
 				}
 			}
 
-			std::reverse(m_BreadCrumbData.begin(), m_BreadCrumbData.end());
-			m_UpdateNavigationPath = false;
+			std::reverse(m_breadCrumbData.begin(), m_breadCrumbData.end());
+			m_updateNavigationPath = false;
 		}
 
-		if (m_IsInListView)
+		if (m_isInListView)
 		{
 			if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_VIEW_GRID)))
 			{
-				m_IsInListView = !m_IsInListView;
+				m_isInListView = !m_isInListView;
 			}
 			ImGui::SameLine();
 		}
@@ -544,7 +544,7 @@ void AssetBrowser::UpdateAssetFileView()
 		{
 			if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_VIEW_LIST)))
 			{
-				m_IsInListView = !m_IsInListView;
+				m_isInListView = !m_isInListView;
 			}
 			ImGui::SameLine();
 
@@ -563,21 +563,21 @@ void AssetBrowser::UpdateAssetFileView()
 
 		float xAvail = ImGui::GetContentRegionAvail().x * 0.812f;
 
-		m_GridItemPerRow = (int)floor(xAvail / (m_GridSize + ImGui::GetStyle().ItemSpacing.x)) ; 
-		m_GridItemPerRow = 1 > m_GridItemPerRow ? 1 : m_GridItemPerRow;
+		m_gridItemPerRow = (int)floor(xAvail / (m_gridSize + ImGui::GetStyle().ItemSpacing.x)) ; 
+		m_gridItemPerRow = 1 > m_gridItemPerRow ? 1 : m_gridItemPerRow;
 
-		for (int i = 0; i < m_CurrentDir->Children.size(); i++)
+		for (int i = 0; i < m_currentDirectory->Children.size(); i++)
 		{
-			bool checkHiddenFiles = m_IsInListView ? m_CurrentDir->Children.size() > 0 : true;
+			bool checkHiddenFiles = m_isInListView ? m_currentDirectory->Children.size() > 0 : true;
 			if (checkHiddenFiles)
 			{
-				if (!m_ShowHiddenFiles && IsHiddenFile(m_CurrentDir->Children[i]->FilePath.filename().string()))
+				if (!m_showHiddenFiles && IsHiddenFile(m_currentDirectory->Children[i]->FilePath.filename().string()))
 				{
 					continue;
 				}
 			}
 
-			bool doubleClicked = RenderFile(i, !m_CurrentDir->Children[i]->IsFile, shownIndex, !m_IsInListView);
+			bool doubleClicked = RenderFile(i, !m_currentDirectory->Children[i]->IsFile, shownIndex, !m_isInListView);
 
 			if (doubleClicked)
 			{
@@ -591,14 +591,88 @@ void AssetBrowser::UpdateAssetFileView()
 	}
 
 	ImGui::EndChild(); 
-	ImGui::SliderFloat(" ", &m_GridSize, 40.0f, 160.0f, " ", ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_Logarithmic);
+	ImGui::SliderFloat(" ", &m_gridSize, 40.0f, 160.0f, " ", ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_Logarithmic);
+}
+
+bool AssetBrowser::UpdateOptionDialog(const char* pTitle, bool& active, bool& importMesh, bool& importMaterial, bool& importTexture, bool& importCamera, bool& importLight)
+{
+	if (!active)
+	{
+		return false;
+	}
+
+	bool finish = false;
+
+	ImGui::OpenPopup(pTitle);
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	if (ImGui::BeginPopupModal(pTitle, nullptr, ImGuiWindowFlags_AlwaysVerticalScrollbar))
+	{
+		ImGui::SetWindowSize(ImVec2(400, 800));
+		bool isMeshOpen = ImGui::CollapsingHeader("Mesh Options", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+		ImGui::Separator();
+
+		if (isMeshOpen)
+		{
+			ImGuiUtils::ImGuiProperty<bool>("Mesh", importMesh);
+		}
+
+		ImGui::Separator();
+		ImGui::PopStyleVar();
+
+		bool isMaterialOpen = ImGui::CollapsingHeader("Material Options", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+		ImGui::Separator();
+		if (isMaterialOpen)
+		{
+			ImGuiUtils::ImGuiProperty<bool>("Material", importMaterial);
+			ImGuiUtils::ImGuiProperty<bool>("Texture", importTexture);
+		}
+		ImGui::Separator();
+		ImGui::PopStyleVar();
+
+		bool isOtherOpen = ImGui::CollapsingHeader("Other", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+		ImGui::Separator();
+		if (isOtherOpen)
+		{
+			ImGuiUtils::ImGuiProperty<bool>("Camera", importCamera);
+			ImGuiUtils::ImGuiProperty<bool>("Light", importLight);
+		}
+		ImGui::Separator();
+		ImGui::PopStyleVar();
+
+		ImGui::Separator();
+
+		auto CloseOptionDialog = [&]()
+		{
+			ImGui::CloseCurrentPopup();
+			active = false;
+		};
+
+		if (ImGui::Button("OK", ImVec2(120, 0)))
+		{
+			finish = true;
+			CloseOptionDialog();
+		}
+
+		ImGui::SetItemDefaultFocus();
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel", ImVec2(120, 0)))
+		{
+			CloseOptionDialog();
+		}
+		ImGui::EndPopup();
+	}
+
+	return finish;
 }
 
 void AssetBrowser::ImportAssetFile(const char* pFilePath)
 {
 	CD_INFO("Importing asset file : {0}", pFilePath);
 	// Unknown is used by outside window event such as DragAndDrop a file.
-	if (ImportAssetType::Unknown == m_importingAssetType)
+	if (ImportAssetType::Unknown == m_importOptions.AssetType)
 	{
 		// We will deduce file's asset type by its file extension.
 		std::filesystem::path inputFilePath(pFilePath);
@@ -611,15 +685,15 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		std::string pFileExtension = fileExtension.generic_string();
 		if (IsCubeMapInputFile(pFileExtension.c_str()))
 		{
-			m_importingAssetType = ImportAssetType::CubeMap;
+			m_importOptions.AssetType = ImportAssetType::CubeMap;
 		}
 		else if (IsShaderInputFile(pFileExtension.c_str()))
 		{
-			m_importingAssetType = ImportAssetType::Shader;
+			m_importOptions.AssetType = ImportAssetType::Shader;
 		}
 		else if (IsModelInputFile(pFileExtension.c_str()))
 		{
-			m_importingAssetType = ImportAssetType::Model;
+			m_importOptions.AssetType = ImportAssetType::Model;
 		}
 		else
 		{
@@ -629,11 +703,11 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		}
 	}
 
-	if (ImportAssetType::Model == m_importingAssetType || ImportAssetType::DDGIModel == m_importingAssetType)
+	if (ImportAssetType::Model == m_importOptions.AssetType || ImportAssetType::DDGIModel == m_importOptions.AssetType)
 	{
 		ImportModelFile(pFilePath);
 	}
-	else if (ImportAssetType::CubeMap == m_importingAssetType)
+	else if (ImportAssetType::CubeMap == m_importOptions.AssetType)
 	{
 		std::filesystem::path inputFilePath(pFilePath);
 		std::string inputFileName = inputFilePath.stem().generic_string();
@@ -642,7 +716,7 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		ResourceBuilder::Get().AddCubeMapBuildTask(pFilePath, outputFilePath.c_str());
 		ResourceBuilder::Get().Update();
 	}
-	else if (ImportAssetType::Shader == m_importingAssetType)
+	else if (ImportAssetType::Shader == m_importOptions.AssetType)
 	{
 		std::filesystem::path inputFilePath(pFilePath);
 		std::string inputFileName = inputFilePath.stem().generic_string();
@@ -673,123 +747,134 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 	}
 }
 
+void AssetBrowser::ProcessSceneDatabase(cd::SceneDatabase* pSceneDatabase, bool keepMesh, bool keepMaterial, bool keepTexture, bool keepCamera, bool keepLight)
+{
+	if (!keepMesh)
+	{
+		pSceneDatabase->GetMeshes().clear();
+	}
+
+	if (!keepMaterial)
+	{
+		pSceneDatabase->GetMaterials().clear();
+		for (auto& mesh : pSceneDatabase->GetMeshes())
+		{
+			mesh.SetMaterialID(cd::MaterialID::InvalidID);
+		}
+	}
+
+	if (!keepTexture)
+	{
+		pSceneDatabase->GetTextures().clear();
+		for (auto& material : pSceneDatabase->GetMaterials())
+		{
+			for (int textureTypeIndex = 0; textureTypeIndex < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeIndex)
+			{
+				material.RemoveTexture(static_cast<cd::MaterialTextureType>(textureTypeIndex));
+			}
+		}
+	}
+
+	if (!keepCamera)
+	{
+		pSceneDatabase->GetCameras().clear();
+	}
+
+	if (!keepLight)
+	{
+		pSceneDatabase->GetLights().clear();
+	}
+}
+
 // Translate different 3D model file formats to memory data.
 void AssetBrowser::ImportModelFile(const char* pFilePath)
 {
-	ImGuiIO& io = ImGui::GetIO();
-	engine::RenderContext* pCurrentRenderContext = reinterpret_cast<engine::RenderContext*>(io.BackendRendererUserData);
-	engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
-	engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
-	ECWorldConsumer ecConsumer(pSceneWorld, pCurrentRenderContext);
+	engine::RenderContext* pCurrentRenderContext = GetRenderContext();
+	engine::SceneWorld* pSceneWorld = GetImGuiContextInstance()->GetSceneWorld();
 
 	cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
-	ecConsumer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount(), pSceneDatabase->GetMeshCount());
+	uint32_t oldNodeCount = pSceneDatabase->GetNodeCount();
+	uint32_t oldMeshCount = pSceneDatabase->GetMeshCount();
 
+	// Step 1 : Convert model file to cd::SceneDatabase
 	std::filesystem::path inputFilePath(pFilePath);
 	std::filesystem::path inputFileExtension = inputFilePath.extension();
 	if (0 == inputFileExtension.compare(".cdbin"))
 	{
 		cdtools::CDProducer cdProducer(pFilePath);
-		cdtools::Processor processor(&cdProducer, &ecConsumer, pSceneDatabase);
-		processor.SetFlattenSceneDatabaseEnable(true);
+		cdtools::Processor processor(&cdProducer, nullptr, pSceneDatabase);
 		processor.Run();
 	}
-	//else if (0 == inputFileExtension.compare(".fbx"))
-	//{
-	//
-	//}
 	else
 	{
 		cdtools::GenericProducer genericProducer(pFilePath);
 		genericProducer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount(), pSceneDatabase->GetMeshCount(),
-			pSceneDatabase->GetMaterialCount(), pSceneDatabase->GetTextureCount(), pSceneDatabase->GetLightCount());
+		pSceneDatabase->GetMaterialCount(), pSceneDatabase->GetTextureCount(), pSceneDatabase->GetLightCount());
 		genericProducer.ActivateBoundingBoxService();
 		genericProducer.ActivateCleanUnusedService();
 		genericProducer.ActivateTangentsSpaceService();
 		genericProducer.ActivateTriangulateService();
 		genericProducer.ActivateSimpleAnimationService();
-		// genericProducer.ActivateFlattenHierarchyService();
+		genericProducer.ActivateFlattenHierarchyService();
 
+		cdtools::Processor processor(&genericProducer, nullptr, pSceneDatabase);
+		processor.SetDumpSceneDatabaseEnable(false);
+		processor.SetFlattenSceneDatabaseEnable(true);
+		processor.Run();
+	}
 
-		if(m_importingAssetType == ImportAssetType::DDGIModel)
+	// Step 2 : Process generated cd::SceneDatabase
+	ProcessSceneDatabase(pSceneDatabase, m_importOptions.ImportMesh, m_importOptions.ImportMaterial, m_importOptions.ImportTexture,
+		m_importOptions.ImportCamera, m_importOptions.ImportLight);
+
+	// Step 3 : Convert cd::SceneDatabase to entities and components
+	{
+		ECWorldConsumer ecConsumer(pSceneWorld, pCurrentRenderContext);
+		ecConsumer.SetSceneDatabaseIDs(oldNodeCount, oldMeshCount);
+		if (m_importOptions.AssetType == ImportAssetType::DDGIModel)
 		{
 			ecConsumer.ActivateDDGIService();
 		}
+		cdtools::Processor processor(nullptr, &ecConsumer, pSceneDatabase);
+		processor.SetDumpSceneDatabaseEnable(true);
+		processor.Run();
+	}
 
-		cdtools::Processor processor(&genericProducer, &ecConsumer, pSceneDatabase);
-		processor.SetFlattenSceneDatabaseEnable(true);
+	// Step 4 : Convert cd::SceneDatabase to cd asset files and save in disk
+	{
+		cdtools::CDConsumer cdConsumer(m_currentDirectory->FilePath.string().c_str());
+		cdConsumer.SetExportMode(cdtools::ExportMode::XmlBinary);
+		cdtools::Processor processor(nullptr, &cdConsumer, pSceneDatabase);
+		processor.SetDumpSceneDatabaseEnable(false);
 		processor.Run();
 	}
 }
 
 void AssetBrowser::ExportAssetFile(const char* pFilePath)
 {
-	ImGuiIO& io = ImGui::GetIO();
-	engine::ImGuiContextInstance* pImGuiContextInstance = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
-	engine::SceneWorld* pSceneWorld = pImGuiContextInstance->GetSceneWorld();
+	engine::SceneWorld* pSceneWorld = GetImGuiContextInstance()->GetSceneWorld();
 	cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
 
-	if (ExportAssetType::SceneDatabase == m_exportingAssetType)
+	if (ExportAssetType::SceneDatabase == m_exportOptions.AssetType)
 	{
-		// Export main camera entity to scene.
-		engine::Entity mainCameraEntity = pSceneWorld->GetMainCameraEntity();
-		const engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(mainCameraEntity);
-		assert(pCameraComponent);
-		std::string cameraName = "Untitled_Camera";
-		if (const engine::NameComponent* pNameComponent = pSceneWorld->GetNameComponent(mainCameraEntity))
-		{
-			cameraName = pNameComponent->GetName();
-		}
-		
-		cd::Camera camera(cd::CameraID(pSceneDatabase->GetCameraCount()), cameraName.c_str());
-		camera.SetNearPlane(pCameraComponent->GetNearPlane());
-		camera.SetFarPlane(pCameraComponent->GetFarPlane());
-		camera.SetAspect(pCameraComponent->GetAspect());
-		camera.SetFov(pCameraComponent->GetFov());
-		pSceneDatabase->AddCamera(cd::MoveTemp(camera));
-		if (const engine::TransformComponent* pTransformComponent = pSceneWorld->GetTransformComponent(mainCameraEntity))
-		{
-			cd::Matrix4x4 rotMatrix = pTransformComponent->GetTransform().GetRotation().ToMatrix4x4();
-			camera.SetEye(pTransformComponent->GetTransform().GetTranslation());
-			camera.SetLookAt(cd::Vec3f(rotMatrix.Data(8), rotMatrix.Data(9), rotMatrix.Data(10)));
-			camera.SetUp(cd::Vec3f(rotMatrix.Data(4), rotMatrix.Data(5), rotMatrix.Data(6)));
-		}
-		
-		// Export light entities to scene.
-		for (engine::Entity lightEntity : pSceneWorld->GetLightEntities())
-		{
-			const engine::LightComponent* pLightComponent = pSceneWorld->GetLightComponent(lightEntity);
+		// Clean cameras and lights. Then convert current latest camera/light component data to SceneDatabase.
+		ProcessSceneDatabase(pSceneDatabase, m_exportOptions.ExportMesh, m_exportOptions.ExportMaterial, m_exportOptions.ExportTexture,
+			false/*keepCamera*/, false/*keepLight*/);
 
-			std::string lightName = "Untitled_Light";
-			if (const engine::NameComponent* pNameComponent = pSceneWorld->GetNameComponent(lightEntity))
-			{
-				lightName = pNameComponent->GetName();
-			}
+		for (auto entity : pSceneWorld->GetCameraEntities())
+		{
+			pSceneWorld->AddCameraToSceneDatabase(entity);
+		}
 
-			cd::Light light(cd::LightID(pSceneDatabase->GetLightCount()), pLightComponent->GetType());
-			light.SetName(lightName.c_str());
-			light.SetIntensity(pLightComponent->GetIntensity());
-			light.SetRange(pLightComponent->GetRange());
-			light.SetRadius(pLightComponent->GetRadius());
-			light.SetWidth(pLightComponent->GetWidth());
-			light.SetHeight(pLightComponent->GetHeight());
-			light.SetAngleScale(pLightComponent->GetAngleScale());
-			light.SetAngleOffset(pLightComponent->GetAngleOffset());
-			light.SetPosition(pLightComponent->GetPosition());
-			light.SetColor(pLightComponent->GetColor());
-			light.SetDirection(pLightComponent->GetDirection());
-			light.SetUp(pLightComponent->GetUp());
-			pSceneDatabase->AddLight(cd::MoveTemp(light));
+		for (auto entity : pSceneWorld->GetLightEntities())
+		{
+			pSceneWorld->AddLightToSceneDatabase(entity);
 		}
 
 		std::filesystem::path selectFilePath(pFilePath);
 		std::filesystem::path outputFilePath = selectFilePath.replace_extension(".cdbin");
-
 		cdtools::CDConsumer consumer(outputFilePath.string().c_str());
-		consumer.SetExportMode(cdtools::ExportMode::PureBinary);
-
 		cdtools::Processor processor(nullptr, &consumer, pSceneDatabase);
-		processor.SetFlattenSceneDatabaseEnable(true);
 		processor.Run();
 	}
 }
@@ -817,7 +902,6 @@ void AssetBrowser::Update()
 
 	ImGui::NextColumn();
 	UpdateAssetFileView();
-	//RenderBottom();
 	ImGui::EndColumns();
 
 	ImGui::End();
@@ -825,14 +909,38 @@ void AssetBrowser::Update()
 	m_pImportFileBrowser->Display();
 	if (m_pImportFileBrowser->HasSelected())
 	{
+		m_importOptions.Active = true;
+	}
+
+	if (!m_pImportFileBrowser->IsOpened())
+	{
+		m_importOptions.AssetType = ImportAssetType::Unknown;
+	}
+	
+	if (UpdateOptionDialog("Import Options", m_importOptions.Active, m_importOptions.ImportMesh, m_importOptions.ImportMaterial, m_importOptions.ImportTexture,
+		m_importOptions.ImportCamera, m_importOptions.ImportLight))
+	{
 		ImportAssetFile(m_pImportFileBrowser->GetSelected().string().c_str());
+	}
+	if (!m_importOptions.Active)
+	{
 		m_pImportFileBrowser->ClearSelected();
 	}
 
 	m_pExportFileBrowser->Display();
 	if (m_pExportFileBrowser->HasSelected())
 	{
+		m_exportOptions.Active = true;
+	}
+
+	if (UpdateOptionDialog("Export Options", m_exportOptions.Active, m_exportOptions.ExportMesh, m_exportOptions.ExportMaterial, m_exportOptions.ExportTexture,
+		m_exportOptions.ExportCamera, m_exportOptions.ExportLight))
+	{
 		ExportAssetFile(m_pExportFileBrowser->GetSelected().string().c_str());
+		m_pExportFileBrowser->ClearSelected();
+	}
+	if (!m_exportOptions.Active)
+	{
 		m_pExportFileBrowser->ClearSelected();
 	}
 }

@@ -15,6 +15,7 @@ class ImGuiContextInstance;
 class Window;
 class RenderContext;
 class Renderer;
+class RenderTarget;
 class SceneWorld;
 
 }
@@ -42,23 +43,30 @@ public:
 	virtual void Shutdown() override;
 
 	engine::Window* GetWindow(size_t index) const;
-	engine::Window* GetMainWindow() const;
+	engine::Window* GetMainWindow() const { return GetWindow(0); }
 	size_t AddWindow(std::unique_ptr<engine::Window> pWindow);
+	void RemoveWindow(size_t index);
 
-	void InitRenderContext(engine::GraphicsBackend backend);
-	void InitRenderGraph();
+	void InitRenderContext(engine::GraphicsBackend backend, void* hwnd = nullptr);
+	void InitEditorRenderers();
+	void InitEngineRenderers();
 	void InitShaderPrograms() const;
 	void AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer);
 	void AddEngineRenderer(std::unique_ptr<engine::Renderer> pRenderer);
 
 	void InitEditorImGuiContext(engine::Language language);
+	void InitEditorUILayers();
 	void InitEngineImGuiContext(engine::Language language);
+	void InitEngineUILayers();
 	void InitImGuiViewports(engine::RenderContext* pRenderContext);
 	void RegisterImGuiUserData(engine::ImGuiContextInstance* pImGuiContext);
 
 	void InitECWorld();
 
 private:
+	bool m_bInitEditor = false;
+	engine::EngineInitArgs m_initArgs;
+
 	// Windows
 	std::vector<std::unique_ptr<engine::Window>> m_pAllWindows;
 
@@ -69,12 +77,12 @@ private:
 
 	// Scene
 	std::unique_ptr<engine::SceneWorld> m_pSceneWorld;
-	editor::SceneView* m_pSceneView;
-	engine::Renderer* m_pSceneRenderer;
-	engine::Renderer* m_pDebugRenderer;
-	engine::Renderer* m_pPBRSkyRenderer;
-	engine::Renderer* m_pIBLSkyRenderer;
-	engine::Renderer* m_pDDGIRenderer;
+	editor::SceneView* m_pSceneView = nullptr;
+	engine::Renderer* m_pSceneRenderer = nullptr;
+	engine::Renderer* m_pDebugRenderer = nullptr;
+	engine::Renderer* m_pPBRSkyRenderer = nullptr;
+	engine::Renderer* m_pIBLSkyRenderer = nullptr;
+	engine::Renderer* m_pDDGIRenderer = nullptr;
 
 	// Rendering
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;

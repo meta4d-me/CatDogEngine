@@ -16,11 +16,10 @@ namespace details
 constexpr const char* UberNames[] =
 {
 	"", // Use empty string to represent default shader option in the name so we can reuse non-uber built shader.
-	"ALBEDO;",
+	"ALBEDO_MAP;",
 	"NORMAL_MAP;",
-	"OCCLUSION;",
-	"ROUGHNESS;",
-	"METALLIC;",
+	"ORM_MAP;",
+	"EMISSIVE_MAP;",
 	"IBL;",
 	"AREAL_LIGHT;",
 };
@@ -31,22 +30,6 @@ static_assert(static_cast<int>(Uber::COUNT) == sizeof(UberNames) / sizeof(char*)
 constexpr const char* GetUberName(Uber uber)
 {
 	return UberNames[static_cast<size_t>(uber)];
-}
-
-constexpr const char* LoadingStatusName[] =
-{
-	"MISSING_RESOURCES",
-	"LOADING_SHADERS",
-	"LOADING_TEXTURES",
-	"LOADING_ERROR",
-};
-
-static_assert(static_cast<int>(LoadingStatus::COUNT) == sizeof(LoadingStatusName) / sizeof(char*),
-	"LoadingStatus and names mismatch.");
-
-CD_FORCEINLINE const char* GetLoadingStatusName(LoadingStatus status)
-{
-	return LoadingStatusName[static_cast<size_t>(status)];
 }
 
 } // namespace Detail
@@ -92,20 +75,6 @@ void ShaderSchema::RegisterUberOption(Uber uberOption)
 	m_uberOptions.emplace_back(cd::MoveTemp(uberOption));
 }
 
-void ShaderSchema::AddSingleUberOption(LoadingStatus status, std::string path)
-{
-	if (m_loadingStatusFSPath.contains(status))
-	{
-		CD_ENGINE_WARN("Single uber opertion {0} has already been added!", details::GetLoadingStatusName(status));
-		return;
-	}
-	m_loadingStatusFSPath[status] = cd::MoveTemp(path);
-
-	std::string loadingStatusName = details::GetLoadingStatusName(status);
-	assert(!IsUberOptionValid(StringCrc(loadingStatusName)));
-	m_compiledProgramHandles[StringCrc(loadingStatusName).Value()] = InvalidProgramHandle;
-}
-
 bool ShaderSchema::IsUberOptionValid(StringCrc uberOption) const
 {
 	return m_compiledProgramHandles.contains(uberOption.Value());
@@ -129,7 +98,7 @@ uint16_t ShaderSchema::GetCompiledProgram(StringCrc uberOption) const
 	return programHandle;
 }
 
-StringCrc ShaderSchema::GetProgramCrc(const std::vector<Uber>& options) const
+StringCrc ShaderSchema::GetProgramCrc(const std::set<Uber>& options) const
 {
 	if (options.empty())
 	{
@@ -146,11 +115,6 @@ StringCrc ShaderSchema::GetProgramCrc(const std::vector<Uber>& options) const
 		}
 	}
 	return StringCrc(ss.str());
-}
-
-StringCrc ShaderSchema::GetProgramCrc(const LoadingStatus& status) const
-{
-	return StringCrc(details::GetLoadingStatusName(status));
 }
 
 void ShaderSchema::AddUberOptionVSBlob(ShaderBlob shaderBlob)

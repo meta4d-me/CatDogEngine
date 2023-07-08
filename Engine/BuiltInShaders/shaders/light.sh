@@ -35,8 +35,9 @@ float GetAngleAtt(vec3 lightDir, vec3 lightForward, float lightAngleScale, float
 	// float lightAngleScale = 1.0f / max(0.001f, cosInner - cosOuter);
 	// float lightAngleOffeset = -cosOuter * angleScale;
 	
-	float cd = dot(lightDir, lightForward);
-	float attenuation = saturate(cd * lightAngleScale + lightAngleOffeset);
+	// lightDir: Start from fragment, lightForward: Start from light source.
+	float theta = dot(-lightDir, lightForward);
+	float attenuation = saturate(theta * lightAngleScale + lightAngleOffeset);
 	attenuation *= attenuation;
 	return attenuation;
 }
@@ -115,7 +116,8 @@ vec3 CalculateSpotLight(U_Light light, Material material, vec3 worldPos, vec3 vi
 	
 	float distance = length(light.position - worldPos);
 	float attenuation = GetDistanceAtt(distance * distance, 1.0 / (light.range * light.range));
-	attenuation *= GetAngleAtt(lightDir, -light.direction, light.lightAngleScale, light.lightAngleOffeset);
+	// TODO : Remove this normalize in the future.
+	attenuation *= GetAngleAtt(lightDir, normalize(light.direction), light.lightAngleScale, light.lightAngleOffeset);
 	vec3 radiance = light.color * light.intensity * INV_PI * attenuation;
 	
 	vec3  Fre = FresnelSchlick(HdotV, material.F0);
@@ -130,7 +132,8 @@ vec3 CalculateSpotLight(U_Light light, Material material, vec3 worldPos, vec3 vi
 // -------------------- Directional -------------------- //
 
 vec3 CalculateDirectionalLight(U_Light light, Material material, vec3 worldPos, vec3 viewDir, vec3 diffuseBRDF) {
-	vec3 lightDir = -light.direction;
+	// TODO : Remove this normalize in the future.
+	vec3 lightDir = normalize(-light.direction);
 	vec3 harfDir  = normalize(lightDir + viewDir);
 	
 	float NdotV = max(dot(material.normal, viewDir), 0.0);
@@ -508,8 +511,8 @@ vec3 CalculateLight(U_Light light, Material material, vec3 worldPos, vec3 viewDi
 
 vec3 CalculateLights(Material material, vec3 worldPos, vec3 viewDir, vec3 diffuseBRDF) {
 	vec3 color = vec3_splat(0.0);
-	for(int lightIndex = 0; lightIndex < int(u_lightCount[0].x); ++lightIndex) {
-		int pointer = lightIndex * u_lightStride[0].x;
+	for(int lightIndex = 0; lightIndex < int(u_lightCountAndStride[0].x); ++lightIndex) {
+		int pointer = lightIndex * u_lightCountAndStride[0].y;
 		U_Light light = GetLightParams(pointer);
 		color += CalculateLight(light, material, worldPos, viewDir, diffuseBRDF);
 	}

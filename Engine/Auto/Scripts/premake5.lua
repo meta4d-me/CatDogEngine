@@ -53,6 +53,19 @@ else
 	return
 end
 
+BUILD_WITH_LLVM_CLANG_CL = false
+function SetLanguageAndToolset(projectName)
+	language("C++")
+	cppdialect("C++20")
+
+	if BUILD_WITH_LLVM_CLANG_CL then
+		toolset("clang")
+	end
+
+	location(path.join(IntermediatePath, projectName))
+	targetdir(BinariesPath)
+end
+
 -- Parse folder path
 dofile("path.lua")
 print("================================================================")

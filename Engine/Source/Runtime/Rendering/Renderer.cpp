@@ -9,8 +9,8 @@ namespace engine
 {
 
 Renderer::Renderer(RenderContext* pRenderContext, uint16_t viewID, RenderTarget* pRenderTarget)
-	: m_pRenderContext(pRenderContext)
-	, m_viewID(viewID)
+	: m_viewID(viewID)
+	, m_pRenderContext(pRenderContext)
 	, m_pRenderTarget(pRenderTarget)
 {
 }
