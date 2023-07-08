@@ -9,6 +9,7 @@
 #include "RenderContext.h"
 #include "Rendering/DDGIDefinition.h"
 #include "Scene/Texture.h"
+#include "U_DDGI.sh"
 
 namespace engine
 {
@@ -26,11 +27,6 @@ constexpr const char* volumeProbeSpacing    = "u_volumeProbeSpacing";
 constexpr const char* volumeProbeCounts     = "u_volumeProbeCounts";
 
 constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
-
-static constexpr uint8_t CLASSIFICATICON_GRID_SIZE = 1;
-static constexpr uint8_t DISTANCE_GRID_SIZE = 14 + 2;
-static constexpr uint8_t IRRADIANCE_GRID_SIZE = 6 + 2;
-static constexpr uint8_t RELOCATION_GRID_SIZE = 1;
 
 void CreatDDGITexture(DDGITextureType type, DDGIComponent* pDDGIComponent, RenderContext* pRenderContext)
 {

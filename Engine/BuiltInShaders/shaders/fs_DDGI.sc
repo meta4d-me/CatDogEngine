@@ -1,13 +1,11 @@
 $input v_worldPos, v_normal, v_texcoord0, v_TBN
 
 #include "../common/common.sh"
+#include "../UniformDefines/U_DDGI.sh"
 #include "uniforms.sh"
 
 #define PI 3.1415926536
 #define INV_PI 0.3183098862
-
-#define DISTANCE_TEXELS 16
-#define IRRADIANCE_TEXELS 8
 
 #define DDGI_TEXTURE_FROM_O3DE
 
@@ -229,7 +227,7 @@ vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volu
 		// Get the probe index.
 		int adjacentProbeIndex = DDGIGetProbeIndex(adjacentProbeCoords, volume.probeCounts);
 		// Get the texture array coordinates for the octant of the probe.
-		vec2 probeTextureUV = DDGIGetProbeUV(adjacentProbeIndex, octantCoords, DISTANCE_TEXELS - 2, volume.probeCounts);
+		vec2 probeTextureUV = DDGIGetProbeUV(adjacentProbeIndex, octantCoords, DISTANCE_GRID_SIZE - 2, volume.probeCounts);
 		// Sample the probe's distance texture to get the mean distance to nearby surfaces.
 		vec2 filteredDistance = SampleDistance(probeTextureUV).xy;
 		
@@ -264,7 +262,7 @@ vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volu
 		octantCoords = DDGIGetOctahedralCoordinates(direction);
 		
 		// Get the probe's texture coordinates.
-		probeTextureUV = DDGIGetProbeUV(adjacentProbeIndex, octantCoords, IRRADIANCE_TEXELS - 2, volume.probeCounts);
+		probeTextureUV = DDGIGetProbeUV(adjacentProbeIndex, octantCoords, IRRADIANCE_GRID_SIZE - 2, volume.probeCounts);
 		
 		// Sample the probe's irradiance.
 		vec3 probeIrradiance = SampleIrradiance(probeTextureUV);
