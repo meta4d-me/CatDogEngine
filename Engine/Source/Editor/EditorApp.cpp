@@ -234,7 +234,7 @@ void EditorApp::InitECWorld()
 		m_pSceneWorld.get(),
 		3.0f /* horizontal sensitivity */,
 		6.0f /* vertical sensitivity */,
-		1.0f /* Movement Speed*/);
+		100.0f /* Movement Speed*/);
 }
 
 void EditorApp::InitRenderContext(engine::GraphicsBackend backend)

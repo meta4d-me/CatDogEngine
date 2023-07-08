@@ -2,6 +2,7 @@
 
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/SceneWorld.h"
+#include "ECWorld/TransformComponent.h"
 #include "Math/Quaternion.hpp"
 #include "Window/Input.h"
 
@@ -97,9 +98,11 @@ engine::CameraComponent* FirstPersonCameraController::GetMainCameraComponent() c
 }
 
 void FirstPersonCameraController::MoveForward(float amount)
-{
-	engine::CameraComponent* pCameraComponent = GetMainCameraComponent();
-	//pCameraComponent->SetEye(pCameraComponent->GetEye() + pCameraComponent->GetLookAt() * amount);
+{/*
+	if (TransformComponent* pTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity()))
+	{
+		pTransformComponent->GetTransform().SetTranslation(pTransformComponent->GetTransform().GetTranslation() * (amount + 1));
+	}*/
 }
 
 void FirstPersonCameraController::MoveBackward(float amount)
@@ -109,8 +112,11 @@ void FirstPersonCameraController::MoveBackward(float amount)
 
 void FirstPersonCameraController::MoveLeft(float amount)
 {
-	engine::CameraComponent* pCameraComponent = GetMainCameraComponent();
-	//pCameraComponent->SetEye(pCameraComponent->GetEye() - pCameraComponent->GetCross() * amount);
+	/*if (TransformComponent* pTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity()))
+	{
+		cd::Vec3f translation = pTransformComponent->GetTransform().GetTranslation();
+		cd::Vec3f leftTranslation = translation - translation.
+	}*/
 }
 
 void FirstPersonCameraController::MoveRight(float amount)
@@ -134,7 +140,7 @@ void FirstPersonCameraController::Rotate(const cd::Vec3f& axis, float angleDegre
 	engine::CameraComponent* pCameraComponent = GetMainCameraComponent();
 	cd::Quaternion rotation = cd::Quaternion::FromAxisAngle(axis, cd::Math::DegreeToRadian<float>(angleDegrees));
 	//pCameraComponent->SetLookAt(rotation * pCameraComponent->GetLookAt());
-	//pCameraComponent->SetUp(rotation * pCameraComponent->GetUp());
+	//pCameraComponent->SetUp(rotation * pCameraComponent->GetUp())
 }
 
 void FirstPersonCameraController::Rotate(float x, float y, float z, float angleDegrees)

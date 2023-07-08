@@ -30,6 +30,16 @@ public:
 	void RotatedVertical(float amount);
 	void ChangeDistance(float amount);
 
+	void MoveForward(float amount);
+	void MoveBackward(float amount);
+	void MoveLeft(float amount);
+	void MoveRight(float amount);
+	void Pitch(float amount);
+	void Yaw(float amount);
+
+	void Rotate(const cd::Vec3f& axis, float angleDegrees);
+	void Rotate(float x, float y, float z, float angleDegrees);
+
 private:
 	CameraComponent* GetMainCameraComponent() const;
 	TransformComponent* GetTransformComponent() const;

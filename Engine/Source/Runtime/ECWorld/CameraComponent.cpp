@@ -5,8 +5,6 @@ namespace engine
 
 void CameraComponent::Build(TransformComponent* pTransformcomponent)
 {
-
-
 	if (m_isProjectionDirty)
 	{
 		m_projectionMatrix = cd::Matrix4x4::Perspective(m_fov, m_aspect, m_nearPlane, m_farPlane, cd::NDCDepth::MinusOneToOne == m_ndcDepth);
