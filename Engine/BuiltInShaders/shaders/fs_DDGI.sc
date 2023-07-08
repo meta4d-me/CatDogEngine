@@ -296,6 +296,5 @@ void main()
 	
 	vec3 albedo = vec3(1.0, 1.0, 1.0);
 	albedo = SampleAlbedo(v_texcoord0);
-	//gl_FragColor = vec4(albedo * vec3_splat(INV_PI) * irradiance * vec3_splat(4.0), 1.0);
-	gl_FragColor = vec4(irradiance, 1.0);
+	gl_FragColor = vec4(albedo * vec3_splat(INV_PI) * irradiance, 1.0);
 }

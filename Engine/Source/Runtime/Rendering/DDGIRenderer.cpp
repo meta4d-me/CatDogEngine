@@ -55,7 +55,7 @@ void CreatDDGITexture(DDGITextureType type, DDGIComponent* pDDGIComponent, Rende
 			break;
 		case DDGITextureType::Irradiance:
 			textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * IRRADIANCE_GRID_SIZE;
-			format = bgfx::TextureFormat::Enum::RGBA16;
+			format = bgfx::TextureFormat::Enum::RGBA16F;
 			data = reinterpret_cast<const void*>(pDDGIComponent->GetIrradianceRawData());
 			dataSize = pDDGIComponent->GetIrradianceSize();
 			break;
@@ -97,7 +97,7 @@ void DDGIRenderer::Init()
 	// Warning : The coordinate system is different between CD and HWs Engine.
 	//   CD: Left-hand, +Y Up
 	//   HW: Right-hand, +Z Up
-	m_pDDGIComponent->SetVolumeOrigin(cd::Vec3f(0.097981f, 0.497244f, 0.361437f));
+	m_pDDGIComponent->SetVolumeOrigin(cd::Vec3f(0.0f, 0.0f, 0.0f));
 	m_pDDGIComponent->SetProbeSpacing(cd::Vec3f(2.0f, 2.0f, 2.0f));
 	m_pDDGIComponent->SetProbeCount(cd::Vec3f(4.0f, 2.0f, 5.0f));
 	m_pDDGIComponent->SetAmbientMultiplier(1.0);
