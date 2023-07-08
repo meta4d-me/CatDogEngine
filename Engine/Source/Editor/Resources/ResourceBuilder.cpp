@@ -170,22 +170,54 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 	{
 		commandArguments.push_back("--type");
 		commandArguments.push_back("c");
-		commandArguments.push_back("-p");
-		commandArguments.push_back("cs_5_0");
 	}
 	else if (ShaderType::Fragment == shaderType)
 	{
 		commandArguments.push_back("--type");
 		commandArguments.push_back("f");
-		commandArguments.push_back("-p");
-		commandArguments.push_back("ps_5_0");
 	}
 	else if (ShaderType::Vertex == shaderType)
 	{
 		commandArguments.push_back("--type");
 		commandArguments.push_back("v");
+	}
+
+	commandArguments.push_back("-p");
+	switch (engine::Path::GetGraphicsBackend())
+	{
+	case engine::GraphicsBackend::Direct3D11:
+	case engine::GraphicsBackend::Direct3D12:
+		if (ShaderType::Compute == shaderType)
+		{
+			commandArguments.push_back("cs_5_0");
+		}
+		else if (ShaderType::Fragment == shaderType)
+		{
+			commandArguments.push_back("ps_5_0");
+		}
+		else if (ShaderType::Vertex == shaderType)
+		{
+			commandArguments.push_back("vs_5_0");
+		}
+		break;
+	case engine::GraphicsBackend::OpenGL:
 		commandArguments.push_back("-p");
-		commandArguments.push_back("vs_5_0");
+		commandArguments.push_back("440");
+		break;
+	case engine::GraphicsBackend::OpenGLES:
+		commandArguments.push_back("-p");
+		commandArguments.push_back("320_es");
+		break;
+	case engine::GraphicsBackend::Metal:
+		commandArguments.push_back("-p");
+		commandArguments.push_back("metal");
+		break;
+	case engine::GraphicsBackend::Vulkan:
+		commandArguments.push_back("-p");
+		commandArguments.push_back("spirv16-13");
+		break;
+	default:
+		assert("Unknown shader compile profile.");
 	}
 
 	if (pUberOptions && *pUberOptions != '\0')

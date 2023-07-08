@@ -47,7 +47,7 @@ public:
 	size_t AddWindow(std::unique_ptr<engine::Window> pWindow);
 	void RemoveWindow(size_t index);
 
-	void InitRenderContext(engine::GraphicsBackend backend);
+	void InitRenderContext(engine::GraphicsBackend backend, void* hwnd = nullptr);
 	void InitEditorRenderers();
 	void InitEngineRenderers();
 	void InitShaderPrograms() const;

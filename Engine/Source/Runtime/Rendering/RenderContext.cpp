@@ -6,6 +6,7 @@
 #include "Rendering/Utility/VertexLayoutUtility.h"
 
 #include <bgfx/bgfx.h>
+#include <bgfx/platform.h>
 #include <bimg/decode.h>
 #include <bx/allocator.h>
 
@@ -51,7 +52,7 @@ RenderContext::~RenderContext()
 	bgfx::shutdown();
 }
 
-void RenderContext::Init(GraphicsBackend backend)
+void RenderContext::Init(GraphicsBackend backend, void* hwnd)
 {
 	bgfx::Init initDesc;
 	switch (backend)
@@ -59,16 +60,12 @@ void RenderContext::Init(GraphicsBackend backend)
 	case GraphicsBackend::OpenGL:
 	{
 		initDesc.type = bgfx::RendererType::OpenGL;
+		initDesc.platformData.nwh = hwnd;
 		break;
 	}
 	case GraphicsBackend::OpenGLES:
 	{
 		initDesc.type = bgfx::RendererType::OpenGLES;
-		break;
-	}
-	case GraphicsBackend::Direct3D9:
-	{
-		initDesc.type = bgfx::RendererType::Direct3D9;
 		break;
 	}
 	case GraphicsBackend::Direct3D11:

@@ -911,7 +911,8 @@ void AssetBrowser::Update()
 	{
 		m_importOptions.Active = true;
 	}
-	else
+
+	if (!m_pImportFileBrowser->IsOpened())
 	{
 		m_importOptions.AssetType = ImportAssetType::Unknown;
 	}

@@ -25,7 +25,9 @@ public:
 	static std::filesystem::path GetEditorResourcesPath();
 	static std::filesystem::path GetProjectsSharedPath();
 
+	static engine::GraphicsBackend GetGraphicsBackend();
 	static void SetGraphicsBackend(engine::GraphicsBackend backend);
+
 	static std::string GetBuiltinShaderInputPath(const char* pShaderName);
 	static std::filesystem::path GetShaderOutputDirectory();
 	static std::string GetShaderOutputPath(const char* pInputFilePath, const std::string& options = "");
