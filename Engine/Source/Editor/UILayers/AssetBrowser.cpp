@@ -658,9 +658,6 @@ bool AssetBrowser::UpdateOptionDialog(const char* pTitle, bool& active, bool& im
 		{
 			ImGui::CloseCurrentPopup();
 			active = false;
-
-			m_importOptions.AssetType = IOAssetType::Unknown;
-			m_pImportFileBrowser->ClearSelected();
 		};
 
 		if (ImGui::Button("OK", ImVec2(120, 0)))
@@ -674,6 +671,8 @@ bool AssetBrowser::UpdateOptionDialog(const char* pTitle, bool& active, bool& im
 		if (ImGui::Button("Cancel", ImVec2(120, 0)))
 		{
 			CloseOptionDialog();
+			m_importOptions.AssetType = IOAssetType::Unknown;
+			m_pImportFileBrowser->ClearSelected();
 		}
 		ImGui::EndPopup();
 	}
