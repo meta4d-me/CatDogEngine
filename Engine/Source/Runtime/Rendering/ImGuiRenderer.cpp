@@ -57,7 +57,10 @@ void ImGuiRenderer::UpdateView(const float* pViewMatrix, const float* pProjectio
 	ImGui::RenderPlatformWindowsDefault();
 
 	bgfx::setViewMode(GetViewID(), bgfx::ViewMode::Sequential);
-	bgfx::setViewFrameBuffer(GetViewID(), *GetRenderTarget()->GetFrameBufferHandle());
+	if (const engine::RenderTarget* pRenderTarget = GetRenderTarget())
+	{
+		bgfx::setViewFrameBuffer(GetViewID(), *(pRenderTarget->GetFrameBufferHandle()));
+	}
 
 	const ImDrawData* pImGuiDrawData = ImGui::GetDrawData();
 	float x = pImGuiDrawData->DisplayPos.x;

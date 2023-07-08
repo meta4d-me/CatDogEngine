@@ -60,7 +60,6 @@ void RenderContext::Init(GraphicsBackend backend, void* hwnd)
 	case GraphicsBackend::OpenGL:
 	{
 		initDesc.type = bgfx::RendererType::OpenGL;
-		initDesc.platformData.nwh = hwnd;
 		break;
 	}
 	case GraphicsBackend::OpenGLES:
@@ -96,8 +95,8 @@ void RenderContext::Init(GraphicsBackend backend, void* hwnd)
 	}
 	}
 
+	initDesc.platformData.nwh = hwnd;
 	bgfx::init(initDesc);
-	bgfx::setDebug(BGFX_DEBUG_NONE);
 }
 
 void RenderContext::Shutdown()
@@ -136,13 +135,6 @@ void RenderContext::EndFrame()
 
 void RenderContext::OnResize(uint16_t width, uint16_t height)
 {
-	// Update swap chain RT size which presents main window.
-	constexpr engine::StringCrc editorSwapChainName("EditorUISwapChain");
-	if (engine::RenderTarget* pRenderTarget = GetRenderTarget(editorSwapChainName))
-	{
-		pRenderTarget->Resize(width, height);
-	}
-	
 	bgfx::reset(width, height, BGFX_RESET_MSAA_X16 | BGFX_RESET_VSYNC);
 }
 
