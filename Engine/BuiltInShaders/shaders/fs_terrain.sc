@@ -1,7 +1,6 @@
 $input v_worldPos, v_normal, v_texcoord0, v_alphaMapTexCoord
 
 #include "../common/common.sh"
-#include "uniforms.sh"
 
 SAMPLER2D(s_texBaseColor, 0);
 SAMPLER2D(s_texAlphaMap, 2);

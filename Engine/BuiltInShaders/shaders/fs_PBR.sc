@@ -2,7 +2,6 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 
 #include "../common/common.sh"
 #include "../UniformDefines/U_PBR.sh"
-#include "uniforms.sh"
 
 #define PI 3.1415926536
 #define PI2 9.8696044011
