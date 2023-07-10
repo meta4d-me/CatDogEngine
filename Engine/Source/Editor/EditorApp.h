@@ -47,7 +47,7 @@ public:
 	size_t AddWindow(std::unique_ptr<engine::Window> pWindow);
 	void RemoveWindow(size_t index);
 
-	void InitRenderContext(engine::GraphicsBackend backend);
+	void InitRenderContext(engine::GraphicsBackend backend, void* hwnd = nullptr);
 	void InitEditorRenderers();
 	void InitEngineRenderers();
 	void InitShaderPrograms() const;
@@ -86,7 +86,6 @@ private:
 
 	// Rendering
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;
-	engine::RenderTarget* m_pEditorRenderTarget = nullptr;
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEditorRenderers;
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEngineRenderers;
 

@@ -614,7 +614,7 @@ bool AssetBrowser::UpdateOptionDialog(const char* pTitle, bool& active, bool& im
 
 		if (isMeshOpen)
 		{
-			ImGuiUtils::ImGuiProperty<bool>("Mesh", importMesh);
+			ImGuiUtils::ImGuiBoolProperty("Mesh", importMesh);
 		}
 
 		ImGui::Separator();
@@ -625,8 +625,8 @@ bool AssetBrowser::UpdateOptionDialog(const char* pTitle, bool& active, bool& im
 		ImGui::Separator();
 		if (isMaterialOpen)
 		{
-			ImGuiUtils::ImGuiProperty<bool>("Material", importMaterial);
-			ImGuiUtils::ImGuiProperty<bool>("Texture", importTexture);
+			ImGuiUtils::ImGuiBoolProperty("Material", importMaterial);
+			ImGuiUtils::ImGuiBoolProperty("Texture", importTexture);
 		}
 		ImGui::Separator();
 		ImGui::PopStyleVar();
@@ -636,8 +636,8 @@ bool AssetBrowser::UpdateOptionDialog(const char* pTitle, bool& active, bool& im
 		ImGui::Separator();
 		if (isOtherOpen)
 		{
-			ImGuiUtils::ImGuiProperty<bool>("Camera", importCamera);
-			ImGuiUtils::ImGuiProperty<bool>("Light", importLight);
+			ImGuiUtils::ImGuiBoolProperty("Camera", importCamera);
+			ImGuiUtils::ImGuiBoolProperty("Light", importLight);
 		}
 		ImGui::Separator();
 		ImGui::PopStyleVar();
@@ -911,7 +911,8 @@ void AssetBrowser::Update()
 	{
 		m_importOptions.Active = true;
 	}
-	else
+
+	if (!m_pImportFileBrowser->IsOpened())
 	{
 		m_importOptions.AssetType = ImportAssetType::Unknown;
 	}

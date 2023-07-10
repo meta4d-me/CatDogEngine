@@ -45,7 +45,8 @@ void ShaderBuilder::UploadUberShader(engine::MaterialType* pMaterialType)
 	shaderSchema.AddUberOptionVSBlob(ResourceLoader::LoadShader(outputVSFilePath.c_str()));
 	const auto& VSBlob = shaderSchema.GetVSBlob();
 	bgfx::ShaderHandle vsHandle = bgfx::createShader(bgfx::makeRef(VSBlob.data(), static_cast<uint32_t>(VSBlob.size())));
-	
+	bgfx::setName(vsHandle, outputVSFilePath.c_str());
+
 	// Fragment shader.
 	for (const auto& [outputFSFilePath, uberOptionCrc] : outputFSPathToUberOption)
 	{
@@ -53,7 +54,8 @@ void ShaderBuilder::UploadUberShader(engine::MaterialType* pMaterialType)
 	
 		const auto& FSBlob = shaderSchema.GetFSBlob(uberOptionCrc);
 		bgfx::ShaderHandle fsHandle = bgfx::createShader(bgfx::makeRef(FSBlob.data(), static_cast<uint32_t>(FSBlob.size())));
-	
+		bgfx::setName(fsHandle, outputFSFilePath.c_str());
+
 		// Program.
 		bgfx::ProgramHandle uberProgramHandle = bgfx::createProgram(vsHandle, fsHandle);
 		shaderSchema.SetCompiledProgram(uberOptionCrc, uberProgramHandle.idx);
