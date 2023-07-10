@@ -3,9 +3,6 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 #include "../common/common.sh"
 #include "../UniformDefines/U_DDGI.sh"
 
-#define PI 3.1415926536
-#define INV_PI 0.3183098862
-
 #define DDGI_TEXTURE_FROM_O3DE
 
 uniform vec4 u_volumeOrigin;
@@ -282,7 +279,7 @@ vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volu
 	// irradiance *= irradiance;
 	
 	// Multiply by the area of the integration domain (hemisphere) to complete the Monte Carlo Estimator equation.
-	irradiance *= vec3_splat(2.0 * PI);
+	irradiance *= vec3_splat(2.0 * CD_PI);
 	
 	return irradiance;
 }
@@ -309,6 +306,6 @@ void main()
 		irradiance = vec3_splat(0.0);
 	}
 	
-	gl_FragColor = vec4(albedo * vec3_splat(INV_PI) * irradiance, 1.0);
+	gl_FragColor = vec4(albedo * vec3_splat(CD_INV_PI) * irradiance, 1.0);
 	// gl_FragColor = vec4(irradiance / vec3_splat(10.0), 1.0);
 }

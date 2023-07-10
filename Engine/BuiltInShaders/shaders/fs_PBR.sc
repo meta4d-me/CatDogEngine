@@ -3,11 +3,6 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 #include "../common/common.sh"
 #include "../UniformDefines/U_PBR.sh"
 
-#define PI 3.1415926536
-#define PI2 9.8696044011
-#define INV_PI 0.3183098862
-#define INV_PI2 0.1013211836
-
 uniform vec4 u_albedoColor;
 uniform vec4 u_emissiveColor;
 uniform vec4 u_albedoUVOffsetAndScale;
@@ -154,7 +149,7 @@ float DistributionGGX(float NdotH, float rough) {
 	float a  = rough * rough;
 	float a2 = a * a;
 	float denom = NdotH * NdotH * (a2 - 1.0) + 1.0;
-	return a2 / PI * denom * denom;
+	return a2 / CD_PI * denom * denom;
 }
 
 // Geometry
@@ -220,7 +215,7 @@ void main()
 	
 	// ------------------------------------ Directional Light ----------------------------------------
 	
-	vec3 diffuseBRDF = material.albedo * INV_PI;
+	vec3 diffuseBRDF = material.albedo * CD_INV_PI;
 	vec3 dirColor = CalculateLights(material, v_worldPos, viewDir, diffuseBRDF);
 	
 	// ------------------------------------ Fragment Color -----------------------------------------
