@@ -1,5 +1,7 @@
 #include "../UniformDefines/U_Light.sh"
+#include "BRDF.sh"
 
+uniform vec4 u_lightCountAndStride;
 uniform vec4 u_lightParams[LIGHT_LENGTH];
 
 U_Light GetLightParams(int pointer) {
@@ -28,6 +30,18 @@ U_Light GetLightParams(int pointer) {
 }
 
 // -------------------- Utils -------------------- //
+
+// Distance Attenuation
+float SmoothDistanceAtt(float squaredDistance, float invSqrAttRadius) {
+	float factor = squaredDistance * invSqrAttRadius;
+	float smoothFactor = saturate(1.0 - factor * factor);
+	return smoothFactor * smoothFactor;
+}
+float GetDistanceAtt(float sqrDist, float invSqrAttRadius) {
+	float attenuation = 1.0 / (max(sqrDist , 0.0001));
+	attenuation *= SmoothDistanceAtt(sqrDist, invSqrAttRadius);
+	return attenuation;
+}
 
 // Angle Attenuation
 float GetAngleAtt(vec3 lightDir, vec3 lightForward, float lightAngleScale, float lightAngleOffeset) {
@@ -511,8 +525,8 @@ vec3 CalculateLight(U_Light light, Material material, vec3 worldPos, vec3 viewDi
 
 vec3 CalculateLights(Material material, vec3 worldPos, vec3 viewDir, vec3 diffuseBRDF) {
 	vec3 color = vec3_splat(0.0);
-	for(int lightIndex = 0; lightIndex < int(u_lightCountAndStride[0].x); ++lightIndex) {
-		int pointer = lightIndex * u_lightCountAndStride[0].y;
+	for(int lightIndex = 0; lightIndex < int(u_lightCountAndStride.x); ++lightIndex) {
+		int pointer = lightIndex * u_lightCountAndStride.y;
 		U_Light light = GetLightParams(pointer);
 		color += CalculateLight(light, material, worldPos, viewDir, diffuseBRDF);
 	}
