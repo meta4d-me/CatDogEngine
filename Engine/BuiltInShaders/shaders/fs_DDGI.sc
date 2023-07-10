@@ -296,5 +296,20 @@ void main()
 	
 	vec3 albedo = vec3(1.0, 1.0, 1.0);
 	albedo = SampleAlbedo(v_texcoord0);
+	
+	const vec3 normalX = vec3(1, 0, 0);
+	const vec3 normalY = vec3(0, 1, 0);
+	const vec3 normalZ = vec3(0, 0, 1);
+	
+	vec3 originToFrag = v_worldPos - volume.origin;
+	vec3 volumeHalfLengths = vec3(volume.probeCounts) * volume.probeSpacing * vec3_splat(0.5);
+	if(abs(dot(normalX, originToFrag)) > volumeHalfLengths.x
+		|| abs(dot(normalY, originToFrag)) > volumeHalfLengths.y
+		|| abs(dot(normalZ, originToFrag)) > volumeHalfLengths.z)
+	{
+		irradiance = vec3_splat(0.0);
+	}
+	
 	gl_FragColor = vec4(albedo * vec3_splat(INV_PI) * irradiance, 1.0);
+	// gl_FragColor = vec4(irradiance / vec3_splat(10.0), 1.0);
 }
