@@ -1,3 +1,4 @@
+#include "Base/Platform.h"
 #include "ImGui/ImGuiBaseLayer.h"
 
 #include <filesystem>
@@ -28,37 +29,52 @@ class Renderer;
 namespace editor
 {
 
-enum class ImportAssetType
+enum class IOAssetType
 {
 	CubeMap,
-	Model,
 	DDGIModel,
-	Terrain,
+	Model,
 	Shader,
+	SceneDatabase,
+	Terrain,
 	Unknown,
+
+	Count,
 };
 
-enum class ExportAssetType
+constexpr const char *IOAssetTypeName[] =
 {
-	SceneDatabase,
-	Unknown,
+	"CubeMap",
+	"DDGIModel",
+	"Model",
+	"Shader",
+	"SceneDatabase",
+	"Terrain",
+	"Unknown",
 };
+
+static_assert(static_cast<int>(IOAssetType::Count) == sizeof(IOAssetTypeName) / sizeof(char *),
+	"IO asset type and names mismatch.");
+
+CD_FORCEINLINE const char *GetDDGITextureTypeName(IOAssetType type)
+{
+	return IOAssetTypeName[static_cast<size_t>(type)];
+}
 
 struct AssetImportOptions
 {
-	ImportAssetType AssetType = ImportAssetType::Unknown;
+	IOAssetType AssetType = IOAssetType::Unknown;
 	bool Active = false;
 	bool ImportCamera = false;
 	bool ImportLight = false;
 	bool ImportMaterial = true;
 	bool ImportMesh = true;
 	bool ImportTexture = true;
-
 };
 
 struct AssetExportOptions
 {
-	ExportAssetType AssetType = ExportAssetType::Unknown;
+	IOAssetType AssetType = IOAssetType::Unknown;
 	bool Active = false;
 	bool ExportCamera = true;
 	bool ExportLight = true;
@@ -67,9 +83,8 @@ struct AssetExportOptions
 	bool ExportTexture = true;
 };
 
-class DirectoryInformation
+struct DirectoryInformation
 {
-public:
 	DirectoryInformation(const std::filesystem::path& fileName, bool isFile)
 	{
 		FilePath = fileName;
@@ -101,7 +116,7 @@ private:
 	void ImportModelFile(const char* pFilePath);
 	void DrawFolder(const std::shared_ptr<DirectoryInformation>& dirInfo, bool defaultOpen = false);
 	void ChangeDirectory(std::shared_ptr<DirectoryInformation>& directory);
-
+	
 	std::string ProcessDirectory(const std::filesystem::path& directoryPath, const std::shared_ptr<DirectoryInformation>& parent);
 	std::shared_ptr<DirectoryInformation> CreateDirectoryInfoSharedPtr(const std::filesystem::path& directoryPath, bool isDirectory);
 	std::string StripExtras(const std::string& filename);
