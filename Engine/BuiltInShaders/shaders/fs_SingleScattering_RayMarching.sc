@@ -1,9 +1,9 @@
 $input v_worldPos
 
 #include "../common/common.sh"
+#include "../common/Camera.sh"
 
-uniform vec4 u_cameraPos[1];
-uniform vec4 u_LightDir[1];
+uniform vec4 u_LightDir;
 
 // Unit : km
 #define _PlanetRadius 6371.0
@@ -142,7 +142,7 @@ vec3 IntegrateInscattering(vec3 rayStart, vec3 rayDir, float rayLength, vec3 lig
 
 void main()
 {
-	vec3 rayStart = u_cameraPos[0].xyz;
+	vec3 rayStart = GetCamera().position;
 	vec3 rayDir = normalize(v_worldPos.xyz);
 	
 	// If the camera is in space, move it to the atmosphere top boundry along rayDir.
@@ -159,7 +159,7 @@ void main()
 		rayLength = earthIntersection.x;
 	}
 	
-	vec3 lightDir = -normalize(u_LightDir[0].xyz);
+	vec3 lightDir = -normalize(u_LightDir.xyz);
 	vec3 inscattering = IntegrateInscattering(rayStart, rayDir, rayLength, lightDir);
 	
 	gl_FragColor = vec4(inscattering, 1.0);

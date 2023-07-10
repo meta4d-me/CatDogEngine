@@ -1,13 +1,12 @@
 $input v_worldPos, v_normal, v_texcoord0, v_TBN
 
 #include "../common/common.sh"
+#include "../common/Camera.sh"
 #include "../UniformDefines/U_PBR.sh"
 
 uniform vec4 u_albedoColor;
 uniform vec4 u_emissiveColor;
 uniform vec4 u_albedoUVOffsetAndScale;
-uniform vec4 u_cameraPos[1];
-#define cameraPos u_cameraPos[0].xyz
 
 uniform vec4 u_lightCountAndStride[1];
 
@@ -173,6 +172,7 @@ void main()
 {
 	Material material = GetMaterial(v_texcoord0, v_normal, v_TBN);
 	
+	vec3 cameraPos = GetCamera().position.xyz;
 	vec3 viewDir = normalize(cameraPos - v_worldPos);
 	vec3 reflectDir = normalize(reflect(-viewDir, material.normal));
 	
