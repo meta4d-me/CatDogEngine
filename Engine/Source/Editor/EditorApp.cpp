@@ -77,7 +77,6 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	pSplashWindow->SetResizeable(false);
 	
 	// Init graphics backend
-	//		OpenGL GLContext::Create requires to know native window handle.
 	InitRenderContext(m_initArgs.backend, pSplashWindow->GetNativeHandle());
 	pSplashWindow->OnResize.Bind<engine::RenderContext, &engine::RenderContext::OnResize>(m_pRenderContext.get());
 	AddWindow(cd::MoveTemp(pSplashWindow));
@@ -277,9 +276,7 @@ void EditorApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
 
 void EditorApp::InitEditorRenderers()
 {
-	constexpr engine::StringCrc editorSwapChainName("EditorUISwapChain");
-	m_pEditorRenderTarget = m_pRenderContext->CreateRenderTarget(editorSwapChainName, GetMainWindow()->GetWidth(), GetMainWindow()->GetHeight(), GetMainWindow()->GetNativeHandle());
-	AddEditorRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), m_pEditorRenderTarget));
+	AddEditorRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView()));
 }
 
 void EditorApp::InitEngineRenderers()
