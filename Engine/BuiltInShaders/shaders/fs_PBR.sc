@@ -87,10 +87,6 @@ Material CreateMaterial() {
 	return material;
 }
 
-vec3 CalcuateF0(vec3 albedo, float metallic) {
-	return mix(vec3_splat(0.04), albedo, metallic);
-} 
-
 Material GetMaterial(vec2 uv, vec3 normal, mat3 TBN) {
 	Material material = CreateMaterial();
 
@@ -121,12 +117,12 @@ Material GetMaterial(vec2 uv, vec3 normal, mat3 TBN) {
 	material.emissive = SampleEmissiveTexture(uv);
 #endif
 	
-	material.F0 = CalcuateF0(material.albedo, material.metallic);
+	material.F0 = mix(vec3_splat(0.04), material.albedo, material.metallic);
 	
 	return material;
 }
 
-#include "../common/light.sh"
+#include "../common/Light.sh"
 
 void main()
 {
