@@ -2,6 +2,7 @@
 // Light.sh
 // Light.h
 
+// Light types
 #define POINT_LIGHT 0
 #define SPOT_LIGHT 1
 #define DIRECTIONAL_LIGHT 2

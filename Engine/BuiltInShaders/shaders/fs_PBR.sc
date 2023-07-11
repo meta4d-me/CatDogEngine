@@ -2,7 +2,6 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 
 #include "../common/common.sh"
 #include "../common/Camera.sh"
-#include "../UniformDefines/U_PBR.sh"
 #include "../common/Light.sh"
 
 uniform vec4 u_emissiveColor;
@@ -70,3 +69,4 @@ void main()
 	// ------------------------------------ Fragment Color -----------------------------------------
 	gl_FragColor = vec4(dirColor + envColor + material.emissive * u_emissiveColor, 1.0);
 }
+
