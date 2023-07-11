@@ -2,7 +2,6 @@ $input a_position, a_normal, a_color1
 $output v_worldPos, v_normal, v_bc
 
 #include "../common/common.sh"
-#include "uniforms.sh"
 
 void main()
 {

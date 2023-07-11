@@ -2,7 +2,6 @@ $input a_position, a_indices, a_weight
 $output v_worldPos, v_indices, v_weight
 
 #include "../common/common.sh"
-#include "uniforms.sh"
 
 void main()
 {

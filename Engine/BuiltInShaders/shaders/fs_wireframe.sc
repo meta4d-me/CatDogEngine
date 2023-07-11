@@ -1,7 +1,6 @@
 $input v_bc
 
 #include "../common/common.sh"
-#include "uniforms.sh"
 
 void main()
 {

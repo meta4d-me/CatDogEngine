@@ -2,7 +2,6 @@ $input a_position, a_normal, a_tangent, a_texcoord0
 $output v_worldPos, v_normal, v_texcoord0, v_TBN
 
 #include "../common/common.sh"
-#include "uniforms.sh"
 
 void main()
 {

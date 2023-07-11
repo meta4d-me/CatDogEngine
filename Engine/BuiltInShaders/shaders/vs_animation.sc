@@ -2,7 +2,6 @@ $input a_position, a_indices, a_weight
 $output v_worldPos
 
 #include "../common/common.sh"
-#include "uniforms.sh"
 
 uniform mat4 u_boneMatrices[128];
 

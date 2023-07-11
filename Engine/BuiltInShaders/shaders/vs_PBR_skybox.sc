@@ -7,7 +7,13 @@ $output v_skyboxDir
  */
 
 #include "../common/common.sh"
-#include "uniforms.sh"
+
+uniform vec4 u_params[4];
+
+#define u_mtx0 u_params[0]
+#define u_mtx1 u_params[1]
+#define u_mtx2 u_params[2]
+#define u_mtx3 u_params[3]
 
 void main()
 {

@@ -1,7 +1,6 @@
 $input v_skyboxDir
 
 #include "../common/common.sh"
-#include "uniforms.sh"
 
 SAMPLERCUBE(s_texCube, 0);
 
