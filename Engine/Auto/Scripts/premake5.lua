@@ -66,6 +66,11 @@ function SetLanguageAndToolset(projectName)
 	targetdir(BinariesPath)
 end
 
+DDGI_SDK_PATH = os.getenv("DDGI_SDK_PATH") or ""
+if not os.isdir(DDGI_SDK_PATH) then
+	DDGI_SDK_PATH = ""
+end
+
 -- Parse folder path
 dofile("path.lua")
 print("================================================================")
@@ -79,6 +84,7 @@ print("EngineSourcePath = "..EngineSourcePath)
 print("RuntimeSourcePath = "..RuntimeSourcePath)
 print("IDEConfigs.BuildIDEName = "..IDEConfigs.BuildIDEName)
 print("IDEConfigs.VCVersion = "..IDEConfigs.VCVersion)
+print("DDGI_SDK_PATH = "..DDGI_SDK_PATH)
 print("================================================================")
 
 -- workspace means solution in Visual Studio

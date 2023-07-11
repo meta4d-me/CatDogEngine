@@ -4,6 +4,10 @@
 #include "Path/Path.h"
 #include "U_Slot.sh"
 
+#ifdef ENABLE_DDGI_SDK
+#include "ddgi_sdk.h"
+#endif
+
 namespace engine
 {
 
@@ -196,6 +200,21 @@ void SceneWorld::AddLightToSceneDatabase(engine::Entity entity)
 	light.SetDirection(pLightComponent->GetDirection());
 	light.SetUp(pLightComponent->GetUp());
 	pSceneDatabase->AddLight(cd::MoveTemp(light));
+}
+
+void SceneWorld::Update()
+{
+#ifdef ENABLE_DDGI_SDK
+	static uint32_t frameIndex = 1;
+	static std::shared_ptr<CurrentFrameDecodeData> curDecodeData;
+	
+	std::this_thread::sleep_for(std::chrono::milliseconds(33));
+	curDecodeData = GetCurDDGIFrameData();
+	if (curDecodeData != nullptr)
+	{
+	}
+	++frameIndex;
+#endif
 }
 
 }
