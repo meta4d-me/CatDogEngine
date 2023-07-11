@@ -1,3 +1,8 @@
+// Include to:
+// Material.sh
+// WorldRenderer.cpp
+// SceneWorld.cpp
+
 #define ALBEDO_MAP_SLOT 0
 #define NORMAL_MAP_SLOT 1
 #define ORM_MAP_SLOT 2

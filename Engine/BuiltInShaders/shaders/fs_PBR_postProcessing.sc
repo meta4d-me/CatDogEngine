@@ -1,7 +1,6 @@
 $input v_texcoord0
 
 #include "../common/common.sh"
-#include "uniforms.sh"
 
 SAMPLER2D(s_lightingColor, 0);
 uniform vec4 u_gamma;

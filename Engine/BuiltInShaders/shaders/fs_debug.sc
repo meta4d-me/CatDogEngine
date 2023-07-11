@@ -1,7 +1,6 @@
 $input v_bc, v_worldPos
 
 #include "../common/common.sh"
-#include "uniforms.sh"
 
 vec3 evalSh(vec3 dir) {
 #	define k01 0.2820947918 // sqrt( 1/PI)/2

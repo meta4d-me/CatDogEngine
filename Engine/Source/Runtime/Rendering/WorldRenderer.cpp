@@ -9,7 +9,7 @@
 #include "Material/ShaderSchema.h"
 #include "RenderContext.h"
 #include "Scene/Texture.h"
-#include "U_PBR.sh"
+#include "U_Slot.sh"
 
 #include <format>
 
