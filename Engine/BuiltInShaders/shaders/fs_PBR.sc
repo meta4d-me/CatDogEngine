@@ -9,36 +9,41 @@ uniform vec4 u_emissiveColor;
 #if defined(IBL)
 SAMPLERCUBE(s_texCube, IBL_ALBEDO_SLOT);
 SAMPLERCUBE(s_texCubeIrr, IBL_IRRADIANCE_SLOT);
+
+vec3 SampleEnvIrradiance(vec3 normal, float mip) {
+	vec3 cubeNormalDir = normalize(fixCubeLookup(normal, mip, 256.0));
+	return toLinear(textureCube(s_texCubeIrr, cubeNormalDir).xyz);
+}
+
+vec3 SampleEnvRadiance(vec3 reflectDir, float mip) {
+	vec3 cubeReflectDir = normalize(fixCubeLookup(reflectDir, mip, 256.0));
+	return toLinear(textureCubeLod(s_texCube, cubeReflectDir, mip).xyz);
+}
 #endif
 
 SAMPLER2D(s_texLUT, LUT_SLOT);
+
 vec2 SampleIBLSpecularBRDFLUT(float NdotV, float roughness) {
 	return texture2D(s_texLUT, vec2(NdotV, 1.0 - roughness)).xy;
 }
 
-void main()
-{
-	Material material = GetMaterial(v_texcoord0, v_normal, v_TBN);
-	
-	vec3 cameraPos = GetCamera().position.xyz;
-	vec3 viewDir = normalize(cameraPos - v_worldPos);
-	vec3 reflectDir = normalize(reflect(-viewDir, material.normal));
-	
-	// ----------------------------------- Environment Light ----------------------------------------
-	
+vec3 GetDirectional(Material material, vec3 worldPos, vec3 viewDir) {
+	vec3 diffuseBRDF = material.albedo * CD_INV_PI;
+	return CalculateLights(material, worldPos, viewDir, diffuseBRDF);
+}
+
+vec3 GetEnvironment(Material material, vec3 vertexNormal, vec3 viewDir) {
 	vec3 envIrradiance = vec3_splat(1.0);
 	vec3 envRadiance = vec3_splat(1.0);
+	vec3 reflectDir = normalize(reflect(-viewDir, material.normal));
 	
 #if defined(IBL)
 	float mip = clamp(6.0 * material.roughness, 0.1, 6.0);
 	
 	// Environment Prefiltered Irradiance
-	vec3 cubeNormalDir = normalize(fixCubeLookup(material.normal, mip, 256.0));
-	envIrradiance = toLinear(textureCube(s_texCubeIrr, cubeNormalDir).xyz);
-	
+	envIrradiance = SampleEnvIrradiance(material.normal, mip);
 	// Environment Specular Radiance
-	vec3 cubeReflectDir = normalize(fixCubeLookup(reflectDir, mip, 256.0));
-	envRadiance = toLinear(textureCubeLod(s_texCube, cubeReflectDir, mip).xyz);
+	envRadiance = SampleEnvRadiance(reflectDir, mip);
 #endif
 	
 	// Environment Specular BRDF
@@ -48,25 +53,34 @@ void main()
 	
 	// Occlusion
 	float specularOcclusion = lerp(pow(material.occlusion, 4.0), 1.0, saturate(-0.3 + NdotV * NdotV));
-	float horizonOcclusion = saturate(1.0 + 1.2 * dot(reflectDir, v_normal));
+	float horizonOcclusion = saturate(1.0 + 1.2 * dot(reflectDir, vertexNormal));
 	horizonOcclusion *= horizonOcclusion;
+	float finalOcclusion = min(specularOcclusion, horizonOcclusion);
 	
-	vec3 F = FresnelSchlick(NdotV, material.F0);
-	vec3 KD = mix(1.0 - F, vec3_splat(0.0), material.metallic);
+	vec3 Fre = FresnelSchlick(NdotV, material.F0);
+	vec3 KD = mix(1.0 - Fre, vec3_splat(0.0), material.metallic);
 	
-#if defined(ORM_MAP)
-	vec3 envColor = KD * material.albedo * envIrradiance * material.occlusion + envSpecularBRDF * envRadiance * min(specularOcclusion, horizonOcclusion);
-#else
-	// ORM is required or we will just show albedo color.
-	vec3 envColor = material.albedo;
-#endif
-	
-	// ------------------------------------ Directional Light ----------------------------------------
-	
-	vec3 diffuseBRDF = material.albedo * CD_INV_PI;
-	vec3 dirColor = CalculateLights(material, v_worldPos, viewDir, diffuseBRDF);
-	
-	// ------------------------------------ Fragment Color -----------------------------------------
-	gl_FragColor = vec4(dirColor + envColor + material.emissive * u_emissiveColor, 1.0);
+	// diffuse + specular
+	return (KD * material.albedo * envIrradiance * material.occlusion) + (envSpecularBRDF * envRadiance * finalOcclusion);
 }
 
+void main()
+{
+	Material material = GetMaterial(v_texcoord0, v_normal, v_TBN);
+	vec3 cameraPos = GetCamera().position.xyz;
+	vec3 viewDir = normalize(cameraPos - v_worldPos);
+	
+	// Directional Light
+	vec3 dirColor = GetDirectional(material, v_worldPos, viewDir);
+	
+	// Environment Light
+	vec3 envColor = GetEnvironment(material, v_normal, viewDir);
+	
+	// Emissive
+	vec3 emiColor = material.emissive * u_emissiveColor.xyz;
+	
+	// Fragment Color
+	gl_FragColor = vec4(dirColor + envColor + emiColor, 1.0);
+	
+	// Post-processing will be used in the last pass.
+}
