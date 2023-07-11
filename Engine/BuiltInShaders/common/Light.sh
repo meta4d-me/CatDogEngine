@@ -1,5 +1,6 @@
 #include "../UniformDefines/U_Light.sh"
 #include "BRDF.sh"
+#include "Material.sh"
 
 uniform vec4 u_lightCountAndStride;
 uniform vec4 u_lightParams[LIGHT_LENGTH];
