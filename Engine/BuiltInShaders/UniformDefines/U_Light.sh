@@ -1,5 +1,5 @@
 // Include to:
-// fs_PBR.sc
+// Light.sh
 // Light.h
 
 #define POINT_LIGHT 0

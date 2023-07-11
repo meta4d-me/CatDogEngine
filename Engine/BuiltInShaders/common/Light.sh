@@ -1,3 +1,7 @@
+// @brief Calculate the contribution of all light sources to current fragment.
+// 
+// vec3 CalculateLights(Material material, vec3 worldPos, vec3 viewDir, vec3 diffuseBRDF);
+
 #include "../UniformDefines/U_Light.sh"
 #include "BRDF.sh"
 #include "Material.sh"

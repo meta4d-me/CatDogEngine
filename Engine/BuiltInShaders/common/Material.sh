@@ -1,3 +1,19 @@
+// @brief Returns Material object whose members' values are determined by
+// the bound texture if macro definitions are turned on, otherwise they are default values.
+// 
+// Material GetMaterial(vec2 uv, vec3 normal, mat3 TBN);
+
+struct Material {
+	vec3 albedo;
+	vec3 normal;
+	float occlusion;
+	float roughness;
+	float metallic;
+	vec3 F0;
+	float opacity;
+	vec3 emissive;
+};
+
 uniform vec4 u_albedoColor;
 uniform vec4 u_albedoUVOffsetAndScale;
 
@@ -45,17 +61,6 @@ vec3 SampleEmissiveTexture(vec2 uv) {
 	return texture2D(s_texEmissive, uv).xyz;
 }
 #endif
-
-struct Material {
-	vec3 albedo;
-	vec3 normal;
-	float occlusion;
-	float roughness;
-	float metallic;
-	vec3 F0;
-	float opacity;
-	vec3 emissive;
-};
 
 Material CreateMaterial() {
 	Material material;
