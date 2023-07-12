@@ -3,7 +3,7 @@
 #define IRRADIANCE_GRID_SIZE 8
 #define RELOCATION_GRID_SIZE 1
 
-#define CLA_MAP_SLOT 8
-#define DIS_MAP_SLOT 9
-#define IRR_MAP_SLOT 10
-#define REL_MAP_SLOT 11
+#define CLA_MAP_SLOT 4
+#define DIS_MAP_SLOT 5
+#define IRR_MAP_SLOT 6
+#define REL_MAP_SLOT 7

@@ -1,5 +1,6 @@
 $input v_worldPos, v_normal, v_texcoord0, v_TBN
 
+#include "../UniformDefines/U_PBR.sh"
 #include "../common/common.sh"
 #include "../common/Camera.sh"
 #include "../common/Light.sh"
@@ -21,7 +22,7 @@ vec3 SampleEnvRadiance(vec3 reflectDir, float mip) {
 }
 #endif
 
-SAMPLER2D(s_texLUT, LUT_SLOT);
+SAMPLER2D(s_texLUT, BRDF_LUT_SLOT);
 
 vec2 SampleIBLSpecularBRDFLUT(float NdotV, float roughness) {
 	return texture2D(s_texLUT, vec2(NdotV, 1.0 - roughness)).xy;

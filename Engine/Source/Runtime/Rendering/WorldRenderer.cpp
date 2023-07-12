@@ -9,7 +9,7 @@
 #include "Material/ShaderSchema.h"
 #include "RenderContext.h"
 #include "Scene/Texture.h"
-#include "U_BaseSlot.sh"
+#include "U_PBR.sh"
 
 #include <format>
 
@@ -103,7 +103,7 @@ void WorldRenderer::Render(float deltaTime)
 
 		constexpr StringCrc lutSampler("s_texLUT");
 		constexpr StringCrc lutTexture("Textures/lut/ibl_brdf_lut.dds");
-		bgfx::setTexture(LUT_SLOT, m_pRenderContext->GetUniform(lutSampler), m_pRenderContext->GetTexture(lutTexture));
+		bgfx::setTexture(BRDF_LUT_SLOT, m_pRenderContext->GetUniform(lutSampler), m_pRenderContext->GetTexture(lutTexture));
 
 		constexpr StringCrc useIBLCrc("USE_PBR_IBL");
 		if (useIBLCrc == pMaterialComponent->GetUberShaderOption())
