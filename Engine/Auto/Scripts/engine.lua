@@ -88,6 +88,21 @@ project("Engine")
 		}
 	filter {}
 
+	if DDGI_SDK_PATH ~= "" then
+		includedirs {
+			path.join(DDGI_SDK_PATH, "include"),
+		}
+		libdirs {
+			path.join(DDGI_SDK_PATH, "lib"),
+		}
+		links {
+			"ddgi_sdk", "mright_sdk", "DDGIProbeDecoderBin"
+		}
+		defines {
+			"ENABLE_DDGI_SDK"
+		}
+	end
+
 	if "SharedLib" == EngineBuildLibKind then
 		table.insert(platformDefines, "ENGINE_BUILD_SHARED")
 	end
@@ -127,9 +142,14 @@ project("Engine")
 	externalwarnings("Off")
 	
 	flags {
-		"FatalWarnings", -- treat warnings as errors
 		"MultiProcessorCompile", -- compiler uses multiple thread
 	}
+
+	if DDGI_SDK_PATH == "" then
+		flags {
+			"FatalWarnings", -- treat warnings as errors
+		}
+	end
 	
 	-- copy dll into binary folder automatically.
 	filter { "configurations:Debug" }

@@ -104,6 +104,8 @@ public:
 	void AddCameraToSceneDatabase(engine::Entity entity);
 	void AddLightToSceneDatabase(engine::Entity entity);
 
+	void Update();
+
 private:
 	std::unique_ptr<cd::SceneDatabase> m_pSceneDatabase;
 	std::unique_ptr<engine::World> m_pWorld;
