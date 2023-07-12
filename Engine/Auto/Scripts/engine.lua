@@ -96,7 +96,7 @@ project("Engine")
 			path.join(DDGI_SDK_PATH, "lib"),
 		}
 		links {
-			"ddgi_sdk", "ProbeCodec"
+			"ddgi_sdk", "mright_sdk", "DDGIProbeDecoderBin"
 		}
 		defines {
 			"ENABLE_DDGI_SDK"
