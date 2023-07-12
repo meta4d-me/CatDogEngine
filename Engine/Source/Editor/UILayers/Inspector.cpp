@@ -222,14 +222,10 @@ void UpdateComponentWidget<engine::DDGIComponent>(engine::SceneWorld *pSceneWorl
 
 	if (isOpen)
 	{
-		// TODO : Extending the interface of pDDGIComponent.
-		// ImGuiUtils::ImGuiVectorProperty("Origin", pDDGIComponent->GetVolumeOrigin(), cd::Unit::CenterMeter);
-		// ImGuiUtils::ImGuiVectorProperty("Origin", pDDGIComponent->GetProbeSpacing(), cd::Unit::CenterMeter);
-		// ImGuiUtils::ImGuiVectorProperty("Origin", pDDGIComponent->GetProbeCount(), cd::Unit::CenterMeter);
-		float tmpAM = pDDGIComponent->GetAmbientMultiplier();
-		if (ImGuiUtils::ImGuiFloatProperty("ambientMultiplier", tmpAM, cd::Unit::None, 0.0f, 10.0f)) {
-			pDDGIComponent->SetAmbientMultiplier(tmpAM);
-		}
+		ImGuiUtils::ImGuiVectorProperty("Origin", pDDGIComponent->GetVolumeOrigin(), cd::Unit::CenterMeter);
+		ImGuiUtils::ImGuiVectorProperty("Probe Spacing", pDDGIComponent->GetProbeSpacing(), cd::Unit::CenterMeter);
+		ImGuiUtils::ImGuiVectorProperty("Probe Count", pDDGIComponent->GetProbeCount(), cd::Unit::CenterMeter);
+		ImGuiUtils::ImGuiFloatProperty("Ambient Multiplier", pDDGIComponent->GetAmbientMultiplier(), cd::Unit::None, 0.0f, 10.0f);
 	}
 
 	ImGui::Separator();
