@@ -68,6 +68,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 		CD_ERROR("Failed to open CSV file");
 	}
 
+
 	// Phase 1 - Splash
 	//		* Compile uber shader permutations automatically when initialization or detect changes
 	//		* Show compile progresses so it still needs to update ui
@@ -220,7 +221,7 @@ void EditorApp::InitECWorld()
 	m_pSceneWorld->SetMainCameraEntity(cameraEntity);
 	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(cameraEntity);
 	nameComponent.SetName("MainCamera");
-
+	m_pSceneWorld->InitSDK();
 	//auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
 	//transformComponent.SetTransform(cd::Transform::Identity());
 	//transformComponent.Build();
@@ -398,7 +399,8 @@ bool EditorApp::Update(float deltaTime)
 	}
 
 	GetMainWindow()->Update();
-	m_pSceneWorld->Update();
+	engine::Entity DDGIEntity = m_pSceneWorld->GetDDGIEntity();
+	m_pSceneWorld->Update(DDGIEntity);
 	m_pEditorImGuiContext->Update(deltaTime);
 	
 	m_pRenderContext->BeginFrame();

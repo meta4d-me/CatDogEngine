@@ -1,0 +1,1 @@
+SET DDGI_SDK_PATH=C:\Users\V\Desktop\sdk\ddgi_sdk

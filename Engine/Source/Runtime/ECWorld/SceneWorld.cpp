@@ -3,7 +3,7 @@
 #include "Log/Log.h"
 #include "Path/Path.h"
 #include "U_Slot.sh"
-
+#include <iostream>
 #ifdef ENABLE_DDGI_SDK
 #include "ddgi_sdk.h"
 #endif
@@ -202,19 +202,40 @@ void SceneWorld::AddLightToSceneDatabase(engine::Entity entity)
 	pSceneDatabase->AddLight(cd::MoveTemp(light));
 }
 
-void SceneWorld::Update()
+void SceneWorld::Update(engine::Entity entity)
 {
 #ifdef ENABLE_DDGI_SDK
+	engine::DDGIComponent* pDDGIComponent = GetDDGIComponent(entity);
+	if (!pDDGIComponent)
+	{
+		assert("Invalid entity");
+		return;
+	}
 	static uint32_t frameIndex = 1;
 	static std::shared_ptr<CurrentFrameDecodeData> curDecodeData;
-	
 	std::this_thread::sleep_for(std::chrono::milliseconds(33));
 	curDecodeData = GetCurDDGIFrameData();
 	if (curDecodeData != nullptr)
 	{
+		pDDGIComponent->SetDistanceRawData(curDecodeData->visDecodeData);
+		pDDGIComponent->SetIrradianceRawData(curDecodeData->irrDecodeData); 
 	}
 	++frameIndex;
 #endif
 }
 
+void SceneWorld::InitSDK()
+{
+#ifdef ENABLE_DDGI_SDK
+	std::string configFilePath = "C:/Users/V/Desktop/sdk/ddgi_sdk";
+	if (InitDDGI(configFilePath))
+	{
+		std::cout << "Init DDGI Client Success!" << std::endl;
+	}
+	else
+	{
+		std::cout << "Init DDGI Client Failed!" << std::endl;
+	}
+#endif 
+}
 }
