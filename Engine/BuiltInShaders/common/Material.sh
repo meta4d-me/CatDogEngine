@@ -3,6 +3,7 @@
 // 
 // Material GetMaterial(vec2 uv, vec3 normal, mat3 TBN);
 
+// To reuse Material.sh, we reserve the first 4 slots (0 - 3) in U_BaseSlot.sh.
 #include "../UniformDefines/U_BaseSlot.sh"
 
 struct Material {

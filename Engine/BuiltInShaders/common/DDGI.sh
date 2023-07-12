@@ -2,6 +2,8 @@
 // 
 // vec3 GetDDGIIrradiance(vec3 worldPos, vec3 normal);
 
+#include "../UniformDefines/U_DDGI.sh"
+
 #define DDGI_TEXTURE_FROM_O3DE
 
 uniform vec4 u_volumeOrigin;

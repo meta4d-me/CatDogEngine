@@ -4,10 +4,9 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 // #define NORMAL_MAP
 // #define ORM_MAP
 
-#include "../UniformDefines/U_DDGI.sh"
 #include "../common/common.sh"
-#include "../common/DDGI.sh"
 #include "../common/Camera.sh"
+#include "../common/DDGI.sh"
 #include "../common/Light.sh"
 
 vec3 GetDirectional(Material material, vec3 worldPos, vec3 viewDir) {
