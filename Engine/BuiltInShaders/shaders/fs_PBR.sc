@@ -71,21 +71,21 @@ void main()
 	vec3 cameraPos = GetCamera().position.xyz;
 	vec3 viewDir = normalize(cameraPos - v_worldPos);
 	
-#if defined(ORM_MAP)
 	// Directional Light
 	vec3 dirColor = GetDirectional(material, v_worldPos, viewDir);
 	
 	// Environment Light
+#if defined(ORM_MAP)
 	vec3 envColor = GetEnvironment(material, v_normal, viewDir);
+#else
+	vec3 envColor = material.albedo;
+#endif
 	
 	// Emissive
 	vec3 emiColor = material.emissive * u_emissiveColor.xyz;
 	
 	// Fragment Color
 	gl_FragColor = vec4(dirColor + envColor + emiColor, 1.0);
-#else
-	gl_FragColor = vec4(material.albedo, 1.0);
-#endif
 	
 	// Post-processing will be used in the last pass.
 }
