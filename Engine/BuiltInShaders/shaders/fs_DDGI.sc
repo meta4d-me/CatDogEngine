@@ -1,19 +1,34 @@
 $input v_worldPos, v_normal, v_texcoord0, v_TBN
 
+#define ALBEDO_MAP
+// #define NORMAL_MAP
+// #define ORM_MAP
+
+#include "../UniformDefines/U_DDGI.sh"
 #include "../common/common.sh"
 #include "../common/DDGI.sh"
+#include "../common/Camera.sh"
+#include "../common/Light.sh"
 
-SAMPLER2D(s_texBaseColor, 0);
+vec3 GetDirectional(Material material, vec3 worldPos, vec3 viewDir) {
+	vec3 diffuseBRDF = material.albedo * CD_INV_PI;
+	return CalculateLights(material, worldPos, viewDir, diffuseBRDF);
+}
 
-vec3 SampleAlbedo(vec2 uv) {
-	return texture2D(s_texBaseColor, uv).xyz;
+vec3 GetEnvironment(Material material, vec3 worldPos, vec3 normal) {
+	vec3 envDiffuseIrradiance = GetDDGIIrradiance(worldPos, normal);
+	return material.albedo * vec3_splat(CD_INV_PI) * envDiffuseIrradiance;
 }
 
 void main()
 {
-	vec3 albedo = SampleAlbedo(v_texcoord0);
+	Material material = GetMaterial(v_texcoord0, v_normal, v_TBN);
+	vec3 cameraPos = GetCamera().position.xyz;
+	vec3 viewDir = normalize(cameraPos - v_worldPos);
 	
-	vec3 envDiffuseIrradiance = GetDDGIIrradiance(v_worldPos, v_normal);
+	vec3 dirColor = GetDirectional(material, v_worldPos, viewDir);
+	vec3 envColor = GetEnvironment(material, v_worldPos, v_normal);
 	
-	gl_FragColor = vec4(albedo * vec3_splat(CD_INV_PI) * envDiffuseIrradiance, 1.0);
+	gl_FragColor = vec4(dirColor + envColor, 1.0);
 }
+

@@ -3,7 +3,7 @@
 // 
 // Material GetMaterial(vec2 uv, vec3 normal, mat3 TBN);
 
-#include "../UniformDefines/U_Slot.sh"
+#include "../UniformDefines/U_BaseSlot.sh"
 
 struct Material {
 	vec3 albedo;

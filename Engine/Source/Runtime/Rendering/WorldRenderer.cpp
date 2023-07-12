@@ -9,7 +9,7 @@
 #include "Material/ShaderSchema.h"
 #include "RenderContext.h"
 #include "Scene/Texture.h"
-#include "U_Slot.sh"
+#include "U_BaseSlot.sh"
 
 #include <format>
 
@@ -110,7 +110,7 @@ void WorldRenderer::Render(float deltaTime)
 		{
 			constexpr StringCrc cubeSampler("s_texCube");
 			constexpr StringCrc cubeTexture("Textures/skybox/bolonga_lod.dds");
-			bgfx::setTexture(IBL_ALBEDO_SLOT, m_pRenderContext->GetUniform(cubeSampler), m_pRenderContext->GetTexture(cubeTexture));
+			bgfx::setTexture(IBL_RADIANCE_SLOT, m_pRenderContext->GetUniform(cubeSampler), m_pRenderContext->GetTexture(cubeTexture));
 
 			constexpr StringCrc cubeIrrSampler("s_texCubeIrr");
 			constexpr StringCrc cubeIrrTexture("Textures/skybox/bolonga_irr.dds");

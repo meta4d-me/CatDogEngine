@@ -2,18 +2,16 @@
 // 
 // vec3 GetDDGIIrradiance(vec3 worldPos, vec3 normal);
 
-#include "../UniformDefines/U_DDGI.sh"
-
 #define DDGI_TEXTURE_FROM_O3DE
 
 uniform vec4 u_volumeOrigin;
 uniform vec4 u_volumeProbeSpacing;
 uniform vec4 u_volumeProbeCounts;
 
-SAMPLER2D(s_texClassification, 1);
-SAMPLER2D(s_texDistance, 2);
-SAMPLER2D(s_texIrradiance, 3);
-SAMPLER2D(s_texRelocation, 4);
+SAMPLER2D(s_texClassification, CLA_MAP_SLOT);
+SAMPLER2D(s_texDistance, DIS_MAP_SLOT);
+SAMPLER2D(s_texIrradiance, IRR_MAP_SLOT);
+SAMPLER2D(s_texRelocation, REL_MAP_SLOT);
 
 vec3 SampleDistance(vec2 uv) {
 	return texture2D(s_texDistance, uv).xyz;

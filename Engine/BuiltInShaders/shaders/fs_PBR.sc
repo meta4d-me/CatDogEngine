@@ -7,8 +7,8 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 uniform vec4 u_emissiveColor;
 
 #if defined(IBL)
-SAMPLERCUBE(s_texCube, IBL_ALBEDO_SLOT);
 SAMPLERCUBE(s_texCubeIrr, IBL_IRRADIANCE_SLOT);
+SAMPLERCUBE(s_texCube, IBL_RADIANCE_SLOT);
 
 vec3 SampleEnvIrradiance(vec3 normal, float mip) {
 	vec3 cubeNormalDir = normalize(fixCubeLookup(normal, mip, 256.0));
@@ -88,3 +88,4 @@ void main()
 	
 	// Post-processing will be used in the last pass.
 }
+
