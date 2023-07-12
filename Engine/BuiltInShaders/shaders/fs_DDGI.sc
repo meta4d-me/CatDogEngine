@@ -31,4 +31,3 @@ void main()
 	
 	gl_FragColor = vec4(dirColor + envColor, 1.0);
 }
-

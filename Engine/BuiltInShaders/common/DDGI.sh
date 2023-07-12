@@ -7,6 +7,7 @@
 uniform vec4 u_volumeOrigin;
 uniform vec4 u_volumeProbeSpacing;
 uniform vec4 u_volumeProbeCounts;
+uniform vec4 u_ambientMultiplier;
 
 SAMPLER2D(s_texClassification, CLA_MAP_SLOT);
 SAMPLER2D(s_texDistance, DIS_MAP_SLOT);
@@ -292,5 +293,5 @@ vec3 GetDDGIIrradiance(vec3 worldPos, vec3 normal) {
 		return vec3_splat(0.0);
 	}
 	
-	return irradiance;
+	return irradiance * u_ambientMultiplier.x;
 }

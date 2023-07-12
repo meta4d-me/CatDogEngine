@@ -17,14 +17,21 @@ namespace engine
 namespace
 {
 
-constexpr const char* classificationSampler = "s_texClassification";
-constexpr const char* distanceSampler       = "s_texDistance";
-constexpr const char* irradianceSampler     = "s_texIrradiance";
-constexpr const char* relocationSampler     = "s_texRelocation";
+constexpr const char* classificationSampler  = "s_texClassification";
+constexpr const char* distanceSampler        = "s_texDistance";
+constexpr const char* irradianceSampler      = "s_texIrradiance";
+constexpr const char* relocationSampler      = "s_texRelocation";
+										     
+constexpr const char* volumeOrigin           = "u_volumeOrigin";
+constexpr const char* volumeProbeSpacing     = "u_volumeProbeSpacing";
+constexpr const char* volumeProbeCounts      = "u_volumeProbeCounts";
+constexpr const char* ambientMultiplier      = "u_ambientMultiplier";
 
-constexpr const char* volumeOrigin          = "u_volumeOrigin";
-constexpr const char* volumeProbeSpacing    = "u_volumeProbeSpacing";
-constexpr const char* volumeProbeCounts     = "u_volumeProbeCounts";
+constexpr const char *lightCountAndStride    = "u_lightCountAndStride";
+constexpr const char *lightParams            = "u_lightParams";
+constexpr const char *cameraPos              = "u_cameraPos";
+constexpr const char *albedoColor            = "u_albedoColor";
+constexpr const char *albedoUVOffsetAndScale = "u_albedoUVOffsetAndScale";
 
 constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 
@@ -93,7 +100,6 @@ void DDGIRenderer::Init()
 	m_pRenderContext->CreateUniform(irradianceSampler, bgfx::UniformType::Sampler);
 	m_pRenderContext->CreateUniform(relocationSampler, bgfx::UniformType::Sampler);
 
-	// TODO : Hard code the centre of current test model(wood room) here.
 	// Warning : The coordinate system is different between CD and HWs Engine.
 	//   CD: Left-hand, +Y Up
 	//   HW: Right-hand, +Z Up
@@ -112,17 +118,18 @@ void DDGIRenderer::Init()
 	m_pRenderContext->CreateUniform(volumeOrigin, bgfx::UniformType::Vec4, 1);
 	m_pRenderContext->CreateUniform(volumeProbeSpacing, bgfx::UniformType::Vec4, 1);
 	m_pRenderContext->CreateUniform(volumeProbeCounts, bgfx::UniformType::Vec4, 1);
+	m_pRenderContext->CreateUniform(ambientMultiplier, bgfx::UniformType::Vec4, 1);
+
+	m_pRenderContext->CreateUniform(lightCountAndStride, bgfx::UniformType::Vec4, 1);
+	m_pRenderContext->CreateUniform(lightParams, bgfx::UniformType::Vec4, LightUniform::VEC4_COUNT);
+	m_pRenderContext->CreateUniform(cameraPos, bgfx::UniformType::Vec4, 1);
+	m_pRenderContext->CreateUniform(albedoColor, bgfx::UniformType::Vec4, 1);
+	m_pRenderContext->CreateUniform(albedoUVOffsetAndScale, bgfx::UniformType::Vec4, 1);
 
 	CreatDDGITexture(DDGITextureType::Classification, m_pDDGIComponent, m_pRenderContext);
 	CreatDDGITexture(DDGITextureType::Distance, m_pDDGIComponent, m_pRenderContext);
 	CreatDDGITexture(DDGITextureType::Irradiance, m_pDDGIComponent, m_pRenderContext);
 	CreatDDGITexture(DDGITextureType::Relocation, m_pDDGIComponent, m_pRenderContext);
-
-	m_pRenderContext->CreateUniform("u_lightCountAndStride", bgfx::UniformType::Vec4, 1);
-	m_pRenderContext->CreateUniform("u_lightParams", bgfx::UniformType::Vec4, LightUniform::VEC4_COUNT);
-	m_pRenderContext->CreateUniform("u_cameraPos", bgfx::UniformType::Vec4, 1);
-	m_pRenderContext->CreateUniform("u_albedoColor", bgfx::UniformType::Vec4, 1);
-	m_pRenderContext->CreateUniform("u_albedoUVOffsetAndScale", bgfx::UniformType::Vec4, 1);
 }
 
 void DDGIRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -179,31 +186,29 @@ void DDGIRenderer::Render(float deltaTime)
 			}
 		}
 
-		constexpr StringCrc albedoColor("u_albedoColor");
 		cd::Vec3f tmpAlbedoColor = cd::Vec3f(1.0f, 1.0f, 1.0f);
-		m_pRenderContext->FillUniform(albedoColor, tmpAlbedoColor.Begin(), 1);
+		m_pRenderContext->FillUniform(StringCrc(albedoColor), tmpAlbedoColor.Begin(), 1);
 
-		constexpr StringCrc cameraPos("u_cameraPos");
-		m_pRenderContext->FillUniform(cameraPos, &pCameraComponent->GetEye().x(), 1);
+		m_pRenderContext->FillUniform(StringCrc(cameraPos), &pCameraComponent->GetEye().x(), 1);
 
 		auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();
 		size_t lightEntityCount = lightEntities.size();
-		constexpr engine::StringCrc lightCountAndStride("u_lightCountAndStride");
 		static cd::Vec4f lightInfoData(0.0f, LightUniform::LIGHT_STRIDE, 0.0f, 0.0f);
 		lightInfoData.x() = static_cast<float>(lightEntityCount);
-		m_pRenderContext->FillUniform(lightCountAndStride, lightInfoData.Begin(), 1);
+		m_pRenderContext->FillUniform(StringCrc(lightCountAndStride), lightInfoData.Begin(), 1);
 
 		if (lightEntityCount > 0)
 		{
 			// Light component storage has continus memory address and layout.
 			float *pLightDataBegin = reinterpret_cast<float *>(m_pCurrentSceneWorld->GetLightComponent(lightEntities[0]));
-			constexpr engine::StringCrc lightParams("u_lightParams");
-			m_pRenderContext->FillUniform(lightParams, pLightDataBegin, static_cast<uint16_t>(lightEntityCount * LightUniform::LIGHT_STRIDE));
+			m_pRenderContext->FillUniform(StringCrc(lightParams), pLightDataBegin, static_cast<uint16_t>(lightEntityCount * LightUniform::LIGHT_STRIDE));
 		}
 
 		m_pRenderContext->FillUniform(StringCrc(volumeOrigin), &m_pDDGIComponent->GetVolumeOrigin().x(), 1);
 		m_pRenderContext->FillUniform(StringCrc(volumeProbeSpacing), &m_pDDGIComponent->GetProbeSpacing().x(), 1);
 		m_pRenderContext->FillUniform(StringCrc(volumeProbeCounts), &m_pDDGIComponent->GetProbeCount().x(), 1);
+		cd::Vec4f tmpAmbientMultiplier = cd::Vec4f(m_pDDGIComponent->GetAmbientMultiplier(), 0.0f, 0.0f, 0.0f);
+		m_pRenderContext->FillUniform(StringCrc(ambientMultiplier), &tmpAmbientMultiplier, 1);
 
 		bgfx::setTexture(CLA_MAP_SLOT, m_pRenderContext->GetUniform(StringCrc(classificationSampler)),
 						 m_pRenderContext->GetTexture(StringCrc(GetDDGITextureTypeName(DDGITextureType::Classification))));
