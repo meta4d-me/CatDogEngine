@@ -207,6 +207,31 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 	ImGui::PopStyleVar();
 }
 
+template<>
+void UpdateComponentWidget<engine::DDGIComponent>(engine::SceneWorld *pSceneWorld, engine::Entity entity)
+{
+	auto *pDDGIComponent = pSceneWorld->GetDDGIComponent(entity);
+	if (!pDDGIComponent)
+	{
+		return;
+	}
+
+	bool isOpen = ImGui::CollapsingHeader("DDGIComponent", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+	ImGui::Separator();
+
+	if (isOpen)
+	{
+		ImGuiUtils::ImGuiVectorProperty("Origin", pDDGIComponent->GetVolumeOrigin(), cd::Unit::CenterMeter);
+		ImGuiUtils::ImGuiVectorProperty("Probe Spacing", pDDGIComponent->GetProbeSpacing(), cd::Unit::CenterMeter);
+		ImGuiUtils::ImGuiVectorProperty("Probe Count", pDDGIComponent->GetProbeCount(), cd::Unit::CenterMeter);
+		ImGuiUtils::ImGuiFloatProperty("Ambient Multiplier", pDDGIComponent->GetAmbientMultiplier(), cd::Unit::None, 0.0f, 10.0f);
+	}
+
+	ImGui::Separator();
+	ImGui::PopStyleVar();
+}
+
 }
 
 namespace editor
@@ -241,6 +266,7 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::CameraComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, selectedEntity);
 
 	ImGui::End();
 }
