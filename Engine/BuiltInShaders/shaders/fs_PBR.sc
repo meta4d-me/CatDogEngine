@@ -1,5 +1,6 @@
 $input v_worldPos, v_normal, v_texcoord0, v_TBN
 
+#include "../UniformDefines/U_PBR.sh"
 #include "../common/common.sh"
 #include "../common/Camera.sh"
 #include "../common/Light.sh"
@@ -7,8 +8,8 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 uniform vec4 u_emissiveColor;
 
 #if defined(IBL)
-SAMPLERCUBE(s_texCube, IBL_ALBEDO_SLOT);
 SAMPLERCUBE(s_texCubeIrr, IBL_IRRADIANCE_SLOT);
+SAMPLERCUBE(s_texCube, IBL_RADIANCE_SLOT);
 
 vec3 SampleEnvIrradiance(vec3 normal, float mip) {
 	vec3 cubeNormalDir = normalize(fixCubeLookup(normal, mip, 256.0));
@@ -21,7 +22,7 @@ vec3 SampleEnvRadiance(vec3 reflectDir, float mip) {
 }
 #endif
 
-SAMPLER2D(s_texLUT, LUT_SLOT);
+SAMPLER2D(s_texLUT, BRDF_LUT_SLOT);
 
 vec2 SampleIBLSpecularBRDFLUT(float NdotV, float roughness) {
 	return texture2D(s_texLUT, vec2(NdotV, 1.0 - roughness)).xy;
@@ -70,21 +71,21 @@ void main()
 	vec3 cameraPos = GetCamera().position.xyz;
 	vec3 viewDir = normalize(cameraPos - v_worldPos);
 	
-#if defined(ORM_MAP)
 	// Directional Light
 	vec3 dirColor = GetDirectional(material, v_worldPos, viewDir);
 	
 	// Environment Light
+#if defined(ORM_MAP)
 	vec3 envColor = GetEnvironment(material, v_normal, viewDir);
+#else
+	vec3 envColor = material.albedo;
+#endif
 	
 	// Emissive
 	vec3 emiColor = material.emissive * u_emissiveColor.xyz;
 	
 	// Fragment Color
 	gl_FragColor = vec4(dirColor + envColor + emiColor, 1.0);
-#else
-	gl_FragColor = vec4(material.albedo, 1.0);
-#endif
 	
 	// Post-processing will be used in the last pass.
 }

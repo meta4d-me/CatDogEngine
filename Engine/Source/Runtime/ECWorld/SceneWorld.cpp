@@ -2,8 +2,8 @@
 
 #include "Log/Log.h"
 #include "Path/Path.h"
-#include "U_Slot.sh"
-#include <iostream>
+#include "U_BaseSlot.sh"
+
 #ifdef ENABLE_DDGI_SDK
 #include "ddgi_sdk.h"
 #endif
