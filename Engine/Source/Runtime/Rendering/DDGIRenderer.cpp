@@ -115,7 +115,7 @@ void UpdateDDGITexture(DDGITextureType type, DDGIComponent* pDDGIComponent, Rend
 	DDGITextureInfo info = GetDDGITextureInfo(type, pDDGIComponent);
 	if (nullptr != info.m_pData && info.m_dataSize > 0)
 	{
-		pRenderContext->UpdateTexture(info.m_pName, 0, 0, 0, 0, info.m_textureSizeX, info.m_textureSizeY, info.m_pData, info.m_dataSize);
+		pRenderContext->UpdateTexture(info.m_pName, 0, 0, 0, 0, 0, info.m_textureSizeX, info.m_textureSizeY, 1, info.m_pData, info.m_dataSize);
 	}
 	else
 	{

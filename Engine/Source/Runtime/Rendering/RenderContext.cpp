@@ -368,7 +368,7 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pName, uint16_t wid
 	return texture;
 }
 
-bgfx::TextureHandle RenderContext::UpdateTexture(const char* pName, uint16_t layer, uint8_t mip, uint16_t x, uint16_t y, uint16_t width, uint16_t height, const void* data, uint32_t size)
+bgfx::TextureHandle RenderContext::UpdateTexture(const char *pName, uint16_t layer, uint8_t mip, uint16_t x, uint16_t y, uint16_t z, uint16_t width, uint16_t height, uint16_t depth, const void *data, uint32_t size)
 {
 	bgfx::TextureHandle handle = BGFX_INVALID_HANDLE;
 	const bgfx::Memory *mem = nullptr;
@@ -387,7 +387,14 @@ bgfx::TextureHandle RenderContext::UpdateTexture(const char* pName, uint16_t lay
 	}
 
 	handle = itTextureCache->second;
-	bgfx::updateTexture2D(handle, layer, mip, x, y, width, height, mem);
+	if (depth > 1)
+	{
+		bgfx::updateTexture3D(handle, mip, x, y, z, width, height, depth, mem);
+	}
+	else
+	{
+		bgfx::updateTexture2D(handle, layer, mip, x, y, width, height, mem);
+	}
 
 	return handle;
 }
