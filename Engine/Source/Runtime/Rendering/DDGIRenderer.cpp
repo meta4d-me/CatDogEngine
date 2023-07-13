@@ -35,53 +35,91 @@ constexpr const char *albedoUVOffsetAndScale = "u_albedoUVOffsetAndScale";
 
 constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 
+struct DDGITextureInfo
+{
+	const char *m_pName = "";
+	uint16_t m_textureSizeX = 0;
+	uint16_t m_textureSizeY = 0;
+	bgfx::TextureFormat::Enum m_format = bgfx::TextureFormat::Enum::Unknown;
+	const void *m_pData = nullptr;
+	uint32_t m_dataSize = 0;
+};
+
+DDGITextureInfo GetDDGITextureInfo(DDGITextureType type, DDGIComponent* pDDGIComponent)
+{
+	DDGITextureInfo info;
+
+	cd::Vec3f probeCount = pDDGIComponent->GetProbeCount();
+	cd::Vec2f textureSize = cd::Vec2f(0.0f, 0.0f);
+
+	info.m_pName = GetDDGITextureTypeName(type);
+
+	switch (type)
+	{
+	case DDGITextureType::Classification:
+		textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * CLASSIFICATICON_GRID_SIZE;
+		info.m_textureSizeX = static_cast<uint16_t>(textureSize.x());
+		info.m_textureSizeY = static_cast<uint16_t>(textureSize.y());
+		info.m_format = bgfx::TextureFormat::Enum::R32F;
+		info.m_pData = reinterpret_cast<const void *>(pDDGIComponent->GetClassificationRawData());
+		info.m_dataSize = pDDGIComponent->GetClassificationSize();
+		break;
+	case DDGITextureType::Distance:
+		textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * DISTANCE_GRID_SIZE;
+		info.m_textureSizeX = static_cast<uint16_t>(textureSize.x());
+		info.m_textureSizeY = static_cast<uint16_t>(textureSize.y());
+		info.m_format = bgfx::TextureFormat::Enum::RG32F;
+		info.m_pData = reinterpret_cast<const void *>(pDDGIComponent->GetDistanceRawData());
+		info.m_dataSize = pDDGIComponent->GetDistanceSize();
+		break;
+	case DDGITextureType::Irradiance:
+		textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * IRRADIANCE_GRID_SIZE;
+		info.m_textureSizeX = static_cast<uint16_t>(textureSize.x());
+		info.m_textureSizeY = static_cast<uint16_t>(textureSize.y());
+		info.m_format = bgfx::TextureFormat::Enum::RGBA16F;
+		info.m_pData = reinterpret_cast<const void *>(pDDGIComponent->GetIrradianceRawData());
+		info.m_dataSize = pDDGIComponent->GetIrradianceSize();
+		break;
+	case DDGITextureType::Relocation:
+		textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * RELOCATION_GRID_SIZE;
+		info.m_textureSizeX = static_cast<uint16_t>(textureSize.x());
+		info.m_textureSizeY = static_cast<uint16_t>(textureSize.y());
+		info.m_format = bgfx::TextureFormat::Enum::RGBA16F;
+		info.m_pData = reinterpret_cast<const void *>(pDDGIComponent->GetRelocationRawData());
+		info.m_dataSize = pDDGIComponent->GetRelocationSize();
+		break;
+	}
+
+	return info;
+}
+
 void CreatDDGITexture(DDGITextureType type, DDGIComponent* pDDGIComponent, RenderContext* pRenderContext)
 {
 	assert(nullptr != pDDGIComponent && nullptr != pRenderContext);
 
-	cd::Vec2f textureSize = cd::Vec2f(0.0f, 0.0f);
-	bgfx::TextureFormat::Enum format = bgfx::TextureFormat::Enum::Unknown;
-	const void* data = nullptr;
-	uint32_t dataSize = 0;
-
-	cd::Vec3f probeCount = pDDGIComponent->GetProbeCount();
-
-	switch(type)
+	DDGITextureInfo info = GetDDGITextureInfo(type, pDDGIComponent);
+	if(nullptr != info.m_pData && info.m_dataSize > 0)
 	{
-		case DDGITextureType::Classification:
-			textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * CLASSIFICATICON_GRID_SIZE;
-			format = bgfx::TextureFormat::Enum::R32F;
-			data = reinterpret_cast<const void*>(pDDGIComponent->GetClassificationRawData());
-			dataSize = pDDGIComponent->GetClassificationSize();
-			break;
-		case DDGITextureType::Distance:
-			textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * DISTANCE_GRID_SIZE;
-			format = bgfx::TextureFormat::Enum::RG32F;
-			data = reinterpret_cast<const void*>(pDDGIComponent->GetDistanceRawData());
-			dataSize = pDDGIComponent->GetDistanceSize();
-			break;
-		case DDGITextureType::Irradiance:
-			textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * IRRADIANCE_GRID_SIZE;
-			format = bgfx::TextureFormat::Enum::RGBA16F;
-			data = reinterpret_cast<const void*>(pDDGIComponent->GetIrradianceRawData());
-			dataSize = pDDGIComponent->GetIrradianceSize();
-			break;
-		case DDGITextureType::Relocation:
-			textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * RELOCATION_GRID_SIZE;
-			format = bgfx::TextureFormat::Enum::RGBA16F;
-			data = reinterpret_cast<const void*>(pDDGIComponent->GetRelocationRawData());
-			dataSize = pDDGIComponent->GetRelocationSize();
-			break;
-	}
-
-	const char *pName = GetDDGITextureTypeName(type);
-	if(nullptr != data && dataSize > 0)
-	{
-		pRenderContext->CreateTexture(pName, static_cast<uint16_t>(textureSize.x()), static_cast<uint16_t>(textureSize.y()), 1, format, samplerFlags, data, dataSize);
+		pRenderContext->CreateTexture(info.m_pName, info.m_textureSizeX, info.m_textureSizeY, 1, info.m_format, samplerFlags, info.m_pData, info.m_dataSize);
 	}
 	else
 	{
-		CD_ENGINE_WARN("DDGIRenderer faild to create texture {0}!", pName);
+		CD_ENGINE_WARN("DDGIRenderer faild to create texture {0}!", info.m_pName);
+	}
+}
+
+void UpdateDDGITexture(DDGITextureType type, DDGIComponent* pDDGIComponent, RenderContext* pRenderContext)
+{
+	assert(nullptr != pDDGIComponent && nullptr != pRenderContext);
+
+	DDGITextureInfo info = GetDDGITextureInfo(type, pDDGIComponent);
+	if (nullptr != info.m_pData && info.m_dataSize > 0)
+	{
+		pRenderContext->UpdateTexture(info.m_pName, 0, 0, 0, 0, info.m_textureSizeX, info.m_textureSizeY, info.m_pData, info.m_dataSize);
+	}
+	else
+	{
+		CD_ENGINE_WARN("DDGIRenderer faild to update texture {0}!", info.m_pName);
 	}
 }
 
@@ -209,6 +247,11 @@ void DDGIRenderer::Render(float deltaTime)
 		m_pRenderContext->FillUniform(StringCrc(volumeProbeCounts), &m_pDDGIComponent->GetProbeCount().x(), 1);
 		cd::Vec4f tmpAmbientMultiplier = cd::Vec4f(m_pDDGIComponent->GetAmbientMultiplier(), 0.0f, 0.0f, 0.0f);
 		m_pRenderContext->FillUniform(StringCrc(ambientMultiplier), &tmpAmbientMultiplier, 1);
+
+		UpdateDDGITexture(DDGITextureType::Classification, m_pDDGIComponent, m_pRenderContext);
+		UpdateDDGITexture(DDGITextureType::Distance, m_pDDGIComponent, m_pRenderContext);
+		UpdateDDGITexture(DDGITextureType::Irradiance, m_pDDGIComponent, m_pRenderContext);
+		UpdateDDGITexture(DDGITextureType::Relocation, m_pDDGIComponent, m_pRenderContext);
 
 		bgfx::setTexture(CLA_MAP_SLOT, m_pRenderContext->GetUniform(StringCrc(classificationSampler)),
 						 m_pRenderContext->GetTexture(StringCrc(GetDDGITextureTypeName(DDGITextureType::Classification))));
