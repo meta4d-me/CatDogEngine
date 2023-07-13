@@ -52,8 +52,6 @@ inline std::ostream& operator<<(std::ostream& os, const cd::Quaternion& quaterni
 	return os << std::format("Vector = ({0}, {1}, {2}), Scalar = {3}", quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
 }
 
-#ifndef NDEBUG
-
 // Engine log macros.
 #define CD_ENGINE_TRACE(...) ::engine::Log::GetEngineLogger()->trace(__VA_ARGS__)
 #define CD_ENGINE_INFO(...)  ::engine::Log::GetEngineLogger()->info(__VA_ARGS__)
@@ -71,22 +69,3 @@ inline std::ostream& operator<<(std::ostream& os, const cd::Quaternion& quaterni
 // Runtime assert.
 #define CD_ENGINE_ASSERT(x, ...) { if(!(x)) { ::engine::Log::GetEngineLogger()->error(__VA_ARGS__); } }
 #define CD_ASSERT(x, ...) { if(!(x)) { ::engine::Log::GetApplicationLogger()->error(__VA_ARGS__); } }
-
-#else
-
-// Maby we don't need log in release mode.
-#define CD_ENGINE_TRACE(...)
-#define CD_ENGINE_INFO(...) 
-#define CD_ENGINE_WARN(...) 
-#define CD_ENGINE_ERROR(...)
-#define CD_ENGINE_FATAL(...)
-#define CD_TRACE(...)
-#define CD_INFO(...) 
-#define CD_WARN(...) 
-#define CD_ERROR(...)
-#define CD_FATAL(...)
-
-#define CD_ENGINE_ASSERT(x, ...)
-#define CD_ASSERT(x, ...)
-
-#endif
