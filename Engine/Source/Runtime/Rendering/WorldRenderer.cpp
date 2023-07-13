@@ -145,7 +145,12 @@ void WorldRenderer::Render(float deltaTime)
 		}
 
 		//
-		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
+		constexpr uint64_t defaultState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
+		uint64_t state = defaultState;
+		if (!pMaterialComponent->GetTwoSided())
+		{
+			state |= BGFX_STATE_CULL_CCW;
+		}
 		bgfx::setState(state);
 
 		bgfx::submit(GetViewID(), bgfx::ProgramHandle(pMaterialComponent->GetShadingProgram()));

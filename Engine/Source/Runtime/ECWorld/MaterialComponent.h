@@ -80,6 +80,10 @@ public:
 	cd::Vec3f& GetEmissiveColor() { return m_emissiveColor; }
 	const cd::Vec3f& GetEmissiveColor() const { return m_emissiveColor; }
 
+	void SetTwoSided(bool value) { m_twoSided = value; }
+	bool& GetTwoSided() { return m_twoSided; }
+	bool GetTwoSided() const { return m_twoSided; }
+
 	uint16_t GetShadingProgram() const;
 
 	std::optional<const TextureInfo> GetTextureInfo(cd::MaterialTextureType textureType) const;
@@ -96,6 +100,7 @@ private:
 
 	cd::Vec3f m_albedoColor;
 	cd::Vec3f m_emissiveColor;
+	bool m_twoSided;
 
 	// Output
 	std::map<cd::MaterialTextureType, TextureInfo> m_textureResources;
