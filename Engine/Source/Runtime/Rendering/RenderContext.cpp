@@ -368,6 +368,30 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pName, uint16_t wid
 	return texture;
 }
 
+bgfx::TextureHandle RenderContext::UpdateTexture(const char* pName, uint16_t layer, uint8_t mip, uint16_t x, uint16_t y, uint16_t width, uint16_t height, const void* data, uint32_t size)
+{
+	bgfx::TextureHandle handle = BGFX_INVALID_HANDLE;
+	const bgfx::Memory *mem = nullptr;
+
+	StringCrc textureName(pName);
+	auto itTextureCache = m_textureHandleCaches.find(textureName.Value());
+	if (itTextureCache == m_textureHandleCaches.end())
+	{
+		CD_ENGINE_WARN("Texture handle of {} can not find!", pName);
+		return handle;
+	}
+
+	if (nullptr != data && size > 0)
+	{
+		mem = bgfx::makeRef(data, size);
+	}
+
+	handle = itTextureCache->second;
+	bgfx::updateTexture2D(handle, layer, mip, x, y, width, height, mem);
+
+	return handle;
+}
+
 bgfx::UniformHandle RenderContext::CreateUniform(const char* pName, bgfx::UniformType::Enum uniformType, uint16_t number)
 {
 	StringCrc uniformName(pName);

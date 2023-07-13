@@ -49,14 +49,17 @@ public:
 	RenderTarget* CreateRenderTarget(StringCrc resourceCrc, uint16_t width, uint16_t height, std::vector<AttachmentDescriptor> attachmentDescs);
 	RenderTarget* CreateRenderTarget(StringCrc resourceCrc, uint16_t width, uint16_t height, void* pWindowHandle);
 	RenderTarget* CreateRenderTarget(StringCrc resourceCrc, std::unique_ptr<RenderTarget> pRenderTarget);
+
 	bgfx::ShaderHandle CreateShader(const char* filePath);
 	bgfx::ProgramHandle CreateProgram(const char* pName, const char* pVSName, const char* pFSName);
 	bgfx::ProgramHandle CreateProgram(const char* pName, bgfx::ShaderHandle vsh, bgfx::ShaderHandle fsh);
 	bgfx::ProgramHandle CreateProgram(const char* pName, const char* pCSName);
 	bgfx::ProgramHandle CreateProgram(const char* pName, bgfx::ShaderHandle csh);
+
 	bgfx::TextureHandle CreateTexture(const char* filePath, uint64_t flags = 0UL);
-	// Only 2D/3D texture raw data are handled for now.
 	bgfx::TextureHandle CreateTexture(const char* pName, uint16_t width, uint16_t height, uint16_t depth, bgfx::TextureFormat::Enum format, uint64_t flags = 0UL, const void* data = nullptr, uint32_t size = 0);
+	bgfx::TextureHandle UpdateTexture(const char* pName, uint16_t layer, uint8_t mip, uint16_t x, uint16_t y, uint16_t width, uint16_t height, const void* data = nullptr, uint32_t size = 0);
+	
 	bgfx::UniformHandle CreateUniform(const char* pName, bgfx::UniformType::Enum uniformType, uint16_t number = 1);
 
 	bgfx::VertexLayout CreateVertexLayout(StringCrc resourceCrc, const std::vector<cd::VertexAttributeLayout>& vertexAttributes);
