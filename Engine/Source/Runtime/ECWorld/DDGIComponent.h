@@ -18,6 +18,8 @@ public:
 		return className;
 	}
 
+	void ResetTextureRawData();
+
 	void SetClassificationRawData(const std::string& path);
 	void SetClassificationRawData(const std::shared_ptr<std::vector<uint8_t>>& classification);
 	const uint8_t* GetClassificationRawData() const { return m_classificationRawData.data(); }

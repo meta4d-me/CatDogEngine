@@ -4,7 +4,11 @@
 #include "Path/Path.h"
 #include "U_BaseSlot.sh"
 
-#ifdef DDGI_SDK_PATH
+#if (defined DDGI_SDK_PATH && defined NDEBUG)
+	#define ENABLE_DDGI_SDK
+#endif
+
+#ifdef ENABLE_DDGI_SDK
 #include "ddgi_sdk.h"
 #endif
 
@@ -204,21 +208,21 @@ void SceneWorld::AddLightToSceneDatabase(engine::Entity entity)
 
 void SceneWorld::InitDDGISDK()
 {
-#ifdef DDGI_SDK_PATH
+#ifdef ENABLE_DDGI_SDK
 	if (InitDDGI(DDGI_SDK_PATH))
 	{
-		CD_ENGINE_INFO("Init DDGI client success! SDK path : {0}", DDGI_SDK_PATH);
+		CD_ENGINE_INFO("Init DDGI client success at : {0}", DDGI_SDK_PATH);
 	}
 	else
 	{
-		CD_ENGINE_ERROR("Init DDGI client failed! SDK path : {0}", DDGI_SDK_PATH);
+		CD_ENGINE_ERROR("Init DDGI client failed at : {0}", DDGI_SDK_PATH);
 	}
 #endif 
 }
 
 void SceneWorld::Update(engine::Entity entity)
 {
-#ifdef DDGI_SDK_PATH
+#ifdef ENABLE_DDGI_SDK
 	engine::DDGIComponent* pDDGIComponent = GetDDGIComponent(entity);
 	if (!pDDGIComponent)
 	{
@@ -229,18 +233,18 @@ void SceneWorld::Update(engine::Entity entity)
 	std::shared_ptr<CurrentFrameDecodeData> curDecodeData = GetCurDDGIFrameData();
 	if (curDecodeData != nullptr)
 	{
+		CD_ENGINE_TRACE("Receive DDGI raw data success.");
+
+		static uint32_t frameCount = 0;
+		static std::string savaPath = (std::filesystem::path(DDGI_SDK_PATH) / "Save").string();
+		//WriteDdgi2BinFile(savaPath, *curDecodeData, frameCount++);
+
+		// These will move curDecodeData.
 		pDDGIComponent->SetDistanceRawData(curDecodeData->visDecodeData);
 		pDDGIComponent->SetIrradianceRawData(curDecodeData->irrDecodeData);
+		// pDDGIComponent->SetClassificationRawData();
+		// pDDGIComponent->SetRelocationRawData();
 
-		std::string savaPath = (std::filesystem::path(DDGI_SDK_PATH) / "Save").string();
-		if (WriteDdgi2BinFile(savaPath, *curDecodeData, 0))
-		{
-			CD_ENGINE_INFO("Write ddgi texture to {0} success.", savaPath);
-		}
-		else
-		{
-			CD_ENGINE_ERROR("Write ddgi texture to {0} failed.", savaPath);
-		}
 	}
 #endif
 }

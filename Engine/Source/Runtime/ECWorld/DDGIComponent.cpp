@@ -34,6 +34,23 @@ void ReadTextureBinaryFile(const std::string& path, std::vector<uint8_t>& buffer
 namespace engine
 {
 
+void DDGIComponent::ResetTextureRawData()
+{
+    m_classificationRawData.clear();
+    m_distanceRawData.clear();
+    m_irradianceRawData.clear();
+    m_relocationRawData.clear();
+
+    // 10 * 4 * 32 / 8
+    m_classificationRawData.resize(160, 0);
+    // 160 * 64 * (32 + 32) / 8
+    m_distanceRawData.resize(81920, 0);
+    // 80 * 32 * (16 + 16 + 16 + 16) / 8
+    m_irradianceRawData.resize(20480, 0);
+    // 10 * 4 * (16 + 16 + 16 + 16) / 8
+    m_relocationRawData.resize(320, 0);
+}
+
 void DDGIComponent::SetClassificationRawData(const std::string& path)
 {
     std::string absolutePath = GetBinaryFileRealPath(path);
@@ -50,9 +67,10 @@ void DDGIComponent::SetDistanceRawData(const std::string& path)
     std::string absolutePath = GetBinaryFileRealPath(path);
     ReadTextureBinaryFile(absolutePath, m_distanceRawData);
 }
-void DDGIComponent::SetDistanceRawData(const std::shared_ptr<std::vector<uint8_t>>& irrdiance)
+
+void DDGIComponent::SetDistanceRawData(const std::shared_ptr<std::vector<uint8_t>>& distance)
 {
-    m_irradianceRawData = std::move(*irrdiance);
+    m_distanceRawData = std::move(*distance);
 }
 
 void DDGIComponent::SetIrradianceRawData(const std::string& path)
