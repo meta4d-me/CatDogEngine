@@ -221,7 +221,9 @@ void EditorApp::InitECWorld()
 	m_pSceneWorld->SetMainCameraEntity(cameraEntity);
 	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(cameraEntity);
 	nameComponent.SetName("MainCamera");
-	m_pSceneWorld->InitSDK();
+
+	m_pSceneWorld->InitDDGISDK();
+
 	//auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
 	//transformComponent.SetTransform(cd::Transform::Identity());
 	//transformComponent.Build();
