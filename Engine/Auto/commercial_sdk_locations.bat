@@ -1,1 +1,1 @@
-SET DDGI_SDK_PATH=C:\Users\V\Desktop\sdk\ddgi_sdk
+SET DDGI_SDK_PATH=C:/Users/user1/Desktop/ddgi_sdk

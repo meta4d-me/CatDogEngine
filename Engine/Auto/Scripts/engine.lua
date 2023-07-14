@@ -99,7 +99,7 @@ project("Engine")
 			"ddgi_sdk", "mright_sdk", "DDGIProbeDecoderBin"
 		}
 		defines {
-			"ENABLE_DDGI_SDK"
+			"DDGI_SDK_PATH=\""..DDGI_SDK_PATH.."\"",
 		}
 	end
 

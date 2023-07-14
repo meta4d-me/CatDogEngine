@@ -4,7 +4,7 @@
 #include "Path/Path.h"
 #include "U_BaseSlot.sh"
 
-#ifdef ENABLE_DDGI_SDK
+#ifdef DDGI_SDK_PATH
 #include "ddgi_sdk.h"
 #endif
 
@@ -202,40 +202,47 @@ void SceneWorld::AddLightToSceneDatabase(engine::Entity entity)
 	pSceneDatabase->AddLight(cd::MoveTemp(light));
 }
 
-void SceneWorld::Update(engine::Entity entity)
+void SceneWorld::InitDDGISDK()
 {
-#ifdef ENABLE_DDGI_SDK
-	engine::DDGIComponent* pDDGIComponent = GetDDGIComponent(entity);
-	if (!pDDGIComponent)
+#ifdef DDGI_SDK_PATH
+	if (InitDDGI(DDGI_SDK_PATH))
 	{
-		assert("Invalid entity");
-		return;
-	}
-	static uint32_t frameIndex = 1;
-	static std::shared_ptr<CurrentFrameDecodeData> curDecodeData;
-	std::this_thread::sleep_for(std::chrono::milliseconds(33));
-	curDecodeData = GetCurDDGIFrameData();
-	if (curDecodeData != nullptr)
-	{
-		pDDGIComponent->SetDistanceRawData(curDecodeData->visDecodeData);
-		pDDGIComponent->SetIrradianceRawData(curDecodeData->irrDecodeData); 
-	}
-	++frameIndex;
-#endif
-}
-
-void SceneWorld::InitSDK()
-{
-#ifdef ENABLE_DDGI_SDK
-	std::string configFilePath = "C:/Users/V/Desktop/sdk/ddgi_sdk";
-	if (InitDDGI(configFilePath))
-	{
-		std::cout << "Init DDGI Client Success!" << std::endl;
+		CD_ENGINE_INFO("Init DDGI client success! SDK path : {0}", DDGI_SDK_PATH);
 	}
 	else
 	{
-		std::cout << "Init DDGI Client Failed!" << std::endl;
+		CD_ENGINE_ERROR("Init DDGI client failed! SDK path : {0}", DDGI_SDK_PATH);
 	}
 #endif 
 }
+
+void SceneWorld::Update(engine::Entity entity)
+{
+#ifdef DDGI_SDK_PATH
+	engine::DDGIComponent* pDDGIComponent = GetDDGIComponent(entity);
+	if (!pDDGIComponent)
+	{
+		CD_ENGINE_ERROR("Can not get DDGI Component from entity {0}.", static_cast<uint32_t>(entity));
+		return;
+	}
+
+	std::shared_ptr<CurrentFrameDecodeData> curDecodeData = GetCurDDGIFrameData();
+	if (curDecodeData != nullptr)
+	{
+		pDDGIComponent->SetDistanceRawData(curDecodeData->visDecodeData);
+		pDDGIComponent->SetIrradianceRawData(curDecodeData->irrDecodeData);
+
+		std::string savaPath = (std::filesystem::path(DDGI_SDK_PATH) / "Save").string();
+		if (WriteDdgi2BinFile(savaPath, *curDecodeData, 0))
+		{
+			CD_ENGINE_INFO("Write ddgi texture to {0} success.", savaPath);
+		}
+		else
+		{
+			CD_ENGINE_ERROR("Write ddgi texture to {0} failed.", savaPath);
+		}
+	}
+#endif
+}
+
 }
