@@ -285,6 +285,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 		}
 	}
 
+	bool twoSided = false;
 	cd::Vec3f albedoColor(1.0f);
 	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
 	engine::StringCrc currentUberOption(shaderSchema.GetUberCombines().at(0));
@@ -328,6 +329,11 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 				}
 			}
 
+			if (auto optTwoSided = pMaterial->GetBoolProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::TwoSided); optTwoSided.has_value())
+			{
+				twoSided = optTwoSided.value();
+			}
+
 			currentUberOption = shaderSchema.GetProgramCrc(m_activeUberOptions);
 		}
 		else
@@ -346,6 +352,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	materialComponent.Init(pMaterialType, pMaterial);
 	materialComponent.SetUberShaderOption(currentUberOption);
 	materialComponent.SetAlbedoColor(cd::MoveTemp(albedoColor));
+	materialComponent.SetTwoSided(twoSided);
 
 	// Textures.
 	for (const auto& [outputTextureFilePath, pTextureData] : outputTexturePathToData)
