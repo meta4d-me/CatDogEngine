@@ -19,13 +19,14 @@ struct Material {
 
 uniform vec4 u_albedoColor;
 uniform vec4 u_albedoUVOffsetAndScale;
+uniform vec4 u_alphaCutOff;
 
 #if defined(ALBEDO_MAP)
 SAMPLER2D(s_texBaseColor, ALBEDO_MAP_SLOT);
 
-vec3 SampleAlbedoTexture(vec2 uv) {
+vec4 SampleAlbedoTexture(vec2 uv) {
 	// We assume that albedo texture is already in linear space.
-	return texture2D(s_texBaseColor, uv).xyz;
+	return texture2D(s_texBaseColor, uv);
 }
 #endif
 
@@ -86,7 +87,9 @@ Material GetMaterial(vec2 uv, vec3 normal, mat3 TBN) {
 	vec2 albedoUV = uv * uvScale + uvOffset;
 	
 #if defined(ALBEDO_MAP)
-	material.albedo = SampleAlbedoTexture(albedoUV);
+	vec4 albedoTexture = SampleAlbedoTexture(albedoUV);
+	material.albedo = albedoTexture.xyz;
+	material.opacity = albedoTexture.w;
 #endif
 	material.albedo *= u_albedoColor.xyz;
 

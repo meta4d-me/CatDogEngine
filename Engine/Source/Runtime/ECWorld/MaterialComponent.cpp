@@ -100,8 +100,6 @@ namespace engine
 
 void MaterialComponent::Init(const engine::MaterialType* pMaterialType, const cd::Material* pMaterialData)
 {
-	Reset();
-
 	m_pMaterialData = pMaterialData;
 	m_pMaterialType = pMaterialType;
 }
@@ -140,6 +138,8 @@ void MaterialComponent::Reset()
 	m_albedoColor = cd::Vec3f::One();
 	m_emissiveColor = cd::Vec3f::One();
 	m_twoSided = false;
+	m_blendMode = cd::BlendMode::Opaque;
+	m_alphaCutOff = 1.0f;
 	m_textureResources.clear();
 }
 
