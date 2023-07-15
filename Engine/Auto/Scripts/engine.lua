@@ -86,22 +86,22 @@ project("Engine")
 			"bgfxRelease", "bimgRelease", "bxRelease", "bimg_decodeRelease",
 			"freetype"
 		}
+		
+		if DDGI_SDK_PATH ~= "" then
+			includedirs {
+				path.join(DDGI_SDK_PATH, "include"),
+			}
+			libdirs {
+				path.join(DDGI_SDK_PATH, "lib"),
+			}
+			links {
+				"ddgi_sdk", "mright_sdk", "DDGIProbeDecoderBin"
+			}
+			defines {
+				"DDGI_SDK_PATH=\""..DDGI_SDK_PATH.."\"",
+			}
+		end
 	filter {}
-
-	if DDGI_SDK_PATH ~= "" then
-		includedirs {
-			path.join(DDGI_SDK_PATH, "include"),
-		}
-		libdirs {
-			path.join(DDGI_SDK_PATH, "lib"),
-		}
-		links {
-			"ddgi_sdk", "mright_sdk", "DDGIProbeDecoderBin"
-		}
-		defines {
-			"DDGI_SDK_PATH=\""..DDGI_SDK_PATH.."\"",
-		}
-	end
 
 	if "SharedLib" == EngineBuildLibKind then
 		table.insert(platformDefines, "ENGINE_BUILD_SHARED")

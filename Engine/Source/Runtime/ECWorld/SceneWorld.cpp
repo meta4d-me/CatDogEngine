@@ -223,6 +223,7 @@ void SceneWorld::InitDDGISDK()
 void SceneWorld::Update(engine::Entity entity)
 {
 #ifdef ENABLE_DDGI_SDK
+	// std::this_thread::sleep_for(std::chrono::milliseconds(33));
 	engine::DDGIComponent* pDDGIComponent = GetDDGIComponent(entity);
 	if (!pDDGIComponent)
 	{

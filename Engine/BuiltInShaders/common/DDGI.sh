@@ -190,7 +190,7 @@ vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volu
 		// Find the texture coordinates of the probe.
 		ivec2 adjacentProbeTextureCoords = DDGIGetProbeOffsetCoord(adjacentProbeCoords, volume.probeCounts);
 		// Load the probe's world-space position offset and add it to the current world position.
-		// We Dont have Classification and Relocation texture for now.
+		// We dont have Classification and Relocation texture for now.
 		// adjacentProbeWorldPosition += (DDGILoadProbeDataOffset(adjacentProbeTextureCoords) * volume.probeSpacing);
 		
 		// Compute the distance and direction from the (biased and non-biased) shading point and the adjacent probe.
