@@ -98,6 +98,11 @@ uint64_t GetBGFXTextureFlag(cd::MaterialTextureType textureType, cd::TextureMapM
 namespace engine
 {
 
+MaterialComponent::MaterialComponent()
+{
+	Reset();
+}
+
 void MaterialComponent::Init(const engine::MaterialType* pMaterialType, const cd::Material* pMaterialData)
 {
 	m_pMaterialData = pMaterialData;

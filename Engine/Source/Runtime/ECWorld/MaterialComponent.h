@@ -56,7 +56,7 @@ public:
 	};
 
 public:
-	MaterialComponent() { Reset(); }
+	MaterialComponent();
 	MaterialComponent(const MaterialComponent&) = default;
 	MaterialComponent& operator=(const MaterialComponent&) = default;
 	MaterialComponent(MaterialComponent&&) = default;
