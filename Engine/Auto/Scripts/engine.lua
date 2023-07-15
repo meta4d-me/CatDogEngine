@@ -86,7 +86,9 @@ project("Engine")
 			"bgfxRelease", "bimgRelease", "bxRelease", "bimg_decodeRelease",
 			"freetype"
 		}
-		
+	filter {}
+	
+	filter { "configurations:Release" }
 		if DDGI_SDK_PATH ~= "" then
 			includedirs {
 				path.join(DDGI_SDK_PATH, "include"),
@@ -102,11 +104,11 @@ project("Engine")
 			}
 		end
 	filter {}
-
+	
 	if "SharedLib" == EngineBuildLibKind then
 		table.insert(platformDefines, "ENGINE_BUILD_SHARED")
 	end
-
+	
 	defines {
 		"SDL_MAIN_HANDLED", -- don't use SDL_main() as entry point
 		"__STDC_LIMIT_MACROS", "__STDC_FORMAT_MACROS", "__STDC_CONSTANT_MACROS",
@@ -173,3 +175,14 @@ project("Engine")
 			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/assimp-*-mt.*").."\" \""..BinariesPath.."\"",
 		}
 	filter {}
+	
+	filter { "configurations:Release" }
+		if DDGI_SDK_PATH ~= "" then
+			postbuildcommands {
+				"{COPYFILE} \""..path.join(DDGI_SDK_PATH, "bin/*.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(DDGI_SDK_PATH, "bin/ThirdParty/ffmpeg/*.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(DDGI_SDK_PATH, "bin/ThirdParty/zlib/*.*").."\" \""..BinariesPath.."\"",
+			}
+		end
+	filter {}
+	

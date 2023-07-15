@@ -223,13 +223,13 @@ void SceneWorld::InitDDGISDK()
 void SceneWorld::Update(float deltaTime, engine::Entity entity)
 {
 #ifdef ENABLE_DDGI_SDK
-	// Send request 30 times per second, and reset sumMillisecond per second.
-	static uint16_t sumMillisecond = 0;
-	sumMillisecond = (sumMillisecond > 60000) ? 0 : sumMillisecond + static_cast<uint16_t>(deltaTime * 1000);
-	if (sumMillisecond % 33 != 0)
+	// Send request 30 times per second.
+	static auto startTime = std::chrono::steady_clock::now();
+	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - startTime).count() <= 33 * 1000 * 1000)
 	{
 		return;
 	}
+	startTime = std::chrono::steady_clock::now();
 
 	engine::DDGIComponent* pDDGIComponent = GetDDGIComponent(entity);
 	if (!pDDGIComponent)
