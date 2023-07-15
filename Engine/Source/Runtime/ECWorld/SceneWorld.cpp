@@ -220,7 +220,7 @@ void SceneWorld::InitDDGISDK()
 #endif 
 }
 
-void SceneWorld::Update(float deltaTime, engine::Entity entity)
+void SceneWorld::Update(engine::Entity entity)
 {
 #ifdef ENABLE_DDGI_SDK
 	// Send request 30 times per second.
