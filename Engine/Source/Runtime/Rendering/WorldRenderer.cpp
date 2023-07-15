@@ -35,6 +35,7 @@ void WorldRenderer::Init()
 	m_pRenderContext->CreateUniform("u_albedoColor", bgfx::UniformType::Vec4, 1);
 	m_pRenderContext->CreateUniform("u_emissiveColor", bgfx::UniformType::Vec4, 1);
 	m_pRenderContext->CreateUniform("u_albedoUVOffsetAndScale", bgfx::UniformType::Vec4, 1);
+	m_pRenderContext->CreateUniform("u_alphaCutOff", bgfx::UniformType::Vec4, 1);
 
 	bgfx::setViewName(GetViewID(), "WorldRenderer");
 }
@@ -153,6 +154,13 @@ void WorldRenderer::Render(float deltaTime)
 		{
 			state |= BGFX_STATE_CULL_CCW;
 		}
+
+		if (cd::BlendMode::Mask == pMaterialComponent->GetBlendMode())
+		{
+			constexpr StringCrc uvOffsetAndScale("u_alphaCutOff");
+			m_pRenderContext->FillUniform(uvOffsetAndScale, &pMaterialComponent->GetAlphaCutOff(), 1);
+		}
+
 		bgfx::setState(state);
 
 		bgfx::submit(GetViewID(), bgfx::ProgramHandle(pMaterialComponent->GetShadingProgram()));

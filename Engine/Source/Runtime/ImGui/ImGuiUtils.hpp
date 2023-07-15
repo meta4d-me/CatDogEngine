@@ -16,14 +16,14 @@ static bool ImGuiBoolProperty(const char* pName, bool& value)
 	return ImGui::Checkbox(pName, &value);
 }
 
-static bool ImGuiStringProperty(const char* pName, std::string& value)
+static bool ImGuiStringProperty(const char* pName, const char* pValue)
 {
 	ImGui::Columns(2);
 	ImGui::TextUnformatted(pName);
 	ImGui::NextColumn();
 	ImGui::PushItemWidth(-1);
 
-	ImGui::TextUnformatted(value.c_str());
+	ImGui::TextUnformatted(pValue);
 
 	ImGui::PopItemWidth();
 	ImGui::NextColumn();
@@ -31,6 +31,11 @@ static bool ImGuiStringProperty(const char* pName, std::string& value)
 
 	// TODO : editable
 	return false;
+}
+
+static bool ImGuiStringProperty(const char* pName, const std::string& value)
+{
+	return ImGuiStringProperty(pName, value.c_str());
 }
 
 static bool ImGuiFloatProperty(const char* pName, float& value, cd::Unit unit = cd::Unit::None, float minValue = {}, float maxValue = {}, bool isNormalized = false, float speed = -1.0f)
