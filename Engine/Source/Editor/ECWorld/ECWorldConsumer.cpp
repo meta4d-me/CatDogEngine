@@ -285,7 +285,9 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 		}
 	}
 
-	bool twoSided = false;
+	// In any bad case, we should have a material component.
+	engine::MaterialComponent& materialComponent = m_pSceneWorld->GetWorld()->CreateComponent<engine::MaterialComponent>(entity);
+
 	cd::Vec3f albedoColor(1.0f);
 	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
 	engine::StringCrc currentUberOption(shaderSchema.GetUberCombines().at(0));
@@ -331,7 +333,21 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 
 			if (auto optTwoSided = pMaterial->GetBoolProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::TwoSided); optTwoSided.has_value())
 			{
-				twoSided = optTwoSided.value();
+				materialComponent.SetTwoSided(optTwoSided.value());
+			}
+
+			if (auto optBlendMode = pMaterial->GetI32Property(cd::MaterialPropertyGroup::General, cd::MaterialProperty::BlendMode); optBlendMode.has_value())
+			{
+				cd::BlendMode blendMode = static_cast<cd::BlendMode>(optBlendMode.value());
+				if (cd::BlendMode::Mask == blendMode)
+				{
+					auto optAlphaTestValue = pMaterial->GetFloatProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::OpacityMaskClipValue);
+					assert(optAlphaTestValue.has_value());
+
+					materialComponent.SetAlphaCutOff(optAlphaTestValue.value());
+				}
+
+				materialComponent.SetBlendMode(blendMode);
 			}
 
 			currentUberOption = shaderSchema.GetProgramCrc(m_activeUberOptions);
@@ -348,11 +364,9 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 
 	// TODO : create material component before ResourceBuilder done.
 	// Assign a special color for loading resource status.
-	engine::MaterialComponent& materialComponent = m_pSceneWorld->GetWorld()->CreateComponent<engine::MaterialComponent>(entity);
 	materialComponent.Init(pMaterialType, pMaterial);
 	materialComponent.SetUberShaderOption(currentUberOption);
 	materialComponent.SetAlbedoColor(cd::MoveTemp(albedoColor));
-	materialComponent.SetTwoSided(twoSided);
 
 	// Textures.
 	for (const auto& [outputTextureFilePath, pTextureData] : outputTexturePathToData)
