@@ -220,10 +220,17 @@ void SceneWorld::InitDDGISDK()
 #endif 
 }
 
-void SceneWorld::Update(engine::Entity entity)
+void SceneWorld::Update(float deltaTime, engine::Entity entity)
 {
 #ifdef ENABLE_DDGI_SDK
-	// std::this_thread::sleep_for(std::chrono::milliseconds(33));
+	// Send request 30 times per second, and reset sumMillisecond per second.
+	static uint16_t sumMillisecond = 0;
+	sumMillisecond = (sumMillisecond > 60000) ? 0 : sumMillisecond + static_cast<uint16_t>(deltaTime * 1000);
+	if (sumMillisecond % 33 != 0)
+	{
+		return;
+	}
+
 	engine::DDGIComponent* pDDGIComponent = GetDDGIComponent(entity);
 	if (!pDDGIComponent)
 	{
@@ -236,16 +243,13 @@ void SceneWorld::Update(engine::Entity entity)
 	{
 		CD_ENGINE_TRACE("Receive DDGI raw data success.");
 
-		static uint32_t frameCount = 0;
-		static std::string savaPath = (std::filesystem::path(DDGI_SDK_PATH) / "Save").string();
-		//WriteDdgi2BinFile(savaPath, *curDecodeData, frameCount++);
+		// static uint32_t frameCount = 0;
+		// static std::string savaPath = (std::filesystem::path(DDGI_SDK_PATH) / "Save").string();
+		// WriteDdgi2BinFile(savaPath, *curDecodeData, frameCount++);
 
 		// These will move curDecodeData.
 		pDDGIComponent->SetDistanceRawData(curDecodeData->visDecodeData);
 		pDDGIComponent->SetIrradianceRawData(curDecodeData->irrDecodeData);
-		// pDDGIComponent->SetClassificationRawData();
-		// pDDGIComponent->SetRelocationRawData();
-
 	}
 #endif
 }
