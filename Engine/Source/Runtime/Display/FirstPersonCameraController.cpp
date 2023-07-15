@@ -32,6 +32,21 @@ FirstPersonCameraController::FirstPersonCameraController(
 	assert(pSceneWorld);
 }
 
+void FirstPersonCameraController::CameraToController()
+{
+	m_lookAt = GetLookAt(GetMainCameraTransform());
+	m_up = GetUp(GetMainCameraTransform());
+}
+
+void FirstPersonCameraController::ControllerToCamera()
+{
+	cd::Vec3f eye = m_eye;
+	cd::Vec3f lookAt = m_lookAt;
+	cd::Vec3f up = m_up;
+// There will be some operation to change eye and lookAt or up
+	GetMainCameraComponent()->BuildView(eye, lookAt, up);
+}
+
 void FirstPersonCameraController::Update(float deltaTime)
 {
 	if (Input::Get().IsKeyPressed(KeyCode::w))

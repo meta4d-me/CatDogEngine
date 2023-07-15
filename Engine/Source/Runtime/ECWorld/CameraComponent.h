@@ -34,6 +34,7 @@ public:
 	~CameraComponent() = default;
 
 	void BuildView(cd::Transform tranform );
+	void BuildView(cd::Vec3f eye, cd::Vec3f lookAt, cd::Vec3f up);
 	void BuildProject();
 
 	void FrameAll(const cd::AABB& aabb);

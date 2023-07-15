@@ -1,3 +1,4 @@
+#include"ECWorld/CameraComponent.h"
 #include "Math/Quaternion.hpp"
 #include "Math/Transform.hpp"
 #include "Math/Vector.hpp"
@@ -26,5 +27,15 @@ static void SetCross(cd::Vec3f cross, cd::Transform& transform)
 	cd::Vec3f rotAxis = GetCross(transform).Cross(cross.Normalize());
 	float rotAngle = std::acos(GetUp(transform).Dot(cross.Normalize()));
 	transform.SetRotation(transform.GetRotation() * cd::Quaternion::FromAxisAngle(rotAxis, rotAngle));
+}
+
+/// <summary>
+/// Sets the camera eye point, lookAt point, and up vector</summary>
+/// <param name="eye">Eye point, in "world view" space</param>
+/// <param name="lookAtPoint">LookAt point, in "world view" space</param>
+/// <param name="up">Up vector, in "world view" space</param>
+static void SetCamera(cd::Vec3f eye, cd::Vec3f lookAt, cd::Vec3f up, CameraComponent* camera)
+{
+	camera->BuildView(eye, lookAt, up);
 }
 }

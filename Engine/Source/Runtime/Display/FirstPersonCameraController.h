@@ -46,6 +46,12 @@ public:
 	void PitchLocal(float angleDegrees);
 	void RollLocal(float angleDegrees);
 
+	//Camera's tranform data input and uotput
+	
+	//Synchronizes the controller to the transform of camera current state
+	void CameraToController();
+	//Synchronizes the transform of camera to the controller's current state
+	void ControllerToCamera();
 private:
 	engine::CameraComponent* GetMainCameraComponent() const;
 	cd::Transform GetMainCameraTransform();
@@ -53,9 +59,17 @@ private:
 private:
 	const SceneWorld* m_pSceneWorld;
 
+	float m_distanceFromLookAt; //distance from camera to LookAt point
+	float m_azimuth;            //angle of rotation in XZ plane starting from +Z axis (radians)
+	float m_elevation;           //angle of elevation from XZ plane (radians)
+
 	float m_horizontalSensitivity;
 	float m_verticalSensitivity;
 	float m_movementSpeed;
+
+	cd::Vec3f m_lookAt;
+	cd::Vec3f m_up;
+	cd::Vec3f m_eye;
 };
 
 }	// namespace engine

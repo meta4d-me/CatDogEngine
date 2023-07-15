@@ -20,6 +20,11 @@ void CameraComponent::BuildView(cd::Transform transform)
 	}
 }
 
+void CameraComponent::BuildView(cd::Vec3f eye, cd::Vec3f lookAt, cd::Vec3f up)
+{
+	m_viewMatrix = cd::Matrix4x4::LookAt<cd::Handedness::Left>(eye, eye + lookAt, up);
+}
+
 void CameraComponent::BuildProject()
 {
 	if (m_isProjectionDirty)
