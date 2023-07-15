@@ -9,7 +9,7 @@
 #include "Material/ShaderSchema.h"
 #include "RenderContext.h"
 #include "Scene/Texture.h"
-#include "U_Slot.sh"
+#include "U_PBR.sh"
 
 #include <format>
 
@@ -103,14 +103,14 @@ void WorldRenderer::Render(float deltaTime)
 
 		constexpr StringCrc lutSampler("s_texLUT");
 		constexpr StringCrc lutTexture("Textures/lut/ibl_brdf_lut.dds");
-		bgfx::setTexture(LUT_SLOT, m_pRenderContext->GetUniform(lutSampler), m_pRenderContext->GetTexture(lutTexture));
+		bgfx::setTexture(BRDF_LUT_SLOT, m_pRenderContext->GetUniform(lutSampler), m_pRenderContext->GetTexture(lutTexture));
 
 		constexpr StringCrc useIBLCrc("USE_PBR_IBL");
 		if (useIBLCrc == pMaterialComponent->GetUberShaderOption())
 		{
 			constexpr StringCrc cubeSampler("s_texCube");
 			constexpr StringCrc cubeTexture("Textures/skybox/bolonga_lod.dds");
-			bgfx::setTexture(IBL_ALBEDO_SLOT, m_pRenderContext->GetUniform(cubeSampler), m_pRenderContext->GetTexture(cubeTexture));
+			bgfx::setTexture(IBL_RADIANCE_SLOT, m_pRenderContext->GetUniform(cubeSampler), m_pRenderContext->GetTexture(cubeTexture));
 
 			constexpr StringCrc cubeIrrSampler("s_texCubeIrr");
 			constexpr StringCrc cubeIrrTexture("Textures/skybox/bolonga_irr.dds");
@@ -145,7 +145,12 @@ void WorldRenderer::Render(float deltaTime)
 		}
 
 		//
-		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
+		constexpr uint64_t defaultState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
+		uint64_t state = defaultState;
+		if (!pMaterialComponent->GetTwoSided())
+		{
+			state |= BGFX_STATE_CULL_CCW;
+		}
 		bgfx::setState(state);
 
 		bgfx::submit(GetViewID(), bgfx::ProgramHandle(pMaterialComponent->GetShadingProgram()));

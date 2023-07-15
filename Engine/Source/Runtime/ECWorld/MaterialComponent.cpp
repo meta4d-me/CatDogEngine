@@ -139,6 +139,7 @@ void MaterialComponent::Reset()
 	m_uberShaderOption = ShaderSchema::DefaultUberOption;
 	m_albedoColor = cd::Vec3f::One();
 	m_emissiveColor = cd::Vec3f::One();
+	m_twoSided = false;
 	m_textureResources.clear();
 }
 

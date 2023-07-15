@@ -1,4 +1,4 @@
-// @brief Calculate the contribution of all light sources to current fragment.
+// @brief Calculates the contribution of all light sources to the direct light color received by the current fragment.
 // 
 // vec3 CalculateLights(Material material, vec3 worldPos, vec3 viewDir, vec3 diffuseBRDF);
 
