@@ -33,7 +33,8 @@ public:
 	CameraComponent& operator=(CameraComponent&&) = default;
 	~CameraComponent() = default;
 
-	void Build();
+	void BuildView(cd::Transform tranform );
+	void BuildProject();
 
 	void FrameAll(const cd::AABB& aabb);
 	cd::Ray EmitRay(float screenX, float screenY, float width, float height) const;
@@ -63,18 +64,9 @@ public:
 	// View
 	const cd::Matrix4x4& GetViewMatrix() const { return m_viewMatrix; }
 
-	void SetEye(cd::Point eye) { m_eye = cd::MoveTemp(eye); m_isViewDirty = true; }
-	const cd::Point& GetEye() const { return m_eye; }
-
-	void SetLookAt(cd::Direction lookAt) { m_lookAt = cd::MoveTemp(lookAt); m_isViewDirty = true; }
-	const cd::Direction& GetLookAt() const { return m_lookAt; }
-
-	void SetUp(cd::Direction up) { m_up = cd::MoveTemp(up); m_isViewDirty = true; }
-	const cd::Direction& GetUp() const { return m_up; }
-
-	const cd::Direction& GetCross() const { return m_cross; }
-
 	void Dirty() const { m_isViewDirty = true; m_isProjectionDirty = true; }
+	void ViewDirty() const { m_isViewDirty = true; }
+	void ProjectDirty() const { m_isProjectionDirty = true; }
 
 #ifdef EDITOR_MODE
 	bool& GetDoConstrainAspectRatio() { return m_doConstainAspectRatio; }
@@ -97,16 +89,12 @@ private:
 	float m_nearPlane;
 	float m_farPlane;
 	cd::NDCDepth m_ndcDepth;
-	cd::Point m_eye;
-	cd::Direction m_lookAt;
-	cd::Direction m_up;
 
 	// Status
 	mutable bool m_isViewDirty;
 	mutable bool m_isProjectionDirty;
 
 	// Output
-	cd::Direction m_cross;
 	cd::Matrix4x4 m_viewMatrix;
 	cd::Matrix4x4 m_projectionMatrix;
 

@@ -7,6 +7,7 @@
 #include "ECWorld/TransformComponent.h"
 #include "LightUniforms.h"
 #include "Material/ShaderSchema.h"
+#include "Math/Transform.hpp"
 #include "RenderContext.h"
 #include "Scene/Texture.h"
 #include "U_PBR.sh"
@@ -49,6 +50,7 @@ void WorldRenderer::Render(float deltaTime)
 {
 	// TODO : Remove it. If every renderer need to submit camera related uniform, it should be done not inside Renderer class.
 	const engine::CameraComponent* pCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(m_pCurrentSceneWorld->GetMainCameraEntity());
+	const cd::Transform& cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetTransform();
 	for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
 	{
 		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
@@ -127,7 +129,7 @@ void WorldRenderer::Render(float deltaTime)
 
 		// Submit uniform values : camera settings
 		constexpr StringCrc cameraPos("u_cameraPos");
-		m_pRenderContext->FillUniform(cameraPos, &pCameraComponent->GetEye().x(), 1);
+		m_pRenderContext->FillUniform(cameraPos, &cameraTransform.GetTranslation().x(), 1);
 
 		// Submit uniform values : light settings
 		auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();

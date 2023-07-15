@@ -1,5 +1,6 @@
 #include "FirstPersonCameraController.h"
 
+#include "Display/CameraUtility.h"
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/SceneWorld.h"
 #include "Math/Quaternion.hpp"
@@ -96,10 +97,19 @@ engine::CameraComponent* FirstPersonCameraController::GetMainCameraComponent() c
 	return m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
 }
 
+cd::Transform FirstPersonCameraController::GetMainCameraTransform() 
+{
+	return m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity())->GetTransform();
+}
+
+
 void FirstPersonCameraController::MoveForward(float amount)
 {
-	engine::CameraComponent* pCameraComponent = GetMainCameraComponent();
-	pCameraComponent->SetEye(pCameraComponent->GetEye() + pCameraComponent->GetLookAt() * amount);
+	if (TransformComponent* pTranformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity()))
+	{
+		pTranformComponent->GetTransform().SetTranslation(pTranformComponent->GetTransform().GetTranslation() + GetLookAt(pTranformComponent->GetTransform()) * amount);
+		GetMainCameraComponent()->ViewDirty();
+	}
 }
 
 void FirstPersonCameraController::MoveBackward(float amount)
@@ -109,8 +119,11 @@ void FirstPersonCameraController::MoveBackward(float amount)
 
 void FirstPersonCameraController::MoveLeft(float amount)
 {
-	engine::CameraComponent* pCameraComponent = GetMainCameraComponent();
-	pCameraComponent->SetEye(pCameraComponent->GetEye() - pCameraComponent->GetCross() * amount);
+	if (TransformComponent* pTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity()))
+	{
+		pTransformComponent->GetTransform().SetTranslation(pTransformComponent->GetTransform().GetTranslation() - GetCross(pTransformComponent->GetTransform()) * amount);
+		GetMainCameraComponent()->ViewDirty();
+	}
 }
 
 void FirstPersonCameraController::MoveRight(float amount)
@@ -120,8 +133,11 @@ void FirstPersonCameraController::MoveRight(float amount)
 
 void FirstPersonCameraController::MoveUp(float amount)
 {
-	engine::CameraComponent* pCameraComponent = GetMainCameraComponent();
-	pCameraComponent->SetEye(pCameraComponent->GetEye() + pCameraComponent->GetUp() * amount);
+	if (TransformComponent* pTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity()))
+	{
+		pTransformComponent->GetTransform().SetTranslation(pTransformComponent->GetTransform().GetTranslation() + GetUp(pTransformComponent->GetTransform()) * amount);
+		GetMainCameraComponent()->ViewDirty();
+	}
 }
 
 void FirstPersonCameraController::MoveDown(float amount)
@@ -131,16 +147,24 @@ void FirstPersonCameraController::MoveDown(float amount)
 
 void FirstPersonCameraController::Rotate(const cd::Vec3f& axis, float angleDegrees)
 {
-	engine::CameraComponent* pCameraComponent = GetMainCameraComponent();
 	cd::Quaternion rotation = cd::Quaternion::FromAxisAngle(axis, cd::Math::DegreeToRadian<float>(angleDegrees));
-	pCameraComponent->SetLookAt(rotation * pCameraComponent->GetLookAt());
-	pCameraComponent->SetUp(rotation * pCameraComponent->GetUp());
+	if (TransformComponent* pTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity()))
+	{	
+		SetLookAt(rotation * GetLookAt(pTransformComponent->GetTransform()), pTransformComponent->GetTransform());
+		SetUp(rotation * GetUp(pTransformComponent->GetTransform()), pTransformComponent->GetTransform());
+		GetMainCameraComponent()->ViewDirty();
+		//cd::Vec3f lookAt = GetLookAt(pTransformComponent->GetTransform());
+		//cd::Vec3f up = GetUp(pTransformComponent->GetTransform());
+		//cd::Vec3f eye = pTransformComponent->GetTransform().GetTranslation();
+		//cd::Matrix4x4 viewMatrix = cd::Matrix4x4::LookAt<cd::Handedness::Left>(eye, eye + lookAt, up);
+	}
 }
 
 void FirstPersonCameraController::Rotate(float x, float y, float z, float angleDegrees)
 {
 	Rotate(cd::Vec3f(x, y, z), angleDegrees);
 }
+
 
 void FirstPersonCameraController::Yaw(float angleDegrees)
 {
@@ -154,22 +178,22 @@ void FirstPersonCameraController::Pitch(float angleDegrees)
 
 void FirstPersonCameraController::Roll(float angleDegrees)
 {
-	Rotate(0.0f, 0.0f, 1.0f, angleDegrees);
+	Rotate(0.0f, 0.0f,1.0f, angleDegrees);
 }
 
 void FirstPersonCameraController::YawLocal(float angleDegrees)
 {
-	Rotate(GetMainCameraComponent()->GetUp(), angleDegrees);
+	Rotate(GetUp(m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity())->GetTransform()), angleDegrees);
 }
 
 void FirstPersonCameraController::PitchLocal(float angleDegrees)
 {
-	Rotate(GetMainCameraComponent()->GetCross(), angleDegrees);
+	Rotate(GetCross(m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity())->GetTransform()), angleDegrees);
 }
 
 void FirstPersonCameraController::RollLocal(float angleDegrees)
 {
-	Rotate(GetMainCameraComponent()->GetLookAt(), angleDegrees);
+	Rotate(GetLookAt(m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity())->GetTransform()), angleDegrees);
 }
 
 }	// namespace engine

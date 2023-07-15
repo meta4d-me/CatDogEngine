@@ -1,19 +1,27 @@
 #include "CameraComponent.h"
-
+#include "Display/CameraUtility.h"
 namespace engine
 {
 
-void CameraComponent::Build()
+void CameraComponent::BuildView(cd::Transform transform)
 {
-	if (m_isViewDirty)
+	if (1)
 	{
-		m_lookAt.Normalize();
-		m_up.Normalize();
-		m_cross = m_up.Cross(m_lookAt);
-		m_viewMatrix = cd::Matrix4x4::LookAt<cd::Handedness::Left>(m_eye, m_eye + m_lookAt, m_up);
+		cd::Vec3f lookAt = GetLookAt(transform).Normalize();
+		cd::Vec3f up = GetUp(transform).Normalize();
+		cd::Vec3f eye = transform.GetTranslation();
+		m_viewMatrix = cd::Matrix4x4::LookAt<cd::Handedness::Left>(eye, eye + lookAt, up);
 		m_isViewDirty = false;
+		if (m_isProjectionDirty)
+		{
+			m_projectionMatrix = cd::Matrix4x4::Perspective(m_fov, m_aspect, m_nearPlane, m_farPlane, cd::NDCDepth::MinusOneToOne == m_ndcDepth);
+			m_isProjectionDirty = false;
+		}
 	}
+}
 
+void CameraComponent::BuildProject()
+{
 	if (m_isProjectionDirty)
 	{
 		m_projectionMatrix = cd::Matrix4x4::Perspective(m_fov, m_aspect, m_nearPlane, m_farPlane, cd::NDCDepth::MinusOneToOne == m_ndcDepth);
@@ -33,8 +41,6 @@ void CameraComponent::FrameAll(const cd::AABB& aabb)
 	lookDirection.Normalize();
 
 	cd::Point lookFrom = lookAt - lookDirection * aabb.Size().Length();
-	m_eye = lookFrom;
-	m_lookAt = lookDirection;
 	m_isViewDirty = true;
 }
 
@@ -46,14 +52,14 @@ cd::Ray CameraComponent::EmitRay(float screenX, float screenY, float width, floa
 	float x = cd::Math::GetValueInNewRange(screenX / width, 0.0f, 1.0f, -1.0f, 1.0f);
 	float y = cd::Math::GetValueInNewRange(screenY / height, 0.0f, 1.0f, -1.0f, 1.0f);
 
-	cd::Vec4f near = vpInverse * cd::Vec4f(x, -y, 0.0f, 1.0f);
-	near /= near.w();
+	cd::Vec4f near1 = vpInverse * cd::Vec4f(x, -y, 0.0f, 1.0f);
+	near1 /= near1.w();
 
-	cd::Vec4f far = vpInverse * cd::Vec4f(x, -y, 1.0f, 1.0f);
-	far /= far.w();
+	cd::Vec4f far1 = vpInverse * cd::Vec4f(x, -y, 1.0f, 1.0f);
+	far1 /= far1.w();
 
-	cd::Vec4f direction = (far - near).Normalize();
-	return cd::Ray(cd::Vec3f(near.x(), near.y(), near.z()),
+	cd::Vec4f direction = (far1 - near1).Normalize();
+	return cd::Ray(cd::Vec3f(near1.x(), near1.y(), near1.z()),
 		cd::Vec3f(direction.x(), direction.y(), direction.z()));
 }
 

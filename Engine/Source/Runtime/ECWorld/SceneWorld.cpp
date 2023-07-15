@@ -146,6 +146,7 @@ void SceneWorld::SetPBRSkyEntity(engine::Entity entity)
 void SceneWorld::AddCameraToSceneDatabase(engine::Entity entity)
 {
 	engine::CameraComponent* pCameraComponent = GetCameraComponent(entity);
+	cd::Transform CameraTransform = GetTransformComponent(entity)->GetTransform();
 	if (!pCameraComponent)
 	{
 		assert("Invalid entity");
@@ -160,9 +161,9 @@ void SceneWorld::AddCameraToSceneDatabase(engine::Entity entity)
 
 	cd::SceneDatabase* pSceneDatabase = GetSceneDatabase();
 	cd::Camera camera(cd::CameraID(pSceneDatabase->GetCameraCount()), cameraName.c_str());
-	camera.SetEye(pCameraComponent->GetEye());
-	camera.SetLookAt(pCameraComponent->GetLookAt());
-	camera.SetUp(pCameraComponent->GetUp());
+	camera.SetEye(CameraTransform.GetTranslation());
+	//camera.SetLookAt(CameraTransform.GetLookAt());
+	//camera.SetUp(CameraTransform.GetUp());
 	camera.SetNearPlane(pCameraComponent->GetNearPlane());
 	camera.SetFarPlane(pCameraComponent->GetFarPlane());
 	camera.SetAspect(pCameraComponent->GetAspect());

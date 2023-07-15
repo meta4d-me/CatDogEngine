@@ -4,6 +4,7 @@
 #include "ECWorld/World.h"
 #include "Log/Log.h"
 #include "Material/MaterialType.h"
+#include "Math/Transform.hpp"
 #include "Scene/SceneDatabase.h"
 
 #include <memory>

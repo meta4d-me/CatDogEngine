@@ -227,7 +227,7 @@ void DDGIRenderer::Render(float deltaTime)
 		cd::Vec3f tmpAlbedoColor = cd::Vec3f(1.0f, 1.0f, 1.0f);
 		m_pRenderContext->FillUniform(StringCrc(albedoColor), tmpAlbedoColor.Begin(), 1);
 
-		m_pRenderContext->FillUniform(StringCrc(cameraPos), &pCameraComponent->GetEye().x(), 1);
+		//m_pRenderContext->FillUniform(StringCrc(cameraPos), &pCameraComponent->GetEye().x(), 1);
 
 		auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();
 		size_t lightEntityCount = lightEntities.size();

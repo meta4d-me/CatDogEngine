@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Math/Transform.hpp"
 #include "Math/Vector.hpp"
 
 namespace engine
@@ -47,6 +48,7 @@ public:
 
 private:
 	engine::CameraComponent* GetMainCameraComponent() const;
+	cd::Transform GetMainCameraTransform();
 
 private:
 	const SceneWorld* m_pSceneWorld;

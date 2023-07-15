@@ -99,19 +99,17 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     {
         engine::Entity entity = AddNamedEntity("Camera");
         auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(entity);
-        cameraComponent.SetEye(cd::Point(0.0f, 0.0f, -100.0f));
-        cameraComponent.SetLookAt(cd::Direction(0.0f, 0.0f, 1.0f));
-        cameraComponent.SetUp(cd::Direction(0.0f, 1.0f, 0.0f));
         cameraComponent.SetAspect(1.0f);
         cameraComponent.SetFov(45.0f);
         cameraComponent.SetNearPlane(0.1f);
         cameraComponent.SetFarPlane(2000.0f);
         cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
-        cameraComponent.Build();
+        cameraComponent.BuildProject();
 
         auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
         transformComponent.SetTransform(cd::Transform::Identity());
         transformComponent.Build();
+        cameraComponent.BuildView(cd::Transform::Identity());
     }
 
     // ---------------------------------------- Add Light ---------------------------------------- //

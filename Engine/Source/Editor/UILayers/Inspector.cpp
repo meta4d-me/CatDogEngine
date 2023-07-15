@@ -108,7 +108,7 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 			ImGuiUtils::ImGuiFloatProperty("FarPlane", pCameraComponent->GetFarPlane()))
 		{
 			pCameraComponent->Dirty();
-			pCameraComponent->Build();
+			pCameraComponent->BuildProject();
 		}
 
 		ImGuiUtils::ImGuiBoolProperty("Constrain Aspect Ratio", pCameraComponent->GetDoConstrainAspectRatio());
