@@ -201,7 +201,7 @@ vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volu
 		// Compute trilinear weights based on the distance to each adjacent probe
 		// to smoothly transition between probes. adjacentProbeCoordsOffset is binary, so we're
 		// using a 1-alpha when adjacentProbeCoordsOffset = 0 and alpha when adjacentProbeCoordsOffset = 1.
-		vec3  trilinear = max(lerp(vec3_splat(1.0) - alpha, alpha, vec3(adjacentProbeCoordsOffset)), vec3_splat(0.0001));
+		vec3  trilinear = max(mix(vec3_splat(1.0) - alpha, alpha, vec3(adjacentProbeCoordsOffset)), vec3_splat(0.0001));
 		float trilinearWeight = trilinear.x * trilinear.y * trilinear.z;
 		
 		// 2. Normal
@@ -218,9 +218,9 @@ vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volu
 		// Compute the octahedral coordinates of the adjacent probe.
 		vec2 octantCoords = DDGIGetOctahedralCoordinates(-biasedPosToAdjProbe);
 		// Get the probe index.
-		int adjacentProbeIndex = DDGIGetProbeIndex(adjacentProbeCoords, volume.probeCounts);
+		int adjacentProbeIndex2 = DDGIGetProbeIndex(adjacentProbeCoords, volume.probeCounts);
 		// Get the texture array coordinates for the octant of the probe.
-		vec2 probeTextureUV = DDGIGetProbeUV(adjacentProbeIndex, octantCoords, DISTANCE_GRID_SIZE - 2, volume.probeCounts);
+		vec2 probeTextureUV = DDGIGetProbeUV(adjacentProbeIndex2, octantCoords, DISTANCE_GRID_SIZE - 2, volume.probeCounts);
 		// Sample the probe's distance texture to get the mean distance to nearby surfaces.
 		vec2 filteredDistance = SampleDistance(probeTextureUV).xy;
 		

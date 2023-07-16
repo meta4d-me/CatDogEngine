@@ -182,6 +182,7 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 		commandArguments.push_back("v");
 	}
 
+	std::string shaderLanguageDefine;
 	commandArguments.push_back("-p");
 	switch (engine::Path::GetGraphicsBackend())
 	{
@@ -199,22 +200,23 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 		{
 			commandArguments.push_back("vs_5_0");
 		}
+		shaderLanguageDefine = "BGFX_SHADER_LANGUAGE_HLSL";
 		break;
 	case engine::GraphicsBackend::OpenGL:
-		commandArguments.push_back("-p");
 		commandArguments.push_back("440");
+		shaderLanguageDefine = "BGFX_SHADER_LANGUAGE_GLSL";
 		break;
 	case engine::GraphicsBackend::OpenGLES:
-		commandArguments.push_back("-p");
 		commandArguments.push_back("320_es");
+		shaderLanguageDefine = "BGFX_SHADER_LANGUAGE_GLSL";
 		break;
 	case engine::GraphicsBackend::Metal:
-		commandArguments.push_back("-p");
 		commandArguments.push_back("metal");
+		shaderLanguageDefine = "BGFX_SHADER_LANGUAGE_METAL";
 		break;
 	case engine::GraphicsBackend::Vulkan:
-		commandArguments.push_back("-p");
 		commandArguments.push_back("spirv16-13");
+		shaderLanguageDefine = "BGFX_SHADER_LANGUAGE_SPIRV";
 		break;
 	default:
 		assert("Unknown shader compile profile.");
@@ -223,7 +225,7 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 	if (pUberOptions && *pUberOptions != '\0')
 	{
 		commandArguments.push_back("--define");
-		commandArguments.push_back(pUberOptions);
+		commandArguments.push_back(std::format("{};{}", shaderLanguageDefine, pUberOptions));
 	}
 
 	process.SetCommandArguments(cd::MoveTemp(commandArguments));
