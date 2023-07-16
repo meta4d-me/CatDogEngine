@@ -255,7 +255,7 @@ vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volu
 		octantCoords = DDGIGetOctahedralCoordinates(direction);
 		
 		// Get the probe's texture coordinates.
-		probeTextureUV = DDGIGetProbeUV(adjacentProbeIndex, octantCoords, IRRADIANCE_GRID_SIZE - 2, volume.probeCounts);
+		probeTextureUV = DDGIGetProbeUV(adjacentProbeIndex2, octantCoords, IRRADIANCE_GRID_SIZE - 2, volume.probeCounts);
 		
 		// Sample the probe's irradiance.
 		vec3 probeIrradiance = SampleIrradiance(probeTextureUV);

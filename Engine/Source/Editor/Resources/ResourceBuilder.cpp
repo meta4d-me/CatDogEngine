@@ -166,6 +166,19 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 	std::vector<std::string> commandArguments{ "-f", pInputFilePath, "--varyingdef", shaderSourceFolderPath.string().c_str(),
 		"-o", pOutputFilePath, "--platform", "windows", "-O", "3"};
 	
+	commandArguments.push_back("--platform");
+#if CD_PLATFORM_OSX
+	commandArguments.push_back("osx");
+#elif CD_PLATFORM_IOS
+	commandArguments.push_back("ios");
+#elif CD_PLATFORM_WINDOWS
+	commandArguments.push_back("windows");
+#elif CD_PLATFORM_ANDROID
+	commandArguments.push_back("android");
+#else
+	static_assert("CD_PLATFORM macro not defined!");
+#endif
+
 	if (ShaderType::Compute == shaderType)
 	{
 		commandArguments.push_back("--type");
@@ -215,7 +228,7 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 		shaderLanguageDefine = "BGFX_SHADER_LANGUAGE_METAL";
 		break;
 	case engine::GraphicsBackend::Vulkan:
-		commandArguments.push_back("spirv16-13");
+		commandArguments.push_back("spirv15-12");
 		shaderLanguageDefine = "BGFX_SHADER_LANGUAGE_SPIRV";
 		break;
 	default:

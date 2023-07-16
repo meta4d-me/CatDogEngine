@@ -33,6 +33,7 @@ project("Editor")
 		"CDENGINE_TOOL_PATH=\""..ToolRootPath.."\"",
 		"EDITOR_MODE",
 		"TRACY_ENABLE",
+		GetPlatformMacroName(),
 	}
 
 	includedirs {
