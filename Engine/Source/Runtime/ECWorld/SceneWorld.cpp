@@ -41,7 +41,7 @@ void SceneWorld::CreatePBRMaterialType()
 	m_pPBRMaterialType = std::make_unique<MaterialType>();
 	m_pPBRMaterialType->SetMaterialName("CD_PBR");
 
-	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("vs_PBR"), Path::GetBuiltinShaderInputPath("fs_PBR"));
+	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("shaders/vs_PBR"), Path::GetBuiltinShaderInputPath("shaders/fs_PBR"));
 	shaderSchema.RegisterUberOption(Uber::ALBEDO_MAP);
 	shaderSchema.RegisterUberOption(Uber::NORMAL_MAP);
 	shaderSchema.RegisterUberOption(Uber::ORM_MAP);
@@ -72,7 +72,7 @@ void SceneWorld::CreateAnimationMaterialType()
 	m_pAnimationMaterialType = std::make_unique<MaterialType>();
 	m_pAnimationMaterialType->SetMaterialName("CD_Animation");
 
-	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("vs_animation"), Path::GetBuiltinShaderInputPath("fs_animation"));
+	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("shaders/vs_animation"), Path::GetBuiltinShaderInputPath("shaders/fs_animation"));
 	m_pAnimationMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat animationVertexFormat;
@@ -88,7 +88,7 @@ void SceneWorld::CreateTerrainMaterialType()
 	m_pTerrainMaterialType = std::make_unique<MaterialType>();
 	m_pTerrainMaterialType->SetMaterialName("CD_Terrain");
 
-	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("vs_terrain"), Path::GetBuiltinShaderInputPath("fs_terrain"));
+	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("shaders/vs_terrain"), Path::GetBuiltinShaderInputPath("shaders/fs_terrain"));
 	shaderSchema.RegisterUberOption(Uber::DEFAULT);
 	m_pTerrainMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
@@ -106,7 +106,7 @@ void SceneWorld::CreateDDGIMaterialType()
 	m_pDDGIMaterialType = std::make_unique<MaterialType>();
 	m_pDDGIMaterialType->SetMaterialName("CD_DDGI");
 
-	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("vs_DDGI"), Path::GetBuiltinShaderInputPath("fs_DDGI"));
+	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("shaders/vs_DDGI"), Path::GetBuiltinShaderInputPath("shaders/fs_DDGI"));
 	m_pDDGIMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat ddgiVertexFormat;
