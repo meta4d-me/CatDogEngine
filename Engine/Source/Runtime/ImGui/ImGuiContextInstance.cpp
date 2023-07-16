@@ -440,9 +440,7 @@ void ImGuiContextInstance::LoadFontFiles(const std::vector<std::string>& ttfFile
 	bool ttfFileLoaded = false;
 	for (const std::string& ttfFileName : ttfFileNames)
 	{
-		std::string editorFontResourcePath = CDEDITOR_RESOURCES_ROOT_PATH;
-		editorFontResourcePath += ttfFileName;
-
+		std::string editorFontResourcePath = std::format("{}/Font/{}", CDEDITOR_RESOURCES_ROOT_PATH, ttfFileName);
 		const ImWchar* pGlyphRanges = nullptr;
 		switch (language)
 		{
