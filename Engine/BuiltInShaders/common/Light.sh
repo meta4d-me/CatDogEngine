@@ -507,23 +507,37 @@ vec3 CalculateTubeLight(U_Light light, Material material, vec3 worldPos, vec3 vi
 
 vec3 CalculateLight(U_Light light, Material material, vec3 worldPos, vec3 viewDir, vec3 diffuseBRDF) {
 	vec3 color = vec3_splat(0.0);
-	switch(light.type) {
-		case POINT_LIGHT:
-			color = CalculatePointLight(light, material, worldPos, viewDir, diffuseBRDF); break;
-		case SPOT_LIGHT:
-			color = CalculateSpotLight(light, material, worldPos, viewDir, diffuseBRDF); break;
-		case DIRECTIONAL_LIGHT:
-			color = CalculateDirectionalLight(light, material, worldPos, viewDir, diffuseBRDF); break;
-		case SPHERE_LIGHT:
-			color = CalculateSphereLight(light, material, worldPos, viewDir, diffuseBRDF); break;
-		case DISK_LIGHT:
-			color = CalculateDiskLight(light, material, worldPos, viewDir, diffuseBRDF); break;
-		case RECTANGLE_LIGHT:
-			color = CalculateRectangleLight(light, material, worldPos, viewDir, diffuseBRDF); break;
-		case TUBE_LIGHT:
-			color = CalculateTubeLight(light, material, worldPos, viewDir, diffuseBRDF); break;
-		default:
-			color = vec3_splat(0.0); break;
+	if (light.type == POINT_LIGHT)
+	{
+		color = CalculatePointLight(light, material, worldPos, viewDir, diffuseBRDF);
+	}
+	else if (light.type == SPOT_LIGHT)
+	{
+		color = CalculateSpotLight(light, material, worldPos, viewDir, diffuseBRDF);
+	}
+	else if (light.type == DIRECTIONAL_LIGHT)
+	{
+		color = CalculateDirectionalLight(light, material, worldPos, viewDir, diffuseBRDF);
+	}
+	else if (light.type == SPHERE_LIGHT)
+	{
+		color = CalculateSphereLight(light, material, worldPos, viewDir, diffuseBRDF);
+	}
+	else if (light.type == DISK_LIGHT)
+	{
+		color = CalculateDiskLight(light, material, worldPos, viewDir, diffuseBRDF);
+	}
+	else if (light.type == RECTANGLE_LIGHT)
+	{
+		color = CalculateRectangleLight(light, material, worldPos, viewDir, diffuseBRDF);
+	}
+	else if (light.type == TUBE_LIGHT)
+	{
+		color = CalculateTubeLight(light, material, worldPos, viewDir, diffuseBRDF);
+	}
+	else
+	{
+		color = vec3_splat(0.0);
 	}
 	return color;
 }
@@ -531,7 +545,7 @@ vec3 CalculateLight(U_Light light, Material material, vec3 worldPos, vec3 viewDi
 vec3 CalculateLights(Material material, vec3 worldPos, vec3 viewDir, vec3 diffuseBRDF) {
 	vec3 color = vec3_splat(0.0);
 	for(int lightIndex = 0; lightIndex < int(u_lightCountAndStride.x); ++lightIndex) {
-		int pointer = lightIndex * u_lightCountAndStride.y;
+		int pointer = int(lightIndex * u_lightCountAndStride.y);
 		U_Light light = GetLightParams(pointer);
 		color += CalculateLight(light, material, worldPos, viewDir, diffuseBRDF);
 	}

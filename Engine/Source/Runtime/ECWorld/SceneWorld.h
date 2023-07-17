@@ -105,6 +105,7 @@ public:
 	void AddCameraToSceneDatabase(engine::Entity entity);
 	void AddLightToSceneDatabase(engine::Entity entity);
 
+	void InitDDGISDK();
 	void Update();
 
 private:
