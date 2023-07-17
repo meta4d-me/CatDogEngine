@@ -175,11 +175,11 @@ vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volu
 	float accumulatedWeights = 0.0;
 	
 	// Iterate over the 8 closest probes and accumulate their contributions
-	for(int adjacentProbeIndex = 0; adjacentProbeIndex < 8; adjacentProbeIndex++) {
+	for(int probeIndex = 0; probeIndex < 8; probeIndex++) {
 		// Compute the offset to the adjacent probe in grid coordinates by
 		// sourcing the offsets from the bits of the loop index: x = bit 0, y = bit 1, z = bit 2.
 		// 0:(0,0,0) 1:(1,0,0) 2:(0,1,0) 3:(1,1,0) 4:(0,0,1) 5:(1,0,1) 6:(0,1,1) 7:(1,1,1)
-		ivec3 adjacentProbeCoordsOffset = ivec3(adjacentProbeIndex, adjacentProbeIndex >> 1, adjacentProbeIndex >> 2) & ivec3(1, 1, 1);
+		ivec3 adjacentProbeCoordsOffset = ivec3(probeIndex, probeIndex >> 1, probeIndex >> 2) & ivec3(1, 1, 1);
 		
 		// Get the 3D grid coordinates of the adjacent probe by adding the offset to
 		// the base probe and clamping to the grid boundaries.
@@ -218,9 +218,9 @@ vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volu
 		// Compute the octahedral coordinates of the adjacent probe.
 		vec2 octantCoords = DDGIGetOctahedralCoordinates(-biasedPosToAdjProbe);
 		// Get the probe index.
-		int adjacentProbeIndex2 = DDGIGetProbeIndex(adjacentProbeCoords, volume.probeCounts);
+		int adjacentProbeIndex = DDGIGetProbeIndex(adjacentProbeCoords, volume.probeCounts);
 		// Get the texture array coordinates for the octant of the probe.
-		vec2 probeTextureUV = DDGIGetProbeUV(adjacentProbeIndex2, octantCoords, DISTANCE_GRID_SIZE - 2, volume.probeCounts);
+		vec2 probeTextureUV = DDGIGetProbeUV(adjacentProbeIndex, octantCoords, DISTANCE_GRID_SIZE - 2, volume.probeCounts);
 		// Sample the probe's distance texture to get the mean distance to nearby surfaces.
 		vec2 filteredDistance = SampleDistance(probeTextureUV).xy;
 		
@@ -255,7 +255,7 @@ vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volu
 		octantCoords = DDGIGetOctahedralCoordinates(direction);
 		
 		// Get the probe's texture coordinates.
-		probeTextureUV = DDGIGetProbeUV(adjacentProbeIndex2, octantCoords, IRRADIANCE_GRID_SIZE - 2, volume.probeCounts);
+		probeTextureUV = DDGIGetProbeUV(adjacentProbeIndex, octantCoords, IRRADIANCE_GRID_SIZE - 2, volume.probeCounts);
 		
 		// Sample the probe's irradiance.
 		vec3 probeIrradiance = SampleIrradiance(probeTextureUV);
