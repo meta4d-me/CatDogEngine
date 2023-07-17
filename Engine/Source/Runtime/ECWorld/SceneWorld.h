@@ -105,7 +105,7 @@ public:
 	void AddLightToSceneDatabase(engine::Entity entity);
 
 	void InitDDGISDK();
-	void Update(engine::Entity entity);
+	void Update();
 
 private:
 	std::unique_ptr<cd::SceneDatabase> m_pSceneDatabase;

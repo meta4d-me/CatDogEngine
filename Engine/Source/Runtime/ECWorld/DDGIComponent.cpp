@@ -59,7 +59,7 @@ void DDGIComponent::SetClassificationRawData(const std::string& path)
 
 void DDGIComponent::SetClassificationRawData(const std::shared_ptr<std::vector<uint8_t>>& classification)
 {
-    m_classificationRawData = std::move(*classification);
+    m_classificationRawData = cd::MoveTemp(*classification);
 }
 
 void DDGIComponent::SetDistanceRawData(const std::string& path)
@@ -70,7 +70,7 @@ void DDGIComponent::SetDistanceRawData(const std::string& path)
 
 void DDGIComponent::SetDistanceRawData(const std::shared_ptr<std::vector<uint8_t>>& distance)
 {
-    m_distanceRawData = std::move(*distance);
+    m_distanceRawData = cd::MoveTemp(*distance);
 }
 
 void DDGIComponent::SetIrradianceRawData(const std::string& path)
@@ -81,7 +81,7 @@ void DDGIComponent::SetIrradianceRawData(const std::string& path)
 
 void DDGIComponent::SetIrradianceRawData(const std::shared_ptr<std::vector<uint8_t>>& irrdiance)
 {
-    m_irradianceRawData = std::move(*irrdiance);
+    m_irradianceRawData = cd::MoveTemp(*irrdiance);
 }
 
 void DDGIComponent::SetRelocationRawData(const std::string& path)
@@ -92,7 +92,7 @@ void DDGIComponent::SetRelocationRawData(const std::string& path)
 
 void DDGIComponent::SetRelocationRawData(const std::shared_ptr<std::vector<uint8_t>>& relocation)
 {
-    m_relocationRawData = std::move(*relocation);
+    m_relocationRawData = cd::MoveTemp(*relocation);
 }
 
 }

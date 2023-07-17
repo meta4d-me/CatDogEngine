@@ -220,7 +220,7 @@ void SceneWorld::InitDDGISDK()
 #endif 
 }
 
-void SceneWorld::Update(engine::Entity entity)
+void SceneWorld::Update()
 {
 #ifdef ENABLE_DDGI_SDK
 	// Send request 30 times per second.
@@ -231,10 +231,10 @@ void SceneWorld::Update(engine::Entity entity)
 	}
 	startTime = std::chrono::steady_clock::now();
 
-	engine::DDGIComponent* pDDGIComponent = GetDDGIComponent(entity);
+	engine::DDGIComponent* pDDGIComponent = GetDDGIComponent(GetDDGIEntity());
 	if (!pDDGIComponent)
 	{
-		CD_ENGINE_ERROR("Can not get DDGI Component from entity {0}.", static_cast<uint32_t>(entity));
+		CD_ENGINE_ERROR("Can not get DDGI component.");
 		return;
 	}
 

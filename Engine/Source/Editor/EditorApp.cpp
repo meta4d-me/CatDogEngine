@@ -401,7 +401,7 @@ bool EditorApp::Update(float deltaTime)
 	}
 
 	GetMainWindow()->Update();
-	m_pSceneWorld->Update(m_pSceneWorld->GetDDGIEntity());
+	m_pSceneWorld->Update();
 	m_pEditorImGuiContext->Update(deltaTime);
 	
 	m_pRenderContext->BeginFrame();
