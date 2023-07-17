@@ -30,7 +30,7 @@ public:
 	void SetHorizontalSensitivity(const float sensitivity);
 	void SetVerticalSensitivity(const float sensitivity);
 
-	// Operations
+	// Fps Operations
 	void MoveForward(float amount);
 	void MoveBackward(float amount);
 	void MoveLeft(float amount);
@@ -46,6 +46,10 @@ public:
 	void PitchLocal(float angleDegrees);
 	void RollLocal(float angleDegrees);
 
+	//Circling Operations
+	void azimuthChanging(float amount);
+	void elevationChanging(float amount);
+
 	//Camera's tranform data input and uotput
 	
 	//Synchronizes the controller to the transform of camera current state
@@ -59,7 +63,7 @@ private:
 private:
 	const SceneWorld* m_pSceneWorld;
 
-	float m_distanceFromLookAt; //distance from camera to LookAt point
+	float m_distanceFromLookAt = 16.0f; //distance from camera to LookAt point
 	float m_azimuth;            //angle of rotation in XZ plane starting from +Z axis (radians)
 	float m_elevation;           //angle of elevation from XZ plane (radians)
 
@@ -67,9 +71,12 @@ private:
 	float m_verticalSensitivity;
 	float m_movementSpeed;
 
+	cd::Vec3f m_lookAtPoint = cd::Vec3f::Zero();
 	cd::Vec3f m_lookAt;
 	cd::Vec3f m_up;
 	cd::Vec3f m_eye;
+
+	bool m_isMayaStyle;
 };
 
 }	// namespace engine

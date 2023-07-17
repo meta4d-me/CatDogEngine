@@ -223,27 +223,30 @@ void EditorApp::InitECWorld()
 	nameComponent.SetName("MainCamera");
 
 	auto& cameraTransformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
-	cameraTransformComponent.SetTransform(cd::Transform::Identity());
-	cameraTransformComponent.Build();
+	//cameraTransformComponent.SetTransform(cd::Transform::Identity());
+	//cameraTransformComponent.Build();
 	auto &cameraTransform = cameraTransformComponent.GetTransform();
 
 	auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(cameraEntity);
 	cameraTransform.SetTranslation(cd::Point(0.0f, 0.0f, -100.0f));
 	engine::SetLookAt(cd::Direction(0.0f, 0.0f, 1.0f), cameraTransform);
-	engine::SetUp(cd::Direction(0.0f, 1.0f, 0.0f), cameraTransform);
+	engine::SetUp(cd::Direction(0.0f, 1.0f,0.0f), cameraTransform);
 	cameraComponent.SetAspect(1.0f);
 	cameraComponent.SetFov(45.0f);
 	cameraComponent.SetNearPlane(0.1f);
 	cameraComponent.SetFarPlane(2000.0f);
 	cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
 	cameraComponent.SetGammaCorrection(cd::Vec3f(0.45f));
+	cameraComponent.BuildProject();
+	cameraComponent.BuildView(cd::Point(0.0f, 0.0f, -100.0f), cd::Direction(0.0f, 0.0f, 1.0f), cd::Direction(0.0f, 1.0f, 0.0f));
 
 	// Controller for Input events.
 	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(
 		m_pSceneWorld.get(),
-		15.0f /* horizontal sensitivity */,
-		5.0f /* vertical sensitivity */,
+		7.0f /* horizontal sensitivity */,
+		10.0f /* vertical sensitivity */,
 		160.0f /* Movement Speed*/);
+	m_pCameraController->CameraToController();
 
 	engine::Entity ddgiEntity = pWorld->CreateEntity();
 	m_pSceneWorld->SetDDGIEntity(ddgiEntity);
@@ -416,7 +419,7 @@ bool EditorApp::Update(float deltaTime)
 		cd::Transform pMainCameraTranform = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity())->GetTransform();
 		assert(pMainCameraComponent);
 		m_pCameraController->Update(deltaTime);
-		pMainCameraComponent->BuildView(pMainCameraTranform);
+		pMainCameraComponent->BuildProject();
 		m_pEngineImGuiContext->SetWindowPosOffset(m_pSceneView->GetWindowPosX(), m_pSceneView->GetWindowPosY());
 		m_pEngineImGuiContext->Update(deltaTime);
 		for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
@@ -425,6 +428,7 @@ bool EditorApp::Update(float deltaTime)
 			{
 				const float* pViewMatrix = pMainCameraComponent->GetViewMatrix().Begin();
 				const float* pProjectionMatrix = pMainCameraComponent->GetProjectionMatrix().Begin();
+				cd::Matrix4x4 a = pMainCameraComponent->GetViewMatrix();
 				pRenderer->UpdateView(pViewMatrix, pProjectionMatrix);
 				pRenderer->Render(deltaTime);
 			}

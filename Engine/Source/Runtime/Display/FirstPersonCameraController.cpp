@@ -34,8 +34,30 @@ FirstPersonCameraController::FirstPersonCameraController(
 
 void FirstPersonCameraController::CameraToController()
 {
+	m_eye = GetMainCameraTransform().GetTranslation();
 	m_lookAt = GetLookAt(GetMainCameraTransform());
 	m_up = GetUp(GetMainCameraTransform());
+
+	//if (m_isMayaStyle)
+	//{
+	//	m_elevation = std::asin(-m_lookAt.y());
+	//	if (m_up.y() < 0)
+	//	{
+	//		if (m_lookAt.y() > 0)
+	//		{
+	//			m_elevation = -cd::Math::PI - m_elevation;
+	//		}
+	//		else
+	//		{
+	//			m_elevation = cd::Math::PI - m_elevation;
+	//			m_azimuth = std::atan2(m_lookAt.x(), m_lookAt.z());
+	//		}
+	//	}
+	//	else
+	//	{
+	//		m_azimuth = std::atan2(-m_lookAt.x(), -m_lookAt.z());
+	//	}
+	//}
 }
 
 void FirstPersonCameraController::ControllerToCamera()
@@ -43,6 +65,18 @@ void FirstPersonCameraController::ControllerToCamera()
 	cd::Vec3f eye = m_eye;
 	cd::Vec3f lookAt = m_lookAt;
 	cd::Vec3f up = m_up;
+
+	//if (m_isMayaStyle)
+	//{
+	//	float sinPhi = std::sin(m_elevation);
+	//	float cosPhi = std::cos(m_elevation);
+	//	float sinTheta = std::sin(m_azimuth);
+	//	float cosTheta = std::cos(m_azimuth);
+
+	//	lookAt = cd::Vec3f(-cosPhi * sinTheta, -sinPhi, -cosPhi * cosTheta);
+	//	cd::Vec3f cross = cd::Vec3f(cosTheta, 0, -sinTheta);
+	//	up =  lookAt.Cross(cross);
+	//}
 // There will be some operation to change eye and lookAt or up
 	GetMainCameraComponent()->BuildView(eye, lookAt, up);
 }
@@ -51,38 +85,51 @@ void FirstPersonCameraController::Update(float deltaTime)
 {
 	if (Input::Get().IsKeyPressed(KeyCode::w))
 	{
+		m_isMayaStyle = false;
 		MoveForward(m_movementSpeed * deltaTime);
 	}
 
 	if (Input::Get().IsKeyPressed(KeyCode::a))
 	{
+		m_isMayaStyle = false;
 		MoveLeft(m_movementSpeed * deltaTime);
 	}
 
 	if (Input::Get().IsKeyPressed(KeyCode::s))
 	{
+		m_isMayaStyle = false;
 		MoveBackward(m_movementSpeed * deltaTime);
 	}
 
 	if (Input::Get().IsKeyPressed(KeyCode::d))
 	{
+		m_isMayaStyle = false;
 		MoveRight(m_movementSpeed * deltaTime);
 	}
 
 	if (Input::Get().IsKeyPressed(KeyCode::e))
 	{
+		m_isMayaStyle = false;
 		MoveUp(m_movementSpeed * deltaTime);
 	}
 
 	if (Input::Get().IsKeyPressed(KeyCode::q))
 	{
+		m_isMayaStyle = false;
 		MoveDown(m_movementSpeed * deltaTime);
 	}
 
 	if (Input::Get().IsMouseRBPressed())
 	{
-		PitchLocal(-m_horizontalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
+		m_isMayaStyle = false;
+		PitchLocal(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
 		Yaw(m_verticalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
+	}
+	if (Input::Get().IsMouseLBPressed())
+	{
+		//m_isMayaStyle = true;
+		//elevationChanging(0.1f);
+		//azimuthChanging(0.1f);
 	}
 }
 
@@ -120,11 +167,8 @@ cd::Transform FirstPersonCameraController::GetMainCameraTransform()
 
 void FirstPersonCameraController::MoveForward(float amount)
 {
-	if (TransformComponent* pTranformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity()))
-	{
-		pTranformComponent->GetTransform().SetTranslation(pTranformComponent->GetTransform().GetTranslation() + GetLookAt(pTranformComponent->GetTransform()) * amount);
-		GetMainCameraComponent()->ViewDirty();
-	}
+	m_eye = m_eye + m_lookAt * amount;
+	ControllerToCamera();
 }
 
 void FirstPersonCameraController::MoveBackward(float amount)
@@ -134,11 +178,8 @@ void FirstPersonCameraController::MoveBackward(float amount)
 
 void FirstPersonCameraController::MoveLeft(float amount)
 {
-	if (TransformComponent* pTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity()))
-	{
-		pTransformComponent->GetTransform().SetTranslation(pTransformComponent->GetTransform().GetTranslation() - GetCross(pTransformComponent->GetTransform()) * amount);
-		GetMainCameraComponent()->ViewDirty();
-	}
+	m_eye = m_eye + (m_lookAt.Cross(m_up) * amount);
+	ControllerToCamera();
 }
 
 void FirstPersonCameraController::MoveRight(float amount)
@@ -148,11 +189,8 @@ void FirstPersonCameraController::MoveRight(float amount)
 
 void FirstPersonCameraController::MoveUp(float amount)
 {
-	if (TransformComponent* pTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity()))
-	{
-		pTransformComponent->GetTransform().SetTranslation(pTransformComponent->GetTransform().GetTranslation() + GetUp(pTransformComponent->GetTransform()) * amount);
-		GetMainCameraComponent()->ViewDirty();
-	}
+	m_eye = m_eye + m_up * amount;
+	ControllerToCamera();
 }
 
 void FirstPersonCameraController::MoveDown(float amount)
@@ -163,16 +201,9 @@ void FirstPersonCameraController::MoveDown(float amount)
 void FirstPersonCameraController::Rotate(const cd::Vec3f& axis, float angleDegrees)
 {
 	cd::Quaternion rotation = cd::Quaternion::FromAxisAngle(axis, cd::Math::DegreeToRadian<float>(angleDegrees));
-	if (TransformComponent* pTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity()))
-	{	
-		SetLookAt(rotation * GetLookAt(pTransformComponent->GetTransform()), pTransformComponent->GetTransform());
-		SetUp(rotation * GetUp(pTransformComponent->GetTransform()), pTransformComponent->GetTransform());
-		GetMainCameraComponent()->ViewDirty();
-		//cd::Vec3f lookAt = GetLookAt(pTransformComponent->GetTransform());
-		//cd::Vec3f up = GetUp(pTransformComponent->GetTransform());
-		//cd::Vec3f eye = pTransformComponent->GetTransform().GetTranslation();
-		//cd::Matrix4x4 viewMatrix = cd::Matrix4x4::LookAt<cd::Handedness::Left>(eye, eye + lookAt, up);
-	}
+	m_lookAt = rotation * m_lookAt;
+	m_up = rotation * m_up;
+	ControllerToCamera();
 }
 
 void FirstPersonCameraController::Rotate(float x, float y, float z, float angleDegrees)
@@ -198,17 +229,46 @@ void FirstPersonCameraController::Roll(float angleDegrees)
 
 void FirstPersonCameraController::YawLocal(float angleDegrees)
 {
-	Rotate(GetUp(m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity())->GetTransform()), angleDegrees);
+	Rotate(m_up, angleDegrees);
 }
 
 void FirstPersonCameraController::PitchLocal(float angleDegrees)
 {
-	Rotate(GetCross(m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity())->GetTransform()), angleDegrees);
+	Rotate(m_up.Cross(m_lookAt), angleDegrees);
 }
 
 void FirstPersonCameraController::RollLocal(float angleDegrees)
 {
-	Rotate(GetLookAt(m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity())->GetTransform()), angleDegrees);
+	Rotate(m_lookAt, angleDegrees);
 }
+
+void FirstPersonCameraController::elevationChanging(float angleDegrees)
+{
+	m_elevation += angleDegrees;
+	if (m_elevation > cd::Math::PI)
+	{
+		m_elevation -= cd::Math::TWO_PI;
+	}
+	else if (m_elevation < -cd::Math::PI)
+	{
+		m_elevation += cd::Math::TWO_PI;
+	}
+	ControllerToCamera();
+}
+
+void FirstPersonCameraController::azimuthChanging(float angleDegress)
+{
+	m_azimuth -= angleDegress;
+	if (m_azimuth > cd::Math::PI)
+	{
+		m_azimuth -= cd::Math::TWO_PI;
+	}
+	else if (m_azimuth < -cd::Math::PI)
+	{
+		m_azimuth += cd::Math::TWO_PI;
+	}
+	ControllerToCamera();
+}
+
 
 }	// namespace engine
