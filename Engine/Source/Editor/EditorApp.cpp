@@ -223,18 +223,13 @@ void EditorApp::InitECWorld()
 	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(cameraEntity);
 	nameComponent.SetName("MainCamera");
 
-<<<<<<< HEAD
+
 	auto& cameraTransformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
 	//cameraTransformComponent.SetTransform(cd::Transform::Identity());
 	//cameraTransformComponent.Build();
 	auto &cameraTransform = cameraTransformComponent.GetTransform();
-=======
-	m_pSceneWorld->InitDDGISDK();
 
-	//auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
-	//transformComponent.SetTransform(cd::Transform::Identity());
-	//transformComponent.Build();
->>>>>>> 4a2057b68e9e4a95e8d4bc6806946a516aa823f6
+	m_pSceneWorld->InitDDGISDK();
 
 	auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(cameraEntity);
 	cameraTransform.SetTranslation(cd::Point(0.0f, 0.0f, -100.0f));
