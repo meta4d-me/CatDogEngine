@@ -63,6 +63,8 @@ public:
 
 	void InitECWorld();
 
+	bool EnablePBRSky() const;
+
 private:
 	bool m_bInitEditor = false;
 	engine::EngineInitArgs m_initArgs;

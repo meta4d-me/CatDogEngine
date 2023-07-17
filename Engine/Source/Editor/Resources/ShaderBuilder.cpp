@@ -62,9 +62,9 @@ void ShaderBuilder::UploadUberShader(engine::MaterialType* pMaterialType)
 	}
 }
 
-void ShaderBuilder::BuildNonUberShader()
+void ShaderBuilder::BuildNonUberShader(std::string folderPath)
 {
-	for (const auto& entry : std::filesystem::recursive_directory_iterator(CDENGINE_BUILTIN_SHADER_PATH))
+	for (const auto& entry : std::filesystem::recursive_directory_iterator(folderPath))
 	{
 		const auto& inputFilePath = entry.path();
 		if (".sc" != inputFilePath.extension())

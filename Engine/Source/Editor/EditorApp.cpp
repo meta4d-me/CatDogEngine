@@ -291,15 +291,19 @@ void EditorApp::InitEngineRenderers()
 	// The init size doesn't make sense. It will resize by SceneView.
 	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->CreateRenderTarget(sceneViewRenderTargetName, 1, 1, std::move(attachmentDesc));
 
-	auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
-	m_pPBRSkyRenderer = pPBRSkyRenderer.get();
-	pPBRSkyRenderer->SetSceneWorld(m_pSceneWorld.get());
-	AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
-
-	auto pIBLSkyRenderer = std::make_unique<engine::SkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
-	pIBLSkyRenderer->SetEnable(false);
-	m_pIBLSkyRenderer = pIBLSkyRenderer.get();
-	AddEngineRenderer(cd::MoveTemp(pIBLSkyRenderer));
+	if (EnablePBRSky())
+	{
+		auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+		m_pPBRSkyRenderer = pPBRSkyRenderer.get();
+		pPBRSkyRenderer->SetSceneWorld(m_pSceneWorld.get());
+		AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
+	}
+	else
+	{
+		auto pIBLSkyRenderer = std::make_unique<engine::SkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+		m_pIBLSkyRenderer = pIBLSkyRenderer.get();
+		AddEngineRenderer(cd::MoveTemp(pIBLSkyRenderer));
+	}
 
 	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pTerrainRenderer->SetSceneWorld(m_pSceneWorld.get());
@@ -337,9 +341,20 @@ void EditorApp::InitEngineRenderers()
 	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget));
 }
 
+bool EditorApp::EnablePBRSky() const
+{
+	return engine::GraphicsBackend::OpenGL != engine::Path::GetGraphicsBackend() &&
+		engine::GraphicsBackend::Vulkan != engine::Path::GetGraphicsBackend();
+}
+
 void EditorApp::InitShaderPrograms() const
 {
-	ShaderBuilder::BuildNonUberShader();
+	ShaderBuilder::BuildNonUberShader(std::format("{}{}", CDENGINE_BUILTIN_SHADER_PATH, "shaders"));
+	if (EnablePBRSky())
+	{
+		ShaderBuilder::BuildNonUberShader(std::format("{}{}", CDENGINE_BUILTIN_SHADER_PATH, "atm"));
+	}
+
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetPBRMaterialType());
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetAnimationMaterialType());
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetTerrainMaterialType());

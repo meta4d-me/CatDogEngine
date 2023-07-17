@@ -175,11 +175,11 @@ vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volu
 	float accumulatedWeights = 0.0;
 	
 	// Iterate over the 8 closest probes and accumulate their contributions
-	for(int adjacentProbeIndex = 0; adjacentProbeIndex < 8; adjacentProbeIndex++) {
+	for(int probeIndex = 0; probeIndex < 8; probeIndex++) {
 		// Compute the offset to the adjacent probe in grid coordinates by
 		// sourcing the offsets from the bits of the loop index: x = bit 0, y = bit 1, z = bit 2.
 		// 0:(0,0,0) 1:(1,0,0) 2:(0,1,0) 3:(1,1,0) 4:(0,0,1) 5:(1,0,1) 6:(0,1,1) 7:(1,1,1)
-		ivec3 adjacentProbeCoordsOffset = ivec3(adjacentProbeIndex, adjacentProbeIndex >> 1, adjacentProbeIndex >> 2) & ivec3(1, 1, 1);
+		ivec3 adjacentProbeCoordsOffset = ivec3(probeIndex, probeIndex >> 1, probeIndex >> 2) & ivec3(1, 1, 1);
 		
 		// Get the 3D grid coordinates of the adjacent probe by adding the offset to
 		// the base probe and clamping to the grid boundaries.
@@ -201,7 +201,7 @@ vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volu
 		// Compute trilinear weights based on the distance to each adjacent probe
 		// to smoothly transition between probes. adjacentProbeCoordsOffset is binary, so we're
 		// using a 1-alpha when adjacentProbeCoordsOffset = 0 and alpha when adjacentProbeCoordsOffset = 1.
-		vec3  trilinear = max(lerp(vec3_splat(1.0) - alpha, alpha, vec3(adjacentProbeCoordsOffset)), vec3_splat(0.0001));
+		vec3  trilinear = max(mix(vec3_splat(1.0) - alpha, alpha, vec3(adjacentProbeCoordsOffset)), vec3_splat(0.0001));
 		float trilinearWeight = trilinear.x * trilinear.y * trilinear.z;
 		
 		// 2. Normal
