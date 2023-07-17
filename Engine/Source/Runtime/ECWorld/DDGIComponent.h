@@ -3,6 +3,7 @@
 #include "Core/StringCrc.h"
 #include "Math/Matrix.hpp"
 
+#include <memory>
 #include <vector>
 
 namespace engine
@@ -17,19 +18,25 @@ public:
 		return className;
 	}
 
+	void ResetTextureRawData();
+
 	void SetClassificationRawData(const std::string& path);
+	void SetClassificationRawData(const std::shared_ptr<std::vector<uint8_t>>& classification);
 	const uint8_t* GetClassificationRawData() const { return m_classificationRawData.data(); }
 	uint32_t GetClassificationSize() const { return static_cast<uint32_t>(m_classificationRawData.size()); }
 
 	void SetDistanceRawData(const std::string& path);
+	void SetDistanceRawData(const std::shared_ptr<std::vector<uint8_t>>& distance);
 	const uint8_t* GetDistanceRawData() const { return m_distanceRawData.data(); }
 	uint32_t GetDistanceSize() const { return static_cast<uint32_t>(m_distanceRawData.size()); }
 
 	void SetIrradianceRawData(const std::string& path);
+	void SetIrradianceRawData(const std::shared_ptr<std::vector<uint8_t>>& irrdiance);
 	const uint8_t* GetIrradianceRawData() const { return m_irradianceRawData.data(); }
 	uint32_t GetIrradianceSize() const { return static_cast<uint32_t>(m_irradianceRawData.size()); }
 
 	void SetRelocationRawData(const std::string& path);
+	void SetRelocationRawData(const std::shared_ptr<std::vector<uint8_t>>& relocation);
 	const uint8_t* GetRelocationRawData() const { return m_relocationRawData.data(); }
 	uint32_t GetRelocationSize() const { return static_cast<uint32_t>(m_relocationRawData.size()); }
 

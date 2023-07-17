@@ -12,7 +12,7 @@ namespace editor
 class ShaderBuilder
 {
 public:
-	static void BuildNonUberShader();
+	static void BuildNonUberShader(std::string folderPath);
 	static void BuildUberShader(engine::MaterialType* pMaterialType);
 	static void UploadUberShader(engine::MaterialType* pMaterialType);
 

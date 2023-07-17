@@ -5,6 +5,7 @@
 
 namespace details
 {
+
 template<typename Component>
 void UpdateComponentWidget(engine::SceneWorld* pSceneWorld, engine::Entity entity)
 {

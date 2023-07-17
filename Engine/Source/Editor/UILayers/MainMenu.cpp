@@ -6,6 +6,7 @@
 #include "ImGui/Localization.h"
 #include "ImGui/ThemeColor.h"
 #include "Log/Log.h"
+#include "Path/Path.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ShaderBuilder.h"
 #include "Window/Window.h"
@@ -15,7 +16,7 @@
 #include <imgui/imgui.h>
 #include "ImGui/imfilebrowser.h"
 #include <filesystem>
-
+#include <format>
 
 namespace editor
 {
@@ -206,7 +207,7 @@ void MainMenu::BuildMenu()
 
 		if (ImGui::MenuItem(CD_TEXT("TEXT_REBUILD_NONUBER_SHADERS")))
 		{
-			ShaderBuilder::BuildNonUberShader();
+			ShaderBuilder::BuildNonUberShader(std::format("{}{}", CDENGINE_BUILTIN_SHADER_PATH, "shaders"));
 		}
 		if (ImGui::MenuItem(CD_TEXT("TEXT_REBUILD_PBR_SHADERS")))
 		{

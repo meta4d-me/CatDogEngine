@@ -289,6 +289,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 
 	// In any bad case, we should have a material component.
 	engine::MaterialComponent& materialComponent = m_pSceneWorld->GetWorld()->CreateComponent<engine::MaterialComponent>(entity);
+	materialComponent.Init();
 
 	cd::Vec3f albedoColor(1.0f);
 	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
@@ -366,7 +367,8 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 
 	// TODO : create material component before ResourceBuilder done.
 	// Assign a special color for loading resource status.
-	materialComponent.Init(pMaterialType, pMaterial);
+	materialComponent.SetMaterialType(pMaterialType);
+	materialComponent.SetMaterialData(pMaterial);
 	materialComponent.SetUberShaderOption(currentUberOption);
 	materialComponent.SetAlbedoColor(cd::MoveTemp(albedoColor));
 

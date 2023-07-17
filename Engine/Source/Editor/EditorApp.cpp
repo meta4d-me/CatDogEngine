@@ -69,6 +69,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 		CD_ERROR("Failed to open CSV file");
 	}
 
+
 	// Phase 1 - Splash
 	//		* Compile uber shader permutations automatically when initialization or detect changes
 	//		* Show compile progresses so it still needs to update ui
@@ -222,10 +223,18 @@ void EditorApp::InitECWorld()
 	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(cameraEntity);
 	nameComponent.SetName("MainCamera");
 
+<<<<<<< HEAD
 	auto& cameraTransformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
 	cameraTransformComponent.SetTransform(cd::Transform::Identity());
 	cameraTransformComponent.Build();
 	auto &cameraTransform = cameraTransformComponent.GetTransform();
+=======
+	m_pSceneWorld->InitDDGISDK();
+
+	//auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
+	//transformComponent.SetTransform(cd::Transform::Identity());
+	//transformComponent.Build();
+>>>>>>> 4a2057b68e9e4a95e8d4bc6806946a516aa823f6
 
 	auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(cameraEntity);
 	cameraTransform.SetTranslation(cd::Point(0.0f, 0.0f, -100.0f));
@@ -288,15 +297,19 @@ void EditorApp::InitEngineRenderers()
 	// The init size doesn't make sense. It will resize by SceneView.
 	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->CreateRenderTarget(sceneViewRenderTargetName, 1, 1, std::move(attachmentDesc));
 
-	auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
-	m_pPBRSkyRenderer = pPBRSkyRenderer.get();
-	pPBRSkyRenderer->SetSceneWorld(m_pSceneWorld.get());
-	AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
-
-	auto pIBLSkyRenderer = std::make_unique<engine::SkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
-	pIBLSkyRenderer->SetEnable(false);
-	m_pIBLSkyRenderer = pIBLSkyRenderer.get();
-	AddEngineRenderer(cd::MoveTemp(pIBLSkyRenderer));
+	if (EnablePBRSky())
+	{
+		auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+		m_pPBRSkyRenderer = pPBRSkyRenderer.get();
+		pPBRSkyRenderer->SetSceneWorld(m_pSceneWorld.get());
+		AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
+	}
+	else
+	{
+		auto pIBLSkyRenderer = std::make_unique<engine::SkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+		m_pIBLSkyRenderer = pIBLSkyRenderer.get();
+		AddEngineRenderer(cd::MoveTemp(pIBLSkyRenderer));
+	}
 
 	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pTerrainRenderer->SetSceneWorld(m_pSceneWorld.get());
@@ -334,9 +347,20 @@ void EditorApp::InitEngineRenderers()
 	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget));
 }
 
+bool EditorApp::EnablePBRSky() const
+{
+	return engine::GraphicsBackend::OpenGL != engine::Path::GetGraphicsBackend() &&
+		engine::GraphicsBackend::Vulkan != engine::Path::GetGraphicsBackend();
+}
+
 void EditorApp::InitShaderPrograms() const
 {
-	ShaderBuilder::BuildNonUberShader();
+	ShaderBuilder::BuildNonUberShader(std::format("{}{}", CDENGINE_BUILTIN_SHADER_PATH, "shaders"));
+	if (EnablePBRSky())
+	{
+		ShaderBuilder::BuildNonUberShader(std::format("{}{}", CDENGINE_BUILTIN_SHADER_PATH, "atm"));
+	}
+
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetPBRMaterialType());
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetAnimationMaterialType());
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetTerrainMaterialType());
