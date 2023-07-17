@@ -45,14 +45,14 @@ cd::Ray CameraComponent::EmitRay(float screenX, float screenY, float width, floa
 	float x = cd::Math::GetValueInNewRange(screenX / width, 0.0f, 1.0f, -1.0f, 1.0f);
 	float y = cd::Math::GetValueInNewRange(screenY / height, 0.0f, 1.0f, -1.0f, 1.0f);
 
-	cd::Vec4f near1 = vpInverse * cd::Vec4f(x, -y, 0.0f, 1.0f);
-	near1 /= near1.w();
+	cd::Vec4f near = vpInverse * cd::Vec4f(x, -y, 0.0f, 1.0f);
+	near /= near.w();
 
-	cd::Vec4f far1 = vpInverse * cd::Vec4f(x, -y, 1.0f, 1.0f);
-	far1 /= far1.w();
+	cd::Vec4f far = vpInverse * cd::Vec4f(x, -y, 1.0f, 1.0f);
+	far /= far.w();
 
-	cd::Vec4f direction = (far1 - near1).Normalize();
-	return cd::Ray(cd::Vec3f(near1.x(), near1.y(), near1.z()),
+	cd::Vec4f direction = (far - near).Normalize();
+	return cd::Ray(cd::Vec3f(near.x(), near.y(), near.z()),
 		cd::Vec3f(direction.x(), direction.y(), direction.z()));
 }
 

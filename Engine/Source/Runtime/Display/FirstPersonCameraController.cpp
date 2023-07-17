@@ -38,26 +38,24 @@ void FirstPersonCameraController::CameraToController()
 	m_lookAt = GetLookAt(GetMainCameraTransform());
 	m_up = GetUp(GetMainCameraTransform());
 
-	//if (m_isMayaStyle)
-	//{
-	//	m_elevation = std::asin(-m_lookAt.y());
-	//	if (m_up.y() < 0)
-	//	{
-	//		if (m_lookAt.y() > 0)
-	//		{
-	//			m_elevation = -cd::Math::PI - m_elevation;
-	//		}
-	//		else
-	//		{
-	//			m_elevation = cd::Math::PI - m_elevation;
-	//			m_azimuth = std::atan2(m_lookAt.x(), m_lookAt.z());
-	//		}
-	//	}
-	//	else
-	//	{
-	//		m_azimuth = std::atan2(-m_lookAt.x(), -m_lookAt.z());
-	//	}
-	//}
+	
+	m_elevation = std::asin(-m_lookAt.y());
+	if (m_up.y() < 0)
+	{
+		if (m_lookAt.y() > 0)
+		{
+			m_elevation = -cd::Math::PI - m_elevation;
+		}
+		else
+		{
+			m_elevation = cd::Math::PI - m_elevation;
+			m_azimuth = std::atan2(m_lookAt.x(), m_lookAt.z());
+		}
+	}
+	else
+	{
+		m_azimuth = std::atan2(-m_lookAt.x(), -m_lookAt.z());
+	}
 }
 
 void FirstPersonCameraController::ControllerToCamera()
@@ -66,17 +64,23 @@ void FirstPersonCameraController::ControllerToCamera()
 	cd::Vec3f lookAt = m_lookAt;
 	cd::Vec3f up = m_up;
 
-	//if (m_isMayaStyle)
-	//{
-	//	float sinPhi = std::sin(m_elevation);
-	//	float cosPhi = std::cos(m_elevation);
-	//	float sinTheta = std::sin(m_azimuth);
-	//	float cosTheta = std::cos(m_azimuth);
+	if (m_isMayaStyle)
+	{
+		float sinPhi = std::sin(m_elevation);
+		float cosPhi = std::cos(m_elevation);
+		float sinTheta = std::sin(m_azimuth);
+		float cosTheta = std::cos(m_azimuth);
 
-	//	lookAt = cd::Vec3f(-cosPhi * sinTheta, -sinPhi, -cosPhi * cosTheta);
-	//	cd::Vec3f cross = cd::Vec3f(cosTheta, 0, -sinTheta);
-	//	up =  lookAt.Cross(cross);
-	//}
+		lookAt = cd::Vec3f(-cosPhi * sinTheta, -sinPhi, -cosPhi * cosTheta);
+		cd::Vec3f cross = cd::Vec3f(cosTheta, 0, -sinTheta);
+		up =  cross.Cross(lookAt);
+		float lookAtOffset = 0;
+		if (m_distanceFromLookAt < m_dollyThreshold) 
+			lookAtOffset = m_distanceFromLookAt - m_dollyThreshold;
+
+		float eyeOffset = m_distanceFromLookAt;
+		eye = m_lookAtPoint - (lookAt * eyeOffset);
+	}
 // There will be some operation to change eye and lookAt or up
 	GetMainCameraComponent()->BuildView(eye, lookAt, up);
 }
@@ -127,9 +131,36 @@ void FirstPersonCameraController::Update(float deltaTime)
 	}
 	if (Input::Get().IsMouseLBPressed())
 	{
-		//m_isMayaStyle = true;
-		//elevationChanging(0.1f);
-		//azimuthChanging(0.1f);
+		m_isMayaStyle = true;
+		elevationChanging(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
+		azimuthChanging(m_verticalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
+	}
+	if (Input::Get().GetMouseScrollOffsetY())
+	{
+		float scaleDelta = Input::Get().GetMouseScrollOffsetY() * deltaTime;
+		scaleDelta = scaleDelta > 0 ? scaleDelta : -scaleDelta;
+
+		float delta = -scaleDelta * CalculateZoomScale() * 0.002f;
+		if (scaleDelta > 0)
+		{
+			float origLookAtDist = m_distanceFromLookAt;
+			m_distanceFromLookAt += delta;
+			delta = -scaleDelta * CalculateZoomScale() * 0.0002f;
+			m_distanceFromLookAt = origLookAtDist;
+		}
+		//minimum distance to travel in world space with one wheel "notch". If this is too
+			// small, zooming can feel too slow as we get close to the look-at-point.
+		const float min_wheel_delta = 1.5f;
+		if (delta > -min_wheel_delta && delta < min_wheel_delta)
+		{
+			if (delta < 0.0f)
+				delta = -min_wheel_delta;
+			else
+				delta = min_wheel_delta;
+		}
+		m_distanceFromLookAt += delta;
+		ControllerToCamera();
+
 	}
 }
 
@@ -244,7 +275,7 @@ void FirstPersonCameraController::RollLocal(float angleDegrees)
 
 void FirstPersonCameraController::elevationChanging(float angleDegrees)
 {
-	m_elevation += angleDegrees;
+	m_elevation += angleDegrees / 360.0f * cd::Math::PI;
 	if (m_elevation > cd::Math::PI)
 	{
 		m_elevation -= cd::Math::TWO_PI;
@@ -256,9 +287,9 @@ void FirstPersonCameraController::elevationChanging(float angleDegrees)
 	ControllerToCamera();
 }
 
-void FirstPersonCameraController::azimuthChanging(float angleDegress)
+void FirstPersonCameraController::azimuthChanging(float angleDegrees)
 {
-	m_azimuth -= angleDegress;
+	m_azimuth -= angleDegrees / 360.0f * cd::Math::PI;
 	if (m_azimuth > cd::Math::PI)
 	{
 		m_azimuth -= cd::Math::TWO_PI;
@@ -269,6 +300,5 @@ void FirstPersonCameraController::azimuthChanging(float angleDegress)
 	}
 	ControllerToCamera();
 }
-
 
 }	// namespace engine

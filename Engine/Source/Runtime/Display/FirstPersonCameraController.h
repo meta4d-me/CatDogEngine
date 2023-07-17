@@ -59,11 +59,13 @@ public:
 private:
 	engine::CameraComponent* GetMainCameraComponent() const;
 	cd::Transform GetMainCameraTransform();
+	float CalculateZoomScale() { return std::max(std::abs(m_distanceFromLookAt), m_dollyThreshold); }
 
 private:
 	const SceneWorld* m_pSceneWorld;
 
-	float m_distanceFromLookAt = 16.0f; //distance from camera to LookAt point
+	float m_dollyThreshold = 3.0f; // Maybe it should be depends on AABB
+	float m_distanceFromLookAt = 100.0f;//distance from camera to LookAt point
 	float m_azimuth;            //angle of rotation in XZ plane starting from +Z axis (radians)
 	float m_elevation;           //angle of elevation from XZ plane (radians)
 
