@@ -4,6 +4,10 @@
 #include "Path/Path.h"
 #include "U_BaseSlot.sh"
 
+#if (defined DDGI_SDK_PATH && defined NDEBUG)
+	#define ENABLE_DDGI_SDK
+#endif
+
 #ifdef ENABLE_DDGI_SDK
 #include "ddgi_sdk.h"
 #endif
@@ -202,18 +206,51 @@ void SceneWorld::AddLightToSceneDatabase(engine::Entity entity)
 	pSceneDatabase->AddLight(cd::MoveTemp(light));
 }
 
+void SceneWorld::InitDDGISDK()
+{
+#ifdef ENABLE_DDGI_SDK
+	if (InitDDGI(DDGI_SDK_PATH))
+	{
+		CD_ENGINE_INFO("Init DDGI client success at : {0}", DDGI_SDK_PATH);
+	}
+	else
+	{
+		CD_ENGINE_ERROR("Init DDGI client failed at : {0}", DDGI_SDK_PATH);
+	}
+#endif 
+}
+
 void SceneWorld::Update()
 {
 #ifdef ENABLE_DDGI_SDK
-	static uint32_t frameIndex = 1;
-	static std::shared_ptr<CurrentFrameDecodeData> curDecodeData;
-	
-	std::this_thread::sleep_for(std::chrono::milliseconds(33));
-	curDecodeData = GetCurDDGIFrameData();
+	// Send request 30 times per second.
+	static auto startTime = std::chrono::steady_clock::now();
+	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - startTime).count() <= 33 * 1000 * 1000)
+	{
+		return;
+	}
+	startTime = std::chrono::steady_clock::now();
+
+	engine::DDGIComponent* pDDGIComponent = GetDDGIComponent(GetDDGIEntity());
+	if (!pDDGIComponent)
+	{
+		CD_ENGINE_ERROR("Can not get DDGI component.");
+		return;
+	}
+
+	std::shared_ptr<CurrentFrameDecodeData> curDecodeData = GetCurDDGIFrameData();
 	if (curDecodeData != nullptr)
 	{
+		CD_ENGINE_TRACE("Receive DDGI raw data success.");
+
+		// static uint32_t frameCount = 0;
+		// static std::string savaPath = (std::filesystem::path(DDGI_SDK_PATH) / "Save").string();
+		// WriteDdgi2BinFile(savaPath, *curDecodeData, frameCount++);
+
+		// These will move curDecodeData.
+		pDDGIComponent->SetDistanceRawData(curDecodeData->visDecodeData);
+		pDDGIComponent->SetIrradianceRawData(curDecodeData->irrDecodeData);
 	}
-	++frameIndex;
 #endif
 }
 

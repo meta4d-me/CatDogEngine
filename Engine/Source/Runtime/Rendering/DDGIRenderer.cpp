@@ -98,14 +98,8 @@ void CreatDDGITexture(DDGITextureType type, DDGIComponent* pDDGIComponent, Rende
 	assert(nullptr != pDDGIComponent && nullptr != pRenderContext);
 
 	DDGITextureInfo info = GetDDGITextureInfo(type, pDDGIComponent);
-	if(nullptr != info.m_pData && info.m_dataSize > 0)
-	{
-		pRenderContext->CreateTexture(info.m_pName, info.m_textureSizeX, info.m_textureSizeY, 1, info.m_format, samplerFlags, info.m_pData, info.m_dataSize);
-	}
-	else
-	{
-		CD_ENGINE_WARN("DDGIRenderer faild to create texture {0}!", info.m_pName);
-	}
+	// BGFX will create an immutable teture which cant be update when (NULL != _mem).
+	pRenderContext->CreateTexture(info.m_pName, info.m_textureSizeX, info.m_textureSizeY, 1, info.m_format, samplerFlags, nullptr, 0);
 }
 
 void UpdateDDGITexture(DDGITextureType type, DDGIComponent* pDDGIComponent, RenderContext* pRenderContext)
@@ -148,11 +142,6 @@ void DDGIRenderer::Init()
 	m_pDDGIComponent->SetNormalBias(0.0f);
 	m_pDDGIComponent->SetViewBias(0.0f);
 
-	m_pDDGIComponent->SetClassificationRawData("ddgi/classification.bin");
-	m_pDDGIComponent->SetDistanceRawData("ddgi/distance.bin");
-	m_pDDGIComponent->SetIrradianceRawData("ddgi/irradiance.bin");
-	m_pDDGIComponent->SetRelocationRawData("ddgi/relocation.bin");
-
 	m_pRenderContext->CreateUniform(volumeOrigin, bgfx::UniformType::Vec4, 1);
 	m_pRenderContext->CreateUniform(volumeProbeSpacing, bgfx::UniformType::Vec4, 1);
 	m_pRenderContext->CreateUniform(volumeProbeCounts, bgfx::UniformType::Vec4, 1);
@@ -163,6 +152,14 @@ void DDGIRenderer::Init()
 	m_pRenderContext->CreateUniform(cameraPos, bgfx::UniformType::Vec4, 1);
 	m_pRenderContext->CreateUniform(albedoColor, bgfx::UniformType::Vec4, 1);
 	m_pRenderContext->CreateUniform(albedoUVOffsetAndScale, bgfx::UniformType::Vec4, 1);
+
+	// Now we can get DDGI texture from DDGI SDK every frame without the file.
+	// m_pDDGIComponent->SetClassificationRawData("ddgi/classification.bin");
+	// m_pDDGIComponent->SetDistanceRawData("ddgi/distance.bin");
+	// m_pDDGIComponent->SetIrradianceRawData("ddgi/irradiance.bin");
+	// m_pDDGIComponent->SetRelocationRawData("ddgi/relocation.bin");
+
+	m_pDDGIComponent->ResetTextureRawData();
 
 	CreatDDGITexture(DDGITextureType::Classification, m_pDDGIComponent, m_pRenderContext);
 	CreatDDGITexture(DDGITextureType::Distance, m_pDDGIComponent, m_pRenderContext);

@@ -8,3 +8,6 @@ Engine/ThirdPartyProjects
 # tmp
 Projects/Shared
 Projects/Test/Textures
+
+# Commercial SKD
+Engine/Auto/commercial_sdk_locations.bat
