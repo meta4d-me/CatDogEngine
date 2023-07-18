@@ -36,7 +36,7 @@ void Splash::Update()
 
 	engine::StringCrc splashTexture("Textures/lut/ibl_brdf_lut.dds");
 	bgfx::TextureHandle textureHandle = GetRenderContext()->GetTexture(splashTexture);
-	ImGui::Image(ImTextureID(textureHandle.idx), ImVec2(500, 300));
+	ImGui::Image(reinterpret_cast<ImTextureID>(textureHandle.idx), ImVec2(500, 300));
 
 	ImGui::End();
 }

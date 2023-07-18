@@ -81,8 +81,8 @@ void WorldRenderer::Render(float deltaTime)
 		}
 
 		// Mesh
-		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle(pMeshComponent->GetVertexBuffer()));
-		bgfx::setIndexBuffer(bgfx::IndexBufferHandle(pMeshComponent->GetIndexBuffer()));
+		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()});
+		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
 
 		// Material
 		for (const auto& [textureType, textureInfo] : pMaterialComponent->GetTextureResources())
@@ -98,7 +98,7 @@ void WorldRenderer::Render(float deltaTime)
 					m_pRenderContext->FillUniform(uvOffsetAndScale, &textureInfo.uvOffset, 1);
 				}
 
-				bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle(textureInfo.samplerHandle), bgfx::TextureHandle(textureInfo.textureHandle));
+				bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle{textureInfo.samplerHandle}, bgfx::TextureHandle{textureInfo.textureHandle});
 			}
 		}
 
@@ -161,7 +161,7 @@ void WorldRenderer::Render(float deltaTime)
 
 		bgfx::setState(state);
 
-		bgfx::submit(GetViewID(), bgfx::ProgramHandle(pMaterialComponent->GetShadingProgram()));
+		bgfx::submit(GetViewID(), bgfx::ProgramHandle{pMaterialComponent->GetShadingProgram()});
 	}
 }
 

@@ -46,8 +46,7 @@ CD_FORCEINLINE bool IsMaterialTextureTypeValid(cd::MaterialTextureType type)
 } // namespace Detail
 
 ECWorldConsumer::ECWorldConsumer(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext) :
-	m_pSceneWorld(pSceneWorld),
-	m_pRenderContext(pRenderContext)
+	m_pSceneWorld(pSceneWorld)
 {
 }
 
@@ -137,7 +136,7 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 
 		for (cd::MeshID meshID : node.GetMeshIDs())
 		{
-			if (parsedMeshIDs.contains(meshID.Data()))
+			if (parsedMeshIDs.find(meshID.Data()) != parsedMeshIDs.end())
 			{
 				continue;
 			}
@@ -272,7 +271,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 			uint8_t textureSlot = optTextureSlot.value();
 			const cd::Texture& requiredTexture = pSceneDatabase->GetTexture(textureID.Data());
 			std::string outputTexturePath = engine::Path::GetTextureOutputFilePath(requiredTexture.GetPath(), ".dds");
-			if (!compiledTextureSlot.contains(textureSlot))
+			if (compiledTextureSlot.find(textureSlot) == compiledTextureSlot.end())
 			{
 				// When multiple textures have the same texture slot, it implies that these textures are packed in one file.
 				// For example, AO + Metalness + Roughness are packed so they have same slots which mean we only need to build it once.
@@ -313,7 +312,6 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 				std::optional<uint8_t> optTextureSlot = pMaterialType->GetTextureSlot(optionalTextureType);
 				if (!optTextureSlot.has_value())
 				{
-					unknownTextureSlot = true;
 					CD_ERROR("Unknow texture {0} slot!", GetMaterialPropertyGroupName(optionalTextureType));
 					break;
 				}
@@ -323,7 +321,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 				uint8_t textureSlot = optTextureSlot.value();
 				const cd::Texture& optionalTexture = pSceneDatabase->GetTexture(textureID.Data());
 				std::string outputTexturePath = engine::Path::GetTextureOutputFilePath(optionalTexture.GetPath(), ".dds");
-				if (!compiledTextureSlot.contains(textureSlot))
+				if (compiledTextureSlot.find(textureSlot) == compiledTextureSlot.end())
 				{
 					compiledTextureSlot.insert(textureSlot);
 					ResourceBuilder::Get().AddTextureBuildTask(optionalTexture.GetType(), optionalTexture.GetPath(), outputTexturePath.c_str());

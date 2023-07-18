@@ -66,8 +66,6 @@ void MainMenu::FileMenu()
 
 void MainMenu::EditMenu()
 {
-	ImGuiIO& io = ImGui::GetIO();
-
 	if (ImGui::BeginMenu(CD_TEXT("TEXT_EDIT")))
 	{
 		if (ImGui::MenuItem("Undo", "Ctrl Z"))
@@ -183,8 +181,6 @@ void MainMenu::ViewMenu()
 
 void MainMenu::WindowMenu()
 {
-	ImGuiIO& io = ImGui::GetIO();
-
 	if (ImGui::BeginMenu(CD_TEXT("TEXT_WINDOW")))
 	{
 		for (const auto& pDockableLayer : GetImGuiContextInstance()->GetDockableLayers())
@@ -207,7 +203,8 @@ void MainMenu::BuildMenu()
 
 		if (ImGui::MenuItem(CD_TEXT("TEXT_REBUILD_NONUBER_SHADERS")))
 		{
-			ShaderBuilder::BuildNonUberShader(std::format("{}{}", CDENGINE_BUILTIN_SHADER_PATH, "shaders"));
+			std::string nonUberPath = CDENGINE_BUILTIN_SHADER_PATH;
+			ShaderBuilder::BuildNonUberShader(nonUberPath + "shaders");
 		}
 		if (ImGui::MenuItem(CD_TEXT("TEXT_REBUILD_PBR_SHADERS")))
 		{

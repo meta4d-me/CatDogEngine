@@ -16,18 +16,13 @@
 #include "Scene/SceneDatabase.h"
 #include "Window/Input.h"
 
-#include <imgui/imgui.h>
-#define IMGUI_DEFINE_MATH_OPERATORS
-#include <imgui/imgui_internal.h>
-#include <imguizmo/ImGuizmo.h>
-
 namespace
 {
 
 struct ImGuizmoOperationMode
 {
 	// icon font is 16 bits
-	const char8_t* pIconFontName;
+	const char* pIconFontName;
 	const char* pToolStripName;
 	ImGuizmo::OPERATION operation;
 	bool createUIVerticalLine;
@@ -312,7 +307,7 @@ void SceneView::Update()
 	SetWindowPos(sceneViewPosition.x, sceneViewPosition.y);
 
 	// Draw scene.
-	ImGui::Image(ImTextureID(m_pRenderTarget->GetTextureHandle(0).idx),
+	ImGui::Image(reinterpret_cast<ImTextureID>(m_pRenderTarget->GetTextureHandle(0).idx),
 		ImVec2(m_pRenderTarget->GetWidth(), m_pRenderTarget->GetHeight()));
 
 	// Check if there is a file to drop in the scene view to import assets automatically.

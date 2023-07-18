@@ -1,5 +1,6 @@
 #include "Path.h"
 
+#include "Base/Template.h"
 #include "Log/Log.h"
 
 #include <cassert>

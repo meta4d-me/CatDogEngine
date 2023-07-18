@@ -1,6 +1,6 @@
 @echo off
 
-Set BUILD_IDE_NAME=vs2022_clang
+Set BUILD_IDE_NAME=vs2022-clang
 Set CMAKE_IDE_FULL_NAME="Visual Studio 17 2022"
 
 if exist "./Engine/Auto/commercial_sdk_locations.bat" (

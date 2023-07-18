@@ -153,16 +153,17 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 		bool spotInnerDirty = false;
 		bool spotOuterDirty = false;
 
-		switch (lightType)
+		if (cd::LightType::Point == lightType)
 		{
-		case cd::LightType::Point:
 			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition(), cd::Unit::CenterMeter);
 			ImGuiUtils::ImGuiFloatProperty("Range", pLightComponent->GetRange(), cd::Unit::CenterMeter, 0.0f, 10000.0f, false, 1.0f);
-			break;
-		case cd::LightType::Directional:
+		}
+		else if (cd::LightType::Directional == lightType)
+		{
 			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection(), cd::Unit::Degree, cd::Vec3f(-1.0f), cd::Vec3f::One(), true);
-			break;
-		case cd::LightType::Spot:
+		}
+		else if (cd::LightType::Spot == lightType)
+		{
 			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition(), cd::Unit::CenterMeter);
 			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection(), cd::Unit::Degree, cd::Vec3f(-1.0f), cd::Vec3f::One(), true);
 			ImGuiUtils::ImGuiFloatProperty("Range", pLightComponent->GetRange(), cd::Unit::CenterMeter, 0.0f, 10000.0f, false, 1.0f);
@@ -173,40 +174,43 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 
 			spotInnerDirty = ImGuiUtils::ImGuiFloatProperty("InnerAngle", s_spotInnerAngle, cd::Unit::Degree, 0.1f, 90.0f);
 			spotOuterDirty = ImGuiUtils::ImGuiFloatProperty("OuterAngle", s_spotOuterAngle, cd::Unit::Degree, 0.1f, 90.0f);
-			if(spotInnerDirty || spotOuterDirty)
+			if (spotInnerDirty || spotOuterDirty)
 			{
 				pLightComponent->SetInnerAndOuter(s_spotInnerAngle, s_spotOuterAngle);
 			}
-			
-			break;
-		case cd::LightType::Disk:
+		}
+		else if (cd::LightType::Disk == lightType)
+		{
 			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition(), cd::Unit::CenterMeter);
 			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection(), cd::Unit::Degree, cd::Vec3f(-1.0f), cd::Vec3f::One(), true);
 			ImGuiUtils::ImGuiFloatProperty("Range", pLightComponent->GetRange(), cd::Unit::CenterMeter, 0.0f);
 			ImGuiUtils::ImGuiFloatProperty("Radius", pLightComponent->GetRadius());
-			break;
-		case cd::LightType::Rectangle:
+		}
+		else if (cd::LightType::Rectangle == lightType)
+		{
 			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition());
 			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection());
 			ImGuiUtils::ImGuiVectorProperty("Up", pLightComponent->GetUp());
 			ImGuiUtils::ImGuiFloatProperty("Range", pLightComponent->GetRange());
 			ImGuiUtils::ImGuiFloatProperty("Width", pLightComponent->GetWidth());
 			ImGuiUtils::ImGuiFloatProperty("Height", pLightComponent->GetHeight());
-			break;
-		case cd::LightType::Sphere:
+		}
+		else if (cd::LightType::Sphere == lightType)
+		{
 			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition());
 			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection());
 			ImGuiUtils::ImGuiFloatProperty("Radius", pLightComponent->GetRadius());
-			break;
-		case cd::LightType::Tube:
+		}
+		else if (cd::LightType::Tube == lightType)
+		{
 			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition());
 			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection());
 			ImGuiUtils::ImGuiFloatProperty("Range", pLightComponent->GetRange());
 			ImGuiUtils::ImGuiFloatProperty("Width", pLightComponent->GetWidth());
-			break;
-		default:
+		}
+		else
+		{
 			assert("TODO");
-			break;
 		}
 	}
 

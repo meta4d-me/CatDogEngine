@@ -104,6 +104,10 @@ project("Editor")
 			"ENABLE_GENERIC_PRODUCER",
 			"ENABLE_TERRAIN_PRODUCER",
 		}
+	else
+		excludes {
+			path.join(EditorSourcePath, "UILayers/TerrainEditor.*")
+		}
 	end
 
 	-- Disable these options can reduce the size of compiled binaries.
@@ -126,8 +130,13 @@ project("Editor")
 	-- linkoptions { "-IGNORE:4006" }
 
 	flags {
-		"FatalWarnings", -- treat warnings as errors
 		"MultiProcessorCompile", -- compiler uses multiple thread
 	}
+
+	if not USE_CLANG_TOOLSET then
+		flags {
+			"FatalWarnings", -- treat warnings as errors
+		}
+	end
 
 	CopyDllAutomatically()

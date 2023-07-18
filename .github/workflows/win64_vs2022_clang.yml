@@ -20,10 +20,10 @@ jobs:
       uses: microsoft/setup-msbuild@v1.1
 
     - name: Make 3rdParty
-      run: ${{github.workspace}}/MakeThirdParty_vs2022_clang.bat
+      run: ${{github.workspace}}/MakeThirdParty_vs2022-clang.bat
       
     - name: Make Engine
-      run: ${{github.workspace}}/MakeEngine_vs2022_clang.bat
+      run: ${{github.workspace}}/MakeEngine_vs2022-clang.bat
 
     - name: Build Debugx64
       run: msbuild ${{github.workspace}}/CatDogEngine.sln /p:Configuration=Debug /p:Platform=x64

@@ -53,7 +53,7 @@ public:
 	Component& CreateComponent(Entity entity)
 	{
 		StringCrc componentName = Component::GetClassName();
-		assert(m_componentsLib.contains(componentName.Value()));
+		assert(m_componentsLib.find(componentName.Value()) != m_componentsLib.end());
 		ComponentsStorage<Component>* pStorage = static_cast<ComponentsStorage<Component>*>(m_componentsLib[componentName.Value()].get());
 		return pStorage->CreateComponent(entity);
 	}

@@ -5,6 +5,8 @@
 #include "Time/Clock.h"
 #include "Log/Log.h"
 
+#include <cassert>
+
 namespace editor
 {
 
@@ -238,7 +240,7 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 	if (pUberOptions && *pUberOptions != '\0')
 	{
 		commandArguments.push_back("--define");
-		commandArguments.push_back(std::format("{};{}", shaderLanguageDefine, pUberOptions));
+		commandArguments.push_back(shaderLanguageDefine + ";" + pUberOptions);
 	}
 
 	process.SetCommandArguments(cd::MoveTemp(commandArguments));

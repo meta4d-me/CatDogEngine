@@ -13,7 +13,6 @@ project("Engine")
 		path.join(ThirdPartySourcePath, "imgui/*.h"),
 		path.join(ThirdPartySourcePath, "imgui/*.cpp"),
 		path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
-		path.join(ThirdPartySourcePath, "tracy/public/TracyClient.cpp"),
 	}
 	
 	vpaths {
@@ -31,12 +30,7 @@ project("Engine")
 	local platformDefines = nil
 	local platformIncludeDirs = nil
 	filter { "system:windows" }
-		if USE_CLANG_TOOLSET then
-			bgfxBuildBinPath = ThirdPartySourcePath.."/bgfx/.build/win64_"..IDEConfigs.BuildIDEName.."_clang".."/bin"
-		else
-			bgfxBuildBinPath = ThirdPartySourcePath.."/bgfx/.build/win64_"..IDEConfigs.BuildIDEName.."/bin"
-		end
-		
+		bgfxBuildBinPath = ThirdPartySourcePath.."/bgfx/.build/win64_"..IDEConfigs.BuildIDEName.."/bin"
 		platformIncludeDirs = { 
 			path.join(ThirdPartySourcePath, "bx/include/compat/msvc")
 		}
@@ -183,7 +177,7 @@ project("Engine")
 		"MultiProcessorCompile", -- compiler uses multiple thread
 	}
 
-	if DDGI_SDK_PATH == "" then
+	if DDGI_SDK_PATH == "" and not USE_CLANG_TOOLSET then
 		flags {
 			"FatalWarnings", -- treat warnings as errors
 		}

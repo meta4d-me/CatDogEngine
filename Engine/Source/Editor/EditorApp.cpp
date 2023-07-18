@@ -255,7 +255,7 @@ void EditorApp::InitECWorld()
 	m_pSceneWorld->SetDDGIEntity(ddgiEntity);
 	auto& ddgiNameComponent = pWorld->CreateComponent<engine::NameComponent>(ddgiEntity);
 	ddgiNameComponent.SetName("DDGI");
-	auto& ddgiComponent = pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
+	pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
 
 	engine::Entity skyEntity = pWorld->CreateEntity();
 	m_pSceneWorld->SetPBRSkyEntity(skyEntity);
@@ -359,10 +359,12 @@ bool EditorApp::EnablePBRSky() const
 
 void EditorApp::InitShaderPrograms() const
 {
-	ShaderBuilder::BuildNonUberShader(std::format("{}{}", CDENGINE_BUILTIN_SHADER_PATH, "shaders"));
+	std::string nonUberBuildPath = CDENGINE_BUILTIN_SHADER_PATH;
+	ShaderBuilder::BuildNonUberShader(nonUberBuildPath + "shaders");
 	if (EnablePBRSky())
 	{
-		ShaderBuilder::BuildNonUberShader(std::format("{}{}", CDENGINE_BUILTIN_SHADER_PATH, "atm"));
+		std::string atmBuildPath = CDENGINE_BUILTIN_SHADER_PATH;
+		ShaderBuilder::BuildNonUberShader(atmBuildPath + "atm");
 	}
 
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetPBRMaterialType());
