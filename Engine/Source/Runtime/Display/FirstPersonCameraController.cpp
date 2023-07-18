@@ -37,25 +37,6 @@ void FirstPersonCameraController::CameraToController()
 	m_eye = GetMainCameraTransform().GetTranslation();
 	m_lookAt = GetLookAt(GetMainCameraTransform());
 	m_up = GetUp(GetMainCameraTransform());
-
-	
-	m_elevation = std::asin(-m_lookAt.y());
-	if (m_up.y() < 0)
-	{
-		if (m_lookAt.y() > 0)
-		{
-			m_elevation = -cd::Math::PI - m_elevation;
-		}
-		else
-		{
-			m_elevation = cd::Math::PI - m_elevation;
-			m_azimuth = std::atan2(m_lookAt.x(), m_lookAt.z());
-		}
-	}
-	else
-	{
-		m_azimuth = std::atan2(-m_lookAt.x(), -m_lookAt.z());
-	}
 }
 
 void FirstPersonCameraController::ControllerToCamera()
@@ -80,9 +61,19 @@ void FirstPersonCameraController::ControllerToCamera()
 
 		float eyeOffset = m_distanceFromLookAt;
 		eye = m_lookAtPoint - (lookAt * eyeOffset);
+
+		//synchronize view to fpscamera
+		m_eye = eye;
+		m_lookAt = lookAt;
+		m_up = up;
 	}
-// There will be some operation to change eye and lookAt or up
 	GetMainCameraComponent()->BuildView(eye, lookAt, up);
+	GetMainCameraTransformComponent()->GetTransform().SetTranslation(eye);
+	//maybe i can wrap this?
+	cd::Vec3f rotAxis = cd::Vec3f(0.0,0.0,1.0).Cross(lookAt.Normalize()).Normalize();
+	float rotAngle = std::acos(cd::Vec3f(0.0, 0.0, 1.0).Dot(lookAt.Normalize()));
+	GetMainCameraTransformComponent()->GetTransform().SetRotation(cd::Quaternion::FromAxisAngle(rotAxis, rotAngle));
+	GetMainCameraTransformComponent()->Build();
 }
 
 void FirstPersonCameraController::Update(float deltaTime)
@@ -123,17 +114,21 @@ void FirstPersonCameraController::Update(float deltaTime)
 		MoveDown(m_movementSpeed * deltaTime);
 	}
 
-	if (Input::Get().IsMouseRBPressed())
+	if (Input::Get().IsMouseLBPressed())
 	{
 		m_isMayaStyle = false;
 		PitchLocal(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
 		Yaw(m_verticalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
 	}
-	if (Input::Get().IsMouseLBPressed())
+	if (Input::Get().IsMouseRBPressed())
 	{
 		m_isMayaStyle = true;
 		elevationChanging(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
 		azimuthChanging(m_verticalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
+	}
+	if (Input::Get().IsKeyPressed(KeyCode::z))
+	{
+		SynchronizeMayaCamera();
 	}
 	if (Input::Get().GetMouseScrollOffsetY())
 	{
@@ -188,6 +183,11 @@ void FirstPersonCameraController::SetVerticalSensitivity(const float sensitivity
 engine::CameraComponent* FirstPersonCameraController::GetMainCameraComponent() const
 {
 	return m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
+}
+
+engine::TransformComponent* FirstPersonCameraController::GetMainCameraTransformComponent() const
+{
+	return m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity());
 }
 
 cd::Transform FirstPersonCameraController::GetMainCameraTransform() 
@@ -299,6 +299,32 @@ void FirstPersonCameraController::azimuthChanging(float angleDegrees)
 		m_azimuth += cd::Math::TWO_PI;
 	}
 	ControllerToCamera();
+}
+
+void FirstPersonCameraController::SynchronizeMayaCamera()
+{
+	m_lookAtPoint = m_lookAt * m_distanceFromLookAt + m_eye;
+	m_elevation = std::asin(-m_lookAt.y());
+	if (m_up.y() < 0)
+	{
+		if (m_lookAt.y() > 0)
+		{
+			m_elevation = -cd::Math::PI - m_elevation;
+		}
+		else
+		{
+			m_elevation = cd::Math::PI - m_elevation;
+			m_azimuth = std::atan2(m_lookAt.x(), m_lookAt.z());
+		}
+	}
+	else
+	{
+		m_azimuth = std::atan2(-m_lookAt.x(), -m_lookAt.z());
+	}
+}
+
+void FirstPersonCameraController::SynchronizeFpsCamera()
+{
 }
 
 }	// namespace engine

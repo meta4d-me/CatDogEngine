@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ECWorld/TransformComponent.h"
 #include "Math/Transform.hpp"
 #include "Math/Vector.hpp"
 
@@ -56,8 +57,12 @@ public:
 	void CameraToController();
 	//Synchronizes the transform of camera to the controller's current state
 	void ControllerToCamera();
+	// synchronize view when begin using mayastyle camera or fpscamera
+	void SynchronizeMayaCamera();
+	void SynchronizeFpsCamera();
 private:
 	engine::CameraComponent* GetMainCameraComponent() const;
+	engine::TransformComponent* GetMainCameraTransformComponent() const;
 	cd::Transform GetMainCameraTransform();
 	float CalculateZoomScale() { return std::max(std::abs(m_distanceFromLookAt), m_dollyThreshold); }
 
