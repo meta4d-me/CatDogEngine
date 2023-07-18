@@ -54,17 +54,7 @@ function GetPlatformMacroName()
 end
 
 IDEConfigs = {}
-local buildIDEName = os.getenv("BUILD_IDE_NAME")
-buildIDEName = string.gsub(buildIDEName, "\"", "")
-IDEConfigs.BuildIDEName = buildIDEName
-if "vs2022" == buildIDEName then
-	IDEConfigs.VCVersion = "vc143"
-elseif "vs2019" == buildIDEName then
-	IDEConfigs.VCVersion = "vc142"
-else
-	print(buildIDEName.." : No ide compiler version!")
-	return
-end
+IDEConfigs.BuildIDEName = os.getenv("BUILD_IDE_NAME")
 
 function SetLanguageAndToolset(projectName)
 	language("C++")
@@ -92,7 +82,6 @@ print("IntermediatePath = "..IntermediatePath)
 print("EngineSourcePath = "..EngineSourcePath)
 print("RuntimeSourcePath = "..RuntimeSourcePath)
 print("IDEConfigs.BuildIDEName = "..IDEConfigs.BuildIDEName)
-print("IDEConfigs.VCVersion = "..IDEConfigs.VCVersion)
 print("DDGI_SDK_PATH = "..DDGI_SDK_PATH)
 print("================================================================")
 
