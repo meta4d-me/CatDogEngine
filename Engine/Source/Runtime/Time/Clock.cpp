@@ -30,7 +30,7 @@ void Clock::Update()
     m_currentTime = std::chrono::steady_clock::now();
     m_elapsed = m_currentTime - m_lastTime;
 
-    m_deltaTime = std::chrono::duration_cast<std::chrono::duration<double>>(m_elapsed).count();
+    m_deltaTime = static_cast<float>(std::chrono::duration_cast<std::chrono::duration<double>>(m_elapsed).count());
     //m_timeSinceStart += m_deltaTime;
 }
 

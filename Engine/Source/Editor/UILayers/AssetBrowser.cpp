@@ -163,7 +163,6 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 			 {
 				 std::filesystem::path texturesPath = resourcesPath / "Textures/" / "textures/" / fileName.c_str();
 				 std::filesystem::path texviewPath = resourcesPath/ "Textures/" /"textures"/ (nameNoEx + ".dds");
-				 ImGuiIO& io = ImGui::GetIO();
 				 engine::RenderContext* pRenderContext = GetRenderContext();
 				 engine::StringCrc textureCrc(nameNoEx);
 				 bgfx::TextureHandle TextureHandle = pRenderContext->GetTexture(textureCrc);
@@ -179,7 +178,7 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 				 else
 				 {
 					 ImVec2 img_size(m_gridSize, m_gridSize);
-					 ImGui::Image(ImTextureID(TextureHandle.idx), img_size);
+					 ImGui::Image(reinterpret_cast<ImTextureID>(TextureHandle.idx), img_size);
 				 }
 
 			 }

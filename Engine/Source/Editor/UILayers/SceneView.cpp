@@ -21,8 +21,13 @@ namespace
 
 struct ImGuizmoOperationMode
 {
-	// icon font is 16 bits
+#ifdef __clang__
 	const char* pIconFontName;
+#else
+	const char8_t* pIconFontName;
+#endif // __clang__
+
+	// icon font is 16 bits
 	const char* pToolStripName;
 	ImGuizmo::OPERATION operation;
 	bool createUIVerticalLine;
