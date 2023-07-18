@@ -43,14 +43,15 @@ echo\
 
 echo [ AssetPipeline ] Start making project...
 cd AssetPipeline
-if %VS_VERSION% == vs2019 call ./make_win64_vs2019.bat
-if %VS_VERSION% == vs2022 (
-	if %USE_CLANG_TOOLSET% == 1 (
-		call ./make_win64_vs2022_clang.bat
-	) else (
-		call ./make_win64_vs2022.bat
-	)
+if "%VS_VERSION%" EQU "vs2019" call make_win64_vs2019.bat
+if "%VS_VERSION%" EQU "vs2022" (
+    if "%USE_CLANG_TOOLSET%" EQU "1" (
+        call make_win64_vs2022_clang.bat
+    ) else (
+        call make_win64_vs2022.bat
+    )
 )
+
 cd %MSBUILD_FOLDER%
 "%MSBUILD_PATH%" -m %ThirdPartyProjectsPath%/AssetPipeline/AssetPipeline.sln /p:Configuration=Debug /p:Platform=x64
 "%MSBUILD_PATH%" -m %ThirdPartyProjectsPath%/AssetPipeline/AssetPipeline.sln /p:Configuration=Release /p:Platform=x64
