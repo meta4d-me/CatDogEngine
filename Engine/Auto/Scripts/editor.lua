@@ -31,6 +31,7 @@ project("Editor")
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..EditorResourceRootPath.."\"",
 		"CDENGINE_TOOL_PATH=\""..ToolRootPath.."\"",
 		"EDITOR_MODE",
+		GetPlatformMacroName(),
 	}
 
 	includedirs {

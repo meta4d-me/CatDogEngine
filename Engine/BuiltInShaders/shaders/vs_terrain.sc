@@ -10,8 +10,8 @@ ISAMPLER2D(s_elevationMap, 1);
 
 float getElevation(vec3 worldPosition)
 {
-    int u = worldPosition.x - u_SectorOrigin.x;
-    int v = worldPosition.z - u_SectorOrigin.z;
+    int u = int(worldPosition.x - u_SectorOrigin.x);
+    int v = int(worldPosition.z - u_SectorOrigin.z);
     ivec4 elevation = texelFetch(s_elevationMap, ivec2(u, v), 0);
     return elevation.r;
 }

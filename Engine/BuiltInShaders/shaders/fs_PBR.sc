@@ -53,7 +53,7 @@ vec3 GetEnvironment(Material material, vec3 vertexNormal, vec3 viewDir) {
 	vec3 envSpecularBRDF = (material.F0 * lut.x + lut.y);
 	
 	// Occlusion
-	float specularOcclusion = lerp(pow(material.occlusion, 4.0), 1.0, saturate(-0.3 + NdotV * NdotV));
+	float specularOcclusion = mix(pow(material.occlusion, 4.0), 1.0, saturate(-0.3 + NdotV * NdotV));
 	float horizonOcclusion = saturate(1.0 + 1.2 * dot(reflectDir, vertexNormal));
 	horizonOcclusion *= horizonOcclusion;
 	float finalOcclusion = min(specularOcclusion, horizonOcclusion);

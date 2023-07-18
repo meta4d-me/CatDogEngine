@@ -37,7 +37,7 @@ private:
 	static std::ostringstream m_oss;
 };
 
-} // namespace engine
+}
 
 // Engine log macros.
 #define CD_ENGINE_TRACE(...) ::engine::Log::GetEngineLogger()->trace(__VA_ARGS__)

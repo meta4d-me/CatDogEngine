@@ -166,6 +166,19 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 	std::vector<std::string> commandArguments{ "-f", pInputFilePath, "--varyingdef", shaderSourceFolderPath.string().c_str(),
 		"-o", pOutputFilePath, "--platform", "windows", "-O", "3"};
 	
+	commandArguments.push_back("--platform");
+#if CD_PLATFORM_OSX
+	commandArguments.push_back("osx");
+#elif CD_PLATFORM_IOS
+	commandArguments.push_back("ios");
+#elif CD_PLATFORM_WINDOWS
+	commandArguments.push_back("windows");
+#elif CD_PLATFORM_ANDROID
+	commandArguments.push_back("android");
+#else
+	static_assert("CD_PLATFORM macro not defined!");
+#endif
+
 	if (ShaderType::Compute == shaderType)
 	{
 		commandArguments.push_back("--type");
@@ -182,6 +195,7 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 		commandArguments.push_back("v");
 	}
 
+	std::string shaderLanguageDefine;
 	commandArguments.push_back("-p");
 	switch (engine::Path::GetGraphicsBackend())
 	{
@@ -199,22 +213,23 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 		{
 			commandArguments.push_back("vs_5_0");
 		}
+		shaderLanguageDefine = "BGFX_SHADER_LANGUAGE_HLSL";
 		break;
 	case engine::GraphicsBackend::OpenGL:
-		commandArguments.push_back("-p");
 		commandArguments.push_back("440");
+		shaderLanguageDefine = "BGFX_SHADER_LANGUAGE_GLSL";
 		break;
 	case engine::GraphicsBackend::OpenGLES:
-		commandArguments.push_back("-p");
 		commandArguments.push_back("320_es");
+		shaderLanguageDefine = "BGFX_SHADER_LANGUAGE_GLSL";
 		break;
 	case engine::GraphicsBackend::Metal:
-		commandArguments.push_back("-p");
 		commandArguments.push_back("metal");
+		shaderLanguageDefine = "BGFX_SHADER_LANGUAGE_METAL";
 		break;
 	case engine::GraphicsBackend::Vulkan:
-		commandArguments.push_back("-p");
-		commandArguments.push_back("spirv16-13");
+		commandArguments.push_back("spirv15-12");
+		shaderLanguageDefine = "BGFX_SHADER_LANGUAGE_SPIRV";
 		break;
 	default:
 		assert("Unknown shader compile profile.");
@@ -223,7 +238,7 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 	if (pUberOptions && *pUberOptions != '\0')
 	{
 		commandArguments.push_back("--define");
-		commandArguments.push_back(pUberOptions);
+		commandArguments.push_back(std::format("{};{}", shaderLanguageDefine, pUberOptions));
 	}
 
 	process.SetCommandArguments(cd::MoveTemp(commandArguments));

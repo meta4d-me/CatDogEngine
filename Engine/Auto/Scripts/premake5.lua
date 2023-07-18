@@ -32,7 +32,7 @@ PlatformSettings["Windows"] = {
 
 PlatformSettings["Andriod"] = {
 	DisplayName = "Android",
-	MacroName = "CD_PLATFORM_ANDRIOD",
+	MacroName = "CD_PLATFORM_ANDROID",
 }
 
 PlatformSettings["OSX"] = {

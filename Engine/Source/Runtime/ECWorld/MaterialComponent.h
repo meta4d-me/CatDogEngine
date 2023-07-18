@@ -56,14 +56,19 @@ public:
 	};
 
 public:
-	MaterialComponent();
+	MaterialComponent() = default;
 	MaterialComponent(const MaterialComponent&) = default;
 	MaterialComponent& operator=(const MaterialComponent&) = default;
 	MaterialComponent(MaterialComponent&&) = default;
 	MaterialComponent& operator=(MaterialComponent&&) = default;
 	~MaterialComponent() = default;
 
-	void Init(const engine::MaterialType* pMaterialType, const cd::Material* pMaterialData = nullptr);
+	void Init();
+
+	void SetMaterialData(const cd::Material* pMaterialData) { m_pMaterialData = pMaterialData; }
+	const cd::Material* GetMaterialData() const { return m_pMaterialData; }
+
+	void SetMaterialType(const engine::MaterialType* pMaterialType) { m_pMaterialType = pMaterialType; }
 	const engine::MaterialType* GetMaterialType() const { return m_pMaterialType; }
 
 	void Reset();

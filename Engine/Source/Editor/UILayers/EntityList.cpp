@@ -51,7 +51,8 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
 
         auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
-        materialComponent.Init(pMaterialType);
+        materialComponent.Init();
+        materialComponent.SetMaterialType(pMaterialType);
         engine::StringCrc currentUberOption(pMaterialType->GetShaderSchema().GetUberCombines().at(0));
         materialComponent.SetUberShaderOption(currentUberOption);
         materialComponent.SetAlbedoColor(cd::Vec3f(0.2f));

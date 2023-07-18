@@ -125,26 +125,28 @@ project("Engine")
 			"freetype"
 		}
 	filter {}
-
-	if DDGI_SDK_PATH ~= "" then
-		includedirs {
-			path.join(DDGI_SDK_PATH, "include"),
-		}
-		libdirs {
-			path.join(DDGI_SDK_PATH, "lib"),
-		}
-		links {
-			"ddgi_sdk", "mright_sdk", "DDGIProbeDecoderBin"
-		}
-		defines {
-			"ENABLE_DDGI_SDK"
-		}
-	end
-
+	
+	filter { "configurations:Release" }
+		if DDGI_SDK_PATH ~= "" then
+			includedirs {
+				path.join(DDGI_SDK_PATH, "include"),
+			}
+			libdirs {
+				path.join(DDGI_SDK_PATH, "lib"),
+			}
+			links {
+				"ddgi_sdk", "mright_sdk", "DDGIProbeDecoderBin"
+			}
+			defines {
+				"DDGI_SDK_PATH=\""..DDGI_SDK_PATH.."\"",
+			}
+		end
+	filter {}
+	
 	if "SharedLib" == EngineBuildLibKind then
 		table.insert(platformDefines, "ENGINE_BUILD_SHARED")
 	end
-
+	
 	defines {
 		"SDL_MAIN_HANDLED", -- don't use SDL_main() as entry point
 		"__STDC_LIMIT_MACROS", "__STDC_FORMAT_MACROS", "__STDC_CONSTANT_MACROS",
