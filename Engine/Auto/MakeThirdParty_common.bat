@@ -10,10 +10,6 @@ for /f "delims=" %%i in ('"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer
 SET MSBUILD_PATH=%MSBUILD_PATH:\=/%
 SET MSBUILD_FOLDER=%MSBUILD_PATH:MsBuild.exe=%
 
-rem Specify toolset option
-Set CMAKE_TOOLSET_OPTION=
-if %USE_CLANG_TOOLSET% == 1 Set CMAKE_TOOLSET_OPTION=-T ClangCL
-
 rem Generate
 cd Engine/Source/ThirdParty
 set ThirdPartyProjectsPath=%cd%

@@ -164,6 +164,16 @@ function CopyDllAutomatically()
 			}
 		end
 	filter {}
+
+	filter { "configurations:Release" }
+		if DDGI_SDK_PATH ~= "" then
+			postbuildcommands {
+				"{COPYFILE} \""..path.join(DDGI_SDK_PATH, "bin/*.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(DDGI_SDK_PATH, "bin/ThirdParty/ffmpeg/*.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(DDGI_SDK_PATH, "bin/ThirdParty/zlib/*.*").."\" \""..BinariesPath.."\"",
+			}
+		end
+	filter {}
 end
 
 -- thirdparty projects such as sdl
