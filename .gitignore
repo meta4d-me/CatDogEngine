@@ -7,7 +7,8 @@ Engine/ThirdPartyProjects
 
 # tmp
 Projects/Shared
-Projects/Test/Textures
+Projects/Test/Textures/*
+!Projects/Test/Textures/skybox/
 
 # Commercial SKD
 Engine/Auto/commercial_sdk_locations.bat
