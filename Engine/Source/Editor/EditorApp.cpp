@@ -19,7 +19,6 @@
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/SkyRenderer.h"
-#include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ShaderBuilder.h"
@@ -33,16 +32,20 @@
 #include "UILayers/OutputLog.h"
 #include "UILayers/SceneView.h"
 #include "UILayers/Splash.h"
-#include "UILayers/TerrainEditor.h"
 #include "Window/Input.h"
 #include "Window/Window.h"
+
+#ifdef ENABLE_TERRAIN_PRODUCER
+#include "UILayers/TerrainEditor.h"
+#include "Rendering/TerrainRenderer.h"
+#endif
 
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui/imgui_internal.h>
 #include "ImGui/imfilebrowser.h"
 
-#include <format>
+//#include <format>
 #include <thread>
 
 namespace editor
@@ -153,8 +156,10 @@ void EditorApp::InitEditorUILayers()
 	m_pSceneView = pSceneView.get();
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
 
+#ifdef ENABLE_TERRAIN_PRODUCER
 	auto pTerrainEditor = std::make_unique<TerrainEditor>("Terrain Editor");
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pTerrainEditor));
+#endif
 
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
 
@@ -301,9 +306,11 @@ void EditorApp::InitEngineRenderers()
 	m_pIBLSkyRenderer = pIBLSkyRenderer.get();
 	AddEngineRenderer(cd::MoveTemp(pIBLSkyRenderer));
 
+#ifdef ENABLE_TERRAIN_PRODUCER
 	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pTerrainRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pTerrainRenderer));
+#endif
 
 	auto pSceneRenderer = std::make_unique<engine::WorldRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pSceneRenderer = pSceneRenderer.get();

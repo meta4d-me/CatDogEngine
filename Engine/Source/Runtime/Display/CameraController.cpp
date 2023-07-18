@@ -16,8 +16,6 @@ CameraController::CameraController(
 	const float vertical_sensitivity,
 	const float movement_speed)
 	: m_pSceneWorld(pSceneWorld)
-	, m_horizontalSensitivity(horizontal_sensitivity)
-	, m_verticalSensitivity(vertical_sensitivity)
 	, m_movementSpeed(movement_speed)
 {
 	assert(pSceneWorld);

@@ -13,7 +13,6 @@ project("Engine")
 		path.join(ThirdPartySourcePath, "imgui/*.h"),
 		path.join(ThirdPartySourcePath, "imgui/*.cpp"),
 		path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
-		path.join(ThirdPartySourcePath, "spdlog/include/spdlog/**.*"),
 		path.join(ThirdPartySourcePath, "tracy/public/TracyClient.cpp"),
 	}
 	
@@ -26,17 +25,18 @@ project("Engine")
 			path.join(ThirdPartySourcePath, "imgui/*.cpp"),
 			path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
 		},
-		["Tracy"] = {
-			path.join(ThirdPartySourcePath, "tracy/public/TracyClient.cpp"),
-		}
 	}
 	
 	local bgfxBuildBinPath = nil
 	local platformDefines = nil
 	local platformIncludeDirs = nil
-
 	filter { "system:windows" }
-		bgfxBuildBinPath = ThirdPartySourcePath.."/bgfx/.build/win64_"..IDEConfigs.BuildIDEName.."/bin"
+		if USE_CLANG_TOOLSET then
+			bgfxBuildBinPath = ThirdPartySourcePath.."/bgfx/.build/win64_"..IDEConfigs.BuildIDEName.."_clang".."/bin"
+		else
+			bgfxBuildBinPath = ThirdPartySourcePath.."/bgfx/.build/win64_"..IDEConfigs.BuildIDEName.."/bin"
+		end
+		
 		platformIncludeDirs = { 
 			path.join(ThirdPartySourcePath, "bx/include/compat/msvc")
 		}
@@ -57,9 +57,47 @@ project("Engine")
 		table.unpack(platformIncludeDirs),
 		path.join(EnginePath, "BuiltInShaders/shaders"),
 		path.join(EnginePath, "BuiltInShaders/UniformDefines"),
-		path.join(ThirdPartySourcePath, "spdlog/include"),
-		path.join(ThirdPartySourcePath, "tracy/public"),
 	}
+
+	if ENABLE_SPDLOG then
+		files {
+			path.join(ThirdPartySourcePath, "spdlog/include/spdlog/**.*"),
+		}
+	
+		vpaths {
+			["spdlog/*"] = { 
+				path.join(ThirdPartySourcePath, "spdlog/include/spdlog/**.*"),
+			},
+		}
+
+		includedirs {
+			path.join(ThirdPartySourcePath, "spdlog/include"),
+		}
+
+		defines {
+			"SPDLOG_NO_EXCEPTIONS", "FMT_USE_NONTYPE_TEMPLATE_ARGS=0",
+		}
+	end
+
+	if ENABLE_TRACY then
+		files {
+			path.join(ThirdPartySourcePath, "tracy/public/TracyClient.cpp"),
+		}
+
+		vpaths {
+			["Tracy"] = {
+				path.join(ThirdPartySourcePath, "tracy/public/TracyClient.cpp"),
+			}
+		}
+
+		includedirs {
+			path.join(ThirdPartySourcePath, "tracy/public"),
+		}
+
+		defines {
+			"TRACY_ENABLE",
+		}
+	end
 
 	filter { "configurations:Debug" }
 		platformDefines = {
@@ -112,7 +150,6 @@ project("Engine")
 		"__STDC_LIMIT_MACROS", "__STDC_FORMAT_MACROS", "__STDC_CONSTANT_MACROS",
 		"STB_IMAGE_STATIC",
 		"IMGUI_ENABLE_FREETYPE",
-		"SPDLOG_NO_EXCEPTIONS", "FMT_USE_NONTYPE_TEMPLATE_ARGS=0",
 		GetPlatformMacroName(),
 		table.unpack(platformDefines),
 		"CDENGINE_BUILTIN_SHADER_PATH=\""..BuiltInShaderSourcePath.."\"",
@@ -120,7 +157,6 @@ project("Engine")
 		"CDPROJECT_RESOURCES_ROOT_PATH=\""..ProjectResourceRootPath.."\"",
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..EditorResourceRootPath.."\"",
 		"EDITOR_MODE",
-		"TRACY_ENABLE",
 	}
 
 	-- use /MT /MTd, not /MD /MDd
@@ -151,25 +187,4 @@ project("Engine")
 		}
 	end
 	
-	-- copy dll into binary folder automatically.
-	filter { "configurations:Debug" }
-		postbuildcommands {
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Debug/SDL2d.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDProducer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/GenericProducer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/TerrainProducer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDConsumer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/assimp-*-mtd.*").."\" \""..BinariesPath.."\"",
-		}
-	filter { "configurations:Release" }
-		postbuildcommands {
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Release/SDL2.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CDProducer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/GenericProducer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/TerrainProducer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CDConsumer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/assimp-*-mt.*").."\" \""..BinariesPath.."\"",
-		}
-	filter {}
+	CopyDllAutomatically()

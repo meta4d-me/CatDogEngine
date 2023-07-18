@@ -2,6 +2,8 @@
 
 #include "Log/Log.h"
 
+#include <cassert>
+
 namespace engine
 {
 

@@ -36,7 +36,7 @@ public:
 	ComponentsStorage<Component>* Register()
 	{
 		StringCrc componentName = Component::GetClassName();
-		assert(!m_componentsLib.contains(componentName.Value()));
+		assert(m_componentsLib.find(componentName.Value()) == m_componentsLib.end());
 		m_componentsLib[componentName.Value()] = std::make_unique<ComponentsStorage<Component>>();
 		return static_cast<ComponentsStorage<Component>*>(m_componentsLib[componentName.Value()].get());
 	}

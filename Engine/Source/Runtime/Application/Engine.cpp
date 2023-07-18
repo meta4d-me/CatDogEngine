@@ -3,7 +3,12 @@
 #include "Time/Clock.h"
 #include "Window/Window.h"
 
+#ifdef ENABLE_TRACY
 #include <tracy/Tracy.hpp>
+#else
+#define ZoneScoped
+#define FrameMark
+#endif
 
 namespace engine
 {

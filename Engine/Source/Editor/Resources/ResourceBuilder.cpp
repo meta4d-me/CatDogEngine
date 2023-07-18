@@ -268,7 +268,7 @@ bool ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, c
 	texturecExePath += "/texturec";
 	Process process(texturecExePath.c_str());
 
-	std::vector<std::string> commandArguments{ "-f", pInputFilePath, "-o", pOutputFilePath, "-t", "BC3", "--mips", "-q", "fastest", "--max", "1024"};
+	std::vector<std::string> commandArguments{ "-f", pInputFilePath, "-o", pOutputFilePath, "-t", "BC3", "--mips", "-q", "highest", "--max", "1024"};
 	if (cd::MaterialTextureType::Normal == textureType)
 	{
 		commandArguments.push_back("--normalmap");

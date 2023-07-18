@@ -13,11 +13,14 @@
 #include "Log/Log.h"
 #include "Material/MaterialType.h"
 #include "Producers/CDProducer/CDProducer.h"
-#include "Producers/GenericProducer/GenericProducer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ResourceLoader.h"
+
+#ifdef ENABLE_GENERIC_PRODUCER
+#include "Producers/GenericProducer/GenericProducer.h"
+#endif
 
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -819,6 +822,7 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 	}
 	else
 	{
+#ifdef ENABLE_GENERIC_PRODUCER
 		cdtools::GenericProducer genericProducer(pFilePath);
 		genericProducer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount(), pSceneDatabase->GetMeshCount(),
 		pSceneDatabase->GetMaterialCount(), pSceneDatabase->GetTextureCount(), pSceneDatabase->GetLightCount());
@@ -833,6 +837,9 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 		processor.SetDumpSceneDatabaseEnable(false);
 		processor.SetFlattenSceneDatabaseEnable(true);
 		processor.Run();
+#else
+		assert("Unable to import this file format.");
+#endif
 	}
 
 	// Step 2 : Process generated cd::SceneDatabase

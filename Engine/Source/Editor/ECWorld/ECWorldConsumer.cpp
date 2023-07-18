@@ -19,8 +19,7 @@
 
 #include <algorithm>
 #include <filesystem>
-#include <format>
-#include <span>
+//#include <format>
 
 namespace editor
 {

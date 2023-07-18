@@ -47,8 +47,12 @@ static bool ImGuiFloatProperty(const char* pName, float& value, cd::Unit unit = 
 	ImGui::NextColumn();
 	ImGui::PushItemWidth(-1);
 
-	std::string labelName = std::format("##{}", pName);
-	std::string metricName = std::format("%.2f{}", cd::GetUnitName(unit));
+	//std::string labelName = std::format("##{}", pName);
+	std::string labelName = "##";
+	labelName += pName;
+	//std::string metricName = std::format("%.2f{}", cd::GetUnitName(unit));
+	std::string metricName = "%.2f";
+	metricName += cd::GetUnitName(unit);
 	float delta = maxValue - minValue;
 	float dragSpeed = (speed <= 0.0) ? (cd::Math::IsEqualToZero(delta) ? 1.0f : delta * 0.05f) : speed;
 	if (ImGui::DragFloat(labelName.c_str(), &value, dragSpeed, minValue, maxValue, metricName.c_str()))
@@ -78,8 +82,12 @@ static bool ImGuiVectorProperty(const char* pName, T& value, cd::Unit unit = cd:
 	ImGui::NextColumn();
 	ImGui::PushItemWidth(-1);
 
-	std::string labelName = std::format("##{}", pName);
-	std::string metricName = std::format("%.2f{}", cd::GetUnitName(unit));
+	//std::string labelName = std::format("##{}", pName);
+	std::string labelName = "##";
+	labelName += pName;
+	//std::string metricName = std::format("%.2f{}", cd::GetUnitName(unit));
+	std::string metricName = "%.2f";
+	metricName += cd::GetUnitName(unit);
 	float delta = maxValue.x() - minValue.x();
 	float dragSpeed = (speed <= 0.0) ? (cd::Math::IsEqualToZero(delta) ? 1.0f : delta * 0.05f) : speed;
 	if constexpr (std::is_same<T, cd::Vec2f>())

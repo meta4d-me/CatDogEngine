@@ -10,6 +10,20 @@ EngineName = "CatDogEngine"
 -- But it is necessary if you want to combine Engine and applications in other languages, such as C#.
 EngineBuildLibKind = "StaticLib" -- "SharedLib"
 
+ChoosePlatform = "Windows"
+USE_CLANG_TOOLSET = false
+if os.getenv("USE_CLANG_TOOLSET") then
+	USE_CLANG_TOOLSET = true
+end
+
+DDGI_SDK_PATH = os.getenv("DDGI_SDK_PATH") or ""
+if not os.isdir(DDGI_SDK_PATH) then
+	DDGI_SDK_PATH = ""
+end
+
+ENABLE_SPDLOG = not USE_CLANG_TOOLSET
+ENABLE_TRACY = not USE_CLANG_TOOLSET
+
 PlatformSettings = {}
 PlatformSettings["Windows"] = {
 	DisplayName = "Win64",
@@ -31,7 +45,6 @@ PlatformSettings["IOS"] = {
 	MacroName = "CD_PLATFORM_IOS",
 }
 
-ChoosePlatform = "Windows"
 function GetPlatformDisplayName()
 	return PlatformSettings[ChoosePlatform].DisplayName
 end
@@ -53,22 +66,18 @@ else
 	return
 end
 
-BUILD_WITH_LLVM_CLANG_CL = false
 function SetLanguageAndToolset(projectName)
 	language("C++")
-	cppdialect("C++20")
-
-	if BUILD_WITH_LLVM_CLANG_CL then
+	
+	if USE_CLANG_TOOLSET then
 		toolset("clang")
+		cppdialect("C++17")
+	else
+		cppdialect("C++20")
 	end
 
 	location(path.join(IntermediatePath, projectName))
 	targetdir(BinariesPath)
-end
-
-DDGI_SDK_PATH = os.getenv("DDGI_SDK_PATH") or ""
-if not os.isdir(DDGI_SDK_PATH) then
-	DDGI_SDK_PATH = ""
 end
 
 -- Parse folder path
@@ -121,6 +130,41 @@ workspace(EngineName)
 	filter {}
 
 	startproject("Editor")
+
+function CopyDllAutomatically()
+	-- copy dll into binary folder automatically.
+	filter { "configurations:Debug" }
+		postbuildcommands {
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Debug/SDL2d.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDProducer.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDConsumer.*").."\" \""..BinariesPath.."\"",
+		}
+
+		if not USE_CLANG_TOOLSET then
+			postbuildcommands {
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/GenericProducer.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/TerrainProducer.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/assimp-*-mtd.*").."\" \""..BinariesPath.."\"",
+			}
+		end
+	filter { "configurations:Release" }
+		postbuildcommands {
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Release/SDL2.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CDProducer.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CDConsumer.*").."\" \""..BinariesPath.."\"",
+		}
+
+		if not USE_CLANG_TOOLSET then
+			postbuildcommands {
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/GenericProducer.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/TerrainProducer.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/assimp-*-mt.*").."\" \""..BinariesPath.."\"",
+			}
+		end
+	filter {}
+end
 
 -- thirdparty projects such as sdl
 dofile("thirdparty.lua")

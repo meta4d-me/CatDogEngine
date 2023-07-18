@@ -11,7 +11,7 @@
 #include <bx/allocator.h>
 
 #include <cassert>
-#include <format>
+//#include <format>
 #include <fstream>
 #include <memory>
 
@@ -258,7 +258,9 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pFilePath, uint64_t
 		return itTextureCache->second;
 	}
 
-	std::string textureFileFullPath = std::format("{}{}", CDPROJECT_RESOURCES_ROOT_PATH, pFilePath);
+	//std::string textureFileFullPath = std::format("{}{}", CDPROJECT_RESOURCES_ROOT_PATH, pFilePath);
+	std::string textureFileFullPath = CDPROJECT_RESOURCES_ROOT_PATH;
+	textureFileFullPath += pFilePath;
 	std::ifstream fin(textureFileFullPath, std::ios::in | std::ios::binary);
 	if (!fin.is_open())
 	{

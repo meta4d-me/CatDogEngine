@@ -25,14 +25,12 @@ project("Editor")
 
 	defines {
 		"BX_CONFIG_DEBUG",
-		"SPDLOG_NO_EXCEPTIONS", "FMT_USE_NONTYPE_TEMPLATE_ARGS=0",
 		"CDENGINE_BUILTIN_SHADER_PATH=\""..BuiltInShaderSourcePath.."\"",
 		"CDPROJECT_RESOURCES_SHARED_PATH=\""..ProjectSharedPath.."\"",
 		"CDPROJECT_RESOURCES_ROOT_PATH=\""..ProjectResourceRootPath.."\"",
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..EditorResourceRootPath.."\"",
 		"CDENGINE_TOOL_PATH=\""..ToolRootPath.."\"",
 		"EDITOR_MODE",
-		"TRACY_ENABLE",
 	}
 
 	includedirs {
@@ -49,13 +47,28 @@ project("Editor")
 		path.join(ThirdPartySourcePath, "bx/include/compat/msvc"),
 		path.join(ThirdPartySourcePath, "imgui"),
 		path.join(ThirdPartySourcePath, "imguizmo"),
-		path.join(ThirdPartySourcePath, "spdlog/include"),
-		path.join(ThirdPartySourcePath, "tracy/public"),
 		ThirdPartySourcePath,
 	}
 
-	defines {
-	}
+	if ENABLE_SPDLOG then
+		defines {
+			"SPDLOG_NO_EXCEPTIONS", "FMT_USE_NONTYPE_TEMPLATE_ARGS=0",
+		}
+
+		includedirs {
+			path.join(ThirdPartySourcePath, "spdlog/include"),
+		}
+	end
+
+	if ENABLE_TRACY then
+		defines {
+			"TRACY_ENABLE",
+		}
+
+		includedirs {
+			path.join(ThirdPartySourcePath, "tracy/public"),
+		}
+	end
 
 	-- use /MT /MTd, not /MD /MDd
 	staticruntime "on"
@@ -77,10 +90,20 @@ project("Editor")
 		"Engine",
 		"AssetPipelineCore",
 		"CDProducer",
-		"GenericProducer",
-		"TerrainProducer",
 		"CDConsumer",
 	}
+
+	if not USE_CLANG_TOOLSET then
+		links {
+			"GenericProducer",
+			"TerrainProducer",
+		}
+
+		defines {
+			"ENABLE_GENERIC_PRODUCER",
+			"ENABLE_TERRAIN_PRODUCER",
+		}
+	end
 
 	-- Disable these options can reduce the size of compiled binaries.
 	justmycode("Off")
@@ -106,25 +129,4 @@ project("Editor")
 		"MultiProcessorCompile", -- compiler uses multiple thread
 	}
 
-	-- copy dll into binary folder automatically.
-	filter { "configurations:Debug" }
-		postbuildcommands {
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Debug/SDL2d.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDProducer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/GenericProducer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/TerrainProducer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDConsumer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/assimp-*-mtd.*").."\" \""..BinariesPath.."\"",
-		}
-	filter { "configurations:Release" }
-		postbuildcommands {
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Release/SDL2.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CDProducer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/GenericProducer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/TerrainProducer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CDConsumer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/assimp-*-mt.*").."\" \""..BinariesPath.."\"",
-		}
-	filter {}
+	CopyDllAutomatically()
