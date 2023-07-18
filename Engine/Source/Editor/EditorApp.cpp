@@ -9,6 +9,7 @@
 #include "ImGui/Localization.h"
 #include "ImGui/UILayers/DebugPanel.h"
 #include "Log/Log.h"
+#include "Math/MeshGenerator.h"
 #include "Path/Path.h"
 #include "Rendering/AnimationRenderer.h"
 #include "Rendering/BlitRenderTargetPass.h"
@@ -246,26 +247,57 @@ void EditorApp::InitECWorld()
 		5.0f /* vertical sensitivity */,
 		160.0f /* Movement Speed*/);
 
-	engine::Entity ddgiEntity = pWorld->CreateEntity();
-	m_pSceneWorld->SetDDGIEntity(ddgiEntity);
-	auto& ddgiNameComponent = pWorld->CreateComponent<engine::NameComponent>(ddgiEntity);
-	ddgiNameComponent.SetName("DDGI");
-	auto& ddgiComponent = pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
-
-	engine::Entity skyEntity = pWorld->CreateEntity();
-	m_pSceneWorld->SetPBRSkyEntity(skyEntity);
-	auto& skyNameComponent = pWorld->CreateComponent<engine::NameComponent>(skyEntity);
-	skyNameComponent.SetName("Sky");
-
-	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(skyEntity);
-	transformComponent.SetTransform(cd::Transform(cd::Vec3f(0.0f, -1.0f, 0.0f), cd::Quaternion::Identity(), cd::Vec3f::One()));
-	transformComponent.Build();
-
 	m_pNewCameraController = std::make_unique<engine::CameraController>(
 		m_pSceneWorld.get(),
 		5.0f /* horizontal sensitivity */,
 		5.0f /* vertical sensitivity */,
 		5.0f /* Movement Speed*/);
+
+	InitDDGIEntity();
+	InitSkyEntity();
+}
+
+void EditorApp::InitDDGIEntity()
+{
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+
+	engine::Entity ddgiEntity = pWorld->CreateEntity();
+	m_pSceneWorld->SetDDGIEntity(ddgiEntity);
+
+	auto &nameComponent = pWorld->CreateComponent<engine::NameComponent>(ddgiEntity);
+	nameComponent.SetName("DDGI");
+
+	pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
+}
+
+void EditorApp::InitSkyEntity()
+{
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+
+	engine::Entity skyEntity = pWorld->CreateEntity();
+	m_pSceneWorld->SetSkyEntity(skyEntity);
+
+	auto &nameComponent = pWorld->CreateComponent<engine::NameComponent>(skyEntity);
+	nameComponent.SetName("Sky");
+
+	pWorld->CreateComponent<engine::SkyComponent>(skyEntity);
+
+	cd::VertexFormat vertexFormat;
+	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
+	m_pRenderContext->CreateVertexLayout(engine::StringCrc("PosistionOnly"), vertexFormat.GetVertexLayout());
+
+	cd::Box skyBox(cd::Point(-1.0f), cd::Point(1.0f));
+	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(skyBox, vertexFormat, false);
+	assert(optMesh.has_value());
+
+	auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(skyEntity);
+	meshComponent.SetMeshData(&optMesh.value());
+	meshComponent.SetRequiredVertexFormat(&vertexFormat);
+	meshComponent.Build();
+
+	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(skyEntity);
+	transformComponent.SetTransform(cd::Transform(cd::Vec3f(0.0f, -1.0f, 0.0f), cd::Quaternion::Identity(), cd::Vec3f::One()));
+	transformComponent.Build();
 }
 
 void EditorApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
