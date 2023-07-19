@@ -69,7 +69,7 @@ project("Engine")
 		}
 
 		defines {
-			"SPDLOG_NO_EXCEPTIONS", "FMT_USE_NONTYPE_TEMPLATE_ARGS=0",
+			"ENABLE_SPDLOG", "SPDLOG_NO_EXCEPTIONS", "FMT_USE_NONTYPE_TEMPLATE_ARGS=0",
 		}
 	end
 
@@ -89,7 +89,7 @@ project("Engine")
 		}
 
 		defines {
-			"TRACY_ENABLE",
+			"ENABLE_TRACY",
 		}
 	end
 

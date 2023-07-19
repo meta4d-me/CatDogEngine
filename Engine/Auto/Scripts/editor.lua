@@ -53,7 +53,7 @@ project("Editor")
 
 	if ENABLE_SPDLOG then
 		defines {
-			"SPDLOG_NO_EXCEPTIONS", "FMT_USE_NONTYPE_TEMPLATE_ARGS=0",
+			"ENABLE_SPDLOG", "SPDLOG_NO_EXCEPTIONS", "FMT_USE_NONTYPE_TEMPLATE_ARGS=0",
 		}
 
 		includedirs {
@@ -63,7 +63,7 @@ project("Editor")
 
 	if ENABLE_TRACY then
 		defines {
-			"TRACY_ENABLE",
+			"ENABLE_TRACY",
 		}
 
 		includedirs {

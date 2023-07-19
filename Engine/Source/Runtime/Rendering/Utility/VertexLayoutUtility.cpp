@@ -26,47 +26,35 @@ constexpr bgfx::Attrib::Enum AllAttribUVTypes[] = {
 	bgfx::Attrib::Enum::TexCoord6,
 	bgfx::Attrib::Enum::TexCoord7
 };
-//constexpr uint32_t MAX_UV_COUNT = sizeof(AllAttribUVTypes) / sizeof(bgfx::Attrib::Enum);
 
-//std::string VertexAttributeTypeToString(cd::VertexAttributeType attribType)
-//{
-//	switch (attribType)
-//	{
-//	case cd::VertexAttributeType::Position:
-//		return "Position";
-//	case cd::VertexAttributeType::Normal:
-//		return "Normal";
-//	case cd::VertexAttributeType::Tangent:
-//		return "Tangent";
-//	case cd::VertexAttributeType::Bitangent:
-//		return "Bitangent";
-//	case cd::VertexAttributeType::UV:
-//		return "UV";
-//	case cd::VertexAttributeType::Color:
-//		return "Color";
-//	case cd::VertexAttributeType::BoneIndex:
-//		return "BoneIndex";
-//	case cd::VertexAttributeType::BoneWeight:
-//		return "BoneWeight";
-//	default:
-//		return "Invalid Attribute Type!";
-//	}
-//}
+constexpr const char* VertexAttributeTypeName[] =
+{
+	"Position",
+	"Normal",
+	"Tangent",
+	"Bitangent",
+	"UV",
+	"Color",
+	"BoneWeight",
+	"BoneIndex",
+};
 
-//std::string AttributeValueTypeToString(const cd::AttributeValueType& attribValueType)
-//{
-//	switch (attribValueType)
-//	{
-//	case cd::AttributeValueType::Float:
-//		return "Float";
-//	case cd::AttributeValueType::Uint8:
-//		return "Uint8";
-//	case cd::AttributeValueType::Int16:
-//		return "Uint16";
-//	default:
-//		return "Invalid Attribute Value Type!";
-//	}
-//}
+CD_FORCEINLINE const char* GetVertexAttributeTypeName(cd::VertexAttributeType attribType)
+{
+	return VertexAttributeTypeName[static_cast<size_t>(attribType)];
+}
+
+constexpr const char *AttributeValueTypeName[] =
+{
+	"Uint8",
+	"Float",
+	"Int16",
+};
+
+CD_FORCEINLINE const char* GetAttributeValueTypeName(const cd::AttributeValueType& attribValueType)
+{
+	return AttributeValueTypeName[static_cast<size_t>(attribValueType)];
+}
 
 void ConvertVertexLayout(const cd::VertexAttributeLayout& vertexAttributeLayout, bgfx::VertexLayout& outVertexLayout)
 {
@@ -159,8 +147,8 @@ void VertexLayoutUtility::CreateVertexLayout(bgfx::VertexLayout& outVertexLayout
 		if (debugPrint)
 		{
 			CD_ENGINE_TRACE("\t\tVA: ({0}, {1}, {2})",
-				VertexAttributeTypeToString(vertexAttributeLayout.vertexAttributeType).c_str(),
-				AttributeValueTypeToString(vertexAttributeLayout.attributeValueType).c_str(),
+				GetVertexAttributeTypeName(vertexAttributeLayout.vertexAttributeType),
+				GetAttributeValueTypeName(vertexAttributeLayout.attributeValueType),
 				vertexAttributeLayout.attributeCount);
 		}
 		ConvertVertexLayout(vertexAttributeLayout, outVertexLayout);
@@ -175,8 +163,8 @@ void VertexLayoutUtility::CreateVertexLayout(bgfx::VertexLayout& outVertexLayout
 	if (debugPrint)
 	{
 		CD_ENGINE_TRACE("\t\tVA: ({0}, {1}, {2})",
-			VertexAttributeTypeToString(vertexAttribute.vertexAttributeType).c_str(),
-			AttributeValueTypeToString(vertexAttribute.attributeValueType).c_str(),
+			GetVertexAttributeTypeName(vertexAttribute.vertexAttributeType),
+			GetAttributeValueTypeName(vertexAttribute.attributeValueType),
 			vertexAttribute.attributeCount);
 	}
 	ConvertVertexLayout(vertexAttribute, outVertexLayout);
