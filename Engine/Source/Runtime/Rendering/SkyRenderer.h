@@ -22,7 +22,7 @@ public:
 
 private:
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
-	SkyComponent *m_pSkyComponent = nullptr;
+	SkyComponent* m_pSkyComponent = nullptr;
 };
 
 }

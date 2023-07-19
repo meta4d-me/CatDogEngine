@@ -342,6 +342,7 @@ void EditorApp::InitEngineRenderers()
 	{
 		auto pIBLSkyRenderer = std::make_unique<engine::SkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
 		m_pIBLSkyRenderer = pIBLSkyRenderer.get();
+		pIBLSkyRenderer->SetSceneWorld(m_pSceneWorld.get());
 		AddEngineRenderer(cd::MoveTemp(pIBLSkyRenderer));
 	}
 
