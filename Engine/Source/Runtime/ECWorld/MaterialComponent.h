@@ -90,6 +90,14 @@ public:
 	cd::Vec3f& GetAlbedoColor() { return m_albedoColor; }
 	const cd::Vec3f& GetAlbedoColor() const { return m_albedoColor; }
 
+	void SetMetallicFactor(float factor) { m_metallicFactor = factor; }
+	float& GetMetallicFactor() { return m_metallicFactor; }
+	float GetMetallicFactor() const { return m_metallicFactor; }
+
+	void SetRoughnessFactor(float factor) { m_roughnessFactor = factor; }
+	float& GetRoughnessFactor() { return m_roughnessFactor; }
+	float GetRoughnessFactor() const { return m_roughnessFactor; }
+
 	void SetEmissiveColor(cd::Vec3f color) { m_emissiveColor = cd::MoveTemp(color); }
 	cd::Vec3f& GetEmissiveColor() { return m_emissiveColor; }
 	const cd::Vec3f& GetEmissiveColor() const { return m_emissiveColor; }
@@ -115,6 +123,8 @@ private:
 	StringCrc m_uberShaderOption;
 
 	cd::Vec3f m_albedoColor;
+	float m_metallicFactor;
+	float m_roughnessFactor;
 	cd::Vec3f m_emissiveColor;
 	bool m_twoSided;
 	cd::BlendMode m_blendMode;

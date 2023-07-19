@@ -35,6 +35,7 @@ void WorldRenderer::Init()
 	m_pRenderContext->CreateUniform("u_emissiveColor", bgfx::UniformType::Vec4, 1);
 	m_pRenderContext->CreateUniform("u_albedoUVOffsetAndScale", bgfx::UniformType::Vec4, 1);
 	m_pRenderContext->CreateUniform("u_alphaCutOff", bgfx::UniformType::Vec4, 1);
+	m_pRenderContext->CreateUniform("u_metallicRoughnessFactor", bgfx::UniformType::Vec4, 1);
 
 	bgfx::setViewName(GetViewID(), "WorldRenderer");
 }
@@ -122,9 +123,12 @@ void WorldRenderer::Render(float deltaTime)
 		constexpr StringCrc albedoColor("u_albedoColor");
 		m_pRenderContext->FillUniform(albedoColor, pMaterialComponent->GetAlbedoColor().Begin(), 1);
 
+		constexpr StringCrc mrFactor("u_metallicRoughnessFactor");
+		cd::Vec4f metallicRoughnessFactorData(pMaterialComponent->GetMetallicFactor(), pMaterialComponent->GetRoughnessFactor(), 1.0f, 1.0f);
+		m_pRenderContext->FillUniform(mrFactor, metallicRoughnessFactorData.Begin(), 1);
+
 		constexpr StringCrc emissiveColor("u_emissiveColor");
 		m_pRenderContext->FillUniform(emissiveColor, pMaterialComponent->GetEmissiveColor().Begin(), 1);
-
 
 		// Submit uniform values : camera settings
 		constexpr StringCrc cameraPos("u_cameraPos");
