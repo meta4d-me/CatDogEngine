@@ -1,16 +1,17 @@
-$input v_skyboxDir
+$input v_worldPos
 
 #include "../common/common.sh"
+#include "../common/Camera.sh"
 
-SAMPLERCUBE(s_texCube, 0);
+SAMPLERCUBE(s_texSkybox, 0);
 
 void main()
 {
-	vec3 dir = normalize(v_skyboxDir);
+	vec3 cameraPos = GetCamera().position;
+	vec3 dir = normalize(v_worldPos - cameraPos);
 
-	dir = fixCubeLookup(dir, 0.0, 256.0);
-	// Use mip0 as texture
-	vec3 color = toLinear(textureCubeLod(s_texCube, dir, 0.0).xyz) * 0.3;
+	// Use radiance texture mip0.
+	vec3 color = toLinear(textureCubeLod(s_texSkybox, dir, 0.0).xyz) * 0.5;
 
 	gl_FragColor = vec4(color, 1.0);
 }

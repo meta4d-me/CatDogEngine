@@ -1,5 +1,6 @@
 #include "SkyRenderer.h"
 
+#include "ECWorld/SceneWorld.h"
 #include "RenderContext.h"
 
 namespace engine
@@ -7,20 +8,12 @@ namespace engine
 
 void SkyRenderer::Init()
 {
-	m_uniforms.Init();
-	m_uniformTexCube = m_pRenderContext->CreateUniform("s_texCube", bgfx::UniformType::Sampler);
-	m_uniformTexCubeIrr = m_pRenderContext->CreateUniform("s_texCubeIrr", bgfx::UniformType::Sampler);
-	m_uniformTexLUT = m_pRenderContext->CreateUniform("s_texLUT", bgfx::UniformType::Sampler);
+	m_pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
-	m_lightProbeEV100 = -2.0f;
-	uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
-	m_lightProbeTex = m_pRenderContext->CreateTexture("Textures/skybox/bolonga_lod.dds", samplerFlags);
-	m_lightProbeTexIrr = m_pRenderContext->CreateTexture("Textures/skybox/bolonga_irr.dds", samplerFlags);
-	m_iblLUTTex = m_pRenderContext->CreateTexture("Textures/lut/ibl_brdf_lut.dds");
-
-	bgfx::ShaderHandle vsh = m_pRenderContext->CreateShader("vs_PBR_skybox.bin");
-	bgfx::ShaderHandle fsh = m_pRenderContext->CreateShader("fs_PBR_skybox.bin");
-	m_programSky = m_pRenderContext->CreateProgram("skybox", vsh, fsh);
+	m_pRenderContext->CreateUniform("s_texLUT", bgfx::UniformType::Sampler);
+	constexpr uint16_t sampleFlag = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
+	m_pRenderContext->CreateTexture(m_pSkyComponent->GetIrradianceTexturePath().c_str(), sampleFlag);
+	m_pRenderContext->CreateTexture(m_pSkyComponent->GetRadianceTexturePath().c_str(), sampleFlag);
 
 	bgfx::setViewName(GetViewID(), "SkyRenderer");
 }
@@ -41,13 +34,7 @@ void SkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionM
 
 void SkyRenderer::Render(float deltaTime)
 {
-	m_uniforms.Submit();
 
-	bgfx::setTexture(0, m_uniformTexCube, m_lightProbeTex);
-	bgfx::setTexture(1, m_uniformTexCubeIrr, m_lightProbeTexIrr);
-	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
-	Renderer::ScreenSpaceQuad(static_cast<float>(GetRenderTarget()->GetWidth()), static_cast<float>(GetRenderTarget()->GetHeight()), true);
-	bgfx::submit(GetViewID(), m_programSky);
 }
 
 }

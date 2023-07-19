@@ -1,10 +1,17 @@
 ﻿#include "Inspector.h"
 
+#include "Graphics/GraphicsBackend.h"
 #include "ImGui/ImGuiUtils.hpp"
-
+#include "Path/Path.h"
 
 namespace details
 {
+
+CD_FORCEINLINE bool EnableAtmosphericScattering()
+{
+	return engine::GraphicsBackend::OpenGL != engine::Path::GetGraphicsBackend() &&
+		engine::GraphicsBackend::Vulkan != engine::Path::GetGraphicsBackend();
+}
 
 template<typename Component>
 void UpdateComponentWidget(engine::SceneWorld* pSceneWorld, engine::Entity entity)
@@ -260,20 +267,25 @@ void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld
 	if (isOpen)
 	{
 		std::vector<const char*> skyTypes;
-		static const char* crtItem = GetSkyTypeName(engine::SkyType::SkyBox);
 		for (size_t type = 0; type < static_cast<size_t>(engine::SkyType::Count); ++type)
 		{
+			if (!EnableAtmosphericScattering() && static_cast<engine::SkyType>(type) == engine::SkyType::AtmosphericScattering)
+			{
+				continue;
+			}
 			skyTypes.emplace_back(GetSkyTypeName(static_cast<engine::SkyType>(type)));
 		}
 
+		static const char* crtItem = GetSkyTypeName(engine::SkyType::SkyBox);
 		if (ImGui::BeginCombo("##combo", crtItem))
 		{
-			for (size_t index = 0; index < skyTypes.size(); index++)
+			for (size_t index = 0; index < skyTypes.size(); ++index)
 			{
 				bool isSelected = (crtItem == skyTypes[index]);
 				if (ImGui::Selectable(skyTypes[index], isSelected))
 				{
 					crtItem = skyTypes[index];
+					pSkyComponent->SetSkyType(static_cast<engine::SkyType>(index));
 				}
 				if (isSelected)
 				{

@@ -1,10 +1,12 @@
 #pragma once
 
 #include "Renderer.h"
-#include "Uniforms.h"
+#include "ECWorld/SkyComponent.h"
 
 namespace engine
 {
+
+class SceneWorld;
 
 class SkyRenderer final : public Renderer
 {
@@ -16,18 +18,11 @@ public:
 	virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) override;
 	virtual void Render(float deltaTime) override;
 
+	void SetSceneWorld(SceneWorld* pSceneWorld) { m_pCurrentSceneWorld = pSceneWorld; }
+
 private:
-	Uniforms m_uniforms;
-
-	bgfx::UniformHandle m_uniformTexLUT;
-	bgfx::UniformHandle m_uniformTexCube;
-	bgfx::UniformHandle m_uniformTexCubeIrr;
-	bgfx::ProgramHandle m_programSky;
-
-	bgfx::TextureHandle m_iblLUTTex;
-	bgfx::TextureHandle m_lightProbeTex;
-	bgfx::TextureHandle m_lightProbeTexIrr;
-	float m_lightProbeEV100 = 0.0f;
+	SceneWorld* m_pCurrentSceneWorld = nullptr;
+	SkyComponent *m_pSkyComponent = nullptr;
 };
 
 }
