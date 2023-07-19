@@ -237,8 +237,9 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
     ImGui::PopStyleColor();
 
     ImGui::SameLine();
-    ImGui::TextUnformatted(pNameComponent->GetName());
 
+    ImGui::Selectable(pNameComponent->GetName());
+    
     if (!isEntityActive)
     {
         ImGui::PopStyleColor();
@@ -281,7 +282,23 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
     if (ImGui::IsItemClicked())
     {
         pSceneWorld->SetSelectedEntity(entity);
+        if (ImGui::IsMouseDoubleClicked(0))
+        {
+            if (engine::StaticMeshComponent* pStaticMesh = pSceneWorld->GetStaticMeshComponent(entity))
+            {
+                cd::AABB meshAABB = pStaticMesh->GetAABB();
+                if (engine::TransformComponent* pTransform = pSceneWorld->GetTransformComponent(entity))
+                {
+                    meshAABB = meshAABB.Transform(pTransform->GetWorldMatrix());
+                   // m_pCameraController->CameraFocus(meshAABB);
+                }
+
+      
+            }
+        }
     }
+
+    
 
     //if (m_editingEntityName)
     //{

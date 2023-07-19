@@ -123,8 +123,8 @@ void FirstPersonCameraController::Update(float deltaTime)
 	if (Input::Get().IsMouseRBPressed())
 	{
 		m_isMayaStyle = true;
-		elevationChanging(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
-		azimuthChanging(m_verticalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
+		ElevationChanging(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
+		AzimuthChanging(m_verticalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
 	}
 	if (Input::Get().IsKeyPressed(KeyCode::z))
 	{
@@ -132,30 +132,13 @@ void FirstPersonCameraController::Update(float deltaTime)
 	}
 	if (Input::Get().GetMouseScrollOffsetY())
 	{
-		float scaleDelta = Input::Get().GetMouseScrollOffsetY() * deltaTime;
-		scaleDelta = scaleDelta > 0 ? scaleDelta : -scaleDelta;
-
-		float delta = -scaleDelta * CalculateZoomScale() * 0.002f;
-		if (scaleDelta > 0)
-		{
-			float origLookAtDist = m_distanceFromLookAt;
-			m_distanceFromLookAt += delta;
-			delta = -scaleDelta * CalculateZoomScale() * 0.0002f;
-			m_distanceFromLookAt = origLookAtDist;
-		}
-		//minimum distance to travel in world space with one wheel "notch". If this is too
-			// small, zooming can feel too slow as we get close to the look-at-point.
-		const float min_wheel_delta = 1.5f;
-		if (delta > -min_wheel_delta && delta < min_wheel_delta)
-		{
-			if (delta < 0.0f)
-				delta = -min_wheel_delta;
-			else
-				delta = min_wheel_delta;
-		}
-		m_distanceFromLookAt += delta;
+		float scaleDelta = Input::Get().GetMouseScrollOffsetY() * deltaTime * 500;
+	
+		m_distanceFromLookAt -= scaleDelta;
+		m_eye = m_eye + m_lookAt * scaleDelta;
+		CD_INFO(m_distanceFromLookAt);
+		CD_INFO((m_eye - m_lookAtPoint).Length());
 		ControllerToCamera();
-
 	}
 }
 
@@ -273,7 +256,7 @@ void FirstPersonCameraController::RollLocal(float angleDegrees)
 	Rotate(m_lookAt, angleDegrees);
 }
 
-void FirstPersonCameraController::elevationChanging(float angleDegrees)
+void FirstPersonCameraController::ElevationChanging(float angleDegrees)
 {
 	m_elevation += angleDegrees / 360.0f * cd::Math::PI;
 	if (m_elevation > cd::Math::PI)
@@ -287,7 +270,7 @@ void FirstPersonCameraController::elevationChanging(float angleDegrees)
 	ControllerToCamera();
 }
 
-void FirstPersonCameraController::azimuthChanging(float angleDegrees)
+void FirstPersonCameraController::AzimuthChanging(float angleDegrees)
 {
 	m_azimuth -= angleDegrees / 360.0f * cd::Math::PI;
 	if (m_azimuth > cd::Math::PI)
@@ -325,6 +308,17 @@ void FirstPersonCameraController::SynchronizeMayaCamera()
 
 void FirstPersonCameraController::SynchronizeFpsCamera()
 {
+}
+
+void FirstPersonCameraController::CameraFocus(const cd::AABB& aabb)
+{
+	if (aabb.IsEmpty())
+	{
+		return;
+	}
+
+	m_lookAtPoint = aabb.Center();
+	m_distanceFromLookAt = (aabb.Max() - aabb.Center()).Length() * 2;
 }
 
 }	// namespace engine

@@ -3,6 +3,7 @@
 #include "ECWorld/Entity.h"
 
 #include <imgui/imgui.h>
+#include <memory>
 
 namespace engine
 {

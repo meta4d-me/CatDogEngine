@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ECWorld/TransformComponent.h"
+#include "Math/Box.hpp"
 #include "Math/Transform.hpp"
 #include "Math/Vector.hpp"
 
@@ -48,11 +49,10 @@ public:
 	void RollLocal(float angleDegrees);
 
 	//Circling Operations
-	void azimuthChanging(float amount);
-	void elevationChanging(float amount);
-
-	//Camera's tranform data input and uotput
-	
+	void AzimuthChanging(float amount);
+	void ElevationChanging(float amount);
+	//Double Click entity,camera will focus
+	void  CameraFocus(const cd::AABB& aabb);
 	//Synchronizes the controller to the transform of camera current state
 	void CameraToController();
 	//Synchronizes the transform of camera to the controller's current state
