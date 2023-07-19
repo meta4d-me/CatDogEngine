@@ -8,7 +8,7 @@ namespace engine
 
 enum class SkyType
 {
-	SkyBox,
+	SkyBox = 0,
 	AtmosphericScattering,
 
 	Count,
@@ -16,8 +16,8 @@ enum class SkyType
 
 constexpr const char *SkyTypeName[] =
 {
-	"SkyBox",
-	"AtmosphericScattering",
+	"Skybox",
+	"Atmospheric Scattering",
 };
 
 static_assert(static_cast<int>(SkyType::Count) == sizeof(SkyTypeName) / sizeof(char *),
