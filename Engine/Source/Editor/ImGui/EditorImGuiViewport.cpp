@@ -10,8 +10,6 @@ namespace editor
 
 EditorImGuiViewport::EditorImGuiViewport(engine::RenderContext* pRenderContext)
 {
-	static engine::RenderContext* pRenderContextCache = pRenderContext;
-
 	//ImGuiPlatformIO& platformIO = ImGui::GetPlatformIO();
 	//platformIO.Platform_CreateWindow = [](ImGuiViewport* pViewport)
 	//{

@@ -6,8 +6,6 @@
 #include "Math//Vector.hpp"
 #include "Window/Input.h"
 
-#include <cinttypes>
-
 namespace engine
 {
 
@@ -39,9 +37,6 @@ private:
 	cd::Vec3f m_orbitCenter;
 	float m_horizontalAngle = 0;
 	float m_verticalAngle = 0;
-
-	float m_horizontalSensitivity;
-	float m_verticalSensitivity;
 	float m_movementSpeed;
 
 };

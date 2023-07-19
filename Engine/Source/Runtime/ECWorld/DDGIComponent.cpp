@@ -3,7 +3,7 @@
 #include "Log/Log.h"
 
 #include <filesystem>
-#include <format>
+//#include <format>
 #include <fstream>
 #include <iostream>
 
@@ -12,7 +12,10 @@ namespace
 
 CD_FORCEINLINE std::string GetBinaryFileRealPath(const std::string &path)
 {
-    return std::format("{}Textures/{}", CDPROJECT_RESOURCES_ROOT_PATH, path);
+    //return std::format("{}Textures/{}", CDPROJECT_RESOURCES_ROOT_PATH, path);
+    std::string filePath = CDPROJECT_RESOURCES_ROOT_PATH;
+    filePath += "Textures/" + path;
+    return filePath;
 }
 
 void ReadTextureBinaryFile(const std::string& path, std::vector<uint8_t>& buffer)

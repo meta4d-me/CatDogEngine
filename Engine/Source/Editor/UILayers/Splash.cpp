@@ -5,7 +5,7 @@
 
 #include <imgui/imgui.h>
 
-#include <format>
+//#include <format>
 
 namespace editor
 {
@@ -29,12 +29,14 @@ void Splash::Update()
 	size_t currentBuildCount = ResourceBuilder::Get().GetCurrentTaskCount();
 	assert(currentBuildCount <= m_shaderBuildTaskTotalCount);
 
-	std::string title = std::format("{}({}/{})", GetName(), m_shaderBuildTaskTotalCount - currentBuildCount, m_shaderBuildTaskTotalCount);
+	//std::string title = std::format("{}({}/{})", GetName(), m_shaderBuildTaskTotalCount - currentBuildCount, m_shaderBuildTaskTotalCount);
+	std::string title = GetName();
+	title += "(" + std::to_string(m_shaderBuildTaskTotalCount - currentBuildCount) + "/" + std::to_string(m_shaderBuildTaskTotalCount) + ")";
 	ImGui::Begin(title.c_str(), &m_isEnable, flags);
 
 	engine::StringCrc splashTexture("Textures/lut/ibl_brdf_lut.dds");
 	bgfx::TextureHandle textureHandle = GetRenderContext()->GetTexture(splashTexture);
-	ImGui::Image(ImTextureID(textureHandle.idx), ImVec2(500, 300));
+	ImGui::Image(reinterpret_cast<ImTextureID>(textureHandle.idx), ImVec2(500, 300));
 
 	ImGui::End();
 }

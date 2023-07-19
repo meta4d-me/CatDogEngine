@@ -2,14 +2,12 @@
 #include "ECWorld/Entity.h"
 #include "ImGui/ImGuiBaseLayer.h"
 
+#include <imgui/imgui.h>
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include <imgui/imgui_internal.h>
+#include <ImGuizmo/ImGuizmo.h>
+
 #include <inttypes.h>
-
-namespace ImGuizmo
-{
-
-enum OPERATION;
-
-}
 
 namespace engine
 {
@@ -49,8 +47,6 @@ private:
 	uint16_t m_lastContentWidth = 0;
 	uint16_t m_lastContentHeight = 0;
 
-	bool m_option1;
-	bool m_option2;
 	ImGuizmo::OPERATION m_currentOperation;
 
 	bool m_is3DMode = true;

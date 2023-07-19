@@ -11,7 +11,7 @@
 #include <bx/allocator.h>
 
 #include <cassert>
-#include <format>
+//#include <format>
 #include <fstream>
 #include <memory>
 
@@ -181,7 +181,7 @@ bgfx::ShaderHandle RenderContext::CreateShader(const char* pFilePath)
 	std::ifstream fin(shaderFileFullPath, std::ios::in | std::ios::binary);
 	if (!fin.is_open())
 	{
-		return bgfx::ShaderHandle(bgfx::kInvalidHandle);
+		return bgfx::ShaderHandle{bgfx::kInvalidHandle};
 	}
 
 	fin.seekg(0L, std::ios::end);
@@ -258,11 +258,13 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pFilePath, uint64_t
 		return itTextureCache->second;
 	}
 
-	std::string textureFileFullPath = std::format("{}{}", CDPROJECT_RESOURCES_ROOT_PATH, pFilePath);
+	//std::string textureFileFullPath = std::format("{}{}", CDPROJECT_RESOURCES_ROOT_PATH, pFilePath);
+	std::string textureFileFullPath = CDPROJECT_RESOURCES_ROOT_PATH;
+	textureFileFullPath += pFilePath;
 	std::ifstream fin(textureFileFullPath, std::ios::in | std::ios::binary);
 	if (!fin.is_open())
 	{
-		return bgfx::TextureHandle(bgfx::kInvalidHandle);
+		return bgfx::TextureHandle{bgfx::kInvalidHandle};
 	}
 
 	fin.seekg(0L, std::ios::end);
@@ -283,7 +285,7 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pFilePath, uint64_t
 	delete[] pRawData;
 	pRawData = nullptr;
 
-	bgfx::TextureHandle handle(bgfx::kInvalidHandle);
+	bgfx::TextureHandle handle{bgfx::kInvalidHandle};
 	if (imageContainer->m_cubeMap)
 	{
 		handle = bgfx::createTextureCube(
@@ -496,7 +498,7 @@ bgfx::ShaderHandle RenderContext::GetShader(StringCrc resourceCrc) const
 		return itResource->second;
 	}
 
-	return bgfx::ShaderHandle(bgfx::kInvalidHandle);
+	return bgfx::ShaderHandle{bgfx::kInvalidHandle};
 }
 
 bgfx::ProgramHandle RenderContext::GetProgram(StringCrc resourceCrc) const
@@ -507,7 +509,7 @@ bgfx::ProgramHandle RenderContext::GetProgram(StringCrc resourceCrc) const
 		return itResource->second;
 	}
 
-	return bgfx::ProgramHandle(bgfx::kInvalidHandle);
+	return bgfx::ProgramHandle{bgfx::kInvalidHandle};
 }
 
 bgfx::TextureHandle RenderContext::GetTexture(StringCrc resourceCrc) const
@@ -518,7 +520,7 @@ bgfx::TextureHandle RenderContext::GetTexture(StringCrc resourceCrc) const
 		return itResource->second;
 	}
 
-	return bgfx::TextureHandle(bgfx::kInvalidHandle);
+	return bgfx::TextureHandle{bgfx::kInvalidHandle};
 }
 
 bgfx::UniformHandle RenderContext::GetUniform(StringCrc resourceCrc) const
@@ -529,7 +531,7 @@ bgfx::UniformHandle RenderContext::GetUniform(StringCrc resourceCrc) const
 		return itResource->second;
 	}
 
-	return bgfx::UniformHandle(bgfx::kInvalidHandle);
+	return bgfx::UniformHandle{bgfx::kInvalidHandle};
 }
 
 void RenderContext::Destory(StringCrc resourceCrc)

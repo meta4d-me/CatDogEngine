@@ -27,10 +27,9 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
 {
     engine::World* pWorld = pSceneWorld->GetWorld();
     cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
-    ImVec2 popupSize = ImGui::GetContentRegionAvail();
     engine::MaterialType* pPBRMaterialType = pSceneWorld->GetPBRMaterialType();
 
-    auto AddNamedEntity = [&pWorld, &pSceneWorld](std::string defaultName) -> engine::Entity
+    auto AddNamedEntity = [&pWorld](std::string defaultName) -> engine::Entity
     {
         engine::Entity entity = pWorld->CreateEntity();
         auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);

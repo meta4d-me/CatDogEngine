@@ -86,15 +86,15 @@ void ShaderBuilder::BuildNonUberShader(std::string folderPath)
 
 const ShaderType ShaderBuilder::GetShaderType(const std::string& fileName)
 {
-	if (fileName.starts_with("vs_") || fileName.starts_with("VS_"))
+	if (fileName._Starts_with("vs_") || fileName._Starts_with("VS_"))
 	{
 		return ShaderType::Vertex;
 	}
-	else if (fileName.starts_with("fs_") || fileName.starts_with("FS_"))
+	else if (fileName._Starts_with("fs_") || fileName._Starts_with("FS_"))
 	{
 		return ShaderType::Fragment;
 	}
-	else if (fileName.starts_with("cs_") || fileName.starts_with("CS_"))
+	else if (fileName._Starts_with("cs_") || fileName._Starts_with("CS_"))
 	{
 		return ShaderType::Compute;
 	}

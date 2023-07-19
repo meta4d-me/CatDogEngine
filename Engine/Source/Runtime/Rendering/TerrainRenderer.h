@@ -1,9 +1,10 @@
 #pragma once
 
 #include "ECWorld/SceneWorld.h"
-#include "MeshRenderData.h"
 #include "Producers/TerrainProducer/AlphaMapTypes.h"
 #include "Renderer.h"
+
+#include <bgfx/bgfx.h>
 
 #include <unordered_map>
 
