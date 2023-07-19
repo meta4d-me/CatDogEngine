@@ -15,7 +15,7 @@ constexpr const char *skyboxShader = "skyboxShader";
 
 }
 
-SkyRenderer::~SkyRenderer() {}
+SkyRenderer::~SkyRenderer() = default;
 
 void SkyRenderer::Init()
 {
