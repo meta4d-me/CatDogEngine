@@ -133,11 +133,9 @@ void TerrainRenderer::Render(float deltaTime)
 		for (const auto& [textureType, textureInfo] : pMaterialComponent->GetTextureResources())
 		{
 			// TODO optimize by using textureInfo instead of GetTextureInfo
-			std::optional<const MaterialComponent::TextureInfo> optTextureInfo = pMaterialComponent->GetTextureInfo(textureType);
-			if (optTextureInfo.has_value())
+			if (const MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(textureType))
 			{
-				const MaterialComponent::TextureInfo& textureInfo = optTextureInfo.value();
-				bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle{textureInfo.samplerHandle}, bgfx::TextureHandle{textureInfo.textureHandle});
+				bgfx::setTexture(pTextureInfo->slot, bgfx::UniformHandle{pTextureInfo->samplerHandle}, bgfx::TextureHandle{pTextureInfo->textureHandle});
 			}
 		}
 
@@ -257,10 +255,10 @@ void TerrainRenderer::UpdateUniforms()
 			renderInfo.m_origin[3] = 0.0f;
 
 			const MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
-			std::optional<const MaterialComponent::TextureInfo> elevationTexture = pMaterialComponent->GetTextureInfo(MaterialTextureType::Elevation);
-			assert(elevationTexture.has_value());
-			renderInfo.m_dimension[0] = static_cast<float>(elevationTexture->width);
-			renderInfo.m_dimension[1] = static_cast<float>(elevationTexture->height);
+			const MaterialComponent::TextureInfo* pElevationTexture = pMaterialComponent->GetTextureInfo(MaterialTextureType::Elevation);
+			assert(pElevationTexture);
+			renderInfo.m_dimension[0] = static_cast<float>(pElevationTexture->width);
+			renderInfo.m_dimension[1] = static_cast<float>(pElevationTexture->height);
 			renderInfo.m_dimension[2] = 0.0f;
 			renderInfo.m_dimension[3] = 0.0f;
 		}

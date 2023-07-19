@@ -79,6 +79,9 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 
 	if (isOpen)
 	{
+		ImGuiUtils::ImGuiStringProperty("Name", pMaterialComponent->GetName());
+		
+		// Parameters
 		ImGuiUtils::ImGuiVectorProperty("AlbedoColor", pMaterialComponent->GetAlbedoColor(), cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One());
 		ImGuiUtils::ImGuiFloatProperty("MetallicFactor", pMaterialComponent->GetMetallicFactor(), cd::Unit::None, 0.0f, 1.0f);
 		ImGuiUtils::ImGuiFloatProperty("RoughnessFactor", pMaterialComponent->GetRoughnessFactor(), cd::Unit::None, 0.0f, 1.0f);
@@ -89,6 +92,21 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		{
 			ImGuiUtils::ImGuiFloatProperty("AlphaCutOff", pMaterialComponent->GetAlphaCutOff(), cd::Unit::None, 0.0f, 1.0f);
 		}
+
+		// Textures
+		auto UpdateTextureProperty = [&pMaterialComponent](cd::MaterialTextureType textureType)
+		{
+			if (engine::MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(textureType))
+			{
+				if (cd::MaterialTextureType::BaseColor == textureType)
+				{
+					ImGuiUtils::ImGuiVectorProperty("Albedo UV Offset", pTextureInfo->GetUVOffset());
+					ImGuiUtils::ImGuiVectorProperty("Albedo UV Scale", pTextureInfo->GetUVScale());
+				}
+			}
+		};
+
+		UpdateTextureProperty(cd::MaterialTextureType::BaseColor);
 	}
 
 	ImGui::Separator();

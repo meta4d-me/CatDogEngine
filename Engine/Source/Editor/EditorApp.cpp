@@ -250,7 +250,7 @@ void EditorApp::InitECWorld()
 		m_pSceneWorld.get(),
 		15.0f /* horizontal sensitivity */,
 		5.0f /* vertical sensitivity */,
-		160.0f /* Movement Speed*/);
+		50.0f /* Movement Speed*/);
 
 	m_pNewCameraController = std::make_unique<engine::CameraController>(
 		m_pSceneWorld.get(),
