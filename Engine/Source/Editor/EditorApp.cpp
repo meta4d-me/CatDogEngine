@@ -338,13 +338,11 @@ void EditorApp::InitEngineRenderers()
 		pPBRSkyRenderer->SetSceneWorld(m_pSceneWorld.get());
 		AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
 	}
-	else
-	{
-		auto pIBLSkyRenderer = std::make_unique<engine::SkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
-		m_pIBLSkyRenderer = pIBLSkyRenderer.get();
-		pIBLSkyRenderer->SetSceneWorld(m_pSceneWorld.get());
-		AddEngineRenderer(cd::MoveTemp(pIBLSkyRenderer));
-	}
+
+	auto pIBLSkyRenderer = std::make_unique<engine::SkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pIBLSkyRenderer = pIBLSkyRenderer.get();
+	pIBLSkyRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pIBLSkyRenderer));
 
 #ifdef ENABLE_TERRAIN_PRODUCER
 	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);

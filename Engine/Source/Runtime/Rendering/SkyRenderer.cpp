@@ -31,6 +31,11 @@ void SkyRenderer::Init()
 
 void SkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
+	if (m_pSkyComponent->GetSkyType() != SkyType::SkyBox)
+	{
+		return;
+	}
+
 	bgfx::setViewFrameBuffer(GetViewID(), *GetRenderTarget()->GetFrameBufferHandle());
 	bgfx::setViewRect(GetViewID(), 0, 0, GetRenderTarget()->GetWidth(), GetRenderTarget()->GetHeight());
 
@@ -49,6 +54,11 @@ void SkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionM
 
 void SkyRenderer::Render(float deltaTime)
 {
+	if (m_pSkyComponent->GetSkyType() != SkyType::SkyBox)
+	{
+		return;
+	}
+
 	StaticMeshComponent *pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(m_pCurrentSceneWorld->GetSkyEntity());
 	if (!pMeshComponent)
 	{

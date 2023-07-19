@@ -25,6 +25,8 @@ constexpr uint16_t SCATTERING_ORDERS = 6;
 PBRSkyRenderer::~PBRSkyRenderer() = default;
 
 void PBRSkyRenderer::Init() {
+	m_pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+
 	bgfx::ShaderHandle vsh_skyBox             = m_pRenderContext->CreateShader("vs_atmSkyBox.bin");
 	bgfx::ShaderHandle fsh_multipleScattering = m_pRenderContext->CreateShader("fs_PrecomputedAtmosphericScattering_LUT.bin");
 	bgfx::ShaderHandle fsh_singleScattering   = m_pRenderContext->CreateShader("fs_SingleScattering_RayMarching.bin");
@@ -80,6 +82,11 @@ void PBRSkyRenderer::Init() {
 }
 
 void PBRSkyRenderer::UpdateView(const float *pViewMatrix, const float *pProjectionMatrix) {
+	if (m_pSkyComponent->GetSkyType() != SkyType::AtmosphericScattering)
+	{
+		return;
+	}
+
 	// We want the skybox to be centered around the player
 	// so that no matter how far the player moves, the skybox won't get any closer.
 	// Remove the translation part of the view matrix
@@ -96,6 +103,11 @@ void PBRSkyRenderer::UpdateView(const float *pViewMatrix, const float *pProjecti
 }
 
 void PBRSkyRenderer::Render(float deltaTime) {
+	if (m_pSkyComponent->GetSkyType() != SkyType::AtmosphericScattering)
+	{
+		return;
+	}
+
 	Precompute();
 
 	// Mesh

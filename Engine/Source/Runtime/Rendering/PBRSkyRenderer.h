@@ -65,6 +65,7 @@ private:
 
 
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
+	SkyComponent* m_pSkyComponent = nullptr;
 };
 
 } // namespace engine
