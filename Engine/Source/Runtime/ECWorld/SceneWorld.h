@@ -59,8 +59,8 @@ public:
 	void SetDDGIEntity(engine::Entity entity);
 	CD_FORCEINLINE engine::Entity GetDDGIEntity() const { return m_ddgiEntity; }
 
-	void SetPBRSkyEntity(engine::Entity entity);
-	CD_FORCEINLINE engine::Entity GetPBRSkyEntity() const { return m_pbrskyEntity; }
+	void SetSkyEntity(engine::Entity entity);
+	CD_FORCEINLINE engine::Entity GetSkyEntity() const { return m_skyEntity; }
 
 	void DeleteEntity(engine::Entity entity)
 	{
@@ -120,7 +120,7 @@ private:
 	engine::Entity m_selectedEntity = engine::INVALID_ENTITY;
 	engine::Entity m_mainCameraEntity = engine::INVALID_ENTITY;
 	engine::Entity m_ddgiEntity = engine::INVALID_ENTITY;
-	engine::Entity m_pbrskyEntity = engine::INVALID_ENTITY;
+	engine::Entity m_skyEntity = engine::INVALID_ENTITY;
 };
 
 }

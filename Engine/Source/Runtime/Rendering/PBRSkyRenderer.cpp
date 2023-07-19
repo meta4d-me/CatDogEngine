@@ -111,7 +111,7 @@ void PBRSkyRenderer::Render(float deltaTime) {
 	m_uniformData = cd::Vec4f(0.0f, 1.0f, -0.5f, 1.0f);
 	bgfx::setUniform(u_cameraPos, &m_uniformData.x(), 1);
 
-	Entity entity = m_pCurrentSceneWorld->GetPBRSkyEntity();
+	Entity entity = m_pCurrentSceneWorld->GetSkyEntity();
 	TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity);
 	bgfx::setUniform(u_LightDir, &pTransformComponent->GetTransform().GetTranslation(), 1);
 

@@ -249,22 +249,46 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 	return true;
 }
 
-bool ResourceBuilder::AddCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath)
+bool ResourceBuilder::AddIrradianceCubeMapBuildTask(const char *pInputFilePath, const char *pOutputFilePath)
 {
 	if (s_SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
 	{
 		return false;
 	}
 
-	// Document : In command line, ./cmft -h
-	std::string cmftExePath = CDENGINE_TOOL_PATH;
-	cmftExePath += "/cmft";
+	std::string cmftExePath = (std::filesystem::path(CDENGINE_TOOL_PATH) / "cmft").generic_string();
 	Process process(cmftExePath.c_str());
+	std::string pathWithoutExtension = std::filesystem::path(pOutputFilePath).replace_extension().generic_string();
 
-	std::vector<std::string> commandArguments{ "--input", pInputFilePath,
-		"--outputNum", "1", "--output0", pOutputFilePath,
-		"--excludeBase", "true", "--mipCount", "7", "--glossScale", "10", "--glossBias", "2", "--edgeFixup", "warp" };
-	process.SetCommandArguments(cd::MoveTemp(commandArguments));
+	std::vector<std::string> irradianceCommandArguments{"--input", pInputFilePath,
+		"--filter", "irradiance",
+		"--dstFaceSize", "256",
+		"--outputNum", "1", "--output0", cd::MoveTemp(pathWithoutExtension), "--output0params", "dds,rgba16f,cubemap"};
+
+	process.SetCommandArguments(cd::MoveTemp(irradianceCommandArguments));
+	process.SetWaitUntilFinished(true);
+	AddTask(cd::MoveTemp(process));
+
+	return true;
+}
+
+bool ResourceBuilder::AddRadianceCubeMapBuildTask(const char *pInputFilePath, const char *pOutputFilePath)
+{
+	if (s_SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
+	{
+		return false;
+	}
+
+	std::string cmftExePath = (std::filesystem::path(CDENGINE_TOOL_PATH) / "cmft").generic_string();
+	Process process(cmftExePath.c_str());
+	std::string pathWithoutExtension = std::filesystem::path(pOutputFilePath).replace_extension().generic_string();
+
+	std::vector<std::string> radianceCommandArguments{"--input", pInputFilePath,
+		"--filter", "radiance", "--lightingModel", "phongbrdf", "--excludeBase", "true", "--mipCount", "7",
+		"--dstFaceSize", "256",
+		"--outputNum", "1", "--output0", cd::MoveTemp(pathWithoutExtension), "--output0params", "dds,rgba16f,cubemap"};
+
+	process.SetCommandArguments(cd::MoveTemp(radianceCommandArguments));
 	process.SetWaitUntilFinished(true);
 	AddTask(cd::MoveTemp(process));
 

@@ -721,12 +721,17 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 	}
 	else if (IOAssetType::CubeMap == m_importOptions.AssetType)
 	{
-		std::filesystem::path inputFilePath(pFilePath);
-		std::string inputFileName = inputFilePath.stem().generic_string();
-		std::string outputFilePath = CDPROJECT_RESOURCES_ROOT_PATH;
-		outputFilePath += "Textures/skybox/" + inputFileName;
-		ResourceBuilder::Get().AddCubeMapBuildTask(pFilePath, outputFilePath.c_str());
+		std::filesystem::path outputFilePath = CDPROJECT_RESOURCES_ROOT_PATH;
+		outputFilePath /= "Textures/skybox" / std::filesystem::path(pFilePath).stem();
+
+		std::string irrdianceOutput = outputFilePath.generic_string() + "_irr.dds";
+		ResourceBuilder::Get().AddIrradianceCubeMapBuildTask(pFilePath, irrdianceOutput.c_str());
 		ResourceBuilder::Get().Update();
+
+		std::string radianceOutput = outputFilePath.generic_string() + "_rad.dds";
+		ResourceBuilder::Get().AddRadianceCubeMapBuildTask(pFilePath, radianceOutput.c_str());
+		ResourceBuilder::Get().Update();
+
 	}
 	else if (IOAssetType::Shader == m_importOptions.AssetType)
 	{

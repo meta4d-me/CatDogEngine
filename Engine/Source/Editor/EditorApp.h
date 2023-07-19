@@ -66,6 +66,9 @@ public:
 	bool EnablePBRSky() const;
 
 private:
+	void InitDDGIEntity();
+	void InitSkyEntity();
+
 	bool m_bInitEditor = false;
 	engine::EngineInitArgs m_initArgs;
 
