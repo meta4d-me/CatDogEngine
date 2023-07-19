@@ -146,7 +146,6 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 
 		ImGuiUtils::ImGuiStringProperty("Type", lightTypeName);
 		ImGuiUtils::ImGuiVectorProperty("Color", pLightComponent->GetColor(), cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One());
-		ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lumen, 0.0f, 10000.0f, false, 10.0f);
 
 		float s_spotInnerAngle = 8.0f;
 		float s_spotOuterAngle = 16.0f;
@@ -156,13 +155,16 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 		switch (lightType)
 		{
 		case cd::LightType::Point:
+			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lumen, 0.0f, 10000.0f, false, 5.0f);
 			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition(), cd::Unit::CenterMeter);
 			ImGuiUtils::ImGuiFloatProperty("Range", pLightComponent->GetRange(), cd::Unit::CenterMeter, 0.0f, 10000.0f, false, 1.0f);
 			break;
 		case cd::LightType::Directional:
+			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lux, 0.0f, 100.0f, false, 0.1f);
 			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection(), cd::Unit::Degree, cd::Vec3f(-1.0f), cd::Vec3f::One(), true);
 			break;
 		case cd::LightType::Spot:
+			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lux, 0.0f, 10000.0f, false, 5.0f);
 			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition(), cd::Unit::CenterMeter);
 			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection(), cd::Unit::Degree, cd::Vec3f(-1.0f), cd::Vec3f::One(), true);
 			ImGuiUtils::ImGuiFloatProperty("Range", pLightComponent->GetRange(), cd::Unit::CenterMeter, 0.0f, 10000.0f, false, 1.0f);
@@ -177,15 +179,16 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 			{
 				pLightComponent->SetInnerAndOuter(s_spotInnerAngle, s_spotOuterAngle);
 			}
-			
 			break;
 		case cd::LightType::Disk:
+			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lux, 0.0f, 10000.0f, false, 5.0f);
 			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition(), cd::Unit::CenterMeter);
 			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection(), cd::Unit::Degree, cd::Vec3f(-1.0f), cd::Vec3f::One(), true);
 			ImGuiUtils::ImGuiFloatProperty("Range", pLightComponent->GetRange(), cd::Unit::CenterMeter, 0.0f);
 			ImGuiUtils::ImGuiFloatProperty("Radius", pLightComponent->GetRadius());
 			break;
 		case cd::LightType::Rectangle:
+			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lux, 0.0f, 10000.0f, false, 5.0f);
 			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition());
 			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection());
 			ImGuiUtils::ImGuiVectorProperty("Up", pLightComponent->GetUp());
@@ -194,18 +197,20 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 			ImGuiUtils::ImGuiFloatProperty("Height", pLightComponent->GetHeight());
 			break;
 		case cd::LightType::Sphere:
+			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lux, 0.0f, 10000.0f, false, 5.0f);
 			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition());
 			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection());
 			ImGuiUtils::ImGuiFloatProperty("Radius", pLightComponent->GetRadius());
 			break;
 		case cd::LightType::Tube:
+			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lux, 0.0f, 10000.0f, false, 5.0f);
 			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition());
 			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection());
 			ImGuiUtils::ImGuiFloatProperty("Range", pLightComponent->GetRange());
 			ImGuiUtils::ImGuiFloatProperty("Width", pLightComponent->GetWidth());
 			break;
 		default:
-			assert("TODO");
+			CD_ERROR("Unknown light type in inspector!");
 			break;
 		}
 	}
