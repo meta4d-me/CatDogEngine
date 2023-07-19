@@ -1,12 +1,20 @@
 #pragma once
 
+#ifdef ENABLE_SPDLOG
 #include "Math/Quaternion.hpp"
 
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
 
-#include <format>
+//#include <format>
 #include <sstream>
+
+namespace spdlog
+{
+
+class logger;
+
+}
 
 namespace engine
 {
@@ -15,12 +23,11 @@ class Log
 {
 public:
 	static void Init();
+	static std::shared_ptr<spdlog::logger>& GetEngineLogger();
+	static std::shared_ptr<spdlog::logger>& GetApplicationLogger();
 
-	static std::shared_ptr<spdlog::logger> &GetEngineLogger() { return s_engineLogger; }
-	static std::shared_ptr<spdlog::logger> &GetApplicationLogger() { return s_applicationLogger; }
-
-	static const std::ostringstream &GetSpdOutput() { return m_oss; }
-	static void ClearBuffer() { m_oss.str(""); }
+	static const std::ostringstream& GetSpdOutput();
+	static void ClearBuffer();
 
 private:
 	static std::shared_ptr<spdlog::logger> s_engineLogger;
@@ -30,26 +37,6 @@ private:
 	static std::ostringstream m_oss;
 };
 
-} // namespace engine
-
-inline std::ostream &operator<<(std::ostream &os, const cd::Vec2f &vec)
-{
-	return os << std::format("({0}, {1})", vec.x(), vec.y());
-}
-
-inline std::ostream &operator<<(std::ostream &os, const cd::Vec3f &vec)
-{
-	return os << std::format("({0}, {1}, {2})", vec.x(), vec.y(), vec.z());
-}
-
-inline std::ostream &operator<<(std::ostream &os, const cd::Vec4f &vec)
-{
-	return os << std::format("({0}, {1}, {2}, {3})", vec.x(), vec.y(), vec.z(), vec.w());
-}
-
-inline std::ostream& operator<<(std::ostream& os, const cd::Quaternion& quaternion)
-{
-	return os << std::format("Vector = ({0}, {1}, {2}), Scalar = {3}", quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
 }
 
 // Engine log macros.
@@ -69,3 +56,48 @@ inline std::ostream& operator<<(std::ostream& os, const cd::Quaternion& quaterni
 // Runtime assert.
 #define CD_ENGINE_ASSERT(x, ...) { if(!(x)) { ::engine::Log::GetEngineLogger()->error(__VA_ARGS__); } }
 #define CD_ASSERT(x, ...) { if(!(x)) { ::engine::Log::GetApplicationLogger()->error(__VA_ARGS__); } }
+
+inline std::ostream& operator<<(std::ostream& os, const cd::Vec2f& vec)
+{
+	return os << std::format("({0}, {1})", vec.x(), vec.y());
+}
+
+inline std::ostream& operator<<(std::ostream& os, const cd::Vec3f& vec)
+{
+	return os << std::format("({0}, {1}, {2})", vec.x(), vec.y(), vec.z());
+}
+
+inline std::ostream& operator<<(std::ostream& os, const cd::Vec4f& vec)
+{
+	return os << std::format("({0}, {1}, {2}, {3})", vec.x(), vec.y(), vec.z(), vec.w());
+}
+
+inline std::ostream& operator<<(std::ostream& os, const cd::Quaternion& quaternion)
+{
+	return os << std::format("Vector = ({0}, {1}, {2}), Scalar = {3}", quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
+}
+
+#else
+
+class Log
+{
+public:
+	static void Init() {}
+};
+
+// Maby we don't need log in release mode.
+#define CD_ENGINE_TRACE(...)
+#define CD_ENGINE_INFO(...) 
+#define CD_ENGINE_WARN(...) 
+#define CD_ENGINE_ERROR(...)
+#define CD_ENGINE_FATAL(...)
+#define CD_TRACE(...)
+#define CD_INFO(...) 
+#define CD_WARN(...) 
+#define CD_ERROR(...)
+#define CD_FATAL(...)
+
+#define CD_ENGINE_ASSERT(x, ...)
+#define CD_ASSERT(x, ...)
+
+#endif

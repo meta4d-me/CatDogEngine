@@ -50,7 +50,6 @@ private:
 	std::string GetShaderOutputFilePath(const char* pInputFilePath, const char* pAppendFileName = nullptr);
 	std::string GetTextureOutputFilePath(const char* pInputFilePath);
 
-	engine::RenderContext* m_pRenderContext;
 	engine::SceneWorld* m_pSceneWorld;
 	std::map<cd::MeshID::ValueType, engine::Entity> m_meshToEntity;
 };

@@ -27,7 +27,6 @@ namespace editor
 
 ECTerrainConsumer::ECTerrainConsumer(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext)
 	: m_pSceneWorld(pSceneWorld)
-	, m_pRenderContext(pRenderContext)
 {
 }
 

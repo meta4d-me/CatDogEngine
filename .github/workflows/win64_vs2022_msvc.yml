@@ -1,4 +1,4 @@
-name: win64_vs2022
+name: win64_vs2022_msvc
 
 on:
   push:

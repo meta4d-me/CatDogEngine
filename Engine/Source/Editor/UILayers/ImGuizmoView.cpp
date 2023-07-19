@@ -10,7 +10,7 @@
 #include "UILayers/SceneView.h"
 
 #include <imgui/imgui.h>
-#include <imguizmo/ImGuizmo.h>
+#include <ImGuizmo/ImGuizmo.h>
 
 namespace editor
 {

@@ -3,7 +3,6 @@
 #include "Core/StringCrc.h"
 #include "Math/Matrix.hpp"
 
-#include <span>
 #include <vector>
 
 namespace cd

@@ -81,7 +81,6 @@ private:
 	void AddMaterial(engine::Entity entity, const cd::Material* pMaterial, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase);
 
 private:
-	engine::RenderContext* m_pRenderContext;
 	engine::SceneWorld* m_pSceneWorld;
 
 	uint32_t m_nodeMinID;

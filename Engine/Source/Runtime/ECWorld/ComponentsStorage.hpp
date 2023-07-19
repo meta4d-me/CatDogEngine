@@ -33,7 +33,7 @@ public:
 	virtual ~ComponentsStorage() = default;
 
 	// Returns if ComponentStorage stores component for entity.
-	bool Contains(Entity entity) const { return m_entityToIndex.contains(entity); }
+	bool Contains(Entity entity) const { return m_entityToIndex.find(entity) != m_entityToIndex.end(); }
 
 	// Returns current active components count.
 	size_t GetCount() const { return m_entityToIndex.size(); }

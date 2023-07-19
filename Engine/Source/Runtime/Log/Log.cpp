@@ -1,4 +1,6 @@
 #include "Log.h"
+
+#ifdef ENABLE_SPDLOG
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/ostream_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -6,9 +8,25 @@
 namespace engine
 {
 
-std::shared_ptr<spdlog::logger> Log::s_engineLogger;
-std::shared_ptr<spdlog::logger> Log::s_applicationLogger;
-std::ostringstream Log::m_oss;
+std::shared_ptr<spdlog::logger>& Log::GetEngineLogger()
+{
+	return s_engineLogger;
+}
+
+std::shared_ptr<spdlog::logger>& Log::GetApplicationLogger()
+{
+	return s_applicationLogger;
+}
+
+const std::ostringstream& Log::GetSpdOutput()
+{
+	return m_oss;
+}
+
+void Log::ClearBuffer()
+{
+	m_oss.str("");
+}
 
 void Log::Init() {
 	auto consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
@@ -20,7 +38,7 @@ void Log::Init() {
 	auto ossSink = std::make_shared<spdlog::sinks::ostream_sink_mt>(m_oss);
 	ossSink->set_pattern("[%T] [%n] [%l]: %v");
 
-	std::vector<spdlog::sink_ptr> sinks{ consoleSink , fileSink, ossSink };
+	std::vector<spdlog::sink_ptr> sinks{ consoleSink, fileSink, ossSink };
 
 	s_engineLogger = std::make_shared<spdlog::logger>("ENGINE", sinks.begin(), sinks.end());
 	spdlog::register_logger(s_engineLogger);
@@ -33,4 +51,6 @@ void Log::Init() {
 	s_applicationLogger->flush_on(spdlog::level::trace);
 }
 
-} // namespace engine
+}
+
+#endif

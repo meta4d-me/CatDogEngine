@@ -20,9 +20,9 @@ using namespace cd;
 namespace
 {
 constexpr const char* kUniformSectorOrigin = "u_SectorOrigin";
-constexpr engine::StringCrc kUniformSectorOriginCrc(kUniformSectorOrigin);
+//constexpr engine::StringCrc kUniformSectorOriginCrc(kUniformSectorOrigin);
 constexpr const char* kUniformSectorDimension = "u_SectorDimension";
-constexpr engine::StringCrc kUniformSectorDimensionCrc(kUniformSectorDimension);
+//constexpr engine::StringCrc kUniformSectorDimensionCrc(kUniformSectorDimension);
 
 bx::AllocatorI* GetResourceAllocator()
 {
@@ -109,25 +109,25 @@ void TerrainRenderer::Render(float deltaTime)
 		const MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
 		const StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
 
-		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle(pMeshComponent->GetVertexBuffer()));
-		bgfx::setIndexBuffer(bgfx::IndexBufferHandle(pMeshComponent->GetIndexBuffer()));
+		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()});
+		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
 
-		bgfx::setTexture(m_dirtTexture.slot, bgfx::UniformHandle(m_dirtTexture.samplerHandle), bgfx::TextureHandle(m_dirtTexture.textureHandle));
+		bgfx::setTexture(m_dirtTexture.slot, bgfx::UniformHandle{m_dirtTexture.samplerHandle}, bgfx::TextureHandle{m_dirtTexture.textureHandle});
 		if (m_redChannelTexture.textureHandle != bgfx::kInvalidHandle && m_redChannelTexture.samplerHandle != bgfx::kInvalidHandle)
 		{
-			bgfx::setTexture(m_redChannelTexture.slot, bgfx::UniformHandle(m_redChannelTexture.samplerHandle), bgfx::TextureHandle(m_redChannelTexture.textureHandle));
+			bgfx::setTexture(m_redChannelTexture.slot, bgfx::UniformHandle{m_redChannelTexture.samplerHandle}, bgfx::TextureHandle{m_redChannelTexture.textureHandle});
 		}
 		if (m_greenChannelTexture.textureHandle != bgfx::kInvalidHandle && m_greenChannelTexture.samplerHandle != bgfx::kInvalidHandle)
 		{
-			bgfx::setTexture(m_greenChannelTexture.slot, bgfx::UniformHandle(m_greenChannelTexture.samplerHandle), bgfx::TextureHandle(m_greenChannelTexture.textureHandle));
+			bgfx::setTexture(m_greenChannelTexture.slot, bgfx::UniformHandle{m_greenChannelTexture.samplerHandle}, bgfx::TextureHandle{m_greenChannelTexture.textureHandle});
 		}
 		if (m_blueChannelTexture.textureHandle != bgfx::kInvalidHandle && m_blueChannelTexture.samplerHandle != bgfx::kInvalidHandle)
 		{
-			bgfx::setTexture(m_blueChannelTexture.slot, bgfx::UniformHandle(m_blueChannelTexture.samplerHandle), bgfx::TextureHandle(m_blueChannelTexture.textureHandle));
+			bgfx::setTexture(m_blueChannelTexture.slot, bgfx::UniformHandle{m_blueChannelTexture.samplerHandle}, bgfx::TextureHandle{m_blueChannelTexture.textureHandle});
 		}
 		if (m_alphaChannelTexture.textureHandle != bgfx::kInvalidHandle && m_alphaChannelTexture.samplerHandle != bgfx::kInvalidHandle)
 		{
-			bgfx::setTexture(m_alphaChannelTexture.slot, bgfx::UniformHandle(m_alphaChannelTexture.samplerHandle), bgfx::TextureHandle(m_alphaChannelTexture.textureHandle));
+			bgfx::setTexture(m_alphaChannelTexture.slot, bgfx::UniformHandle{m_alphaChannelTexture.samplerHandle}, bgfx::TextureHandle{m_alphaChannelTexture.textureHandle});
 		}
 
 		for (const auto& [textureType, textureInfo] : pMaterialComponent->GetTextureResources())
@@ -137,7 +137,7 @@ void TerrainRenderer::Render(float deltaTime)
 			if (optTextureInfo.has_value())
 			{
 				const MaterialComponent::TextureInfo& textureInfo = optTextureInfo.value();
-				bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle(textureInfo.samplerHandle), bgfx::TextureHandle(textureInfo.textureHandle));
+				bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle{textureInfo.samplerHandle}, bgfx::TextureHandle{textureInfo.textureHandle});
 			}
 		}
 
@@ -148,7 +148,7 @@ void TerrainRenderer::Render(float deltaTime)
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);
 
-		bgfx::submit(GetViewID(), bgfx::ProgramHandle(pMaterialComponent->GetShadingProgram()));
+		bgfx::submit(GetViewID(), bgfx::ProgramHandle{pMaterialComponent->GetShadingProgram()});
 	}
 }
 

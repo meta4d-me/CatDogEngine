@@ -1,4 +1,4 @@
-@echo off
+@echo on
 
 Set PREMAKE_EXE="%ROOT_PATH%/Engine/Auto/Programs/premake5.exe"
 Set CMAKE_EXE=%ROOT_PATH%/Engine/Auto/Programs/CMake/bin/cmake.exe
@@ -17,7 +17,7 @@ echo %ThirdPartyProjectsPath%
 
 echo [ BGFX ] Start making project...
 cd bgfx
-"../bx/tools/bin/windows/genie" --with-windows=10.0 --with-examples --with-tools %BUILD_IDE_NAME%
+"../bx/tools/bin/windows/genie" --with-windows=10.0 --with-examples --with-tools %BGFX_BUILD_OPTIONS%
 cd %ThirdPartyProjectsPath%
 echo\
 
@@ -25,7 +25,7 @@ echo [ SDL ] Start making project...
 cd sdl
 if not exist build mkdir build
 cd build
-%CMAKE_EXE% .. -G %CMAKE_IDE_FULL_NAME% -DSDL_FORCE_STATIC_VCRT=ON -D CMAKE_CONFIGURATION_TYPES="Debug;Release"
+%CMAKE_EXE% .. -G %CMAKE_IDE_FULL_NAME% %CMAKE_TOOLSET_OPTION% -DSDL_FORCE_STATIC_VCRT=ON -D CMAKE_CONFIGURATION_TYPES="Debug;Release"
 start /b %CMAKE_EXE% --build . --config Debug
 start /b %CMAKE_EXE% --build . --config Release
 cd %ThirdPartyProjectsPath%
@@ -35,7 +35,7 @@ echo [ FreeType ] Start making project...
 cd freetype
 if not exist build mkdir build
 cd build
-%CMAKE_EXE% .. -G %CMAKE_IDE_FULL_NAME% -DCMAKE_CXX_FLAGS="/MT"
+%CMAKE_EXE% .. -G %CMAKE_IDE_FULL_NAME% %CMAKE_TOOLSET_OPTION% -DCMAKE_CXX_FLAGS="/MT"
 start /b %CMAKE_EXE% --build . --config Debug
 start /b %CMAKE_EXE% --build . --config Release
 cd %ThirdPartyProjectsPath%
@@ -43,8 +43,15 @@ echo\
 
 echo [ AssetPipeline ] Start making project...
 cd AssetPipeline
-if %VS_VERSION% == vs2019 call ./make_win64_vs2019.bat
-if %VS_VERSION% == vs2022 call ./make_win64_vs2022.bat
+if "%VS_VERSION%" EQU "vs2019" call make_win64_vs2019.bat
+if "%VS_VERSION%" EQU "vs2022" (
+    if "%USE_CLANG_TOOLSET%" EQU "1" (
+        call make_win64_vs2022_clang.bat
+    ) else (
+        call make_win64_vs2022.bat
+    )
+)
+
 cd %MSBUILD_FOLDER%
 "%MSBUILD_PATH%" -m %ThirdPartyProjectsPath%/AssetPipeline/AssetPipeline.sln /p:Configuration=Debug /p:Platform=x64
 "%MSBUILD_PATH%" -m %ThirdPartyProjectsPath%/AssetPipeline/AssetPipeline.sln /p:Configuration=Release /p:Platform=x64
