@@ -86,20 +86,19 @@ void WorldRenderer::Render(float deltaTime)
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
 
 		// Material
-		for (const auto& [textureType, textureInfo] : pMaterialComponent->GetTextureResources())
+		for (const auto& [textureType, _] : pMaterialComponent->GetTextureResources())
 		{
-			std::optional<MaterialComponent::TextureInfo> optTextureInfo = pMaterialComponent->GetTextureInfo(textureType);
-			if (optTextureInfo.has_value())
+			if (const MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(textureType))
 			{
-				const MaterialComponent::TextureInfo& textureInfo = optTextureInfo.value();
-
 				if (cd::MaterialTextureType::BaseColor == textureType)
 				{
 					constexpr StringCrc uvOffsetAndScale("u_albedoUVOffsetAndScale");
-					m_pRenderContext->FillUniform(uvOffsetAndScale, &textureInfo.uvOffset, 1);
+					cd::Vec4f uvOffsetAndScaleData(pTextureInfo->GetUVOffset().x(), pTextureInfo->GetUVOffset().y(),
+						pTextureInfo->GetUVScale().x(), pTextureInfo->GetUVScale().y());
+					m_pRenderContext->FillUniform(uvOffsetAndScale, &uvOffsetAndScaleData, 1);
 				}
 
-				bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle{textureInfo.samplerHandle}, bgfx::TextureHandle{textureInfo.textureHandle});
+				bgfx::setTexture(pTextureInfo->slot, bgfx::UniformHandle{pTextureInfo->samplerHandle}, bgfx::TextureHandle{pTextureInfo->textureHandle});
 			}
 		}
 
