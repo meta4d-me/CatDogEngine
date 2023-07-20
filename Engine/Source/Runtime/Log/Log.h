@@ -1,13 +1,13 @@
 #pragma once
 
-#ifdef ENABLE_SPDLOG
+#ifdef SPDLOG_ENABLE
 
 #include "Math/Quaternion.hpp"
 
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
 
-#include <format>
+// #include <format>
 #include <sstream>
 
 namespace engine

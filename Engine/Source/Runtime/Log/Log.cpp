@@ -1,6 +1,6 @@
 #include "Log.h"
 
-#ifdef ENABLE_SPDLOG
+#ifdef SPDLOG_ENABLE
 
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/ostream_sink.h"
