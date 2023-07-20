@@ -11,18 +11,18 @@ namespace engine
 class CameraComponent;
 class SceneWorld;
 
-class FirstPersonCameraController final
+class CameraController final
 {
 public:
-	FirstPersonCameraController() = delete;
-	explicit FirstPersonCameraController(const SceneWorld* pSceneWorld, const float sensitivity, const float movement_speed);
-	explicit FirstPersonCameraController(const SceneWorld* pSceneWorld, const float horizontal_sensitivity, const float vertical_sensitivity, const float movement_speed);
-	~FirstPersonCameraController() = default;
+	CameraController() = delete;
+	explicit CameraController(const SceneWorld* pSceneWorld, const float sensitivity, const float movement_speed);
+	explicit CameraController(const SceneWorld* pSceneWorld, const float horizontal_sensitivity, const float vertical_sensitivity, const float movement_speed);
+	~CameraController() = default;
 
-	FirstPersonCameraController(const FirstPersonCameraController&) = delete;
-	FirstPersonCameraController(FirstPersonCameraController&&) = delete;
-	FirstPersonCameraController& operator=(const FirstPersonCameraController&) = delete;
-	FirstPersonCameraController& operator=(FirstPersonCameraController&&) = delete;
+	CameraController(const CameraController&) = delete;
+	CameraController(CameraController&&) = delete;
+	CameraController& operator=(const CameraController&) = delete;
+	CameraController& operator=(CameraController&&) = delete;
 
 	void Update(float deltaTime);
 
@@ -53,13 +53,16 @@ public:
 	void ElevationChanging(float amount);
 	//Double Click entity,camera will focus
 	void  CameraFocus(const cd::AABB& aabb);
+	//Implement the effect of a translation animation.
+	void Focusing();
 	//Synchronizes the controller to the transform of camera current state
 	void CameraToController();
 	//Synchronizes the transform of camera to the controller's current state
 	void ControllerToCamera();
-	// synchronize view when begin using mayastyle camera or fpscamera
+	//Synchronize view when begin using mayastyle camera or fpscamera
 	void SynchronizeMayaCamera();
-	void SynchronizeFpsCamera();
+	//When using camerafocus() mayastyle should be true
+	void SetMayaStyle() { m_isMayaStyle = true; }
 private:
 	engine::CameraComponent* GetMainCameraComponent() const;
 	engine::TransformComponent* GetMainCameraTransformComponent() const;
@@ -77,13 +80,17 @@ private:
 	float m_horizontalSensitivity;
 	float m_verticalSensitivity;
 	float m_movementSpeed;
+	float m_initialMovemenSpeed;
+	float m_mouseScroll = 0;
 
 	cd::Vec3f m_lookAtPoint = cd::Vec3f::Zero();
 	cd::Vec3f m_lookAt;
 	cd::Vec3f m_up;
 	cd::Vec3f m_eye;
+	cd::Vec3f m_eyeDestination; // This is for focusing animation
 
 	bool m_isMayaStyle;
+	bool m_isFocusing = false;
 };
 
 }	// namespace engine

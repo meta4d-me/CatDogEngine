@@ -2,7 +2,7 @@
 
 #include "Application/Engine.h"
 #include "Display/CameraUtility.h"
-#include "Display/FirstPersonCameraController.h"
+#include "Display/CameraController.h"
 #include "ECWorld/SceneWorld.h"
 #include "ImGui/EditorImGuiViewport.h"
 #include "ImGui/ImGuiContextInstance.h"
@@ -147,6 +147,7 @@ void EditorApp::InitEditorUILayers()
 	m_pEditorImGuiContext->AddStaticLayer(std::make_unique<MainMenu>("MainMenu"));
 
 	auto pEntityList = std::make_unique<EntityList>("EntityList");
+	pEntityList->SetCameraController(m_pCameraController);
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pEntityList));
 
 	//m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<GameView>("GameView"));
@@ -243,14 +244,6 @@ void EditorApp::InitECWorld()
 	cameraComponent.SetGammaCorrection(cd::Vec3f(0.45f));
 	cameraComponent.BuildProject();
 	cameraComponent.BuildView(cd::Point(0.0f, 0.0f, -100.0f), cd::Direction(0.0f, 0.0f, 1.0f), cd::Direction(0.0f, 1.0f, 0.0f));
-
-	// Controller for Input events.
-	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(
-		m_pSceneWorld.get(),
-		7.0f /* horizontal sensitivity */,
-		10.0f /* vertical sensitivity */,
-		160.0f /* Movement Speed*/);
-	m_pCameraController->CameraToController();
 
 	engine::Entity ddgiEntity = pWorld->CreateEntity();
 	m_pSceneWorld->SetDDGIEntity(ddgiEntity);
@@ -365,6 +358,17 @@ void EditorApp::InitShaderPrograms() const
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetDDGIMaterialType());
 }
 
+void EditorApp::InitController()
+{
+	// Controller for Input events.
+	m_pCameraController = std::make_shared<engine::CameraController>(
+		m_pSceneWorld.get(),
+		20.0f /* horizontal sensitivity */,
+		20.0f /* vertical sensitivity */,
+		160.0f /* Movement Speed*/);
+	m_pCameraController->CameraToController();
+}
+
 void EditorApp::AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer)
 {
 	pRenderer->Init();
@@ -408,6 +412,7 @@ bool EditorApp::Update(float deltaTime)
 
 		InitEngineRenderers();
 		m_pEditorImGuiContext->ClearUILayers();
+		InitController();
 		InitEditorUILayers();
 
 		InitEngineImGuiContext(m_initArgs.language);
