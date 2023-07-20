@@ -33,7 +33,7 @@ void OutputLog::Update()
 {
 	ImGui::Begin(GetName(), &m_isEnable, 0);
 
-#ifdef ENABLE_SPDLOG
+#ifdef SPDLOG_ENABLE
     AddSpdLog(engine::Log::GetSpdOutput());
 #endif
     Draw();
@@ -62,7 +62,7 @@ void OutputLog::AddLog(const char *fmt, ...) {
 
 void OutputLog::AddSpdLog(const std::ostringstream &oss, bool clearBuffer)
 {
-#ifdef ENABLE_SPDLOG
+#ifdef SPDLOG_ENABLE
     AddLog(oss.str().c_str());
     if (clearBuffer) {
         engine::Log::ClearBuffer();
