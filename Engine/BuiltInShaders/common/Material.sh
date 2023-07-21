@@ -18,6 +18,7 @@ struct Material {
 };
 
 uniform vec4 u_albedoColor;
+uniform vec4 u_metallicRoughnessFactor;
 uniform vec4 u_albedoUVOffsetAndScale;
 uniform vec4 u_alphaCutOff;
 
@@ -105,6 +106,9 @@ Material GetMaterial(vec2 uv, vec3 normal, mat3 TBN) {
 	material.occlusion = orm.x;
 	material.roughness = orm.y;
 	material.metallic = orm.z;
+#else
+	material.roughness = u_metallicRoughnessFactor.y;
+	material.metallic = u_metallicRoughnessFactor.x;
 #endif
 
 #if defined(EMISSIVE_MAP)

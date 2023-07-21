@@ -36,8 +36,9 @@ void SkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionM
 		return;
 	}
 
-	bgfx::setViewFrameBuffer(GetViewID(), *GetRenderTarget()->GetFrameBufferHandle());
-	bgfx::setViewRect(GetViewID(), 0, 0, GetRenderTarget()->GetWidth(), GetRenderTarget()->GetHeight());
+void SkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
+{
+	UpdateViewRenderTarget();
 
 	// We want the skybox to be centered around the player
 	// so that no matter how far the player moves, the skybox won't get any closer.
@@ -61,11 +62,7 @@ void SkyRenderer::Render(float deltaTime)
 
 	StaticMeshComponent *pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(m_pCurrentSceneWorld->GetSkyEntity());
 	if (!pMeshComponent)
-	{
-		return;
-	}
-	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()});
-	bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
+	bgfx::submit(GetViewID(), m_pRenderContext->GetProgram(program));
 
 	constexpr StringCrc sampler(skyboxSampler);
 	constexpr StringCrc program(skyboxShader);
@@ -74,7 +71,11 @@ void SkyRenderer::Render(float deltaTime)
 		m_pRenderContext->GetUniform(sampler),
 		m_pRenderContext->GetTexture(StringCrc(m_pSkyComponent->GetRadianceTexturePath())));
 
-	bgfx::submit(GetViewID(), m_pRenderContext->GetProgram(program));
+	bgfx::setTexture(0, m_uniformTexCube, m_lightProbeTex);
+	bgfx::setTexture(1, m_uniformTexCubeIrr, m_lightProbeTexIrr);
+	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
+	Renderer::ScreenSpaceQuad(static_cast<float>(GetRenderTarget()->GetWidth()), static_cast<float>(GetRenderTarget()->GetHeight()), true);
+	bgfx::submit(GetViewID(), m_programSky);
 }
 
 }

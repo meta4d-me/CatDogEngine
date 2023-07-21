@@ -1,20 +1,14 @@
 #pragma once
 
-#ifdef ENABLE_SPDLOG
+#ifdef SPDLOG_ENABLE
+
 #include "Math/Quaternion.hpp"
 
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
 
-//#include <format>
+// #include <format>
 #include <sstream>
-
-namespace spdlog
-{
-
-class logger;
-
-}
 
 namespace engine
 {
@@ -85,7 +79,6 @@ public:
 	static void Init() {}
 };
 
-// Maby we don't need log in release mode.
 #define CD_ENGINE_TRACE(...)
 #define CD_ENGINE_INFO(...) 
 #define CD_ENGINE_WARN(...) 

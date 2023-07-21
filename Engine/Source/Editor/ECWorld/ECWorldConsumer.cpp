@@ -329,6 +329,16 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 				}
 			}
 
+			if (auto optMetallic = pMaterial->GetFloatProperty(cd::MaterialPropertyGroup::Metallic, cd::MaterialProperty::Factor); optMetallic.has_value())
+			{
+				materialComponent.SetMetallicFactor(optMetallic.value());
+			}
+
+			if (auto optRoughness = pMaterial->GetFloatProperty(cd::MaterialPropertyGroup::Roughness, cd::MaterialProperty::Factor); optRoughness.has_value())
+			{
+				materialComponent.SetRoughnessFactor(optRoughness.value());
+			}
+
 			if (auto optTwoSided = pMaterial->GetBoolProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::TwoSided); optTwoSided.has_value())
 			{
 				materialComponent.SetTwoSided(optTwoSided.value());

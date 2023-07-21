@@ -2,24 +2,18 @@
 -- @Description : Makefile of CatDogEngine Editor
 --------------------------------------------------------------
 
-project("Editor")
+project("Game")
 	kind("ConsoleApp")
-	SetLanguageAndToolset("Editor")
+	SetLanguageAndToolset("Game")
 	dependson { "Engine" }
 
 	files {
-		path.join(EditorSourcePath, "**.*"),
-		path.join(ThirdPartySourcePath, "imguizmo/*.h"),
-		path.join(ThirdPartySourcePath, "imguizmo/*.cpp"),
+		path.join(GameSourcePath, "**.*"),
 	}
 	
 	vpaths {
 		["Source/*"] = { 
-			path.join(EditorSourcePath, "**.*"),
-		},
-		["ImGuizmo"] = {
-			path.join(ThirdPartySourcePath, "imguizmo/*.h"),
-			path.join(ThirdPartySourcePath, "imguizmo/*.cpp"),
+			path.join(GameSourcePath, "**.*"),
 		},
 	}
 
@@ -28,14 +22,10 @@ project("Editor")
 		"CDENGINE_BUILTIN_SHADER_PATH=\""..BuiltInShaderSourcePath.."\"",
 		"CDPROJECT_RESOURCES_SHARED_PATH=\""..ProjectSharedPath.."\"",
 		"CDPROJECT_RESOURCES_ROOT_PATH=\""..ProjectResourceRootPath.."\"",
-		"CDEDITOR_RESOURCES_ROOT_PATH=\""..EditorResourceRootPath.."\"",
-		"CDENGINE_TOOL_PATH=\""..ToolRootPath.."\"",
-		"EDITOR_MODE",
 		GetPlatformMacroName(),
 	}
 
 	includedirs {
-		path.join(EngineSourcePath, "Editor/"),
 		path.join(EngineSourcePath, "Runtime/"),
 		path.join(ThirdPartySourcePath, "AssetPipeline/public"),
 		path.join(EnginePath, "BuiltInShaders/shaders"),
@@ -47,29 +37,9 @@ project("Editor")
 		path.join(ThirdPartySourcePath, "bx/include"),
 		path.join(ThirdPartySourcePath, "bx/include/compat/msvc"),
 		path.join(ThirdPartySourcePath, "imgui"),
-		path.join(ThirdPartySourcePath, "imguizmo"),
 		ThirdPartySourcePath,
+		"EDITOR_MODE", -- TODO : remove
 	}
-
-	if ENABLE_SPDLOG then
-		defines {
-			"SPDLOG_ENABLE", "SPDLOG_NO_EXCEPTIONS", "FMT_USE_NONTYPE_TEMPLATE_ARGS=0",
-		}
-
-		includedirs {
-			path.join(ThirdPartySourcePath, "spdlog/include"),
-		}
-	end
-
-	if ENABLE_TRACY then
-		defines {
-			"TRACY_ENABLE",
-		}
-
-		includedirs {
-			path.join(ThirdPartySourcePath, "tracy/public"),
-		}
-	end
 
 	-- use /MT /MTd, not /MD /MDd
 	staticruntime "on"
@@ -94,21 +64,9 @@ project("Editor")
 		"CDConsumer",
 	}
 
-	if not USE_CLANG_TOOLSET then
-		links {
-			"GenericProducer",
-			"TerrainProducer",
-		}
-
-		defines {
-			"ENABLE_GENERIC_PRODUCER",
-			"ENABLE_TERRAIN_PRODUCER",
-		}
-	else
-		excludes {
-			path.join(EditorSourcePath, "UILayers/TerrainEditor.*")
-		}
-	end
+	excludes {
+		path.join(EditorSourcePath, "UILayers/TerrainEditor.*")
+	}
 
 	-- Disable these options can reduce the size of compiled binaries.
 	justmycode("Off")
@@ -132,11 +90,5 @@ project("Editor")
 	flags {
 		"MultiProcessorCompile", -- compiler uses multiple thread
 	}
-
-	if not USE_CLANG_TOOLSET then
-		flags {
-			"FatalWarnings", -- treat warnings as errors
-		}
-	end
 
 	CopyDllAutomatically()

@@ -1,12 +1,17 @@
 #include "Log.h"
 
-#ifdef ENABLE_SPDLOG
+#ifdef SPDLOG_ENABLE
+
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/ostream_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
 namespace engine
 {
+
+std::shared_ptr<spdlog::logger> Log::s_engineLogger;
+std::shared_ptr<spdlog::logger> Log::s_applicationLogger;
+std::ostringstream Log::m_oss;
 
 std::shared_ptr<spdlog::logger>& Log::GetEngineLogger()
 {
