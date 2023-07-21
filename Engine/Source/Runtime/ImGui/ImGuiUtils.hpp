@@ -210,6 +210,4 @@ static bool ImGuiTransformProperty(const char* pName, cd::Transform& value)
 	return dirty;
 }
 
-
-
 }
