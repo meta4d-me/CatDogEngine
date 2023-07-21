@@ -3,6 +3,8 @@
 #include "Base/Template.h"
 #include "Core/StringCrc.h"
 
+#include <string>
+
 namespace engine
 {
 

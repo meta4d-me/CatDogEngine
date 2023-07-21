@@ -44,10 +44,10 @@ group "ThirdParty/bgfx"
 		location(bgfxProjectsPath)
 		targetdir(BinariesPath)
 
-	externalproject("bimg_encode")
-		kind("StaticLib")
-		location(bgfxProjectsPath)
-		targetdir(BinariesPath)
+	--externalproject("bimg_encode")
+	--	kind("StaticLib")
+	--	location(bgfxProjectsPath)
+	--	targetdir(BinariesPath)
 
 	externalproject("bimg_decode")
 		kind("StaticLib")
@@ -67,57 +67,57 @@ for _, v in ipairs(allProjects) do
 		targetdir(BinariesPath)
 end
 
-group "ThirdParty/bgfx/tools"
-	externalproject("geometryc")
-		kind("ConsoleApp")
-		location(bgfxProjectsPath)
-		targetdir(BinariesPath)
+--group "ThirdParty/bgfx/tools"
+--	externalproject("geometryc")
+--		kind("ConsoleApp")
+--		location(bgfxProjectsPath)
+--		targetdir(BinariesPath)
+--
+--	externalproject("geometryv")
+--		kind("ConsoleApp")
+--		location(bgfxProjectsPath)
+--		targetdir(BinariesPath)
+--
+--	externalproject("texturec")
+--		kind("ConsoleApp")
+--		location(bgfxProjectsPath)
+--		targetdir(BinariesPath)
+--
+--	externalproject("texturev")
+--		kind("ConsoleApp")
+--		location(bgfxProjectsPath)
+--		targetdir(BinariesPath)
 
-	externalproject("geometryv")
-		kind("ConsoleApp")
-		location(bgfxProjectsPath)
-		targetdir(BinariesPath)
-
-	externalproject("texturec")
-		kind("ConsoleApp")
-		location(bgfxProjectsPath)
-		targetdir(BinariesPath)
-
-	externalproject("texturev")
-		kind("ConsoleApp")
-		location(bgfxProjectsPath)
-		targetdir(BinariesPath)
-
-group "ThirdParty/bgfx/tools/shaderc"
-	externalproject("fcpp")
-		kind("StaticLib")
-		location(bgfxProjectsPath)
-		targetdir(BinariesPath)
-
-	externalproject("glslang")
-		kind("StaticLib")
-		location(bgfxProjectsPath)
-		targetdir(BinariesPath)
-
-	externalproject("glsl-optimizer")
-		kind("StaticLib")
-		location(bgfxProjectsPath)
-		targetdir(BinariesPath)
-
-	externalproject("shaderc")
-		kind("ConsoleApp")
-		location(bgfxProjectsPath)
-		targetdir(BinariesPath)
-
-	externalproject("spirv-cross")
-		kind("StaticLib")
-		location(bgfxProjectsPath)
-		targetdir(BinariesPath)
-
-	externalproject("spirv-opt")
-		kind("StaticLib")
-		location(bgfxProjectsPath)
-		targetdir(BinariesPath)
+--group "ThirdParty/bgfx/tools/shaderc"
+--	externalproject("fcpp")
+--		kind("StaticLib")
+--		location(bgfxProjectsPath)
+--		targetdir(BinariesPath)
+--
+--	externalproject("glslang")
+--		kind("StaticLib")
+--		location(bgfxProjectsPath)
+--		targetdir(BinariesPath)
+--
+--	externalproject("glsl-optimizer")
+--		kind("StaticLib")
+--		location(bgfxProjectsPath)
+--		targetdir(BinariesPath)
+--
+--	externalproject("shaderc")
+--		kind("ConsoleApp")
+--		location(bgfxProjectsPath)
+--		targetdir(BinariesPath)
+--
+--	externalproject("spirv-cross")
+--		kind("StaticLib")
+--		location(bgfxProjectsPath)
+--		targetdir(BinariesPath)
+--
+--	externalproject("spirv-opt")
+--		kind("StaticLib")
+--		location(bgfxProjectsPath)
+--		targetdir(BinariesPath)
 
 group ""
 --print("================================================================")

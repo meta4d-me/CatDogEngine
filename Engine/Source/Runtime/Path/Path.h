@@ -36,7 +36,7 @@ public:
 
 private:
 	static const char* GetPlatformPathKey();
-	static std::filesystem::path GetPlatformAppDataPath(char(&value)[MAX_PATH_SIZE]);
+	static std::filesystem::path GetPlatformAppDataPath(const char* pRootPath);
 
 private:
 	static engine::GraphicsBackend s_backend;

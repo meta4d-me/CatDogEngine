@@ -1,6 +1,4 @@
-# CatDogEngine
-
-[![Join the chat at https://discord.gg/r2pEPEJH](https://img.shields.io/discord/1054285275133640794?color=%237289DA&label=CatDogEngine&logo=discord&logoColor=white)](https://discord.gg/UDcsdUYKwV)
+# CatDogEngine [![Join the chat at https://discord.gg/r2pEPEJH](https://img.shields.io/discord/1054285275133640794?color=%237289DA&label=CatDogEngine&logo=discord&logoColor=white)](https://discord.gg/UDcsdUYKwV)
 
 ![win64_vs2019_msvc](https://github.com/CatDogEngine/CatDogEngine/actions/workflows/win64_vs2019_msvc.yml/badge.svg?branch=main)
 ![win64_vs2022_msvc](https://github.com/CatDogEngine/CatDogEngine/actions/workflows/win64_vs2022_msvc.yml/badge.svg?branch=main)
@@ -26,7 +24,7 @@
 * RenderGraph
 * Skeleton Animation
 
-## Features in Plan
+## TODO List
 
 * Audio System
 * Character Rendering
@@ -37,7 +35,7 @@
 * Particle System
 * Physical Engine
 
-## ThirdParty in the development
+## ThirdParty
 
 * Font
   * [freetype](https://github.com/freetype/freetype)
@@ -71,7 +69,7 @@
 
 * https://github.com/CatDogEngine/TestAssets
 
-## Other open-source game engines to learn
+## Learning Resources
 
 * [DiligentEngine](https://github.com/DiligentGraphics/DiligentEngine)
 * [GodotEngine](https://github.com/godotengine/godot)
