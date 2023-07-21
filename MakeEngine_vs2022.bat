@@ -10,6 +10,6 @@ if exist "./Engine/Auto/commercial_sdk_locations.bat" (
 )
 
 cd "./Engine/Auto/Scripts"
-"../Programs/premake5.exe" "vs2022"
+"../Programs/Windows/premake5.exe" "vs2022"
 
 pause

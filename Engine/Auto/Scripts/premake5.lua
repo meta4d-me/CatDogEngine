@@ -1,16 +1,10 @@
 --------------------------------------------------------------
 -- @Description : Makefile of CatDog Engine
 --------------------------------------------------------------
-
+ChoosePlatform = "Windows"
 EngineName = "CatDogEngine"
-
--- Build options
--- StaticLib is convenient to develop C++ applications which needs to reuse engine codes.
--- SharedLib needs to export APIs by ENGINE_API macro which needs more efforts to have a good design.
--- But it is necessary if you want to combine Engine and applications in other languages, such as C#.
 EngineBuildLibKind = "StaticLib" -- "SharedLib"
 
-ChoosePlatform = "Windows"
 USE_CLANG_TOOLSET = false
 if os.getenv("USE_CLANG_TOOLSET") then
 	USE_CLANG_TOOLSET = true
@@ -80,6 +74,7 @@ print("EnginePath = "..EnginePath)
 print("BinariesPath = "..BinariesPath)
 print("IntermediatePath = "..IntermediatePath)
 print("EngineSourcePath = "..EngineSourcePath)
+print("GameSourcePath = "..GameSourcePath)
 print("RuntimeSourcePath = "..RuntimeSourcePath)
 print("IDEConfigs.BuildIDEName = "..IDEConfigs.BuildIDEName)
 print("DDGI_SDK_PATH = "..DDGI_SDK_PATH)
@@ -173,6 +168,9 @@ dofile("engine.lua")
 
 -- editor projects
 dofile("editor.lua")
+
+-- game projects
+dofile("game.lua")
 
 -- regression tests for engine core modules
 dofile("test.lua")

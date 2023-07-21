@@ -40,6 +40,10 @@ public:
 	void EndFrame();
 	void Shutdown();
 
+	uint16_t GetBackBufferWidth() const { return m_backBufferWidth; }
+	uint16_t GetBackBufferHeight() const { return m_backBufferHeight; }
+	void SetBackBufferSize(uint16_t width, uint16_t height) { m_backBufferWidth = width; m_backBufferHeight = height; }
+
 	uint16_t CreateView();
 	void ResetViewCount() { m_currentViewCount = 0; }
 
@@ -87,6 +91,9 @@ private:
 	std::unordered_map<size_t, bgfx::ProgramHandle> m_programHandleCaches;
 	std::unordered_map<size_t, bgfx::TextureHandle> m_textureHandleCaches;
 	std::unordered_map<size_t, bgfx::UniformHandle> m_uniformHandleCaches;
+
+	uint16_t m_backBufferWidth;
+	uint16_t m_backBufferHeight;
 };
 
 }

@@ -11,6 +11,6 @@ if exist "./Engine/Auto/commercial_sdk_locations.bat" (
 
 cd "./Engine/Auto/Scripts"
 Set USE_CLANG_TOOLSET=1
-"../Programs/premake5.exe" "vs2022"
+"../Programs/Windows/premake5.exe" "vs2022"
 
 pause

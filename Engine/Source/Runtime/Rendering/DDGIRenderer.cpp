@@ -129,10 +129,10 @@ void DDGIRenderer::Init()
 
 	bgfx::setViewName(GetViewID(), "WorldRenderer");
 
-	m_pRenderContext->CreateUniform(classificationSampler, bgfx::UniformType::Sampler);
-	m_pRenderContext->CreateUniform(distanceSampler, bgfx::UniformType::Sampler);
-	m_pRenderContext->CreateUniform(irradianceSampler, bgfx::UniformType::Sampler);
-	m_pRenderContext->CreateUniform(relocationSampler, bgfx::UniformType::Sampler);
+	GetRenderContext()->CreateUniform(classificationSampler, bgfx::UniformType::Sampler);
+	GetRenderContext()->CreateUniform(distanceSampler, bgfx::UniformType::Sampler);
+	GetRenderContext()->CreateUniform(irradianceSampler, bgfx::UniformType::Sampler);
+	GetRenderContext()->CreateUniform(relocationSampler, bgfx::UniformType::Sampler);
 
 	// Warning : The coordinate system is different between CD and HWs Engine.
 	//   CD: Left-hand, +Y Up
@@ -144,16 +144,16 @@ void DDGIRenderer::Init()
 	m_pDDGIComponent->SetNormalBias(0.0f);
 	m_pDDGIComponent->SetViewBias(0.0f);
 
-	m_pRenderContext->CreateUniform(volumeOrigin, bgfx::UniformType::Vec4, 1);
-	m_pRenderContext->CreateUniform(volumeProbeSpacing, bgfx::UniformType::Vec4, 1);
-	m_pRenderContext->CreateUniform(volumeProbeCounts, bgfx::UniformType::Vec4, 1);
-	m_pRenderContext->CreateUniform(ambientMultiplier, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(volumeOrigin, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(volumeProbeSpacing, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(volumeProbeCounts, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(ambientMultiplier, bgfx::UniformType::Vec4, 1);
 
-	m_pRenderContext->CreateUniform(lightCountAndStride, bgfx::UniformType::Vec4, 1);
-	m_pRenderContext->CreateUniform(lightParams, bgfx::UniformType::Vec4, LightUniform::VEC4_COUNT);
-	m_pRenderContext->CreateUniform(cameraPos, bgfx::UniformType::Vec4, 1);
-	m_pRenderContext->CreateUniform(albedoColor, bgfx::UniformType::Vec4, 1);
-	m_pRenderContext->CreateUniform(albedoUVOffsetAndScale, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(lightCountAndStride, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(lightParams, bgfx::UniformType::Vec4, LightUniform::VEC4_COUNT);
+	GetRenderContext()->CreateUniform(cameraPos, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(albedoColor, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(albedoUVOffsetAndScale, bgfx::UniformType::Vec4, 1);
 
 	// Now we can get DDGI texture from DDGI SDK every frame without the file.
 	// m_pDDGIComponent->SetClassificationRawData("ddgi/classification.bin");
@@ -163,16 +163,15 @@ void DDGIRenderer::Init()
 
 	m_pDDGIComponent->ResetTextureRawData();
 
-	CreatDDGITexture(DDGITextureType::Classification, m_pDDGIComponent, m_pRenderContext);
-	CreatDDGITexture(DDGITextureType::Distance, m_pDDGIComponent, m_pRenderContext);
-	CreatDDGITexture(DDGITextureType::Irradiance, m_pDDGIComponent, m_pRenderContext);
-	CreatDDGITexture(DDGITextureType::Relocation, m_pDDGIComponent, m_pRenderContext);
+	CreatDDGITexture(DDGITextureType::Classification, m_pDDGIComponent, GetRenderContext());
+	CreatDDGITexture(DDGITextureType::Distance, m_pDDGIComponent, GetRenderContext());
+	CreatDDGITexture(DDGITextureType::Irradiance, m_pDDGIComponent, GetRenderContext());
+	CreatDDGITexture(DDGITextureType::Relocation, m_pDDGIComponent, GetRenderContext());
 }
 
 void DDGIRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
-	bgfx::setViewFrameBuffer(GetViewID(),*GetRenderTarget()->GetFrameBufferHandle());
-	bgfx::setViewRect(GetViewID(), 0, 0, GetRenderTarget()->GetWidth(), GetRenderTarget()->GetHeight());
+	UpdateViewRenderTarget();
 	bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
 }
 
@@ -213,7 +212,7 @@ void DDGIRenderer::Render(float deltaTime)
 				if (cd::MaterialTextureType::BaseColor == textureType)
 				{
 					constexpr StringCrc uvOffsetAndScale("u_albedoUVOffsetAndScale");
-					m_pRenderContext->FillUniform(uvOffsetAndScale, &pTextureInfo->uvOffset, 1);
+					GetRenderContext()->FillUniform(uvOffsetAndScale, &pTextureInfo->uvOffset, 1);
 				}
 
 				bgfx::setTexture(pTextureInfo->slot, bgfx::UniformHandle{pTextureInfo->samplerHandle}, bgfx::TextureHandle{pTextureInfo->textureHandle});
@@ -221,42 +220,42 @@ void DDGIRenderer::Render(float deltaTime)
 		}
 
 		cd::Vec3f tmpAlbedoColor = cd::Vec3f(1.0f, 1.0f, 1.0f);
-		m_pRenderContext->FillUniform(StringCrc(albedoColor), tmpAlbedoColor.Begin(), 1);
+		GetRenderContext()->FillUniform(StringCrc(albedoColor), tmpAlbedoColor.Begin(), 1);
 
-		m_pRenderContext->FillUniform(StringCrc(cameraPos), &pCameraComponent->GetEye().x(), 1);
+		GetRenderContext()->FillUniform(StringCrc(cameraPos), &pCameraComponent->GetEye().x(), 1);
 
 		auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();
 		size_t lightEntityCount = lightEntities.size();
 		static cd::Vec4f lightInfoData(0.0f, LightUniform::LIGHT_STRIDE, 0.0f, 0.0f);
 		lightInfoData.x() = static_cast<float>(lightEntityCount);
-		m_pRenderContext->FillUniform(StringCrc(lightCountAndStride), lightInfoData.Begin(), 1);
+		GetRenderContext()->FillUniform(StringCrc(lightCountAndStride), lightInfoData.Begin(), 1);
 
 		if (lightEntityCount > 0)
 		{
 			// Light component storage has continus memory address and layout.
 			float *pLightDataBegin = reinterpret_cast<float *>(m_pCurrentSceneWorld->GetLightComponent(lightEntities[0]));
-			m_pRenderContext->FillUniform(StringCrc(lightParams), pLightDataBegin, static_cast<uint16_t>(lightEntityCount * LightUniform::LIGHT_STRIDE));
+			GetRenderContext()->FillUniform(StringCrc(lightParams), pLightDataBegin, static_cast<uint16_t>(lightEntityCount * LightUniform::LIGHT_STRIDE));
 		}
 
-		m_pRenderContext->FillUniform(StringCrc(volumeOrigin), &m_pDDGIComponent->GetVolumeOrigin().x(), 1);
-		m_pRenderContext->FillUniform(StringCrc(volumeProbeSpacing), &m_pDDGIComponent->GetProbeSpacing().x(), 1);
-		m_pRenderContext->FillUniform(StringCrc(volumeProbeCounts), &m_pDDGIComponent->GetProbeCount().x(), 1);
+		GetRenderContext()->FillUniform(StringCrc(volumeOrigin), &m_pDDGIComponent->GetVolumeOrigin().x(), 1);
+		GetRenderContext()->FillUniform(StringCrc(volumeProbeSpacing), &m_pDDGIComponent->GetProbeSpacing().x(), 1);
+		GetRenderContext()->FillUniform(StringCrc(volumeProbeCounts), &m_pDDGIComponent->GetProbeCount().x(), 1);
 		cd::Vec4f tmpAmbientMultiplier = cd::Vec4f(m_pDDGIComponent->GetAmbientMultiplier(), 0.0f, 0.0f, 0.0f);
-		m_pRenderContext->FillUniform(StringCrc(ambientMultiplier), &tmpAmbientMultiplier, 1);
+		GetRenderContext()->FillUniform(StringCrc(ambientMultiplier), &tmpAmbientMultiplier, 1);
 
-		UpdateDDGITexture(DDGITextureType::Classification, m_pDDGIComponent, m_pRenderContext);
-		UpdateDDGITexture(DDGITextureType::Distance, m_pDDGIComponent, m_pRenderContext);
-		UpdateDDGITexture(DDGITextureType::Irradiance, m_pDDGIComponent, m_pRenderContext);
-		UpdateDDGITexture(DDGITextureType::Relocation, m_pDDGIComponent, m_pRenderContext);
+		UpdateDDGITexture(DDGITextureType::Classification, m_pDDGIComponent, GetRenderContext());
+		UpdateDDGITexture(DDGITextureType::Distance, m_pDDGIComponent, GetRenderContext());
+		UpdateDDGITexture(DDGITextureType::Irradiance, m_pDDGIComponent, GetRenderContext());
+		UpdateDDGITexture(DDGITextureType::Relocation, m_pDDGIComponent, GetRenderContext());
 
-		bgfx::setTexture(CLA_MAP_SLOT, m_pRenderContext->GetUniform(StringCrc(classificationSampler)),
-						 m_pRenderContext->GetTexture(StringCrc(GetDDGITextureTypeName(DDGITextureType::Classification))));
-		bgfx::setTexture(DIS_MAP_SLOT, m_pRenderContext->GetUniform(StringCrc(distanceSampler)),
-						 m_pRenderContext->GetTexture(StringCrc(GetDDGITextureTypeName(DDGITextureType::Distance))));
-		bgfx::setTexture(IRR_MAP_SLOT, m_pRenderContext->GetUniform(StringCrc(irradianceSampler)),
-						 m_pRenderContext->GetTexture(StringCrc(GetDDGITextureTypeName(DDGITextureType::Irradiance))));
-		bgfx::setTexture(REL_MAP_SLOT, m_pRenderContext->GetUniform(StringCrc(relocationSampler)),
-						 m_pRenderContext->GetTexture(StringCrc(GetDDGITextureTypeName(DDGITextureType::Relocation))));
+		bgfx::setTexture(CLA_MAP_SLOT, GetRenderContext()->GetUniform(StringCrc(classificationSampler)),
+			GetRenderContext()->GetTexture(StringCrc(GetDDGITextureTypeName(DDGITextureType::Classification))));
+		bgfx::setTexture(DIS_MAP_SLOT, GetRenderContext()->GetUniform(StringCrc(distanceSampler)),
+			GetRenderContext()->GetTexture(StringCrc(GetDDGITextureTypeName(DDGITextureType::Distance))));
+		bgfx::setTexture(IRR_MAP_SLOT, GetRenderContext()->GetUniform(StringCrc(irradianceSampler)),
+			GetRenderContext()->GetTexture(StringCrc(GetDDGITextureTypeName(DDGITextureType::Irradiance))));
+		bgfx::setTexture(REL_MAP_SLOT, GetRenderContext()->GetUniform(StringCrc(relocationSampler)),
+			GetRenderContext()->GetTexture(StringCrc(GetDDGITextureTypeName(DDGITextureType::Relocation))));
 
 		constexpr uint64_t defaultState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		uint64_t state = defaultState;
