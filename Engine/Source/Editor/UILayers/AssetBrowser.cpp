@@ -723,17 +723,26 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 	}
 	else if (IOAssetType::CubeMap == m_importOptions.AssetType)
 	{
-		std::filesystem::path outputFilePath = CDPROJECT_RESOURCES_ROOT_PATH;
-		outputFilePath /= "Textures/skybox" / std::filesystem::path(pFilePath).stem();
+		std::string relativePath = (std::filesystem::path("Textures/skybox") /
+			std::filesystem::path(pFilePath).stem()).generic_string();
 
-		std::string irrdianceOutput = outputFilePath.generic_string() + "_irr.dds";
+		std::filesystem::path absolutePath = CDPROJECT_RESOURCES_ROOT_PATH;
+		absolutePath /= relativePath;
+
+		CD_INFO("Compile skybox textures to {0}.", absolutePath);
+
+		std::string irrdianceOutput = absolutePath.generic_string() + "_irr.dds";
 		ResourceBuilder::Get().AddIrradianceCubeMapBuildTask(pFilePath, irrdianceOutput.c_str());
 		ResourceBuilder::Get().Update();
 
-		std::string radianceOutput = outputFilePath.generic_string() + "_rad.dds";
+		std::string radianceOutput = absolutePath.generic_string() + "_rad.dds";
 		ResourceBuilder::Get().AddRadianceCubeMapBuildTask(pFilePath, radianceOutput.c_str());
 		ResourceBuilder::Get().Update();
 
+		engine::SceneWorld* pSceneWorld = GetImGuiContextInstance()->GetSceneWorld();
+		engine::SkyComponent* pSkyComponent = pSceneWorld->GetSkyComponent(pSceneWorld->GetSkyEntity());
+		pSkyComponent->SetIrradianceTexturePath(relativePath + "_irr.dds");
+		pSkyComponent->SetRadianceTexturePath(relativePath + "_rad.dds");
 	}
 	else if (IOAssetType::Shader == m_importOptions.AssetType)
 	{

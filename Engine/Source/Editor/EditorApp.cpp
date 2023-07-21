@@ -19,7 +19,7 @@
 #include "Rendering/PBRSkyRenderer.h"
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
-#include "Rendering/SkyRenderer.h"
+#include "Rendering/SkyboxRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ShaderBuilder.h"
@@ -285,7 +285,7 @@ void EditorApp::InitSkyEntity()
 	auto &nameComponent = pWorld->CreateComponent<engine::NameComponent>(skyEntity);
 	nameComponent.SetName("Sky");
 
-	pWorld->CreateComponent<engine::SkyComponent>(skyEntity);
+	auto& skyComponent = pWorld->CreateComponent<engine::SkyComponent>(skyEntity);
 
 	cd::VertexFormat vertexFormat;
 	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
@@ -332,18 +332,17 @@ void EditorApp::InitEngineRenderers()
 	// The init size doesn't make sense. It will resize by SceneView.
 	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->CreateRenderTarget(sceneViewRenderTargetName, 1, 1, std::move(attachmentDesc));
 
+	auto pSkyboxRenderer = std::make_unique<engine::SkyboxRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pIBLSkyRenderer = pSkyboxRenderer.get();
+	pSkyboxRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pSkyboxRenderer));
+
 	if (EnablePBRSky())
 	{
 		auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 		m_pPBRSkyRenderer = pPBRSkyRenderer.get();
 		pPBRSkyRenderer->SetSceneWorld(m_pSceneWorld.get());
 		AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
-	}
-	else
-	{
-		auto pIBLSkyRenderer = std::make_unique<engine::SkyRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-		m_pIBLSkyRenderer = pIBLSkyRenderer.get();
-		AddEngineRenderer(cd::MoveTemp(pIBLSkyRenderer));
 	}
 
 #ifdef ENABLE_TERRAIN_PRODUCER

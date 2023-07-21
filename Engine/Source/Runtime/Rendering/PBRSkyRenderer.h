@@ -57,14 +57,8 @@ private:
 
 	bool m_precomputeCache = false;
 
-	// Skybox
-	std::vector<cd::Point> m_vertexBufferSkybox;
-	std::vector<cd::Polygon> m_indexBufferSkybox;
-	bgfx::VertexBufferHandle m_vbhSkybox;
-	bgfx::IndexBufferHandle m_ibhSkybox;
-
-
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
+	SkyComponent* m_pSkyComponent = nullptr;
 };
 
-} // namespace engine
+}
