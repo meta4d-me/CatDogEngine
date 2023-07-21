@@ -20,7 +20,7 @@ void LightUniform::Update(const std::vector<U_Light> &lights) {
 		// If we add some new members to U_Light in the future,
 		// which will make U_Light no longer aligned with vec4,
 		// the static_assert below may be fail.
-		auto &target = m_light[index];
+		auto &target = m_lightParameters[index];
 		const U_Light &source = lights[index];
 
 		// The data structure of these two types are perfectly aligned for now.
@@ -31,7 +31,7 @@ void LightUniform::Update(const std::vector<U_Light> &lights) {
 
 void LightUniform::Submit(const uint16_t lightNum) {
 	assert(lightNum <= MAX_LIGHT_COUNT && "Light count overflow.");
-	m_pRenderContext->FillUniform(StringCrc("u_lightParams"), m_lightParams, lightNum * LIGHT_STRIDE);
+	m_pRenderContext->FillUniform(StringCrc("u_lightParams"), reinterpret_cast<void*>(m_lightParameters), lightNum * LIGHT_STRIDE);
 }
 
 void LightUniform::Submit() {

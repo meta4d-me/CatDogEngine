@@ -44,17 +44,16 @@ public:
 	void Submit();
 
 private:
-	union {
-		struct {
-			/*0*/ struct { float type; vec3 position; };
-			/*1*/ struct { float intensity; vec3 color; };
-			/*2*/ struct { float range; vec3 direction; };
-			/*3*/ struct { float radius; vec3 up; };
-			/*4*/ struct { float width, height, lightAngleScale, lightAngleOffeset; };
-		}m_light[MAX_LIGHT_COUNT];
-		float m_lightParams[4 * VEC4_COUNT];
+	struct LightParameters
+	{
+		float type; vec3 position;
+		float intensity; vec3 color;
+		float range; vec3 direction;
+		float radius; vec3 up;
+		float width, height, lightAngleScale, lightAngleOffeset;
 	};
 
+	LightParameters m_lightParameters[MAX_LIGHT_COUNT];
 	RenderContext *m_pRenderContext = nullptr;
 	uint16_t m_lightCount = 0;
 };
