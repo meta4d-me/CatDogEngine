@@ -24,7 +24,10 @@ constexpr uint16_t SCATTERING_ORDERS = 6;
 
 PBRSkyRenderer::~PBRSkyRenderer() = default;
 
-void PBRSkyRenderer::Init() {
+void PBRSkyRenderer::Init()
+{
+	m_pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+
 	bgfx::ShaderHandle vsh_skyBox             = GetRenderContext()->CreateShader("vs_atmSkyBox.bin");
 	bgfx::ShaderHandle fsh_multipleScattering = GetRenderContext()->CreateShader("fs_PrecomputedAtmosphericScattering_LUT.bin");
 	bgfx::ShaderHandle fsh_singleScattering   = GetRenderContext()->CreateShader("fs_SingleScattering_RayMarching.bin");
@@ -79,7 +82,8 @@ void PBRSkyRenderer::Init() {
 	bgfx::setViewName(GetViewID(), "PBRSkyRenderer");
 }
 
-void PBRSkyRenderer::UpdateView(const float *pViewMatrix, const float *pProjectionMatrix) {
+void PBRSkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
+{
 	if (m_pSkyComponent->GetSkyType() != SkyType::AtmosphericScattering)
 	{
 		return;
@@ -99,7 +103,8 @@ void PBRSkyRenderer::UpdateView(const float *pViewMatrix, const float *pProjecti
 	bgfx::setViewClear(GetViewID(), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
 }
 
-void PBRSkyRenderer::Render(float deltaTime) {
+void PBRSkyRenderer::Render(float deltaTime)
+{
 	if (m_pSkyComponent->GetSkyType() != SkyType::AtmosphericScattering)
 	{
 		return;
@@ -128,8 +133,10 @@ void PBRSkyRenderer::Render(float deltaTime) {
 	bgfx::submit(GetViewID(), m_programAtmosphericScattering_LUT);
 }
 
-void PBRSkyRenderer::Precompute() {
-	if (!m_precomputeCache) {
+void PBRSkyRenderer::Precompute()
+{
+	if (!m_precomputeCache)
+	{
 		m_precomputeCache = true;
 		// texture slot 0 - 7 to read, slot 8 - 15 to write.
 		const uint16_t viewId = GetViewID();
@@ -152,7 +159,8 @@ void PBRSkyRenderer::Precompute() {
 		bgfx::dispatch(viewId, m_programComputeSingleScattering, SCATTERING_TEXTURE_WIDTH / 8U, SCATTERING_TEXTURE_HEIGHT / 8U, SCATTERING_TEXTURE_DEPTH / 8U);
 
 		// Compute multiple Scattering.
-		for (uint16_t order = 2; order <= SCATTERING_ORDERS; ++order) {
+		for (uint16_t order = 2; order <= SCATTERING_ORDERS; ++order)
+		{
 
 			// 1. Compute Scattering Density.
 			m_uniformData.x() = static_cast<float>(order);
@@ -192,15 +200,20 @@ void PBRSkyRenderer::Precompute() {
 	}
 }
 
-void PBRSkyRenderer::ClearTextureSlots() const {
-	for (uint8_t i = 0; i < 16; ++i) {
+void PBRSkyRenderer::ClearTextureSlots() const
+{
+	for (uint8_t i = 0; i < 16; ++i)
+	{
 		bgfx::setImage(i, BGFX_INVALID_HANDLE, 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
 	}
 }
 
-void PBRSkyRenderer::ReleaseTemporaryTextureResources() {
-	auto SafeDestroy = [](bgfx::TextureHandle &_handle) {
-		if (bgfx::isValid(_handle)) {
+void PBRSkyRenderer::ReleaseTemporaryTextureResources()
+{
+	auto SafeDestroy = [](bgfx::TextureHandle &_handle)
+	{
+		if (bgfx::isValid(_handle))
+		{
 			bgfx::destroy(_handle);
 			_handle = BGFX_INVALID_HANDLE;
 		}
@@ -212,4 +225,4 @@ void PBRSkyRenderer::ReleaseTemporaryTextureResources() {
 	SafeDestroy(m_textureDeltaMultipleScattering);
 }
 
-} // namespace engine
+}

@@ -21,12 +21,12 @@ void SkyRenderer::Init()
 {
 	m_pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
-	m_pRenderContext->CreateUniform(skyboxSampler, bgfx::UniformType::Sampler);
-	m_pRenderContext->CreateTexture(m_pSkyComponent->GetRadianceTexturePath().c_str(), sampleFlag);
+	GetRenderContext()->CreateUniform(skyboxSampler, bgfx::UniformType::Sampler);
+	GetRenderContext()->CreateTexture(m_pSkyComponent->GetRadianceTexturePath().c_str(), sampleFlag);
 
-	m_pRenderContext->CreateProgram(skyboxShader, "vs_PBR_skybox.bin", "fs_PBR_skybox.bin");
+	GetRenderContext()->CreateProgram(skyboxShader, "vs_PBR_skybox.bin", "fs_PBR_skybox.bin");
 
-	bgfx::setViewName(GetViewID(), "SkyRenderer");
+	bgfx::setViewName(GetViewID(), "SkyboxRenderer");
 }
 
 void SkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -35,10 +35,6 @@ void SkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionM
 	{
 		return;
 	}
-
-void SkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
-{
-	UpdateViewRenderTarget();
 
 	// We want the skybox to be centered around the player
 	// so that no matter how far the player moves, the skybox won't get any closer.
@@ -49,6 +45,7 @@ void SkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionM
 	fixedViewMatrix[12] = fixedViewMatrix[13] = fixedViewMatrix[14] = 0.0f;
 	fixedViewMatrix[15] = 1.0f;
 
+	UpdateViewRenderTarget();
 	bgfx::setViewTransform(GetViewID(), fixedViewMatrix, pProjectionMatrix);
 	bgfx::setViewClear(GetViewID(), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
 }
@@ -62,20 +59,21 @@ void SkyRenderer::Render(float deltaTime)
 
 	StaticMeshComponent *pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(m_pCurrentSceneWorld->GetSkyEntity());
 	if (!pMeshComponent)
-	bgfx::submit(GetViewID(), m_pRenderContext->GetProgram(program));
+	{
+		return;
+	}
+	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()});
+	bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
 
 	constexpr StringCrc sampler(skyboxSampler);
 	constexpr StringCrc program(skyboxShader);
 
 	bgfx::setTexture(0,
-		m_pRenderContext->GetUniform(sampler),
-		m_pRenderContext->GetTexture(StringCrc(m_pSkyComponent->GetRadianceTexturePath())));
+		GetRenderContext()->GetUniform(sampler),
+		GetRenderContext()->GetTexture(StringCrc(m_pSkyComponent->GetRadianceTexturePath())));
 
-	bgfx::setTexture(0, m_uniformTexCube, m_lightProbeTex);
-	bgfx::setTexture(1, m_uniformTexCubeIrr, m_lightProbeTexIrr);
 	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
-	Renderer::ScreenSpaceQuad(static_cast<float>(GetRenderTarget()->GetWidth()), static_cast<float>(GetRenderTarget()->GetHeight()), true);
-	bgfx::submit(GetViewID(), m_programSky);
+	bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(program));
 }
 
 }

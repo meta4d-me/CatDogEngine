@@ -12,6 +12,6 @@ void main()
 	
 	// Use radiance texture mip0.
 	vec3 color = toLinear(textureCubeLod(s_texSkybox, dir, 0.0).xyz) * 0.5;
-	color = vec3(1.0, 0.0, 0.0);
-	gl_FragColor = vec4(color, 1.0);
+	
+	gl_FragColor = vec4(dir, 1.0);
 }

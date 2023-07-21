@@ -68,4 +68,4 @@ private:
 	SkyComponent* m_pSkyComponent = nullptr;
 };
 
-} // namespace engine
+}
