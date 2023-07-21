@@ -1,10 +1,17 @@
 ﻿#include "Inspector.h"
 
+#include "Graphics/GraphicsBackend.h"
 #include "ImGui/ImGuiUtils.hpp"
-
+#include "Path/Path.h"
 
 namespace details
 {
+
+CD_FORCEINLINE bool EnableAtmosphericScattering()
+{
+	return engine::GraphicsBackend::OpenGL != engine::Path::GetGraphicsBackend() &&
+		engine::GraphicsBackend::Vulkan != engine::Path::GetGraphicsBackend();
+}
 
 template<typename Component>
 void UpdateComponentWidget(engine::SceneWorld* pSceneWorld, engine::Entity entity)
@@ -20,7 +27,7 @@ void UpdateComponentWidget<engine::NameComponent>(engine::SceneWorld* pSceneWorl
 		return;
 	}
 
-	bool isHeaderOpen = ImGui::CollapsingHeader("NameComponent", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	bool isHeaderOpen = ImGui::CollapsingHeader("Name Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 	ImGui::Separator();
 
@@ -42,7 +49,7 @@ void UpdateComponentWidget<engine::TransformComponent>(engine::SceneWorld* pScen
 		return;
 	}
 
-	bool isHeaderOpen = ImGui::CollapsingHeader("TransformComponent", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	bool isHeaderOpen = ImGui::CollapsingHeader("Transform Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 	ImGui::Separator();
 
@@ -73,7 +80,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		return;
 	}
 
-	bool isOpen = ImGui::CollapsingHeader("MaterialComponent", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	bool isOpen = ImGui::CollapsingHeader("Material Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 	ImGui::Separator();
 
@@ -122,7 +129,7 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 		return;
 	}
 
-	bool isOpen = ImGui::CollapsingHeader("CameraComponent", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	bool isOpen = ImGui::CollapsingHeader("Camera Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 	ImGui::Separator();
 
@@ -155,7 +162,7 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 		return;
 	}
 
-	bool isOpen = ImGui::CollapsingHeader("LightComponent", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	bool isOpen = ImGui::CollapsingHeader("Light Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 	ImGui::Separator();
 	
@@ -166,7 +173,6 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 
 		ImGuiUtils::ImGuiStringProperty("Type", lightTypeName);
 		ImGuiUtils::ImGuiVectorProperty("Color", pLightComponent->GetColor(), cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One());
-		ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lumen, 0.0f, 10000.0f, false, 10.0f);
 
 		float s_spotInnerAngle = 8.0f;
 		float s_spotOuterAngle = 16.0f;
@@ -175,15 +181,18 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 
 		if (cd::LightType::Point == lightType)
 		{
+			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lumen, 0.0f, 10000.0f, false, 5.0f);
 			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition(), cd::Unit::CenterMeter);
 			ImGuiUtils::ImGuiFloatProperty("Range", pLightComponent->GetRange(), cd::Unit::CenterMeter, 0.0f, 10000.0f, false, 1.0f);
 		}
 		else if (cd::LightType::Directional == lightType)
 		{
+			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lux, 0.0f, 100.0f, false, 0.1f);
 			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection(), cd::Unit::Degree, cd::Vec3f(-1.0f), cd::Vec3f::One(), true);
 		}
 		else if (cd::LightType::Spot == lightType)
 		{
+			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lumen, 0.0f, 10000.0f, false, 5.0f);
 			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition(), cd::Unit::CenterMeter);
 			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection(), cd::Unit::Degree, cd::Vec3f(-1.0f), cd::Vec3f::One(), true);
 			ImGuiUtils::ImGuiFloatProperty("Range", pLightComponent->GetRange(), cd::Unit::CenterMeter, 0.0f, 10000.0f, false, 1.0f);
@@ -201,6 +210,7 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 		}
 		else if (cd::LightType::Disk == lightType)
 		{
+			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lumen, 0.0f, 10000.0f, false, 5.0f);
 			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition(), cd::Unit::CenterMeter);
 			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection(), cd::Unit::Degree, cd::Vec3f(-1.0f), cd::Vec3f::One(), true);
 			ImGuiUtils::ImGuiFloatProperty("Range", pLightComponent->GetRange(), cd::Unit::CenterMeter, 0.0f);
@@ -208,6 +218,7 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 		}
 		else if (cd::LightType::Rectangle == lightType)
 		{
+			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lumen, 0.0f, 10000.0f, false, 5.0f);
 			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition());
 			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection());
 			ImGuiUtils::ImGuiVectorProperty("Up", pLightComponent->GetUp());
@@ -217,12 +228,14 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 		}
 		else if (cd::LightType::Sphere == lightType)
 		{
+			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lumen, 0.0f, 10000.0f, false, 5.0f);
 			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition());
 			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection());
 			ImGuiUtils::ImGuiFloatProperty("Radius", pLightComponent->GetRadius());
 		}
 		else if (cd::LightType::Tube == lightType)
 		{
+			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lumen, 0.0f, 10000.0f, false, 5.0f);
 			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition());
 			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection());
 			ImGuiUtils::ImGuiFloatProperty("Range", pLightComponent->GetRange());
@@ -230,7 +243,7 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 		}
 		else
 		{
-			assert("TODO");
+			CD_ERROR("Unknown light type in inspector!");
 		}
 	}
 
@@ -247,7 +260,7 @@ void UpdateComponentWidget<engine::DDGIComponent>(engine::SceneWorld *pSceneWorl
 		return;
 	}
 
-	bool isOpen = ImGui::CollapsingHeader("DDGIComponent", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	bool isOpen = ImGui::CollapsingHeader("DDGI Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 	ImGui::Separator();
 
@@ -257,6 +270,55 @@ void UpdateComponentWidget<engine::DDGIComponent>(engine::SceneWorld *pSceneWorl
 		ImGuiUtils::ImGuiVectorProperty("Probe Spacing", pDDGIComponent->GetProbeSpacing(), cd::Unit::CenterMeter);
 		ImGuiUtils::ImGuiVectorProperty("Probe Count", pDDGIComponent->GetProbeCount(), cd::Unit::CenterMeter);
 		ImGuiUtils::ImGuiFloatProperty("Ambient Multiplier", pDDGIComponent->GetAmbientMultiplier(), cd::Unit::None, 0.0f, 10.0f);
+	}
+
+	ImGui::Separator();
+	ImGui::PopStyleVar();
+}
+
+template<>
+void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+{
+	auto* pSkyComponent = pSceneWorld->GetSkyComponent(entity);
+	if (!pSkyComponent)
+	{
+		return;
+	}
+
+	bool isOpen = ImGui::CollapsingHeader("Sky Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+	ImGui::Separator();
+
+	if (isOpen)
+	{
+		std::vector<const char*> skyTypes;
+		for (size_t type = 0; type < static_cast<size_t>(engine::SkyType::Count); ++type)
+		{
+			if (!EnableAtmosphericScattering() && static_cast<engine::SkyType>(type) == engine::SkyType::AtmosphericScattering)
+			{
+				continue;
+			}
+			skyTypes.emplace_back(GetSkyTypeName(static_cast<engine::SkyType>(type)));
+		}
+
+		static const char* crtItem = GetSkyTypeName(engine::SkyType::SkyBox);
+		if (ImGui::BeginCombo("##combo", crtItem))
+		{
+			for (size_t index = 0; index < skyTypes.size(); ++index)
+			{
+				bool isSelected = (crtItem == skyTypes[index]);
+				if (ImGui::Selectable(skyTypes[index], isSelected))
+				{
+					crtItem = skyTypes[index];
+					pSkyComponent->SetSkyType(static_cast<engine::SkyType>(index));
+				}
+				if (isSelected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+			ImGui::EndCombo();
+		}
 	}
 
 	ImGui::Separator();
@@ -298,6 +360,7 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::CameraComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, selectedEntity);
 
 	ImGui::End();
 }
