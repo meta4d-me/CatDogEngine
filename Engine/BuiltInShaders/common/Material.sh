@@ -18,6 +18,7 @@ struct Material {
 };
 
 uniform vec4 u_albedoColor;
+uniform vec4 u_metallicRoughnessFactor;
 uniform vec4 u_albedoUVOffsetAndScale;
 uniform vec4 u_alphaCutOff;
 
@@ -45,7 +46,6 @@ vec3 SampleNormalTexture(vec2 uv, mat3 TBN) {
 // Occlusion, Roughness and Metallic are located in the
 // R, G and B channels of the ORM texture.
 SAMPLER2D(s_texORM, ORM_MAP_SLOT);
-uniform vec4 u_metallicRoughnessFactor;
 
 vec3 SampleORMTexture(vec2 uv) {
 	// We assume that ORM texture is already in linear space.
@@ -104,8 +104,11 @@ Material GetMaterial(vec2 uv, vec3 normal, mat3 TBN) {
 #if defined(ORM_MAP)
 	vec3 orm = SampleORMTexture(uv);
 	material.occlusion = orm.x;
-	material.roughness = orm.y * u_metallicRoughnessFactor.y;
-	material.metallic = orm.z * u_metallicRoughnessFactor.x;
+	material.roughness = orm.y;
+	material.metallic = orm.z;
+#else
+	material.roughness = u_metallicRoughnessFactor.y;
+	material.metallic = u_metallicRoughnessFactor.x;
 #endif
 
 #if defined(EMISSIVE_MAP)

@@ -148,8 +148,8 @@ void MaterialComponent::Reset()
 	m_name.clear();
 	m_albedoColor = cd::Vec3f::One();
 	m_emissiveColor = cd::Vec3f::One();
-	m_metallicFactor = 1.0f;
-	m_roughnessFactor = 1.0f;
+	m_metallicFactor = 0.1f;
+	m_roughnessFactor = 0.9f;
 	m_twoSided = false;
 	m_blendMode = cd::BlendMode::Opaque;
 	m_alphaCutOff = 1.0f;
