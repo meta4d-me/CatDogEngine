@@ -9,6 +9,7 @@
 #include "ImGui/Localization.h"
 #include "ImGui/UILayers/DebugPanel.h"
 #include "Log/Log.h"
+#include "Math/MeshGenerator.h"
 #include "Path/Path.h"
 #include "Rendering/AnimationRenderer.h"
 #include "Rendering/BlitRenderTargetPass.h"
@@ -19,7 +20,6 @@
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/SkyRenderer.h"
-#include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ShaderBuilder.h"
@@ -33,16 +33,20 @@
 #include "UILayers/OutputLog.h"
 #include "UILayers/SceneView.h"
 #include "UILayers/Splash.h"
-#include "UILayers/TerrainEditor.h"
 #include "Window/Input.h"
 #include "Window/Window.h"
+
+#ifdef ENABLE_TERRAIN_PRODUCER
+#include "UILayers/TerrainEditor.h"
+#include "Rendering/TerrainRenderer.h"
+#endif
 
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui/imgui_internal.h>
 #include "ImGui/imfilebrowser.h"
 
-#include <format>
+//#include <format>
 #include <thread>
 
 namespace editor
@@ -155,8 +159,10 @@ void EditorApp::InitEditorUILayers()
 	m_pSceneView = pSceneView.get();
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
 
+#ifdef ENABLE_TERRAIN_PRODUCER
 	auto pTerrainEditor = std::make_unique<TerrainEditor>("Terrain Editor");
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pTerrainEditor));
+#endif
 
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
 
@@ -242,21 +248,52 @@ void EditorApp::InitECWorld()
 	cameraComponent.BuildProject();
 	cameraComponent.BuildView(cameraTransform);
 
+
+	InitDDGIEntity();
+	InitSkyEntity();
+}
+
+void EditorApp::InitDDGIEntity()
+{
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+
 	engine::Entity ddgiEntity = pWorld->CreateEntity();
 	m_pSceneWorld->SetDDGIEntity(ddgiEntity);
-	auto& ddgiNameComponent = pWorld->CreateComponent<engine::NameComponent>(ddgiEntity);
-	ddgiNameComponent.SetName("DDGI");
-	auto& ddgiComponent = pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
+
+	auto &nameComponent = pWorld->CreateComponent<engine::NameComponent>(ddgiEntity);
+	nameComponent.SetName("DDGI");
+
+	pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
+}
+
+void EditorApp::InitSkyEntity()
+{
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
 
 	engine::Entity skyEntity = pWorld->CreateEntity();
-	m_pSceneWorld->SetPBRSkyEntity(skyEntity);
-	auto& skyNameComponent = pWorld->CreateComponent<engine::NameComponent>(skyEntity);
-	skyNameComponent.SetName("Sky");
+	m_pSceneWorld->SetSkyEntity(skyEntity);
+
+	auto &nameComponent = pWorld->CreateComponent<engine::NameComponent>(skyEntity);
+	nameComponent.SetName("Sky");
+
+	pWorld->CreateComponent<engine::SkyComponent>(skyEntity);
+
+	cd::VertexFormat vertexFormat;
+	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
+	m_pRenderContext->CreateVertexLayout(engine::StringCrc("PosistionOnly"), vertexFormat.GetVertexLayout());
+
+	cd::Box skyBox(cd::Point(-1.0f), cd::Point(1.0f));
+	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(skyBox, vertexFormat, false);
+	assert(optMesh.has_value());
+
+	auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(skyEntity);
+	meshComponent.SetMeshData(&optMesh.value());
+	meshComponent.SetRequiredVertexFormat(&vertexFormat);
+	meshComponent.Build();
 
 	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(skyEntity);
 	transformComponent.SetTransform(cd::Transform(cd::Vec3f(0.0f, -1.0f, 0.0f), cd::Quaternion::Identity(), cd::Vec3f::One()));
 	transformComponent.Build();
-
 }
 
 void EditorApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
@@ -266,11 +303,12 @@ void EditorApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
 	engine::Path::SetGraphicsBackend(backend);
 	m_pRenderContext = std::make_unique<engine::RenderContext>();
 	m_pRenderContext->Init(backend, hwnd);
+	engine::Renderer::SetRenderContext(m_pRenderContext.get());
 }
 
 void EditorApp::InitEditorRenderers()
 {
-	AddEditorRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView()));
+	AddEditorRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext->CreateView()));
 }
 
 void EditorApp::InitEngineRenderers()
@@ -287,52 +325,54 @@ void EditorApp::InitEngineRenderers()
 
 	if (EnablePBRSky())
 	{
-		auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+		auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 		m_pPBRSkyRenderer = pPBRSkyRenderer.get();
 		pPBRSkyRenderer->SetSceneWorld(m_pSceneWorld.get());
 		AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
 	}
 	else
 	{
-		auto pIBLSkyRenderer = std::make_unique<engine::SkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+		auto pIBLSkyRenderer = std::make_unique<engine::SkyRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 		m_pIBLSkyRenderer = pIBLSkyRenderer.get();
 		AddEngineRenderer(cd::MoveTemp(pIBLSkyRenderer));
 	}
 
-	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+#ifdef ENABLE_TERRAIN_PRODUCER
+	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pTerrainRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pTerrainRenderer));
+#endif
 
-	auto pSceneRenderer = std::make_unique<engine::WorldRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	auto pSceneRenderer = std::make_unique<engine::WorldRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pSceneRenderer = pSceneRenderer.get();
 	pSceneRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pSceneRenderer));
 
-	auto pAnimationRenderer = std::make_unique<engine::AnimationRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	auto pAnimationRenderer = std::make_unique<engine::AnimationRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pAnimationRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pAnimationRenderer));
 
-	auto pDebugRenderer = std::make_unique<engine::DebugRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	auto pDebugRenderer = std::make_unique<engine::DebugRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pDebugRenderer = pDebugRenderer.get();
 	pDebugRenderer->SetEnable(false);
 	pDebugRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pDebugRenderer));
 
-	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pDDGIRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pDDGIRenderer));
 
-	auto pBlitRTRenderPass = std::make_unique<engine::BlitRenderTargetPass>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	auto pBlitRTRenderPass = std::make_unique<engine::BlitRenderTargetPass>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	AddEngineRenderer(cd::MoveTemp(pBlitRTRenderPass));
 
 	// We can debug vertex/material/texture information by just output that to screen as fragmentColor.
 	// But postprocess will bring unnecessary confusion. 
-	auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pPostProcessRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pPostProcessRenderer));
 
 	// Note that if you don't want to use ImGuiRenderer for engine, you should also disable EngineImGuiContext.
-	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget));
+	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget));
 }
 
 bool EditorApp::EnablePBRSky() const
@@ -343,10 +383,12 @@ bool EditorApp::EnablePBRSky() const
 
 void EditorApp::InitShaderPrograms() const
 {
-	ShaderBuilder::BuildNonUberShader(std::format("{}{}", CDENGINE_BUILTIN_SHADER_PATH, "shaders"));
+	std::string nonUberBuildPath = CDENGINE_BUILTIN_SHADER_PATH;
+	ShaderBuilder::BuildNonUberShader(nonUberBuildPath + "shaders");
 	if (EnablePBRSky())
 	{
-		ShaderBuilder::BuildNonUberShader(std::format("{}{}", CDENGINE_BUILTIN_SHADER_PATH, "atm"));
+		std::string atmBuildPath = CDENGINE_BUILTIN_SHADER_PATH;
+		ShaderBuilder::BuildNonUberShader(atmBuildPath + "atm");
 	}
 
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetPBRMaterialType());

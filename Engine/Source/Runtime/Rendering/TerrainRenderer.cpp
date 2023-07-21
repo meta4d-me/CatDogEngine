@@ -21,9 +21,9 @@ using namespace cd;
 namespace
 {
 constexpr const char* kUniformSectorOrigin = "u_SectorOrigin";
-constexpr engine::StringCrc kUniformSectorOriginCrc(kUniformSectorOrigin);
+//constexpr engine::StringCrc kUniformSectorOriginCrc(kUniformSectorOrigin);
 constexpr const char* kUniformSectorDimension = "u_SectorDimension";
-constexpr engine::StringCrc kUniformSectorDimensionCrc(kUniformSectorDimension);
+//constexpr engine::StringCrc kUniformSectorDimensionCrc(kUniformSectorDimension);
 
 bx::AllocatorI* GetResourceAllocator()
 {
@@ -68,14 +68,13 @@ void TerrainRenderer::Init()
 	m_blueChannelTexture = CreateTerrainTexture("terrain/gravel_baseColor", 5);
 	m_alphaChannelTexture = CreateTerrainTexture("terrain/snowyRock_baseColor", 6);
 
-	u_terrainOrigin = m_pRenderContext->CreateUniform(kUniformSectorOrigin, bgfx::UniformType::Enum::Vec4, 1);
-	u_terrainDimension = m_pRenderContext->CreateUniform(kUniformSectorDimension, bgfx::UniformType::Vec4, 1);
+	u_terrainOrigin = GetRenderContext()->CreateUniform(kUniformSectorOrigin, bgfx::UniformType::Enum::Vec4, 1);
+	u_terrainDimension = GetRenderContext()->CreateUniform(kUniformSectorDimension, bgfx::UniformType::Vec4, 1);
 }
 
 void TerrainRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
-	bgfx::setViewFrameBuffer(GetViewID(), *GetRenderTarget()->GetFrameBufferHandle());
-	bgfx::setViewRect(GetViewID(), 0, 0, GetRenderTarget()->GetWidth(), GetRenderTarget()->GetHeight());
+	UpdateViewRenderTarget();
 	bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
 
 	UpdateUniforms();
@@ -111,35 +110,33 @@ void TerrainRenderer::Render(float deltaTime)
 		const MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
 		const StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
 
-		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle(pMeshComponent->GetVertexBuffer()));
-		bgfx::setIndexBuffer(bgfx::IndexBufferHandle(pMeshComponent->GetIndexBuffer()));
+		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()});
+		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
 
-		bgfx::setTexture(m_dirtTexture.slot, bgfx::UniformHandle(m_dirtTexture.samplerHandle), bgfx::TextureHandle(m_dirtTexture.textureHandle));
+		bgfx::setTexture(m_dirtTexture.slot, bgfx::UniformHandle{m_dirtTexture.samplerHandle}, bgfx::TextureHandle{m_dirtTexture.textureHandle});
 		if (m_redChannelTexture.textureHandle != bgfx::kInvalidHandle && m_redChannelTexture.samplerHandle != bgfx::kInvalidHandle)
 		{
-			bgfx::setTexture(m_redChannelTexture.slot, bgfx::UniformHandle(m_redChannelTexture.samplerHandle), bgfx::TextureHandle(m_redChannelTexture.textureHandle));
+			bgfx::setTexture(m_redChannelTexture.slot, bgfx::UniformHandle{m_redChannelTexture.samplerHandle}, bgfx::TextureHandle{m_redChannelTexture.textureHandle});
 		}
 		if (m_greenChannelTexture.textureHandle != bgfx::kInvalidHandle && m_greenChannelTexture.samplerHandle != bgfx::kInvalidHandle)
 		{
-			bgfx::setTexture(m_greenChannelTexture.slot, bgfx::UniformHandle(m_greenChannelTexture.samplerHandle), bgfx::TextureHandle(m_greenChannelTexture.textureHandle));
+			bgfx::setTexture(m_greenChannelTexture.slot, bgfx::UniformHandle{m_greenChannelTexture.samplerHandle}, bgfx::TextureHandle{m_greenChannelTexture.textureHandle});
 		}
 		if (m_blueChannelTexture.textureHandle != bgfx::kInvalidHandle && m_blueChannelTexture.samplerHandle != bgfx::kInvalidHandle)
 		{
-			bgfx::setTexture(m_blueChannelTexture.slot, bgfx::UniformHandle(m_blueChannelTexture.samplerHandle), bgfx::TextureHandle(m_blueChannelTexture.textureHandle));
+			bgfx::setTexture(m_blueChannelTexture.slot, bgfx::UniformHandle{m_blueChannelTexture.samplerHandle}, bgfx::TextureHandle{m_blueChannelTexture.textureHandle});
 		}
 		if (m_alphaChannelTexture.textureHandle != bgfx::kInvalidHandle && m_alphaChannelTexture.samplerHandle != bgfx::kInvalidHandle)
 		{
-			bgfx::setTexture(m_alphaChannelTexture.slot, bgfx::UniformHandle(m_alphaChannelTexture.samplerHandle), bgfx::TextureHandle(m_alphaChannelTexture.textureHandle));
+			bgfx::setTexture(m_alphaChannelTexture.slot, bgfx::UniformHandle{m_alphaChannelTexture.samplerHandle}, bgfx::TextureHandle{m_alphaChannelTexture.textureHandle});
 		}
 
 		for (const auto& [textureType, textureInfo] : pMaterialComponent->GetTextureResources())
 		{
 			// TODO optimize by using textureInfo instead of GetTextureInfo
-			std::optional<const MaterialComponent::TextureInfo> optTextureInfo = pMaterialComponent->GetTextureInfo(textureType);
-			if (optTextureInfo.has_value())
+			if (const MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(textureType))
 			{
-				const MaterialComponent::TextureInfo& textureInfo = optTextureInfo.value();
-				bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle(textureInfo.samplerHandle), bgfx::TextureHandle(textureInfo.textureHandle));
+				bgfx::setTexture(pTextureInfo->slot, bgfx::UniformHandle{pTextureInfo->samplerHandle}, bgfx::TextureHandle{pTextureInfo->textureHandle});
 			}
 		}
 
@@ -150,7 +147,7 @@ void TerrainRenderer::Render(float deltaTime)
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);
 
-		bgfx::submit(GetViewID(), bgfx::ProgramHandle(pMaterialComponent->GetShadingProgram()));
+		bgfx::submit(GetViewID(), bgfx::ProgramHandle{pMaterialComponent->GetShadingProgram()});
 	}
 }
 
@@ -259,10 +256,10 @@ void TerrainRenderer::UpdateUniforms()
 			renderInfo.m_origin[3] = 0.0f;
 
 			const MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
-			std::optional<const MaterialComponent::TextureInfo> elevationTexture = pMaterialComponent->GetTextureInfo(MaterialTextureType::Elevation);
-			assert(elevationTexture.has_value());
-			renderInfo.m_dimension[0] = static_cast<float>(elevationTexture->width);
-			renderInfo.m_dimension[1] = static_cast<float>(elevationTexture->height);
+			const MaterialComponent::TextureInfo* pElevationTexture = pMaterialComponent->GetTextureInfo(MaterialTextureType::Elevation);
+			assert(pElevationTexture);
+			renderInfo.m_dimension[0] = static_cast<float>(pElevationTexture->width);
+			renderInfo.m_dimension[1] = static_cast<float>(pElevationTexture->height);
 			renderInfo.m_dimension[2] = 0.0f;
 			renderInfo.m_dimension[3] = 0.0f;
 		}

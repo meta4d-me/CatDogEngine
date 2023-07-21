@@ -21,9 +21,9 @@ TerrainEditor::TerrainEditor(const char* pName)
 	: ImGuiBaseLayer(pName)
 	, m_terrainMetadata(1, 1, 0, 2000, 5.0f)
 	, m_sectorMetadata(1, 1, 10, 10)
+	, m_generateAlphaMap(false)
 	, m_terrainProducer(m_terrainMetadata, m_sectorMetadata)
 	, m_terrainEntities()
-	, m_generateAlphaMap(false)
 {}
 
 TerrainEditor::~TerrainEditor()

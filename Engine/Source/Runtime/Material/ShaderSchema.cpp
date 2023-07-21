@@ -77,7 +77,7 @@ void ShaderSchema::RegisterUberOption(Uber uberOption)
 
 bool ShaderSchema::IsUberOptionValid(StringCrc uberOption) const
 {
-	return m_compiledProgramHandles.contains(uberOption.Value());
+	return m_compiledProgramHandles.find(uberOption.Value()) != m_compiledProgramHandles.end();
 }
 
 void ShaderSchema::SetCompiledProgram(StringCrc uberOption, uint16_t programHandle)
@@ -130,7 +130,7 @@ void ShaderSchema::AddUberOptionVSBlob(ShaderBlob shaderBlob)
 
 void ShaderSchema::AddUberOptionFSBlob(StringCrc uberOption, ShaderBlob shaderBlob)
 {
-	if (m_uberOptionToFSBlobs.contains(uberOption.Value()))
+	if (m_uberOptionToFSBlobs.find(uberOption.Value()) != m_uberOptionToFSBlobs.end())
 	{
 		return;
 	}

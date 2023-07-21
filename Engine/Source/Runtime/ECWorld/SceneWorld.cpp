@@ -141,10 +141,10 @@ void SceneWorld::SetDDGIEntity(engine::Entity entity)
 	m_ddgiEntity = entity;
 }
 
-void SceneWorld::SetPBRSkyEntity(engine::Entity entity)
+void SceneWorld::SetSkyEntity(engine::Entity entity)
 {
-	CD_TRACE("Setup PBRSky entity : {0}", entity);
-	m_pbrskyEntity = entity;
+	CD_TRACE("Setup Sky entity : {0}", entity);
+	m_skyEntity = entity;
 }
 
 void SceneWorld::AddCameraToSceneDatabase(engine::Entity entity)

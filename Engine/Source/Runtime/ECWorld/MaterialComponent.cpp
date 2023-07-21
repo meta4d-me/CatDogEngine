@@ -103,15 +103,26 @@ void MaterialComponent::Init()
 	Reset();
 }
 
-std::optional<const MaterialComponent::TextureInfo> MaterialComponent::GetTextureInfo(cd::MaterialTextureType textureType) const
+MaterialComponent::TextureInfo* MaterialComponent::GetTextureInfo(cd::MaterialTextureType textureType)
+{
+	auto itTextureInfo = m_textureResources.find(textureType);
+	if (itTextureInfo == m_textureResources.end())
+	{
+		return nullptr;
+	}
+
+	return &itTextureInfo->second;
+}
+
+const MaterialComponent::TextureInfo* MaterialComponent::GetTextureInfo(cd::MaterialTextureType textureType) const
 {
 	auto itTextureInfo = m_textureResources.find(textureType);
 	if (itTextureInfo == m_textureResources.cend())
 	{
-		return std::nullopt;
+		return nullptr;
 	}
 
-	return itTextureInfo->second;
+	return &itTextureInfo->second;
 }
 
 void MaterialComponent::SetUberShaderOption(StringCrc uberOption)
@@ -134,8 +145,11 @@ void MaterialComponent::Reset()
 	m_pMaterialData = nullptr;
 	m_pMaterialType = nullptr;
 	m_uberShaderOption = ShaderSchema::DefaultUberOption;
+	m_name.clear();
 	m_albedoColor = cd::Vec3f::One();
 	m_emissiveColor = cd::Vec3f::One();
+	m_metallicFactor = 0.1f;
+	m_roughnessFactor = 0.9f;
 	m_twoSided = false;
 	m_blendMode = cd::BlendMode::Opaque;
 	m_alphaCutOff = 1.0f;
@@ -190,6 +204,11 @@ void MaterialComponent::AddTextureFileBlob(cd::MaterialTextureType textureType, 
 
 void MaterialComponent::Build()
 {
+	if (m_pMaterialData)
+	{
+		m_name = m_pMaterialData->GetName();
+	}
+	
 	for (auto& [textureType, textureInfo] : m_textureResources)
 	{
 		textureInfo.textureHandle = BGFXCreateTexture(textureInfo.width, textureInfo.height, textureInfo.depth, false, textureInfo.mipCount > 1,

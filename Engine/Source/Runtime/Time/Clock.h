@@ -31,8 +31,8 @@ private:
 	//float m_timeSinceStart = 0.0f;
 
 	std::chrono::duration<float> m_elapsed;
-	std::chrono::steady_clock::time_point m_lastTime;
 	std::chrono::steady_clock::time_point m_startTime;
+	std::chrono::steady_clock::time_point m_lastTime;
 	std::chrono::steady_clock::time_point m_currentTime;
 };
 

@@ -58,10 +58,18 @@ project("MakeEngine")
 	}
 
 	filter { "system:windows" }
-		prebuildcommands {
-			"cd "..RootPath,
-			"MakeEngine_"..IDEConfigs.BuildIDEName..".bat",
-		}
+		if USE_CLANG_TOOLSET then
+			prebuildcommands {
+				"cd "..RootPath,
+				"Set USE_CLANG_TOOLSET=1",
+				"MakeEngine_"..IDEConfigs.BuildIDEName..".bat",
+			}
+		else
+			prebuildcommands {
+				"cd "..RootPath,
+				"MakeEngine_"..IDEConfigs.BuildIDEName..".bat",
+			}
+		end
 	filter {}
 
 --project("MakeThirdParty")

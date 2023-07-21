@@ -1,14 +1,22 @@
 --------------------------------------------------------------
 -- @Description : Makefile of CatDog Engine
 --------------------------------------------------------------
-
+ChoosePlatform = "Windows"
 EngineName = "CatDogEngine"
-
--- Build options
--- StaticLib is convenient to develop C++ applications which needs to reuse engine codes.
--- SharedLib needs to export APIs by ENGINE_API macro which needs more efforts to have a good design.
--- But it is necessary if you want to combine Engine and applications in other languages, such as C#.
 EngineBuildLibKind = "StaticLib" -- "SharedLib"
+
+USE_CLANG_TOOLSET = false
+if os.getenv("USE_CLANG_TOOLSET") then
+	USE_CLANG_TOOLSET = true
+end
+
+DDGI_SDK_PATH = os.getenv("DDGI_SDK_PATH") or ""
+if not os.isdir(DDGI_SDK_PATH) then
+	DDGI_SDK_PATH = ""
+end
+
+ENABLE_SPDLOG = not USE_CLANG_TOOLSET
+ENABLE_TRACY = not USE_CLANG_TOOLSET
 
 PlatformSettings = {}
 PlatformSettings["Windows"] = {
@@ -31,7 +39,6 @@ PlatformSettings["IOS"] = {
 	MacroName = "CD_PLATFORM_IOS",
 }
 
-ChoosePlatform = "Windows"
 function GetPlatformDisplayName()
 	return PlatformSettings[ChoosePlatform].DisplayName
 end
@@ -41,34 +48,20 @@ function GetPlatformMacroName()
 end
 
 IDEConfigs = {}
-local buildIDEName = os.getenv("BUILD_IDE_NAME")
-buildIDEName = string.gsub(buildIDEName, "\"", "")
-IDEConfigs.BuildIDEName = buildIDEName
-if "vs2022" == buildIDEName then
-	IDEConfigs.VCVersion = "vc143"
-elseif "vs2019" == buildIDEName then
-	IDEConfigs.VCVersion = "vc142"
-else
-	print(buildIDEName.." : No ide compiler version!")
-	return
-end
+IDEConfigs.BuildIDEName = os.getenv("BUILD_IDE_NAME")
 
-BUILD_WITH_LLVM_CLANG_CL = false
 function SetLanguageAndToolset(projectName)
 	language("C++")
-	cppdialect("C++20")
-
-	if BUILD_WITH_LLVM_CLANG_CL then
+	
+	if USE_CLANG_TOOLSET then
 		toolset("clang")
+		cppdialect("C++17")
+	else
+		cppdialect("C++20")
 	end
 
 	location(path.join(IntermediatePath, projectName))
 	targetdir(BinariesPath)
-end
-
-DDGI_SDK_PATH = os.getenv("DDGI_SDK_PATH") or ""
-if not os.isdir(DDGI_SDK_PATH) then
-	DDGI_SDK_PATH = ""
 end
 
 -- Parse folder path
@@ -81,9 +74,9 @@ print("EnginePath = "..EnginePath)
 print("BinariesPath = "..BinariesPath)
 print("IntermediatePath = "..IntermediatePath)
 print("EngineSourcePath = "..EngineSourcePath)
+print("GameSourcePath = "..GameSourcePath)
 print("RuntimeSourcePath = "..RuntimeSourcePath)
 print("IDEConfigs.BuildIDEName = "..IDEConfigs.BuildIDEName)
-print("IDEConfigs.VCVersion = "..IDEConfigs.VCVersion)
 print("DDGI_SDK_PATH = "..DDGI_SDK_PATH)
 print("================================================================")
 
@@ -122,6 +115,51 @@ workspace(EngineName)
 
 	startproject("Editor")
 
+function CopyDllAutomatically()
+	-- copy dll into binary folder automatically.
+	filter { "configurations:Debug" }
+		postbuildcommands {
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Debug/SDL2d.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDProducer.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDConsumer.*").."\" \""..BinariesPath.."\"",
+		}
+
+		if not USE_CLANG_TOOLSET then
+			postbuildcommands {
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/GenericProducer.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/TerrainProducer.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/assimp-*-mtd.*").."\" \""..BinariesPath.."\"",
+			}
+		end
+	filter { "configurations:Release" }
+		postbuildcommands {
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Release/SDL2.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CDProducer.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CDConsumer.*").."\" \""..BinariesPath.."\"",
+		}
+
+		if not USE_CLANG_TOOLSET then
+			postbuildcommands {
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/GenericProducer.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/TerrainProducer.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/assimp-*-mt.*").."\" \""..BinariesPath.."\"",
+			}
+		end
+	filter {}
+
+	filter { "configurations:Release" }
+		if DDGI_SDK_PATH ~= "" then
+			postbuildcommands {
+				"{COPYFILE} \""..path.join(DDGI_SDK_PATH, "bin/*.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(DDGI_SDK_PATH, "bin/ThirdParty/ffmpeg/*.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(DDGI_SDK_PATH, "bin/ThirdParty/zlib/*.*").."\" \""..BinariesPath.."\"",
+			}
+		end
+	filter {}
+end
+
 -- thirdparty projects such as sdl
 dofile("thirdparty.lua")
 
@@ -130,6 +168,9 @@ dofile("engine.lua")
 
 -- editor projects
 dofile("editor.lua")
+
+-- game projects
+dofile("game.lua")
 
 -- regression tests for engine core modules
 dofile("test.lua")

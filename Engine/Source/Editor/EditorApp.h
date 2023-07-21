@@ -67,6 +67,9 @@ public:
 	bool EnablePBRSky() const;
 
 private:
+	void InitDDGIEntity();
+	void InitSkyEntity();
+
 	bool m_bInitEditor = false;
 	engine::EngineInitArgs m_initArgs;
 
@@ -85,7 +88,6 @@ private:
 	engine::Renderer* m_pDebugRenderer = nullptr;
 	engine::Renderer* m_pPBRSkyRenderer = nullptr;
 	engine::Renderer* m_pIBLSkyRenderer = nullptr;
-	engine::Renderer* m_pDDGIRenderer = nullptr;
 
 	// Rendering
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;

@@ -13,11 +13,14 @@
 #include "Log/Log.h"
 #include "Material/MaterialType.h"
 #include "Producers/CDProducer/CDProducer.h"
-#include "Producers/GenericProducer/GenericProducer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ResourceLoader.h"
+
+#ifdef ENABLE_GENERIC_PRODUCER
+#include "Producers/GenericProducer/GenericProducer.h"
+#endif
 
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -160,7 +163,6 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 			 {
 				 std::filesystem::path texturesPath = resourcesPath / "Textures/" / "textures/" / fileName.c_str();
 				 std::filesystem::path texviewPath = resourcesPath/ "Textures/" /"textures"/ (nameNoEx + ".dds");
-				 ImGuiIO& io = ImGui::GetIO();
 				 engine::RenderContext* pRenderContext = GetRenderContext();
 				 engine::StringCrc textureCrc(nameNoEx);
 				 bgfx::TextureHandle TextureHandle = pRenderContext->GetTexture(textureCrc);
@@ -176,7 +178,7 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 				 else
 				 {
 					 ImVec2 img_size(m_gridSize, m_gridSize);
-					 ImGui::Image(ImTextureID(TextureHandle.idx), img_size);
+					 ImGui::Image(reinterpret_cast<ImTextureID>(TextureHandle.idx), img_size);
 				 }
 
 			 }
@@ -721,12 +723,17 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 	}
 	else if (IOAssetType::CubeMap == m_importOptions.AssetType)
 	{
-		std::filesystem::path inputFilePath(pFilePath);
-		std::string inputFileName = inputFilePath.stem().generic_string();
-		std::string outputFilePath = CDPROJECT_RESOURCES_ROOT_PATH;
-		outputFilePath += "Textures/skybox/" + inputFileName;
-		ResourceBuilder::Get().AddCubeMapBuildTask(pFilePath, outputFilePath.c_str());
+		std::filesystem::path outputFilePath = CDPROJECT_RESOURCES_ROOT_PATH;
+		outputFilePath /= "Textures/skybox" / std::filesystem::path(pFilePath).stem();
+
+		std::string irrdianceOutput = outputFilePath.generic_string() + "_irr.dds";
+		ResourceBuilder::Get().AddIrradianceCubeMapBuildTask(pFilePath, irrdianceOutput.c_str());
 		ResourceBuilder::Get().Update();
+
+		std::string radianceOutput = outputFilePath.generic_string() + "_rad.dds";
+		ResourceBuilder::Get().AddRadianceCubeMapBuildTask(pFilePath, radianceOutput.c_str());
+		ResourceBuilder::Get().Update();
+
 	}
 	else if (IOAssetType::Shader == m_importOptions.AssetType)
 	{
@@ -819,6 +826,7 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 	}
 	else
 	{
+#ifdef ENABLE_GENERIC_PRODUCER
 		cdtools::GenericProducer genericProducer(pFilePath);
 		genericProducer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount(), pSceneDatabase->GetMeshCount(),
 		pSceneDatabase->GetMaterialCount(), pSceneDatabase->GetTextureCount(), pSceneDatabase->GetLightCount());
@@ -833,6 +841,9 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 		processor.SetDumpSceneDatabaseEnable(false);
 		processor.SetFlattenSceneDatabaseEnable(true);
 		processor.Run();
+#else
+		assert("Unable to import this file format.");
+#endif
 	}
 
 	// Step 2 : Process generated cd::SceneDatabase

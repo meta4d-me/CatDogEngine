@@ -1,6 +1,7 @@
 @echo off
 
-call ./Engine/Auto/Configs/vs2022/Config.bat
+Set BUILD_IDE_NAME=vs2022
+Set CMAKE_IDE_FULL_NAME="Visual Studio 17 2022"
 
 if exist "./Engine/Auto/commercial_sdk_locations.bat" (
     call "./Engine/Auto/commercial_sdk_locations.bat"
@@ -9,6 +10,6 @@ if exist "./Engine/Auto/commercial_sdk_locations.bat" (
 )
 
 cd "./Engine/Auto/Scripts"
-"../Programs/premake5.exe" %BUILD_IDE_NAME%
+"../Programs/Windows/premake5.exe" "vs2022"
 
 pause
