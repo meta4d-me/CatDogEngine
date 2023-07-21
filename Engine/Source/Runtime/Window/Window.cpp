@@ -49,8 +49,10 @@ Window::Window(const char* pTitle, uint16_t width, uint16_t height, bool useFull
 	m_pNativeWindowHandle = wmi.info.cocoa.window;
 #elif CD_PLATFORM_WINDOWS
 	m_pNativeWindowHandle = wmi.info.win.window;
-#elif CD_PLATFORM_ANDROID || CD_PLATFORM_LINUX
+#elif CD_PLATFORM_ANDROID
 	m_pNativeWindowHandle = wmi.info.android.window;
+#elif CD_PLATFORM_LINUX
+	m_pNativeWindowHandle = wmi.info.x11.window;
 #else
 	static_assert("CD_PLATFORM macro not defined!");
 #endif

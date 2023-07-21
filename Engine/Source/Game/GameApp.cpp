@@ -18,7 +18,7 @@
 #include "Rendering/PBRSkyRenderer.h"
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
-#include "Rendering/SkyRenderer.h"
+#include "Rendering/SkyboxRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Scene/SceneDatabase.h"
 #include "Window/Input.h"
@@ -233,7 +233,7 @@ void GameApp::InitEngineRenderers()
 	}
 	else
 	{
-		auto pIBLSkyRenderer = std::make_unique<engine::SkyRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+		auto pIBLSkyRenderer = std::make_unique<engine::SkyboxRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 		m_pIBLSkyRenderer = pIBLSkyRenderer.get();
 		AddEngineRenderer(cd::MoveTemp(pIBLSkyRenderer));
 	}
