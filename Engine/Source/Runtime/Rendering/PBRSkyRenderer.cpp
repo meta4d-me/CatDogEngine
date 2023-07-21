@@ -62,23 +62,6 @@ void PBRSkyRenderer::Init()
 	u_cameraPos             = GetRenderContext()->CreateUniform("u_cameraPos", bgfx::UniformType::Enum::Vec4, 1);
 	u_num_scattering_orders = GetRenderContext()->CreateUniform("u_num_scattering_orders", bgfx::UniformType::Enum::Vec4, 1);
 
-	// Create vertex format and vertex/index buffer
-	cd::VertexFormat vertexFormat;
-	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
-	
-	constexpr StringCrc positionVertexLayout("PosistionOnly");
-	GetRenderContext()->CreateVertexLayout(positionVertexLayout, vertexFormat.GetVertexLayout());
-
-	cd::Box box(cd::Point(-1.0f), cd::Point(1.0f));
-	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(box, vertexFormat, false);
-	assert(optMesh.has_value());
-
-	const cd::Mesh& meshData = optMesh.value();
-	m_vertexBufferSkybox = meshData.GetVertexPositions();
-	m_indexBufferSkybox = meshData.GetPolygons();
-	m_vbhSkybox = bgfx::createVertexBuffer(bgfx::makeRef(m_vertexBufferSkybox.data(), static_cast<uint32_t>(m_vertexBufferSkybox.size() * sizeof(cd::Point))), GetRenderContext()->GetVertexLayout(positionVertexLayout));
-	m_ibhSkybox = bgfx::createIndexBuffer(bgfx::makeRef(m_indexBufferSkybox.data(), static_cast<uint32_t>(m_indexBufferSkybox.size() * sizeof(uint32_t) * 3)), BGFX_BUFFER_INDEX32);
-
 	bgfx::setViewName(GetViewID(), "PBRSkyRenderer");
 }
 
@@ -113,8 +96,13 @@ void PBRSkyRenderer::Render(float deltaTime)
 	Precompute();
 
 	// Mesh
-	bgfx::setVertexBuffer(0, m_vbhSkybox);
-	bgfx::setIndexBuffer(m_ibhSkybox);
+	StaticMeshComponent *pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(m_pCurrentSceneWorld->GetSkyEntity());
+	if (!pMeshComponent)
+	{
+		return;
+	}
+	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()});
+	bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
 
 	// Texture
 	bgfx::setImage(0, m_textureTransmittance, 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);

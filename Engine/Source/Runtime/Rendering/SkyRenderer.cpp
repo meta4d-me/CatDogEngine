@@ -1,5 +1,6 @@
 #include "SkyRenderer.h"
 
+#include "ECWorld/CameraComponent.h"
 #include "ECWorld/SceneWorld.h"
 #include "RenderContext.h"
 
@@ -9,9 +10,10 @@ namespace engine
 namespace
 {
 
-constexpr uint16_t sampleFlag = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
+constexpr uint16_t sampleFalg = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
+constexpr uint16_t renderState = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
 constexpr const char* skyboxSampler = "s_texSkybox";
-constexpr const char *skyboxShader = "skyboxShader";
+constexpr const char* skyboxShader = "skyboxShader";
 
 }
 
@@ -22,7 +24,6 @@ void SkyRenderer::Init()
 	m_pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
 	GetRenderContext()->CreateUniform(skyboxSampler, bgfx::UniformType::Sampler);
-	GetRenderContext()->CreateTexture(m_pSkyComponent->GetRadianceTexturePath().c_str(), sampleFlag);
 
 	GetRenderContext()->CreateProgram(skyboxShader, "vs_PBR_skybox.bin", "fs_PBR_skybox.bin");
 
@@ -57,7 +58,7 @@ void SkyRenderer::Render(float deltaTime)
 		return;
 	}
 
-	StaticMeshComponent *pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(m_pCurrentSceneWorld->GetSkyEntity());
+	StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(m_pCurrentSceneWorld->GetSkyEntity());
 	if (!pMeshComponent)
 	{
 		return;
@@ -68,11 +69,15 @@ void SkyRenderer::Render(float deltaTime)
 	constexpr StringCrc sampler(skyboxSampler);
 	constexpr StringCrc program(skyboxShader);
 
+	// Create a new TextureHandle each frame if the skybox texture path has been updated,
+	// otherwise RenderContext::CreateTexture will automatically skip.
+	GetRenderContext()->CreateTexture(m_pSkyComponent->GetRadianceTexturePath().c_str(), sampleFalg);
+
 	bgfx::setTexture(0,
 		GetRenderContext()->GetUniform(sampler),
 		GetRenderContext()->GetTexture(StringCrc(m_pSkyComponent->GetRadianceTexturePath())));
 
-	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
+	bgfx::setState(renderState);
 	bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(program));
 }
 
