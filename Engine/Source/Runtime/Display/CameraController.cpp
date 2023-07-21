@@ -26,6 +26,8 @@ CameraController::CameraController(
 	const float vertical_sensitivity, 
 	const float movement_speed)
 	: m_pSceneWorld(pSceneWorld)
+	, m_horizontalSensitivity(horizontal_sensitivity)
+	, m_verticalSensitivity(vertical_sensitivity)
 	, m_movementSpeed(movement_speed)
 	, m_initialMovemenSpeed(movement_speed)
 {
@@ -125,8 +127,8 @@ void CameraController::Update(float deltaTime)
 
 	if (Input::Get().IsMouseLBPressed() && !Input::Get().IsKeyPressed(KeyCode::z)&& !m_isFocusing)
 	{
-		m_isMayaStyle = false;
-		Yaw(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
+		//m_isMayaStyle = false;
+		//Yaw(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
 	}
 	if (Input::Get().IsMouseRBPressed() && !Input::Get().IsKeyPressed(KeyCode::z))
 	{

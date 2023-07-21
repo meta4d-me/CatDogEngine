@@ -222,6 +222,7 @@ void DDGIRenderer::Render(float deltaTime)
 
 		cd::Vec3f tmpAlbedoColor = cd::Vec3f(1.0f, 1.0f, 1.0f);
 		GetRenderContext()->FillUniform(StringCrc(albedoColor), tmpAlbedoColor.Begin(), 1);
+
 		GetRenderContext()->FillUniform(StringCrc(cameraPos), &pCameraTransformComponent->GetTransform().GetTranslation().x(), 1);
 
 		auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();

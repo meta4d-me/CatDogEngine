@@ -132,7 +132,7 @@ void WorldRenderer::Render(float deltaTime)
 
 		// Submit uniform values : camera settings
 		constexpr StringCrc cameraPos("u_cameraPos");
-		m_pRenderContext->FillUniform(cameraPos, &cameraTransform.GetTranslation().x(), 1);
+		GetRenderContext()->FillUniform(cameraPos, &cameraTransform.GetTranslation().x(), 1);
 
 		// Submit uniform values : light settings
 		auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();
