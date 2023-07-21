@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Mesh>
+	<AssetInfo ID="0" Type="Mesh" Name="CubeMesh3" BinaryFile="CubeMesh3.cdbin" BinaryHash="69959e0713cc54a8f86e2c080cd0342d40e37128b6086f9800aea37179feb567"/>
+	<MetaData>
+		<Item Key="VertexCount" Value="8"/>
+		<Item Key="TriangleCount" Value="12"/>
+	</MetaData>
+</Mesh>
+

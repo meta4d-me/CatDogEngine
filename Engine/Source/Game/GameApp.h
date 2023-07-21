@@ -9,7 +9,6 @@ namespace engine
 {
 
 class CameraController;
-class FirstPersonCameraController;
 class FlybyCamera;
 class ImGuiBaseLayer;
 class ImGuiContextInstance;
@@ -57,6 +56,7 @@ public:
 	void RegisterImGuiUserData(engine::ImGuiContextInstance* pImGuiContext);
 
 	void InitECWorld();
+	void InitController();
 
 	bool EnablePBRSky() const;
 
@@ -85,8 +85,7 @@ private:
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEngineRenderers;
 
 	// Controllers for processing input events.
-	std::unique_ptr<engine::FirstPersonCameraController> m_pCameraController;
-	std::unique_ptr<engine::CameraController> m_pNewCameraController;
+	std::shared_ptr<engine::CameraController> m_pCameraController;
 };
 
 }

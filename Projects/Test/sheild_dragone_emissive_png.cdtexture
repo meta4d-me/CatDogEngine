@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Texture>
+	<AssetInfo ID="1" Type="Texture" Name="sheild_dragone_emissive.png" BinaryFile="sheild_dragone_emissive_png.cdbin" BinaryHash="c5223a4cf6010f5890994f2915e5722fa5689af26f79ce6d8123221047e5d0e5"/>
+	<MetaData>
+		<Item Key="FilePath" Value="C:/Users/V/Desktop/model/TestAssets-main/PBR/dragon_shield\textures/sheild_dragone_emissive.png"/>
+	</MetaData>
+</Texture>
+

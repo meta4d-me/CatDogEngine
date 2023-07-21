@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Texture>
+	<AssetInfo ID="0" Type="Texture" Name="sheild_dragone_baseColor.png" BinaryFile="sheild_dragone_baseColor_png.cdbin" BinaryHash="b4704eab90d28eeeabe93e9aa458e33ebd6fe5667e6364e9119016123bbcf301"/>
+	<MetaData>
+		<Item Key="FilePath" Value="C:/Users/V/Desktop/model/TestAssets-main/PBR/dragon_shield\textures/sheild_dragone_baseColor.png"/>
+	</MetaData>
+</Texture>
+

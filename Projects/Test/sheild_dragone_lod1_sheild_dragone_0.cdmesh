@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Mesh>
+	<AssetInfo ID="1" Type="Mesh" Name="sheild_dragone_lod1_sheild_dragone_0" BinaryFile="sheild_dragone_lod1_sheild_dragone_0.cdbin" BinaryHash="192b80c96f93f7ec4e2a9ec4e08571a44bcc69d5a6a3496054beaa79a5254eee"/>
+	<MetaData>
+		<Item Key="VertexCount" Value="1528"/>
+		<Item Key="TriangleCount" Value="1938"/>
+	</MetaData>
+</Mesh>
+
