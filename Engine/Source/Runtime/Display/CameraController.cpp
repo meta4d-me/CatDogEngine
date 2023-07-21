@@ -140,7 +140,7 @@ void CameraController::Update(float deltaTime)
 		m_isMayaStyle = true;
 		SynchronizeMayaCamera();//dont need do this in every update. it'only do once befor using mayastyle
 		ElevationChanging(m_verticalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
-		AzimuthChanging(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
+		AzimuthChanging(-m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
 	}
 	if (Input::Get().IsMouseRBPressed() && Input::Get().IsKeyPressed(KeyCode::z))
 	{
@@ -348,8 +348,9 @@ void CameraController::Focusing()
 		float stepDistance = (m_eye - m_eyeDestination).Length() / 5;
 		m_eye = m_eye - eyeMoveDir * stepDistance;
 		SynchronizeMayaCamera();
+		CD_INFO("Focusing");
 		ControllerToCamera();
-		if (std::abs(m_eye.x() - m_eyeDestination.x()) < 0.1f)
+		if ((m_eye - m_eyeDestination).Length()< 0.1f)
 		{
 			m_isFocusing = false;
 		}
