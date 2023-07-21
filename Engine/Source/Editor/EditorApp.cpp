@@ -19,7 +19,7 @@
 #include "Rendering/PBRSkyRenderer.h"
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
-#include "Rendering/SkyRenderer.h"
+#include "Rendering/SkyboxRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ShaderBuilder.h"
@@ -332,7 +332,7 @@ void EditorApp::InitEngineRenderers()
 	// The init size doesn't make sense. It will resize by SceneView.
 	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->CreateRenderTarget(sceneViewRenderTargetName, 1, 1, std::move(attachmentDesc));
 
-	auto pSkyboxRenderer = std::make_unique<engine::SkyRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	auto pSkyboxRenderer = std::make_unique<engine::SkyboxRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pIBLSkyRenderer = pSkyboxRenderer.get();
 	pSkyboxRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pSkyboxRenderer));

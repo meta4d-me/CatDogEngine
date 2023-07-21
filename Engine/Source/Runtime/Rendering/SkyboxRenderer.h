@@ -8,11 +8,11 @@ namespace engine
 
 class SceneWorld;
 
-class SkyRenderer final : public Renderer
+class SkyboxRenderer final : public Renderer
 {
 public:
 	using Renderer::Renderer;
-	virtual ~SkyRenderer();
+	virtual ~SkyboxRenderer();
 
 	virtual void Init() override;
 	virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) override;

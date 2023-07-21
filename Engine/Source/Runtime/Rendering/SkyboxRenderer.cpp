@@ -1,4 +1,4 @@
-#include "SkyRenderer.h"
+#include "SkyboxRenderer.h"
 
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/SceneWorld.h"
@@ -17,20 +17,20 @@ constexpr const char* skyboxShader = "skyboxShader";
 
 }
 
-SkyRenderer::~SkyRenderer() = default;
+SkyboxRenderer::~SkyboxRenderer() = default;
 
-void SkyRenderer::Init()
+void SkyboxRenderer::Init()
 {
 	m_pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
 	GetRenderContext()->CreateUniform(skyboxSampler, bgfx::UniformType::Sampler);
 
-	GetRenderContext()->CreateProgram(skyboxShader, "vs_PBR_skybox.bin", "fs_PBR_skybox.bin");
+	GetRenderContext()->CreateProgram(skyboxShader, "vs_skybox.bin", "fs_skybox.bin");
 
 	bgfx::setViewName(GetViewID(), "SkyboxRenderer");
 }
 
-void SkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
+void SkyboxRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
 	if (m_pSkyComponent->GetSkyType() != SkyType::SkyBox)
 	{
@@ -51,7 +51,7 @@ void SkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionM
 	bgfx::setViewClear(GetViewID(), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
 }
 
-void SkyRenderer::Render(float deltaTime)
+void SkyboxRenderer::Render(float deltaTime)
 {
 	if (m_pSkyComponent->GetSkyType() != SkyType::SkyBox)
 	{
@@ -70,7 +70,7 @@ void SkyRenderer::Render(float deltaTime)
 	constexpr StringCrc program(skyboxShader);
 
 	// Create a new TextureHandle each frame if the skybox texture path has been updated,
-	// otherwise RenderContext::CreateTexture will automatically skip.
+	// otherwise RenderContext::CreateTexture will automatically skip it.
 	GetRenderContext()->CreateTexture(m_pSkyComponent->GetRadianceTexturePath().c_str(), sampleFalg);
 
 	bgfx::setTexture(0,
