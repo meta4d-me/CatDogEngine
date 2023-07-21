@@ -18,5 +18,4 @@ void SkyComponent::SetRadianceTexturePath(std::string path)
 	m_radianceTexturePath = cd::MoveTemp(path);
 }
 
-
 }

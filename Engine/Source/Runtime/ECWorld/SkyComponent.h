@@ -53,8 +53,8 @@ public:
 	const std::string& GetIrradianceTexturePath() const { return m_irradianceTexturePath; }
 
 	void SetRadianceTexturePath(std::string path);
-	std::string &GetRadianceTexturePath() { return m_radianceTexturePath; }
-	const std::string &GetRadianceTexturePath() const { return m_radianceTexturePath; }
+	std::string& GetRadianceTexturePath() { return m_radianceTexturePath; }
+	const std::string& GetRadianceTexturePath() const { return m_radianceTexturePath; }
 
 private:
 	SkyType m_type = SkyType::SkyBox;
