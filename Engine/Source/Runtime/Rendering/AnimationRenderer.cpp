@@ -119,7 +119,7 @@ void AnimationRenderer::Init()
 	m_pRenderContext->CreateUniform("u_debugBoneIndex", bgfx::UniformType::Vec4, 1);
 	m_pRenderContext->CreateProgram("AnimationProgram", "vs_visualize_bone_weight.bin", "fs_visualize_bone_weight.bin");
 #else
-	m_pRenderContext->CreateProgram("AnimationProgram", "vs_animation.bin", "fs_animation.bin");
+	GetRenderContext()->CreateProgram("AnimationProgram", "vs_animation.bin", "fs_animation.bin");
 #endif
 
 	bgfx::setViewName(GetViewID(), "AnimationRenderer");
@@ -127,8 +127,7 @@ void AnimationRenderer::Init()
 
 void AnimationRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
-	bgfx::setViewFrameBuffer(GetViewID(), *GetRenderTarget()->GetFrameBufferHandle());
-	bgfx::setViewRect(GetViewID(), 0, 0, GetRenderTarget()->GetWidth(), GetRenderTarget()->GetHeight());
+	UpdateViewRenderTarget();
 	bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
 }
 
@@ -193,7 +192,7 @@ void AnimationRenderer::Render(float deltaTime)
 		bgfx::setState(state);
 
 		constexpr StringCrc animationProgram("AnimationProgram");
-		bgfx::submit(GetViewID(), m_pRenderContext->GetProgram(animationProgram));
+		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(animationProgram));
 	}
 }
 

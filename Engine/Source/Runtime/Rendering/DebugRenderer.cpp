@@ -14,14 +14,13 @@ namespace engine
 
 void DebugRenderer::Init()
 {
-	m_pRenderContext->CreateProgram("WireFrameProgram", "vs_wireframe.bin", "fs_wireframe.bin");
+	GetRenderContext()->CreateProgram("WireFrameProgram", "vs_wireframe.bin", "fs_wireframe.bin");
 	bgfx::setViewName(GetViewID(), "DebugRenderer");
 }
 
 void DebugRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
-	bgfx::setViewFrameBuffer(GetViewID(), *GetRenderTarget()->GetFrameBufferHandle());
-	bgfx::setViewRect(GetViewID(), 0, 0, GetRenderTarget()->GetWidth(), GetRenderTarget()->GetHeight());
+	UpdateViewRenderTarget();
 	bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
 }
 
@@ -49,7 +48,7 @@ void DebugRenderer::Render(float deltaTime)
 		bgfx::setState(state);
 
 		constexpr StringCrc wireframeProgram("WireFrameProgram");
-		bgfx::submit(GetViewID(), m_pRenderContext->GetProgram(wireframeProgram));
+		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(wireframeProgram));
 	}
 }
 
