@@ -6,7 +6,7 @@
 
 ## Snapshots
 
-![1686593017747](https://github.com/CatDogEngine/CatDogEngine/assets/75730859/8836be81-3358-42c8-a922-78c6b5001130)
+![image](https://github.com/CatDogEngine/CatDogEngine/assets/75730859/4f1f0006-76e4-40cf-bd3a-ae70ecf4b6b5)
 
 ## Features
 
