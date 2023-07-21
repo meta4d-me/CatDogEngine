@@ -169,14 +169,12 @@ void ECWorldConsumer::AddCamera(engine::Entity entity, const cd::Camera& camera)
 
 	engine::CameraComponent& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(entity);
 	cd::Transform cameraTransform = m_pSceneWorld->GetTransformComponent(entity)->GetTransform();
-//	cameraTransform.SetEye(camera.GetEye());
-//	cameraTransform.SetLookAt(camera.GetLookAt());
-//	cameraTransform.SetUp(camera.GetUp());
 	cameraComponent.SetNearPlane(camera.GetNearPlane());
 	cameraComponent.SetFarPlane(camera.GetFarPlane());
 	cameraComponent.SetAspect(camera.GetAspect());
 	cameraComponent.SetFov(camera.GetFov());
 	cameraComponent.BuildProject();
+	cameraComponent.BuildView(cameraTransform);
 }
 
 void ECWorldConsumer::AddLight(engine::Entity entity, const cd::Light& light)

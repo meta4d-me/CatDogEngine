@@ -45,7 +45,6 @@
 #include <format>
 #include <thread>
 
-
 namespace editor
 {
 
@@ -224,14 +223,12 @@ void EditorApp::InitECWorld()
 	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(cameraEntity);
 	nameComponent.SetName("MainCamera");
 
-
-	auto& cameraTransformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
-	//cameraTransformComponent.SetTransform(cd::Transform::Identity());
-	//cameraTransformComponent.Build();
-	auto &cameraTransform = cameraTransformComponent.GetTransform();
-
 	m_pSceneWorld->InitDDGISDK();
 
+	auto& cameraTransformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
+	cameraTransformComponent.SetTransform(cd::Transform::Identity());
+	cameraTransformComponent.Build();
+	auto &cameraTransform = cameraTransformComponent.GetTransform();
 	auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(cameraEntity);
 	cameraTransform.SetTranslation(cd::Point(0.0f, 0.0f, -100.0f));
 	engine::SetLookAt(cd::Direction(0.0f, 0.0f, 1.0f), cameraTransform);
@@ -243,7 +240,7 @@ void EditorApp::InitECWorld()
 	cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
 	cameraComponent.SetGammaCorrection(cd::Vec3f(0.45f));
 	cameraComponent.BuildProject();
-	cameraComponent.BuildView(cd::Point(0.0f, 0.0f, -100.0f), cd::Direction(0.0f, 0.0f, 1.0f), cd::Direction(0.0f, 1.0f, 0.0f));
+	cameraComponent.BuildView(cameraTransform);
 
 	engine::Entity ddgiEntity = pWorld->CreateEntity();
 	m_pSceneWorld->SetDDGIEntity(ddgiEntity);
@@ -452,7 +449,6 @@ bool EditorApp::Update(float deltaTime)
 			{
 				const float* pViewMatrix = pMainCameraComponent->GetViewMatrix().Begin();
 				const float* pProjectionMatrix = pMainCameraComponent->GetProjectionMatrix().Begin();
-				cd::Matrix4x4 a = pMainCameraComponent->GetViewMatrix();
 				pRenderer->UpdateView(pViewMatrix, pProjectionMatrix);
 				pRenderer->Render(deltaTime);
 			}

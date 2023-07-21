@@ -80,6 +80,7 @@ void CameraController::ControllerToCamera()
 
 void CameraController::Update(float deltaTime)
 {
+	Focusing();
 
 	if (Input::Get().GetMouseScrollOffsetY() && (Input::Get().IsMouseLBPressed() || Input::Get().IsMouseRBPressed()) && !Input::Get().IsKeyPressed(KeyCode::z))
 	{
@@ -162,7 +163,6 @@ void CameraController::Update(float deltaTime)
 	{
 		SynchronizeMayaCamera();
 	}
-	Focusing();
 }
 
 void CameraController::SetMovementSpeed(const float speed)
@@ -348,7 +348,6 @@ void CameraController::Focusing()
 		float stepDistance = (m_eye - m_eyeDestination).Length() / 5;
 		m_eye = m_eye - eyeMoveDir * stepDistance;
 		SynchronizeMayaCamera();
-		CD_INFO("Focusing");
 		ControllerToCamera();
 		if ((m_eye - m_eyeDestination).Length()< 0.1f)
 		{
