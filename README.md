@@ -3,7 +3,6 @@
 ![win64_vs2019_msvc](https://github.com/CatDogEngine/CatDogEngine/actions/workflows/win64_vs2019_msvc.yml/badge.svg?branch=main)
 ![win64_vs2022_msvc](https://github.com/CatDogEngine/CatDogEngine/actions/workflows/win64_vs2022_msvc.yml/badge.svg?branch=main)
 ![win64_vs2022_clang](https://github.com/CatDogEngine/CatDogEngine/actions/workflows/win64_vs2022_clang.yml/badge.svg?branch=main)
-![linux_arm64_gmake](https://github.com/CatDogEngine/CatDogEngine/actions/workflows/linux_arm64_gmake.yml/badge.svg?branch=main)
 
 ## Snapshots
 

@@ -83,30 +83,30 @@ jobs:
             -DSDL_STATIC_PIC=ON \
             -DSDL_VENDOR_INFO="Github Workflow" \
             -DCMAKE_INSTALL_PREFIX=prefix \
-            -DCMAKE_BUILD_TYPE=Debugcd Engine/Source/ThirdParty/bgfx
+            -DCMAKE_BUILD_TYPE=Debug
 
       - name: sdl Compile debug version
         run: |
           cd Engine/Source/ThirdParty/sdl
           cmake --build build --config Debug --parallel --verbose
 
-      - name: engine Generate makefile
-        run: |
-          chmod +x ${{github.workspace}}/MakeEngine_linux_gmake-android-arm64.sh
-          bash ${{github.workspace}}/MakeEngine_linux_gmake-android-arm64.sh
-        env:
-          CD_PLATFORM: Linux
-
-      - name: engine Compile debug version
-        run: |
-          make config=debug
-
-      - name: Upload built results to Artifact
-        uses: actions/upload-artifact@v3.1.1
-        with:
-          name: engine_build_linux_gmake2
-          path: |
-            ${{github.workspace}}/**/*.h
-            ${{github.workspace}}/**/*.hpp
-            ${{github.workspace}}/**/*.a
-            ${{github.workspace}}/**/*.so
+      #- name: engine Generate makefile
+      #  run: |
+      #    chmod +x ${{github.workspace}}/MakeEngine_linux_gmake-android-arm64.sh
+      #    bash ${{github.workspace}}/MakeEngine_linux_gmake-android-arm64.sh
+      #  env:
+      #    CD_PLATFORM: Linux
+      #
+      #- name: engine Compile debug version
+      #  run: |
+      #    make config=debug
+      #
+      #- name: Upload built results to Artifact
+      #  uses: actions/upload-artifact@v3.1.1
+      #  with:
+      #    name: engine_build_linux_gmake2
+      #    path: |
+      #      ${{github.workspace}}/**/*.h
+      #      ${{github.workspace}}/**/*.hpp
+      #      ${{github.workspace}}/**/*.a
+      #      ${{github.workspace}}/**/*.so

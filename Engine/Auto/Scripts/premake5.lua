@@ -10,7 +10,7 @@ function IsWindowsPlatform()
 end
 
 function IsAndroidPlatform()
-	return ChoosePlatform == "Andriod"
+	return ChoosePlatform == "Android"
 end
 
 function IsLinuxPlatform()
@@ -44,7 +44,7 @@ PlatformSettings["Windows"] = {
 	MacroName = "CD_PLATFORM_WINDOWS",
 }
 
-PlatformSettings["Andriod"] = {
+PlatformSettings["Android"] = {
 	DisplayName = "Android",
 	MacroName = "CD_PLATFORM_ANDROID",
 }

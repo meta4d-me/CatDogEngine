@@ -4,9 +4,6 @@
 
 #include <SDL.h>
 #include <SDL_syswm.h>
-#include <SDL_video.h>
-#include <SDL_joystick.h>
-#include <SDL_gamecontroller.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
@@ -53,6 +50,7 @@ Window::Window(const char* pTitle, uint16_t width, uint16_t height, bool useFull
 	m_pNativeWindowHandle = wmi.info.android.window;
 #elif CD_PLATFORM_LINUX
 	m_pNativeWindowHandle = wmi.info.x11.window;
+	// m_pNativeWindowHandle = wmi.info.wl.window;
 #else
 	static_assert("CD_PLATFORM macro not defined!");
 #endif
