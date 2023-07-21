@@ -175,7 +175,7 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 	commandArguments.push_back("ios");
 #elif CD_PLATFORM_WINDOWS
 	commandArguments.push_back("windows");
-#elif CD_PLATFORM_ANDROID
+#elif CD_PLATFORM_ANDROID || CD_PLATFORM_LINUX
 	commandArguments.push_back("android");
 #else
 	static_assert("CD_PLATFORM macro not defined!");

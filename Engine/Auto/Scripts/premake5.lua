@@ -1,7 +1,7 @@
 --------------------------------------------------------------
 -- @Description : Makefile of CatDog Engine
 --------------------------------------------------------------
-ChoosePlatform = "Windows"
+ChoosePlatform = os.getenv("CD_PLATFORM") or "Windows"
 EngineName = "CatDogEngine"
 EngineBuildLibKind = "StaticLib" -- "SharedLib"
 
@@ -18,6 +18,18 @@ end
 ENABLE_SPDLOG = not USE_CLANG_TOOLSET
 ENABLE_TRACY = not USE_CLANG_TOOLSET
 
+function IsWindowsPlatform()
+	return ChoosePlatform == "Windows"
+end
+
+function IsLinuxPlatform()
+	return ChoosePlatform == "Andriod" or ChoosePlatform == "Linux"
+end
+
+function IsMacPlatform()
+	return ChoosePlatform == "OSX" or ChoosePlatform == "IOS"
+end
+
 PlatformSettings = {}
 PlatformSettings["Windows"] = {
 	DisplayName = "Win64",
@@ -27,6 +39,11 @@ PlatformSettings["Windows"] = {
 PlatformSettings["Andriod"] = {
 	DisplayName = "Android",
 	MacroName = "CD_PLATFORM_ANDROID",
+}
+
+PlatformSettings["Linux"] = {
+	DisplayName = "Linux",
+	MacroName = "CD_PLATFORM_LINUX",
 }
 
 PlatformSettings["OSX"] = {

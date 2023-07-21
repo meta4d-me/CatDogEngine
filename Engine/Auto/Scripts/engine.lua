@@ -29,12 +29,17 @@ project("Engine")
 	local bgfxBuildBinPath = nil
 	local platformDefines = nil
 	local platformIncludeDirs = nil
-	filter { "system:windows" }
+	if IsWindowsPlatform() then
 		bgfxBuildBinPath = ThirdPartySourcePath.."/bgfx/.build/win64_"..IDEConfigs.BuildIDEName.."/bin"
 		platformIncludeDirs = { 
 			path.join(ThirdPartySourcePath, "bx/include/compat/msvc")
 		}
-	filter {}
+	else
+		bgfxBuildBinPath = ThirdPartySourcePath.."/bgfx/.build/linux_"..IDEConfigs.BuildIDEName.."/bin"
+		platformIncludeDirs = {
+			path.join(ThirdPartySourcePath, "bx/include/compat/linux")
+		}
+	end
 
 	includedirs {
 		RuntimeSourcePath,
