@@ -22,6 +22,9 @@ ToolRootPath = path.join(EnginePath, "EditorTools", GetPlatformDisplayName())
 EditorSourcePath = path.join(EngineSourcePath, "Editor")
 EditorResourceRootPath = RootPath.."/Engine/EditorResources/"
 
+-- Game
+GameSourcePath = path.join(EngineSourcePath, "Game")
+
 -- Project
 ProjectSharedPath = RootPath.."/Projects/Shared/"
 DefaultProjectName = "Test"

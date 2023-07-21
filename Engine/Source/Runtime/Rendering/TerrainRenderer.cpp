@@ -67,14 +67,13 @@ void TerrainRenderer::Init()
 	m_blueChannelTexture = CreateTerrainTexture("terrain/gravel_baseColor", 5);
 	m_alphaChannelTexture = CreateTerrainTexture("terrain/snowyRock_baseColor", 6);
 
-	u_terrainOrigin = m_pRenderContext->CreateUniform(kUniformSectorOrigin, bgfx::UniformType::Enum::Vec4, 1);
-	u_terrainDimension = m_pRenderContext->CreateUniform(kUniformSectorDimension, bgfx::UniformType::Vec4, 1);
+	u_terrainOrigin = GetRenderContext()->CreateUniform(kUniformSectorOrigin, bgfx::UniformType::Enum::Vec4, 1);
+	u_terrainDimension = GetRenderContext()->CreateUniform(kUniformSectorDimension, bgfx::UniformType::Vec4, 1);
 }
 
 void TerrainRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
-	bgfx::setViewFrameBuffer(GetViewID(), *GetRenderTarget()->GetFrameBufferHandle());
-	bgfx::setViewRect(GetViewID(), 0, 0, GetRenderTarget()->GetWidth(), GetRenderTarget()->GetHeight());
+	UpdateViewRenderTarget();
 	bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
 
 	UpdateUniforms();

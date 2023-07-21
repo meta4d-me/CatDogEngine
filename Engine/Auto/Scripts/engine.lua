@@ -152,7 +152,7 @@ project("Engine")
 		"CDPROJECT_RESOURCES_SHARED_PATH=\""..ProjectSharedPath.."\"",
 		"CDPROJECT_RESOURCES_ROOT_PATH=\""..ProjectResourceRootPath.."\"",
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..EditorResourceRootPath.."\"",
-		"EDITOR_MODE",
+		"EDITOR_MODE", -- TODO : remove it
 	}
 
 	-- use /MT /MTd, not /MD /MDd
