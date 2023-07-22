@@ -4,7 +4,7 @@
 
 #include <bgfx/bgfx.h>
 
-#include <inttypes.h>
+#include <cstdint>
 #include <memory>
 #include <vector>
 

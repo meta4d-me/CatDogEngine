@@ -1,3 +1,5 @@
+#ifdef ENABLE_SUBPROCESS
+
 #include "Process.h"
 #include "Log/Log.h"
 
@@ -83,3 +85,5 @@ void Process::Run()
 }
 
 }
+
+#endif

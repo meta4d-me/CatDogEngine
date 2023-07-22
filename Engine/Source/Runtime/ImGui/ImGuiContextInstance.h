@@ -3,7 +3,7 @@
 #include "Localization.h"
 #include "ThemeColor.h"
 
-#include <inttypes.h>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>

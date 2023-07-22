@@ -38,18 +38,17 @@ project("Engine")
 
 	
 	local bgfxBuildBinPath = nil
-	local platformDefines = nil
-	local platformIncludeDirs = nil
+	local platformDefines = {}
+	local platformIncludeDirs = {}
 	if IsWindowsPlatform() then
 		bgfxBuildBinPath = ThirdPartySourcePath.."/bgfx/.build/win64_"..IDEConfigs.BuildIDEName.."/bin"
-		platformIncludeDirs = { 
-			path.join(ThirdPartySourcePath, "bx/include/compat/msvc")
-		}
-	else
+		table.insert(platformIncludeDirs, path.join(ThirdPartySourcePath, "bx/include/compat/msvc"))
+	elseif IsLinuxPlatform() then
 		bgfxBuildBinPath = ThirdPartySourcePath.."/bgfx/.build/linux_"..IDEConfigs.BuildIDEName.."/bin"
-		platformIncludeDirs = {
-			path.join(ThirdPartySourcePath, "bx/include/compat/linux")
-		}
+		table.insert(platformIncludeDirs, path.join(ThirdPartySourcePath, "bx/include/compat/linux"))
+	elseif IsAndroidPlatform() then
+		bgfxBuildBinPath = ThirdPartySourcePath.."/bgfx/.build/android_arm64/bin"
+		table.insert(platformIncludeDirs, path.join(ThirdPartySourcePath, "bx/include/compat/android"))
 	end
 
 	includedirs {
@@ -134,13 +133,19 @@ project("Engine")
 		}
 	end
 
-	filter { "configurations:Debug" }
-		platformDefines = {
-			"BX_CONFIG_DEBUG",
+	if IsAndroidPlatform() then
+		--linkOptions { "-Wunused-function" }
+	else
+		defines {
+			"ENABLE_SUBPROCESS"
 		}
+	end
+
+	filter { "configurations:Debug" }
+		table.insert(platformDefines, "BX_CONFIG_DEBUG")
+
 		libdirs {
 			path.join(ThirdPartySourcePath, "sdl/build/Debug"),
-			path.join(ThirdPartySourcePath, "freetype/build/Debug"),
 			bgfxBuildBinPath,
 		}
 		links {
@@ -151,7 +156,6 @@ project("Engine")
 	filter { "configurations:Release" }
 		libdirs {
 			path.join(ThirdPartySourcePath, "sdl/build/Release"),
-			path.join(ThirdPartySourcePath, "freetype/build/Release"),
 			bgfxBuildBinPath,
 		}
 		links {

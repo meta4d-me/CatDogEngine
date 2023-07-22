@@ -149,6 +149,10 @@ workspace(EngineName)
 	startproject("Editor")
 
 function CopyDllAutomatically()
+	if IsAndroidPlatform() then
+		return
+	end
+
 	-- copy dll into binary folder automatically.
 	filter { "configurations:Debug" }
 		if IsAndroidPlatform() then
@@ -212,7 +216,7 @@ function CopyDllAutomatically()
 end
 
 -- thirdparty projects such as sdl
---dofile("thirdparty.lua")
+dofile("thirdparty.lua")
 
 -- engine projects
 dofile("engine.lua")

@@ -3,7 +3,7 @@
 #include "Graphics/GraphicsBackend.h"
 #include "ImGui/Language.h"
 
-#include <inttypes.h>
+#include <cstdint>
 
 namespace engine
 {

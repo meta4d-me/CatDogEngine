@@ -97,7 +97,6 @@ void TerrainRenderer::Render(float deltaTime)
 
 		// Check cull dist
 		const Entity& cameraEntity = m_pCurrentSceneWorld->GetMainCameraEntity();
-		const CameraComponent* cameraComponent = m_pCurrentSceneWorld->GetCameraComponent(cameraEntity);
 		const cd::Transform cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(cameraEntity)->GetTransform();
 		const float dx = cameraTransform.GetTranslation().x() - m_entityToRenderInfo[entity].m_origin[0];
 		const float dy = cameraTransform.GetTranslation().y() - m_entityToRenderInfo[entity].m_origin[1];

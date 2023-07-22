@@ -1,11 +1,11 @@
 #pragma once
 
+#ifdef ENABLE_SUBPROCESS
 #include "Base/Template.h"
 #include "Process/subprocess.h"
 
 #include <memory>
 #include <string>
-#include <vector>
 
 namespace editor
 {
@@ -36,3 +36,31 @@ private:
 };
 
 }
+
+#else
+
+#include <vector>
+
+namespace editor
+{
+
+class Process final
+{
+public:
+	Process() = delete;
+	explicit Process(const char* pProcessName);
+	Process(const Process&) = delete;
+	Process& operator=(const Process&) = delete;
+	Process(Process&&) = default;
+	Process& operator=(Process&&) = default;
+	~Process();
+
+	void SetWaitUntilFinished(bool doWait) {}
+	void SetCommandArguments(std::vector<std::string> arguments) {}
+	void SetEnvironments(std::vector<std::string> environments) {}
+	void Run() {}
+};
+
+}
+
+#endif

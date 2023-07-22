@@ -162,7 +162,7 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 			 if (IsTextureFile(extension))
 			 {
 				 std::filesystem::path texturesPath = resourcesPath / "Textures/" / "textures/" / fileName.c_str();
-				 std::filesystem::path texviewPath = resourcesPath/ "Textures/" /"textures"/ (nameNoEx + ".dds");
+				 std::filesystem::path texviewPath = resourcesPath / "Textures/" / "textures" / (nameNoEx + ".dds");
 				 engine::RenderContext* pRenderContext = GetRenderContext();
 				 engine::StringCrc textureCrc(nameNoEx);
 				 bgfx::TextureHandle TextureHandle = pRenderContext->GetTexture(textureCrc);

@@ -7,7 +7,7 @@
 #include <imgui/imgui_internal.h>
 #include <ImGuizmo/ImGuizmo.h>
 
-#include <inttypes.h>
+#include <cstdint>
 
 namespace engine
 {

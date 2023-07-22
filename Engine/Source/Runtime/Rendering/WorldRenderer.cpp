@@ -50,7 +50,6 @@ void WorldRenderer::UpdateView(const float* pViewMatrix, const float* pProjectio
 void WorldRenderer::Render(float deltaTime)
 {
 	// TODO : Remove it. If every renderer need to submit camera related uniform, it should be done not inside Renderer class.
-	const engine::CameraComponent* pCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(m_pCurrentSceneWorld->GetMainCameraEntity());
 	const cd::Transform& cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetTransform();
 	for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
 	{

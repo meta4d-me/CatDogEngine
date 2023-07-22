@@ -64,7 +64,6 @@ private:
 	void InitDDGIEntity();
 	void InitSkyEntity();
 
-	bool m_bInitEditor = false;
 	engine::EngineInitArgs m_initArgs;
 
 	// Windows

@@ -45,7 +45,7 @@ public:
 	ComponentsStorage<Component>* GetComponents()
 	{
 		StringCrc componentName = Component::GetClassName();
-		assert(m_componentsLib.contains(componentName.Value()));
+		assert(m_componentsLib.find(componentName.Value()) != m_componentsLib.end());
 		return static_cast<ComponentsStorage<Component>*>(m_componentsLib[componentName.Value()].get());
 	}
 

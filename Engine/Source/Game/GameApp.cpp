@@ -208,7 +208,6 @@ void GameApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
 
 void GameApp::InitEngineRenderers()
 {
-	constexpr engine::StringCrc sceneViewRenderTargetName("SceneRenderTarget");
 	std::vector<engine::AttachmentDescriptor> attachmentDesc = {
 		{.textureFormat = engine::TextureFormat::RGBA32F },
 		{.textureFormat = engine::TextureFormat::RGBA32F },
@@ -289,8 +288,7 @@ bool GameApp::Update(float deltaTime)
 	if (m_pEngineImGuiContext)
 	{
 		engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
-		cd::Transform pMainCameraTranform = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity())->GetTransform();
-
+		
 		assert(pMainCameraComponent);
 		m_pCameraController->Update(deltaTime);
 		pMainCameraComponent->BuildProjectMatrix();
