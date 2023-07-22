@@ -12,7 +12,6 @@ project("Engine")
 		path.join(ThirdPartySourcePath, "rapidxml/**.hpp"),
 		path.join(ThirdPartySourcePath, "imgui/*.h"),
 		path.join(ThirdPartySourcePath, "imgui/*.cpp"),
-		path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
 	}
 	
 	vpaths {
@@ -22,7 +21,6 @@ project("Engine")
 		["ImGui"] = {
 			path.join(ThirdPartySourcePath, "imgui/*.h"),
 			path.join(ThirdPartySourcePath, "imgui/*.cpp"),
-			path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
 		},
 	}
 

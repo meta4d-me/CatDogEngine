@@ -212,7 +212,7 @@ function CopyDllAutomatically()
 end
 
 -- thirdparty projects such as sdl
-dofile("thirdparty.lua")
+--dofile("thirdparty.lua")
 
 -- engine projects
 dofile("engine.lua")
