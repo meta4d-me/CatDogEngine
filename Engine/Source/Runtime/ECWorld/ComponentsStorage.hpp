@@ -74,8 +74,10 @@ public:
 		if (m_entityToIndex.size() > 1)
 		{
 			size_t unusedIndex = itIndex->second;
-			m_entities[unusedIndex] = m_entities.back();
+			Entity lastEntity = m_entities.back();
+			m_entities[unusedIndex] = lastEntity;
 			m_components[unusedIndex] = cd::MoveTemp(m_components.back());
+			m_entityToIndex[lastEntity] = unusedIndex;
 		}
 
 		m_entities.pop_back();

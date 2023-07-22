@@ -429,46 +429,52 @@ bool EditorApp::Update(float deltaTime)
 {
 	// TODO : it is better to remove these logics about splash -> editor switch here.
 	// Better implementation is to have multiple Application or Window classes and they can switch.
-	if (!m_bInitEditor && 0 == ResourceBuilder::Get().GetCurrentTaskCount())
+	if (!m_bInitEditor)
 	{
-		m_bInitEditor = true;
-		ShaderBuilder::UploadUberShader(m_pSceneWorld->GetPBRMaterialType());
-		ShaderBuilder::UploadUberShader(m_pSceneWorld->GetAnimationMaterialType());
-		ShaderBuilder::UploadUberShader(m_pSceneWorld->GetTerrainMaterialType());
-		ShaderBuilder::UploadUberShader(m_pSceneWorld->GetDDGIMaterialType());
+		if (0 == ResourceBuilder::Get().GetCurrentTaskCount())
+		{
+			m_bInitEditor = true;
+			ShaderBuilder::UploadUberShader(m_pSceneWorld->GetPBRMaterialType());
+			ShaderBuilder::UploadUberShader(m_pSceneWorld->GetAnimationMaterialType());
+			ShaderBuilder::UploadUberShader(m_pSceneWorld->GetTerrainMaterialType());
+			ShaderBuilder::UploadUberShader(m_pSceneWorld->GetDDGIMaterialType());
 
-		// Phase 2 - Project Manager
-		//		* TODO : Show project selector
-		//GetMainWindow()->SetTitle("Project Manager");
-		//GetMainWindow()->SetSize(800, 600);
+			// Phase 2 - Project Manager
+			//		* TODO : Show project selector
+			//GetMainWindow()->SetTitle("Project Manager");
+			//GetMainWindow()->SetSize(800, 600);
 
-		// Phase 3 - Editor
-		//		* Load selected project to create assets, components, entities, ...s
-		//		* Init engine renderers in SceneView to display visual results
-		//		* Init editor ui layers
-		//		* Init engine imgui context for ingame debug UI
-		//		* Init engine ui layers
-		GetMainWindow()->SetTitle(m_initArgs.pTitle);
-		GetMainWindow()->SetSize(m_initArgs.width, m_initArgs.height);
-		GetMainWindow()->SetFullScreen(m_initArgs.useFullScreen);
-		GetMainWindow()->SetBordedLess(false);
-		GetMainWindow()->SetResizeable(true);
+			// Phase 3 - Editor
+			//		* Load selected project to create assets, components, entities, ...s
+			//		* Init engine renderers in SceneView to display visual results
+			//		* Init editor ui layers
+			//		* Init engine imgui context for ingame debug UI
+			//		* Init engine ui layers
+			GetMainWindow()->SetTitle(m_initArgs.pTitle);
+			GetMainWindow()->SetSize(m_initArgs.width, m_initArgs.height);
+			GetMainWindow()->SetFullScreen(m_initArgs.useFullScreen);
+			GetMainWindow()->SetBordedLess(false);
+			GetMainWindow()->SetResizeable(true);
 
-		InitEngineRenderers();
-		m_pEditorImGuiContext->ClearUILayers();
-		InitController();
-		InitEditorUILayers();
+			InitEngineRenderers();
+			m_pEditorImGuiContext->ClearUILayers();
+			InitController();
+			InitEditorUILayers();
 
-		InitEngineImGuiContext(m_initArgs.language);
-		m_pEngineImGuiContext->SetSceneWorld(m_pSceneWorld.get());
+			InitEngineImGuiContext(m_initArgs.language);
+			m_pEngineImGuiContext->SetSceneWorld(m_pSceneWorld.get());
 
-		InitEngineUILayers();
+			InitEngineUILayers();
+		}
+	}
+	else
+	{
+		m_pCameraController->Update(deltaTime);
 	}
 
 	GetMainWindow()->Update();
 	m_pSceneWorld->Update();
 	m_pEditorImGuiContext->Update(deltaTime);
-	m_pCameraController->Update(deltaTime);
 
 	engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
 	assert(pMainCameraComponent);
