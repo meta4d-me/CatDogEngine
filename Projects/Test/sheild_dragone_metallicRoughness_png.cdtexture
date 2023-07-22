@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Texture>
-	<AssetInfo ID="3" Type="Texture" Name="sheild_dragone_metallicRoughness.png" BinaryFile="sheild_dragone_metallicRoughness_png.cdbin" BinaryHash="6406ac457309f8457bd5559612cd14f743abee3a984b7557732dd99f9a081e83"/>
-	<MetaData>
-		<Item Key="FilePath" Value="C:/Users/V/Desktop/model/TestAssets-main/PBR/dragon_shield\textures/sheild_dragone_metallicRoughness.png"/>
-	</MetaData>
-</Texture>
-

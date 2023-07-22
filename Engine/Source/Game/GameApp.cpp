@@ -2,7 +2,6 @@
 
 #include "Application/Engine.h"
 #include "Display/CameraController.h"
-#include "Display/CameraUtility.h"
 #include "ECWorld/SceneWorld.h"
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/Localization.h"
@@ -125,18 +124,14 @@ void GameApp::InitECWorld()
 
 	m_pSceneWorld->InitDDGISDK();
 
-	//auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
-	//transformComponent.SetTransform(cd::Transform::Identity());
-	//transformComponent.Build();
-
 	auto& cameraTransformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
 	cameraTransformComponent.SetTransform(cd::Transform::Identity());
 	cameraTransformComponent.Build();
 	auto& cameraTransform = cameraTransformComponent.GetTransform();
 	auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(cameraEntity);
 	cameraTransform.SetTranslation(cd::Point(0.0f, 0.0f, -100.0f));
-	engine::SetLookAt(cd::Direction(0.0f, 0.0f, 1.0f), cameraTransform);
-	engine::SetUp(cd::Direction(0.0f, 1.0f, 0.0f), cameraTransform);
+	engine::CameraComponent::SetLookAt(cd::Direction(0.0f, 0.0f, 1.0f), cameraTransform);
+	engine::CameraComponent::SetUp(cd::Direction(0.0f, 1.0f, 0.0f), cameraTransform);
 	cameraComponent.SetAspect(1.0f);
 	cameraComponent.SetFov(45.0f);
 	cameraComponent.SetNearPlane(0.1f);
@@ -290,7 +285,6 @@ bool GameApp::Update(float deltaTime)
 	m_pSceneWorld->Update();
 	
 	m_pRenderContext->BeginFrame();
-	InitController();
 	if (m_pEngineImGuiContext)
 	{
 		engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());

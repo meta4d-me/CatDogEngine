@@ -7,7 +7,7 @@
 
 namespace engine
 {
-class CameraController;
+
 class CameraController;
 class FlybyCamera;
 class ImGuiBaseLayer;
@@ -67,6 +67,7 @@ public:
 	bool EnablePBRSky() const;
 
 private:
+	void InitEditorCameraEntity();
 	void InitDDGIEntity();
 	void InitSkyEntity();
 

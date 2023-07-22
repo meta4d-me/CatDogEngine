@@ -2,7 +2,6 @@
 
 #include "Application/Engine.h"
 #include "Display/CameraController.h"
-#include "Display/CameraUtility.h"
 #include "ECWorld/SceneWorld.h"
 #include "ImGui/EditorImGuiViewport.h"
 #include "ImGui/ImGuiContextInstance.h"
@@ -222,35 +221,42 @@ void EditorApp::RegisterImGuiUserData(engine::ImGuiContextInstance* pImGuiContex
 void EditorApp::InitECWorld()
 {
 	m_pSceneWorld = std::make_unique<engine::SceneWorld>();
+	
+	InitEditorCameraEntity();
+	
+	m_pSceneWorld->InitDDGISDK();
+	InitDDGIEntity();
 
+	InitSkyEntity();
+}
+
+void EditorApp::InitEditorCameraEntity()
+{
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
+
 	engine::Entity cameraEntity = pWorld->CreateEntity();
 	m_pSceneWorld->SetMainCameraEntity(cameraEntity);
 	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(cameraEntity);
 	nameComponent.SetName("MainCamera");
-
-	m_pSceneWorld->InitDDGISDK();
-
+	
 	auto& cameraTransformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
 	cameraTransformComponent.SetTransform(cd::Transform::Identity());
 	cameraTransformComponent.Build();
-	auto &cameraTransform = cameraTransformComponent.GetTransform();
-	auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(cameraEntity);
+
+	auto& cameraTransform = cameraTransformComponent.GetTransform();
 	cameraTransform.SetTranslation(cd::Point(0.0f, 0.0f, -100.0f));
-	engine::SetLookAt(cd::Direction(0.0f, 0.0f, 1.0f), cameraTransform);
-	engine::SetUp(cd::Direction(0.0f, 1.0f,0.0f), cameraTransform);
+	engine::CameraComponent::SetLookAt(cd::Direction(0.0f, 0.0f, 1.0f), cameraTransform);
+	engine::CameraComponent::SetUp(cd::Direction(0.0f, 1.0f, 0.0f), cameraTransform);
+
+	auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(cameraEntity);
 	cameraComponent.SetAspect(1.0f);
 	cameraComponent.SetFov(45.0f);
 	cameraComponent.SetNearPlane(0.1f);
 	cameraComponent.SetFarPlane(2000.0f);
 	cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
 	cameraComponent.SetGammaCorrection(cd::Vec3f(0.45f));
-	cameraComponent.BuildProject();
-	cameraComponent.BuildView(cameraTransform);
-
-
-	InitDDGIEntity();
-	InitSkyEntity();
+	cameraComponent.BuildProjectMatrix();
+	cameraComponent.BuildViewMatrix(cameraTransform);
 }
 
 void EditorApp::InitDDGIEntity()
@@ -462,7 +468,12 @@ bool EditorApp::Update(float deltaTime)
 	GetMainWindow()->Update();
 	m_pSceneWorld->Update();
 	m_pEditorImGuiContext->Update(deltaTime);
-	
+	m_pCameraController->Update(deltaTime);
+
+	engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
+	assert(pMainCameraComponent);
+	pMainCameraComponent->BuildProjectMatrix();
+
 	m_pRenderContext->BeginFrame();
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEditorRenderers)
 	{
@@ -477,11 +488,6 @@ bool EditorApp::Update(float deltaTime)
 
 	if (m_pEngineImGuiContext)
 	{
-		engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
-		cd::Transform pMainCameraTranform = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity())->GetTransform();
-		assert(pMainCameraComponent);
-		m_pCameraController->Update(deltaTime);
-		pMainCameraComponent->BuildProject();
 		m_pEngineImGuiContext->SetWindowPosOffset(m_pSceneView->GetWindowPosX(), m_pSceneView->GetWindowPosY());
 		m_pEngineImGuiContext->Update(deltaTime);
 		for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)

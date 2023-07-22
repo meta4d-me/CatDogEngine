@@ -98,18 +98,18 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     else if (ImGui::MenuItem("Add Camera"))
     {
         engine::Entity entity = AddNamedEntity("Camera");
+        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+        transformComponent.SetTransform(cd::Transform::Identity());
+        transformComponent.Build();
+
         auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(entity);
         cameraComponent.SetAspect(1.0f);
         cameraComponent.SetFov(45.0f);
         cameraComponent.SetNearPlane(0.1f);
         cameraComponent.SetFarPlane(2000.0f);
         cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
-        cameraComponent.BuildProject();
-
-        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
-        transformComponent.SetTransform(cd::Transform::Identity());
-        transformComponent.Build();
-        cameraComponent.BuildView(cd::Transform::Identity());
+        cameraComponent.BuildProjectMatrix();
+        cameraComponent.BuildViewMatrix(cd::Transform::Identity());
     }
 
     // ---------------------------------------- Add Light ---------------------------------------- //

@@ -1,6 +1,5 @@
 #include "CameraController.h"
 
-#include "Display/CameraUtility.h"
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/SceneWorld.h"
 #include "Math/Quaternion.hpp"
@@ -14,17 +13,17 @@ namespace engine
 
 CameraController::CameraController(
 	const SceneWorld* pSceneWorld,
-	const float sensitivity, 
-	const float movement_speed)
+	float sensitivity,
+	float movement_speed)
 	: CameraController(pSceneWorld, sensitivity, sensitivity, movement_speed)
 {
 }
 
 CameraController::CameraController(
 	const SceneWorld* pSceneWorld,
-	const float horizontal_sensitivity, 
-	const float vertical_sensitivity, 
-	const float movement_speed)
+	float horizontal_sensitivity,
+	float vertical_sensitivity,
+	float movement_speed)
 	: m_pSceneWorld(pSceneWorld)
 	, m_horizontalSensitivity(horizontal_sensitivity)
 	, m_verticalSensitivity(vertical_sensitivity)
@@ -37,8 +36,8 @@ CameraController::CameraController(
 void CameraController::CameraToController()
 {
 	m_eye = GetMainCameraTransform().GetTranslation();
-	m_lookAt = GetLookAt(GetMainCameraTransform());
-	m_up = GetUp(GetMainCameraTransform());
+	m_lookAt = CameraComponent::GetLookAt(GetMainCameraTransform());
+	m_up = CameraComponent::GetUp(GetMainCameraTransform());
 }
 
 void CameraController::ControllerToCamera()
@@ -47,7 +46,7 @@ void CameraController::ControllerToCamera()
 	cd::Vec3f lookAt = m_lookAt;
 	cd::Vec3f up = m_up;
 
-	if (m_isMayaStyle)
+	if (m_isTracking)
 	{
 		float sinPhi = std::sin(m_elevation);
 		float cosPhi = std::cos(m_elevation);
@@ -55,133 +54,151 @@ void CameraController::ControllerToCamera()
 		float cosTheta = std::cos(m_azimuth);
 
 		lookAt = cd::Vec3f(-cosPhi * sinTheta, -sinPhi, -cosPhi * cosTheta);
-		cd::Vec3f cross = cd::Vec3f(cosTheta, 0, -sinTheta);
-		up =  cross.Cross(lookAt);
-		float lookAtOffset = 0;
-		if (m_distanceFromLookAt < m_dollyThreshold) 
+		cd::Vec3f cross = cd::Vec3f(cosTheta, 0.0f, -sinTheta);
+		up = cross.Cross(lookAt);
+
+		float lookAtOffset = 0.0f;
+		if (m_distanceFromLookAt < m_dollyThreshold)
+		{
 			lookAtOffset = m_distanceFromLookAt - m_dollyThreshold;
+		}
 
 		float eyeOffset = m_distanceFromLookAt;
 		eye = m_lookAtPoint - (lookAt * eyeOffset);
 
-		//synchronize view to fpscamera
+		// Synchronize view to fps camera
 		m_eye = eye;
 		m_lookAt = lookAt;
 		m_up = up;
 	}
-	GetMainCameraComponent()->BuildView(eye, lookAt, up);
-	GetMainCameraTransformComponent()->GetTransform().SetTranslation(eye);
-	//maybe i can wrap this?
-	cd::Vec3f rotAxis = cd::Vec3f(0.0,0.0,1.0).Cross(lookAt.Normalize()).Normalize();
-	float rotAngle = std::acos(cd::Vec3f(0.0, 0.0, 1.0).Dot(lookAt.Normalize()));
-	GetMainCameraTransformComponent()->GetTransform().SetRotation(cd::Quaternion::FromAxisAngle(rotAxis, rotAngle));
-	GetMainCameraTransformComponent()->Build();
+
+	GetMainCameraComponent()->BuildViewMatrix(eye, lookAt, up);
+	TransformComponent* pTransformComponent = GetMainCameraTransformComponent();
+	pTransformComponent->GetTransform().SetTranslation(eye);
+	
+	// TODO : Add interface to math lib.
+	lookAt.Normalize();
+	cd::Vec3f rotationAxis = cd::Vec3f(0.0f, 0.0f,1.0f).Cross(lookAt).Normalize();
+	float rotationAngle = std::acos(cd::Vec3f(0.0f, 0.0f, 1.0f).Dot(lookAt));
+	pTransformComponent->GetTransform().SetRotation(cd::Quaternion::FromAxisAngle(rotationAxis, rotationAngle));
+	pTransformComponent->Build();
 }
 
 void CameraController::Update(float deltaTime)
 {
 	Focusing();
 
-	if (Input::Get().GetMouseScrollOffsetY() && (Input::Get().IsMouseLBPressed() || Input::Get().IsMouseRBPressed()) && !Input::Get().IsKeyPressed(KeyCode::z))
+	if (Input::Get().IsKeyPressed(KeyCode::z))
 	{
-		m_mouseScroll += Input::Get().GetMouseScrollOffsetY() / 10;
-		m_mouseScroll = std::clamp(m_mouseScroll, -3.0f, 2.5f);
-		float speedRate = std::pow(2.0f, m_mouseScroll);
-		m_movementSpeed = speedRate * m_initialMovemenSpeed;
-	}
-	if (Input::Get().IsKeyPressed(KeyCode::w) && (Input::Get().IsMouseLBPressed() || Input::Get().IsMouseRBPressed()) && !Input::Get().IsKeyPressed(KeyCode::z))
-	{
-		m_isMayaStyle = false;
-		MoveForward(m_movementSpeed * deltaTime);
-	}
+		// TODO : Only need to happen once in the first time press z.
+		SynchronizeTrackingCamera();
 
-	if (Input::Get().IsKeyPressed(KeyCode::a) && (Input::Get().IsMouseLBPressed() || Input::Get().IsMouseRBPressed()) && !Input::Get().IsKeyPressed(KeyCode::z))
-	{
-		m_isMayaStyle = false;
-		MoveLeft(m_movementSpeed * deltaTime);
-	}
+		if (Input::Get().IsMouseLBPressed() && !m_isFocusing)
+		{
+			m_isTracking = true;
+			ElevationChanging(m_verticalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
+			AzimuthChanging(-m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
+		}
 
-	if (Input::Get().IsKeyPressed(KeyCode::s) && (Input::Get().IsMouseLBPressed() || Input::Get().IsMouseRBPressed()) && !Input::Get().IsKeyPressed(KeyCode::z))
-	{
-		m_isMayaStyle = false;
-		MoveBackward(m_movementSpeed * deltaTime);
-	}
+		if (Input::Get().IsMouseRBPressed())
+		{
+			float scaleDelta = Input::Get().GetMousePositionOffsetX() * deltaTime * 10;
+			m_distanceFromLookAt -= scaleDelta;
+			m_eye = m_eye + m_lookAt * scaleDelta;
+			ControllerToCamera();
+		}
 
-	if (Input::Get().IsKeyPressed(KeyCode::d) && (Input::Get().IsMouseLBPressed() || Input::Get().IsMouseRBPressed()) && !Input::Get().IsKeyPressed(KeyCode::z))
-	{
-		m_isMayaStyle = false;
-		MoveRight(m_movementSpeed * deltaTime);
-	}
+		if (Input::Get().GetMouseScrollOffsetY())
+		{
+			float scaleDelta = Input::Get().GetMouseScrollOffsetY() * deltaTime * 500;
 
-	if (Input::Get().IsKeyPressed(KeyCode::e) && (Input::Get().IsMouseLBPressed() || Input::Get().IsMouseRBPressed()) && !Input::Get().IsKeyPressed(KeyCode::z))
-	{
-		m_isMayaStyle = false;
-		MoveUp(m_movementSpeed * deltaTime);
+			m_distanceFromLookAt -= scaleDelta;
+			m_eye = m_eye + m_lookAt * scaleDelta;
+			ControllerToCamera();
+		}
 	}
+	else
+	{
+		if (Input::Get().IsMouseLBPressed() || Input::Get().IsMouseRBPressed())
+		{
+			if (Input::Get().GetMouseScrollOffsetY())
+			{
+				m_mouseScroll += Input::Get().GetMouseScrollOffsetY() / 10;
+				m_mouseScroll = std::clamp(m_mouseScroll, -3.0f, 2.5f);
+				float speedRate = std::pow(2.0f, m_mouseScroll);
+				m_movementSpeed = speedRate * m_initialMovemenSpeed;
+			}
 
-	if (Input::Get().IsKeyPressed(KeyCode::q) && (Input::Get().IsMouseLBPressed() || Input::Get().IsMouseRBPressed()) && !Input::Get().IsKeyPressed(KeyCode::z))
-	{
-		m_isMayaStyle = false;
-		MoveDown(m_movementSpeed * deltaTime);
-	}
+			if (Input::Get().IsKeyPressed(KeyCode::w))
+			{
+				m_isTracking = false;
+				MoveForward(m_movementSpeed * deltaTime);
+			}
 
-	if (Input::Get().IsMouseLBPressed() && !Input::Get().IsKeyPressed(KeyCode::z)&& !m_isFocusing)
-	{
-		//m_isMayaStyle = false;
-		//Yaw(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
-	}
-	if (Input::Get().IsMouseRBPressed() && !Input::Get().IsKeyPressed(KeyCode::z))
-	{
-		m_isMayaStyle = false;
-		PitchLocal(m_verticalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
-		Yaw(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
-	}
-	if (Input::Get().IsMouseLBPressed() && Input::Get().IsKeyPressed(KeyCode::z) && !m_isFocusing)
-	{
-		m_isMayaStyle = true;
-		SynchronizeMayaCamera();//dont need do this in every update. it'only do once befor using mayastyle
-		ElevationChanging(m_verticalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
-		AzimuthChanging(-m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
-	}
-	if (Input::Get().IsMouseRBPressed() && Input::Get().IsKeyPressed(KeyCode::z))
-	{
-		float scaleDelta = Input::Get().GetMousePositionOffsetX() * deltaTime * 10;
-		m_distanceFromLookAt -= scaleDelta;
-		m_eye = m_eye + m_lookAt * scaleDelta;
-		ControllerToCamera();
-	}
+			if (Input::Get().IsKeyPressed(KeyCode::a))
+			{
+				m_isTracking = false;
+				MoveLeft(m_movementSpeed * deltaTime);
+			}
 
-	if (Input::Get().GetMouseScrollOffsetY() && Input::Get().IsKeyPressed(KeyCode::z))
-	{
-		float scaleDelta = Input::Get().GetMouseScrollOffsetY() * deltaTime * 500;
-	
-		m_distanceFromLookAt -= scaleDelta;
-		m_eye = m_eye + m_lookAt * scaleDelta;
-		ControllerToCamera();
-	}
-	if (Input::Get().Get().IsKeyPressed(KeyCode::z))
-	{
-		SynchronizeMayaCamera();
+			if (Input::Get().IsKeyPressed(KeyCode::s))
+			{
+				m_isTracking = false;
+				MoveBackward(m_movementSpeed * deltaTime);
+			}
+
+			if (Input::Get().IsKeyPressed(KeyCode::d))
+			{
+				m_isTracking = false;
+				MoveRight(m_movementSpeed * deltaTime);
+			}
+
+			if (Input::Get().IsKeyPressed(KeyCode::e))
+			{
+				m_isTracking = false;
+				MoveUp(m_movementSpeed * deltaTime);
+			}
+
+			if (Input::Get().IsKeyPressed(KeyCode::q))
+			{
+				m_isTracking = false;
+				MoveDown(m_movementSpeed * deltaTime);
+			}
+		}
+
+		// TODO : Currently, editor will not capture focus imgui layer.
+		//if (Input::Get().IsMouseLBPressed() && !m_isFocusing)
+		//{
+		//	m_isTracking = false;
+		//	Yaw(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
+		//}
+
+		if (Input::Get().IsMouseRBPressed())
+		{
+			m_isTracking = false;
+			PitchLocal(m_verticalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
+			Yaw(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
+		}
 	}
 }
 
-void CameraController::SetMovementSpeed(const float speed)
+void CameraController::SetMovementSpeed(float speed)
 {
 	m_movementSpeed = speed;
 }
 
-void CameraController::SetSensitivity(const float horizontal, const float verticle)
+void CameraController::SetSensitivity(float horizontal, float verticle)
 {
 	m_horizontalSensitivity = horizontal;
 	m_verticalSensitivity = verticle;
 }
 
-void CameraController::SetHorizontalSensitivity(const float sensitivity)
+void CameraController::SetHorizontalSensitivity(float sensitivity)
 {
 	m_horizontalSensitivity = sensitivity;
 }
 
-void CameraController::SetVerticalSensitivity(const float sensitivity)
+void CameraController::SetVerticalSensitivity(float sensitivity)
 {
 	m_verticalSensitivity = sensitivity;
 }
@@ -196,11 +213,10 @@ engine::TransformComponent* CameraController::GetMainCameraTransformComponent() 
 	return m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity());
 }
 
-cd::Transform CameraController::GetMainCameraTransform() 
+const cd::Transform& CameraController::GetMainCameraTransform() 
 {
 	return m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity())->GetTransform();
 }
-
 
 void CameraController::MoveForward(float amount)
 {
@@ -215,7 +231,7 @@ void CameraController::MoveBackward(float amount)
 
 void CameraController::MoveLeft(float amount)
 {
-	m_eye = m_eye + (m_lookAt.Cross(m_up) * amount);
+	m_eye = m_eye + m_lookAt.Cross(m_up) * amount;
 	ControllerToCamera();
 }
 
@@ -261,7 +277,7 @@ void CameraController::Pitch(float angleDegrees)
 
 void CameraController::Roll(float angleDegrees)
 {
-	Rotate(0.0f, 0.0f,1.0f, angleDegrees);
+	Rotate(0.0f, 0.0f, 1.0f, angleDegrees);
 }
 
 void CameraController::YawLocal(float angleDegrees)
@@ -307,13 +323,14 @@ void CameraController::AzimuthChanging(float angleDegrees)
 	ControllerToCamera();
 }
 
-void CameraController::SynchronizeMayaCamera()
+void CameraController::SynchronizeTrackingCamera()
 {
 	m_lookAtPoint = m_lookAt * m_distanceFromLookAt + m_eye;
 	m_elevation = std::asin(-m_lookAt.y());
-	if (m_up.y() < 0)
+
+	if (cd::Math::IsSmallThanZero(m_up.y()))
 	{
-		if (m_lookAt.y() > 0)
+		if (cd::Math::IsLargeThanZero(m_lookAt.y()))
 		{
 			m_elevation = -cd::Math::PI - m_elevation;
 		}
@@ -335,8 +352,9 @@ void CameraController::CameraFocus(const cd::AABB& aabb)
 	{
 		return;
 	}
+
 	m_isFocusing = true;
-	m_distanceFromLookAt = (aabb.Max() - aabb.Center()).Length() * 3;
+	m_distanceFromLookAt = (aabb.Max() - aabb.Center()).Length() * 3.0f;
 	m_eyeDestination = aabb.Center() - m_lookAt * m_distanceFromLookAt;
 }
 
@@ -344,17 +362,18 @@ void CameraController::Focusing()
 {
 	if (m_isFocusing)
 	{
-		cd::Vec3f eyeMoveDir = (m_eye - m_eyeDestination).Normalize();
-		float stepDistance = (m_eye - m_eyeDestination).Length() / 5;
-		m_eye = m_eye - eyeMoveDir * stepDistance;
-		SynchronizeMayaCamera();
+		cd::Direction eyeMove = (m_eye - m_eyeDestination).Normalize();
+		float stepDistance = (m_eye - m_eyeDestination).Length() / 5.0f;
+		m_eye = m_eye - eyeMove * stepDistance;
+
+		SynchronizeTrackingCamera();
 		ControllerToCamera();
-		if ((m_eye - m_eyeDestination).Length()< 0.1f)
+
+		if (cd::Math::IsSmallThan((m_eye - m_eyeDestination).Length(), 0.1f))
 		{
 			m_isFocusing = false;
 		}
-			
 	}
 }
 
-}	// namespace engine
+}

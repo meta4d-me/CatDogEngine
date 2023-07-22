@@ -33,14 +33,8 @@ public:
 	CameraComponent& operator=(CameraComponent&&) = default;
 	~CameraComponent() = default;
 
-	void BuildView(cd::Transform tranform );
-	void BuildView(cd::Vec3f eye, cd::Vec3f lookAt, cd::Vec3f up);
-	void BuildProject();
-
 	void FrameAll(const cd::AABB& aabb);
 	cd::Ray EmitRay(float screenX, float screenY, float width, float height) const;
-	// Projection
-	const cd::Matrix4x4& GetProjectionMatrix() const { return m_projectionMatrix; }
 
 	void SetAspect(float aspect) { m_aspect = aspect; m_isProjectionDirty = true; }
 	void SetAspect(uint16_t width, uint16_t height) { SetAspect(static_cast<float>(width) / static_cast<float>(height)); }
@@ -63,7 +57,21 @@ public:
 	cd::NDCDepth GetNDCDepth() const { return m_ndcDepth; }
 
 	// View
+	static cd::Vec3f GetLookAt(const cd::Transform& transform) { return transform.GetRotation().ToMatrix3x3() * cd::Vec3f(0, 0, 1); }
+	static cd::Vec3f GetUp(const cd::Transform& transform) { return transform.GetRotation().ToMatrix3x3() * cd::Vec3f(0, 1, 0); }
+	static cd::Vec3f GetCross(const cd::Transform& transform) { return transform.GetRotation().ToMatrix3x3() * cd::Vec3f(1, 0, 0); }
+	static void SetLookAt(const cd::Vec3f& lookAt, cd::Transform& transform);
+	static void SetUp(const cd::Vec3f& up, cd::Transform& transform);
+	static void SetCross(const cd::Vec3f& cross, cd::Transform& transform);
+
+
 	const cd::Matrix4x4& GetViewMatrix() const { return m_viewMatrix; }
+	void BuildViewMatrix(const cd::Transform& tranform);
+	void BuildViewMatrix(const cd::Vec3f& eye, const cd::Vec3f& lookAt, const cd::Vec3f& up);
+	
+	// Projection
+	const cd::Matrix4x4& GetProjectionMatrix() const { return m_projectionMatrix; }
+	void BuildProjectMatrix();
 
 	void Dirty() const { m_isViewDirty = true; m_isProjectionDirty = true; }
 	void ViewDirty() const { m_isViewDirty = true; }

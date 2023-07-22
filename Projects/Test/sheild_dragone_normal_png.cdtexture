@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Texture>
-	<AssetInfo ID="2" Type="Texture" Name="sheild_dragone_normal.png" BinaryFile="sheild_dragone_normal_png.cdbin" BinaryHash="ddf6e9aab3496543f70eed365311e8879db79d7765580d14eac67b013247ca2d"/>
-	<MetaData>
-		<Item Key="FilePath" Value="C:/Users/V/Desktop/model/TestAssets-main/PBR/dragon_shield\textures/sheild_dragone_normal.png"/>
-	</MetaData>
-</Texture>
-
