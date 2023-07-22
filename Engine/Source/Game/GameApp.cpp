@@ -293,7 +293,7 @@ bool GameApp::Update(float deltaTime)
 
 		assert(pMainCameraComponent);
 		m_pCameraController->Update(deltaTime);
-		pMainCameraComponent->BuildProject();
+		pMainCameraComponent->BuildProjectMatrix();
 
 		m_pEngineImGuiContext->Update(deltaTime);
 		for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
