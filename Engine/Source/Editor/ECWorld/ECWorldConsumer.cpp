@@ -10,6 +10,7 @@
 #include "ECWorld/TransformComponent.h"
 #include "Log/Log.h"
 #include "Material/MaterialType.h"
+#include "Math/Transform.hpp"
 #include "Path/Path.h"
 #include "Rendering/RenderContext.h"
 #include "Resources/ResourceBuilder.h"
@@ -165,14 +166,13 @@ void ECWorldConsumer::AddCamera(engine::Entity entity, const cd::Camera& camera)
 	nameComponent.SetName(camera.GetName());
 
 	engine::CameraComponent& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(entity);
-	cameraComponent.SetEye(camera.GetEye());
-	cameraComponent.SetLookAt(camera.GetLookAt());
-	cameraComponent.SetUp(camera.GetUp());
+	const cd::Transform& cameraTransform = m_pSceneWorld->GetTransformComponent(entity)->GetTransform();
 	cameraComponent.SetNearPlane(camera.GetNearPlane());
 	cameraComponent.SetFarPlane(camera.GetFarPlane());
 	cameraComponent.SetAspect(camera.GetAspect());
 	cameraComponent.SetFov(camera.GetFov());
-	cameraComponent.Build();
+	cameraComponent.BuildProjectMatrix();
+	cameraComponent.BuildViewMatrix(cameraTransform);
 }
 
 void ECWorldConsumer::AddLight(engine::Entity entity, const cd::Light& light)

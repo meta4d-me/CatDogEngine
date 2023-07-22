@@ -98,20 +98,18 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     else if (ImGui::MenuItem("Add Camera"))
     {
         engine::Entity entity = AddNamedEntity("Camera");
+        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+        transformComponent.SetTransform(cd::Transform::Identity());
+        transformComponent.Build();
+
         auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(entity);
-        cameraComponent.SetEye(cd::Point(0.0f, 0.0f, -100.0f));
-        cameraComponent.SetLookAt(cd::Direction(0.0f, 0.0f, 1.0f));
-        cameraComponent.SetUp(cd::Direction(0.0f, 1.0f, 0.0f));
         cameraComponent.SetAspect(1.0f);
         cameraComponent.SetFov(45.0f);
         cameraComponent.SetNearPlane(0.1f);
         cameraComponent.SetFarPlane(2000.0f);
         cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
-        cameraComponent.Build();
-
-        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
-        transformComponent.SetTransform(cd::Transform::Identity());
-        transformComponent.Build();
+        cameraComponent.BuildProjectMatrix();
+        cameraComponent.BuildViewMatrix(cd::Transform::Identity());
     }
 
     // ---------------------------------------- Add Light ---------------------------------------- //
@@ -238,8 +236,9 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
     ImGui::PopStyleColor();
 
     ImGui::SameLine();
-    ImGui::TextUnformatted(pNameComponent->GetName());
 
+    ImGui::Selectable(pNameComponent->GetName());
+    
     if (!isEntityActive)
     {
         ImGui::PopStyleColor();
@@ -282,7 +281,24 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
     if (ImGui::IsItemClicked())
     {
         pSceneWorld->SetSelectedEntity(entity);
+        if (ImGui::IsMouseDoubleClicked(0))
+        {
+            if (engine::StaticMeshComponent* pStaticMesh = pSceneWorld->GetStaticMeshComponent(entity))
+            {
+                cd::AABB meshAABB = pStaticMesh->GetAABB();
+                if (engine::TransformComponent* pTransform = pSceneWorld->GetTransformComponent(entity))
+                {
+                    meshAABB = meshAABB.Transform(pTransform->GetWorldMatrix());
+                    m_pCameraController->CameraFocus(meshAABB);
+                    int a = 0;
+                }
+
+      
+            }
+        }
     }
+
+    
 
     //if (m_editingEntityName)
     //{

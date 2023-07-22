@@ -33,12 +33,8 @@ public:
 	CameraComponent& operator=(CameraComponent&&) = default;
 	~CameraComponent() = default;
 
-	void Build();
-
 	void FrameAll(const cd::AABB& aabb);
 	cd::Ray EmitRay(float screenX, float screenY, float width, float height) const;
-	// Projection
-	const cd::Matrix4x4& GetProjectionMatrix() const { return m_projectionMatrix; }
 
 	void SetAspect(float aspect) { m_aspect = aspect; m_isProjectionDirty = true; }
 	void SetAspect(uint16_t width, uint16_t height) { SetAspect(static_cast<float>(width) / static_cast<float>(height)); }
@@ -61,20 +57,25 @@ public:
 	cd::NDCDepth GetNDCDepth() const { return m_ndcDepth; }
 
 	// View
+	static cd::Vec3f GetLookAt(const cd::Transform& transform) { return transform.GetRotation().ToMatrix3x3() * cd::Vec3f(0, 0, 1); }
+	static cd::Vec3f GetUp(const cd::Transform& transform) { return transform.GetRotation().ToMatrix3x3() * cd::Vec3f(0, 1, 0); }
+	static cd::Vec3f GetCross(const cd::Transform& transform) { return transform.GetRotation().ToMatrix3x3() * cd::Vec3f(1, 0, 0); }
+	static void SetLookAt(const cd::Vec3f& lookAt, cd::Transform& transform);
+	static void SetUp(const cd::Vec3f& up, cd::Transform& transform);
+	static void SetCross(const cd::Vec3f& cross, cd::Transform& transform);
+
+
 	const cd::Matrix4x4& GetViewMatrix() const { return m_viewMatrix; }
-
-	void SetEye(cd::Point eye) { m_eye = cd::MoveTemp(eye); m_isViewDirty = true; }
-	const cd::Point& GetEye() const { return m_eye; }
-
-	void SetLookAt(cd::Direction lookAt) { m_lookAt = cd::MoveTemp(lookAt); m_isViewDirty = true; }
-	const cd::Direction& GetLookAt() const { return m_lookAt; }
-
-	void SetUp(cd::Direction up) { m_up = cd::MoveTemp(up); m_isViewDirty = true; }
-	const cd::Direction& GetUp() const { return m_up; }
-
-	const cd::Direction& GetCross() const { return m_cross; }
+	void BuildViewMatrix(const cd::Transform& tranform);
+	void BuildViewMatrix(const cd::Vec3f& eye, const cd::Vec3f& lookAt, const cd::Vec3f& up);
+	
+	// Projection
+	const cd::Matrix4x4& GetProjectionMatrix() const { return m_projectionMatrix; }
+	void BuildProjectMatrix();
 
 	void Dirty() const { m_isViewDirty = true; m_isProjectionDirty = true; }
+	void ViewDirty() const { m_isViewDirty = true; }
+	void ProjectDirty() const { m_isProjectionDirty = true; }
 
 #ifdef EDITOR_MODE
 	bool& GetDoConstrainAspectRatio() { return m_doConstainAspectRatio; }
@@ -97,16 +98,12 @@ private:
 	float m_nearPlane;
 	float m_farPlane;
 	cd::NDCDepth m_ndcDepth;
-	cd::Point m_eye;
-	cd::Direction m_lookAt;
-	cd::Direction m_up;
 
 	// Status
 	mutable bool m_isViewDirty;
 	mutable bool m_isProjectionDirty;
 
 	// Output
-	cd::Direction m_cross;
 	cd::Matrix4x4 m_viewMatrix;
 	cd::Matrix4x4 m_projectionMatrix;
 

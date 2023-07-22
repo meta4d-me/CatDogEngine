@@ -3,6 +3,7 @@
 #include "Core/StringCrc.h"
 #include "Framework/Processor.h"
 #include "Log/Log.h"
+#include "Math/Transform.hpp"
 #include "Path/Path.h"
 #include "Producers/CDProducer/CDProducer.h"
 #include "RenderContext.h"
@@ -97,9 +98,10 @@ void TerrainRenderer::Render(float deltaTime)
 		// Check cull dist
 		const Entity& cameraEntity = m_pCurrentSceneWorld->GetMainCameraEntity();
 		const CameraComponent* cameraComponent = m_pCurrentSceneWorld->GetCameraComponent(cameraEntity);
-		const float dx = cameraComponent->GetEye().x() - m_entityToRenderInfo[entity].m_origin[0];
-		const float dy = cameraComponent->GetEye().y() - m_entityToRenderInfo[entity].m_origin[1];
-		const float dz = cameraComponent->GetEye().z() - m_entityToRenderInfo[entity].m_origin[2];
+		const cd::Transform cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(cameraEntity)->GetTransform();
+		const float dx = cameraTransform.GetTranslation().x() - m_entityToRenderInfo[entity].m_origin[0];
+		const float dy = cameraTransform.GetTranslation().y() - m_entityToRenderInfo[entity].m_origin[1];
+		const float dz = cameraTransform.GetTranslation().z() - m_entityToRenderInfo[entity].m_origin[2];
 		if (m_cullDistanceSquared <= (dx * dx + dy * dy + dz * dz)) {
 			// skip
 			continue;

@@ -2,7 +2,6 @@
 
 #include "Application/Engine.h"
 #include "Display/CameraController.h"
-#include "Display/FirstPersonCameraController.h"
 #include "ECWorld/SceneWorld.h"
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/Localization.h"
@@ -125,32 +124,19 @@ void GameApp::InitECWorld()
 
 	m_pSceneWorld->InitDDGISDK();
 
-	//auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
-	//transformComponent.SetTransform(cd::Transform::Identity());
-	//transformComponent.Build();
-
+	auto& cameraTransformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
+	cameraTransformComponent.SetTransform(cd::Transform::Identity());
+	cameraTransformComponent.Build();
+	auto& cameraTransform = cameraTransformComponent.GetTransform();
 	auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(cameraEntity);
-	cameraComponent.SetEye(cd::Point(0.0f, 0.0f, -100.0f));
-	cameraComponent.SetLookAt(cd::Direction(0.0f, 0.0f, 1.0f));
-	cameraComponent.SetUp(cd::Direction(0.0f, 1.0f, 0.0f));
+	cameraTransform.SetTranslation(cd::Point(0.0f, 0.0f, -100.0f));
+	engine::CameraComponent::SetLookAt(cd::Direction(0.0f, 0.0f, 1.0f), cameraTransform);
+	engine::CameraComponent::SetUp(cd::Direction(0.0f, 1.0f, 0.0f), cameraTransform);
 	cameraComponent.SetAspect(1.0f);
 	cameraComponent.SetFov(45.0f);
 	cameraComponent.SetNearPlane(0.1f);
 	cameraComponent.SetFarPlane(2000.0f);
 	cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
-
-	// Controller for Input events.
-	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(
-		m_pSceneWorld.get(),
-		15.0f /* horizontal sensitivity */,
-		5.0f /* vertical sensitivity */,
-		50.0f /* Movement Speed*/);
-
-	m_pNewCameraController = std::make_unique<engine::CameraController>(
-		m_pSceneWorld.get(),
-		5.0f /* horizontal sensitivity */,
-		5.0f /* vertical sensitivity */,
-		5.0f /* Movement Speed*/);
 
 	InitDDGIEntity();
 	InitSkyEntity();
@@ -197,6 +183,17 @@ void GameApp::InitSkyEntity()
 	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(skyEntity);
 	transformComponent.SetTransform(cd::Transform(cd::Vec3f(0.0f, -1.0f, 0.0f), cd::Quaternion::Identity(), cd::Vec3f::One()));
 	transformComponent.Build();
+}
+
+void GameApp::InitController()
+{
+	// Controller for Input events.
+	m_pCameraController = std::make_shared<engine::CameraController>(
+		m_pSceneWorld.get(),
+		20.0f /* horizontal sensitivity */,
+		20.0f /* vertical sensitivity */,
+		160.0f /* Movement Speed*/);
+	m_pCameraController->CameraToController();
 }
 
 void GameApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
@@ -289,23 +286,14 @@ bool GameApp::Update(float deltaTime)
 	m_pSceneWorld->Update();
 	
 	m_pRenderContext->BeginFrame();
-
 	if (m_pEngineImGuiContext)
 	{
 		engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
-		if (engine::TransformComponent* pTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity()))
-		{
-			cd::Transform transform = pTransformComponent->GetTransform();
-			pMainCameraComponent->SetEye(transform.GetTranslation());
-			cd::Matrix4x4 rotMatrix = transform.GetRotation().ToMatrix4x4();
-			pMainCameraComponent->SetLookAt(cd::Vec3f(rotMatrix.Data(8), rotMatrix.Data(9), rotMatrix.Data(10)));
-			pMainCameraComponent->SetUp(cd::Vec3f(rotMatrix.Data(4), rotMatrix.Data(5), rotMatrix.Data(6)));
-		}
+		cd::Transform pMainCameraTranform = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity())->GetTransform();
 
 		assert(pMainCameraComponent);
-		m_pNewCameraController->Update(deltaTime);
 		m_pCameraController->Update(deltaTime);
-		pMainCameraComponent->Build();
+		pMainCameraComponent->BuildProject();
 
 		m_pEngineImGuiContext->Update(deltaTime);
 		for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
