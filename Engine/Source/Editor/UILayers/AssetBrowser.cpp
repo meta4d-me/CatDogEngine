@@ -723,7 +723,7 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 	}
 	else if (IOAssetType::CubeMap == m_importOptions.AssetType)
 	{
-		std::string relativePath = (std::filesystem::path("Textures/skybox") /
+		std::string relativePath = (std::filesystem::path("Textures") /
 			std::filesystem::path(pFilePath).stem()).generic_string();
 
 		std::filesystem::path absolutePath = CDPROJECT_RESOURCES_ROOT_PATH;
