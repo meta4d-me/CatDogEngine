@@ -28,6 +28,9 @@
 --		targetdir(sdlBuildPath)
 
 local bgfxProjectsPath = path.join(ThirdPartySourcePath, "bgfx/.build/projects/"..IDEConfigs.BuildIDEName)
+if IsAndroidProjectPlatform() then
+	bgfxProjectsPath = path.join(ThirdPartySourcePath, "bgfx/.build/android-arm64/bin")
+end
 group "ThirdParty/bgfx"
 	externalproject("bgfx")
 		kind("StaticLib")
@@ -54,18 +57,18 @@ group "ThirdParty/bgfx"
 		location(bgfxProjectsPath)
 		targetdir(BinariesPath)
 
-group "ThirdParty/bgfx/examples"
+--group "ThirdParty/bgfx/examples"
 
 --print("Load bgfx examples...")
-local allProjects = os.matchfiles(bgfxProjectsPath.."/example-*.vcxproj")
-for _, v in ipairs(allProjects) do
-	local projectName = path.getbasename(v)
-	--print(projectName)
-	externalproject(projectName)
-		kind("ConsoleApp")
-		location(bgfxProjectsPath)
-		targetdir(BinariesPath)
-end
+--local allProjects = os.matchfiles(bgfxProjectsPath.."/example-*.vcxproj")
+--for _, v in ipairs(allProjects) do
+--	local projectName = path.getbasename(v)
+--	--print(projectName)
+--	externalproject(projectName)
+--		kind("ConsoleApp")
+--		location(bgfxProjectsPath)
+--		targetdir(BinariesPath)
+--end
 
 --group "ThirdParty/bgfx/tools"
 --	externalproject("geometryc")
@@ -119,5 +122,5 @@ end
 --		location(bgfxProjectsPath)
 --		targetdir(BinariesPath)
 
-group ""
+--group ""
 --print("================================================================")

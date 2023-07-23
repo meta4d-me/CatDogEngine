@@ -25,6 +25,19 @@ project("Engine")
 			path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
 		},
 	}
+
+	if ENABLE_FREETYPE then
+		files {
+			path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
+		}
+
+		vpaths {
+			["ImGui"] = {
+				path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
+			},
+		}
+	end
+
 	
 	local bgfxBuildBinPath = nil
 	local platformDefines = nil
@@ -52,11 +65,36 @@ project("Engine")
 		path.join(ThirdPartySourcePath, "bx/include"),
 		path.join(ThirdPartySourcePath, "sdl/include"),
 		path.join(ThirdPartySourcePath, "imgui"),
-		path.join(ThirdPartySourcePath, "freetype/include"),
 		table.unpack(platformIncludeDirs),
 		path.join(EnginePath, "BuiltInShaders/shaders"),
 		path.join(EnginePath, "BuiltInShaders/UniformDefines"),
 	}
+
+	if ENABLE_FREETYPE then
+		includedirs {
+			path.join(ThirdPartySourcePath, "freetype/include"),
+		}
+
+		defines {
+			"IMGUI_ENABLE_FREETYPE",
+		}
+
+		filter { "configurations:Debug" }
+			libdirs {
+				path.join(ThirdPartySourcePath, "freetype/build/Debug"),
+			}
+			links {
+				"freetyped"
+			}
+		filter { "configurations:Release" }
+			libdirs {
+				path.join(ThirdPartySourcePath, "freetype/build/Release"),
+			}
+			links {
+				"freetype"
+			}
+		filter {}
+	end
 
 	if ENABLE_SPDLOG then
 		files {
@@ -150,7 +188,6 @@ project("Engine")
 		"SDL_MAIN_HANDLED", -- don't use SDL_main() as entry point
 		"__STDC_LIMIT_MACROS", "__STDC_FORMAT_MACROS", "__STDC_CONSTANT_MACROS",
 		"STB_IMAGE_STATIC",
-		"IMGUI_ENABLE_FREETYPE",
 		GetPlatformMacroName(),
 		table.unpack(platformDefines),
 		"CDENGINE_BUILTIN_SHADER_PATH=\""..BuiltInShaderSourcePath.."\"",
