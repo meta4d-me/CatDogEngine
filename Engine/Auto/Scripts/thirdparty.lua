@@ -28,6 +28,9 @@
 --		targetdir(sdlBuildPath)
 
 local bgfxProjectsPath = path.join(ThirdPartySourcePath, "bgfx/.build/projects/"..IDEConfigs.BuildIDEName)
+if IsAndroidPlatform() then
+	bgfxProjectsPath = path.join(ThirdPartySourcePath, "bgfx/.build/android-arm64/bin")
+end
 group "ThirdParty/bgfx"
 	externalproject("bgfx")
 		kind("StaticLib")
@@ -56,7 +59,7 @@ group "ThirdParty/bgfx"
 
 group "ThirdParty/bgfx/examples"
 
---print("Load bgfx examples...")
+print("Load bgfx examples...")
 local allProjects = os.matchfiles(bgfxProjectsPath.."/example-*.vcxproj")
 for _, v in ipairs(allProjects) do
 	local projectName = path.getbasename(v)
@@ -67,57 +70,57 @@ for _, v in ipairs(allProjects) do
 		targetdir(BinariesPath)
 end
 
---group "ThirdParty/bgfx/tools"
---	externalproject("geometryc")
---		kind("ConsoleApp")
---		location(bgfxProjectsPath)
---		targetdir(BinariesPath)
---
---	externalproject("geometryv")
---		kind("ConsoleApp")
---		location(bgfxProjectsPath)
---		targetdir(BinariesPath)
---
---	externalproject("texturec")
---		kind("ConsoleApp")
---		location(bgfxProjectsPath)
---		targetdir(BinariesPath)
---
---	externalproject("texturev")
---		kind("ConsoleApp")
---		location(bgfxProjectsPath)
---		targetdir(BinariesPath)
+group "ThirdParty/bgfx/tools"
+	externalproject("geometryc")
+		kind("ConsoleApp")
+		location(bgfxProjectsPath)
+		targetdir(BinariesPath)
 
---group "ThirdParty/bgfx/tools/shaderc"
---	externalproject("fcpp")
---		kind("StaticLib")
---		location(bgfxProjectsPath)
---		targetdir(BinariesPath)
---
---	externalproject("glslang")
---		kind("StaticLib")
---		location(bgfxProjectsPath)
---		targetdir(BinariesPath)
---
---	externalproject("glsl-optimizer")
---		kind("StaticLib")
---		location(bgfxProjectsPath)
---		targetdir(BinariesPath)
---
---	externalproject("shaderc")
---		kind("ConsoleApp")
---		location(bgfxProjectsPath)
---		targetdir(BinariesPath)
---
---	externalproject("spirv-cross")
---		kind("StaticLib")
---		location(bgfxProjectsPath)
---		targetdir(BinariesPath)
---
---	externalproject("spirv-opt")
---		kind("StaticLib")
---		location(bgfxProjectsPath)
---		targetdir(BinariesPath)
+	externalproject("geometryv")
+		kind("ConsoleApp")
+		location(bgfxProjectsPath)
+		targetdir(BinariesPath)
+
+	externalproject("texturec")
+		kind("ConsoleApp")
+		location(bgfxProjectsPath)
+		targetdir(BinariesPath)
+
+	externalproject("texturev")
+		kind("ConsoleApp")
+		location(bgfxProjectsPath)
+		targetdir(BinariesPath)
+
+group "ThirdParty/bgfx/tools/shaderc"
+	externalproject("fcpp")
+		kind("StaticLib")
+		location(bgfxProjectsPath)
+		targetdir(BinariesPath)
+
+	externalproject("glslang")
+		kind("StaticLib")
+		location(bgfxProjectsPath)
+		targetdir(BinariesPath)
+
+	externalproject("glsl-optimizer")
+		kind("StaticLib")
+		location(bgfxProjectsPath)
+		targetdir(BinariesPath)
+
+	externalproject("shaderc")
+		kind("ConsoleApp")
+		location(bgfxProjectsPath)
+		targetdir(BinariesPath)
+
+	externalproject("spirv-cross")
+		kind("StaticLib")
+		location(bgfxProjectsPath)
+		targetdir(BinariesPath)
+
+	externalproject("spirv-opt")
+		kind("StaticLib")
+		location(bgfxProjectsPath)
+		targetdir(BinariesPath)
 
 group ""
 --print("================================================================")

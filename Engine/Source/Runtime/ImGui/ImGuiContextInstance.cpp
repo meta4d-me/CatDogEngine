@@ -10,7 +10,10 @@
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui/imgui_internal.h>
+
+#ifdef IMGUI_ENABLE_FREETYPE
 #include <misc/freetype/imgui_freetype.h>
+#endif
 
 //#include <format>
 #include <string>
@@ -510,7 +513,9 @@ void ImGuiContextInstance::LoadFontFiles(const std::vector<std::string>& ttfFile
 	}
 
 	ImFontAtlas* pFontAtlas = ImGui::GetIO().Fonts;
+#ifdef IMGUI_ENABLE_FREETYPE
 	pFontAtlas->FontBuilderIO = ImGuiFreeType::GetBuilderForFreeType();
+#endif
 	pFontAtlas->FontBuilderFlags = 0;
 	pFontAtlas->Build();
 }

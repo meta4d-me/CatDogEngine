@@ -35,6 +35,7 @@ if not os.isdir(DDGI_SDK_PATH) then
 	DDGI_SDK_PATH = ""
 end
 
+ENABLE_FREETYPE = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndroidPlatform()
 ENABLE_SPDLOG = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndroidPlatform()
 ENABLE_TRACY = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndroidPlatform()
 
@@ -111,7 +112,14 @@ workspace(EngineName)
 	location(RootPath)
 	targetdir(BinariesPath)
 	
-	architecture "x64"
+	filter "system:Windows"
+		architecture "x64"
+		system("windows")
+	filter "system:Android"
+		architecture "ARM64"
+		androidapilevel(21)
+		system("android")
+	filter {}
 	
 	-- Set build configs
 	configurations { "Debug", "Release" }
@@ -143,12 +151,21 @@ workspace(EngineName)
 function CopyDllAutomatically()
 	-- copy dll into binary folder automatically.
 	filter { "configurations:Debug" }
-		postbuildcommands {
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Debug/SDL2d.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDProducer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDConsumer.*").."\" \""..BinariesPath.."\"",
-		}
+		if IsAndroidPlatform() then
+			postbuildcommands {
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Debug/SDL2d.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/ARM64/Debug/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/ARM64/Debug/CDProducer.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/ARM64/Debug/CDConsumer.*").."\" \""..BinariesPath.."\"",
+			}
+		else
+			postbuildcommands {
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Debug/SDL2d.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/Debug/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDProducer.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDConsumer.*").."\" \""..BinariesPath.."\"",
+			}
+		end
 
 		if not USE_CLANG_TOOLSET then
 			postbuildcommands {
@@ -158,12 +175,21 @@ function CopyDllAutomatically()
 			}
 		end
 	filter { "configurations:Release" }
-		postbuildcommands {
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Release/SDL2.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CDProducer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CDConsumer.*").."\" \""..BinariesPath.."\"",
-		}
+		if IsAndroidPlatform() then
+			postbuildcommands {
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Release/SDL2.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/ARM64/Release/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/ARM64/Release/CDProducer.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/ARM64/Release/CDConsumer.*").."\" \""..BinariesPath.."\"",
+			}
+		else
+			postbuildcommands {
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Release/SDL2.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CDProducer.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CDConsumer.*").."\" \""..BinariesPath.."\"",
+			}
+		end
 
 		if not USE_CLANG_TOOLSET then
 			postbuildcommands {
@@ -186,7 +212,7 @@ function CopyDllAutomatically()
 end
 
 -- thirdparty projects such as sdl
-dofile("thirdparty.lua")
+--dofile("thirdparty.lua")
 
 -- engine projects
 dofile("engine.lua")
