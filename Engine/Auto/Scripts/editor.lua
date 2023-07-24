@@ -71,6 +71,12 @@ project("Editor")
 		}
 	end
 
+	if not IsAndroidPlatform() then
+		defines {
+			"ENABLE_SUBPROCESS"
+		}
+	end
+
 	-- use /MT /MTd, not /MD /MDd
 	staticruntime "on"
 	filter { "configurations:Debug" }
