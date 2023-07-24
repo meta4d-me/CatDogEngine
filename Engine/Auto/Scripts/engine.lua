@@ -133,9 +133,7 @@ project("Engine")
 		}
 	end
 
-	if IsAndroidPlatform() then
-		--linkOptions { "-Wunused-function" }
-	else
+	if not IsAndroidPlatform() then
 		defines {
 			"ENABLE_SUBPROCESS"
 		}
@@ -150,8 +148,7 @@ project("Engine")
 		}
 		links {
 			"sdl2d", "sdl2maind",
-			"bgfxDebug", "bimgDebug", "bxDebug", "bimg_decodeDebug",
-			"freetyped"
+			"bgfxDebug", "bimgDebug", "bxDebug", "bimg_decodeDebug"
 		}
 	filter { "configurations:Release" }
 		libdirs {
@@ -160,8 +157,7 @@ project("Engine")
 		}
 		links {
 			"sdl2", "sdl2main",
-			"bgfxRelease", "bimgRelease", "bxRelease", "bimg_decodeRelease",
-			"freetype"
+			"bgfxRelease", "bimgRelease", "bxRelease", "bimg_decodeRelease"
 		}
 	filter {}
 	

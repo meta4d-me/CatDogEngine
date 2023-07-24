@@ -165,7 +165,7 @@ function CopyDllAutomatically()
 		else
 			postbuildcommands {
 				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Debug/SDL2d.*").."\" \""..BinariesPath.."\"",
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/Debug/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
 				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDProducer.*").."\" \""..BinariesPath.."\"",
 				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDConsumer.*").."\" \""..BinariesPath.."\"",
 			}

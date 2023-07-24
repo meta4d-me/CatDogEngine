@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace editor
 {
@@ -39,6 +40,10 @@ private:
 
 #else
 
+#include "Base/Template.h"
+
+#include <memory>
+#include <string>
 #include <vector>
 
 namespace editor
