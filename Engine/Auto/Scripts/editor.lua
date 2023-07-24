@@ -71,7 +71,7 @@ project("Editor")
 		}
 	end
 
-	if not IsAndroidPlatform() then
+	if ENABLE_SUBPROCESS then
 		defines {
 			"ENABLE_SUBPROCESS"
 		}
