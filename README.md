@@ -1,8 +1,8 @@
 # CatDogEngine [![Join the chat at https://discord.gg/r2pEPEJH](https://img.shields.io/discord/1054285275133640794?color=%237289DA&label=CatDogEngine&logo=discord&logoColor=white)](https://discord.gg/UDcsdUYKwV)
 
-![win64_vs2019_msvc](https://github.com/CatDogEngine/CatDogEngine/actions/workflows/win64_vs2019_msvc.yml/badge.svg?branch=main)
-![win64_vs2022_msvc](https://github.com/CatDogEngine/CatDogEngine/actions/workflows/win64_vs2022_msvc.yml/badge.svg?branch=main)
-![win64_vs2022_clang](https://github.com/CatDogEngine/CatDogEngine/actions/workflows/win64_vs2022_clang.yml/badge.svg?branch=main)
+[![win64_vs2019_msvc](https://github.com/CatDogEngine/CatDogEngine/actions/workflows/win64_vs2019_msvc.yml/badge.svg?branch=main)](https://github.com/CatDogEngine/CatDogEngine/actions/workflows/win64_vs2019_msvc.yml)
+[![win64_vs2022_msvc](https://github.com/CatDogEngine/CatDogEngine/actions/workflows/win64_vs2022_msvc.yml/badge.svg?branch=main)](https://github.com/CatDogEngine/CatDogEngine/actions/workflows/win64_vs2022_msvc.yml)
+[![win64_vs2022_clang](https://github.com/CatDogEngine/CatDogEngine/actions/workflows/win64_vs2022_clang.yml/badge.svg?branch=main)](https://github.com/CatDogEngine/CatDogEngine/actions/workflows/win64_vs2022_clang.yml)
 
 ## Snapshots
 
