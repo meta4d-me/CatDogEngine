@@ -363,7 +363,6 @@ void CameraController::CameraFocus(const cd::AABB& aabb)
 	m_distanceFromLookAt = (aabb.Max() - aabb.Center()).Length() * 3.0f;
 	m_eyeDestination = aabb.Center() - m_lookAt * m_distanceFromLookAt;
 	m_movementSpeed = aabb.Size().Length() * 1.5f;
-	CD_INFO(m_movementSpeed);
 }
 
 void CameraController::Focusing()
