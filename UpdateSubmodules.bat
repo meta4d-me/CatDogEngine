@@ -1,4 +1,6 @@
+git pull
+
 git submodule init
-git submodule update --recursive --remote
+git submodule update --recursive
 
 pause
