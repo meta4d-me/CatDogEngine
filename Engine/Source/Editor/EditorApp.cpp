@@ -407,9 +407,9 @@ void EditorApp::InitController()
 	// Controller for Input events.
 	m_pCameraController = std::make_shared<engine::CameraController>(
 		m_pSceneWorld.get(),
-		20.0f /* horizontal sensitivity */,
-		20.0f /* vertical sensitivity */,
-		160.0f /* Movement Speed*/);
+		12.0f /* horizontal sensitivity */,
+		12.0f /* vertical sensitivity */,
+		30.0f /* Movement Speed*/);
 	m_pCameraController->CameraToController();
 }
 

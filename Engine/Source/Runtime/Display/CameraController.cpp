@@ -102,7 +102,7 @@ void CameraController::Update(float deltaTime)
 
 		if (Input::Get().IsMouseRBPressed())
 		{
-			float scaleDelta = Input::Get().GetMousePositionOffsetX() * deltaTime * 10;
+			float scaleDelta = (Input::Get().GetMousePositionOffsetX() - Input::Get().GetMousePositionOffsetY()) * deltaTime * 10;
 			m_distanceFromLookAt -= scaleDelta;
 			m_eye = m_eye + m_lookAt * scaleDelta;
 			ControllerToCamera();
@@ -119,12 +119,18 @@ void CameraController::Update(float deltaTime)
 	}
 	else
 	{
+		if (Input::Get().IsMouseMBPressed())
+		{
+			m_isTracking = false;
+			PlanMovingHorizon(Input::Get().GetMousePositionOffsetX() * deltaTime * m_movementSpeed);
+			PlanMovingVertical(Input::Get().GetMousePositionOffsetY() * deltaTime * m_movementSpeed);
+		}
 		if (Input::Get().IsMouseLBPressed() || Input::Get().IsMouseRBPressed())
 		{
 			if (Input::Get().GetMouseScrollOffsetY())
 			{
 				m_mouseScroll += Input::Get().GetMouseScrollOffsetY() / 10;
-				m_mouseScroll = std::clamp(m_mouseScroll, -3.0f, 2.5f);
+				m_mouseScroll = std::clamp(m_mouseScroll, -5.0f, 2.5f);
 				float speedRate = std::pow(2.0f, m_mouseScroll);
 				m_movementSpeed = speedRate * m_initialMovemenSpeed;
 			}
@@ -156,13 +162,13 @@ void CameraController::Update(float deltaTime)
 			if (Input::Get().IsKeyPressed(KeyCode::e))
 			{
 				m_isTracking = false;
-				MoveUp(m_movementSpeed * deltaTime);
+				MoveDown(m_movementSpeed * deltaTime);
 			}
 
 			if (Input::Get().IsKeyPressed(KeyCode::q))
 			{
 				m_isTracking = false;
-				MoveDown(m_movementSpeed * deltaTime);
+				MoveUp(m_movementSpeed * deltaTime);
 			}
 		}
 
@@ -242,7 +248,7 @@ void CameraController::MoveRight(float amount)
 
 void CameraController::MoveUp(float amount)
 {
-	m_eye = m_eye + m_up * amount;
+	m_eye = m_eye + cd::Vec3f(0.0f,1.0f,0.0f) * amount;
 	ControllerToCamera();
 }
 
@@ -374,6 +380,16 @@ void CameraController::Focusing()
 			m_isFocusing = false;
 		}
 	}
+}
+
+void CameraController::PlanMovingHorizon(float amount)
+{
+	MoveLeft(amount);
+}
+
+void CameraController::PlanMovingVertical(float amount)
+{
+	m_eye = m_eye + m_up * amount;
 }
 
 }
