@@ -10,6 +10,7 @@ EnginePath = path.join(RootPath, "Engine")
 BinariesPath = path.join(EnginePath, "Binaries/"..GetPlatformDisplayName())
 IntermediatePath = path.join(EnginePath, "Intermediate/"..GetPlatformDisplayName())
 EngineSourcePath = path.join(EnginePath, "Source")
+AutoPlatformsPath = path.join(EnginePath, "Auto/Platforms")
 
 -- Runtime
 RuntimeSourcePath = path.join(EngineSourcePath, "Runtime")

@@ -37,6 +37,7 @@ end
 
 ENABLE_FREETYPE = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndroidPlatform()
 ENABLE_SPDLOG = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndroidPlatform()
+ENABLE_SUBPROCESS = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndroidPlatform()
 ENABLE_TRACY = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndroidPlatform()
 
 PlatformSettings = {}
@@ -215,14 +216,18 @@ function CopyDllAutomatically()
 	filter {}
 end
 
--- thirdparty projects such as sdl
-dofile("thirdparty.lua")
+-- thirdparty projects
+if not IsAndroidPlatform() then
+	dofile("thirdparty.lua")
+end
 
 -- engine projects
 dofile("engine.lua")
 
 -- editor projects
-dofile("editor.lua")
+if not IsAndroidPlatform() then
+	dofile("editor.lua")
+end
 
 -- game projects
 dofile("game.lua")
@@ -232,3 +237,8 @@ dofile("test.lua")
 
 -- helper projects to compile shaders/textures, trigger makefiles...
 dofile("utility.lua")
+
+-- package
+if IsAndroidPlatform() then
+	dofile("package.lua")
+end

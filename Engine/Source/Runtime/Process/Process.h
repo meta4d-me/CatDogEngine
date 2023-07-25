@@ -58,7 +58,7 @@ public:
 	Process& operator=(const Process&) = delete;
 	Process(Process&&) = default;
 	Process& operator=(Process&&) = default;
-	~Process();
+	~Process() = default;
 
 	void SetWaitUntilFinished(bool doWait) {}
 	void SetCommandArguments(std::vector<std::string> arguments) {}
