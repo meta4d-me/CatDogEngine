@@ -359,8 +359,8 @@ void EditorApp::InitEngineRenderers()
 
 	auto pDebugRenderer = std::make_unique<engine::DebugRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pDebugRenderer = pDebugRenderer.get();
-	pDebugRenderer->SetEnable(false);
 	pDebugRenderer->SetSceneWorld(m_pSceneWorld.get());
+	pDebugRenderer->SetEnable(false);
 	AddEngineRenderer(cd::MoveTemp(pDebugRenderer));
 
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
@@ -374,6 +374,7 @@ void EditorApp::InitEngineRenderers()
 	// But postprocess will bring unnecessary confusion. 
 	auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pPostProcessRenderer->SetSceneWorld(m_pSceneWorld.get());
+	pPostProcessRenderer->SetEnable(true);
 	AddEngineRenderer(cd::MoveTemp(pPostProcessRenderer));
 
 	// Note that if you don't want to use ImGuiRenderer for engine, you should also disable EngineImGuiContext.
