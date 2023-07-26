@@ -87,7 +87,6 @@ void CameraController::ControllerToCamera()
 void CameraController::Update(float deltaTime)
 {
 	Focusing();
-
 	if (Input::Get().IsKeyPressed(KeyCode::z))
 	{
 		// TODO : Only need to happen once in the first time press z.
@@ -102,7 +101,7 @@ void CameraController::Update(float deltaTime)
 
 		if (Input::Get().IsMouseRBPressed())
 		{
-			float scaleDelta = (Input::Get().GetMousePositionOffsetX() - Input::Get().GetMousePositionOffsetY()) * deltaTime * 10.0f;
+			float scaleDelta = (Input::Get().GetMousePositionOffsetX() - Input::Get().GetMousePositionOffsetY()) * deltaTime * m_movementSpeed;
 			m_distanceFromLookAt -= scaleDelta;
 			m_eye = m_eye + m_lookAt * scaleDelta;
 			ControllerToCamera();
@@ -110,7 +109,7 @@ void CameraController::Update(float deltaTime)
 
 		if (Input::Get().GetMouseScrollOffsetY())
 		{
-			float scaleDelta = Input::Get().GetMouseScrollOffsetY() * deltaTime * 500;
+			float scaleDelta = Input::Get().GetMouseScrollOffsetY() * deltaTime * m_movementSpeed * 5.0f;
 
 			m_distanceFromLookAt -= scaleDelta;
 			m_eye = m_eye + m_lookAt * scaleDelta;
