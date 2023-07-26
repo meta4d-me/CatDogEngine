@@ -47,8 +47,7 @@ public:
 	void PitchLocal(float angleDegrees);
 	void RollLocal(float angleDegrees);
 
-	void PlanMovingHorizon(float amount);
-	void PlanMovingVertical(float amount);
+	void Planning(float x, float y);
 
 	// Circling Operations
 	void AzimuthChanging(float amount);

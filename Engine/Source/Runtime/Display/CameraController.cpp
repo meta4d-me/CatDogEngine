@@ -102,7 +102,7 @@ void CameraController::Update(float deltaTime)
 
 		if (Input::Get().IsMouseRBPressed())
 		{
-			float scaleDelta = (Input::Get().GetMousePositionOffsetX() - Input::Get().GetMousePositionOffsetY()) * deltaTime * 10;
+			float scaleDelta = (Input::Get().GetMousePositionOffsetX() - Input::Get().GetMousePositionOffsetY()) * deltaTime * 10.0f;
 			m_distanceFromLookAt -= scaleDelta;
 			m_eye = m_eye + m_lookAt * scaleDelta;
 			ControllerToCamera();
@@ -122,10 +122,11 @@ void CameraController::Update(float deltaTime)
 		if (Input::Get().IsMouseMBPressed())
 		{
 			m_isTracking = false;
-			PlanMovingHorizon(Input::Get().GetMousePositionOffsetX() * deltaTime * m_movementSpeed);
-			PlanMovingVertical(Input::Get().GetMousePositionOffsetY() * deltaTime * m_movementSpeed);
+			float dx = Input::Get().GetMousePositionOffsetX() * deltaTime * m_movementSpeed / 4.0f;
+			float dy = Input::Get().GetMousePositionOffsetY() * deltaTime * m_movementSpeed / 4.0f;
+			Planning(dx, dy);
 		}
-		if (Input::Get().IsMouseLBPressed() || Input::Get().IsMouseRBPressed())
+		if (Input::Get().IsMouseLBPressed() || Input::Get().IsMouseRBPressed() || Input::Get().IsMouseMBPressed())
 		{
 			if (Input::Get().GetMouseScrollOffsetY())
 			{
@@ -248,7 +249,7 @@ void CameraController::MoveRight(float amount)
 
 void CameraController::MoveUp(float amount)
 {
-	m_eye = m_eye + cd::Vec3f(0.0f,1.0f,0.0f) * amount;
+	m_eye = m_eye + cd::Vec3f(0.0f, 1.0f, 0.0f) * amount;
 	ControllerToCamera();
 }
 
@@ -383,14 +384,10 @@ void CameraController::Focusing()
 	}
 }
 
-void CameraController::PlanMovingHorizon(float amount)
+void CameraController::Planning(float x, float y)
 {
-	MoveLeft(amount);
-}
-
-void CameraController::PlanMovingVertical(float amount)
-{
-	m_eye = m_eye + m_up * amount;
+	MoveLeft(x);
+	m_eye = m_eye + m_up * y;
 }
 
 }
