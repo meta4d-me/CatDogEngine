@@ -28,9 +28,8 @@ namespace editor
 namespace Detail
 {
 
-const std::unordered_map<cd::MaterialTextureType, engine::Uber> materialTextureType2Uber
+const std::unordered_map<cd::MaterialTextureType, engine::Uber> materialTextureTypeToUber
 {
-	// TODO : IBL
 	{ cd::MaterialTextureType::BaseColor, engine::Uber::ALBEDO_MAP },
 	{ cd::MaterialTextureType::Normal, engine::Uber::NORMAL_MAP },
 	{ cd::MaterialTextureType::Occlusion, engine::Uber::ORM_MAP },
@@ -41,7 +40,7 @@ const std::unordered_map<cd::MaterialTextureType, engine::Uber> materialTextureT
 
 CD_FORCEINLINE bool IsMaterialTextureTypeValid(cd::MaterialTextureType type)
 {
-	return materialTextureType2Uber.find(type) != materialTextureType2Uber.end();
+	return materialTextureTypeToUber.find(type) != materialTextureTypeToUber.end();
 }
 
 } // namespace Detail
@@ -289,7 +288,8 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 
 	cd::Vec3f albedoColor(1.0f);
 	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
-	engine::StringCrc currentUberOption(shaderSchema.GetUberCombines().at(0));
+	std::vector<engine::Uber> currentUberOptions;
+	engine::StringCrc currentUberOptionsCrc(shaderSchema.GetUberCombines().at(0));
 	if (missRequiredTextures || unknownTextureSlot)
 	{
 		// Give a special red color to notify.
@@ -316,7 +316,10 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 					break;
 				}
 
-				ActivateUberOption(optionalTextureType);
+				if (Detail::IsMaterialTextureTypeValid(optionalTextureType))
+				{
+					currentUberOptions.emplace_back(Detail::materialTextureTypeToUber.at(optionalTextureType));
+				}
 
 				uint8_t textureSlot = optTextureSlot.value();
 				const cd::Texture& optionalTexture = pSceneDatabase->GetTexture(textureID.Data());
@@ -358,7 +361,9 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 				materialComponent.SetBlendMode(blendMode);
 			}
 
-			currentUberOption = shaderSchema.GetProgramCrc(m_activeUberOptions);
+			currentUberOptions.emplace_back(engine::Uber::IBL);
+
+			currentUberOptionsCrc = shaderSchema.GetOptionsCrc(currentUberOptions);
 		}
 		else
 		{
@@ -374,7 +379,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	// Assign a special color for loading resource status.
 	materialComponent.SetMaterialType(pMaterialType);
 	materialComponent.SetMaterialData(pMaterial);
-	materialComponent.SetUberShaderOption(currentUberOption);
+	materialComponent.SetUberShaderOption(currentUberOptionsCrc);
 	materialComponent.SetAlbedoColor(cd::MoveTemp(albedoColor));
 
 	// Textures.
@@ -388,35 +393,6 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	}
 
 	materialComponent.Build();
-}
-
-void ECWorldConsumer::ActivateUberOption(cd::MaterialTextureType textureType)
-{
-	if (Detail::IsMaterialTextureTypeValid(textureType))
-	{
-		m_activeUberOptions.insert(Detail::materialTextureType2Uber.at(textureType));
-	}
-	else
-	{
-		CD_WARN("MaterialTextureType {0} is not a vaild uber option!", GetMaterialPropertyGroupName(textureType));
-	}
-}
-
-void ECWorldConsumer::DeactivateUberOption(cd::MaterialTextureType textureType)
-{
-	if (Detail::IsMaterialTextureTypeValid(textureType))
-	{
-		m_activeUberOptions.erase(std::find(m_activeUberOptions.begin(), m_activeUberOptions.end(), Detail::materialTextureType2Uber.at(textureType)));
-	}
-	else
-	{
-		CD_WARN("MaterialTextureType {0} is not a vaild uber option!", GetMaterialPropertyGroupName(textureType));
-	}
-}
-
-void ECWorldConsumer::ClearActiveUberOption()
-{
-	m_activeUberOptions.clear();
 }
 
 }

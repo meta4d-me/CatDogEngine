@@ -61,7 +61,7 @@ public:
 	void RegisterUberOption(Uber uberOption);
 
 	bool IsUberOptionValid(StringCrc uberOption) const;
-	StringCrc GetProgramCrc(const std::set<Uber>& options) const;
+	StringCrc GetOptionsCrc(const std::vector<Uber>& options) const;
 
 	void SetCompiledProgram(StringCrc uberOption, uint16_t programHandle);
 	uint16_t GetCompiledProgram(StringCrc uberOption) const;

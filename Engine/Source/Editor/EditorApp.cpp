@@ -334,7 +334,7 @@ void EditorApp::InitEngineRenderers()
 	pSkyboxRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pSkyboxRenderer));
 
-	if (EnablePBRSky())
+	if (IsAtmosphericScatteringEnable())
 	{
 		auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 		m_pPBRSkyRenderer = pPBRSkyRenderer.get();
@@ -380,7 +380,7 @@ void EditorApp::InitEngineRenderers()
 	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget));
 }
 
-bool EditorApp::EnablePBRSky() const
+bool EditorApp::IsAtmosphericScatteringEnable() const
 {
 	return engine::GraphicsBackend::OpenGL != engine::Path::GetGraphicsBackend() &&
 		engine::GraphicsBackend::Vulkan != engine::Path::GetGraphicsBackend();
@@ -390,7 +390,7 @@ void EditorApp::InitShaderPrograms() const
 {
 	std::string nonUberBuildPath = CDENGINE_BUILTIN_SHADER_PATH;
 	ShaderBuilder::BuildNonUberShader(nonUberBuildPath + "shaders");
-	if (EnablePBRSky())
+	if (IsAtmosphericScatteringEnable())
 	{
 		std::string atmBuildPath = CDENGINE_BUILTIN_SHADER_PATH;
 		ShaderBuilder::BuildNonUberShader(atmBuildPath + "atm");

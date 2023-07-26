@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Renderer.h"
+#include "ECWorld/SkyComponent.h"
 
 #include <vector>
 
@@ -22,6 +23,7 @@ public:
 
 private:
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
+	SkyComponent* m_pSkyComponent = nullptr;
 };
 
 }

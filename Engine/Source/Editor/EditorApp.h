@@ -64,7 +64,7 @@ public:
 	void InitECWorld();
 	void InitController();
 
-	bool EnablePBRSky() const;
+	bool IsAtmosphericScatteringEnable() const;
 
 private:
 	void InitEditorCameraEntity();

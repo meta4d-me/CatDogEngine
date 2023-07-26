@@ -88,7 +88,8 @@ public:
 
 	// Shader data.
 	void SetUberShaderOption(StringCrc uberOption);
-	StringCrc GetUberShaderOption() const;
+	const StringCrc& GetUberShaderOption() const;
+	StringCrc& GetUberShaderOption();
 	uint16_t GetShadingProgram() const;
 
 	// Texture data.

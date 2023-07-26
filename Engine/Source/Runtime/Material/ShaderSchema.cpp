@@ -98,17 +98,18 @@ uint16_t ShaderSchema::GetCompiledProgram(StringCrc uberOption) const
 	return programHandle;
 }
 
-StringCrc ShaderSchema::GetProgramCrc(const std::set<Uber>& options) const
+StringCrc ShaderSchema::GetOptionsCrc(const std::vector<Uber>& options) const
 {
 	if (options.empty())
 	{
 		return DefaultUberOption;
 	}
 
-	// Ignore option which contain in parameter but not contain in m_uberOptions.
 	std::stringstream ss;
+	// Use the option order in m_uberOptions to ensure that inputs in different orders can get the same optionsCrc.
 	for (const auto& registered : m_uberOptions)
 	{
+		// Ignore option which contain in parameter but not contain in m_uberOptions.
 		if (std::find(options.begin(), options.end(), registered) != options.end())
 		{
 			ss << details::GetUberName(registered);

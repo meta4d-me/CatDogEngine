@@ -39,7 +39,6 @@ public:
 private:
 	void UpdateToolMenuButtons();
 	void Update2DAnd3DButtons();
-	void UpdateSwitchIBLButton();
 	void UpdateSwitchAABBButton();
 	void UpdateOperationButtons();
 	
