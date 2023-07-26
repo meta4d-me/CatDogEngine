@@ -4,7 +4,6 @@
 
 #include "../UniformDefines/U_Environment.sh"
 
-
 #if !defined(IBL) && !defined(ATM)
 	#define NO_ENVERONMENT
 #endif
@@ -32,8 +31,6 @@ vec2 SampleIBLSpecularBRDFLUT(float NdotV, float roughness) {
 vec3 GetEnvironment(Material material, vec3 vertexNormal, vec3 viewDir) {
 	vec3 envColor = vec3_splat(0.0);
 	
-	vec3 envIrradiance = vec3_splat(1.0);
-	vec3 envRadiance = vec3_splat(1.0);
 	vec3 reflectDir = normalize(reflect(-viewDir, material.normal));
 	float NdotV = max(dot(material.normal, viewDir), 0.0);
 	
@@ -47,9 +44,9 @@ vec3 GetEnvironment(Material material, vec3 vertexNormal, vec3 viewDir) {
 	float mip = clamp(6.0 * material.roughness, 0.1, 6.0);
 	
 	// Environment Prefiltered Irradiance
-	envIrradiance = SampleEnvIrradiance(material.normal, mip);
+	vec3 envIrradiance = SampleEnvIrradiance(material.normal, 0.0);
 	// Environment Specular Radiance
-	envRadiance = SampleEnvRadiance(reflectDir, mip);
+	vec3 envRadiance = SampleEnvRadiance(reflectDir, mip);
 	
 	// Environment Specular BRDF
 	vec2 lut = SampleIBLSpecularBRDFLUT(NdotV, material.roughness);

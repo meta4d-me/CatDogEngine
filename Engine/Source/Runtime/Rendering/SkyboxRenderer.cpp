@@ -10,10 +10,11 @@ namespace engine
 namespace
 {
 
-constexpr uint16_t sampleFalg = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
-constexpr uint16_t renderState = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
 constexpr const char* skyboxSampler = "s_texSkybox";
 constexpr const char* skyboxShader = "skyboxShader";
+
+constexpr uint16_t sampleFalg = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
+constexpr uint16_t renderState = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
 
 }
 
@@ -24,7 +25,7 @@ void SkyboxRenderer::Init()
 	m_pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
 	GetRenderContext()->CreateUniform(skyboxSampler, bgfx::UniformType::Sampler);
-
+	GetRenderContext()->CreateTexture(m_pSkyComponent->GetRadianceTexturePath().c_str(), sampleFalg);
 	GetRenderContext()->CreateProgram(skyboxShader, "vs_skybox.bin", "fs_skybox.bin");
 
 	bgfx::setViewName(GetViewID(), "SkyboxRenderer");
@@ -66,19 +67,19 @@ void SkyboxRenderer::Render(float deltaTime)
 	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()});
 	bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
 
-	constexpr StringCrc sampler(skyboxSampler);
-	constexpr StringCrc program(skyboxShader);
+	constexpr StringCrc samplerCrc(skyboxSampler);
+	constexpr StringCrc programCrc(skyboxShader);
 
 	// Create a new TextureHandle each frame if the skybox texture path has been updated,
 	// otherwise RenderContext::CreateTexture will automatically skip it.
 	GetRenderContext()->CreateTexture(m_pSkyComponent->GetRadianceTexturePath().c_str(), sampleFalg);
 
 	bgfx::setTexture(0,
-		GetRenderContext()->GetUniform(sampler),
+		GetRenderContext()->GetUniform(samplerCrc),
 		GetRenderContext()->GetTexture(StringCrc(m_pSkyComponent->GetRadianceTexturePath())));
 
 	bgfx::setState(renderState);
-	bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(program));
+	bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(programCrc));
 }
 
 }

@@ -2,7 +2,6 @@
 
 #include "Log/Log.h"
 #include "Math/Box.hpp"
-#include "Math/MeshGenerator.h"
 #include "RenderContext.h"
 #include "Scene/Mesh.h"
 #include "Scene/VertexFormat.h"
