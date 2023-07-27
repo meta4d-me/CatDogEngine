@@ -139,14 +139,14 @@ void Tooltip(const char* text)
 	ImGui::PopStyleVar();
 }
 
-cd::Vec3f GetVec3fFormString(std::string color)
+cd::Vec3f GetVec3fFormString(std::string str)
 {
 	std::string digits;
-	size_t start = color.find("(");
-	size_t end = color.find(")");
+	size_t start = str.find("(");
+	size_t end = str.find(")");
 	if (start != std::string::npos && end != std::string::npos)
 	{
-		digits = color.substr(start + 1, end - start - 1);
+		digits = str.substr(start + 1, end - start - 1);
 	}
 	std::istringstream iss(digits);
 	float num1, num2, num3;
