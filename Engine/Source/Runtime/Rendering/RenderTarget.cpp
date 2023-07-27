@@ -50,21 +50,24 @@ void RenderTarget::Resize(uint16_t width, uint16_t height)
 	{
 		std::vector<bgfx::TextureHandle> textureHandles;
 		textureHandles.reserve(m_attachmentDescriptors.size());
+		uint64_t msaaFlag = 1ULL << BGFX_TEXTURE_RT_MSAA_SHIFT;
 		for (const auto& attachmentDescriptor : m_attachmentDescriptors)
 		{
-			const uint64_t tsFlags = BGFX_TEXTURE_RT | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
+			uint64_t textureFlags = 0ULL;
 			bgfx::TextureFormat::Enum textureFormat;
 			switch (attachmentDescriptor.textureFormat)
 			{
 			case TextureFormat::D32F:
 				textureFormat = bgfx::TextureFormat::D32F;
+				textureFlags |= BGFX_TEXTURE_RT_WRITE_ONLY | msaaFlag;
 				break;
 			case TextureFormat::RGBA32F:
 			default:
 				textureFormat = bgfx::TextureFormat::RGBA32F;
+				textureFlags |= BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_TEXTURE_MSAA_SAMPLE | msaaFlag;
 				break;
 			};
-			textureHandles.push_back(bgfx::createTexture2D(width, height, false, 1, textureFormat, tsFlags));
+			textureHandles.push_back(bgfx::createTexture2D(width, height, false, 1, textureFormat, textureFlags));
 		}
 		*m_pFrameBufferHandle = bgfx::createFrameBuffer(static_cast<uint8_t>(textureHandles.size()), textureHandles.data(), true);
 	}
