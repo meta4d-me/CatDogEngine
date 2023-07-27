@@ -22,6 +22,8 @@
 #include "Producers/GenericProducer/GenericProducer.h"
 #endif
 
+#include <json/json.hpp>
+
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui/imgui_internal.h>
@@ -81,6 +83,21 @@ bool IsModelInputFile(const char* pFileExtension)
 	return false;
 }
 
+bool IsLightInputFile(const char* pFileExtension)
+{
+	constexpr const char* pFileExtensions[] = { ".json"};
+	constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
+	for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
+	{
+		if (0 == strcmp(pFileExtensions[extensionIndex], pFileExtension))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 std::string GetFilePathExtension(const std::string& FileName)
 {
 	auto pos = FileName.find_last_of('.');
@@ -120,6 +137,30 @@ void Tooltip(const char* text)
 	}
 
 	ImGui::PopStyleVar();
+}
+
+cd::Vec3f GetVec3fFormString(std::string color)
+{
+	std::string digits;
+	size_t start = color.find("(");
+	size_t end = color.find(")");
+	if (start != std::string::npos && end != std::string::npos)
+	{
+		digits = color.substr(start + 1, end - start - 1);
+	}
+	std::istringstream iss(digits);
+	float num1, num2, num3;
+	char comma;
+	iss >> num1 >> comma >> num2 >> comma >> num3;
+	return cd::Vec3f(num1, num2, num3);
+}
+
+float GetFloatFormString(std::string str)
+{
+	float num;
+	std::istringstream iss(str);
+	iss >> num; 
+	return num;
 }
 
 }
@@ -318,6 +359,13 @@ void AssetBrowser::UpdateAssetFolderTree()
 			m_pImportFileBrowser->SetTitle("ImportAssets - DDGI Model");
 			m_pImportFileBrowser->Open();
 
+			CD_INFO("Import asset type: {}", GetDDGITextureTypeName(m_importOptions.AssetType));
+		}
+		else if (ImGui::Selectable("Light form json"))
+		{
+			m_importOptions.AssetType = IOAssetType::Light;
+			m_pImportFileBrowser->SetTitle("ImportAssets - Light");
+			m_pImportFileBrowser->Open();
 			CD_INFO("Import asset type: {}", GetDDGITextureTypeName(m_importOptions.AssetType));
 		}
 
@@ -678,7 +726,6 @@ bool AssetBrowser::UpdateOptionDialog(const char* pTitle, bool& active, bool& im
 		}
 		ImGui::EndPopup();
 	}
-
 	return finish;
 }
 
@@ -708,6 +755,10 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		else if (IsModelInputFile(pFileExtension.c_str()))
 		{
 			m_importOptions.AssetType = IOAssetType::Model;
+		}
+		else if (IsLightInputFile(pFileExtension.c_str()))
+		{
+			m_importOptions.AssetType = IOAssetType::Light;
 		}
 		else
 		{
@@ -772,6 +823,10 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		outputFilePath += "Shaders/" + inputFileName + ".bin";
 		ResourceBuilder::Get().AddShaderBuildTask(shaderType, pFilePath, outputFilePath.c_str());
 		ResourceBuilder::Get().Update();
+	}
+	else if (IOAssetType::Light == m_importOptions.AssetType)
+	{
+		ImportLight(pFilePath);
 	}
 }
 
@@ -882,6 +937,83 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 	}
 }
 
+void AssetBrowser::ImportLight(const char* pFilePath)
+{
+	engine::SceneWorld* pSceneWorld = GetSceneWorld();
+	engine::World* pWorld = pSceneWorld->GetWorld();
+	cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
+
+	auto AddNamedEntity = [&pWorld](std::string defaultName) -> engine::Entity
+	{
+		engine::Entity entity = pWorld->CreateEntity();
+		auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
+		nameComponent.SetName(defaultName + std::to_string(entity));
+
+		return entity;
+	};
+
+	auto CreateLightComponents = [&pWorld](engine::Entity entity, cd::LightType lightType, float intensity, cd::Vec3f color) -> engine::LightComponent&
+	{
+		auto& lightComponent = pWorld->CreateComponent<engine::LightComponent>(entity);
+		lightComponent.SetType(lightType);
+		lightComponent.SetIntensity(intensity);
+		lightComponent.SetColor(color);
+
+		auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+		transformComponent.SetTransform(cd::Transform::Identity());
+		transformComponent.Build();
+
+		return lightComponent;
+	};
+
+	std::ifstream file(pFilePath);
+	if (file.is_open())
+	{
+		std::stringstream buffer;
+		buffer << file.rdbuf();
+		std::string jsonString = buffer.str();
+		file.close();
+		nlohmann::json jsonData = nlohmann::json::parse(jsonString);
+		nlohmann::json lightsArray = jsonData["lights"];
+		for (auto& light : lightsArray)
+		{
+			std::string name = light["name"];
+			std::string lightType = light["type"];
+			std::string color = light["color"];
+			std::string intensity = light["intensity"];
+			std::string position = light["worldpos"];
+			std::string lightDir = light["worlddir"];
+			std::string range = light["range"];
+			std::string innerangle = light["innerSpotAngle"];
+			std::string outerangle = light["spotAngle"];
+			engine::Entity entity = AddNamedEntity(light["name"]);
+			if (0 == std::strcmp(lightType.c_str(),"Point"))
+			{
+				auto& lightComponent = CreateLightComponents(entity, cd::LightType::Point, GetFloatFormString(intensity), GetVec3fFormString(color) / 255.0f);
+				lightComponent.SetPosition(GetVec3fFormString(position));
+				lightComponent.SetRange(GetFloatFormString(range));
+			}
+			else if (0 == std::strcmp(lightType.c_str(), "Directional"))
+			{
+				auto& lightComponent = CreateLightComponents(entity, cd::LightType::Directional, GetFloatFormString(intensity), GetVec3fFormString(color) / 255.0f);
+				lightComponent.SetDirection(GetVec3fFormString(lightDir));
+			}
+			else if (0 == std::strcmp(lightType.c_str(), "Spot"))
+			{
+				auto& lightComponent = CreateLightComponents(entity, cd::LightType::Spot, GetFloatFormString(intensity), GetVec3fFormString(color) / 255.0f);
+				lightComponent.SetPosition(GetVec3fFormString(position));
+				lightComponent.SetDirection(GetVec3fFormString(lightDir));
+				lightComponent.SetRange(GetFloatFormString(range));
+				lightComponent.SetInnerAndOuter(GetFloatFormString(innerangle), GetFloatFormString(outerangle));
+			}
+		}
+	}
+	else
+	{
+		CD_INFO("Open Joson file failed");
+	}
+}
+
 void AssetBrowser::ExportAssetFile(const char* pFilePath)
 {
 	engine::SceneWorld* pSceneWorld = GetImGuiContextInstance()->GetSceneWorld();
@@ -943,7 +1075,6 @@ void AssetBrowser::Update()
 	{
 		m_importOptions.Active = true;
 	}
-	
 	if (UpdateOptionDialog("Import Options", m_importOptions.Active, m_importOptions.ImportMesh, m_importOptions.ImportMaterial, m_importOptions.ImportTexture,
 		m_importOptions.ImportCamera, m_importOptions.ImportLight))
 	{
