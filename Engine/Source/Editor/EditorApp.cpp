@@ -334,7 +334,7 @@ void EditorApp::InitEngineRenderers()
 	pSkyboxRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pSkyboxRenderer));
 
-	if (EnablePBRSky())
+	if (IsAtmosphericScatteringEnable())
 	{
 		auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 		m_pPBRSkyRenderer = pPBRSkyRenderer.get();
@@ -359,8 +359,8 @@ void EditorApp::InitEngineRenderers()
 
 	auto pDebugRenderer = std::make_unique<engine::DebugRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pDebugRenderer = pDebugRenderer.get();
-	pDebugRenderer->SetEnable(false);
 	pDebugRenderer->SetSceneWorld(m_pSceneWorld.get());
+	pDebugRenderer->SetEnable(false);
 	AddEngineRenderer(cd::MoveTemp(pDebugRenderer));
 
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
@@ -374,13 +374,14 @@ void EditorApp::InitEngineRenderers()
 	// But postprocess will bring unnecessary confusion. 
 	auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pPostProcessRenderer->SetSceneWorld(m_pSceneWorld.get());
+	pPostProcessRenderer->SetEnable(true);
 	AddEngineRenderer(cd::MoveTemp(pPostProcessRenderer));
 
 	// Note that if you don't want to use ImGuiRenderer for engine, you should also disable EngineImGuiContext.
 	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget));
 }
 
-bool EditorApp::EnablePBRSky() const
+bool EditorApp::IsAtmosphericScatteringEnable() const
 {
 	return engine::GraphicsBackend::OpenGL != engine::Path::GetGraphicsBackend() &&
 		engine::GraphicsBackend::Vulkan != engine::Path::GetGraphicsBackend();
@@ -390,7 +391,7 @@ void EditorApp::InitShaderPrograms() const
 {
 	std::string nonUberBuildPath = CDENGINE_BUILTIN_SHADER_PATH;
 	ShaderBuilder::BuildNonUberShader(nonUberBuildPath + "shaders");
-	if (EnablePBRSky())
+	if (IsAtmosphericScatteringEnable())
 	{
 		std::string atmBuildPath = CDENGINE_BUILTIN_SHADER_PATH;
 		ShaderBuilder::BuildNonUberShader(atmBuildPath + "atm");
@@ -407,9 +408,9 @@ void EditorApp::InitController()
 	// Controller for Input events.
 	m_pCameraController = std::make_shared<engine::CameraController>(
 		m_pSceneWorld.get(),
-		20.0f /* horizontal sensitivity */,
-		20.0f /* vertical sensitivity */,
-		160.0f /* Movement Speed*/);
+		12.0f /* horizontal sensitivity */,
+		12.0f /* vertical sensitivity */,
+		30.0f /* Movement Speed*/);
 	m_pCameraController->CameraToController();
 }
 

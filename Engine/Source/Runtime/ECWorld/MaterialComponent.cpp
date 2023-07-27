@@ -130,7 +130,12 @@ void MaterialComponent::SetUberShaderOption(StringCrc uberOption)
 	m_uberShaderOption = uberOption;
 }
 
-StringCrc MaterialComponent::GetUberShaderOption() const
+const StringCrc& MaterialComponent::GetUberShaderOption() const
+{
+	return m_uberShaderOption;
+}
+
+StringCrc& MaterialComponent::GetUberShaderOption()
 {
 	return m_uberShaderOption;
 }

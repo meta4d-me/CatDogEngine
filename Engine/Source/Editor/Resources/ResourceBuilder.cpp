@@ -98,6 +98,7 @@ std::string ResourceBuilder::GetModifyCacheFilePath()
 	{
 		return (appDataPath.value() / engine::Path::EngineName / "modifyTimeCache.bin").string();
 	}
+
 	CD_ERROR("Can not find application data path!");
 	return "";
 }
@@ -251,7 +252,7 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 	return true;
 }
 
-bool ResourceBuilder::AddIrradianceCubeMapBuildTask(const char *pInputFilePath, const char *pOutputFilePath)
+bool ResourceBuilder::AddIrradianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath)
 {
 	if (s_SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
 	{
@@ -274,7 +275,7 @@ bool ResourceBuilder::AddIrradianceCubeMapBuildTask(const char *pInputFilePath, 
 	return true;
 }
 
-bool ResourceBuilder::AddRadianceCubeMapBuildTask(const char *pInputFilePath, const char *pOutputFilePath)
+bool ResourceBuilder::AddRadianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath)
 {
 	if (s_SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
 	{
