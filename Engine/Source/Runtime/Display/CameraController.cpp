@@ -123,7 +123,7 @@ void CameraController::Update(float deltaTime)
 			m_isTracking = false;
 			float dx = Input::Get().GetMousePositionOffsetX() * deltaTime * m_movementSpeed / 4.0f;
 			float dy = Input::Get().GetMousePositionOffsetY() * deltaTime * m_movementSpeed / 4.0f;
-			Planning(dx, dy);
+			Panning(dx, dy);
 		}
 		if (Input::Get().IsMouseLBPressed() || Input::Get().IsMouseRBPressed() || Input::Get().IsMouseMBPressed())
 		{
@@ -383,7 +383,7 @@ void CameraController::Focusing()
 	}
 }
 
-void CameraController::Planning(float x, float y)
+void CameraController::Panning(float x, float y)
 {
 	MoveLeft(x);
 	m_eye = m_eye + m_up * y;
