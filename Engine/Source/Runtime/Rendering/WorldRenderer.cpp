@@ -39,6 +39,12 @@ constexpr const char* lightParams             = "u_lightParams";
 constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 
+const std::unordered_map<SkyType, Uber> skyTypeToUber
+{
+	{SkyType::SkyBox, Uber::IBL},
+	{SkyType::AtmosphericScattering, Uber::ATM},
+};
+
 }
 
 void WorldRenderer::Init()
@@ -128,8 +134,34 @@ void WorldRenderer::Render(float deltaTime)
 		}
 
 		SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+		static SkyType preSkyTypes = pSkyComponent->GetSkyType();
+		SkyType crtSkyTypes = pSkyComponent->GetSkyType();
 
-		if (pSkyComponent->GetSkyType() == SkyType::SkyBox){
+		if (crtSkyTypes != preSkyTypes)
+		{
+			if (SkyType::None == crtSkyTypes)
+			{
+				pMaterialComponent->DeactiveUberShaderOption(skyTypeToUber.at(SkyType::SkyBox));
+				pMaterialComponent->DeactiveUberShaderOption(skyTypeToUber.at(SkyType::AtmosphericScattering));
+				pMaterialComponent->MatchUberShaderCrc();
+			}
+			else if (SkyType::SkyBox == crtSkyTypes || SkyType::AtmosphericScattering== crtSkyTypes)
+			{
+				if (SkyType::None != preSkyTypes)
+				{
+					pMaterialComponent->DeactiveUberShaderOption(skyTypeToUber.at(preSkyTypes));
+				}
+				pMaterialComponent->ActiveUberShaderOption(skyTypeToUber.at(crtSkyTypes));
+				pMaterialComponent->MatchUberShaderCrc();
+			}
+			else
+			{
+				CD_ERROR("Unknown SkyType!");
+			}
+			preSkyTypes = crtSkyTypes;
+		}
+
+		if (crtSkyTypes == SkyType::SkyBox){
 			// Create a new TextureHandle each frame if the skybox texture path has been updated,
 			// otherwise RenderContext::CreateTexture will automatically skip it.
 
@@ -194,7 +226,7 @@ void WorldRenderer::Render(float deltaTime)
 
 		bgfx::setState(state);
 
-		bgfx::submit(GetViewID(), bgfx::ProgramHandle{pMaterialComponent->GetShadingProgram()});
+		bgfx::submit(GetViewID(), bgfx::ProgramHandle{pMaterialComponent->GetShadreProgram()});
 	}
 }
 

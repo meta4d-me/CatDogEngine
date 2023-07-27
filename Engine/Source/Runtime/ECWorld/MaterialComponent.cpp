@@ -125,31 +125,32 @@ const MaterialComponent::TextureInfo* MaterialComponent::GetTextureInfo(cd::Mate
 	return &itTextureInfo->second;
 }
 
-void MaterialComponent::SetUberShaderOption(StringCrc uberOption)
+void MaterialComponent::ActiveUberShaderOption(engine::Uber option)
 {
-	m_uberShaderOption = uberOption;
+	m_uberShaderOptions.insert(option);
 }
 
-const StringCrc& MaterialComponent::GetUberShaderOption() const
+void MaterialComponent::DeactiveUberShaderOption(engine::Uber option)
 {
-	return m_uberShaderOption;
+	m_uberShaderOptions.erase(option);
 }
 
-StringCrc& MaterialComponent::GetUberShaderOption()
+void MaterialComponent::MatchUberShaderCrc()
 {
-	return m_uberShaderOption;
+	m_uberShaderCrc = m_pMaterialType->GetShaderSchema().GetOptionsCrc(m_uberShaderOptions);
 }
 
-uint16_t MaterialComponent::GetShadingProgram() const
+uint16_t MaterialComponent::GetShadreProgram() const
 {
-	return m_pMaterialType->GetShaderSchema().GetCompiledProgram(m_uberShaderOption);
+	return m_pMaterialType->GetShaderSchema().GetCompiledProgram(m_uberShaderCrc);
 }
 
 void MaterialComponent::Reset()
 {
 	m_pMaterialData = nullptr;
 	m_pMaterialType = nullptr;
-	m_uberShaderOption = ShaderSchema::DefaultUberOption;
+	m_uberShaderOptions.clear();
+	m_uberShaderCrc = ShaderSchema::DefaultUberOptionCrc;
 	m_name.clear();
 	m_albedoColor = cd::Vec3f::One();
 	m_emissiveColor = cd::Vec3f::One();

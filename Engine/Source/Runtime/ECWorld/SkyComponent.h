@@ -10,7 +10,8 @@ namespace engine
 
 enum class SkyType
 {
-	SkyBox = 0,
+	None = 0,
+	SkyBox,
 	AtmosphericScattering,
 
 	Count,
@@ -18,6 +19,7 @@ enum class SkyType
 
 constexpr const char *SkyTypeName[] =
 {
+	"None",
 	"Skybox",
 	"Atmospheric Scattering",
 };

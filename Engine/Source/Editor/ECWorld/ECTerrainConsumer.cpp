@@ -90,7 +90,7 @@ void ECTerrainConsumer::AddMaterial(engine::Entity entity, const cd::Material* p
 
 	const std::string outputFSFilePath = GetShaderOutputFilePath(shaderSchema.GetFragmentShaderPath());
 	ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Fragment, shaderSchema.GetFragmentShaderPath(), outputFSFilePath.c_str());
-	engine::StringCrc currentUberOption = engine::ShaderSchema::DefaultUberOption;
+	engine::StringCrc currentUberOption = engine::ShaderSchema::DefaultUberOptionCrc;
 
 	// TODO : ResourceBuilder will move to EditorApp::Update in the future.
 	// Now let's wait all resource build tasks done here.
@@ -101,7 +101,7 @@ void ECTerrainConsumer::AddMaterial(engine::Entity entity, const cd::Material* p
 	materialComponent.Init();
 	materialComponent.SetMaterialType(pMaterialType);
 	materialComponent.SetMaterialData(pMaterial);
-	materialComponent.SetUberShaderOption(currentUberOption);
+	materialComponent.SetUberShaderCrc(currentUberOption);
 
 	// Textures
 	cd::TextureID elevationTextureID = pMaterial->GetTextureID(cd::MaterialTextureType::Elevation);
@@ -124,11 +124,11 @@ void ECTerrainConsumer::AddMaterial(engine::Entity entity, const cd::Material* p
 	const engine::ShaderSchema::ShaderBlob& VSBlob = shaderSchema.GetVSBlob();
 	bgfx::ShaderHandle vsHandle = bgfx::createShader(bgfx::makeRef(VSBlob.data(), static_cast<uint32_t>(VSBlob.size())));
 
-	shaderSchema.AddUberOptionFSBlob(engine::ShaderSchema::DefaultUberOption, ResourceLoader::LoadShader(outputFSFilePath.c_str()));
-	const engine::ShaderSchema::ShaderBlob& FSBlob = shaderSchema.GetFSBlob(engine::ShaderSchema::DefaultUberOption);
+	shaderSchema.AddUberOptionFSBlob(engine::ShaderSchema::DefaultUberOptionCrc, ResourceLoader::LoadShader(outputFSFilePath.c_str()));
+	const engine::ShaderSchema::ShaderBlob& FSBlob = shaderSchema.GetFSBlob(engine::ShaderSchema::DefaultUberOptionCrc);
 	bgfx::ShaderHandle fsHandle = bgfx::createShader(bgfx::makeRef(FSBlob.data(), static_cast<uint32_t>(FSBlob.size())));
 	bgfx::ProgramHandle uberProgramHandle = bgfx::createProgram(vsHandle, fsHandle);
-	shaderSchema.SetCompiledProgram(engine::ShaderSchema::DefaultUberOption, uberProgramHandle.idx);
+	shaderSchema.SetCompiledProgram(engine::ShaderSchema::DefaultUberOptionCrc, uberProgramHandle.idx);
 
 	materialComponent.Build();
 }
@@ -140,7 +140,7 @@ std::string ECTerrainConsumer::GetShaderOutputFilePath(const char* pInputFilePat
 	std::filesystem::path outputShaderPath = engine::Path::GetShaderOutputDirectory() / inputShaderFileName;
 	if (pAppendFileName)
 	{
-		if (engine::ShaderSchema::DefaultUberOption != engine::StringCrc(pAppendFileName))
+		if (engine::ShaderSchema::DefaultUberOptionCrc != engine::StringCrc(pAppendFileName))
 		{
 			outputShaderPath += "_";
 			outputShaderPath += pAppendFileName;

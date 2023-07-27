@@ -266,7 +266,7 @@ void DDGIRenderer::Render(float deltaTime)
 		}
 		bgfx::setState(state);
 
-		bgfx::submit(GetViewID(), bgfx::ProgramHandle{pMaterialComponent->GetShadingProgram()});
+		bgfx::submit(GetViewID(), bgfx::ProgramHandle{pMaterialComponent->GetShadreProgram()});
 	}
 }
 

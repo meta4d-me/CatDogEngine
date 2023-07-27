@@ -51,6 +51,7 @@ void SceneWorld::CreatePBRMaterialType()
 	shaderSchema.RegisterUberOption(Uber::ORM_MAP);
 	shaderSchema.RegisterUberOption(Uber::EMISSIVE_MAP);
 	shaderSchema.RegisterUberOption(Uber::IBL);
+	shaderSchema.RegisterUberOption(Uber::ATM);
 	m_pPBRMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat pbrVertexFormat;
