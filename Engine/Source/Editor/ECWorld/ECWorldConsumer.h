@@ -62,13 +62,6 @@ public:
 	void SetSceneDatabaseIDs(uint32_t nodeID, uint32_t meshID);
 	virtual void Execute(const cd::SceneDatabase* pSceneDatabase) override;
 
-	void ActivateUberOption(cd::MaterialTextureType textureType);
-	void DeactivateUberOption(cd::MaterialTextureType textureType);
-	void ClearActiveUberOption();
-
-	std::set<engine::Uber>& GetActiveUberOptions() { return m_activeUberOptions; }
-	const std::set<engine::Uber>& GetActiveUberOptions() const { return m_activeUberOptions; }
-
 	void ActivateDDGIService() { m_meshAssetType = MeshAssetType::DDGI; }
 
 private:
@@ -85,8 +78,6 @@ private:
 
 	uint32_t m_nodeMinID;
 	uint32_t m_meshMinID;
-	std::set<engine::Uber> m_activeUberOptions;
-
 	MeshAssetType m_meshAssetType = MeshAssetType::Standard;
 };
 
