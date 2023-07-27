@@ -5,6 +5,7 @@
 #include "Math/Vector.hpp"
 #include "Scene/Mesh.h"
 
+// TODO : Remove these.
 #include <bgfx/bgfx.h>
 #include <ECWorld/SceneWorld.h>
 
@@ -20,6 +21,8 @@ public:
 	virtual void Init() override;
 	virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) override;
 	virtual void Render(float deltaTime) override;
+	virtual bool IsEnable() const override;
+	
 	void SetSceneWorld(SceneWorld* pSceneWorld) { m_pCurrentSceneWorld = pSceneWorld; }
 
 private:
@@ -58,7 +61,6 @@ private:
 	bool m_precomputeCache = false;
 
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
-	SkyComponent* m_pSkyComponent = nullptr;
 };
 
 }

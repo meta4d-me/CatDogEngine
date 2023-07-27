@@ -22,7 +22,7 @@ uniform vec4 u_metallicRoughnessFactor;
 uniform vec4 u_albedoUVOffsetAndScale;
 uniform vec4 u_alphaCutOff;
 
-#if defined(ALBEDO_MAP)
+#if defined(ALBEDOMAP)
 SAMPLER2D(s_texBaseColor, ALBEDO_MAP_SLOT);
 
 vec4 SampleAlbedoTexture(vec2 uv) {
@@ -31,7 +31,7 @@ vec4 SampleAlbedoTexture(vec2 uv) {
 }
 #endif
 
-#if defined(NORMAL_MAP)
+#if defined(NORMALMAP)
 SAMPLER2D(s_texNormal, NORMAL_MAP_SLOT);
 
 vec3 SampleNormalTexture(vec2 uv, mat3 TBN) {
@@ -41,7 +41,7 @@ vec3 SampleNormalTexture(vec2 uv, mat3 TBN) {
 }
 #endif
 
-#if defined(ORM_MAP)
+#if defined(ORMMAP)
 // ORM means that the three attributes of
 // Occlusion, Roughness and Metallic are located in the
 // R, G and B channels of the ORM texture.
@@ -58,7 +58,7 @@ vec3 SampleORMTexture(vec2 uv) {
 }
 #endif
 
-#if defined(EMISSIVE_MAP)
+#if defined(EMISSIVEMAP)
 SAMPLER2D(s_texEmissive, EMISSIVE_MAP_SLOT);
 
 vec3 SampleEmissiveTexture(vec2 uv) {
@@ -87,21 +87,21 @@ Material GetMaterial(vec2 uv, vec3 normal, mat3 TBN) {
 	vec2 uvScale = vec2(u_albedoUVOffsetAndScale.z, u_albedoUVOffsetAndScale.w);
 	vec2 albedoUV = uv * uvScale + uvOffset;
 	
-#if defined(ALBEDO_MAP)
+#if defined(ALBEDOMAP)
 	vec4 albedoTexture = SampleAlbedoTexture(albedoUV);
 	material.albedo = albedoTexture.xyz;
 	material.opacity = albedoTexture.w;
 #endif
 	material.albedo *= u_albedoColor.xyz;
 
-#if defined(NORMAL_MAP)
+#if defined(NORMALMAP)
 	// Same to unity standard PBR, let normal uv same with albedo uv.
 	material.normal = SampleNormalTexture(albedoUV, TBN);
 #else
 	material.normal = normal;
 #endif
 	
-#if defined(ORM_MAP)
+#if defined(ORMMAP)
 	vec3 orm = SampleORMTexture(uv);
 	material.occlusion = orm.x;
 	material.roughness = orm.y;
@@ -111,7 +111,7 @@ Material GetMaterial(vec2 uv, vec3 normal, mat3 TBN) {
 	material.metallic = u_metallicRoughnessFactor.x;
 #endif
 
-#if defined(EMISSIVE_MAP)
+#if defined(EMISSIVEMAP)
 	material.emissive = SampleEmissiveTexture(uv);
 #endif
 	

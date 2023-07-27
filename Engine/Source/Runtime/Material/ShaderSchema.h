@@ -23,6 +23,7 @@ enum class Uber : uint32_t
 
 	// Techniques
 	IBL,
+	ATM,
 	AREAL_LIGHT,
 
 	COUNT,

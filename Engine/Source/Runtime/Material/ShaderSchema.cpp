@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cassert>
 #include <sstream>
+#include <unordered_set>
 
 namespace engine
 {
@@ -16,11 +17,12 @@ namespace details
 constexpr const char* UberNames[] =
 {
 	"", // Use empty string to represent default shader option in the name so we can reuse non-uber built shader.
-	"ALBEDO_MAP;",
-	"NORMAL_MAP;",
-	"ORM_MAP;",
-	"EMISSIVE_MAP;",
+	"ALBEDOMAP;",
+	"NORMALMAP;",
+	"ORMMAP;",
+	"EMISSIVEMAP;",
 	"IBL;",
+	"ATM",
 	"AREAL_LIGHT;",
 };
 
@@ -105,12 +107,21 @@ StringCrc ShaderSchema::GetOptionsCrc(const std::vector<Uber>& options) const
 		return DefaultUberOption;
 	}
 
+	// De-weighting of inputs.
+	std::unordered_set<Uber> uniqueUberSet;
+	std::vector<Uber> uniqueVec;
+	for (const auto& uber : options) {
+		if (uniqueUberSet.insert(uber).second) {
+			uniqueVec.push_back(uber);
+		}
+	}
+
 	std::stringstream ss;
 	// Use the option order in m_uberOptions to ensure that inputs in different orders can get the same optionsCrc.
 	for (const auto& registered : m_uberOptions)
 	{
 		// Ignore option which contain in parameter but not contain in m_uberOptions.
-		if (std::find(options.begin(), options.end(), registered) != options.end())
+		if (std::find(uniqueVec.begin(), uniqueVec.end(), registered) != uniqueVec.end())
 		{
 			ss << details::GetUberName(registered);
 		}

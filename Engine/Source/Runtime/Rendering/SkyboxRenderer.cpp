@@ -2,6 +2,7 @@
 
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/SceneWorld.h"
+#include "ECWorld/SkyComponent.h"
 #include "RenderContext.h"
 
 namespace engine
@@ -22,10 +23,10 @@ SkyboxRenderer::~SkyboxRenderer() = default;
 
 void SkyboxRenderer::Init()
 {
-	m_pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
 	GetRenderContext()->CreateUniform(skyboxSampler, bgfx::UniformType::Sampler);
-	GetRenderContext()->CreateTexture(m_pSkyComponent->GetRadianceTexturePath().c_str(), sampleFalg);
+	GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), sampleFalg);
 	GetRenderContext()->CreateProgram(skyboxShader, "vs_skybox.bin", "fs_skybox.bin");
 
 	bgfx::setViewName(GetViewID(), "SkyboxRenderer");
@@ -33,7 +34,7 @@ void SkyboxRenderer::Init()
 
 void SkyboxRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
-	if (m_pSkyComponent->GetSkyType() != SkyType::SkyBox)
+	if (!IsEnable())
 	{
 		return;
 	}
@@ -54,7 +55,7 @@ void SkyboxRenderer::UpdateView(const float* pViewMatrix, const float* pProjecti
 
 void SkyboxRenderer::Render(float deltaTime)
 {
-	if (m_pSkyComponent->GetSkyType() != SkyType::SkyBox)
+	if (!IsEnable())
 	{
 		return;
 	}
@@ -67,19 +68,25 @@ void SkyboxRenderer::Render(float deltaTime)
 	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()});
 	bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
 
+	// Create a new TextureHandle each frame if the skybox texture path has been updated,
+	// otherwise RenderContext::CreateTexture will automatically skip it.
+	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+	GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), sampleFalg);
+
 	constexpr StringCrc samplerCrc(skyboxSampler);
 	constexpr StringCrc programCrc(skyboxShader);
 
-	// Create a new TextureHandle each frame if the skybox texture path has been updated,
-	// otherwise RenderContext::CreateTexture will automatically skip it.
-	GetRenderContext()->CreateTexture(m_pSkyComponent->GetRadianceTexturePath().c_str(), sampleFalg);
-
 	bgfx::setTexture(0,
 		GetRenderContext()->GetUniform(samplerCrc),
-		GetRenderContext()->GetTexture(StringCrc(m_pSkyComponent->GetRadianceTexturePath())));
+		GetRenderContext()->GetTexture(StringCrc(pSkyComponent->GetRadianceTexturePath())));
 
 	bgfx::setState(renderState);
 	bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(programCrc));
+}
+
+bool SkyboxRenderer::IsEnable() const
+{
+	return m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity())->GetSkyType() == SkyType::SkyBox;
 }
 
 }

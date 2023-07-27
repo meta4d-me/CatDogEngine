@@ -1,5 +1,6 @@
 #include "PBRSkyRenderer.h"
 
+#include "ECWorld/SkyComponent.h"
 #include "Log/Log.h"
 #include "Math/Box.hpp"
 #include "RenderContext.h"
@@ -25,7 +26,7 @@ PBRSkyRenderer::~PBRSkyRenderer() = default;
 
 void PBRSkyRenderer::Init()
 {
-	m_pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
 	bgfx::ShaderHandle vsh_skyBox             = GetRenderContext()->CreateShader("vs_atmSkyBox.bin");
 	bgfx::ShaderHandle fsh_multipleScattering = GetRenderContext()->CreateShader("fs_PrecomputedAtmosphericScattering_LUT.bin");
@@ -66,7 +67,7 @@ void PBRSkyRenderer::Init()
 
 void PBRSkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
-	if (m_pSkyComponent->GetSkyType() != SkyType::AtmosphericScattering)
+	if (!IsEnable())
 	{
 		return;
 	}
@@ -87,7 +88,7 @@ void PBRSkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjecti
 
 void PBRSkyRenderer::Render(float deltaTime)
 {
-	if (m_pSkyComponent->GetSkyType() != SkyType::AtmosphericScattering)
+	if (!IsEnable())
 	{
 		return;
 	}
@@ -118,6 +119,11 @@ void PBRSkyRenderer::Render(float deltaTime)
 
 	bgfx::setState(RENDERING_STATE);
 	bgfx::submit(GetViewID(), m_programAtmosphericScattering_LUT);
+}
+
+bool PBRSkyRenderer::IsEnable() const
+{
+	return m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity())->GetSkyType() == SkyType::AtmosphericScattering;
 }
 
 void PBRSkyRenderer::Precompute()

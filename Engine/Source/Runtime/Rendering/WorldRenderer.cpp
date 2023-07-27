@@ -3,6 +3,7 @@
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/MaterialComponent.h"
 #include "ECWorld/SceneWorld.h"
+#include "ECWorld/SkyComponent.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
 #include "LightUniforms.h"
@@ -42,15 +43,15 @@ constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MS
 
 void WorldRenderer::Init()
 {
-	m_pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
 	GetRenderContext()->CreateUniform(lutSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(cubeIrradianceSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(cubeRadianceSampler, bgfx::UniformType::Sampler);
 
 	GetRenderContext()->CreateTexture(lutTexture);
-	GetRenderContext()->CreateTexture(m_pSkyComponent->GetIrradianceTexturePath().c_str(), samplerFlags);
-	GetRenderContext()->CreateTexture(m_pSkyComponent->GetRadianceTexturePath().c_str(), samplerFlags);
+	GetRenderContext()->CreateTexture(pSkyComponent->GetIrradianceTexturePath().c_str(), samplerFlags);
+	GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), samplerFlags);
 
 	GetRenderContext()->CreateUniform(cameraPos, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(albedoColor, bgfx::UniformType::Vec4, 1);
@@ -116,31 +117,33 @@ void WorldRenderer::Render(float deltaTime)
 			{
 				if (cd::MaterialTextureType::BaseColor == textureType)
 				{
-					constexpr StringCrc uvOffsetAndScaleCrc(albedoUVOffsetAndScale);
+					constexpr StringCrc albedoUVOffsetAndScaleCrc(albedoUVOffsetAndScale);
 					cd::Vec4f uvOffsetAndScaleData(pTextureInfo->GetUVOffset().x(), pTextureInfo->GetUVOffset().y(),
 						pTextureInfo->GetUVScale().x(), pTextureInfo->GetUVScale().y());
-					GetRenderContext()->FillUniform(uvOffsetAndScaleCrc, &uvOffsetAndScaleData, 1);
+					GetRenderContext()->FillUniform(albedoUVOffsetAndScaleCrc, &uvOffsetAndScaleData, 1);
 				}
 
 				bgfx::setTexture(pTextureInfo->slot, bgfx::UniformHandle{pTextureInfo->samplerHandle}, bgfx::TextureHandle{pTextureInfo->textureHandle});
 			}
 		}
 
-		if (m_pSkyComponent->GetSkyType() == SkyType::SkyBox){
+		SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+
+		if (pSkyComponent->GetSkyType() == SkyType::SkyBox){
 			// Create a new TextureHandle each frame if the skybox texture path has been updated,
 			// otherwise RenderContext::CreateTexture will automatically skip it.
 
 			constexpr StringCrc irrSamplerCrc(cubeIrradianceSampler);
-			GetRenderContext()->CreateTexture(m_pSkyComponent->GetIrradianceTexturePath().c_str(), samplerFlags);
+			GetRenderContext()->CreateTexture(pSkyComponent->GetIrradianceTexturePath().c_str(), samplerFlags);
 			bgfx::setTexture(IBL_IRRADIANCE_SLOT,
 				GetRenderContext()->GetUniform(irrSamplerCrc),
-				GetRenderContext()->GetTexture(StringCrc(m_pSkyComponent->GetIrradianceTexturePath())));
+				GetRenderContext()->GetTexture(StringCrc(pSkyComponent->GetIrradianceTexturePath())));
 
 			constexpr StringCrc radSamplerCrc(cubeRadianceSampler);
-			GetRenderContext()->CreateTexture(m_pSkyComponent->GetRadianceTexturePath().c_str(), samplerFlags);
+			GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), samplerFlags);
 			bgfx::setTexture(IBL_RADIANCE_SLOT,
 				GetRenderContext()->GetUniform(radSamplerCrc),
-				GetRenderContext()->GetTexture(StringCrc(m_pSkyComponent->GetRadianceTexturePath())));
+				GetRenderContext()->GetTexture(StringCrc(pSkyComponent->GetRadianceTexturePath())));
 
 			constexpr StringCrc lutsamplerCrc(lutSampler);
 			constexpr StringCrc luttextureCrc(lutTexture);
@@ -185,8 +188,8 @@ void WorldRenderer::Render(float deltaTime)
 
 		if (cd::BlendMode::Mask == pMaterialComponent->GetBlendMode())
 		{
-			constexpr StringCrc uvOffsetAndScaleCrc(alphaCutOff);
-			GetRenderContext()->FillUniform(uvOffsetAndScaleCrc, &pMaterialComponent->GetAlphaCutOff(), 1);
+			constexpr StringCrc alphaCutOffCrc(alphaCutOff);
+			GetRenderContext()->FillUniform(alphaCutOffCrc, &pMaterialComponent->GetAlphaCutOff(), 1);
 		}
 
 		bgfx::setState(state);
