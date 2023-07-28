@@ -31,12 +31,12 @@ namespace Detail
 
 const std::unordered_map<cd::MaterialTextureType, engine::Uber> materialTextureTypeToUber
 {
-	{ cd::MaterialTextureType::BaseColor, engine::Uber::ALBEDOMAP },
-	{ cd::MaterialTextureType::Normal, engine::Uber::NORMALMAP },
-	{ cd::MaterialTextureType::Occlusion, engine::Uber::ORMMAP },
-	{ cd::MaterialTextureType::Roughness, engine::Uber::ORMMAP },
-	{ cd::MaterialTextureType::Metallic, engine::Uber::ORMMAP },
-	{ cd::MaterialTextureType::Emissive, engine::Uber::EMISSIVEMAP },
+	{ cd::MaterialTextureType::BaseColor, engine::Uber::ALBEDO_MAP },
+	{ cd::MaterialTextureType::Normal, engine::Uber::NORMAL_MAP },
+	{ cd::MaterialTextureType::Occlusion, engine::Uber::ORM_MAP },
+	{ cd::MaterialTextureType::Roughness, engine::Uber::ORM_MAP },
+	{ cd::MaterialTextureType::Metallic, engine::Uber::ORM_MAP },
+	{ cd::MaterialTextureType::Emissive, engine::Uber::EMISSIVE_MAP },
 };
 
 CD_FORCEINLINE bool IsMaterialTextureTypeValid(cd::MaterialTextureType type)

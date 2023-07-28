@@ -17,15 +17,15 @@ enum class Uber : uint32_t
 	DEFAULT = 0,
 
 	// PBR parameters
-	ALBEDOMAP,
-	NORMALMAP,
-	ORMMAP,
-	EMISSIVEMAP,
+	ALBEDO_MAP,
+	NORMAL_MAP,
+	ORM_MAP,
+	EMISSIVE_MAP,
 
 	// Techniques
 	IBL,
 	ATM,
-	AREALLIGHT,
+	AREAL_LIGHT,
 
 	COUNT,
 };
