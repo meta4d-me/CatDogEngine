@@ -61,6 +61,14 @@ vec3 GetEnvironment(Material material, vec3 vertexNormal, vec3 viewDir) {
 	// Specular
 	envColor += (envSpecularBRDF * envRadiance * finalSpecularOcclusion);
 #endif
+
+#if defined(ATM)
+	envColor = vec3(1.0, 0.0, 0.0);
+#endif
+	
+#if defined(NO_ENVERONMENT)
+	envColor = vec3(0.0, 0.0, 0.0);
+#endif
 	
 	return envColor;
 }

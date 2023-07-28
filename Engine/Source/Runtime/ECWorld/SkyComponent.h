@@ -17,17 +17,17 @@ enum class SkyType
 	Count,
 };
 
-constexpr const char *SkyTypeName[] =
+constexpr const char* SkyTypeName[] =
 {
 	"None",
 	"Skybox",
 	"Atmospheric Scattering",
 };
 
-static_assert(static_cast<int>(SkyType::Count) == sizeof(SkyTypeName) / sizeof(char *),
+static_assert(static_cast<int>(SkyType::Count) == sizeof(SkyTypeName) / sizeof(char*),
 	"Sky type and name mismatch.");
 
-CD_FORCEINLINE const char *GetSkyTypeName(SkyType type)
+CD_FORCEINLINE const char* GetSkyTypeName(SkyType type)
 {
 	return SkyTypeName[static_cast<size_t>(type)];
 }

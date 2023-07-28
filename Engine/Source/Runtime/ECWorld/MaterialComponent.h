@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/StringCrc.h"
+#include "ECWorld/SkyComponent.h"
 #include "Material/ShaderSchema.h"
 #include "Scene/Material.h"
 #include "Scene/MaterialTextureType.h"
@@ -140,6 +141,11 @@ public:
 	float& GetAlphaCutOff() { return m_alphaCutOff; }
 	float GetAlphaCutOff() const { return m_alphaCutOff; }
 
+	// Different sky types provide different environment lighting.
+	void SetSkyType(SkyType type);
+	const SkyType GetSkyType() const { return m_skyType; }
+	SkyType GetSkyType() { return m_skyType; }
+
 private:
 	// Input
 	const cd::Material* m_pMaterialData = nullptr;
@@ -155,6 +161,8 @@ private:
 	bool m_twoSided;
 	cd::BlendMode m_blendMode;
 	float m_alphaCutOff;
+
+	SkyType m_skyType;
 
 	// Output
 	std::map<cd::MaterialTextureType, TextureInfo> m_textureResources;

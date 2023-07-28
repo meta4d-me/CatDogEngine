@@ -377,10 +377,10 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	switch (m_pSceneWorld->GetSkyComponent(m_pSceneWorld->GetSkyEntity())->GetSkyType())
 	{
 	case engine::SkyType::SkyBox:
-		materialComponent.ActiveUberShaderOption(engine::Uber::IBL);
+		materialComponent.SetSkyType(engine::SkyType::SkyBox);
 		break;
 	case engine::SkyType::AtmosphericScattering:
-		materialComponent.ActiveUberShaderOption(engine::Uber::ATM);
+		materialComponent.SetSkyType(engine::SkyType::AtmosphericScattering);
 		break;
 	default:
 		break;

@@ -10,6 +10,7 @@
 
 #include <cassert>
 #include <filesystem>
+#include <unordered_map>
 
 namespace
 {
@@ -93,6 +94,17 @@ uint64_t GetBGFXTextureFlag(cd::MaterialTextureType textureType, cd::TextureMapM
 	return textureFlag;
 }
 
+const std::unordered_map<engine::SkyType, engine::Uber> skyTypeToUber
+{
+	{ engine::SkyType::SkyBox, engine::Uber::IBL},
+	{ engine::SkyType::AtmosphericScattering, engine::Uber::ATM },
+};
+
+CD_FORCEINLINE bool IsSkyTypeValid(engine::SkyType type)
+{
+	return skyTypeToUber.find(type) != skyTypeToUber.end();
+}
+
 }
 
 namespace engine
@@ -160,6 +172,7 @@ void MaterialComponent::Reset()
 	m_blendMode = cd::BlendMode::Opaque;
 	m_alphaCutOff = 1.0f;
 	m_textureResources.clear();
+	m_skyType = SkyType::None;
 }
 
 void MaterialComponent::AddTextureBlob(cd::MaterialTextureType textureType, cd::TextureFormat textureFormat, cd::TextureMapMode uMapMode, cd::TextureMapMode vMapMode,
@@ -226,6 +239,25 @@ void MaterialComponent::Build()
 
 		assert(textureInfo.textureHandle != bgfx::kInvalidHandle);
 		assert(textureInfo.samplerHandle != bgfx::kInvalidHandle);
+	}
+}
+
+void MaterialComponent::SetSkyType(SkyType crtType)
+{
+	if (m_skyType != crtType)
+	{
+		if (IsSkyTypeValid(m_skyType))
+		{
+			m_uberShaderOptions.erase(skyTypeToUber.at(m_skyType));
+		}
+
+		if (IsSkyTypeValid(crtType))
+		{
+			m_uberShaderOptions.insert(skyTypeToUber.at(crtType));
+		}
+
+		m_uberShaderCrc = m_pMaterialType->GetShaderSchema().GetOptionsCrc(m_uberShaderOptions);
+		m_skyType = crtType;
 	}
 }
 
