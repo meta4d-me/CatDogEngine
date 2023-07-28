@@ -290,7 +290,10 @@ bool GameApp::Update(float deltaTime)
 		engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
 		
 		assert(pMainCameraComponent);
-		m_pCameraController->Update(deltaTime);
+		if (m_pCameraController)
+		{
+			m_pCameraController->Update(deltaTime);
+		}
 		pMainCameraComponent->BuildProjectMatrix();
 
 		m_pEngineImGuiContext->Update(deltaTime);
