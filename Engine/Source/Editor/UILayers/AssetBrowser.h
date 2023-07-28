@@ -37,6 +37,7 @@ enum class IOAssetType
 	Shader,
 	SceneDatabase,
 	Terrain,
+	Light,
 	Unknown,
 
 	Count,
@@ -50,6 +51,7 @@ constexpr const char *IOAssetTypeName[] =
 	"Shader",
 	"SceneDatabase",
 	"Terrain",
+	"Light",
 	"Unknown",
 };
 
@@ -114,6 +116,7 @@ public:
 private:
 	void ProcessSceneDatabase(cd::SceneDatabase* pSceneDatabase, bool keepMesh, bool keepMaterial, bool keepTexture, bool keepCamera, bool keepLight);
 	void ImportModelFile(const char* pFilePath);
+	void ImportLight(const char* pFilePath);
 	void DrawFolder(const std::shared_ptr<DirectoryInformation>& dirInfo, bool defaultOpen = false);
 	void ChangeDirectory(std::shared_ptr<DirectoryInformation>& directory);
 	
