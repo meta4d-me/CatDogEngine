@@ -723,26 +723,30 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 	}
 	else if (IOAssetType::CubeMap == m_importOptions.AssetType)
 	{
-		std::string relativePath = (std::filesystem::path("Textures") /
-			std::filesystem::path(pFilePath).stem()).generic_string();
-
-		std::filesystem::path absolutePath = CDPROJECT_RESOURCES_ROOT_PATH;
-		absolutePath /= relativePath;
-
-		CD_INFO("Compile skybox textures to {0}.", absolutePath);
-
-		std::string irrdianceOutput = absolutePath.generic_string() + "_irr.dds";
-		ResourceBuilder::Get().AddIrradianceCubeMapBuildTask(pFilePath, irrdianceOutput.c_str());
-		ResourceBuilder::Get().Update();
-
-		std::string radianceOutput = absolutePath.generic_string() + "_rad.dds";
-		ResourceBuilder::Get().AddRadianceCubeMapBuildTask(pFilePath, radianceOutput.c_str());
-		ResourceBuilder::Get().Update();
-
 		engine::SceneWorld* pSceneWorld = GetImGuiContextInstance()->GetSceneWorld();
 		engine::SkyComponent* pSkyComponent = pSceneWorld->GetSkyComponent(pSceneWorld->GetSkyEntity());
-		pSkyComponent->SetIrradianceTexturePath(relativePath + "_irr.dds");
-		pSkyComponent->SetRadianceTexturePath(relativePath + "_rad.dds");
+
+		if (engine::SkyType::SkyBox == pSkyComponent->GetSkyType())
+		{
+			std::string relativePath = (std::filesystem::path("Textures") /
+				std::filesystem::path(pFilePath).stem()).generic_string();
+
+			std::filesystem::path absolutePath = CDPROJECT_RESOURCES_ROOT_PATH;
+			absolutePath /= relativePath;
+
+			CD_INFO("Compile skybox textures to {0}.", absolutePath);
+
+			std::string irrdianceOutput = absolutePath.generic_string() + "_irr.dds";
+			ResourceBuilder::Get().AddIrradianceCubeMapBuildTask(pFilePath, irrdianceOutput.c_str());
+			ResourceBuilder::Get().Update();
+
+			std::string radianceOutput = absolutePath.generic_string() + "_rad.dds";
+			ResourceBuilder::Get().AddRadianceCubeMapBuildTask(pFilePath, radianceOutput.c_str());
+			ResourceBuilder::Get().Update();
+
+			pSkyComponent->SetIrradianceTexturePath(relativePath + "_irr.dds");
+			pSkyComponent->SetRadianceTexturePath(relativePath + "_rad.dds");
+		}
 	}
 	else if (IOAssetType::Shader == m_importOptions.AssetType)
 	{
