@@ -104,7 +104,7 @@ StringCrc ShaderSchema::GetOptionsCrc(const std::unordered_set<Uber>& options) c
 {
 	if (options.empty())
 	{
-		return DefaultUberOptionCrc;
+		return DefaultUberShaderCrc;
 	}
 
 	std::stringstream ss;

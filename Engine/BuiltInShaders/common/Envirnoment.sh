@@ -14,13 +14,13 @@ SAMPLERCUBE(s_texCubeRad, IBL_RADIANCE_SLOT);
 SAMPLER2D(s_texLUT, BRDF_LUT_SLOT);
 
 vec3 SampleEnvIrradiance(vec3 normal, float mip) {
-	// We use the HDR texture in linear space.
+	// We use the HDR texture which in linear space.
 	vec3 cubeNormalDir = normalize(fixCubeLookup(normal, mip, 256.0));
 	return textureCube(s_texCubeIrr, cubeNormalDir).xyz;
 }
 
 vec3 SampleEnvRadiance(vec3 reflectDir, float mip) {
-	// We use the HDR texture in linear space.
+	// We use the HDR texture which in linear space.
 	vec3 cubeReflectDir = normalize(fixCubeLookup(reflectDir, mip, 256.0));
 	return textureCubeLod(s_texCubeRad, cubeReflectDir, mip).xyz;
 }
@@ -42,7 +42,7 @@ vec3 GetEnvironment(Material material, vec3 vertexNormal, vec3 viewDir) {
 	horizonOcclusion *= horizonOcclusion;
 	float finalSpecularOcclusion = min(specularOcclusion, horizonOcclusion);
 	
-#if defined(IBL)
+#if defined(IBL) && !defined(ATM)
 	float mip = clamp(6.0 * material.roughness, 0.1, 6.0);
 	
 	// Environment Prefiltered Irradiance
@@ -64,7 +64,7 @@ vec3 GetEnvironment(Material material, vec3 vertexNormal, vec3 viewDir) {
 	envColor += (envSpecularBRDF * envRadiance * finalSpecularOcclusion);
 #endif
 
-#if defined(ATM)
+#if defined(ATM) && !defined(IBL)
 	envColor = vec3(0.0, 0.0, 0.0);
 #endif
 	

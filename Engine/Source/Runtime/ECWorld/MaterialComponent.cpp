@@ -163,7 +163,7 @@ void MaterialComponent::Reset()
 	m_pMaterialData = nullptr;
 	m_pMaterialType = nullptr;
 	m_uberShaderOptions.clear();
-	m_uberShaderCrc = ShaderSchema::DefaultUberOptionCrc;
+	m_uberShaderCrc = ShaderSchema::DefaultUberShaderCrc;
 	m_name.clear();
 	m_albedoColor = cd::Vec3f::One();
 	m_emissiveColor = cd::Vec3f::One();

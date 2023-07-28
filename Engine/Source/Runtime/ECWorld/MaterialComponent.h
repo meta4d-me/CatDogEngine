@@ -89,18 +89,13 @@ public:
 	std::string& GetName() { return m_name; }
 	const std::string& GetName() const { return m_name; }
 
-	// Uber shader option data.
+	// Uber shader data.
 	void ActiveUberShaderOption(engine::Uber option);
 	void DeactiveUberShaderOption(engine::Uber option);
 	void MatchUberShaderCrc();
 	void SetUberShaderOptions(std::unordered_set<engine::Uber> options) { m_uberShaderOptions = cd::MoveTemp(m_uberShaderOptions); }
 	const std::unordered_set<engine::Uber>& GetUberShaderOptions() const { return m_uberShaderOptions; }
 	std::unordered_set<engine::Uber>& GetUberShaderOptions() { return m_uberShaderOptions; }
-
-	// Shader crc data.
-	void SetUberShaderCrc(StringCrc uberShaderCrc) { m_uberShaderCrc = uberShaderCrc; }
-	const StringCrc &GetUberShaderCrc() const { return m_uberShaderCrc; }
-	StringCrc &GetUberShaderCrc() { return m_uberShaderCrc; }
 	uint16_t GetShadreProgram() const;
 
 	// Texture data.
