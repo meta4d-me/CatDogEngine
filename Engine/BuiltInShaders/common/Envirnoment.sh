@@ -14,13 +14,15 @@ SAMPLERCUBE(s_texCubeRad, IBL_RADIANCE_SLOT);
 SAMPLER2D(s_texLUT, BRDF_LUT_SLOT);
 
 vec3 SampleEnvIrradiance(vec3 normal, float mip) {
+	// We use the HDR texture in linear space.
 	vec3 cubeNormalDir = normalize(fixCubeLookup(normal, mip, 256.0));
-	return toLinear(textureCube(s_texCubeIrr, cubeNormalDir).xyz);
+	return textureCube(s_texCubeIrr, cubeNormalDir).xyz;
 }
 
 vec3 SampleEnvRadiance(vec3 reflectDir, float mip) {
+	// We use the HDR texture in linear space.
 	vec3 cubeReflectDir = normalize(fixCubeLookup(reflectDir, mip, 256.0));
-	return toLinear(textureCubeLod(s_texCubeRad, cubeReflectDir, mip).xyz);
+	return textureCubeLod(s_texCubeRad, cubeReflectDir, mip).xyz;
 }
 
 vec2 SampleIBLSpecularBRDFLUT(float NdotV, float roughness) {
