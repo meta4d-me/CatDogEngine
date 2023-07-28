@@ -470,7 +470,10 @@ bool EditorApp::Update(float deltaTime)
 	}
 	else
 	{
-		m_pCameraController->Update(deltaTime);
+		if (m_pCameraController)
+		{
+			m_pCameraController->Update(deltaTime);
+		}
 	}
 
 	GetMainWindow()->Update();
