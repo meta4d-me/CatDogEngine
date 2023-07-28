@@ -85,7 +85,7 @@ bool IsModelInputFile(const char* pFileExtension)
 
 bool IsLightInputFile(const char* pFileExtension)
 {
-	constexpr const char* pFileExtensions[] = { ".json"};
+	constexpr const char* pFileExtensions[] = { ".json" };
 	constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
 	for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
 	{
@@ -139,7 +139,7 @@ void Tooltip(const char* text)
 	ImGui::PopStyleVar();
 }
 
-cd::Vec3f GetVec3fFormString(std::string str)
+cd::Vec3f GetVec3fFormString(const std::string& str)
 {
 	std::string digits;
 	size_t start = str.find("(");
@@ -155,7 +155,7 @@ cd::Vec3f GetVec3fFormString(std::string str)
 	return cd::Vec3f(num1, num2, num3);
 }
 
-float GetFloatFormString(std::string str)
+float GetFloatFormString(const std::string& str)
 {
 	float num;
 	std::istringstream iss(str);
