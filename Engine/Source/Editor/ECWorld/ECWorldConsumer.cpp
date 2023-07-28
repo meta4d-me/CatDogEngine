@@ -31,12 +31,12 @@ namespace Detail
 
 const std::unordered_map<cd::MaterialTextureType, engine::Uber> materialTextureTypeToUber
 {
-	{ cd::MaterialTextureType::BaseColor, engine::Uber::ALBEDO_MAP },
-	{ cd::MaterialTextureType::Normal, engine::Uber::NORMAL_MAP },
-	{ cd::MaterialTextureType::Occlusion, engine::Uber::ORM_MAP },
-	{ cd::MaterialTextureType::Roughness, engine::Uber::ORM_MAP },
-	{ cd::MaterialTextureType::Metallic, engine::Uber::ORM_MAP },
-	{ cd::MaterialTextureType::Emissive, engine::Uber::EMISSIVE_MAP },
+	{ cd::MaterialTextureType::BaseColor, engine::Uber::ALBEDOMAP },
+	{ cd::MaterialTextureType::Normal, engine::Uber::NORMALMAP },
+	{ cd::MaterialTextureType::Occlusion, engine::Uber::ORMMAP },
+	{ cd::MaterialTextureType::Roughness, engine::Uber::ORMMAP },
+	{ cd::MaterialTextureType::Metallic, engine::Uber::ORMMAP },
+	{ cd::MaterialTextureType::Emissive, engine::Uber::EMISSIVEMAP },
 };
 
 CD_FORCEINLINE bool IsMaterialTextureTypeValid(cd::MaterialTextureType type)
@@ -374,19 +374,8 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	// Assign a special color for loading resource status.
 	materialComponent.SetMaterialType(pMaterialType);
 	materialComponent.SetMaterialData(pMaterial);
-	switch (m_pSceneWorld->GetSkyComponent(m_pSceneWorld->GetSkyEntity())->GetSkyType())
-	{
-	case engine::SkyType::SkyBox:
-		materialComponent.SetSkyType(engine::SkyType::SkyBox);
-		break;
-	case engine::SkyType::AtmosphericScattering:
-		materialComponent.SetSkyType(engine::SkyType::AtmosphericScattering);
-		break;
-	default:
-		break;
-	}
-	materialComponent.MatchUberShaderCrc();
 	materialComponent.SetAlbedoColor(cd::MoveTemp(albedoColor));
+	materialComponent.SetSkyType(m_pSceneWorld->GetSkyComponent(m_pSceneWorld->GetSkyEntity())->GetSkyType());
 
 	// Textures.
 	for (const auto& [outputTextureFilePath, pTextureData] : outputTexturePathToData)

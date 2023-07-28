@@ -52,19 +52,8 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
         materialComponent.Init();
         materialComponent.SetMaterialType(pMaterialType);
-        switch (pSceneWorld->GetSkyComponent(pSceneWorld->GetSkyEntity())->GetSkyType())
-        {
-        case engine::SkyType::SkyBox:
-            materialComponent.ActiveUberShaderOption(engine::Uber::IBL);
-            break;
-        case engine::SkyType::AtmosphericScattering:
-            materialComponent.ActiveUberShaderOption(engine::Uber::ATM);
-            break;
-        default:
-            break;
-        }
-        materialComponent.MatchUberShaderCrc();
         materialComponent.SetAlbedoColor(cd::Vec3f(0.2f));
+        materialComponent.SetSkyType(pSceneWorld->GetSkyComponent(pSceneWorld->GetSkyEntity())->GetSkyType());
         materialComponent.Build();
 
         auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);

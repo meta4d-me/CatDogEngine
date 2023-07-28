@@ -1,5 +1,6 @@
 #include "MaterialComponent.h"
 
+#include "Log/Log.h"
 #include "Material/MaterialType.h"
 #include "Scene/Material.h"
 #include "Scene/Texture.h"
@@ -244,21 +245,23 @@ void MaterialComponent::Build()
 
 void MaterialComponent::SetSkyType(SkyType crtType)
 {
-	if (m_skyType != crtType)
+	if (SkyType::Count == crtType || m_skyType == crtType)
 	{
-		if (IsSkyTypeValid(m_skyType))
-		{
-			m_uberShaderOptions.erase(skyTypeToUber.at(m_skyType));
-		}
-
-		if (IsSkyTypeValid(crtType))
-		{
-			m_uberShaderOptions.insert(skyTypeToUber.at(crtType));
-		}
-
-		m_uberShaderCrc = m_pMaterialType->GetShaderSchema().GetOptionsCrc(m_uberShaderOptions);
-		m_skyType = crtType;
+		return;
 	}
+
+	if (IsSkyTypeValid(m_skyType))
+	{
+		m_uberShaderOptions.erase(skyTypeToUber.at(m_skyType));
+	}
+
+	if (IsSkyTypeValid(crtType))
+	{
+		m_uberShaderOptions.insert(skyTypeToUber.at(crtType));
+	}
+
+	m_uberShaderCrc = m_pMaterialType->GetShaderSchema().GetOptionsCrc(m_uberShaderOptions);
+	m_skyType = crtType;
 }
 
 }

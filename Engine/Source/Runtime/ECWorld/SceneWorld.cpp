@@ -46,10 +46,10 @@ void SceneWorld::CreatePBRMaterialType()
 	m_pPBRMaterialType->SetMaterialName("CD_PBR");
 
 	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("shaders/vs_PBR"), Path::GetBuiltinShaderInputPath("shaders/fs_PBR"));
-	shaderSchema.RegisterUberOption(Uber::ALBEDO_MAP);
-	shaderSchema.RegisterUberOption(Uber::NORMAL_MAP);
-	shaderSchema.RegisterUberOption(Uber::ORM_MAP);
-	shaderSchema.RegisterUberOption(Uber::EMISSIVE_MAP);
+	shaderSchema.RegisterUberOption(Uber::ALBEDOMAP);
+	shaderSchema.RegisterUberOption(Uber::NORMALMAP);
+	shaderSchema.RegisterUberOption(Uber::ORMMAP);
+	shaderSchema.RegisterUberOption(Uber::EMISSIVEMAP);
 	shaderSchema.RegisterUberOption(Uber::IBL);
 	shaderSchema.RegisterUberOption(Uber::ATM);
 	m_pPBRMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));

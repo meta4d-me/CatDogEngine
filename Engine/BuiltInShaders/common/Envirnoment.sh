@@ -65,7 +65,7 @@ vec3 GetEnvironment(Material material, vec3 vertexNormal, vec3 viewDir) {
 #endif
 
 #if defined(ATM)
-	envColor = vec3(1.0, 0.0, 0.0);
+	envColor = vec3(0.0, 0.0, 0.0);
 #endif
 	
 #if defined(NO_ENVERONMENT)
