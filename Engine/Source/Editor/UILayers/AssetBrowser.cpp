@@ -361,7 +361,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 
 			CD_INFO("Import asset type: {}", GetDDGITextureTypeName(m_importOptions.AssetType));
 		}
-		else if (ImGui::Selectable("Light form json"))
+		else if (ImGui::Selectable("Light from json"))
 		{
 			m_importOptions.AssetType = IOAssetType::Light;
 			m_pImportFileBrowser->SetTitle("ImportAssets - Light");
