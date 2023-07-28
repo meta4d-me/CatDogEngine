@@ -85,7 +85,7 @@ bool IsModelInputFile(const char* pFileExtension)
 
 bool IsLightInputFile(const char* pFileExtension)
 {
-	constexpr const char* pFileExtensions[] = { ".json"};
+	constexpr const char* pFileExtensions[] = { ".json" };
 	constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
 	for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
 	{
@@ -139,14 +139,14 @@ void Tooltip(const char* text)
 	ImGui::PopStyleVar();
 }
 
-cd::Vec3f GetVec3fFormString(std::string color)
+cd::Vec3f GetVec3fFormString(const std::string& str)
 {
 	std::string digits;
-	size_t start = color.find("(");
-	size_t end = color.find(")");
+	size_t start = str.find("(");
+	size_t end = str.find(")");
 	if (start != std::string::npos && end != std::string::npos)
 	{
-		digits = color.substr(start + 1, end - start - 1);
+		digits = str.substr(start + 1, end - start - 1);
 	}
 	std::istringstream iss(digits);
 	float num1, num2, num3;
@@ -155,7 +155,7 @@ cd::Vec3f GetVec3fFormString(std::string color)
 	return cd::Vec3f(num1, num2, num3);
 }
 
-float GetFloatFormString(std::string str)
+float GetFloatFormString(const std::string& str)
 {
 	float num;
 	std::istringstream iss(str);
@@ -361,7 +361,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 
 			CD_INFO("Import asset type: {}", GetDDGITextureTypeName(m_importOptions.AssetType));
 		}
-		else if (ImGui::Selectable("Light form json"))
+		else if (ImGui::Selectable("Light from json"))
 		{
 			m_importOptions.AssetType = IOAssetType::Light;
 			m_pImportFileBrowser->SetTitle("ImportAssets - Light");
