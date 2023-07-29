@@ -288,8 +288,10 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
                 if (engine::TransformComponent* pTransform = pSceneWorld->GetTransformComponent(entity))
                 {
                     meshAABB = meshAABB.Transform(pTransform->GetWorldMatrix());
-                    m_pCameraController->CameraFocus(meshAABB);
-                    int a = 0;
+                    if (m_pCameraController)
+                    {
+                        m_pCameraController->CameraFocus(meshAABB);
+                    }
                 }
 
       
