@@ -103,7 +103,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		// Textures
 		for (int textureTypeValue = 0; textureTypeValue < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
 		{
-			if (engine::MaterialComponent::TextureInfo* textureInfo = pMaterialComponent->GetTextureInfo(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)))
+			if (engine::MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)))
 			{
 				const char* title = cd::GetMaterialPropertyGroupName(static_cast<cd::MaterialPropertyGroup>(textureTypeValue));
 				bool isOpen = ImGui::CollapsingHeader(title, ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
@@ -114,8 +114,8 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 				std::string uvScale = std::string(title) + std::string(" UVScale");
 				if (isOpen)
 				{
-					ImGuiUtils::ImGuiVectorProperty(uvOffset.c_str(), textureInfo->GetUVOffset());
-					ImGuiUtils::ImGuiVectorProperty(uvScale.c_str(), textureInfo->GetUVScale());
+					ImGuiUtils::ImGuiVectorProperty(uvOffset.c_str(), pTextureInfo->GetUVOffset());
+					ImGuiUtils::ImGuiVectorProperty(uvScale.c_str(), pTextureInfo->GetUVScale());
 
 				}
 

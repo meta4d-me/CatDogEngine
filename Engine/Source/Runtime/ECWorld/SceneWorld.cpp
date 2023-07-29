@@ -190,7 +190,6 @@ void SceneWorld::AddLightToSceneDatabase(engine::Entity entity)
 	}
 
 	cd::SceneDatabase* pSceneDatabase = GetSceneDatabase();
-	uint32_t count = pSceneDatabase->GetLightCount();
 	cd::Light light(cd::LightID(pSceneDatabase->GetLightCount()), pLightComponent->GetType());
 	light.SetName(lightName.c_str());
 	light.SetIntensity(pLightComponent->GetIntensity());
@@ -210,12 +209,7 @@ void SceneWorld::AddLightToSceneDatabase(engine::Entity entity)
 void SceneWorld::AddMaterialToSceneDatabase(engine::Entity entity)
 {
 	engine::MaterialComponent* pMaterialComponent = GetMaterialComponent(entity);
-	if (!pMaterialComponent)
-	{
-		assert("Invalid entity");
-		return;
-	}
-	std::string materialName = pMaterialComponent->GetName();
+	assert(pMaterialComponent && "Invalid material entity");
 	cd::Material* pMaterialData = pMaterialComponent->GetMaterialData();
 	pMaterialData->SetFloatProperty(cd::MaterialPropertyGroup::Metallic, cd::MaterialProperty::Factor, pMaterialComponent->GetMetallicFactor());
 	pMaterialData->SetFloatProperty(cd::MaterialPropertyGroup::Roughness, cd::MaterialProperty::Factor, pMaterialComponent->GetRoughnessFactor());
