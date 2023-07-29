@@ -6,6 +6,7 @@
 #include "ECWorld/MaterialComponent.h"
 #include "ECWorld/NameComponent.h"
 #include "ECWorld/SceneWorld.h"
+#include "ECWorld/SkyComponent.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
 #include "Log/Log.h"
@@ -288,8 +289,6 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 
 	cd::Vec3f albedoColor(1.0f);
 	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
-	std::vector<engine::Uber> currentUberOptions;
-	engine::StringCrc currentUberOptionsCrc(shaderSchema.GetUberCombines().at(0));
 	if (missRequiredTextures || unknownTextureSlot)
 	{
 		// Give a special red color to notify.
@@ -318,7 +317,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 
 				if (Detail::IsMaterialTextureTypeValid(optionalTextureType))
 				{
-					currentUberOptions.emplace_back(Detail::materialTextureTypeToUber.at(optionalTextureType));
+					materialComponent.ActiveUberShaderOption(Detail::materialTextureTypeToUber.at(optionalTextureType));
 				}
 
 				uint8_t textureSlot = optTextureSlot.value();
@@ -360,10 +359,6 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 
 				materialComponent.SetBlendMode(blendMode);
 			}
-
-			currentUberOptions.emplace_back(engine::Uber::IBL);
-
-			currentUberOptionsCrc = shaderSchema.GetOptionsCrc(currentUberOptions);
 		}
 		else
 		{
@@ -379,8 +374,8 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	// Assign a special color for loading resource status.
 	materialComponent.SetMaterialType(pMaterialType);
 	materialComponent.SetMaterialData(pMaterial);
-	materialComponent.SetUberShaderOption(currentUberOptionsCrc);
 	materialComponent.SetAlbedoColor(cd::MoveTemp(albedoColor));
+	materialComponent.SetSkyType(m_pSceneWorld->GetSkyComponent(m_pSceneWorld->GetSkyEntity())->GetSkyType());
 
 	// Textures.
 	for (const auto& [outputTextureFilePath, pTextureData] : outputTexturePathToData)

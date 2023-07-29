@@ -6,6 +6,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 namespace engine
@@ -43,7 +44,7 @@ class ShaderSchema
 {
 public:
 	static constexpr uint16_t InvalidProgramHandle = UINT16_MAX;
-	static constexpr StringCrc DefaultUberOption = StringCrc("");
+	static constexpr StringCrc DefaultUberShaderCrc = StringCrc("");
 	using ShaderBlob = std::vector<std::byte>;
 
 public:
@@ -62,7 +63,7 @@ public:
 	void RegisterUberOption(Uber uberOption);
 
 	bool IsUberOptionValid(StringCrc uberOption) const;
-	StringCrc GetOptionsCrc(const std::vector<Uber>& options) const;
+	StringCrc GetOptionsCrc(const std::unordered_set<Uber>& options) const;
 
 	void SetCompiledProgram(StringCrc uberOption, uint16_t programHandle);
 	uint16_t GetCompiledProgram(StringCrc uberOption) const;

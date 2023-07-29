@@ -10,6 +10,7 @@ namespace details
 CD_FORCEINLINE bool EnableAtmosphericScattering()
 {
 	return engine::GraphicsBackend::OpenGL != engine::Path::GetGraphicsBackend() &&
+		engine::GraphicsBackend::OpenGLES != engine::Path::GetGraphicsBackend() &&
 		engine::GraphicsBackend::Vulkan != engine::Path::GetGraphicsBackend();
 }
 

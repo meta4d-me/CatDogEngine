@@ -127,9 +127,13 @@ void WorldRenderer::Render(float deltaTime)
 			}
 		}
 
+		// Sky
 		SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+		SkyType crtSkyType = pSkyComponent->GetSkyType();
+		pMaterialComponent->SetSkyType(crtSkyType);
 
-		if (pSkyComponent->GetSkyType() == SkyType::SkyBox){
+		if (crtSkyType == SkyType::SkyBox)
+		{
 			// Create a new TextureHandle each frame if the skybox texture path has been updated,
 			// otherwise RenderContext::CreateTexture will automatically skip it.
 
@@ -194,7 +198,7 @@ void WorldRenderer::Render(float deltaTime)
 
 		bgfx::setState(state);
 
-		bgfx::submit(GetViewID(), bgfx::ProgramHandle{pMaterialComponent->GetShadingProgram()});
+		bgfx::submit(GetViewID(), bgfx::ProgramHandle{pMaterialComponent->GetShadreProgram()});
 	}
 }
 

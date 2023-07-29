@@ -220,19 +220,9 @@ void GameApp::InitEngineRenderers()
 	//
 	//GetMainWindow()->OnResize.Bind<engine::RenderTarget, &engine::RenderTarget::Resize>(pSceneRenderTarget);
 
-	if (EnablePBRSky())
-	{
-		auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-		m_pPBRSkyRenderer = pPBRSkyRenderer.get();
-		pPBRSkyRenderer->SetSceneWorld(m_pSceneWorld.get());
-		AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
-	}
-	else
-	{
-		auto pIBLSkyRenderer = std::make_unique<engine::SkyboxRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-		m_pIBLSkyRenderer = pIBLSkyRenderer.get();
-		AddEngineRenderer(cd::MoveTemp(pIBLSkyRenderer));
-	}
+	auto pIBLSkyRenderer = std::make_unique<engine::SkyboxRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pIBLSkyRenderer = pIBLSkyRenderer.get();
+	AddEngineRenderer(cd::MoveTemp(pIBLSkyRenderer));
 
 	auto pSceneRenderer = std::make_unique<engine::WorldRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pSceneRenderer = pSceneRenderer.get();

@@ -10,28 +10,35 @@ namespace engine
 
 enum class SkyType
 {
-	SkyBox = 0,
+	None = 0,
+	SkyBox,
 	AtmosphericScattering,
 
 	Count,
 };
 
-constexpr const char *SkyTypeName[] =
+constexpr const char* SkyTypeName[] =
 {
+	"None",
 	"Skybox",
 	"Atmospheric Scattering",
 };
 
-static_assert(static_cast<int>(SkyType::Count) == sizeof(SkyTypeName) / sizeof(char *),
+static_assert(static_cast<int>(SkyType::Count) == sizeof(SkyTypeName) / sizeof(char*),
 	"Sky type and name mismatch.");
 
-CD_FORCEINLINE const char *GetSkyTypeName(SkyType type)
+CD_FORCEINLINE const char* GetSkyTypeName(SkyType type)
 {
 	return SkyTypeName[static_cast<size_t>(type)];
 }
 
 class SkyComponent final
 {
+public:
+	static constexpr const char* DefaultIrradainceTexturePath = "Textures/skybox/defaultSkybox_irr.dds";
+	static constexpr const char* DefaultRadianceTexturePath = "Textures/skybox/defaultSkybox_rad.dds";
+	static constexpr const char* PureGrayTexturePath = "Textures/skybox/PureGray.dds";
+
 public:
 	static constexpr StringCrc GetClassName()
 	{
@@ -46,7 +53,7 @@ public:
 	SkyComponent& operator=(SkyComponent&&) = default;
 	~SkyComponent() = default;
 
-	void SetSkyType(SkyType type);
+	void SetSkyType(SkyType crtType);
 	const SkyType& GetSkyType() const { return m_type; }
 	SkyType& GetSkyType() { return m_type; }
 
@@ -60,8 +67,8 @@ public:
 
 private:
 	SkyType m_type = SkyType::SkyBox;
-	std::string m_irradianceTexturePath = "Textures/skybox/defaultSkybox_irr.dds";
-	std::string m_radianceTexturePath = "Textures/skybox/defaultSkybox_rad.dds";
+	std::string m_irradianceTexturePath = DefaultIrradainceTexturePath;
+	std::string m_radianceTexturePath = DefaultRadianceTexturePath;
 };
 
 }

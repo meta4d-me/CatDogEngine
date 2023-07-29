@@ -86,7 +86,10 @@ void SkyboxRenderer::Render(float deltaTime)
 
 bool SkyboxRenderer::IsEnable() const
 {
-	return m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity())->GetSkyType() == SkyType::SkyBox;
+	SkyType type = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity())->GetSkyType();
+
+	// SkyboxRenderer handle both IBL and non-sky case.
+	return SkyType::SkyBox == type || SkyType::None == type;
 }
 
 }
