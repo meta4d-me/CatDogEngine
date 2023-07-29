@@ -222,6 +222,7 @@ void GameApp::InitEngineRenderers()
 
 	auto pIBLSkyRenderer = std::make_unique<engine::SkyboxRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pIBLSkyRenderer = pIBLSkyRenderer.get();
+	pIBLSkyRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pIBLSkyRenderer));
 
 	auto pSceneRenderer = std::make_unique<engine::WorldRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
