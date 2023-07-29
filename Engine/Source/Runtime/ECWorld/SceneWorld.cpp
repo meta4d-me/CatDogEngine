@@ -207,6 +207,24 @@ void SceneWorld::AddLightToSceneDatabase(engine::Entity entity)
 	pSceneDatabase->AddLight(cd::MoveTemp(light));
 }
 
+void SceneWorld::AddMaterialToSceneDatabase(engine::Entity entity)
+{
+	engine::MaterialComponent* pMaterialComponent = GetMaterialComponent(entity);
+	assert(pMaterialComponent && "Invalid material entity");
+	cd::Material* pMaterialData = pMaterialComponent->GetMaterialData();
+	pMaterialData->SetFloatProperty(cd::MaterialPropertyGroup::Metallic, cd::MaterialProperty::Factor, pMaterialComponent->GetMetallicFactor());
+	pMaterialData->SetFloatProperty(cd::MaterialPropertyGroup::Roughness, cd::MaterialProperty::Factor, pMaterialComponent->GetRoughnessFactor());
+
+	for (int textureTypeValue = 0; textureTypeValue <static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
+	{
+		if (MaterialComponent::TextureInfo* textureInfo = pMaterialComponent->GetTextureInfo(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)))
+		{
+			pMaterialData->SetVec2fProperty(static_cast<cd::MaterialPropertyGroup>(textureTypeValue), cd::MaterialProperty::UVOffset, textureInfo->GetUVOffset());
+			pMaterialData->SetVec2fProperty(static_cast<cd::MaterialPropertyGroup>(textureTypeValue), cd::MaterialProperty::UVScale, textureInfo->GetUVScale());
+		}
+	}
+}
+
 void SceneWorld::InitDDGISDK()
 {
 #ifdef ENABLE_DDGI_SDK

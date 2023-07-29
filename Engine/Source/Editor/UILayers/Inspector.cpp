@@ -102,19 +102,28 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		}
 
 		// Textures
-		auto UpdateTextureProperty = [&pMaterialComponent](cd::MaterialTextureType textureType)
+		for (int textureTypeValue = 0; textureTypeValue < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
 		{
-			if (engine::MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(textureType))
+			if (engine::MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)))
 			{
-				if (cd::MaterialTextureType::BaseColor == textureType)
-				{
-					ImGuiUtils::ImGuiVectorProperty("Albedo UV Offset", pTextureInfo->GetUVOffset());
-					ImGuiUtils::ImGuiVectorProperty("Albedo UV Scale", pTextureInfo->GetUVScale());
-				}
-			}
-		};
+				const char* title = cd::GetMaterialPropertyGroupName(static_cast<cd::MaterialPropertyGroup>(textureTypeValue));
+				bool isOpen = ImGui::CollapsingHeader(title, ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+				ImGui::Separator();
 
-		UpdateTextureProperty(cd::MaterialTextureType::BaseColor);
+				std::string uvOffset = std::string(title) + std::string(" UVOffset");
+				std::string uvScale = std::string(title) + std::string(" UVScale");
+				if (isOpen)
+				{
+					ImGuiUtils::ImGuiVectorProperty(uvOffset.c_str(), pTextureInfo->GetUVOffset());
+					ImGuiUtils::ImGuiVectorProperty(uvScale.c_str(), pTextureInfo->GetUVScale());
+
+				}
+
+				ImGui::Separator();
+				ImGui::PopStyleVar();
+			}
+		}
 	}
 
 	ImGui::Separator();
