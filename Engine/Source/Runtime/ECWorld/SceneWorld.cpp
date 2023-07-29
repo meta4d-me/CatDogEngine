@@ -190,6 +190,7 @@ void SceneWorld::AddLightToSceneDatabase(engine::Entity entity)
 	}
 
 	cd::SceneDatabase* pSceneDatabase = GetSceneDatabase();
+	uint32_t count = pSceneDatabase->GetLightCount();
 	cd::Light light(cd::LightID(pSceneDatabase->GetLightCount()), pLightComponent->GetType());
 	light.SetName(lightName.c_str());
 	light.SetIntensity(pLightComponent->GetIntensity());
@@ -204,6 +205,29 @@ void SceneWorld::AddLightToSceneDatabase(engine::Entity entity)
 	light.SetDirection(pLightComponent->GetDirection());
 	light.SetUp(pLightComponent->GetUp());
 	pSceneDatabase->AddLight(cd::MoveTemp(light));
+}
+
+void SceneWorld::AddMaterialToSceneDatabase(engine::Entity entity)
+{
+	engine::MaterialComponent* pMaterialComponent = GetMaterialComponent(entity);
+	if (!pMaterialComponent)
+	{
+		assert("Invalid entity");
+		return;
+	}
+	std::string materialName = pMaterialComponent->GetName();
+	cd::Material* pMaterialData = pMaterialComponent->GetMaterialData();
+	pMaterialData->SetFloatProperty(cd::MaterialPropertyGroup::Metallic, cd::MaterialProperty::Factor, pMaterialComponent->GetMetallicFactor());
+	pMaterialData->SetFloatProperty(cd::MaterialPropertyGroup::Roughness, cd::MaterialProperty::Factor, pMaterialComponent->GetRoughnessFactor());
+
+	for (int textureTypeValue = 0; textureTypeValue <static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
+	{
+		if (MaterialComponent::TextureInfo* textureInfo = pMaterialComponent->GetTextureInfo(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)))
+		{
+			pMaterialData->SetVec2fProperty(static_cast<cd::MaterialPropertyGroup>(textureTypeValue), cd::MaterialProperty::UVOffset, textureInfo->GetUVOffset());
+			pMaterialData->SetVec2fProperty(static_cast<cd::MaterialPropertyGroup>(textureTypeValue), cd::MaterialProperty::UVScale, textureInfo->GetUVScale());
+		}
+	}
 }
 
 void SceneWorld::InitDDGISDK()

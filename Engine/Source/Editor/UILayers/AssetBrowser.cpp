@@ -1035,6 +1035,11 @@ void AssetBrowser::ExportAssetFile(const char* pFilePath)
 			pSceneWorld->AddLightToSceneDatabase(entity);
 		}
 
+		for (auto entity : pSceneWorld->GetMaterialEntities())
+		{
+			pSceneWorld->AddMaterialToSceneDatabase(entity);
+		}
+
 		std::filesystem::path selectFilePath(pFilePath);
 		std::filesystem::path outputFilePath = selectFilePath.replace_extension(".cdbin");
 		cdtools::CDConsumer consumer(outputFilePath.string().c_str());

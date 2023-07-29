@@ -73,6 +73,7 @@ public:
 	void Init();
 
 	void SetMaterialData(const cd::Material* pMaterialData) { m_pMaterialData = pMaterialData; }
+	cd::Material* GetMaterialData() { return const_cast<cd::Material*>(m_pMaterialData); }
 	const cd::Material* GetMaterialData() const { return m_pMaterialData; }
 
 	void SetMaterialType(const engine::MaterialType* pMaterialType) { m_pMaterialType = pMaterialType; }
@@ -94,7 +95,7 @@ public:
 
 	// Texture data.
 	void AddTextureBlob(cd::MaterialTextureType textureType, cd::TextureFormat textureFormat, cd::TextureMapMode uMapMode, cd::TextureMapMode vMapMode, TextureBlob textureBlob, uint32_t width, uint32_t height, uint32_t depth = 1);
-	void AddTextureFileBlob(cd::MaterialTextureType textureType, const cd::Texture& texture, TextureBlob textureBlob);
+	void AddTextureFileBlob(cd::MaterialTextureType textureType, const cd::Material* pMaterial, const cd::Texture& texture, TextureBlob textureBlob);
 
 	const std::map<cd::MaterialTextureType, TextureInfo>& GetTextureResources() const { return m_textureResources; }
 	TextureInfo* GetTextureInfo(cd::MaterialTextureType textureType);

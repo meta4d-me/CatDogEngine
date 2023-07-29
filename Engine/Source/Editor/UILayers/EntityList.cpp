@@ -292,7 +292,6 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
                     {
                         m_pCameraController->CameraFocus(meshAABB);
                     }
-                    int a = 0;
                 }
 
       
