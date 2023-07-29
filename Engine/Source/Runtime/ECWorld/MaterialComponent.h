@@ -63,6 +63,8 @@ public:
 		const cd::Vec2f& GetUVOffset() const { return uvOffset; }
 		cd::Vec2f& GetUVScale() { return uvScale; }
 		const cd::Vec2f& GetUVScale() const  { return uvScale; }
+		void SetUVOffset(const cd::Vec2f& offset) { uvOffset = offset; }
+		void SetUVScale(const cd::Vec2f& scale) { uvScale = scale; }
 	};
 
 public:
