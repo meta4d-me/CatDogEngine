@@ -890,6 +890,8 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 	{
 		cdtools::CDProducer cdProducer(pFilePath);
 		cdtools::Processor processor(&cdProducer, nullptr, pSceneDatabase);
+		processor.AddExtraTextureSearchFolder("G:/ArtAssets/suzhou_art_gallery/subo/Assets/dating1");
+		processor.AddExtraTextureSearchFolder("G:/ArtAssets/suzhou_art_gallery/subo/Assets/Texture");
 		processor.Run();
 	}
 	else

@@ -22,6 +22,7 @@
 #include "Rendering/WorldRenderer.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ShaderBuilder.h"
+#include "Resources/ShaderLoader.h"
 #include "Scene/SceneDatabase.h"
 #include "UILayers/AssetBrowser.h"
 #include "UILayers/EntityList.h"
@@ -292,6 +293,7 @@ void EditorApp::InitSkyEntity()
 	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(skyBox, vertexFormat, false);
 	assert(optMesh.has_value());
 
+
 	auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(skyEntity);
 	meshComponent.SetMeshData(&optMesh.value());
 	meshComponent.SetRequiredVertexFormat(&vertexFormat);
@@ -435,10 +437,10 @@ bool EditorApp::Update(float deltaTime)
 		if (0 == ResourceBuilder::Get().GetCurrentTaskCount())
 		{
 			m_bInitEditor = true;
-			ShaderBuilder::UploadUberShader(m_pSceneWorld->GetPBRMaterialType());
-			ShaderBuilder::UploadUberShader(m_pSceneWorld->GetAnimationMaterialType());
-			ShaderBuilder::UploadUberShader(m_pSceneWorld->GetTerrainMaterialType());
-			ShaderBuilder::UploadUberShader(m_pSceneWorld->GetDDGIMaterialType());
+			engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetPBRMaterialType());
+			engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetAnimationMaterialType());
+			engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetTerrainMaterialType());
+			engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetDDGIMaterialType());
 
 			// Phase 2 - Project Manager
 			//		* TODO : Show project selector

@@ -23,6 +23,7 @@ project("Game")
 		"CDPROJECT_RESOURCES_SHARED_PATH=\""..ProjectSharedPath.."\"",
 		"CDPROJECT_RESOURCES_ROOT_PATH=\""..ProjectResourceRootPath.."\"",
 		GetPlatformMacroName(),
+		"EDITOR_MODE", -- TODO : remove
 	}
 
 	includedirs {
@@ -38,7 +39,6 @@ project("Game")
 		path.join(ThirdPartySourcePath, "bx/include/compat/msvc"),
 		path.join(ThirdPartySourcePath, "imgui"),
 		ThirdPartySourcePath,
-		"EDITOR_MODE", -- TODO : remove
 	}
 
 	-- use /MT /MTd, not /MD /MDd

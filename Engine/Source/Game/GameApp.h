@@ -58,12 +58,14 @@ public:
 	void InitECWorld();
 	void InitController();
 
-	bool EnablePBRSky() const;
+	bool IsAtmosphericScatteringEnable() const;
 
 private:
+	void InitEditorCameraEntity();
 	void InitDDGIEntity();
 	void InitSkyEntity();
 
+	bool m_bInitEditor = false;
 	engine::EngineInitArgs m_initArgs;
 
 	// Windows
