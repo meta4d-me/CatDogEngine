@@ -212,8 +212,28 @@ void SceneWorld::AddMaterialToSceneDatabase(engine::Entity entity)
 	engine::MaterialComponent* pMaterialComponent = GetMaterialComponent(entity);
 	assert(pMaterialComponent && "Invalid material entity");
 	cd::Material* pMaterialData = pMaterialComponent->GetMaterialData();
+	if (!pMaterialData)
+	{
+		return;
+	}
+
 	pMaterialData->SetFloatProperty(cd::MaterialPropertyGroup::Metallic, cd::MaterialProperty::Factor, pMaterialComponent->GetMetallicFactor());
 	pMaterialData->SetFloatProperty(cd::MaterialPropertyGroup::Roughness, cd::MaterialProperty::Factor, pMaterialComponent->GetRoughnessFactor());
+	pMaterialData->SetBoolProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::TwoSided, pMaterialComponent->GetTwoSided());
+
+	//if (strcmp(pMaterialData->GetName(), "Floor_Tiles_03") == 0)
+	//{
+	//	pMaterialData->RemoveTexture(cd::MaterialPropertyGroup::Metallic);
+	//	pMaterialData->RemoveTexture(cd::MaterialPropertyGroup::Occlusion);
+	//	pMaterialData->RemoveTexture(cd::MaterialPropertyGroup::Roughness);
+	//}
+	//
+	//if (strcmp(pMaterialData->GetName(), "WoodFloor") == 0)
+	//{
+	//	pMaterialData->RemoveTexture(cd::MaterialPropertyGroup::Metallic);
+	//	pMaterialData->RemoveTexture(cd::MaterialPropertyGroup::Occlusion);
+	//	pMaterialData->RemoveTexture(cd::MaterialPropertyGroup::Roughness);
+	//}
 
 	for (int textureTypeValue = 0; textureTypeValue <static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
 	{

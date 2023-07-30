@@ -155,6 +155,22 @@ cd::Vec3f GetVec3fFormString(const std::string& str)
 	return cd::Vec3f(num1, num2, num3);
 }
 
+cd::Vec2f GetVec2fFormString(const std::string& str)
+{
+	std::string digits;
+	size_t start = str.find("(");
+	size_t end = str.find(")");
+	if (start != std::string::npos && end != std::string::npos)
+	{
+		digits = str.substr(start + 1, end - start - 1);
+	}
+	std::istringstream iss(digits);
+	float num1, num2;
+	char comma;
+	iss >> num1 >> comma >> num2;
+	return cd::Vec2f(num1, num2);
+}
+
 float GetFloatFormString(const std::string& str)
 {
 	float num;
@@ -830,7 +846,7 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 	}
 	else if (IOAssetType::Light == m_importOptions.AssetType)
 	{
-		ImportLight(pFilePath);
+		ImportJson(pFilePath);
 	}
 }
 
@@ -941,7 +957,7 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 	}
 }
 
-void AssetBrowser::ImportLight(const char* pFilePath)
+void AssetBrowser::ImportJson(const char* pFilePath)
 {
 	engine::SceneWorld* pSceneWorld = GetSceneWorld();
 	engine::World* pWorld = pSceneWorld->GetWorld();
@@ -973,12 +989,22 @@ void AssetBrowser::ImportLight(const char* pFilePath)
 	std::ifstream file(pFilePath);
 	if (file.is_open())
 	{
+		std::map<std::string, engine::MaterialComponent*> mapMaterialNameToMaterialData;
+
+		for (engine::Entity matreialEntity : pSceneWorld->GetMaterialEntities())
+		{
+			engine::MaterialComponent* pMatreialComponent = pSceneWorld->GetMaterialComponent(matreialEntity);
+
+			mapMaterialNameToMaterialData[pMatreialComponent->GetName()] = pMatreialComponent;
+		}
+
 		std::stringstream buffer;
 		buffer << file.rdbuf();
 		std::string jsonString = buffer.str();
 		file.close();
 		nlohmann::json jsonData = nlohmann::json::parse(jsonString);
 		nlohmann::json lightsArray = jsonData["lights"];
+		nlohmann::json materialArray = jsonData["mats"];
 		for (auto& light : lightsArray)
 		{
 			std::string name = light["name"];
@@ -994,21 +1020,49 @@ void AssetBrowser::ImportLight(const char* pFilePath)
 			if (0 == std::strcmp(lightType.c_str(),"Point"))
 			{
 				auto& lightComponent = CreateLightComponents(entity, cd::LightType::Point, GetFloatFormString(intensity), GetVec3fFormString(color) / 255.0f);
-				lightComponent.SetPosition(GetVec3fFormString(position));
+				lightComponent.SetIntensity(100.0f);
+				lightComponent.SetPosition(GetVec3fFormString(position) + cd::Vec3f(-1.5f, 0.0f, 0.0f));
 				lightComponent.SetRange(GetFloatFormString(range));
 			}
 			else if (0 == std::strcmp(lightType.c_str(), "Directional"))
 			{
 				auto& lightComponent = CreateLightComponents(entity, cd::LightType::Directional, GetFloatFormString(intensity), GetVec3fFormString(color) / 255.0f);
+				lightComponent.SetIntensity(4.0f);
 				lightComponent.SetDirection(GetVec3fFormString(lightDir));
 			}
 			else if (0 == std::strcmp(lightType.c_str(), "Spot"))
 			{
 				auto& lightComponent = CreateLightComponents(entity, cd::LightType::Spot, GetFloatFormString(intensity), GetVec3fFormString(color) / 255.0f);
-				lightComponent.SetPosition(GetVec3fFormString(position));
+				lightComponent.SetIntensity(100.0f);
+				lightComponent.SetPosition(GetVec3fFormString(position) + cd::Vec3f(-1.5f, 0.0f, 0.0f));
 				lightComponent.SetDirection(GetVec3fFormString(lightDir));
 				lightComponent.SetRange(GetFloatFormString(range));
 				lightComponent.SetInnerAndOuter(GetFloatFormString(innerangle), GetFloatFormString(outerangle));
+			}
+		}
+
+		for (auto& material : materialArray)
+		{
+			std::string name = material["name"];
+			std::string color = material["color@_Color"];
+			std::string UVOffset = material["tex_tiling@_MainTex"];
+			std::string UVScale = material["tex_scale@_MainTex"];
+			float roughness = material["float@_Glossiness"];
+			float metallic = material["float@_Metallic"];
+			if (engine::MaterialComponent* pMaterialComponent = mapMaterialNameToMaterialData[name])
+			{
+				pMaterialComponent->SetAlbedoColor(GetVec3fFormString(color) / 255.0f);
+				pMaterialComponent->SetMetallicFactor(metallic);
+				pMaterialComponent->SetRoughnessFactor(1.0f - roughness);
+				if (pMaterialComponent->GetTextureInfo(cd::MaterialPropertyGroup::BaseColor))
+				{
+					pMaterialComponent->GetTextureInfo(cd::MaterialPropertyGroup::BaseColor)->SetUVOffset(GetVec2fFormString(UVOffset));
+					pMaterialComponent->GetTextureInfo(cd::MaterialPropertyGroup::BaseColor)->SetUVScale(GetVec2fFormString(UVScale));
+				}
+			}
+			else
+			{
+				CD_ERROR("Not find Material");
 			}
 		}
 	}
@@ -1034,6 +1088,7 @@ void AssetBrowser::ExportAssetFile(const char* pFilePath)
 			pSceneWorld->AddCameraToSceneDatabase(entity);
 		}
 
+		//pSceneDatabase->SetLightCount(static_cast<uint32_t>(pSceneWorld->GetLightEntities().size()));
 		for (auto entity : pSceneWorld->GetLightEntities())
 		{
 			pSceneWorld->AddLightToSceneDatabase(entity);
