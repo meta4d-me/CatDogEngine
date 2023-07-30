@@ -380,7 +380,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	// Textures.
 	for (const auto& [outputTextureFilePath, pTextureData] : outputTexturePathToData)
 	{
-		auto textureFileBlob = ResourceLoader::LoadTextureFile(outputTextureFilePath.c_str());
+		auto textureFileBlob = engine::ResourceLoader::LoadFile(outputTextureFilePath.c_str());
 		if(!textureFileBlob.empty())
 		{
 			materialComponent.AddTextureFileBlob(pTextureData->GetType(), pMaterial, *pTextureData, cd::MoveTemp(textureFileBlob));

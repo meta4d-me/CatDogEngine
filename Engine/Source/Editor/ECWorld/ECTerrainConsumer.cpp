@@ -118,11 +118,11 @@ void ECTerrainConsumer::AddMaterial(engine::Entity entity, const cd::Material* p
 	}
 
 	// Shaders
-	shaderSchema.AddUberOptionVSBlob(ResourceLoader::LoadShader(outputVSFilePath.c_str()));
+	shaderSchema.AddUberOptionVSBlob(engine::ResourceLoader::LoadFile(outputVSFilePath.c_str()));
 	const engine::ShaderSchema::ShaderBlob& VSBlob = shaderSchema.GetVSBlob();
 	bgfx::ShaderHandle vsHandle = bgfx::createShader(bgfx::makeRef(VSBlob.data(), static_cast<uint32_t>(VSBlob.size())));
 
-	shaderSchema.AddUberOptionFSBlob(engine::ShaderSchema::DefaultUberShaderCrc, ResourceLoader::LoadShader(outputFSFilePath.c_str()));
+	shaderSchema.AddUberOptionFSBlob(engine::ShaderSchema::DefaultUberShaderCrc, engine::ResourceLoader::LoadFile(outputFSFilePath.c_str()));
 	const engine::ShaderSchema::ShaderBlob& FSBlob = shaderSchema.GetFSBlob(engine::ShaderSchema::DefaultUberShaderCrc);
 	bgfx::ShaderHandle fsHandle = bgfx::createShader(bgfx::makeRef(FSBlob.data(), static_cast<uint32_t>(FSBlob.size())));
 	bgfx::ProgramHandle uberProgramHandle = bgfx::createProgram(vsHandle, fsHandle);
