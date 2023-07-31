@@ -10,7 +10,6 @@
 #include "Math/MeshGenerator.h"
 #include "Path/Path.h"
 #include "Rendering/AnimationRenderer.h"
-#include "Rendering/BlitRenderTargetPass.h"
 #include "Rendering/DDGIRenderer.h"
 #include "Rendering/DebugRenderer.h"
 #include "Rendering/ImGuiRenderer.h"
@@ -269,9 +268,6 @@ void GameApp::InitEngineRenderers()
 	pDDGIRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pDDGIRenderer));
 
-	auto pBlitRTRenderPass = std::make_unique<engine::BlitRenderTargetPass>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-	AddEngineRenderer(cd::MoveTemp(pBlitRTRenderPass));
-
 	// We can debug vertex/material/texture information by just output that to screen as fragmentColor.
 	// But postprocess will bring unnecessary confusion. 
 	auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext->CreateView());
@@ -279,8 +275,9 @@ void GameApp::InitEngineRenderers()
 	pPostProcessRenderer->SetEnable(true);
 	AddEngineRenderer(cd::MoveTemp(pPostProcessRenderer));
 
+
 	// Note that if you don't want to use ImGuiRenderer for engine, you should also disable EngineImGuiContext.
-	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget));
+	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext->CreateView()));
 }
 
 bool GameApp::IsAtmosphericScatteringEnable() const

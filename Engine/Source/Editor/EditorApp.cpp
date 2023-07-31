@@ -192,9 +192,9 @@ void EditorApp::InitEngineImGuiContext(engine::Language language)
 
 void EditorApp::InitEngineUILayers()
 {
-	auto pEntityList = std::make_unique<engine::DebugPanel>("DebugPanel");
-	pEntityList->SetCameraController(m_pCameraController);
-	m_pEngineImGuiContext->AddDynamicLayer(cd::MoveTemp(pEntityList));
+	//auto pEntityList = std::make_unique<engine::DebugPanel>("DebugPanel");
+	//pEntityList->SetCameraController(m_pCameraController);
+	//m_pEngineImGuiContext->AddDynamicLayer(cd::MoveTemp(pEntityList));
 
 	auto pImGuizmoView = std::make_unique<editor::ImGuizmoView>("ImGuizmoView");
 	pImGuizmoView->SetSceneView(m_pSceneView);
