@@ -17,6 +17,8 @@ public:
 
 	void SetCameraController(std::shared_ptr<engine::CameraController> cameraController) { m_pCameraController = cameraController; }
 
+	void ShowProfiler();
+
 private:
 	std::shared_ptr<engine::CameraController> m_pCameraController;
 };
