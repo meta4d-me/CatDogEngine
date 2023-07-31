@@ -184,7 +184,6 @@ void CameraController::Update(float deltaTime)
 			m_isTracking = false;
 			PitchLocal(m_verticalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
 			Yaw(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
-			CD_ERROR(m_lookAt);
 		}
 	}
 }
@@ -383,7 +382,6 @@ void CameraController::Moving()
 		if (cd::Math::IsSmallThan((m_eye - m_eyeDestination).Length(), 0.1f))
 		{
 			m_isMoving = false;
-			CD_INFO(m_lookAt);
 		}
 	}
 }
