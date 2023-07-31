@@ -108,7 +108,7 @@ void GameApp::InitEngineImGuiContext(engine::Language language)
 
 void GameApp::InitEngineUILayers()
 {
-	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<engine::DebugPanel>("DebugPanel"));
+	m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<engine::DebugPanel>("DebugPanel"));
 }
 
 void GameApp::RegisterImGuiUserData(engine::ImGuiContextInstance* pImGuiContext)
@@ -269,8 +269,8 @@ void GameApp::InitEngineRenderers()
 	pDDGIRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pDDGIRenderer));
 
-	//auto pBlitRTRenderPass = std::make_unique<engine::BlitRenderTargetPass>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-	//AddEngineRenderer(cd::MoveTemp(pBlitRTRenderPass));
+	auto pBlitRTRenderPass = std::make_unique<engine::BlitRenderTargetPass>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	AddEngineRenderer(cd::MoveTemp(pBlitRTRenderPass));
 
 	// We can debug vertex/material/texture information by just output that to screen as fragmentColor.
 	// But postprocess will bring unnecessary confusion. 

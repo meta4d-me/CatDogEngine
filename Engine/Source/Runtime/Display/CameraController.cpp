@@ -86,13 +86,13 @@ void CameraController::ControllerToCamera()
 
 void CameraController::Update(float deltaTime)
 {
-	Focusing();
+	Moving();
 	if (Input::Get().IsKeyPressed(KeyCode::z))
 	{
 		// TODO : Only need to happen once in the first time press z.
 		SynchronizeTrackingCamera();
 
-		if (Input::Get().IsMouseLBPressed() && !m_isFocusing)
+		if (Input::Get().IsMouseLBPressed() && !m_isMoving)
 		{
 			m_isTracking = true;
 			ElevationChanging(m_verticalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
@@ -173,7 +173,7 @@ void CameraController::Update(float deltaTime)
 		}
 
 		// TODO : Currently, editor will not capture focus imgui layer.
-		//if (Input::Get().IsMouseLBPressed() && !m_isFocusing)
+		//if (Input::Get().IsMouseLBPressed() && !m_isMoving)
 		//{
 		//	m_isTracking = false;
 		//	Yaw(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
@@ -184,6 +184,7 @@ void CameraController::Update(float deltaTime)
 			m_isTracking = false;
 			PitchLocal(m_verticalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
 			Yaw(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
+			CD_ERROR(m_lookAt);
 		}
 	}
 }
@@ -359,26 +360,30 @@ void CameraController::CameraFocus(const cd::AABB& aabb)
 		return;
 	}
 
-	m_isFocusing = true;
+	m_isMoving = true;
 	m_distanceFromLookAt = (aabb.Max() - aabb.Center()).Length() * 3.0f;
 	m_eyeDestination = aabb.Center() - m_lookAt * m_distanceFromLookAt;
 	m_movementSpeed = aabb.Size().Length() * 1.5f;
 }
 
-void CameraController::Focusing()
+void CameraController::Moving()
 {
-	if (m_isFocusing)
+	if (m_isMoving)
 	{
 		cd::Direction eyeMove = (m_eye - m_eyeDestination).Normalize();
+		cd::Direction lookAtRotation = m_lookAtDestination - m_lookAt;
+		float stepRotation = lookAtRotation.Length() / 5.0f;
 		float stepDistance = (m_eye - m_eyeDestination).Length() / 5.0f;
 		m_eye = m_eye - eyeMove * stepDistance;
+		m_lookAt = m_lookAt + lookAtRotation.Normalize() * stepRotation;
 
 		SynchronizeTrackingCamera();
 		ControllerToCamera();
 
 		if (cd::Math::IsSmallThan((m_eye - m_eyeDestination).Length(), 0.1f))
 		{
-			m_isFocusing = false;
+			m_isMoving = false;
+			CD_INFO(m_lookAt);
 		}
 	}
 }
@@ -387,6 +392,14 @@ void CameraController::Panning(float x, float y)
 {
 	MoveLeft(x);
 	m_eye = m_eye + m_up * y;
+}
+
+void CameraController::MoveToPosition(cd::Point position, cd::Vec3f rotation)
+{
+	m_isMoving = true;
+	m_eyeDestination = position;
+	cd::Vec3f lookAt = cd::Quaternion::FromPitchYawRoll(rotation.x(), rotation.y(), rotation.z()) * cd::Vec3f(0.0f, 0.0f, 1.0f);
+	m_lookAtDestination = lookAt.Normalize();
 }
 
 }

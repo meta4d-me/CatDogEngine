@@ -57,7 +57,7 @@ public:
 	void CameraFocus(const cd::AABB& aabb);
 
 	// Implement the effect of a translation animation.
-	void Focusing();
+	void Moving();
 
 	// Synchronizes the controller to the transform of camera current state
 	void CameraToController();
@@ -67,6 +67,8 @@ public:
 
 	// Synchronize view when begin using mayastyle camera or fpscamera
 	void SynchronizeTrackingCamera();
+
+	void MoveToPosition(cd::Point position, cd::Vec3f lookAt);
 	
 private:
 	engine::CameraComponent* GetMainCameraComponent() const;
@@ -93,9 +95,10 @@ private:
 	cd::Vec3f m_up;
 	cd::Vec3f m_eye;
 	cd::Vec3f m_eyeDestination; // This is for focusing animation
+	cd::Vec3f m_lookAtDestination;
 
 	bool m_isTracking = false;
-	bool m_isFocusing = false;
+	bool m_isMoving = false;
 };
 
 }
