@@ -192,8 +192,6 @@ void SceneView::UpdateToolMenuButtons()
 	ImGui::SameLine();
 	UpdateSwitchAABBButton();
 
-	//
-
 	ImGui::PopStyleColor();
 }
 
