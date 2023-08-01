@@ -14,7 +14,7 @@ namespace engine
 
 void DebugRenderer::Init()
 {
-	GetRenderContext()->CreateProgram("WireFrameProgram", "vs_wireframe.bin", "fs_wireframe.bin");
+	GetRenderContext()->CreateProgram("WireFrameProgram", "vs_debug.bin", "fs_debug.bin");//wireframe
 	bgfx::setViewName(GetViewID(), "DebugRenderer");
 }
 
