@@ -156,7 +156,7 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 
 		ImGuiUtils::ImGuiBoolProperty("Constrain Aspect Ratio", pCameraComponent->GetDoConstrainAspectRatio());
 		ImGuiUtils::ImGuiBoolProperty("Post Processing", pCameraComponent->GetIsPostProcessEnable());
-		ImGuiUtils::ImGuiFloatProperty("Gamma Correction", pCameraComponent->GetGammaCorrection().x(), cd::Unit::None, 0.0f, 1.0f);
+		ImGuiUtils::ImGuiFloatProperty("Gamma Correction", pCameraComponent->GetGammaCorrection(), cd::Unit::None, 0.0f, 1.0f);
 	}
 
 	ImGui::Separator();
