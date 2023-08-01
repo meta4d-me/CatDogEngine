@@ -496,7 +496,8 @@ bool EditorApp::Update(float deltaTime)
 	{
 		m_pEngineImGuiContext->SetWindowPosOffset(m_pSceneView->GetWindowPosX(), m_pSceneView->GetWindowPosY());
 		m_pEngineImGuiContext->Update(deltaTime);
-		if (m_pSceneView->GetIsDebugMode()!= m_pDebugRenderer->IsEnable()) {
+		if (m_pSceneView->GetIsDebugMode() != m_pDebugRenderer->IsEnable())
+		{
 			m_pSceneRenderer->SetEnable(!m_pSceneRenderer->IsEnable());
 			m_pDebugRenderer->SetEnable(!m_pDebugRenderer->IsEnable());
 		}
