@@ -86,7 +86,7 @@ public:
 	bool IsPostProcessEnable() { return m_enablePostProcess; }
 	void SetPostProcessEnable(bool use) { m_enablePostProcess = use; }
 
-	cd::Vec3f & GetGammaCorrection() { return m_gammaCorrection; }
+	cd::Vec3f& GetGammaCorrection() { return m_gammaCorrection; }
 	const cd::Vec3f& GetGammaCorrection() const { return m_gammaCorrection; }
 	void SetGammaCorrection(cd::Vec3f gamma) { m_gammaCorrection = cd::MoveTemp(gamma); }
 #endif
