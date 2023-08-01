@@ -258,7 +258,7 @@ void EditorApp::InitEditorCameraEntity()
 	cameraComponent.SetNearPlane(0.1f);
 	cameraComponent.SetFarPlane(2000.0f);
 	cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
-	cameraComponent.SetGammaCorrection(cd::Vec3f(0.45f));
+	cameraComponent.SetGammaCorrection(0.45f);
 	cameraComponent.BuildProjectMatrix();
 	cameraComponent.BuildViewMatrix(cameraTransform);
 }
