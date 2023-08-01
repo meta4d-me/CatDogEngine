@@ -53,7 +53,7 @@ void main()
 	color = ACES(color);
 	
 	// Gamma Correction
-	color = pow(color, vec3(u_gamma.x,u_gamma.x,u_gamma.x));
+	color = pow(color, vec3_splat(u_gamma.x));
 	
 	gl_FragColor = vec4(color, 1.0);
 }
