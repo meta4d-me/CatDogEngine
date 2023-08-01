@@ -45,7 +45,7 @@ constexpr ImGuizmoOperationMode OperationModes[] = {
 	{ ICON_MDI_CROP_ROTATE, "Transform",  ImGuizmo::OPERATION::UNIVERSAL, true},
 };
 
-const char* debugModes[] = { "No Debug", "White Model", "AABB" };
+const char* debugModes[] = { "noDebug", "whiteModel", "AABB","wireFrame" };
 
 }
 
