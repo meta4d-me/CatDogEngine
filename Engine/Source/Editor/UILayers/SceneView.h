@@ -35,7 +35,7 @@ public:
 	void PickSceneMesh(float regionWidth, float regionHeight);
 
 	ImGuizmo::OPERATION GetImGuizmoOperation() const { return m_currentOperation; }
-	bool GetIsDebugMode() const { return m_isDebugMode; }
+	int GetDebugMode() const { return m_debugMode; }
 
 private:
 	void UpdateToolMenuButtons();
@@ -53,7 +53,7 @@ private:
 
 	bool m_is3DMode = true;
 	bool m_isIBLActive = false;
-	bool m_isDebugMode = false;
+	int m_debugMode = 0;
 
 	engine::RenderTarget* m_pRenderTarget = nullptr;
 	bool m_isMouseDownFirstTime = true;

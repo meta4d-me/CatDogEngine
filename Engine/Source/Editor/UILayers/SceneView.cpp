@@ -45,6 +45,8 @@ constexpr ImGuizmoOperationMode OperationModes[] = {
 	{ ICON_MDI_CROP_ROTATE, "Transform",  ImGuizmo::OPERATION::UNIVERSAL, true},
 };
 
+const char* debugModes[] = { "No Debug", "White Model", "AABB" };
+
 }
 
 namespace editor
@@ -106,21 +108,28 @@ void SceneView::UpdateOperationButtons()
 
 void SceneView::UpdateDebugButton()
 {
-	bool isDebugMode = m_isDebugMode;
+	/*int isDebugMode = m_debugMode;
 	if (isDebugMode)
 	{
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
-	}
+	}*/
 
-	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_PROGRESS_WRENCH "Debug")))
+	ImGui::SetNextItemWidth(90);
+	//const char* items[] = { "No Debug", "White Model", "AABB" };
+	//static int item = 0;
+	ImGui::Combo(" ", &m_debugMode, debugModes, IM_ARRAYSIZE(debugModes));
+	ImGui::PushItemWidth(70);
+	
+	//ImGui::SameLine();
+	/*if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_PROGRESS_WRENCH "Debug")))
 	{
 		m_isDebugMode = !m_isDebugMode;
-	}
+	}*/
 
-	if (isDebugMode)
+	/*if (isDebugMode)
 	{
 		ImGui::PopStyleColor();
-	}
+	}*/
 }
 
 void SceneView::Update2DAnd3DButtons()
