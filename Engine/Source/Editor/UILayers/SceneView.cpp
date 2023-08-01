@@ -104,6 +104,25 @@ void SceneView::UpdateOperationButtons()
 	}
 }
 
+void SceneView::UpdateDebugButton()
+{
+	bool isDebugMode = m_isDebugMode;
+	if (isDebugMode)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+	}
+
+	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_PROGRESS_WRENCH "Debug")))
+	{
+		m_isDebugMode = !m_isDebugMode;
+	}
+
+	if (isDebugMode)
+	{
+		ImGui::PopStyleColor();
+	}
+}
+
 void SceneView::Update2DAnd3DButtons()
 {
 	bool is3DMode = m_is3DMode;
@@ -212,6 +231,9 @@ void SceneView::UpdateToolMenuButtons()
 
 	ImGui::SameLine();
 	UpdateSwitchAABBButton();
+
+	ImGui::SameLine();
+	UpdateDebugButton();
 
 	ImGui::PopStyleColor();
 }

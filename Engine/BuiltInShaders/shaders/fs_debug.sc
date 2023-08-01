@@ -1,4 +1,4 @@
-$input v_bc, v_worldPos
+$input v_bc, v_worldPos, v_normal
 
 #include "../common/common.sh"
 
@@ -53,6 +53,7 @@ void main()
 	// Temporary code to avoid shader compile error.
 	vec3 dx = dFdx(v_worldPos);
 	vec3 dy = dFdy(v_worldPos);
+	//vec3 flatNormal = normalize(v_normal);
 	vec3 flatNormal = normalize(cross(dx, dy));
 	shColor = vec4(evalSh(flatNormal), 1.0);
 	
