@@ -5,7 +5,10 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 #define ORMMAP
 
 #include "../common/common.sh"
+#include "../common/BRDF.sh"
+#include "../common/Material.sh"
 #include "../common/Camera.sh"
+
 #include "../common/DDGI.sh"
 #include "../common/Light.sh"
 

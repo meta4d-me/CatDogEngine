@@ -33,10 +33,10 @@ void ReadTextureBinaryFile(const std::string& path, std::vector<uint8_t>& buffer
     file.close();
 }
 
-CD_FORCEINLINE size_t GetTextureRaoDataSize(cd::Vec3f probeCount, size_t gridSize, size_t pixelSize)
+CD_FORCEINLINE size_t GetTextureRaoDataSize(const cd::Vec3f &probeCount, uint16_t gridSize, uint16_t pixelSize)
 {
     cd::Vec2f textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * gridSize;
-    return static_cast<size_t>(textureSize.x() * textureSize.y()) * pixelSize / 8;
+    return static_cast<size_t>(static_cast<uint16_t>(textureSize.x() * textureSize.y()) * pixelSize / 8);
 }
 
 }
@@ -44,7 +44,7 @@ CD_FORCEINLINE size_t GetTextureRaoDataSize(cd::Vec3f probeCount, size_t gridSiz
 namespace engine
 {
 
-void DDGIComponent::ResetTextureRawData(cd::Vec3f probeCount)
+void DDGIComponent::ResetTextureRawData(const cd::Vec3f &probeCount)
 {
     m_classificationRawData.clear();
     m_distanceRawData.clear();
