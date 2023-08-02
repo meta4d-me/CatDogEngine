@@ -33,10 +33,10 @@ void ReadTextureBinaryFile(const std::string& path, std::vector<uint8_t>& buffer
     file.close();
 }
 
-CD_FORCEINLINE size_t GetTextureRaoDataSize(const cd::Vec3f &probeCount, uint16_t gridSize, uint16_t pixelSize)
+CD_FORCEINLINE size_t GetTextureRaoDataSize(const cd::Vec3f &probeCount, uint32_t gridSize, uint32_t  pixelSize)
 {
-    cd::Vec2f textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * gridSize;
-    return static_cast<size_t>(static_cast<uint16_t>(textureSize.x() * textureSize.y()) * pixelSize / 8);
+    cd::Vec2f textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * static_cast<float>(gridSize);
+    return static_cast<size_t>(static_cast<uint32_t>(textureSize.x() * textureSize.y()) * pixelSize / 8);
 }
 
 }
