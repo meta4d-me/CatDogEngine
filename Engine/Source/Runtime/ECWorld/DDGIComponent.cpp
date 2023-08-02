@@ -44,7 +44,7 @@ CD_FORCEINLINE size_t GetTextureRaoDataSize(const cd::Vec3f &probeCount, uint16_
 namespace engine
 {
 
-void DDGIComponent::ResetTextureRawData(const cd::Vec3f &probeCount)
+void DDGIComponent::ResetTextureRawData(const cd::Vec3f& probeCount)
 {
     m_distanceRawData.clear();
     m_irradianceRawData.clear();

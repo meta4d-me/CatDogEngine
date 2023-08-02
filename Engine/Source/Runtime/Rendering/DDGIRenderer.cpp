@@ -35,11 +35,11 @@ constexpr const char* cameraPos              = "u_cameraPos";
 constexpr const char* albedoColor            = "u_albedoColor";
 constexpr const char* albedoUVOffsetAndScale = "u_albedoUVOffsetAndScale";
 
-constexpr const char* lutSampler = "s_texLUT";
-constexpr const char* cubeIrradianceSampler = "s_texCubeIrr";
-constexpr const char* cubeRadianceSampler = "s_texCubeRad";
+constexpr const char* lutSampler             = "s_texLUT";
+constexpr const char* cubeIrradianceSampler  = "s_texCubeIrr";
+constexpr const char* cubeRadianceSampler    = "s_texCubeRad";
 
-constexpr const char* lutTexture = "Textures/lut/ibl_brdf_lut.dds";
+constexpr const char* lutTexture             = "Textures/lut/ibl_brdf_lut.dds";
 
 constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 
@@ -93,7 +93,7 @@ DDGITextureInfo GetDDGITextureInfo(DDGITextureType type, DDGIComponent* pDDGICom
 		info.m_textureSizeX = static_cast<uint16_t>(textureSize.x());
 		info.m_textureSizeY = static_cast<uint16_t>(textureSize.y());
 		info.m_format = bgfx::TextureFormat::Enum::R32F;
-		info.m_pData = reinterpret_cast<const void *>(pDDGIComponent->GetClassificationRawData());
+		info.m_pData = reinterpret_cast<const void*>(pDDGIComponent->GetClassificationRawData());
 		info.m_dataSize = pDDGIComponent->GetClassificationSize();
 		break;
 	default:
