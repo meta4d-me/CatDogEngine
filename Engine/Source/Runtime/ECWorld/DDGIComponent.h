@@ -18,7 +18,7 @@ public:
 		return className;
 	}
 
-	void ResetTextureRawData();
+	void ResetTextureRawData(cd::Vec3f probeCount);
 
 	void SetClassificationRawData(const std::string& path);
 	void SetClassificationRawData(const std::shared_ptr<std::vector<uint8_t>>& classification);

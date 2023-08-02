@@ -160,11 +160,11 @@ void DDGIRenderer::Init()
 	GetRenderContext()->CreateUniform(albedoColor, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(albedoUVOffsetAndScale, bgfx::UniformType::Vec4, 1);
 
-	//m_pDDGIComponent->ResetTextureRawData();
+	m_pDDGIComponent->ResetTextureRawData(m_pDDGIComponent->GetProbeCount());
 
 	// Now we can get DDGI texture from DDGI SDK every frame without these files.
-	m_pDDGIComponent->SetDistanceRawData("ddgi/distance.bin");
-	m_pDDGIComponent->SetIrradianceRawData("ddgi/irradiance.bin");
+	// m_pDDGIComponent->SetDistanceRawData("ddgi/distance.bin");
+	// m_pDDGIComponent->SetIrradianceRawData("ddgi/irradiance.bin");
 	// m_pDDGIComponent->SetRelocationRawData("ddgi/relocation.bin");
 	// m_pDDGIComponent->SetClassificationRawData("ddgi/classification.bin");
 

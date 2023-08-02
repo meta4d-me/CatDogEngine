@@ -1,6 +1,7 @@
 #include "DDGIComponent.h"
 
 #include "Log/Log.h"
+#include "U_DDGI.sh"
 
 #include <filesystem>
 //#include <format>
@@ -32,26 +33,32 @@ void ReadTextureBinaryFile(const std::string& path, std::vector<uint8_t>& buffer
     file.close();
 }
 
+CD_FORCEINLINE size_t GetTextureRaoDataSize(cd::Vec3f probeCount, size_t gridSize, size_t pixelSize)
+{
+    cd::Vec2f textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * gridSize;
+    return static_cast<size_t>(textureSize.x() * textureSize.y()) * pixelSize / 8;
+}
+
 }
 
 namespace engine
 {
 
-void DDGIComponent::ResetTextureRawData()
+void DDGIComponent::ResetTextureRawData(cd::Vec3f probeCount)
 {
     m_classificationRawData.clear();
     m_distanceRawData.clear();
     m_irradianceRawData.clear();
     m_relocationRawData.clear();
 
-    // 10 * 4 * 32 / 8
-    m_classificationRawData.resize(160, 0);
-    // 160 * 64 * (32 + 32) / 8
-    m_distanceRawData.resize(81920, 0);
-    // 80 * 32 * (16 + 16 + 16 + 16) / 8
-    m_irradianceRawData.resize(20480, 0);
-    // 10 * 4 * (16 + 16 + 16 + 16) / 8
-    m_relocationRawData.resize(320, 0);
+    // R32_FLOAT
+    m_classificationRawData.resize(GetTextureRaoDataSize(probeCount, CLASSIFICATICON_GRID_SIZE, 32), 0);
+    // R32G32_FLOAT
+    m_distanceRawData.resize(GetTextureRaoDataSize(probeCount, DISTANCE_GRID_SIZE, 64), 0);
+    // R16G16B16A16_FLOAT
+    m_irradianceRawData.resize(GetTextureRaoDataSize(probeCount, IRRADIANCE_GRID_SIZE, 64), 0);
+    // R16G16B16A16_FLOAT
+    m_relocationRawData.resize(GetTextureRaoDataSize(probeCount, RELOCATION_GRID_SIZE, 64), 0);
 }
 
 void DDGIComponent::SetClassificationRawData(const std::string& path)
