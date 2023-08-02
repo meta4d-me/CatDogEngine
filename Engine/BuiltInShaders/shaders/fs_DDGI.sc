@@ -1,8 +1,8 @@
 $input v_worldPos, v_normal, v_texcoord0, v_TBN
 
-#define ALBEDO_MAP
-// #define NORMAL_MAP
-// #define ORM_MAP
+#define ALBEDOMAP
+#define NORMALMAP
+#define ORMMAP
 
 #include "../common/common.sh"
 #include "../common/Camera.sh"
