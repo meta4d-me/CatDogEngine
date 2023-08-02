@@ -61,7 +61,7 @@ void DDGIComponent::ResetTextureRawData(const cd::Vec3f &probeCount)
     m_classificationRawData.resize(GetTextureRaoDataSize(probeCount, CLASSIFICATICON_GRID_SIZE, 32), 0);
 }
 
-void DDGIComponent::SetDistanceRawData(const std::string &path)
+void DDGIComponent::SetDistanceRawData(const std::string& path)
 {
     std::string absolutePath = GetBinaryFileRealPath(path);
     ReadTextureBinaryFile(absolutePath, m_distanceRawData);
@@ -94,7 +94,7 @@ void DDGIComponent::SetRelocationRawData(const std::shared_ptr<std::vector<uint8
     m_relocationRawData = cd::MoveTemp(*relocation);
 }
 
-void DDGIComponent::SetClassificationRawData(const std::string &path)
+void DDGIComponent::SetClassificationRawData(const std::string& path)
 {
     std::string absolutePath = GetBinaryFileRealPath(path);
     ReadTextureBinaryFile(absolutePath, m_classificationRawData);
@@ -102,7 +102,7 @@ void DDGIComponent::SetClassificationRawData(const std::string &path)
 
 void DDGIComponent::SetClassificationRawData(const std::shared_ptr<std::vector<uint8_t>>& classification)
 {
-    m_classificationRawData = cd::MoveTemp(*classification);
+    m_classificationRawData = *classification;
 }
 
 }

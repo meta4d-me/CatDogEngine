@@ -111,6 +111,11 @@ void SceneWorld::CreateDDGIMaterialType()
 	m_pDDGIMaterialType->SetMaterialName("CD_DDGI");
 
 	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("shaders/vs_DDGI"), Path::GetBuiltinShaderInputPath("shaders/fs_DDGI"));
+	shaderSchema.RegisterUberOption(Uber::ALBEDO_MAP);
+	shaderSchema.RegisterUberOption(Uber::NORMAL_MAP);
+	shaderSchema.RegisterUberOption(Uber::ORM_MAP);
+	shaderSchema.RegisterUberOption(Uber::EMISSIVE_MAP);
+	// shaderSchema.RegisterUberOption(Uber::DDGI);
 	m_pDDGIMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat ddgiVertexFormat;
@@ -120,7 +125,12 @@ void SceneWorld::CreateDDGIMaterialType()
 	ddgiVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
 	m_pDDGIMaterialType->SetRequiredVertexFormat(cd::MoveTemp(ddgiVertexFormat));
 
-	m_pDDGIMaterialType->AddRequiredTextureType(cd::MaterialTextureType::BaseColor, 0);
+	m_pDDGIMaterialType->AddOptionalTextureType(cd::MaterialTextureType::BaseColor, ALBEDO_MAP_SLOT);
+	m_pDDGIMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Normal, NORMAL_MAP_SLOT);
+	m_pDDGIMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Occlusion, ORM_MAP_SLOT);
+	m_pDDGIMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Roughness, ORM_MAP_SLOT);
+	m_pDDGIMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Metallic, ORM_MAP_SLOT);
+	m_pDDGIMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Emissive, EMISSIVE_MAP_SLOT);
 }
 
 void SceneWorld::SetSelectedEntity(engine::Entity entity)
