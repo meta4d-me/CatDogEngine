@@ -71,7 +71,7 @@ vec3 GetATM(Material material, vec3 vertexNormal, vec3 viewDir) {
 	vec3 envColor = vec3_splat(0.0);
 	
 #if defined(ATM)
-	// TODO
+	// TODO : Atmospheric scattering.
 	envColor = vec3(0.0, 0.0, 0.0);
 #endif
 	
