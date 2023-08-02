@@ -26,12 +26,13 @@ constexpr const char* volumeOrigin           = "u_volumeOrigin";
 constexpr const char* volumeProbeSpacing     = "u_volumeProbeSpacing";
 constexpr const char* volumeProbeCounts      = "u_volumeProbeCounts";
 constexpr const char* ambientMultiplier      = "u_ambientMultiplier";
+constexpr const char* normalAndViewBias      = "u_normalAndViewBias";
 
-constexpr const char *lightCountAndStride    = "u_lightCountAndStride";
-constexpr const char *lightParams            = "u_lightParams";
-constexpr const char *cameraPos              = "u_cameraPos";
-constexpr const char *albedoColor            = "u_albedoColor";
-constexpr const char *albedoUVOffsetAndScale = "u_albedoUVOffsetAndScale";
+constexpr const char* lightCountAndStride    = "u_lightCountAndStride";
+constexpr const char* lightParams            = "u_lightParams";
+constexpr const char* cameraPos              = "u_cameraPos";
+constexpr const char* albedoColor            = "u_albedoColor";
+constexpr const char* albedoUVOffsetAndScale = "u_albedoUVOffsetAndScale";
 
 constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 
@@ -56,20 +57,12 @@ DDGITextureInfo GetDDGITextureInfo(DDGITextureType type, DDGIComponent* pDDGICom
 
 	switch (type)
 	{
-	case DDGITextureType::Classification:
-		textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * CLASSIFICATICON_GRID_SIZE;
-		info.m_textureSizeX = static_cast<uint16_t>(textureSize.x());
-		info.m_textureSizeY = static_cast<uint16_t>(textureSize.y());
-		info.m_format = bgfx::TextureFormat::Enum::R32F;
-		info.m_pData = reinterpret_cast<const void*>(pDDGIComponent->GetClassificationRawData());
-		info.m_dataSize = pDDGIComponent->GetClassificationSize();
-		break;
 	case DDGITextureType::Distance:
 		textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * DISTANCE_GRID_SIZE;
 		info.m_textureSizeX = static_cast<uint16_t>(textureSize.x());
 		info.m_textureSizeY = static_cast<uint16_t>(textureSize.y());
 		info.m_format = bgfx::TextureFormat::Enum::RG32F;
-		info.m_pData = reinterpret_cast<const void*>(pDDGIComponent->GetDistanceRawData());
+		info.m_pData = reinterpret_cast<const void *>(pDDGIComponent->GetDistanceRawData());
 		info.m_dataSize = pDDGIComponent->GetDistanceSize();
 		break;
 	case DDGITextureType::Irradiance:
@@ -77,7 +70,7 @@ DDGITextureInfo GetDDGITextureInfo(DDGITextureType type, DDGIComponent* pDDGICom
 		info.m_textureSizeX = static_cast<uint16_t>(textureSize.x());
 		info.m_textureSizeY = static_cast<uint16_t>(textureSize.y());
 		info.m_format = bgfx::TextureFormat::Enum::RGBA16F;
-		info.m_pData = reinterpret_cast<const void*>(pDDGIComponent->GetIrradianceRawData());
+		info.m_pData = reinterpret_cast<const void *>(pDDGIComponent->GetIrradianceRawData());
 		info.m_dataSize = pDDGIComponent->GetIrradianceSize();
 		break;
 	case DDGITextureType::Relocation:
@@ -87,6 +80,14 @@ DDGITextureInfo GetDDGITextureInfo(DDGITextureType type, DDGIComponent* pDDGICom
 		info.m_format = bgfx::TextureFormat::Enum::RGBA16F;
 		info.m_pData = reinterpret_cast<const void*>(pDDGIComponent->GetRelocationRawData());
 		info.m_dataSize = pDDGIComponent->GetRelocationSize();
+		break;
+	case DDGITextureType::Classification:
+		textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * CLASSIFICATICON_GRID_SIZE;
+		info.m_textureSizeX = static_cast<uint16_t>(textureSize.x());
+		info.m_textureSizeY = static_cast<uint16_t>(textureSize.y());
+		info.m_format = bgfx::TextureFormat::Enum::R32F;
+		info.m_pData = reinterpret_cast<const void *>(pDDGIComponent->GetClassificationRawData());
+		info.m_dataSize = pDDGIComponent->GetClassificationSize();
 		break;
 	default:
 		break;
@@ -144,15 +145,15 @@ void DDGIRenderer::Init()
 	m_pDDGIComponent->SetVolumeOrigin(cd::Vec3f(1.3f, 5.343f, 0.0f));
 	m_pDDGIComponent->SetProbeSpacing(cd::Vec3f(2.0f, 1.0f, 2.0f));
 	m_pDDGIComponent->SetProbeCount(cd::Vec3f(15.0f, 12.0f, 10.0f));
-
-	m_pDDGIComponent->SetAmbientMultiplier(1.0);
 	m_pDDGIComponent->SetNormalBias(0.0f);
 	m_pDDGIComponent->SetViewBias(1.0f);
+	m_pDDGIComponent->SetAmbientMultiplier(1.0);
 
 	GetRenderContext()->CreateUniform(volumeOrigin, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(volumeProbeSpacing, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(volumeProbeCounts, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(ambientMultiplier, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(normalAndViewBias, bgfx::UniformType::Vec4, 1);
 
 	GetRenderContext()->CreateUniform(lightCountAndStride, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(lightParams, bgfx::UniformType::Vec4, LightUniform::VEC4_COUNT);
@@ -163,8 +164,8 @@ void DDGIRenderer::Init()
 	m_pDDGIComponent->ResetTextureRawData(m_pDDGIComponent->GetProbeCount());
 
 	// Now we can get DDGI texture from DDGI SDK every frame without these files.
-	// m_pDDGIComponent->SetDistanceRawData("ddgi/distance.bin");
-	// m_pDDGIComponent->SetIrradianceRawData("ddgi/irradiance.bin");
+	m_pDDGIComponent->SetDistanceRawData("ddgi/distance.bin");
+	m_pDDGIComponent->SetIrradianceRawData("ddgi/irradiance.bin");
 	// m_pDDGIComponent->SetRelocationRawData("ddgi/relocation.bin");
 	// m_pDDGIComponent->SetClassificationRawData("ddgi/classification.bin");
 
@@ -248,6 +249,8 @@ void DDGIRenderer::Render(float deltaTime)
 		GetRenderContext()->FillUniform(StringCrc(volumeProbeCounts), &m_pDDGIComponent->GetProbeCount().x(), 1);
 		cd::Vec4f tmpAmbientMultiplier = cd::Vec4f(m_pDDGIComponent->GetAmbientMultiplier(), 0.0f, 0.0f, 0.0f);
 		GetRenderContext()->FillUniform(StringCrc(ambientMultiplier), &tmpAmbientMultiplier, 1);
+		cd::Vec4f tmpNormalAndViewBias = cd::Vec4f(m_pDDGIComponent->GetNormalBias(), m_pDDGIComponent->GetViewBias(), 0.0f, 0.0f);
+		GetRenderContext()->FillUniform(StringCrc(normalAndViewBias), &tmpNormalAndViewBias, 1);
 
 		UpdateDDGITexture(DDGITextureType::Distance, m_pDDGIComponent, GetRenderContext());
 		UpdateDDGITexture(DDGITextureType::Irradiance, m_pDDGIComponent, GetRenderContext());

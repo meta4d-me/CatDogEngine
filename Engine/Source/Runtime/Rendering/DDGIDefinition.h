@@ -7,20 +7,20 @@ namespace engine
 
 enum class DDGITextureType
 {
-	Classification = 0,
-	Distance,
+	Distance = 0,
 	Irradiance,
 	Relocation,
+	Classification,
 
 	Count,
 };
 
 constexpr const char* DDGITextureTypeName[] =
 {
-	"Classification",
 	"Distance",
 	"Irradiance",
 	"Relocation",
+	"Classification",
 };
 
 static_assert(static_cast<int>(DDGITextureType::Count) == sizeof(DDGITextureTypeName) / sizeof(char *),
