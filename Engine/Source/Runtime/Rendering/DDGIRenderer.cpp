@@ -10,6 +10,7 @@
 #include "Rendering/DDGIDefinition.h"
 #include "Scene/Texture.h"
 #include "U_DDGI.sh"
+#include "U_Environment.sh"
 
 namespace engine
 {
@@ -33,6 +34,12 @@ constexpr const char* lightParams            = "u_lightParams";
 constexpr const char* cameraPos              = "u_cameraPos";
 constexpr const char* albedoColor            = "u_albedoColor";
 constexpr const char* albedoUVOffsetAndScale = "u_albedoUVOffsetAndScale";
+
+constexpr const char* lutSampler = "s_texLUT";
+constexpr const char* cubeIrradianceSampler = "s_texCubeIrr";
+constexpr const char* cubeRadianceSampler = "s_texCubeRad";
+
+constexpr const char* lutTexture = "Textures/lut/ibl_brdf_lut.dds";
 
 constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 
@@ -138,16 +145,13 @@ void DDGIRenderer::Init()
 	// Warning : The coordinate system is different between CD and HWs Engine.
 	//   CD: Left-hand, +Y Up
 	//   HW: Right-hand, +Z Up
-	// m_pDDGIComponent->SetVolumeOrigin(cd::Vec3f(0.0f, 0.0f, 0.0f));
-	// m_pDDGIComponent->SetProbeSpacing(cd::Vec3f(2.0f, 2.0f, 2.0f));
-	// m_pDDGIComponent->SetProbeCount(cd::Vec3f(4.0f, 2.0f, 5.0f));
 
 	m_pDDGIComponent->SetVolumeOrigin(cd::Vec3f(1.3f, 5.343f, 0.0f));
 	m_pDDGIComponent->SetProbeSpacing(cd::Vec3f(2.0f, 1.0f, 2.0f));
 	m_pDDGIComponent->SetProbeCount(cd::Vec3f(15.0f, 12.0f, 10.0f));
-	m_pDDGIComponent->SetNormalBias(0.0f);
-	m_pDDGIComponent->SetViewBias(1.0f);
-	m_pDDGIComponent->SetAmbientMultiplier(1.0);
+	m_pDDGIComponent->SetNormalBias(1.0f);
+	m_pDDGIComponent->SetViewBias(0.82f);
+	m_pDDGIComponent->SetAmbientMultiplier(0.5f);
 
 	GetRenderContext()->CreateUniform(volumeOrigin, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(volumeProbeSpacing, bgfx::UniformType::Vec4, 1);
@@ -173,6 +177,15 @@ void DDGIRenderer::Init()
 	CreatDDGITexture(DDGITextureType::Irradiance, m_pDDGIComponent, GetRenderContext());
 	// CreatDDGITexture(DDGITextureType::Relocation, m_pDDGIComponent, GetRenderContext());
 	// CreatDDGITexture(DDGITextureType::Classification, m_pDDGIComponent, GetRenderContext());
+
+	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+	GetRenderContext()->CreateUniform(lutSampler, bgfx::UniformType::Sampler);
+	GetRenderContext()->CreateUniform(cubeIrradianceSampler, bgfx::UniformType::Sampler);
+	GetRenderContext()->CreateUniform(cubeRadianceSampler, bgfx::UniformType::Sampler);
+
+	GetRenderContext()->CreateTexture(lutTexture);
+	GetRenderContext()->CreateTexture(pSkyComponent->GetIrradianceTexturePath().c_str(), samplerFlags);
+	GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), samplerFlags);
 }
 
 void DDGIRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -265,6 +278,23 @@ void DDGIRenderer::Render(float deltaTime)
 		// 	GetRenderContext()->GetTexture(StringCrc(GetDDGITextureTypeName(DDGITextureType::Relocation))));
 		// bgfx::setTexture(CLA_MAP_SLOT, GetRenderContext()->GetUniform(StringCrc(classificationSampler)),
 		// 	GetRenderContext()->GetTexture(StringCrc(GetDDGITextureTypeName(DDGITextureType::Classification))));
+
+		SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+		constexpr StringCrc irrSamplerCrc(cubeIrradianceSampler);
+		GetRenderContext()->CreateTexture(pSkyComponent->GetIrradianceTexturePath().c_str(), samplerFlags);
+		bgfx::setTexture(IBL_IRRADIANCE_SLOT,
+			GetRenderContext()->GetUniform(irrSamplerCrc),
+			GetRenderContext()->GetTexture(StringCrc(pSkyComponent->GetIrradianceTexturePath())));
+
+		constexpr StringCrc radSamplerCrc(cubeRadianceSampler);
+		GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), samplerFlags);
+		bgfx::setTexture(IBL_RADIANCE_SLOT,
+			GetRenderContext()->GetUniform(radSamplerCrc),
+			GetRenderContext()->GetTexture(StringCrc(pSkyComponent->GetRadianceTexturePath())));
+
+		constexpr StringCrc lutsamplerCrc(lutSampler);
+		constexpr StringCrc luttextureCrc(lutTexture);
+		bgfx::setTexture(BRDF_LUT_SLOT, GetRenderContext()->GetUniform(lutsamplerCrc), GetRenderContext()->GetTexture(luttextureCrc));
 
 		constexpr uint64_t defaultState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		uint64_t state = defaultState;

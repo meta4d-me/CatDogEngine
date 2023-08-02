@@ -3,7 +3,7 @@
 #define RELOCATION_GRID_SIZE 1
 #define CLASSIFICATICON_GRID_SIZE 1
 
-#define DIS_MAP_SLOT 4
-#define IRR_MAP_SLOT 5
-#define REL_MAP_SLOT 6
-#define CLA_MAP_SLOT 7
+#define DIS_MAP_SLOT 12
+#define IRR_MAP_SLOT 13
+#define REL_MAP_SLOT 14
+#define CLA_MAP_SLOT 15
