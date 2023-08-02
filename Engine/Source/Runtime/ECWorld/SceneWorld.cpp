@@ -286,7 +286,6 @@ void SceneWorld::Update()
 		// static std::string savaPath = (std::filesystem::path(DDGI_SDK_PATH) / "Save").string();
 		// WriteDdgi2BinFile(savaPath, *curDecodeData, frameCount++);
 
-		// These will move curDecodeData.
 		pDDGIComponent->SetDistanceRawData(curDecodeData->visDecodeData);
 		pDDGIComponent->SetIrradianceRawData(curDecodeData->irrDecodeData);
 	}

@@ -59,34 +59,28 @@ void DDGIComponent::ResetTextureRawData(const cd::Vec3f &probeCount)
     m_relocationRawData.resize(GetTextureRaoDataSize(probeCount, RELOCATION_GRID_SIZE, 64), 0);
     // R32_FLOAT
     m_classificationRawData.resize(GetTextureRaoDataSize(probeCount, CLASSIFICATICON_GRID_SIZE, 32), 0);
-    CD_FATAL("m_distanceRawData size : {}", m_distanceRawData.size());
-    CD_FATAL("m_irradianceRawData size : {}", m_irradianceRawData.size());
 }
 
 void DDGIComponent::SetDistanceRawData(const std::string &path)
 {
     std::string absolutePath = GetBinaryFileRealPath(path);
     ReadTextureBinaryFile(absolutePath, m_distanceRawData);
-
-    CD_FATAL("m_distanceRawData size : {}", m_distanceRawData.size());
 }
 
 void DDGIComponent::SetDistanceRawData(const std::shared_ptr<std::vector<uint8_t>>& distance)
 {
-    m_distanceRawData = cd::MoveTemp(*distance);
+    m_distanceRawData = *distance;
 }
 
 void DDGIComponent::SetIrradianceRawData(const std::string& path)
 {
     std::string absolutePath = GetBinaryFileRealPath(path);
     ReadTextureBinaryFile(absolutePath, m_irradianceRawData);
-
-    CD_FATAL("m_irradianceRawData size : {}", m_irradianceRawData.size());
 }
 
 void DDGIComponent::SetIrradianceRawData(const std::shared_ptr<std::vector<uint8_t>>& irrdiance)
 {
-    m_irradianceRawData = cd::MoveTemp(*irrdiance);
+    m_irradianceRawData = *irrdiance;
 }
 
 void DDGIComponent::SetRelocationRawData(const std::string& path)
