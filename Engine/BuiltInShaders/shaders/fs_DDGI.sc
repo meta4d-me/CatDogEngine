@@ -31,6 +31,7 @@ void main()
 	
 	vec3 dirColor = GetDirectional(material, v_worldPos, viewDir);
 	vec3 envColor = GetEnvironment(material, v_worldPos, viewDir, v_normal);
+	vec3 emiColor = material.emissive;
 	
-	gl_FragColor = vec4(dirColor + envColor, 1.0);
+	gl_FragColor = vec4(dirColor + envColor + emiColor, 1.0);
 }
