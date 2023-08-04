@@ -304,6 +304,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 				cd::TextureID textureID = pMaterial->GetTextureID(optionalTextureType);
 				if (!textureID.IsValid())
 				{
+					// TODO : Its ok to have a material factor instead of texture, remove factor case warning.
 					CD_WARN("Material {0} does not have optional texture type {1}!", pMaterial->GetName(), GetMaterialPropertyGroupName(optionalTextureType));
 					continue;
 				}

@@ -30,9 +30,10 @@ vec2 SampleIBLSpecularBRDFLUT(float NdotV, float roughness) {
 }
 #endif
 
-vec3 GetEnvironment(Material material, vec3 vertexNormal, vec3 viewDir) {
+vec3 GetIBL(Material material, vec3 vertexNormal, vec3 viewDir) {
 	vec3 envColor = vec3_splat(0.0);
 	
+#if defined(IBL)
 	vec3 reflectDir = normalize(reflect(-viewDir, material.normal));
 	float NdotV = max(dot(material.normal, viewDir), 0.0);
 	
@@ -42,7 +43,6 @@ vec3 GetEnvironment(Material material, vec3 vertexNormal, vec3 viewDir) {
 	horizonOcclusion *= horizonOcclusion;
 	float finalSpecularOcclusion = min(specularOcclusion, horizonOcclusion);
 	
-#if defined(IBL) && !defined(ATM)
 	float mip = clamp(6.0 * material.roughness, 0.1, 6.0);
 	
 	// Environment Prefiltered Irradiance
@@ -63,12 +63,15 @@ vec3 GetEnvironment(Material material, vec3 vertexNormal, vec3 viewDir) {
 	// Specular
 	envColor += (envSpecularBRDF * envRadiance * finalSpecularOcclusion);
 #endif
-
-#if defined(ATM) && !defined(IBL)
-	envColor = vec3(0.0, 0.0, 0.0);
-#endif
 	
-#if defined(NO_ENVERONMENT)
+	return envColor;
+}
+
+vec3 GetATM(Material material, vec3 vertexNormal, vec3 viewDir) {
+	vec3 envColor = vec3_splat(0.0);
+	
+#if defined(ATM)
+	// TODO : Atmospheric scattering.
 	envColor = vec3(0.0, 0.0, 0.0);
 #endif
 	

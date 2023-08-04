@@ -12,6 +12,9 @@
 #include "ddgi_sdk.h"
 #endif
 
+#include <vector>
+#include <string>
+
 namespace engine
 {
 
@@ -111,6 +114,11 @@ void SceneWorld::CreateDDGIMaterialType()
 	m_pDDGIMaterialType->SetMaterialName("CD_DDGI");
 
 	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("shaders/vs_DDGI"), Path::GetBuiltinShaderInputPath("shaders/fs_DDGI"));
+	shaderSchema.RegisterUberOption(Uber::ALBEDO_MAP);
+	shaderSchema.RegisterUberOption(Uber::NORMAL_MAP);
+	shaderSchema.RegisterUberOption(Uber::ORM_MAP);
+	shaderSchema.RegisterUberOption(Uber::EMISSIVE_MAP);
+	// shaderSchema.RegisterUberOption(Uber::DDGI);
 	m_pDDGIMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat ddgiVertexFormat;
@@ -120,7 +128,12 @@ void SceneWorld::CreateDDGIMaterialType()
 	ddgiVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
 	m_pDDGIMaterialType->SetRequiredVertexFormat(cd::MoveTemp(ddgiVertexFormat));
 
-	m_pDDGIMaterialType->AddRequiredTextureType(cd::MaterialTextureType::BaseColor, 0);
+	m_pDDGIMaterialType->AddOptionalTextureType(cd::MaterialTextureType::BaseColor, ALBEDO_MAP_SLOT);
+	m_pDDGIMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Normal, NORMAL_MAP_SLOT);
+	m_pDDGIMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Occlusion, ORM_MAP_SLOT);
+	m_pDDGIMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Roughness, ORM_MAP_SLOT);
+	m_pDDGIMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Metallic, ORM_MAP_SLOT);
+	m_pDDGIMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Emissive, EMISSIVE_MAP_SLOT);
 }
 
 void SceneWorld::SetSelectedEntity(engine::Entity entity)
@@ -221,19 +234,18 @@ void SceneWorld::AddMaterialToSceneDatabase(engine::Entity entity)
 	pMaterialData->SetFloatProperty(cd::MaterialPropertyGroup::Roughness, cd::MaterialProperty::Factor, pMaterialComponent->GetRoughnessFactor());
 	pMaterialData->SetBoolProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::TwoSided, pMaterialComponent->GetTwoSided());
 
-	//if (strcmp(pMaterialData->GetName(), "Floor_Tiles_03") == 0)
-	//{
-	//	pMaterialData->RemoveTexture(cd::MaterialPropertyGroup::Metallic);
-	//	pMaterialData->RemoveTexture(cd::MaterialPropertyGroup::Occlusion);
-	//	pMaterialData->RemoveTexture(cd::MaterialPropertyGroup::Roughness);
-	//}
-	//
-	//if (strcmp(pMaterialData->GetName(), "WoodFloor") == 0)
-	//{
-	//	pMaterialData->RemoveTexture(cd::MaterialPropertyGroup::Metallic);
-	//	pMaterialData->RemoveTexture(cd::MaterialPropertyGroup::Occlusion);
-	//	pMaterialData->RemoveTexture(cd::MaterialPropertyGroup::Roughness);
-	//}
+#if 0
+	std::vector<const char*> removeMaterialNames = { "Floor_Tiles_03", "WoodFloor" };
+	for (auto& name : removeMaterialNames)
+	{
+		if (strcmp(pMaterialData->GetName(), name) == 0)
+		{
+			pMaterialData->RemoveTexture(cd::MaterialPropertyGroup::Metallic);
+			pMaterialData->RemoveTexture(cd::MaterialPropertyGroup::Occlusion);
+			pMaterialData->RemoveTexture(cd::MaterialPropertyGroup::Roughness);
+		}
+	}
+#endif
 
 	for (int textureTypeValue = 0; textureTypeValue <static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
 	{
@@ -250,11 +262,11 @@ void SceneWorld::InitDDGISDK()
 #ifdef ENABLE_DDGI_SDK
 	if (InitDDGI(DDGI_SDK_PATH))
 	{
-		CD_ENGINE_INFO("Init DDGI client success at : {0}", DDGI_SDK_PATH);
+		CD_ENGINE_FATAL("Init DDGI client success at : {0}", DDGI_SDK_PATH);
 	}
 	else
 	{
-		CD_ENGINE_ERROR("Init DDGI client failed at : {0}", DDGI_SDK_PATH);
+		CD_ENGINE_FATAL("Init DDGI client failed at : {0}", DDGI_SDK_PATH);
 	}
 #endif 
 }
@@ -273,20 +285,19 @@ void SceneWorld::Update()
 	engine::DDGIComponent* pDDGIComponent = GetDDGIComponent(GetDDGIEntity());
 	if (!pDDGIComponent)
 	{
-		CD_ENGINE_ERROR("Can not get DDGI component.");
+		CD_ENGINE_FATAL("Can not get DDGI component.");
 		return;
 	}
 
 	std::shared_ptr<CurrentFrameDecodeData> curDecodeData = GetCurDDGIFrameData();
 	if (curDecodeData != nullptr)
 	{
-		CD_ENGINE_TRACE("Receive DDGI raw data success.");
+		CD_ENGINE_FATAL("Receive DDGI raw data success.");
 
 		// static uint32_t frameCount = 0;
 		// static std::string savaPath = (std::filesystem::path(DDGI_SDK_PATH) / "Save").string();
 		// WriteDdgi2BinFile(savaPath, *curDecodeData, frameCount++);
 
-		// These will move curDecodeData.
 		pDDGIComponent->SetDistanceRawData(curDecodeData->visDecodeData);
 		pDDGIComponent->SetIrradianceRawData(curDecodeData->irrDecodeData);
 	}

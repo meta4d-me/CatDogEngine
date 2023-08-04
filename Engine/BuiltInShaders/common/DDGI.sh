@@ -10,6 +10,7 @@ uniform vec4 u_volumeOrigin;
 uniform vec4 u_volumeProbeSpacing;
 uniform vec4 u_volumeProbeCounts;
 uniform vec4 u_ambientMultiplier;
+uniform vec4 u_normalAndViewBias;
 
 SAMPLER2D(s_texClassification, CLA_MAP_SLOT);
 SAMPLER2D(s_texDistance, DIS_MAP_SLOT);
@@ -153,11 +154,12 @@ vec3 DDGIGetProbeWorldPosition(ivec3 probeCoords, DDGIVolume volume) {
 	return probeWorldPosition;
 }
 
+vec3 DDGIGetSurfaceBias(vec3 surfaceNormal, vec3 dirToCamera, float normalBias, float viewBias) {
+	return (surfaceNormal * normalBias) + (dirToCamera * viewBias);
+}
+
 // Computes irradiance for the given world-position using the given volume, surface bias, sampling direction, and volume resources.
-vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volume) {
-	// Surface bias, useless for now.
-	const vec3 surfaceBias = vec3_splat(0.0);
-	
+vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, vec3 surfaceBias, DDGIVolume volume) {
 	// Bias the world space position.
 	vec3 biasedWorldPosition = worldPosition + surfaceBias;
 	// Get the 3D grid coordinates of the probe nearest the biased world position (i.e. the "base" probe).
@@ -282,10 +284,12 @@ vec3 DDGIGetVolumeIrradiance(vec3 worldPosition, vec3 direction, DDGIVolume volu
 	return irradiance;
 }
 
-vec3 GetDDGIIrradiance(vec3 worldPos, vec3 normal) {
+vec3 GetDDGIIrradiance(vec3 worldPos, vec3 normal, vec3 dirToCamera) {
 	DDGIVolume volume = GetVolumeData();
 	
-	vec3 irradiance = DDGIGetVolumeIrradiance(worldPos, normal, volume);
+	vec3 surfaceBias = DDGIGetSurfaceBias(normal, dirToCamera, u_normalAndViewBias.x, u_normalAndViewBias.y);
+	
+	vec3 irradiance = DDGIGetVolumeIrradiance(worldPos, normal, surfaceBias, volume);
 	
 	vec3 originToFrag = worldPos - volume.origin;
 	vec3 volumeHalfLengths = vec3(volume.probeCounts) * volume.probeSpacing * vec3_splat(0.5);
