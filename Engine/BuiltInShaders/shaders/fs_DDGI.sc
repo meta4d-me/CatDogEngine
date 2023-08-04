@@ -26,6 +26,8 @@ vec3 GetEnvironment(Material material, vec3 worldPos, vec3 viewDir, vec3 normal)
 void main()
 {
 	Material material = GetMaterial(v_texcoord0, v_normal, v_TBN);
+	material.roughness = 1.0 - material.roughness;
+	
 	vec3 cameraPos = GetCamera().position.xyz;
 	vec3 viewDir = normalize(cameraPos - v_worldPos);
 	

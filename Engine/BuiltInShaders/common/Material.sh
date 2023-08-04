@@ -104,7 +104,6 @@ Material GetMaterial(vec2 uv, vec3 normal, mat3 TBN) {
 #if defined(ORMMAP)
 	vec3 orm = SampleORMTexture(uv);
 	material.occlusion = orm.x;
-	//material.roughness = 1 - orm.y;
 	material.roughness = orm.y;
 	material.metallic = orm.z;
 #else
