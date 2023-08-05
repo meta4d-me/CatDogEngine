@@ -91,6 +91,5 @@ void main()
 	
 	// Fragment Color
 	gl_FragColor = vec4(dirColor + envColor + emiColor, 1.0);
-
 	// Post-processing will be used in the last pass.
 }
