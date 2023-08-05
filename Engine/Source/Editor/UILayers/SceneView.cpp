@@ -45,7 +45,17 @@ constexpr ImGuizmoOperationMode OperationModes[] = {
 	{ ICON_MDI_CROP_ROTATE, "Transform",  ImGuizmo::OPERATION::UNIVERSAL, true},
 };
 
-const char* debugModes[] = { "noDebug", "whiteModel", "AABB","wireFrame" };
+constexpr const char* debugModes[] = {
+	"NoDebug",
+	"WhiteModel",
+	//"WireFrame" 
+};
+
+constexpr const char* AABBModes[] = {
+	"NoAABB",
+	"AABBSelected",
+	"AABBAll" 
+};
 
 }
 
@@ -106,30 +116,18 @@ void SceneView::UpdateOperationButtons()
 	}
 }
 
-void SceneView::UpdateDebugButton()
+void SceneView::UpdateAABBCombo()
 {
-	/*int isDebugMode = m_debugMode;
-	if (isDebugMode)
-	{
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
-	}*/
+	ImGui::SetNextItemWidth(150);
+	ImGui::Combo("##AABBCombo", &m_AABBMode, AABBModes, IM_ARRAYSIZE(AABBModes));
+	ImGui::PushItemWidth(140);
+}
 
-	ImGui::SetNextItemWidth(90);
-	//const char* items[] = { "No Debug", "White Model", "AABB" };
-	//static int item = 0;
-	ImGui::Combo(" ", &m_debugMode, debugModes, IM_ARRAYSIZE(debugModes));
-	ImGui::PushItemWidth(70);
-	
-	//ImGui::SameLine();
-	/*if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_PROGRESS_WRENCH "Debug")))
-	{
-		m_isDebugMode = !m_isDebugMode;
-	}*/
-
-	/*if (isDebugMode)
-	{
-		ImGui::PopStyleColor();
-	}*/
+void SceneView::UpdateDebugCombo()
+{
+	ImGui::SetNextItemWidth(130);
+	ImGui::Combo("##DebugCombo", &m_debugMode, debugModes, IM_ARRAYSIZE(debugModes));
+	ImGui::PushItemWidth(110);
 }
 
 void SceneView::Update2DAnd3DButtons()
@@ -239,10 +237,10 @@ void SceneView::UpdateToolMenuButtons()
 	//ImGui::SameLine();
 
 	ImGui::SameLine();
-	UpdateSwitchAABBButton();
+	UpdateAABBCombo();
 
 	ImGui::SameLine();
-	UpdateDebugButton();
+	UpdateDebugCombo();
 
 	ImGui::PopStyleColor();
 }

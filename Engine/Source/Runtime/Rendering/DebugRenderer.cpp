@@ -28,6 +28,12 @@ void DebugRenderer::Render(float deltaTime)
 {
 	for (Entity entity : m_pCurrentSceneWorld->GetStaticMeshEntities())
 	{
+		//bgfx::setDebug(BGFX_DEBUG_WIREFRAME);
+		if (m_pCurrentSceneWorld->GetSkyEntity() ==entity)
+		{
+			continue;
+		}
+
 		StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
 		if (!pMeshComponent)
 		{
@@ -46,7 +52,7 @@ void DebugRenderer::Render(float deltaTime)
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA );// | BGFX_STATE_PT_LINESTRIP
 		bgfx::setState(state);
-
+		
 		constexpr StringCrc wireframeProgram("WireFrameProgram");
 		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(wireframeProgram));
 	}

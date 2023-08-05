@@ -36,6 +36,7 @@ public:
 
 	ImGuizmo::OPERATION GetImGuizmoOperation() const { return m_currentOperation; }
 	int GetDebugMode() const { return m_debugMode; }
+	int GetAABBMode() const { return m_AABBMode; }
 
 private:
 	void UpdateToolMenuButtons();
@@ -43,7 +44,8 @@ private:
 	void UpdateSwitchIBLButton();
 	void UpdateSwitchAABBButton();
 	void UpdateOperationButtons();
-	void UpdateDebugButton();
+	void UpdateDebugCombo();
+	void UpdateAABBCombo();
 	
 private:
 	uint16_t m_lastContentWidth = 0;
@@ -54,6 +56,7 @@ private:
 	bool m_is3DMode = true;
 	bool m_isIBLActive = false;
 	int m_debugMode = 0;
+	int m_AABBMode = 0;
 
 	engine::RenderTarget* m_pRenderTarget = nullptr;
 	bool m_isMouseDownFirstTime = true;
