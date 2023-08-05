@@ -61,6 +61,7 @@ project("Engine")
 		path.join(ThirdPartySourcePath, "bimg/3rdparty"),
 		path.join(ThirdPartySourcePath, "bx/include"),
 		path.join(ThirdPartySourcePath, "sdl/include"),
+		path.join(ThirdPartySourcePath, "sdl/include/SDL3"),
 		path.join(ThirdPartySourcePath, "imgui"),
 		table.unpack(platformIncludeDirs),
 		path.join(EnginePath, "BuiltInShaders/shaders"),
@@ -147,7 +148,7 @@ project("Engine")
 			bgfxBuildBinPath,
 		}
 		links {
-			"sdl2d", "sdl2maind",
+			"sdl3",
 			"bgfxDebug", "bimgDebug", "bxDebug", "bimg_decodeDebug"
 		}
 	filter { "configurations:Release" }
@@ -156,7 +157,7 @@ project("Engine")
 			bgfxBuildBinPath,
 		}
 		links {
-			"sdl2", "sdl2main",
+			"sdl3",
 			"bgfxRelease", "bimgRelease", "bxRelease", "bimg_decodeRelease"
 		}
 	filter {}
