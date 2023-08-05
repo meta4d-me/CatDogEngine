@@ -1,5 +1,6 @@
 #include "EntityList.h"
 
+#include "Display/CameraController.h"
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/World.h"
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
@@ -293,8 +294,6 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
                         m_pCameraController->CameraFocus(meshAABB);
                     }
                 }
-
-      
             }
         }
     }
