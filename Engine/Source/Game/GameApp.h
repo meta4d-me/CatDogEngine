@@ -58,12 +58,14 @@ public:
 	void InitECWorld();
 	void InitController();
 
-	bool EnablePBRSky() const;
+	bool IsAtmosphericScatteringEnable() const;
 
 private:
+	void InitEditorCameraEntity();
 	void InitDDGIEntity();
 	void InitSkyEntity();
 
+	bool m_bInitEditor = false;
 	engine::EngineInitArgs m_initArgs;
 
 	// Windows
@@ -84,7 +86,7 @@ private:
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEngineRenderers;
 
 	// Controllers for processing input events.
-	std::shared_ptr<engine::CameraController> m_pCameraController;
+	std::unique_ptr<engine::CameraController> m_pCameraController;
 };
 
 }

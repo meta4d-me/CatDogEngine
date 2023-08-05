@@ -53,7 +53,7 @@ class Process final
 {
 public:
 	Process() = delete;
-	explicit Process(const char* pProcessName);
+	explicit Process(const char*) {}
 	Process(const Process&) = delete;
 	Process& operator=(const Process&) = delete;
 	Process(Process&&) = default;

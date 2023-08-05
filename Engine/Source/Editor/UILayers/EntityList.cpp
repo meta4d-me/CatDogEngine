@@ -1,5 +1,6 @@
 #include "EntityList.h"
 
+#include "Display/CameraController.h"
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/World.h"
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
@@ -52,9 +53,8 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
         materialComponent.Init();
         materialComponent.SetMaterialType(pMaterialType);
-        engine::StringCrc currentUberOption(pMaterialType->GetShaderSchema().GetUberCombines().at(0));
-        materialComponent.SetUberShaderOption(currentUberOption);
         materialComponent.SetAlbedoColor(cd::Vec3f(0.2f));
+        materialComponent.SetSkyType(pSceneWorld->GetSkyComponent(pSceneWorld->GetSkyEntity())->GetSkyType());
         materialComponent.Build();
 
         auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
@@ -289,11 +289,11 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
                 if (engine::TransformComponent* pTransform = pSceneWorld->GetTransformComponent(entity))
                 {
                     meshAABB = meshAABB.Transform(pTransform->GetWorldMatrix());
-                    m_pCameraController->CameraFocus(meshAABB);
-                    int a = 0;
+                    if (m_pCameraController)
+                    {
+                        m_pCameraController->CameraFocus(meshAABB);
+                    }
                 }
-
-      
             }
         }
     }

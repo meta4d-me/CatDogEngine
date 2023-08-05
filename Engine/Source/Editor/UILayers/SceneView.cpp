@@ -167,27 +167,6 @@ void SceneView::Update2DAnd3DButtons()
 	}
 }
 
-void SceneView::UpdateSwitchIBLButton()
-{
-	bool isIBLActive = m_isIBLActive;
-	if (isIBLActive)
-	{
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
-	}
-
-	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CUBE " IBL")))
-	{
-		m_isIBLActive = !m_isIBLActive;
-		
-		// TODO
-	}
-
-	if (isIBLActive)
-	{
-		ImGui::PopStyleColor();
-	}
-}
-
 void SceneView::UpdateSwitchAABBButton()
 {
 	bool isAABBActive = false;

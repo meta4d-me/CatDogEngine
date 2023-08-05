@@ -2,8 +2,6 @@
 
 #include "Renderer.h"
 
-#include <vector>
-
 namespace engine
 {
 

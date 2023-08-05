@@ -62,9 +62,9 @@ public:
 	void RegisterImGuiUserData(engine::ImGuiContextInstance* pImGuiContext);
 
 	void InitECWorld();
-	void InitController();
+	void InitEditorController();
 
-	bool EnablePBRSky() const;
+	bool IsAtmosphericScatteringEnable() const;
 
 private:
 	void InitEditorCameraEntity();
@@ -98,7 +98,7 @@ private:
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEngineRenderers;
 
 	// Controllers for processing input events.
-	std::shared_ptr<engine::CameraController> m_pCameraController;
+	std::unique_ptr<engine::CameraController> m_pViewportCameraController;
 };
 
 }

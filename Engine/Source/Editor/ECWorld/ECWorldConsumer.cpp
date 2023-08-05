@@ -6,6 +6,7 @@
 #include "ECWorld/MaterialComponent.h"
 #include "ECWorld/NameComponent.h"
 #include "ECWorld/SceneWorld.h"
+#include "ECWorld/SkyComponent.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
 #include "Log/Log.h"
@@ -28,9 +29,8 @@ namespace editor
 namespace Detail
 {
 
-const std::unordered_map<cd::MaterialTextureType, engine::Uber> materialTextureType2Uber
+const std::unordered_map<cd::MaterialTextureType, engine::Uber> materialTextureTypeToUber
 {
-	// TODO : IBL
 	{ cd::MaterialTextureType::BaseColor, engine::Uber::ALBEDO_MAP },
 	{ cd::MaterialTextureType::Normal, engine::Uber::NORMAL_MAP },
 	{ cd::MaterialTextureType::Occlusion, engine::Uber::ORM_MAP },
@@ -41,7 +41,7 @@ const std::unordered_map<cd::MaterialTextureType, engine::Uber> materialTextureT
 
 CD_FORCEINLINE bool IsMaterialTextureTypeValid(cd::MaterialTextureType type)
 {
-	return materialTextureType2Uber.find(type) != materialTextureType2Uber.end();
+	return materialTextureTypeToUber.find(type) != materialTextureTypeToUber.end();
 }
 
 } // namespace Detail
@@ -289,7 +289,6 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 
 	cd::Vec3f albedoColor(1.0f);
 	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
-	engine::StringCrc currentUberOption(shaderSchema.GetUberCombines().at(0));
 	if (missRequiredTextures || unknownTextureSlot)
 	{
 		// Give a special red color to notify.
@@ -305,6 +304,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 				cd::TextureID textureID = pMaterial->GetTextureID(optionalTextureType);
 				if (!textureID.IsValid())
 				{
+					// TODO : Its ok to have a material factor instead of texture, remove factor case warning.
 					CD_WARN("Material {0} does not have optional texture type {1}!", pMaterial->GetName(), GetMaterialPropertyGroupName(optionalTextureType));
 					continue;
 				}
@@ -316,7 +316,10 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 					break;
 				}
 
-				ActivateUberOption(optionalTextureType);
+				if (Detail::IsMaterialTextureTypeValid(optionalTextureType))
+				{
+					materialComponent.ActiveUberShaderOption(Detail::materialTextureTypeToUber.at(optionalTextureType));
+				}
 
 				uint8_t textureSlot = optTextureSlot.value();
 				const cd::Texture& optionalTexture = pSceneDatabase->GetTexture(textureID.Data());
@@ -357,8 +360,6 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 
 				materialComponent.SetBlendMode(blendMode);
 			}
-
-			currentUberOption = shaderSchema.GetProgramCrc(m_activeUberOptions);
 		}
 		else
 		{
@@ -374,49 +375,20 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	// Assign a special color for loading resource status.
 	materialComponent.SetMaterialType(pMaterialType);
 	materialComponent.SetMaterialData(pMaterial);
-	materialComponent.SetUberShaderOption(currentUberOption);
 	materialComponent.SetAlbedoColor(cd::MoveTemp(albedoColor));
+	materialComponent.SetSkyType(m_pSceneWorld->GetSkyComponent(m_pSceneWorld->GetSkyEntity())->GetSkyType());
 
 	// Textures.
 	for (const auto& [outputTextureFilePath, pTextureData] : outputTexturePathToData)
 	{
-		auto textureFileBlob = ResourceLoader::LoadTextureFile(outputTextureFilePath.c_str());
+		auto textureFileBlob = engine::ResourceLoader::LoadFile(outputTextureFilePath.c_str());
 		if(!textureFileBlob.empty())
 		{
-			materialComponent.AddTextureFileBlob(pTextureData->GetType(), *pTextureData, cd::MoveTemp(textureFileBlob));
+			materialComponent.AddTextureFileBlob(pTextureData->GetType(), pMaterial, *pTextureData, cd::MoveTemp(textureFileBlob));
 		}
 	}
 
 	materialComponent.Build();
-}
-
-void ECWorldConsumer::ActivateUberOption(cd::MaterialTextureType textureType)
-{
-	if (Detail::IsMaterialTextureTypeValid(textureType))
-	{
-		m_activeUberOptions.insert(Detail::materialTextureType2Uber.at(textureType));
-	}
-	else
-	{
-		CD_WARN("MaterialTextureType {0} is not a vaild uber option!", GetMaterialPropertyGroupName(textureType));
-	}
-}
-
-void ECWorldConsumer::DeactivateUberOption(cd::MaterialTextureType textureType)
-{
-	if (Detail::IsMaterialTextureTypeValid(textureType))
-	{
-		m_activeUberOptions.erase(std::find(m_activeUberOptions.begin(), m_activeUberOptions.end(), Detail::materialTextureType2Uber.at(textureType)));
-	}
-	else
-	{
-		CD_WARN("MaterialTextureType {0} is not a vaild uber option!", GetMaterialPropertyGroupName(textureType));
-	}
-}
-
-void ECWorldConsumer::ClearActiveUberOption()
-{
-	m_activeUberOptions.clear();
 }
 
 }

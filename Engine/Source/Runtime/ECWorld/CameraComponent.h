@@ -2,9 +2,8 @@
 
 #include "Core/StringCrc.h"
 #include "Math/Box.hpp"
-#include "Math/Matrix.hpp"
 #include "Math/Ray.hpp"
-#include "TransformComponent.h"
+#include "Math/Transform.hpp"
 
 namespace cd
 {
@@ -33,7 +32,6 @@ public:
 	CameraComponent& operator=(CameraComponent&&) = default;
 	~CameraComponent() = default;
 
-	void FrameAll(const cd::AABB& aabb);
 	cd::Ray EmitRay(float screenX, float screenY, float width, float height) const;
 
 	void SetAspect(float aspect) { m_aspect = aspect; m_isProjectionDirty = true; }
@@ -63,7 +61,7 @@ public:
 	static void SetLookAt(const cd::Vec3f& lookAt, cd::Transform& transform);
 	static void SetUp(const cd::Vec3f& up, cd::Transform& transform);
 	static void SetCross(const cd::Vec3f& cross, cd::Transform& transform);
-
+	static void FrameAll(const cd::AABB& aabb, cd::Transform& transform);
 
 	const cd::Matrix4x4& GetViewMatrix() const { return m_viewMatrix; }
 	void BuildViewMatrix(const cd::Transform& tranform);
@@ -86,9 +84,9 @@ public:
 	bool IsPostProcessEnable() { return m_enablePostProcess; }
 	void SetPostProcessEnable(bool use) { m_enablePostProcess = use; }
 
-	cd::Vec3f& GetGammaCorrection() { return m_gammaCorrection; }
-	const cd::Vec3f& GetGammaCorrection() const { return m_gammaCorrection; }
-	void SetGammaCorrection(cd::Vec3f gamma) { m_gammaCorrection = cd::MoveTemp(gamma); }
+	float& GetGammaCorrection() { return m_gammaCorrection; }
+	const float& GetGammaCorrection() const { return m_gammaCorrection; }
+	void SetGammaCorrection(float gamma) { m_gammaCorrection = gamma; }
 #endif
 
 private:
@@ -110,7 +108,7 @@ private:
 #ifdef EDITOR_MODE
 	bool m_doConstainAspectRatio;
 	bool m_enablePostProcess;
-	cd::Vec3f m_gammaCorrection;
+	float m_gammaCorrection;
 #endif
 };
 

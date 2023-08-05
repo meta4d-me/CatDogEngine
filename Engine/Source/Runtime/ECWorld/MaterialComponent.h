@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Core/StringCrc.h"
+#include "ECWorld/SkyComponent.h"
+#include "Material/ShaderSchema.h"
 #include "Scene/Material.h"
 #include "Scene/MaterialTextureType.h"
 #include "Scene/Texture.h"
@@ -8,6 +10,7 @@
 #include <cstdint>
 #include <map>
 #include <optional>
+#include <unordered_set>
 #include <vector>
 
 namespace bgfx
@@ -60,6 +63,8 @@ public:
 		const cd::Vec2f& GetUVOffset() const { return uvOffset; }
 		cd::Vec2f& GetUVScale() { return uvScale; }
 		const cd::Vec2f& GetUVScale() const  { return uvScale; }
+		void SetUVOffset(const cd::Vec2f& offset) { uvOffset = offset; }
+		void SetUVScale(const cd::Vec2f& scale) { uvScale = scale; }
 	};
 
 public:
@@ -73,6 +78,7 @@ public:
 	void Init();
 
 	void SetMaterialData(const cd::Material* pMaterialData) { m_pMaterialData = pMaterialData; }
+	cd::Material* GetMaterialData() { return const_cast<cd::Material*>(m_pMaterialData); }
 	const cd::Material* GetMaterialData() const { return m_pMaterialData; }
 
 	void SetMaterialType(const engine::MaterialType* pMaterialType) { m_pMaterialType = pMaterialType; }
@@ -81,19 +87,23 @@ public:
 	void Reset();
 	void Build();
 
-	// Basic data
+	// Basic data.
 	void SetName(std::string name) { m_name = cd::MoveTemp(name); }
 	std::string& GetName() { return m_name; }
 	const std::string& GetName() const { return m_name; }
 
-	// Shader data.
-	void SetUberShaderOption(StringCrc uberOption);
-	StringCrc GetUberShaderOption() const;
-	uint16_t GetShadingProgram() const;
+	// Uber shader data.
+	void ActiveUberShaderOption(engine::Uber option);
+	void DeactiveUberShaderOption(engine::Uber option);
+	void MatchUberShaderCrc();
+	void SetUberShaderOptions(std::unordered_set<engine::Uber> options) { m_uberShaderOptions = cd::MoveTemp(m_uberShaderOptions); }
+	const std::unordered_set<engine::Uber>& GetUberShaderOptions() const { return m_uberShaderOptions; }
+	std::unordered_set<engine::Uber>& GetUberShaderOptions() { return m_uberShaderOptions; }
+	uint16_t GetShadreProgram() const;
 
 	// Texture data.
 	void AddTextureBlob(cd::MaterialTextureType textureType, cd::TextureFormat textureFormat, cd::TextureMapMode uMapMode, cd::TextureMapMode vMapMode, TextureBlob textureBlob, uint32_t width, uint32_t height, uint32_t depth = 1);
-	void AddTextureFileBlob(cd::MaterialTextureType textureType, const cd::Texture& texture, TextureBlob textureBlob);
+	void AddTextureFileBlob(cd::MaterialTextureType textureType, const cd::Material* pMaterial, const cd::Texture& texture, TextureBlob textureBlob);
 
 	const std::map<cd::MaterialTextureType, TextureInfo>& GetTextureResources() const { return m_textureResources; }
 	TextureInfo* GetTextureInfo(cd::MaterialTextureType textureType);
@@ -129,11 +139,17 @@ public:
 	float& GetAlphaCutOff() { return m_alphaCutOff; }
 	float GetAlphaCutOff() const { return m_alphaCutOff; }
 
+	// Different sky types provide different environment lighting.
+	void SetSkyType(SkyType type);
+	const SkyType GetSkyType() const { return m_skyType; }
+	SkyType GetSkyType() { return m_skyType; }
+
 private:
 	// Input
 	const cd::Material* m_pMaterialData = nullptr;
 	const engine::MaterialType* m_pMaterialType = nullptr;
-	StringCrc m_uberShaderOption;
+	std::unordered_set<engine::Uber> m_uberShaderOptions;
+	StringCrc m_uberShaderCrc;
 
 	std::string m_name;
 	cd::Vec3f m_albedoColor;
@@ -143,6 +159,8 @@ private:
 	bool m_twoSided;
 	cd::BlendMode m_blendMode;
 	float m_alphaCutOff;
+
+	SkyType m_skyType;
 
 	// Output
 	std::map<cd::MaterialTextureType, TextureInfo> m_textureResources;

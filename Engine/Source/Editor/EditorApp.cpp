@@ -23,6 +23,7 @@
 #include "Rendering/WorldRenderer.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ShaderBuilder.h"
+#include "Resources/ShaderLoader.h"
 #include "Scene/SceneDatabase.h"
 #include "UILayers/AssetBrowser.h"
 #include "UILayers/EntityList.h"
@@ -146,11 +147,15 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 
 void EditorApp::InitEditorUILayers()
 {
-	// Add UI layers after finish imgui and rendering contexts' initialization.
-	m_pEditorImGuiContext->AddStaticLayer(std::make_unique<MainMenu>("MainMenu"));
+	InitEditorController();
 
+	// Add UI layers after finish imgui and rendering contexts' initialization.
+	auto pMainMenu = std::make_unique<MainMenu>("MainMenu");
+	pMainMenu->SetCameraController(m_pViewportCameraController.get());
+	m_pEditorImGuiContext->AddStaticLayer(cd::MoveTemp(pMainMenu));
+	
 	auto pEntityList = std::make_unique<EntityList>("EntityList");
-	pEntityList->SetCameraController(m_pCameraController);
+	pEntityList->SetCameraController(m_pViewportCameraController.get());
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pEntityList));
 
 	//m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<GameView>("GameView"));
@@ -192,7 +197,10 @@ void EditorApp::InitEngineImGuiContext(engine::Language language)
 
 void EditorApp::InitEngineUILayers()
 {
-	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<engine::DebugPanel>("DebugPanel"));
+	//auto pEntityList = std::make_unique<engine::DebugPanel>("DebugPanel");
+	//pEntityList->SetCameraController(m_pCameraController);
+	//m_pEngineImGuiContext->AddDynamicLayer(cd::MoveTemp(pEntityList));
+
 	auto pImGuizmoView = std::make_unique<editor::ImGuizmoView>("ImGuizmoView");
 	pImGuizmoView->SetSceneView(m_pSceneView);
 	m_pEngineImGuiContext->AddDynamicLayer(cd::MoveTemp(pImGuizmoView));
@@ -255,7 +263,7 @@ void EditorApp::InitEditorCameraEntity()
 	cameraComponent.SetNearPlane(0.1f);
 	cameraComponent.SetFarPlane(2000.0f);
 	cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
-	cameraComponent.SetGammaCorrection(cd::Vec3f(0.45f));
+	cameraComponent.SetGammaCorrection(0.45f);
 	cameraComponent.BuildProjectMatrix();
 	cameraComponent.BuildViewMatrix(cameraTransform);
 }
@@ -292,6 +300,7 @@ void EditorApp::InitSkyEntity()
 	cd::Box skyBox(cd::Point(-1.0f), cd::Point(1.0f));
 	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(skyBox, vertexFormat, false);
 	assert(optMesh.has_value());
+
 
 	auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(skyEntity);
 	meshComponent.SetMeshData(&optMesh.value());
@@ -335,7 +344,7 @@ void EditorApp::InitEngineRenderers()
 	pSkyboxRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pSkyboxRenderer));
 
-	if (EnablePBRSky())
+	if (IsAtmosphericScatteringEnable())
 	{
 		auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 		m_pPBRSkyRenderer = pPBRSkyRenderer.get();
@@ -360,8 +369,8 @@ void EditorApp::InitEngineRenderers()
 
 	auto pDebugRenderer = std::make_unique<engine::DebugRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pDebugRenderer = pDebugRenderer.get();
-	pDebugRenderer->SetEnable(false);
 	pDebugRenderer->SetSceneWorld(m_pSceneWorld.get());
+	pDebugRenderer->SetEnable(false);
 	AddEngineRenderer(cd::MoveTemp(pDebugRenderer));
 
 	auto pAABBAllRenderer = std::make_unique<engine::AABBAllRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
@@ -387,13 +396,14 @@ void EditorApp::InitEngineRenderers()
 	// But postprocess will bring unnecessary confusion. 
 	auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pPostProcessRenderer->SetSceneWorld(m_pSceneWorld.get());
+	pPostProcessRenderer->SetEnable(true);
 	AddEngineRenderer(cd::MoveTemp(pPostProcessRenderer));
 
 	// Note that if you don't want to use ImGuiRenderer for engine, you should also disable EngineImGuiContext.
 	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget));
 }
 
-bool EditorApp::EnablePBRSky() const
+bool EditorApp::IsAtmosphericScatteringEnable() const
 {
 	return engine::GraphicsBackend::OpenGL != engine::Path::GetGraphicsBackend() &&
 		engine::GraphicsBackend::Vulkan != engine::Path::GetGraphicsBackend();
@@ -403,7 +413,7 @@ void EditorApp::InitShaderPrograms() const
 {
 	std::string nonUberBuildPath = CDENGINE_BUILTIN_SHADER_PATH;
 	ShaderBuilder::BuildNonUberShader(nonUberBuildPath + "shaders");
-	if (EnablePBRSky())
+	if (IsAtmosphericScatteringEnable())
 	{
 		std::string atmBuildPath = CDENGINE_BUILTIN_SHADER_PATH;
 		ShaderBuilder::BuildNonUberShader(atmBuildPath + "atm");
@@ -415,15 +425,15 @@ void EditorApp::InitShaderPrograms() const
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetDDGIMaterialType());
 }
 
-void EditorApp::InitController()
+void EditorApp::InitEditorController()
 {
 	// Controller for Input events.
-	m_pCameraController = std::make_shared<engine::CameraController>(
+	m_pViewportCameraController = std::make_unique<engine::CameraController>(
 		m_pSceneWorld.get(),
-		20.0f /* horizontal sensitivity */,
-		20.0f /* vertical sensitivity */,
-		160.0f /* Movement Speed*/);
-	m_pCameraController->CameraToController();
+		12.0f /* horizontal sensitivity */,
+		12.0f /* vertical sensitivity */,
+		30.0f /* Movement Speed*/);
+	m_pViewportCameraController->CameraToController();
 }
 
 void EditorApp::AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer)
@@ -447,10 +457,10 @@ bool EditorApp::Update(float deltaTime)
 		if (0 == ResourceBuilder::Get().GetCurrentTaskCount())
 		{
 			m_bInitEditor = true;
-			ShaderBuilder::UploadUberShader(m_pSceneWorld->GetPBRMaterialType());
-			ShaderBuilder::UploadUberShader(m_pSceneWorld->GetAnimationMaterialType());
-			ShaderBuilder::UploadUberShader(m_pSceneWorld->GetTerrainMaterialType());
-			ShaderBuilder::UploadUberShader(m_pSceneWorld->GetDDGIMaterialType());
+			engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetPBRMaterialType());
+			engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetAnimationMaterialType());
+			engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetTerrainMaterialType());
+			engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetDDGIMaterialType());
 
 			// Phase 2 - Project Manager
 			//		* TODO : Show project selector
@@ -471,7 +481,6 @@ bool EditorApp::Update(float deltaTime)
 
 			InitEngineRenderers();
 			m_pEditorImGuiContext->ClearUILayers();
-			InitController();
 			InitEditorUILayers();
 
 			InitEngineImGuiContext(m_initArgs.language);
@@ -482,7 +491,10 @@ bool EditorApp::Update(float deltaTime)
 	}
 	else
 	{
-		m_pCameraController->Update(deltaTime);
+		if (m_pViewportCameraController)
+		{
+			m_pViewportCameraController->Update(deltaTime);
+		}
 	}
 
 	GetMainWindow()->Update();

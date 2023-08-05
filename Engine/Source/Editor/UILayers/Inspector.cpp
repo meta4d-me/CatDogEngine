@@ -10,6 +10,7 @@ namespace details
 CD_FORCEINLINE bool EnableAtmosphericScattering()
 {
 	return engine::GraphicsBackend::OpenGL != engine::Path::GetGraphicsBackend() &&
+		engine::GraphicsBackend::OpenGLES != engine::Path::GetGraphicsBackend() &&
 		engine::GraphicsBackend::Vulkan != engine::Path::GetGraphicsBackend();
 }
 
@@ -101,19 +102,28 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		}
 
 		// Textures
-		auto UpdateTextureProperty = [&pMaterialComponent](cd::MaterialTextureType textureType)
+		for (int textureTypeValue = 0; textureTypeValue < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
 		{
-			if (engine::MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(textureType))
+			if (engine::MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)))
 			{
-				if (cd::MaterialTextureType::BaseColor == textureType)
-				{
-					ImGuiUtils::ImGuiVectorProperty("Albedo UV Offset", pTextureInfo->GetUVOffset());
-					ImGuiUtils::ImGuiVectorProperty("Albedo UV Scale", pTextureInfo->GetUVScale());
-				}
-			}
-		};
+				const char* title = cd::GetMaterialPropertyGroupName(static_cast<cd::MaterialPropertyGroup>(textureTypeValue));
+				bool isOpen = ImGui::CollapsingHeader(title, ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+				ImGui::Separator();
 
-		UpdateTextureProperty(cd::MaterialTextureType::BaseColor);
+				std::string uvOffset = std::string(title) + std::string(" UVOffset");
+				std::string uvScale = std::string(title) + std::string(" UVScale");
+				if (isOpen)
+				{
+					ImGuiUtils::ImGuiVectorProperty(uvOffset.c_str(), pTextureInfo->GetUVOffset());
+					ImGuiUtils::ImGuiVectorProperty(uvScale.c_str(), pTextureInfo->GetUVScale());
+
+				}
+
+				ImGui::Separator();
+				ImGui::PopStyleVar();
+			}
+		}
 	}
 
 	ImGui::Separator();
@@ -146,7 +156,7 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 
 		ImGuiUtils::ImGuiBoolProperty("Constrain Aspect Ratio", pCameraComponent->GetDoConstrainAspectRatio());
 		ImGuiUtils::ImGuiBoolProperty("Post Processing", pCameraComponent->GetIsPostProcessEnable());
-		ImGuiUtils::ImGuiVectorProperty("Gamma Correction", pCameraComponent->GetGammaCorrection(), cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ImGuiFloatProperty("Gamma Correction", pCameraComponent->GetGammaCorrection(), cd::Unit::None, 0.0f, 1.0f);
 	}
 
 	ImGui::Separator();
@@ -269,6 +279,10 @@ void UpdateComponentWidget<engine::DDGIComponent>(engine::SceneWorld *pSceneWorl
 		ImGuiUtils::ImGuiVectorProperty("Origin", pDDGIComponent->GetVolumeOrigin(), cd::Unit::CenterMeter);
 		ImGuiUtils::ImGuiVectorProperty("Probe Spacing", pDDGIComponent->GetProbeSpacing(), cd::Unit::CenterMeter);
 		ImGuiUtils::ImGuiVectorProperty("Probe Count", pDDGIComponent->GetProbeCount(), cd::Unit::CenterMeter);
+		ImGui::Separator();
+		ImGuiUtils::ImGuiFloatProperty("Normal Bias", pDDGIComponent->GetNormalBias(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+		ImGuiUtils::ImGuiFloatProperty("View Bias", pDDGIComponent->GetViewBias(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+		ImGui::Separator();
 		ImGuiUtils::ImGuiFloatProperty("Ambient Multiplier", pDDGIComponent->GetAmbientMultiplier(), cd::Unit::None, 0.0f, 10.0f);
 	}
 

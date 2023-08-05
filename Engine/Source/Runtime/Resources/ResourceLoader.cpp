@@ -1,8 +1,10 @@
 #include "ResourceLoader.h"
 
+#include <SDL_rwops.h>
+
 #include <fstream>
 
-namespace editor
+namespace engine
 {
 
 std::vector<std::byte> ResourceLoader::LoadFile(const char* pFilePath)
@@ -21,6 +23,18 @@ std::vector<std::byte> ResourceLoader::LoadFile(const char* pFilePath)
 	fileData.resize(fileSize);
 	fin.read(reinterpret_cast<char*>(fileData.data()), fileSize);
 	fin.close();
+
+	return fileData;
+}
+
+std::vector<unsigned char> ResourceLoader::LoadFileFromResourceRoot(const char* pFilePath)
+{
+	std::vector<unsigned char> fileData;
+
+	SDL_RWops* pRWops = SDL_RWFromFile(pFilePath, "rb");
+	Sint64 dataSize = SDL_RWsize(pRWops);
+	fileData.resize(dataSize);
+	SDL_RWread(pRWops, fileData.data(), sizeof(char), fileData.size());
 
 	return fileData;
 }

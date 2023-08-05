@@ -2,6 +2,7 @@
 
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/SceneWorld.h"
+#include "ECWorld/SkyComponent.h"
 #include "RenderContext.h"
 
 namespace engine
@@ -10,10 +11,11 @@ namespace engine
 namespace
 {
 
-constexpr uint16_t sampleFalg = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
-constexpr uint16_t renderState = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
 constexpr const char* skyboxSampler = "s_texSkybox";
 constexpr const char* skyboxShader = "skyboxShader";
+
+constexpr uint16_t sampleFalg = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
+constexpr uint16_t renderState = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
 
 }
 
@@ -21,10 +23,10 @@ SkyboxRenderer::~SkyboxRenderer() = default;
 
 void SkyboxRenderer::Init()
 {
-	m_pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
 	GetRenderContext()->CreateUniform(skyboxSampler, bgfx::UniformType::Sampler);
-
+	GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), sampleFalg);
 	GetRenderContext()->CreateProgram(skyboxShader, "vs_skybox.bin", "fs_skybox.bin");
 
 	bgfx::setViewName(GetViewID(), "SkyboxRenderer");
@@ -32,7 +34,7 @@ void SkyboxRenderer::Init()
 
 void SkyboxRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
-	if (m_pSkyComponent->GetSkyType() != SkyType::SkyBox)
+	if (!IsEnable())
 	{
 		return;
 	}
@@ -53,7 +55,7 @@ void SkyboxRenderer::UpdateView(const float* pViewMatrix, const float* pProjecti
 
 void SkyboxRenderer::Render(float deltaTime)
 {
-	if (m_pSkyComponent->GetSkyType() != SkyType::SkyBox)
+	if (!IsEnable())
 	{
 		return;
 	}
@@ -66,19 +68,28 @@ void SkyboxRenderer::Render(float deltaTime)
 	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()});
 	bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
 
-	constexpr StringCrc sampler(skyboxSampler);
-	constexpr StringCrc program(skyboxShader);
-
 	// Create a new TextureHandle each frame if the skybox texture path has been updated,
 	// otherwise RenderContext::CreateTexture will automatically skip it.
-	GetRenderContext()->CreateTexture(m_pSkyComponent->GetRadianceTexturePath().c_str(), sampleFalg);
+	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+	GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), sampleFalg);
+
+	constexpr StringCrc samplerCrc(skyboxSampler);
+	constexpr StringCrc programCrc(skyboxShader);
 
 	bgfx::setTexture(0,
-		GetRenderContext()->GetUniform(sampler),
-		GetRenderContext()->GetTexture(StringCrc(m_pSkyComponent->GetRadianceTexturePath())));
+		GetRenderContext()->GetUniform(samplerCrc),
+		GetRenderContext()->GetTexture(StringCrc(pSkyComponent->GetRadianceTexturePath())));
 
 	bgfx::setState(renderState);
-	bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(program));
+	bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(programCrc));
+}
+
+bool SkyboxRenderer::IsEnable() const
+{
+	SkyType type = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity())->GetSkyType();
+
+	// SkyboxRenderer handle both IBL and non-sky case.
+	return SkyType::SkyBox == type || SkyType::None == type;
 }
 
 }

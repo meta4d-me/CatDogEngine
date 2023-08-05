@@ -46,7 +46,7 @@
   * [imgui-filebrowser](https://github.com/AirGuanZ/imgui-filebrowser)
   * [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo)
 * Image IO
-  * [stb](https://github.com/nothings/stb)  
+  * [stb](https://github.com/nothings/stb)
 * Log
   * [spdlog](https://github.com/gabime/spdlog)
 * Makefile
@@ -55,13 +55,15 @@
   * [subprocess.h](https://github.com/sheredom/subprocess.h)
 * Profiler
   * [tracy](https://github.com/wolfpld/tracy)
+* Serialization
+  * [json](https://github.com/nlohmann/json)
 * UI Resources
   * Font
     * [FanWunMing](https://github.com/ayaka14732/FanWunMing)
   * Icon
     * [MaterialDesign](https://github.com/Templarian/MaterialDesign)
     * [IconFontCppHeaders](https://github.com/juliettef/IconFontCppHeaders)
-    * [Icons Document](https://pictogrammers.com/library/mdi/)  
+    * [Icons Document](https://pictogrammers.com/library/mdi/)
 * Window
   * [SDL](https://github.com/libsdl-org/SDL)
 

@@ -22,6 +22,8 @@
 #include "Producers/GenericProducer/GenericProducer.h"
 #endif
 
+#include <json/json.hpp>
+
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui/imgui_internal.h>
@@ -81,6 +83,21 @@ bool IsModelInputFile(const char* pFileExtension)
 	return false;
 }
 
+bool IsLightInputFile(const char* pFileExtension)
+{
+	constexpr const char* pFileExtensions[] = { ".json" };
+	constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
+	for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
+	{
+		if (0 == strcmp(pFileExtensions[extensionIndex], pFileExtension))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 std::string GetFilePathExtension(const std::string& FileName)
 {
 	auto pos = FileName.find_last_of('.');
@@ -120,6 +137,46 @@ void Tooltip(const char* text)
 	}
 
 	ImGui::PopStyleVar();
+}
+
+cd::Vec3f GetVec3fFormString(const std::string& str)
+{
+	std::string digits;
+	size_t start = str.find("(");
+	size_t end = str.find(")");
+	if (start != std::string::npos && end != std::string::npos)
+	{
+		digits = str.substr(start + 1, end - start - 1);
+	}
+	std::istringstream iss(digits);
+	float num1, num2, num3;
+	char comma;
+	iss >> num1 >> comma >> num2 >> comma >> num3;
+	return cd::Vec3f(num1, num2, num3);
+}
+
+cd::Vec2f GetVec2fFormString(const std::string& str)
+{
+	std::string digits;
+	size_t start = str.find("(");
+	size_t end = str.find(")");
+	if (start != std::string::npos && end != std::string::npos)
+	{
+		digits = str.substr(start + 1, end - start - 1);
+	}
+	std::istringstream iss(digits);
+	float num1, num2;
+	char comma;
+	iss >> num1 >> comma >> num2;
+	return cd::Vec2f(num1, num2);
+}
+
+float GetFloatFormString(const std::string& str)
+{
+	float num;
+	std::istringstream iss(str);
+	iss >> num; 
+	return num;
 }
 
 }
@@ -318,6 +375,13 @@ void AssetBrowser::UpdateAssetFolderTree()
 			m_pImportFileBrowser->SetTitle("ImportAssets - DDGI Model");
 			m_pImportFileBrowser->Open();
 
+			CD_INFO("Import asset type: {}", GetDDGITextureTypeName(m_importOptions.AssetType));
+		}
+		else if (ImGui::Selectable("Light from json"))
+		{
+			m_importOptions.AssetType = IOAssetType::Light;
+			m_pImportFileBrowser->SetTitle("ImportAssets - Light");
+			m_pImportFileBrowser->Open();
 			CD_INFO("Import asset type: {}", GetDDGITextureTypeName(m_importOptions.AssetType));
 		}
 
@@ -678,7 +742,6 @@ bool AssetBrowser::UpdateOptionDialog(const char* pTitle, bool& active, bool& im
 		}
 		ImGui::EndPopup();
 	}
-
 	return finish;
 }
 
@@ -709,6 +772,10 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		{
 			m_importOptions.AssetType = IOAssetType::Model;
 		}
+		else if (IsLightInputFile(pFileExtension.c_str()))
+		{
+			m_importOptions.AssetType = IOAssetType::Light;
+		}
 		else
 		{
 			// Still unknown, exit.
@@ -723,26 +790,30 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 	}
 	else if (IOAssetType::CubeMap == m_importOptions.AssetType)
 	{
-		std::string relativePath = (std::filesystem::path("Textures") /
-			std::filesystem::path(pFilePath).stem()).generic_string();
-
-		std::filesystem::path absolutePath = CDPROJECT_RESOURCES_ROOT_PATH;
-		absolutePath /= relativePath;
-
-		CD_INFO("Compile skybox textures to {0}.", absolutePath);
-
-		std::string irrdianceOutput = absolutePath.generic_string() + "_irr.dds";
-		ResourceBuilder::Get().AddIrradianceCubeMapBuildTask(pFilePath, irrdianceOutput.c_str());
-		ResourceBuilder::Get().Update();
-
-		std::string radianceOutput = absolutePath.generic_string() + "_rad.dds";
-		ResourceBuilder::Get().AddRadianceCubeMapBuildTask(pFilePath, radianceOutput.c_str());
-		ResourceBuilder::Get().Update();
-
 		engine::SceneWorld* pSceneWorld = GetImGuiContextInstance()->GetSceneWorld();
 		engine::SkyComponent* pSkyComponent = pSceneWorld->GetSkyComponent(pSceneWorld->GetSkyEntity());
-		pSkyComponent->SetIrradianceTexturePath(relativePath + "_irr.dds");
-		pSkyComponent->SetRadianceTexturePath(relativePath + "_rad.dds");
+
+		if (engine::SkyType::SkyBox == pSkyComponent->GetSkyType())
+		{
+			std::string relativePath = (std::filesystem::path("Textures") /
+				std::filesystem::path(pFilePath).stem()).generic_string();
+
+			std::filesystem::path absolutePath = CDPROJECT_RESOURCES_ROOT_PATH;
+			absolutePath /= relativePath;
+
+			CD_INFO("Compile skybox textures to {0}.", absolutePath);
+
+			std::string irrdianceOutput = absolutePath.generic_string() + "_irr.dds";
+			ResourceBuilder::Get().AddIrradianceCubeMapBuildTask(pFilePath, irrdianceOutput.c_str());
+			ResourceBuilder::Get().Update();
+
+			std::string radianceOutput = absolutePath.generic_string() + "_rad.dds";
+			ResourceBuilder::Get().AddRadianceCubeMapBuildTask(pFilePath, radianceOutput.c_str());
+			ResourceBuilder::Get().Update();
+
+			pSkyComponent->SetIrradianceTexturePath(relativePath + "_irr.dds");
+			pSkyComponent->SetRadianceTexturePath(relativePath + "_rad.dds");
+		}
 	}
 	else if (IOAssetType::Shader == m_importOptions.AssetType)
 	{
@@ -772,6 +843,10 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		outputFilePath += "Shaders/" + inputFileName + ".bin";
 		ResourceBuilder::Get().AddShaderBuildTask(shaderType, pFilePath, outputFilePath.c_str());
 		ResourceBuilder::Get().Update();
+	}
+	else if (IOAssetType::Light == m_importOptions.AssetType)
+	{
+		ImportJson(pFilePath);
 	}
 }
 
@@ -880,6 +955,146 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 		processor.SetDumpSceneDatabaseEnable(false);
 		processor.Run();
 	}
+
+#if 0
+	// Temporary : Edit texture file path.
+	{
+	
+		cdtools::CDConsumer cdConsumer("C:/Users/22470/Desktop/subo/new/subo.cdbin2");
+		cdConsumer.SetExportMode(cdtools::ExportMode::PureBinary);
+
+		auto &textures = pSceneDatabase->GetTextures();
+		for (auto &tx : textures)
+		{
+			std::filesystem::path texturePath = tx.GetPath();
+			texturePath.replace_extension("dds");
+			std::string newName = texturePath.filename().string();
+			tx.SetPath(newName.c_str());
+
+			CD_FATAL("newName : {}", newName);
+		}
+
+		cdtools::Processor processor(nullptr, &cdConsumer, pSceneDatabase);
+		processor.SetDumpSceneDatabaseEnable(false);
+		processor.Run();
+	}
+#endif
+
+}
+
+void AssetBrowser::ImportJson(const char* pFilePath)
+{
+	engine::SceneWorld* pSceneWorld = GetSceneWorld();
+	engine::World* pWorld = pSceneWorld->GetWorld();
+	cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
+
+	auto AddNamedEntity = [&pWorld](std::string defaultName) -> engine::Entity
+	{
+		engine::Entity entity = pWorld->CreateEntity();
+		auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
+		nameComponent.SetName(defaultName + std::to_string(entity));
+
+		return entity;
+	};
+
+	auto CreateLightComponents = [&pWorld](engine::Entity entity, cd::LightType lightType, float intensity, cd::Vec3f color) -> engine::LightComponent&
+	{
+		auto& lightComponent = pWorld->CreateComponent<engine::LightComponent>(entity);
+		lightComponent.SetType(lightType);
+		lightComponent.SetIntensity(intensity);
+		lightComponent.SetColor(color);
+
+		auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+		transformComponent.SetTransform(cd::Transform::Identity());
+		transformComponent.Build();
+
+		return lightComponent;
+	};
+
+	std::ifstream file(pFilePath);
+	if (file.is_open())
+	{
+		std::map<std::string, engine::MaterialComponent*> mapMaterialNameToMaterialData;
+
+		for (engine::Entity matreialEntity : pSceneWorld->GetMaterialEntities())
+		{
+			engine::MaterialComponent* pMatreialComponent = pSceneWorld->GetMaterialComponent(matreialEntity);
+
+			mapMaterialNameToMaterialData[pMatreialComponent->GetName()] = pMatreialComponent;
+		}
+
+		std::stringstream buffer;
+		buffer << file.rdbuf();
+		std::string jsonString = buffer.str();
+		file.close();
+		nlohmann::json jsonData = nlohmann::json::parse(jsonString);
+		nlohmann::json lightsArray = jsonData["lights"];
+		nlohmann::json materialArray = jsonData["mats"];
+		for (auto& light : lightsArray)
+		{
+			std::string name = light["name"];
+			std::string lightType = light["type"];
+			std::string color = light["color"];
+			std::string intensity = light["intensity"];
+			std::string position = light["worldpos"];
+			std::string lightDir = light["worlddir"];
+			std::string range = light["range"];
+			std::string innerangle = light["innerSpotAngle"];
+			std::string outerangle = light["spotAngle"];
+			engine::Entity entity = AddNamedEntity(light["name"]);
+			if (0 == std::strcmp(lightType.c_str(),"Point"))
+			{
+				auto& lightComponent = CreateLightComponents(entity, cd::LightType::Point, GetFloatFormString(intensity), GetVec3fFormString(color) / 255.0f);
+				lightComponent.SetIntensity(90.0f);
+				lightComponent.SetPosition(GetVec3fFormString(position) + cd::Vec3f(-1.5f, 0.0f, 0.0f));
+				lightComponent.SetRange(GetFloatFormString(range));
+			}
+			else if (0 == std::strcmp(lightType.c_str(), "Directional"))
+			{
+				auto& lightComponent = CreateLightComponents(entity, cd::LightType::Directional, GetFloatFormString(intensity), GetVec3fFormString(color) / 255.0f);
+				lightComponent.SetIntensity(4.0f);
+				lightComponent.SetDirection(GetVec3fFormString(lightDir));
+			}
+			else if (0 == std::strcmp(lightType.c_str(), "Spot"))
+			{
+				auto& lightComponent = CreateLightComponents(entity, cd::LightType::Spot, GetFloatFormString(intensity), GetVec3fFormString(color) / 255.0f);
+				lightComponent.SetIntensity(90.0f);
+				lightComponent.SetPosition(GetVec3fFormString(position) + cd::Vec3f(-1.5f, 0.0f, 0.0f));
+				lightComponent.SetDirection(GetVec3fFormString(lightDir));
+				lightComponent.SetRange(GetFloatFormString(range));
+				lightComponent.SetInnerAndOuter(GetFloatFormString(innerangle), GetFloatFormString(outerangle));
+			}
+		}
+
+		for (auto& material : materialArray)
+		{
+			std::string name = material["name"];
+			std::string color = material["color@_Color"];
+			std::string UVOffset = material["tex_tiling@_MainTex"];
+			std::string UVScale = material["tex_scale@_MainTex"];
+			float roughness = material["float@_Glossiness"];
+			float metallic = material["float@_Metallic"];
+			if (engine::MaterialComponent* pMaterialComponent = mapMaterialNameToMaterialData[name])
+			{
+				pMaterialComponent->SetAlbedoColor(GetVec3fFormString(color) / 255.0f);
+				pMaterialComponent->SetMetallicFactor(metallic);
+				pMaterialComponent->SetRoughnessFactor(1.0f - roughness);
+				if (pMaterialComponent->GetTextureInfo(cd::MaterialPropertyGroup::BaseColor))
+				{
+					pMaterialComponent->GetTextureInfo(cd::MaterialPropertyGroup::BaseColor)->SetUVOffset(GetVec2fFormString(UVOffset));
+					pMaterialComponent->GetTextureInfo(cd::MaterialPropertyGroup::BaseColor)->SetUVScale(GetVec2fFormString(UVScale));
+				}
+			}
+			else
+			{
+				CD_ERROR("Not find Material");
+			}
+		}
+	}
+	else
+	{
+		CD_INFO("Open Joson file failed");
+	}
 }
 
 void AssetBrowser::ExportAssetFile(const char* pFilePath)
@@ -898,9 +1113,15 @@ void AssetBrowser::ExportAssetFile(const char* pFilePath)
 			pSceneWorld->AddCameraToSceneDatabase(entity);
 		}
 
+		//pSceneDatabase->SetLightCount(static_cast<uint32_t>(pSceneWorld->GetLightEntities().size()));
 		for (auto entity : pSceneWorld->GetLightEntities())
 		{
 			pSceneWorld->AddLightToSceneDatabase(entity);
+		}
+
+		for (auto entity : pSceneWorld->GetMaterialEntities())
+		{
+			pSceneWorld->AddMaterialToSceneDatabase(entity);
 		}
 
 		std::filesystem::path selectFilePath(pFilePath);
@@ -943,7 +1164,6 @@ void AssetBrowser::Update()
 	{
 		m_importOptions.Active = true;
 	}
-	
 	if (UpdateOptionDialog("Import Options", m_importOptions.Active, m_importOptions.ImportMesh, m_importOptions.ImportMaterial, m_importOptions.ImportTexture,
 		m_importOptions.ImportCamera, m_importOptions.ImportLight))
 	{
