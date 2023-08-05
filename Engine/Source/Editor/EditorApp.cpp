@@ -146,11 +146,15 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 
 void EditorApp::InitEditorUILayers()
 {
-	// Add UI layers after finish imgui and rendering contexts' initialization.
-	m_pEditorImGuiContext->AddStaticLayer(std::make_unique<MainMenu>("MainMenu"));
+	InitEditorController();
 
+	// Add UI layers after finish imgui and rendering contexts' initialization.
+	auto pMainMenu = std::make_unique<MainMenu>("MainMenu");
+	pMainMenu->SetCameraController(m_pViewportCameraController.get());
+	m_pEditorImGuiContext->AddStaticLayer(cd::MoveTemp(pMainMenu));
+	
 	auto pEntityList = std::make_unique<EntityList>("EntityList");
-	pEntityList->SetCameraController(m_pCameraController);
+	pEntityList->SetCameraController(m_pViewportCameraController.get());
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pEntityList));
 
 	//m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<GameView>("GameView"));
@@ -408,15 +412,15 @@ void EditorApp::InitShaderPrograms() const
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetDDGIMaterialType());
 }
 
-void EditorApp::InitController()
+void EditorApp::InitEditorController()
 {
 	// Controller for Input events.
-	m_pCameraController = std::make_shared<engine::CameraController>(
+	m_pViewportCameraController = std::make_unique<engine::CameraController>(
 		m_pSceneWorld.get(),
 		12.0f /* horizontal sensitivity */,
 		12.0f /* vertical sensitivity */,
 		30.0f /* Movement Speed*/);
-	m_pCameraController->CameraToController();
+	m_pViewportCameraController->CameraToController();
 }
 
 void EditorApp::AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer)
@@ -464,7 +468,6 @@ bool EditorApp::Update(float deltaTime)
 
 			InitEngineRenderers();
 			m_pEditorImGuiContext->ClearUILayers();
-			InitController();
 			InitEditorUILayers();
 
 			InitEngineImGuiContext(m_initArgs.language);
@@ -475,9 +478,9 @@ bool EditorApp::Update(float deltaTime)
 	}
 	else
 	{
-		if (m_pCameraController)
+		if (m_pViewportCameraController)
 		{
-			m_pCameraController->Update(deltaTime);
+			m_pViewportCameraController->Update(deltaTime);
 		}
 	}
 

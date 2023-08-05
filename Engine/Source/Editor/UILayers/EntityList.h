@@ -1,6 +1,5 @@
 #include "ImGui/ImGuiBaseLayer.h"
 
-#include "Display/CameraController.h"
 #include "ECWorld/Entity.h"
 
 #include <imgui/imgui.h>
@@ -29,12 +28,12 @@ public:
 	void AddEntity(engine::SceneWorld* pSceneWorld);
 	void DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity entity);
 
-	void SetCameraController(std::shared_ptr<engine::CameraController> cameraController) { m_pCameraController = cameraController; }
+	void SetCameraController(engine::CameraController* pCameraController) { m_pCameraController = pCameraController; }
 
 
 private:
 	ImGuiTextFilter m_entityFilter;
-	std::shared_ptr<engine::CameraController> m_pCameraController;
+	engine::CameraController* m_pCameraController = nullptr;
 };
 
 }

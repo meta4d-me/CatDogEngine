@@ -22,21 +22,6 @@ void CameraComponent::BuildProjectMatrix()
 	m_projectionMatrix = cd::Matrix4x4::Perspective(m_fov, m_aspect, m_nearPlane, m_farPlane, cd::NDCDepth::MinusOneToOne == m_ndcDepth);
 }
 
-void CameraComponent::FrameAll(const cd::AABB& aabb)
-{
-	if (aabb.IsEmpty())
-	{
-		return;
-	}
-
-	cd::Point lookAt = aabb.Center();
-	cd::Direction lookDirection(0.0f, 0.0f, 1.0f);
-	lookDirection.Normalize();
-
-	cd::Point lookFrom = lookAt - lookDirection * aabb.Size().Length();
-	m_isViewDirty = true;
-}
-
 cd::Ray CameraComponent::EmitRay(float screenX, float screenY, float width, float height) const
 {
 	cd::Matrix4x4 vpInverse = m_projectionMatrix * m_viewMatrix;
@@ -75,6 +60,22 @@ void CameraComponent::SetCross(const cd::Vec3f& cross, cd::Transform& transform)
 	cd::Vec3f rotAxis = GetCross(transform).Cross(cross);
 	float rotAngle = std::acos(GetUp(transform).Dot(cross));
 	transform.SetRotation(transform.GetRotation() * cd::Quaternion::FromAxisAngle(rotAxis, rotAngle));
+}
+
+void CameraComponent::FrameAll(const cd::AABB& aabb, cd::Transform& transform)
+{
+	if (aabb.IsEmpty())
+	{
+		return;
+	}
+
+	cd::Point lookAt = aabb.Center();
+	cd::Direction lookDirection(0.0f, 0.0f, 1.0f);
+	lookDirection.Normalize();
+	SetLookAt(lookDirection, transform);
+
+	cd::Point lookFrom = lookAt - lookDirection * aabb.Size().Length();
+	transform.SetTranslation(cd::MoveTemp(lookFrom));
 }
 
 }

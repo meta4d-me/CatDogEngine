@@ -289,7 +289,7 @@ bool GameApp::IsAtmosphericScatteringEnable() const
 void GameApp::InitController()
 {
 	// Controller for Input events.
-	m_pCameraController = std::make_shared<engine::CameraController>(
+	m_pCameraController = std::make_unique<engine::CameraController>(
 		m_pSceneWorld.get(),
 		12.0f /* horizontal sensitivity */,
 		12.0f /* vertical sensitivity */,
