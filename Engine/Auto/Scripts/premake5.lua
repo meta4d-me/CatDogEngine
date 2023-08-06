@@ -39,6 +39,9 @@ ENABLE_FREETYPE = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndr
 ENABLE_SPDLOG = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndroidPlatform()
 ENABLE_SUBPROCESS = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndroidPlatform()
 ENABLE_TRACY = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndroidPlatform()
+ENABLE_DDGI = DDGI_SDK_PATH ~= ""
+
+ShouldTreatWaringAsError = not (ENABLE_DDGI or USE_CLANG_TOOLSET)
 
 PlatformSettings = {}
 PlatformSettings["Windows"] = {
@@ -205,15 +208,13 @@ function CopyDllAutomatically()
 		end
 	filter {}
 
-	filter { "configurations:Release" }
-		if DDGI_SDK_PATH ~= "" then
-			postbuildcommands {
-				"{COPYFILE} \""..path.join(DDGI_SDK_PATH, "bin/*.*").."\" \""..BinariesPath.."\"",
-				"{COPYFILE} \""..path.join(DDGI_SDK_PATH, "bin/ThirdParty/ffmpeg/*.*").."\" \""..BinariesPath.."\"",
-				"{COPYFILE} \""..path.join(DDGI_SDK_PATH, "bin/ThirdParty/zlib/*.*").."\" \""..BinariesPath.."\"",
-			}
-		end
-	filter {}
+	if ENABLE_DDGI then
+		postbuildcommands {
+			"{COPYFILE} \""..path.join(DDGI_SDK_PATH, "bin/*.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(DDGI_SDK_PATH, "bin/ThirdParty/ffmpeg/*.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(DDGI_SDK_PATH, "bin/ThirdParty/zlib/*.*").."\" \""..BinariesPath.."\"",
+		}
+	end
 end
 
 -- thirdparty projects

@@ -10,7 +10,9 @@
 #include "Math/MeshGenerator.h"
 #include "Path/Path.h"
 #include "Rendering/AnimationRenderer.h"
+#ifdef ENABLE_DDGI
 #include "Rendering/DDGIRenderer.h"
+#endif
 #include "Rendering/DebugRenderer.h"
 #include "Rendering/ImGuiRenderer.h"
 #include "Rendering/PBRSkyRenderer.h"
@@ -127,8 +129,9 @@ void GameApp::InitECWorld()
 
 	InitEditorCameraEntity();
 
-	m_pSceneWorld->InitDDGISDK();
+#ifdef ENABLE_DDGI
 	InitDDGIEntity();
+#endif
 
 	InitSkyEntity();
 }
@@ -163,6 +166,7 @@ void GameApp::InitEditorCameraEntity()
 	cameraComponent.BuildViewMatrix(cameraTransform);
 }
 
+#ifdef ENABLE_DDGI
 void GameApp::InitDDGIEntity()
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
@@ -175,6 +179,7 @@ void GameApp::InitDDGIEntity()
 
 	pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
 }
+#endif
 
 void GameApp::InitSkyEntity()
 {
@@ -264,9 +269,11 @@ void GameApp::InitEngineRenderers()
 	pDebugRenderer->SetEnable(false);
 	AddEngineRenderer(cd::MoveTemp(pDebugRenderer));
 
+#ifdef ENABLE_DDGI
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pDDGIRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pDDGIRenderer));
+#endif
 
 	// We can debug vertex/material/texture information by just output that to screen as fragmentColor.
 	// But postprocess will bring unnecessary confusion. 

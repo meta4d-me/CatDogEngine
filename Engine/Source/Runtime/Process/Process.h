@@ -62,6 +62,7 @@ public:
 	Process& operator=(Process&&) = default;
 	~Process() = default;
 
+	void SetPrintChildProcessLog(bool doPrint) {}
 	void SetWaitUntilFinished(bool doWait) {}
 	void SetCommandArguments(std::vector<std::string> arguments) {}
 	void SetEnvironments(std::vector<std::string> environments) {}

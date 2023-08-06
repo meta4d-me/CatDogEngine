@@ -62,7 +62,9 @@ public:
 
 private:
 	void InitEditorCameraEntity();
+#ifdef ENABLE_DDGI
 	void InitDDGIEntity();
+#endif
 	void InitSkyEntity();
 
 	bool m_bInitEditor = false;

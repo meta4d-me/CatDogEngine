@@ -940,7 +940,7 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 		ecConsumer.SetSceneDatabaseIDs(oldNodeCount, oldMeshCount);
 		if (m_importOptions.AssetType == IOAssetType::DDGIModel)
 		{
-			ecConsumer.ActivateDDGIService();
+			ecConsumer.SetDefaultMaterialType(pSceneWorld->GetDDGIMaterialType());
 		}
 		cdtools::Processor processor(nullptr, &ecConsumer, pSceneDatabase);
 		processor.SetDumpSceneDatabaseEnable(true);
@@ -955,31 +955,6 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 		processor.SetDumpSceneDatabaseEnable(false);
 		processor.Run();
 	}
-
-#if 0
-	// Temporary : Edit texture file path.
-	{
-	
-		cdtools::CDConsumer cdConsumer("C:/Users/22470/Desktop/subo/new/subo.cdbin2");
-		cdConsumer.SetExportMode(cdtools::ExportMode::PureBinary);
-
-		auto &textures = pSceneDatabase->GetTextures();
-		for (auto &tx : textures)
-		{
-			std::filesystem::path texturePath = tx.GetPath();
-			texturePath.replace_extension("dds");
-			std::string newName = texturePath.filename().string();
-			tx.SetPath(newName.c_str());
-
-			CD_FATAL("newName : {}", newName);
-		}
-
-		cdtools::Processor processor(nullptr, &cdConsumer, pSceneDatabase);
-		processor.SetDumpSceneDatabaseEnable(false);
-		processor.Run();
-	}
-#endif
-
 }
 
 void AssetBrowser::ImportJson(const char* pFilePath)

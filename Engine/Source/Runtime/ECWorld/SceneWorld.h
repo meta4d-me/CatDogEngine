@@ -30,7 +30,9 @@ class SceneWorld
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Animation);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Camera);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(CollisionMesh);
+#ifdef ENABLE_DDGI
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(DDGI);
+#endif
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Hierarchy);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Light);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Material);
@@ -57,8 +59,10 @@ public:
 	void SetMainCameraEntity(engine::Entity entity);
 	CD_FORCEINLINE engine::Entity GetMainCameraEntity() const { return m_mainCameraEntity; }
 
+#ifdef ENABLE_DDGI
 	void SetDDGIEntity(engine::Entity entity);
 	CD_FORCEINLINE engine::Entity GetDDGIEntity() const { return m_ddgiEntity; }
+#endif
 
 	void SetSkyEntity(engine::Entity entity);
 	CD_FORCEINLINE engine::Entity GetSkyEntity() const { return m_skyEntity; }
@@ -80,7 +84,9 @@ public:
 		DeleteAnimationComponent(entity);
 		DeleteCameraComponent(entity);
 		DeleteCollisionMeshComponent(entity);
+#ifdef ENABLE_DDGI
 		DeleteDDGIComponent(entity);
+#endif
 		DeleteHierarchyComponent(entity);
 		DeleteLightComponent(entity);
 		DeleteMaterialComponent(entity);
@@ -106,7 +112,10 @@ public:
 	void AddLightToSceneDatabase(engine::Entity entity);
 	void AddMaterialToSceneDatabase(engine::Entity entity);
 
+#ifdef ENABLE_DDGI
 	void InitDDGISDK();
+#endif
+
 	void Update();
 
 private:
@@ -121,7 +130,9 @@ private:
 	// TODO : wrap them into another class?
 	engine::Entity m_selectedEntity = engine::INVALID_ENTITY;
 	engine::Entity m_mainCameraEntity = engine::INVALID_ENTITY;
+#ifdef ENABLE_DDGI
 	engine::Entity m_ddgiEntity = engine::INVALID_ENTITY;
+#endif
 	engine::Entity m_skyEntity = engine::INVALID_ENTITY;
 };
 

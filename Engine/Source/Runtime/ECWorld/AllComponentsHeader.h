@@ -3,7 +3,9 @@
 #include "ECWorld/AnimationComponent.h"
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/CollisionMeshComponent.h"
+#ifdef ENABLE_DDGI
 #include "ECWorld/DDGIComponent.h"
+#endif
 #include "ECWorld/HierarchyComponent.h"
 #include "ECWorld/LightComponent.h"
 #include "ECWorld/MaterialComponent.h"

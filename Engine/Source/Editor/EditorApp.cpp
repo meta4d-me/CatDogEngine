@@ -12,7 +12,9 @@
 #include "Path/Path.h"
 #include "Rendering/AnimationRenderer.h"
 #include "Rendering/BlitRenderTargetPass.h"
+#ifdef ENABLE_DDGI
 #include "Rendering/DDGIRenderer.h"
+#endif
 #include "Rendering/DebugRenderer.h"
 #include "Rendering/ImGuiRenderer.h"
 #include "Rendering/PBRSkyRenderer.h"
@@ -232,8 +234,10 @@ void EditorApp::InitECWorld()
 	
 	InitEditorCameraEntity();
 	
+#ifdef ENABLE_DDGI
 	m_pSceneWorld->InitDDGISDK();
 	InitDDGIEntity();
+#endif
 
 	InitSkyEntity();
 }
@@ -267,6 +271,7 @@ void EditorApp::InitEditorCameraEntity()
 	cameraComponent.BuildViewMatrix(cameraTransform);
 }
 
+#ifdef ENABLE_DDGI
 void EditorApp::InitDDGIEntity()
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
@@ -279,6 +284,7 @@ void EditorApp::InitDDGIEntity()
 
 	pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
 }
+#endif
 
 void EditorApp::InitSkyEntity()
 {
@@ -372,9 +378,11 @@ void EditorApp::InitEngineRenderers()
 	pDebugRenderer->SetEnable(false);
 	AddEngineRenderer(cd::MoveTemp(pDebugRenderer));
 
+#ifdef ENABLE_DDGI
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pDDGIRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pDDGIRenderer));
+#endif
 
 	auto pBlitRTRenderPass = std::make_unique<engine::BlitRenderTargetPass>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	AddEngineRenderer(cd::MoveTemp(pBlitRTRenderPass));
