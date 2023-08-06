@@ -204,18 +204,7 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 	{
 	case engine::GraphicsBackend::Direct3D11:
 	case engine::GraphicsBackend::Direct3D12:
-		if (ShaderType::Compute == shaderType)
-		{
-			commandArguments.push_back("cs_5_0");
-		}
-		else if (ShaderType::Fragment == shaderType)
-		{
-			commandArguments.push_back("ps_5_0");
-		}
-		else if (ShaderType::Vertex == shaderType)
-		{
-			commandArguments.push_back("vs_5_0");
-		}
+		commandArguments.push_back("s_5_0");
 		shaderLanguageDefine = "BGFX_SHADER_LANGUAGE_HLSL";
 		break;
 	case engine::GraphicsBackend::OpenGL:
@@ -245,8 +234,6 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 	}
 
 	process.SetCommandArguments(cd::MoveTemp(commandArguments));
-
-	process.SetWaitUntilFinished(true);
 	AddTask(cd::MoveTemp(process));
 
 	return true;
@@ -269,7 +256,6 @@ bool ResourceBuilder::AddIrradianceCubeMapBuildTask(const char* pInputFilePath, 
 		"--outputNum", "1", "--output0", cd::MoveTemp(pathWithoutExtension), "--output0params", "dds,rgba16f,cubemap"};
 
 	process.SetCommandArguments(cd::MoveTemp(irradianceCommandArguments));
-	process.SetWaitUntilFinished(true);
 	AddTask(cd::MoveTemp(process));
 
 	return true;
@@ -292,7 +278,6 @@ bool ResourceBuilder::AddRadianceCubeMapBuildTask(const char* pInputFilePath, co
 		"--outputNum", "1", "--output0", cd::MoveTemp(pathWithoutExtension), "--output0params", "dds,rgba16f,cubemap"};
 
 	process.SetCommandArguments(cd::MoveTemp(radianceCommandArguments));
-	process.SetWaitUntilFinished(true);
 	AddTask(cd::MoveTemp(process));
 
 	return true;
@@ -320,7 +305,6 @@ bool ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, c
 		commandArguments.push_back("--linear");
 	}
 	process.SetCommandArguments(cd::MoveTemp(commandArguments));
-	process.SetWaitUntilFinished(true);
 	AddTask(cd::MoveTemp(process));
 
 	return true;
@@ -337,6 +321,7 @@ void ResourceBuilder::Update()
 	while (!m_buildTasks.empty())
 	{
 		Process& process = m_buildTasks.front();
+		process.SetWaitUntilFinished(m_buildTasks.size() == 1);
 		process.Run();
 		m_buildTasks.pop();
 	}

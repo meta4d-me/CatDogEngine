@@ -64,6 +64,7 @@ public:
 
 	void Update();
 	size_t GetCurrentTaskCount() const { return m_buildTasks.size(); }
+	bool IsIdle() const { return m_buildTasks.empty(); }
 
 private:
 	ResourceBuilder();
@@ -81,6 +82,7 @@ private:
 
 	ProcessStatus CheckFileStatus(const char* pInputFilePath, const char* pOutputFilePath);
 
+private:
 	std::queue<Process> m_buildTasks;
 	
 	std::unordered_map<std::string, long long> m_modifyTimeCache;
