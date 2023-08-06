@@ -64,10 +64,6 @@ project("Game")
 		"CDConsumer",
 	}
 
-	excludes {
-		path.join(EditorSourcePath, "UILayers/TerrainEditor.*")
-	}
-
 	-- Disable these options can reduce the size of compiled binaries.
 	justmycode("Off")
 	editAndContinue("Off")

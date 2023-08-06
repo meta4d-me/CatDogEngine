@@ -4,11 +4,7 @@
 #include "Path/Path.h"
 #include "U_BaseSlot.sh"
 
-#if (defined DDGI_SDK_PATH && defined NDEBUG)
-	#define ENABLE_DDGI_SDK
-#endif
-
-#ifdef ENABLE_DDGI_SDK
+#ifdef ENABLE_DDGI
 #include "ddgi_sdk.h"
 #endif
 
@@ -28,7 +24,9 @@ SceneWorld::SceneWorld()
 	m_pAnimationComponentStorage = m_pWorld->Register<engine::AnimationComponent>();
 	m_pCameraComponentStorage = m_pWorld->Register<engine::CameraComponent>();
 	m_pCollisionMeshComponentStorage = m_pWorld->Register<engine::CollisionMeshComponent>();
+#ifdef ENABLE_DDGI
 	m_pDDGIComponentStorage = m_pWorld->Register<engine::DDGIComponent>();
+#endif
 	m_pHierarchyComponentStorage = m_pWorld->Register<engine::HierarchyComponent>();
 	m_pLightComponentStorage = m_pWorld->Register<engine::LightComponent>();
 	m_pMaterialComponentStorage = m_pWorld->Register<engine::MaterialComponent>();
@@ -39,8 +37,9 @@ SceneWorld::SceneWorld()
 
 	CreatePBRMaterialType();
 	CreateAnimationMaterialType();
-	CreateTerrainMaterialType();
+#ifdef ENABLE_DDGI
 	CreateDDGIMaterialType();
+#endif
 }
 
 void SceneWorld::CreatePBRMaterialType()
@@ -90,24 +89,7 @@ void SceneWorld::CreateAnimationMaterialType()
 	m_pAnimationMaterialType->SetRequiredVertexFormat(cd::MoveTemp(animationVertexFormat));
 }
 
-void SceneWorld::CreateTerrainMaterialType()
-{
-	m_pTerrainMaterialType = std::make_unique<MaterialType>();
-	m_pTerrainMaterialType->SetMaterialName("CD_Terrain");
-
-	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("shaders/vs_terrain"), Path::GetBuiltinShaderInputPath("shaders/fs_terrain"));
-	shaderSchema.RegisterUberOption(Uber::DEFAULT);
-	m_pTerrainMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
-
-	cd::VertexFormat terrainVertexFormat;
-	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
-	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
-	m_pTerrainMaterialType->SetRequiredVertexFormat(cd::MoveTemp(terrainVertexFormat));
-
-	m_pTerrainMaterialType->AddRequiredTextureType(cd::MaterialTextureType::Elevation, 1);
-	m_pTerrainMaterialType->AddOptionalTextureType(cd::MaterialTextureType::AlphaMap, 2);
-}
-
+#ifdef ENABLE_DDGI
 void SceneWorld::CreateDDGIMaterialType()
 {
 	m_pDDGIMaterialType = std::make_unique<MaterialType>();
@@ -135,6 +117,7 @@ void SceneWorld::CreateDDGIMaterialType()
 	m_pDDGIMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Metallic, ORM_MAP_SLOT);
 	m_pDDGIMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Emissive, EMISSIVE_MAP_SLOT);
 }
+#endif
 
 void SceneWorld::SetSelectedEntity(engine::Entity entity)
 {
@@ -148,11 +131,13 @@ void SceneWorld::SetMainCameraEntity(engine::Entity entity)
 	m_mainCameraEntity = entity;
 }
 
+#ifdef ENABLE_DDGI
 void SceneWorld::SetDDGIEntity(engine::Entity entity)
 {
 	CD_TRACE("Setup DDGI entity : {0}", entity);
 	m_ddgiEntity = entity;
 }
+#endif
 
 void SceneWorld::SetSkyEntity(engine::Entity entity)
 {
@@ -234,19 +219,6 @@ void SceneWorld::AddMaterialToSceneDatabase(engine::Entity entity)
 	pMaterialData->SetFloatProperty(cd::MaterialPropertyGroup::Roughness, cd::MaterialProperty::Factor, pMaterialComponent->GetRoughnessFactor());
 	pMaterialData->SetBoolProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::TwoSided, pMaterialComponent->GetTwoSided());
 
-#if 0
-	std::vector<const char*> removeMaterialNames = { "Floor_Tiles_03", "WoodFloor" };
-	for (auto& name : removeMaterialNames)
-	{
-		if (strcmp(pMaterialData->GetName(), name) == 0)
-		{
-			pMaterialData->RemoveTexture(cd::MaterialPropertyGroup::Metallic);
-			pMaterialData->RemoveTexture(cd::MaterialPropertyGroup::Occlusion);
-			pMaterialData->RemoveTexture(cd::MaterialPropertyGroup::Roughness);
-		}
-	}
-#endif
-
 	for (int textureTypeValue = 0; textureTypeValue <static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
 	{
 		if (MaterialComponent::TextureInfo* textureInfo = pMaterialComponent->GetTextureInfo(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)))
@@ -257,9 +229,9 @@ void SceneWorld::AddMaterialToSceneDatabase(engine::Entity entity)
 	}
 }
 
+#ifdef ENABLE_DDGI
 void SceneWorld::InitDDGISDK()
 {
-#ifdef ENABLE_DDGI_SDK
 	if (InitDDGI(DDGI_SDK_PATH))
 	{
 		CD_ENGINE_FATAL("Init DDGI client success at : {0}", DDGI_SDK_PATH);
@@ -268,12 +240,12 @@ void SceneWorld::InitDDGISDK()
 	{
 		CD_ENGINE_FATAL("Init DDGI client failed at : {0}", DDGI_SDK_PATH);
 	}
-#endif 
 }
+#endif
 
 void SceneWorld::Update()
 {
-#ifdef ENABLE_DDGI_SDK
+#ifdef ENABLE_DDGI
 	// Send request 30 times per second.
 	static auto startTime = std::chrono::steady_clock::now();
 	if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - startTime).count() <= 33 * 1000 * 1000)

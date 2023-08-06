@@ -12,7 +12,9 @@
 #include "Path/Path.h"
 #include "Rendering/AnimationRenderer.h"
 #include "Rendering/BlitRenderTargetPass.h"
+#ifdef ENABLE_DDGI
 #include "Rendering/DDGIRenderer.h"
+#endif
 #include "Rendering/DebugRenderer.h"
 #include "Rendering/ImGuiRenderer.h"
 #include "Rendering/PBRSkyRenderer.h"
@@ -35,11 +37,6 @@
 #include "UILayers/Splash.h"
 #include "Window/Input.h"
 #include "Window/Window.h"
-
-#ifdef ENABLE_TERRAIN_PRODUCER
-#include "UILayers/TerrainEditor.h"
-#include "Rendering/TerrainRenderer.h"
-#endif
 
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -163,11 +160,6 @@ void EditorApp::InitEditorUILayers()
 	m_pSceneView = pSceneView.get();
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
 
-#ifdef ENABLE_TERRAIN_PRODUCER
-	auto pTerrainEditor = std::make_unique<TerrainEditor>("Terrain Editor");
-	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pTerrainEditor));
-#endif
-
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
 
 	auto pAssetBrowser = std::make_unique<AssetBrowser>("AssetBrowser");
@@ -232,8 +224,10 @@ void EditorApp::InitECWorld()
 	
 	InitEditorCameraEntity();
 	
+#ifdef ENABLE_DDGI
 	m_pSceneWorld->InitDDGISDK();
 	InitDDGIEntity();
+#endif
 
 	InitSkyEntity();
 }
@@ -267,6 +261,7 @@ void EditorApp::InitEditorCameraEntity()
 	cameraComponent.BuildViewMatrix(cameraTransform);
 }
 
+#ifdef ENABLE_DDGI
 void EditorApp::InitDDGIEntity()
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
@@ -279,6 +274,7 @@ void EditorApp::InitDDGIEntity()
 
 	pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
 }
+#endif
 
 void EditorApp::InitSkyEntity()
 {
@@ -351,12 +347,6 @@ void EditorApp::InitEngineRenderers()
 		AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
 	}
 
-#ifdef ENABLE_TERRAIN_PRODUCER
-	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-	pTerrainRenderer->SetSceneWorld(m_pSceneWorld.get());
-	AddEngineRenderer(cd::MoveTemp(pTerrainRenderer));
-#endif
-
 	auto pSceneRenderer = std::make_unique<engine::WorldRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pSceneRenderer = pSceneRenderer.get();
 	pSceneRenderer->SetSceneWorld(m_pSceneWorld.get());
@@ -372,9 +362,11 @@ void EditorApp::InitEngineRenderers()
 	pDebugRenderer->SetEnable(false);
 	AddEngineRenderer(cd::MoveTemp(pDebugRenderer));
 
+#ifdef ENABLE_DDGI
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pDDGIRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pDDGIRenderer));
+#endif
 
 	auto pBlitRTRenderPass = std::make_unique<engine::BlitRenderTargetPass>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	AddEngineRenderer(cd::MoveTemp(pBlitRTRenderPass));
@@ -408,8 +400,9 @@ void EditorApp::InitShaderPrograms() const
 
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetPBRMaterialType());
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetAnimationMaterialType());
-	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetTerrainMaterialType());
+#ifdef ENABLE_DDGI
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetDDGIMaterialType());
+#endif
 }
 
 void EditorApp::InitEditorController()
@@ -444,8 +437,9 @@ bool EditorApp::Update(float deltaTime)
 		m_bInitEditor = true;
 		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetPBRMaterialType());
 		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetAnimationMaterialType());
-		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetTerrainMaterialType());
+#ifdef ENABLE_DDGI
 		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetDDGIMaterialType());
+#endif
 
 		// Phase 2 - Project Manager
 		//		* TODO : Show project selector

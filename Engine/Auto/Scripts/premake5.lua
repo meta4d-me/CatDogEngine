@@ -39,6 +39,9 @@ ENABLE_FREETYPE = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndr
 ENABLE_SPDLOG = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndroidPlatform()
 ENABLE_SUBPROCESS = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndroidPlatform()
 ENABLE_TRACY = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndroidPlatform()
+ENABLE_DDGI = DDGI_SDK_PATH ~= ""
+
+ShouldTreatWaringAsError = not (ENABLE_DDGI or USE_CLANG_TOOLSET)
 
 PlatformSettings = {}
 PlatformSettings["Windows"] = {
@@ -175,7 +178,6 @@ function CopyDllAutomatically()
 		if not USE_CLANG_TOOLSET then
 			postbuildcommands {
 				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/GenericProducer.*").."\" \""..BinariesPath.."\"",
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/TerrainProducer.*").."\" \""..BinariesPath.."\"",
 				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/assimp-*-mtd.*").."\" \""..BinariesPath.."\"",
 			}
 		end
@@ -199,21 +201,18 @@ function CopyDllAutomatically()
 		if not USE_CLANG_TOOLSET then
 			postbuildcommands {
 				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/GenericProducer.*").."\" \""..BinariesPath.."\"",
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/TerrainProducer.*").."\" \""..BinariesPath.."\"",
 				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/assimp-*-mt.*").."\" \""..BinariesPath.."\"",
 			}
 		end
 	filter {}
 
-	filter { "configurations:Release" }
-		if DDGI_SDK_PATH ~= "" then
-			postbuildcommands {
-				"{COPYFILE} \""..path.join(DDGI_SDK_PATH, "bin/*.*").."\" \""..BinariesPath.."\"",
-				"{COPYFILE} \""..path.join(DDGI_SDK_PATH, "bin/ThirdParty/ffmpeg/*.*").."\" \""..BinariesPath.."\"",
-				"{COPYFILE} \""..path.join(DDGI_SDK_PATH, "bin/ThirdParty/zlib/*.*").."\" \""..BinariesPath.."\"",
-			}
-		end
-	filter {}
+	if ENABLE_DDGI then
+		postbuildcommands {
+			"{COPYFILE} \""..path.join(DDGI_SDK_PATH, "bin/*.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(DDGI_SDK_PATH, "bin/ThirdParty/ffmpeg/*.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(DDGI_SDK_PATH, "bin/ThirdParty/zlib/*.*").."\" \""..BinariesPath.."\"",
+		}
+	end
 end
 
 -- thirdparty projects
