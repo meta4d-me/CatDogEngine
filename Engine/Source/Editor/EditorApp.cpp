@@ -98,7 +98,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 
 	std::thread resourceThread([]()
 	{
-		ResourceBuilder::Get().Update();
+		ResourceBuilder::Get().Update(false/*doPrintLog*/);
 	});
 	resourceThread.detach();
 }

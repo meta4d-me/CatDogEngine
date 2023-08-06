@@ -167,7 +167,7 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 	shaderSourceFolderPath += "/varying.def.sc";
 
 	std::vector<std::string> commandArguments{ "-f", pInputFilePath, "--varyingdef", shaderSourceFolderPath.string().c_str(),
-		"-o", pOutputFilePath, "--platform", "windows", "-O", "3"};
+		"-o", pOutputFilePath, "-O", "3"};
 	
 	commandArguments.push_back("--platform");
 #if CD_PLATFORM_OSX
@@ -182,19 +182,17 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 	static_assert("CD_PLATFORM macro not defined!");
 #endif
 
+	commandArguments.push_back("--type");
 	if (ShaderType::Compute == shaderType)
 	{
-		commandArguments.push_back("--type");
 		commandArguments.push_back("c");
 	}
 	else if (ShaderType::Fragment == shaderType)
 	{
-		commandArguments.push_back("--type");
 		commandArguments.push_back("f");
 	}
 	else if (ShaderType::Vertex == shaderType)
 	{
-		commandArguments.push_back("--type");
 		commandArguments.push_back("v");
 	}
 
@@ -310,7 +308,7 @@ bool ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, c
 	return true;
 }
 
-void ResourceBuilder::Update()
+void ResourceBuilder::Update(bool doPrintLog)
 {
 	if (m_buildTasks.empty())
 	{
@@ -322,6 +320,7 @@ void ResourceBuilder::Update()
 	{
 		Process& process = m_buildTasks.front();
 		process.SetWaitUntilFinished(m_buildTasks.size() == 1);
+		process.SetPrintChildProcessLog(doPrintLog);
 		process.Run();
 		m_buildTasks.pop();
 	}

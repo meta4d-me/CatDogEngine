@@ -38,7 +38,7 @@ void Process::Run()
 	}
 	environments.push_back(nullptr);
 
-	int processOptions = subprocess_option_no_window | subprocess_option_enable_async;
+	int processOptions = subprocess_option_combined_stdout_stderr | subprocess_option_no_window | subprocess_option_enable_async;
 	subprocess_create_ex(commandLine.data(), processOptions, environments.data(), m_pProcess.get());
 
 	// LOG
@@ -76,7 +76,6 @@ void Process::Run()
 
 	if (m_printChildProcessLog)
 	{
-		PrintSubProcessLog("StdOut", m_pProcess.get(), subprocess_read_stdout);
 		PrintSubProcessLog("StdErr", m_pProcess.get(), subprocess_read_stderr);
 	}
 
@@ -84,8 +83,8 @@ void Process::Run()
 	{
 		int processResult;
 		subprocess_join(m_pProcess.get(), &processResult);
+		CD_ENGINE_INFO("End process {0}", m_processName.c_str());
 	}
-	CD_ENGINE_INFO("End process {0}", m_processName.c_str());
 }
 
 }
