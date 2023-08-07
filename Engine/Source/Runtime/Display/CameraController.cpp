@@ -129,31 +129,29 @@ void CameraController::Update(float deltaTime)
 		{
 			if (Input::Get().GetMouseScrollOffsetY())
 			{
-				m_mouseScroll += Input::Get().GetMouseScrollOffsetY() / 10;
-				m_mouseScroll = std::clamp(m_mouseScroll, -5.0f, 2.5f);
-				float speedRate = std::pow(2.0f, m_mouseScroll);
-				m_movementSpeed = speedRate * m_initialMovemenSpeed;
+				float speedRate = std::pow(2.0f, Input::Get().GetMouseScrollOffsetY() / 10.0f);
+				m_movementSpeed = speedRate * m_movementSpeed;
 			}
 
-			if (Input::Get().IsKeyPressed(KeyCode::w))
+			if (Input::Get().IsKeyPressed(KeyCode::w) && !m_isMoving)
 			{
 				m_isTracking = false;
 				MoveForward(m_movementSpeed * deltaTime);
 			}
 
-			if (Input::Get().IsKeyPressed(KeyCode::a))
+			if (Input::Get().IsKeyPressed(KeyCode::a) && !m_isMoving)
 			{
 				m_isTracking = false;
 				MoveLeft(m_movementSpeed * deltaTime);
 			}
 
-			if (Input::Get().IsKeyPressed(KeyCode::s))
+			if (Input::Get().IsKeyPressed(KeyCode::s) && !m_isMoving)
 			{
 				m_isTracking = false;
 				MoveBackward(m_movementSpeed * deltaTime);
 			}
 
-			if (Input::Get().IsKeyPressed(KeyCode::d))
+			if (Input::Get().IsKeyPressed(KeyCode::d) && !m_isMoving)
 			{
 				m_isTracking = false;
 				MoveRight(m_movementSpeed * deltaTime);
@@ -165,7 +163,7 @@ void CameraController::Update(float deltaTime)
 				MoveDown(m_movementSpeed * deltaTime);
 			}
 
-			if (Input::Get().IsKeyPressed(KeyCode::q))
+			if (Input::Get().IsKeyPressed(KeyCode::q) && !m_isMoving)
 			{
 				m_isTracking = false;
 				MoveUp(m_movementSpeed * deltaTime);
@@ -370,16 +368,13 @@ void CameraController::Moving()
 	if (m_isMoving)
 	{
 		cd::Direction eyeMove = (m_eye - m_eyeDestination).Normalize();
-		cd::Direction lookAtRotation = m_lookAtDestination - m_lookAt;
-		float stepRotation = lookAtRotation.Length() / 5.0f;
 		float stepDistance = (m_eye - m_eyeDestination).Length() / 5.0f;
 		m_eye = m_eye - eyeMove * stepDistance;
-		m_lookAt = m_lookAt + lookAtRotation.Normalize() * stepRotation;
 
 		SynchronizeTrackingCamera();
 		ControllerToCamera();
 
-		if (cd::Math::IsSmallThan((m_eye - m_eyeDestination).Length(), 0.1f))
+		if (cd::Math::IsSmallThan((m_eye - m_eyeDestination).Length(), 0.01f))
 		{
 			m_isMoving = false;
 		}
