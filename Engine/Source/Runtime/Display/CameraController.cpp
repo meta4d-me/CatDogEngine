@@ -170,14 +170,14 @@ void CameraController::Update(float deltaTime)
 			}
 		}
 
-		// TODO : Currently, editor will not capture focus imgui layer.
-		//if (Input::Get().IsMouseLBPressed() && !m_isMoving)
-		//{
-		//	m_isTracking = false;
-		//	Yaw(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
-		//}
+		
+		if (Input::Get().IsMouseRBPressed() && !m_isMoving)
+		{
+			m_isTracking = false;
+			Yaw(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
+		}
 
-		if (Input::Get().IsMouseRBPressed())
+		if (Input::Get().IsMouseLBPressed()&&m_isInViewScene)
 		{
 			m_isTracking = false;
 			PitchLocal(m_verticalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
