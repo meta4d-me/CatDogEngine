@@ -70,6 +70,7 @@ public:
 
 	void MoveToPosition(cd::Point position, cd::Vec3f lookAt);
 
+	// TODO : generic solution to process mouse / key input events for UI panels in different areas.
 	void SetIsInViewScene(bool isIn) { m_isInViewScene = isIn; }
 	
 private:
