@@ -125,6 +125,16 @@ void SceneWorld::SetSelectedEntity(engine::Entity entity)
 	m_selectedEntity = entity;
 }
 
+void SceneWorld::SetSelectedEntities(engine::Entity entity)
+{
+	auto iter = std::find(m_selectedEntities.begin(), m_selectedEntities.end(), entity);
+
+	if (iter == m_selectedEntities.end())
+	{
+		m_selectedEntities.push_back(entity);
+	}
+}
+
 void SceneWorld::SetMainCameraEntity(engine::Entity entity)
 {
 	CD_TRACE("Setup main camera entity : {0}", entity);

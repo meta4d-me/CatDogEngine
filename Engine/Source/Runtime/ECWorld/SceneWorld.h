@@ -54,7 +54,10 @@ public:
 	CD_FORCEINLINE const engine::World* GetWorld() const { return m_pWorld.get(); }
 
 	void SetSelectedEntity(engine::Entity entity);
+	void SetSelectedEntities(engine::Entity entity);
 	CD_FORCEINLINE engine::Entity GetSelectedEntity() const { return m_selectedEntity; }
+	CD_FORCEINLINE std::vector<engine::Entity>& GetSelectedEntities() { return m_selectedEntities; }
+	CD_FORCEINLINE void ClearSelectedEntities() { m_selectedEntities.clear(); }
 
 	void SetMainCameraEntity(engine::Entity entity);
 	CD_FORCEINLINE engine::Entity GetMainCameraEntity() const { return m_mainCameraEntity; }
@@ -131,6 +134,7 @@ private:
 
 	// TODO : wrap them into another class?
 	engine::Entity m_selectedEntity = engine::INVALID_ENTITY;
+	std::vector<engine::Entity> m_selectedEntities;
 	engine::Entity m_mainCameraEntity = engine::INVALID_ENTITY;
 #ifdef ENABLE_DDGI
 	engine::Entity m_ddgiEntity = engine::INVALID_ENTITY;

@@ -27,19 +27,11 @@ void ImGuizmoView::Init()
 void ImGuizmoView::Update()
 {
 	engine::SceneWorld* pSceneWorld = GetSceneWorld();
-	engine::Entity selectedEntity = pSceneWorld->GetSelectedEntity();
-
-	if (engine::INVALID_ENTITY == selectedEntity)
+	std::vector<engine::Entity> selectedEntities = pSceneWorld->GetSelectedEntities();
+	if (selectedEntities.empty())
 	{
 		return;
 	}
-
-	engine::TransformComponent* pTransformComponent = pSceneWorld->GetTransformComponent(selectedEntity);
-	if (!pTransformComponent)
-	{
-		return;
-	}
-
 	ImGuizmo::OPERATION operation = m_pSceneView->GetImGuizmoOperation();
 	const engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
 
@@ -48,32 +40,44 @@ void ImGuizmoView::Update()
 	ImGuizmo::SetOrthographic(!isPerspective);
 	ImGuiIO& io = ImGui::GetIO();
 	ImGuizmo::SetRect(0.0f, 0.0f, ImGui::GetIO().DisplaySize.x, io.DisplaySize.y);
-	cd::Matrix4x4 worldMatrix = pTransformComponent->GetWorldMatrix();
+	cd::Matrix4x4 worldMatrix = pSceneWorld->GetTransformComponent(selectedEntities[0])->GetWorldMatrix();
+	cd::Matrix4x4 deltaMatrix(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1);
 	ImGuizmo::Manipulate(pCameraComponent->GetViewMatrix().Begin(), pCameraComponent->GetProjectionMatrix().Begin(),
-		operation, ImGuizmo::LOCAL, worldMatrix.Begin());
-
-	if (ImGuizmo::IsUsing())
+		operation, ImGuizmo::LOCAL, worldMatrix.Begin(), deltaMatrix.Begin());
+	for (const auto& entity : selectedEntities)
 	{
-		if (ImGuizmo::OPERATION::TRANSLATE & operation)
+		engine::TransformComponent* pTransformComponent = pSceneWorld->GetTransformComponent(entity);
+		if (!pTransformComponent)
 		{
-			pTransformComponent->GetTransform().SetTranslation(worldMatrix.GetTranslation());
-			pTransformComponent->Dirty();
-		}
-		
-		if (ImGuizmo::OPERATION::ROTATE & operation)
-		{
-			pTransformComponent->GetTransform().SetRotation(cd::Quaternion::FromMatrix(worldMatrix.GetRotation()));
-			pTransformComponent->Dirty();
+			return;
 		}
 
-		if (ImGuizmo::OPERATION::SCALE & operation)
+		if (ImGuizmo::IsUsing())
 		{
+			if (ImGuizmo::OPERATION::TRANSLATE & operation)
+			{
+				cd::Vec3f translation = pSceneWorld->GetTransformComponent(entity)->GetTransform().GetTranslation();
+				pTransformComponent->GetTransform().SetTranslation(translation + deltaMatrix.GetTranslation());
+				pTransformComponent->Dirty();
+			}
+
+			if (ImGuizmo::OPERATION::ROTATE & operation)
+			{
+				cd::Quaternion rotation = pSceneWorld->GetTransformComponent(entity)->GetTransform().GetRotation();
+				pTransformComponent->GetTransform().SetRotation(rotation * cd::Quaternion::FromMatrix(deltaMatrix.GetRotation()));
+				pTransformComponent->Dirty();
+			}
+
+			if (ImGuizmo::OPERATION::SCALE & operation)
+			{
 			pTransformComponent->GetTransform().SetScale(worldMatrix.GetScale());
-			pTransformComponent->Dirty();
-		}
+				pTransformComponent->Dirty();
+			}
 
-		pTransformComponent->Build();
+			pTransformComponent->Build();
+		}
 	}
+	
 }
 
 }

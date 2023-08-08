@@ -72,6 +72,10 @@ void SceneView::UpdateOperationButtons()
 		isSelected = operationMode.operation == m_currentOperation;
 		if (isSelected)
 		{
+			m_pCameraController->SetIsInViewScene(false);
+		}
+		if (isSelected)
+		{
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 		}
 
@@ -102,6 +106,7 @@ void SceneView::UpdateOperationButtons()
 			ImGui::SameLine();
 		}
 	}
+
 }
 
 void SceneView::Update2DAnd3DButtons()
@@ -273,6 +278,7 @@ void SceneView::Update()
 		if (mousePos.x > windowPos.x && mousePos.x < rightDown.x() && mousePos.y > windowPos.y && mousePos.y < rightDown.y())
 		{
 			m_pCameraController->SetIsInViewScene(true);
+			//pSceneWorld->ClearSelectedEntities();
 		}
 		else
 		{

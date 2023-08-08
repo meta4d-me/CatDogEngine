@@ -8,6 +8,7 @@
 #include "Math/MeshGenerator.h"
 #include "Math/Sphere.hpp"
 #include "Rendering/RenderContext.h"
+#include "Window/Input.h"
 
 #include <bgfx/bgfx.h>
 #include <imgui/imgui_internal.h>
@@ -198,11 +199,19 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
 
     ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_FramePadding |
         ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_SpanAvailWidth;
-    if (entity == pSceneWorld->GetSelectedEntity())
+    if (!pSceneWorld->GetSelectedEntities().empty())
+    {
+        std::vector<engine::Entity> selectedEntities = pSceneWorld->GetSelectedEntities();
+        if (std::find(selectedEntities.begin(), selectedEntities.end(), entity) != selectedEntities.end())
+        {
+            nodeFlags |= ImGuiTreeNodeFlags_Selected;
+        }
+    }
+    else if (entity == pSceneWorld->GetSelectedEntity())
     {
         nodeFlags |= ImGuiTreeNodeFlags_Selected;
     }
-
+    
     // TODO : hierarchy or not?
     bool hasNoChildren = true;
     if (hasNoChildren)
@@ -280,6 +289,21 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
 
     if (ImGui::IsItemClicked())
     {
+        if (engine::Input::Get().IsMouseRBPressed())
+        {
+            auto it = std::find(pSceneWorld->GetSelectedEntities().begin(), pSceneWorld->GetSelectedEntities().end(), entity);
+            if (it != pSceneWorld->GetSelectedEntities().end())
+            {
+                pSceneWorld->GetSelectedEntities().erase(it);
+                std::vector<engine::Entity> e = pSceneWorld->GetSelectedEntities();
+                int temp = 0;
+            }
+            if (engine::INVALID_ENTITY != pSceneWorld->GetSelectedEntity())
+            {
+                pSceneWorld->SetSelectedEntities(pSceneWorld->GetSelectedEntity());
+            }
+            pSceneWorld->SetSelectedEntities(entity);
+        }
         pSceneWorld->SetSelectedEntity(entity);
         if (ImGui::IsMouseDoubleClicked(0))
         {
@@ -298,8 +322,8 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
         }
     }
 
-    
 
+   
     //if (m_editingEntityName)
     //{
     //    static char entityNewName[128];
