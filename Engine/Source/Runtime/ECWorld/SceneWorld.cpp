@@ -54,6 +54,7 @@ void SceneWorld::CreatePBRMaterialType()
 	shaderSchema.RegisterUberOption(Uber::EMISSIVE_MAP);
 	shaderSchema.RegisterUberOption(Uber::IBL);
 	shaderSchema.RegisterUberOption(Uber::ATM);
+	shaderSchema.Build();
 	m_pPBRMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat pbrVertexFormat;
@@ -100,7 +101,7 @@ void SceneWorld::CreateDDGIMaterialType()
 	shaderSchema.RegisterUberOption(Uber::NORMAL_MAP);
 	shaderSchema.RegisterUberOption(Uber::ORM_MAP);
 	shaderSchema.RegisterUberOption(Uber::EMISSIVE_MAP);
-	// shaderSchema.RegisterUberOption(Uber::DDGI);
+	shaderSchema.Build();
 	m_pDDGIMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat ddgiVertexFormat;

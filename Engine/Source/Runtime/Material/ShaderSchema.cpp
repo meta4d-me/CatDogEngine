@@ -1,4 +1,4 @@
-#include "ShaderSchema.h"
+﻿#include "ShaderSchema.h"
 
 #include "Base/Template.h"
 #include "Log/Log.h"
@@ -6,12 +6,11 @@
 #include <algorithm>
 #include <cassert>
 #include <sstream>
-#include <unordered_set>
 
 namespace engine
 {
 
-namespace details
+namespace
 {
 
 constexpr const char* UberNames[] =
@@ -34,47 +33,64 @@ constexpr const char* GetUberName(Uber uber)
 	return UberNames[static_cast<size_t>(uber)];
 }
 
-} // namespace Detail
-
+}
 
 ShaderSchema::ShaderSchema(std::string vsPath, std::string fsPath)
 {
 	m_vertexShaderPath = cd::MoveTemp(vsPath);
 	m_fragmentShaderPath = cd::MoveTemp(fsPath);
 
-	// Always register DEFAULT at the begining.
-	m_uberCombines.emplace_back(details::GetUberName(Uber::DEFAULT));
-	m_compiledProgramHandles[StringCrc(details::GetUberName(Uber::DEFAULT)).Value()] = InvalidProgramHandle;
-	m_uberOptions.emplace_back(Uber::DEFAULT);
+	m_isDirty = false;
+	m_uberOptionsOfrfset = 0;
+}
+
+void ShaderSchema::SetConflictOptions(Uber a, Uber b)
+{
+	m_conflictOptions[a] = b;
+	// TODO
 }
 
 void ShaderSchema::RegisterUberOption(Uber uberOption)
 {
 	if (std::find(m_uberOptions.begin(), m_uberOptions.end(), uberOption) != m_uberOptions.end())
 	{
-		CD_ENGINE_WARN("Uber option {0} already has been registered!", details::GetUberName(uberOption));
+		CD_ENGINE_WARN("Uber option {0} already has been registered!", GetUberName(uberOption));
 		return;
 	}
 
-	std::string newOption = details::GetUberName(uberOption);
-	std::vector<std::string> newOptions = { newOption };
-	
-	assert(!m_uberCombines.empty());
-	for (auto it = m_uberCombines.begin() + 1; it != m_uberCombines.end(); ++it)
-	{
-		// m_uberCombines[0] will always be DEFAULT,
-		// which is unnecessary to combine with other options.
-		newOptions.push_back({ *it + newOption });
-	}
-	m_uberCombines.insert(m_uberCombines.end(), newOptions.begin(), newOptions.end());
+	m_isDirty = true;
+	m_uberOptions.emplace_back(uberOption);
+}
 
-	for (const auto &newOpt : newOptions)
+void ShaderSchema::Build()
+{
+	if (!m_isDirty || m_uberOptionsOfrfset == m_uberOptions.size())
 	{
-		assert(!IsUberOptionValid(StringCrc(newOpt)));
-		m_compiledProgramHandles[StringCrc(newOpt).Value()] = InvalidProgramHandle;
+		CD_ENGINE_WARN("Uber shader options have no changes since the last build.");
+		return;
 	}
 
-	m_uberOptions.emplace_back(cd::MoveTemp(uberOption));
+	m_isDirty = false;
+
+	// Use m_uberOptionsOfrfset to handle calling ShaderSchema::Build() multiple times.
+	for(auto itOpt = m_uberOptions.begin() + m_uberOptionsOfrfset; itOpt != m_uberOptions.end(); ++itOpt, ++m_uberOptionsOfrfset)
+	{
+		std::string newOption = GetUberName(*itOpt);
+		std::vector<std::string> newOptions = { newOption };
+
+		for(auto itCob = m_uberCombines.begin(); itCob != m_uberCombines.end(); ++itCob)
+		{
+			// if(conflict) skip
+			newOptions.push_back({ *itCob + newOption });
+		}
+		m_uberCombines.insert(m_uberCombines.end(), newOptions.begin(), newOptions.end());
+
+		for (const auto& newOpt : newOptions)
+		{
+			assert(!IsUberOptionValid(StringCrc(newOpt)));
+			m_compiledProgramHandles[StringCrc(newOpt).Value()] = InvalidProgramHandle;
+		}
+	}
 }
 
 bool ShaderSchema::IsUberOptionValid(StringCrc uberOption) const
@@ -91,11 +107,20 @@ void ShaderSchema::SetCompiledProgram(StringCrc uberOption, uint16_t programHand
 uint16_t ShaderSchema::GetCompiledProgram(StringCrc uberOption) const
 {
 	auto itProgram = m_compiledProgramHandles.find(uberOption.Value());
-	assert(itProgram != m_compiledProgramHandles.end());
+
+	if (itProgram == m_compiledProgramHandles.end())
+	{
+		CD_ENGINE_ERROR("Unregistered uber shader options!");
+		return InvalidProgramHandle;
+	}
+
 	uint16_t programHandle = itProgram->second;
 
-	// Registered but not compiled.
-	assert(programHandle != InvalidProgramHandle);
+	if (programHandle == InvalidProgramHandle)
+	{
+		CD_ENGINE_ERROR("Uncompiled uber shader options！");
+		return InvalidProgramHandle;
+	}
 
 	return programHandle;
 }
@@ -114,7 +139,7 @@ StringCrc ShaderSchema::GetOptionsCrc(const std::unordered_set<Uber>& options) c
 		// Ignore option which contain in parameter but not contain in m_uberOptions.
 		if (options.find(registered) != options.end())
 		{
-			ss << details::GetUberName(registered);
+			ss << GetUberName(registered);
 		}
 	}
 	return StringCrc(ss.str());
