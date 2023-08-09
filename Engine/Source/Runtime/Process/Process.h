@@ -26,6 +26,10 @@ public:
 	void SetWaitUntilFinished(bool doWait) { m_waitUntilFinished = doWait; }
 	void SetCommandArguments(std::vector<std::string> arguments) { m_commandArguments = cd::MoveTemp(arguments); }
 	void SetEnvironments(std::vector<std::string> environments) { m_environments = cd::MoveTemp(environments); }
+	
+	void* GetProcessHandle() const;
+	bool IsAlive() const;
+	bool IsWaitUntilFinished() const { return m_waitUntilFinished; }
 	void Run();
 
 private:
@@ -66,6 +70,10 @@ public:
 	void SetWaitUntilFinished(bool doWait) {}
 	void SetCommandArguments(std::vector<std::string> arguments) {}
 	void SetEnvironments(std::vector<std::string> environments) {}
+
+	void* GetProcessHandle() const { return nullptr; }
+	bool IsAlive() const { return false; }
+	bool IsWaitUntilFinished() const { return false; }
 	void Run() {}
 };
 

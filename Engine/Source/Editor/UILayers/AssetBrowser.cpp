@@ -862,7 +862,7 @@ void AssetBrowser::ProcessSceneDatabase(cd::SceneDatabase* pSceneDatabase, bool 
 		pSceneDatabase->GetMaterials().clear();
 		for (auto& mesh : pSceneDatabase->GetMeshes())
 		{
-			mesh.SetMaterialID(cd::MaterialID::InvalidID);
+			mesh.SetMaterialID(cd::MaterialID::Invalid());
 		}
 	}
 

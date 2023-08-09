@@ -33,6 +33,12 @@ enum class ProcessStatus : uint8_t
 
 class Process;
 
+enum class BuildMode
+{
+	FastLoad,
+	SlowWait,
+};
+
 // ResourceBuilder is used to create processes to build different resource types.
 // So it is OK to update in the main thread or work thread.
 // For resource build tasks which are using dll calls, it will be wrapped as a task to multithreading JobSystem.
@@ -62,7 +68,7 @@ public:
 	bool AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pUberOptions = nullptr);
 	bool AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath);
 
-	void Update(bool doPrintLog = true);
+	void Update(BuildMode buildMode = BuildMode::SlowWait);
 	size_t GetCurrentTaskCount() const { return m_buildTasks.size(); }
 	bool IsIdle() const { return m_buildTasks.empty(); }
 
@@ -84,7 +90,10 @@ private:
 
 private:
 	std::queue<Process> m_buildTasks;
+	std::vector<Process> m_runningTasks;
 	
+	uint32_t m_maxRunningTasks = 64U;
+
 	std::unordered_map<std::string, long long> m_modifyTimeCache;
 
 	// We always access to fragment shader multiple times by using ubre options.

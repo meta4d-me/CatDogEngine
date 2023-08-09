@@ -19,6 +19,16 @@ Process::~Process()
 	}
 }
 
+void* Process::GetProcessHandle() const
+{
+	return m_pProcess->hProcess;
+}
+
+bool Process::IsAlive() const
+{
+	return 1 == subprocess_alive(m_pProcess.get());
+}
+
 void Process::Run()
 {
 	m_pProcess = std::make_unique<subprocess_s>();

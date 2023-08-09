@@ -308,7 +308,7 @@ bool ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, c
 	return true;
 }
 
-void ResourceBuilder::Update(bool doPrintLog)
+void ResourceBuilder::Update(BuildMode buildMode)
 {
 	if (m_buildTasks.empty())
 	{
@@ -316,15 +316,35 @@ void ResourceBuilder::Update(bool doPrintLog)
 	}
 
 	// It may wait until process exited which depends on process's setting.
-	while (!m_buildTasks.empty())
+	while (!m_buildTasks.empty() && m_runningTasks.size() < m_maxRunningTasks)
 	{
 		Process& process = m_buildTasks.front();
-		process.SetWaitUntilFinished(m_buildTasks.size() == 1);
-		process.SetPrintChildProcessLog(doPrintLog);
+		process.SetWaitUntilFinished(buildMode == BuildMode::SlowWait);
+		process.SetPrintChildProcessLog(buildMode == BuildMode::SlowWait);
 		process.Run();
+
+		if (!process.IsWaitUntilFinished())
+		{
+			m_runningTasks.emplace_back(cd::MoveTemp(process));
+		}
+
 		m_buildTasks.pop();
 	}
 
+	if (!m_runningTasks.empty())
+	{
+		std::vector<void*> runningTaskHandles;
+		for (auto& process : m_runningTasks)
+		{
+			if (process.IsAlive())
+			{
+				runningTaskHandles.push_back(process.GetProcessHandle());
+			}
+		}
+		WaitForMultipleObjects(static_cast<uint32_t>(runningTaskHandles.size()), runningTaskHandles.data(), TRUE, INFINITE);
+		m_runningTasks.clear();
+	}
+	
 	if (m_buildTasks.empty())
 	{
 		WriteModifyCacheFile();
