@@ -42,39 +42,49 @@ ShaderSchema::ShaderSchema(std::string vsPath, std::string fsPath)
 	m_fragmentShaderPath = cd::MoveTemp(fsPath);
 
 	m_isDirty = false;
-	m_uberOptionsOffset = 0;
 }
 
-void ShaderSchema::RegisterUberOption(Uber uberOption)
+void ShaderSchema::AddUberOption(Uber uberOption)
 {
 	if (std::find(m_uberOptions.begin(), m_uberOptions.end(), uberOption) != m_uberOptions.end())
 	{
-		CD_ENGINE_WARN("Uber option {0} already has been registered!", GetUberName(uberOption));
+		CD_ENGINE_TRACE("Uber option {0} already has been registered!", GetUberName(uberOption));
 		return;
 	}
-
+	
 	m_isDirty = true;
 	m_uberOptions.emplace_back(uberOption);
 }
 
 void ShaderSchema::SetConflictOptions(Uber a, Uber b)
 {
+	const auto& range = m_conflictOptions.equal_range(GetUberName(a));
+	for (auto conflict = range.first; conflict != range.second; ++conflict)
+	{
+		if (conflict->second == GetUberName(b))
+		{
+			CD_ENGINE_TRACE("Conflict uber option combine ({0}, {1}) are already exist.", GetUberName(a), GetUberName(b));
+			return;
+		}
+	}
+
+	m_isDirty = true;
 	m_conflictOptions.emplace(GetUberName(a), GetUberName(b));
 	m_conflictOptions.emplace(GetUberName(b), GetUberName(a));
 }
 
 void ShaderSchema::Build()
 {
-	if (!m_isDirty || m_uberOptionsOffset == m_uberOptions.size())
+	if (!m_isDirty)
 	{
-		CD_ENGINE_WARN("Uber shader options have no changes since the last build.");
+		CD_ENGINE_TRACE("Uber shader options have no changes since the last build.");
 		return;
 	}
 
-	m_isDirty = false;
+	CleanBuild();
 
 	// Use m_uberOptionsOffset to handle calling ShaderSchema::Build() multiple times.
-	for(auto itOpt = m_uberOptions.begin() + m_uberOptionsOffset; itOpt != m_uberOptions.end(); ++itOpt, ++m_uberOptionsOffset)
+	for(auto itOpt = m_uberOptions.begin(); itOpt != m_uberOptions.end(); ++itOpt)
 	{
 		std::string newOption = GetUberName(*itOpt);
 		std::vector<std::string> newOptions = { newOption };
@@ -105,6 +115,20 @@ void ShaderSchema::Build()
 			m_compiledProgramHandles[StringCrc(newOpt).Value()] = InvalidProgramHandle;
 		}
 	}
+}
+
+void ShaderSchema::CleanBuild()
+{
+	m_uberCombines.clear();
+	m_compiledProgramHandles.clear();
+	m_isDirty = false;
+}
+
+void ShaderSchema::CleanAll()
+{
+	m_uberCombines.clear();
+	m_uberOptions.clear();
+	m_conflictOptions.clear();
 }
 
 void ShaderSchema::SetCompiledProgram(StringCrc uberOption, uint16_t programHandle)

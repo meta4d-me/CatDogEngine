@@ -60,10 +60,12 @@ public:
 	const char* GetVertexShaderPath() const { return m_vertexShaderPath.c_str(); }
 	const char* GetFragmentShaderPath() const { return m_fragmentShaderPath.c_str(); }
 
-	void RegisterUberOption(Uber uberOption);
+	void AddUberOption(Uber uberOption);
 	// Call SetConflictOptions before call Build.
 	void SetConflictOptions(Uber a, Uber b);
 	void Build();
+	void CleanBuild();
+	void CleanAll();
 
 	void SetCompiledProgram(StringCrc uberOption, uint16_t programHandle);
 	uint16_t GetCompiledProgram(StringCrc uberOption) const;
@@ -94,16 +96,15 @@ private:
 	std::string m_fragmentShaderPath;
 
 	bool m_isDirty;
-	size_t m_uberOptionsOffset;
 	// Registration order of options. 
 	std::vector<Uber> m_uberOptions;
 	// Parameters to compile shaders.
 	std::vector<std::string> m_uberCombines;
+	// Record options that will not be active at the same time to skip permutation.
+	std::unordered_multimap<std::string, std::string> m_conflictOptions;
 
 	// Key: StringCrc(option combine), Value: shader handle.
 	std::unordered_map<uint32_t, uint16_t> m_compiledProgramHandles;
-	// Record options that will not be active at the same time to skip permutation.
-	std::unordered_multimap<std::string, std::string> m_conflictOptions;
 
 	std::unique_ptr<ShaderBlob> m_pVSBlob;
 	std::map<uint32_t, std::unique_ptr<ShaderBlob>> m_uberOptionToFSBlobs;
