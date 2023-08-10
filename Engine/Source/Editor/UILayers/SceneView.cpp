@@ -50,41 +50,6 @@ constexpr ImGuizmoOperationMode OperationModes[] = {
 namespace editor
 {
 
-enum class debugModeType
-{
-	NoDebug,
-	WhiteModel,
-
-	Count,
-};
-
-constexpr const char* debugModes[] = {
-	"NoDebug",
-	"WhiteModel",
-	//"WireFrame" 
-};
-
-static_assert(static_cast<int>(debugModeType::Count) == sizeof(debugModes) / sizeof(char *),
-	"debug mode type and names mismatch.");
-
-enum class AABBModeType
-{
-	NoAABB,
-	AABBSelected,
-	AABBAll, 
-
-	Count,
-};
-
-constexpr const char* AABBModes[] = {
-	"NoAABB",
-	"AABBSelected",
-	"AABBAll" 
-};
-
-static_assert(static_cast<int>(AABBModeType::Count) == sizeof(AABBModes) / sizeof(char *),
-	"AABB mode type and names mismatch.");
-
 SceneView::~SceneView()
 {
 
