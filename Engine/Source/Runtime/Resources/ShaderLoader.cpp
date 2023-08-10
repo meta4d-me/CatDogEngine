@@ -19,7 +19,6 @@ void ShaderLoader::UploadUberShader(engine::MaterialType* pMaterialType)
 		std::string outputFSFilePath = engine::Path::GetShaderOutputPath(shaderSchema.GetFragmentShaderPath(), combine);
 		outputFSPathToUberOption[cd::MoveTemp(outputFSFilePath)] = engine::StringCrc(combine);
 	}
-	CD_ENGINE_INFO("Material type {0} have shader variant count : {1}.", pMaterialType->GetMaterialName(), shaderSchema.GetUberCombines().size());
 
 	// Vertex shader.
 	shaderSchema.AddUberOptionVSBlob(engine::ResourceLoader::LoadFile(outputVSFilePath.c_str()));

@@ -25,7 +25,7 @@ void ShaderBuilder::BuildUberShader(engine::MaterialType* pMaterialType)
 			shaderSchema.GetFragmentShaderPath(), outputFSFilePath.c_str(), combine.c_str());
 	}
 
-	CD_ENGINE_INFO("Material type {0} have shader variant count : {1}.", pMaterialType->GetMaterialName(), shaderSchema.GetUberCombines().size());
+	CD_ENGINE_INFO("Shader variant count of material type {0} : {1}", pMaterialType->GetMaterialName(), shaderSchema.GetUberCombines().size());
 }
 
 void ShaderBuilder::BuildNonUberShader(std::string folderPath)
