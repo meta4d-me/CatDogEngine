@@ -45,10 +45,35 @@ constexpr ImGuizmoOperationMode OperationModes[] = {
 	{ ICON_MDI_CROP_ROTATE, "Transform",  ImGuizmo::OPERATION::UNIVERSAL, true},
 };
 
+}
+
+namespace editor
+{
+
+enum class debugModeType
+{
+	NoDebug,
+	WhiteModel,
+
+	Count,
+};
+
 constexpr const char* debugModes[] = {
 	"NoDebug",
 	"WhiteModel",
 	//"WireFrame" 
+};
+
+static_assert(static_cast<int>(debugModeType::Count) == sizeof(debugModes) / sizeof(char *),
+	"debug mode type and names mismatch.");
+
+enum class AABBModeType
+{
+	NoAABB,
+	AABBSelected,
+	AABBAll, 
+
+	Count,
 };
 
 constexpr const char* AABBModes[] = {
@@ -57,10 +82,8 @@ constexpr const char* AABBModes[] = {
 	"AABBAll" 
 };
 
-}
-
-namespace editor
-{
+static_assert(static_cast<int>(AABBModeType::Count) == sizeof(AABBModes) / sizeof(char *),
+	"AABB mode type and names mismatch.");
 
 SceneView::~SceneView()
 {
