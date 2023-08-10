@@ -61,8 +61,9 @@ public:
 	const char* GetFragmentShaderPath() const { return m_fragmentShaderPath.c_str(); }
 
 	void AddUberOption(Uber uberOption);
-	// Call SetConflictOptions before call Build.
 	void SetConflictOptions(Uber a, Uber b);
+
+	// Calling "AddUberOption/SetConflictOptions and Build" after Build will cause unnecessary performance overhead.
 	void Build();
 	void CleanBuild();
 	void CleanAll();

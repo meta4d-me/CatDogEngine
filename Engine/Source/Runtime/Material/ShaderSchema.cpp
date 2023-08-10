@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <cassert>
 #include <sstream>
-#include <string>
 
 namespace engine
 {
@@ -82,6 +81,7 @@ void ShaderSchema::Build()
 	}
 
 	CleanBuild();
+	m_isDirty = false;
 
 	for(auto itOption = m_uberOptions.begin(); itOption != m_uberOptions.end(); ++itOption)
 	{
@@ -120,12 +120,13 @@ void ShaderSchema::CleanBuild()
 {
 	m_uberCombines.clear();
 	m_compiledProgramHandles.clear();
-	m_isDirty = false;
+	m_isDirty = true;
 }
 
 void ShaderSchema::CleanAll()
 {
 	CleanBuild();
+	m_isDirty = false;
 
 	m_uberOptions.clear();
 	m_conflictOptions.clear();
