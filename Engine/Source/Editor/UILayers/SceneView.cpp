@@ -107,14 +107,14 @@ void SceneView::UpdateOperationButtons()
 void SceneView::UpdateAABBCombo()
 {
 	ImGui::SetNextItemWidth(150);
-	ImGui::Combo("##AABBCombo", &m_AABBMode, AABBModes, IM_ARRAYSIZE(AABBModes));
+	ImGui::Combo("##AABBCombo", reinterpret_cast<int*>(&m_AABBMode), AABBModes, IM_ARRAYSIZE(AABBModes));
 	ImGui::PushItemWidth(140);
 }
 
 void SceneView::UpdateDebugCombo()
 {
 	ImGui::SetNextItemWidth(130);
-	ImGui::Combo("##DebugCombo", &m_debugMode, debugModes, IM_ARRAYSIZE(debugModes));
+	ImGui::Combo("##DebugCombo", reinterpret_cast<int*>(&m_debugMode), debugModes, IM_ARRAYSIZE(debugModes));
 	ImGui::PushItemWidth(110);
 }
 
