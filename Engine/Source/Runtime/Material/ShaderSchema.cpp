@@ -83,10 +83,9 @@ void ShaderSchema::Build()
 
 	CleanBuild();
 
-	// Use m_uberOptionsOffset to handle calling ShaderSchema::Build() multiple times.
-	for(auto itOpt = m_uberOptions.begin(); itOpt != m_uberOptions.end(); ++itOpt)
+	for(auto itOption = m_uberOptions.begin(); itOption != m_uberOptions.end(); ++itOption)
 	{
-		std::string newOption = GetUberName(*itOpt);
+		std::string newOption = GetUberName(*itOption);
 		std::vector<std::string> newOptions = { newOption };
 		const auto& conflictRange = m_conflictOptions.equal_range(newOption);
 
@@ -104,7 +103,7 @@ void ShaderSchema::Build()
 			}
 			if (!isConflict)
 			{
-				newOptions.push_back({ cobine + newOption });
+				newOptions.emplace_back(cobine + newOption);
 			}
 		}
 		m_uberCombines.insert(m_uberCombines.end(), newOptions.begin(), newOptions.end());
@@ -126,7 +125,8 @@ void ShaderSchema::CleanBuild()
 
 void ShaderSchema::CleanAll()
 {
-	m_uberCombines.clear();
+	CleanBuild();
+
 	m_uberOptions.clear();
 	m_conflictOptions.clear();
 }
