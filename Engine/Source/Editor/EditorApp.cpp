@@ -521,29 +521,29 @@ bool EditorApp::Update(float deltaTime)
 	{
 		m_pEngineImGuiContext->SetWindowPosOffset(m_pSceneView->GetWindowPosX(), m_pSceneView->GetWindowPosY());
 		m_pEngineImGuiContext->Update(deltaTime);
-		
-		if (0 == m_pSceneView->GetDebugMode()) 
+
+		if (debugModeType::NoDebug == m_pSceneView->GetDebugMode()) 
 		{
 			m_pSceneRenderer->SetEnable(true);
 			m_pDebugRenderer->SetEnable(false);
 		}
-		else if(1 == m_pSceneView->GetDebugMode()) 
+		else if(debugModeType::WhiteModel == m_pSceneView->GetDebugMode()) 
 		{
 			m_pSceneRenderer->SetEnable(false);
 			m_pDebugRenderer->SetEnable(true);
 		}
 
-		if (0 == m_pSceneView->GetAABBMode())
+		if (AABBModeType::NoAABB == m_pSceneView->GetAABBMode())
 		{
 			m_pAABBAllRenderer->SetEnable(false);
 			m_pAABBSelectedRenderer->SetEnable(false);
 		}
-		else if (1 == m_pSceneView->GetAABBMode())
+		else if (AABBModeType::AABBSelected == m_pSceneView->GetAABBMode())
 		{
 			m_pAABBAllRenderer->SetEnable(false);
 			m_pAABBSelectedRenderer->SetEnable(true);
 		}
-		else if (2 == m_pSceneView->GetAABBMode())
+		else if (AABBModeType::AABBAll == m_pSceneView->GetAABBMode())
 		{
 			m_pAABBAllRenderer->SetEnable(true);
 			m_pAABBSelectedRenderer->SetEnable(false);
