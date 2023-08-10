@@ -20,6 +20,41 @@ class RenderTarget;
 namespace editor
 {
 
+enum class debugModeType
+{
+	NoDebug,
+	WhiteModel,
+
+	Count,
+};
+
+constexpr const char* debugModes[] = {
+	"NoDebug",
+	"WhiteModel",
+	//"WireFrame" 
+};
+
+static_assert(static_cast<int>(debugModeType::Count) == sizeof(debugModes) / sizeof(char *),
+	"debug mode type and names mismatch.");
+
+enum class AABBModeType
+{
+	NoAABB,
+	AABBSelected,
+	AABBAll, 
+
+	Count,
+};
+
+constexpr const char* AABBModes[] = {
+	"NoAABB",
+	"AABBSelected",
+	"AABBAll" 
+};
+
+static_assert(static_cast<int>(AABBModeType::Count) == sizeof(AABBModes) / sizeof(char *),
+	"AABB mode type and names mismatch.");
+
 class SceneView : public engine::ImGuiBaseLayer
 {
 public:
@@ -35,8 +70,8 @@ public:
 	void PickSceneMesh(float regionWidth, float regionHeight);
 
 	ImGuizmo::OPERATION GetImGuizmoOperation() const { return m_currentOperation; }
-	int GetDebugMode() const { return m_debugMode; }
-	int GetAABBMode() const { return m_AABBMode; }
+	debugModeType GetDebugMode() const { return m_debugMode; }
+	AABBModeType GetAABBMode() const { return m_AABBMode; }
 
 private:
 	void UpdateToolMenuButtons();
@@ -54,8 +89,8 @@ private:
 
 	bool m_is3DMode = true;
 	bool m_isIBLActive = false;
-	int m_debugMode = 0;
-	int m_AABBMode = 0;
+	debugModeType m_debugMode = NoDebug;
+	AABBModeType m_AABBMode = NoAABB;
 
 	engine::RenderTarget* m_pRenderTarget = nullptr;
 	bool m_isMouseDownFirstTime = true;
