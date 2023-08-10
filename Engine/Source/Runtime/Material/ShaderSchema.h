@@ -60,15 +60,16 @@ public:
 	const char* GetVertexShaderPath() const { return m_vertexShaderPath.c_str(); }
 	const char* GetFragmentShaderPath() const { return m_fragmentShaderPath.c_str(); }
 
-	void SetConflictOptions(Uber a, Uber b);
 	void RegisterUberOption(Uber uberOption);
+	// Call SetConflictOptions before call Build.
+	void SetConflictOptions(Uber a, Uber b);
 	void Build();
-
-	bool IsUberOptionValid(StringCrc uberOption) const;
-	StringCrc GetOptionsCrc(const std::unordered_set<Uber>& options) const;
 
 	void SetCompiledProgram(StringCrc uberOption, uint16_t programHandle);
 	uint16_t GetCompiledProgram(StringCrc uberOption) const;
+
+	StringCrc GetOptionsCrc(const std::unordered_set<Uber>& options) const;
+	bool IsUberOptionsValid(StringCrc uberOption) const;
 
 	std::vector<Uber>& GetUberOptions() { return m_uberOptions; }
 	const std::vector<Uber>& GetUberOptions() const { return m_uberOptions; }
@@ -79,8 +80,8 @@ public:
 	std::unordered_map<uint32_t, uint16_t>& GetUberPrograms() { return m_compiledProgramHandles; }
 	const std::unordered_map<uint32_t, uint16_t>& GetUberPrograms() const { return m_compiledProgramHandles; }
 
-	std::unordered_map<Uber, Uber>& GetConflictOptions() { return m_conflictOptions; }
-	const std::unordered_map<Uber, Uber>& GetConflictOptions() const { return m_conflictOptions; }
+	std::unordered_multimap<std::string, std::string>& GetConflictOptions() { return m_conflictOptions; }
+	const std::unordered_multimap<std::string, std::string>& GetConflictOptions() const { return m_conflictOptions; }
 
 	// TODO : More generic.
 	void AddUberOptionVSBlob(ShaderBlob shaderBlob);
@@ -93,15 +94,16 @@ private:
 	std::string m_fragmentShaderPath;
 
 	bool m_isDirty;
-	size_t m_uberOptionsOfrfset;
+	size_t m_uberOptionsOffset;
 	// Registration order of options. 
 	std::vector<Uber> m_uberOptions;
 	// Parameters to compile shaders.
 	std::vector<std::string> m_uberCombines;
+
 	// Key: StringCrc(option combine), Value: shader handle.
 	std::unordered_map<uint32_t, uint16_t> m_compiledProgramHandles;
 	// Record options that will not be active at the same time to skip permutation.
-	std::unordered_map<Uber, Uber> m_conflictOptions;
+	std::unordered_multimap<std::string, std::string> m_conflictOptions;
 
 	std::unique_ptr<ShaderBlob> m_pVSBlob;
 	std::map<uint32_t, std::unique_ptr<ShaderBlob>> m_uberOptionToFSBlobs;

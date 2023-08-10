@@ -54,6 +54,7 @@ void SceneWorld::CreatePBRMaterialType()
 	shaderSchema.RegisterUberOption(Uber::EMISSIVE_MAP);
 	shaderSchema.RegisterUberOption(Uber::IBL);
 	shaderSchema.RegisterUberOption(Uber::ATM);
+	shaderSchema.SetConflictOptions(Uber::ATM, Uber::IBL);
 	shaderSchema.Build();
 	m_pPBRMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 

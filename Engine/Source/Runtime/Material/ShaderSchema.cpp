@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cassert>
 #include <sstream>
+#include <string>
 
 namespace engine
 {
@@ -41,13 +42,7 @@ ShaderSchema::ShaderSchema(std::string vsPath, std::string fsPath)
 	m_fragmentShaderPath = cd::MoveTemp(fsPath);
 
 	m_isDirty = false;
-	m_uberOptionsOfrfset = 0;
-}
-
-void ShaderSchema::SetConflictOptions(Uber a, Uber b)
-{
-	m_conflictOptions[a] = b;
-	// TODO
+	m_uberOptionsOffset = 0;
 }
 
 void ShaderSchema::RegisterUberOption(Uber uberOption)
@@ -62,9 +57,15 @@ void ShaderSchema::RegisterUberOption(Uber uberOption)
 	m_uberOptions.emplace_back(uberOption);
 }
 
+void ShaderSchema::SetConflictOptions(Uber a, Uber b)
+{
+	m_conflictOptions.emplace(GetUberName(a), GetUberName(b));
+	m_conflictOptions.emplace(GetUberName(b), GetUberName(a));
+}
+
 void ShaderSchema::Build()
 {
-	if (!m_isDirty || m_uberOptionsOfrfset == m_uberOptions.size())
+	if (!m_isDirty || m_uberOptionsOffset == m_uberOptions.size())
 	{
 		CD_ENGINE_WARN("Uber shader options have no changes since the last build.");
 		return;
@@ -72,35 +73,43 @@ void ShaderSchema::Build()
 
 	m_isDirty = false;
 
-	// Use m_uberOptionsOfrfset to handle calling ShaderSchema::Build() multiple times.
-	for(auto itOpt = m_uberOptions.begin() + m_uberOptionsOfrfset; itOpt != m_uberOptions.end(); ++itOpt, ++m_uberOptionsOfrfset)
+	// Use m_uberOptionsOffset to handle calling ShaderSchema::Build() multiple times.
+	for(auto itOpt = m_uberOptions.begin() + m_uberOptionsOffset; itOpt != m_uberOptions.end(); ++itOpt, ++m_uberOptionsOffset)
 	{
 		std::string newOption = GetUberName(*itOpt);
 		std::vector<std::string> newOptions = { newOption };
+		const auto& conflictRange = m_conflictOptions.equal_range(newOption);
 
-		for(auto itCob = m_uberCombines.begin(); itCob != m_uberCombines.end(); ++itCob)
+		for(const auto& cobine : m_uberCombines)
 		{
-			// if(conflict) skip
-			newOptions.push_back({ *itCob + newOption });
+			bool isConflict = false;
+			for (auto conflict = conflictRange.first; conflict != conflictRange.second; ++conflict)
+			{
+				if (cobine.find(conflict->second) != std::string::npos)
+				{
+					// Skip conflict uber option combine.
+					isConflict = true;
+					break;
+				}
+			}
+			if (!isConflict)
+			{
+				newOptions.push_back({ cobine + newOption });
+			}
 		}
 		m_uberCombines.insert(m_uberCombines.end(), newOptions.begin(), newOptions.end());
 
 		for (const auto& newOpt : newOptions)
 		{
-			assert(!IsUberOptionValid(StringCrc(newOpt)));
+			assert(!IsUberOptionsValid(StringCrc(newOpt)));
 			m_compiledProgramHandles[StringCrc(newOpt).Value()] = InvalidProgramHandle;
 		}
 	}
 }
 
-bool ShaderSchema::IsUberOptionValid(StringCrc uberOption) const
-{
-	return m_compiledProgramHandles.find(uberOption.Value()) != m_compiledProgramHandles.end();
-}
-
 void ShaderSchema::SetCompiledProgram(StringCrc uberOption, uint16_t programHandle)
 {
-	assert(IsUberOptionValid(uberOption));
+	assert(IsUberOptionsValid(uberOption));
 	m_compiledProgramHandles[uberOption.Value()] = programHandle;
 }
 
@@ -143,6 +152,11 @@ StringCrc ShaderSchema::GetOptionsCrc(const std::unordered_set<Uber>& options) c
 		}
 	}
 	return StringCrc(ss.str());
+}
+
+bool ShaderSchema::IsUberOptionsValid(StringCrc uberOption) const
+{
+	return m_compiledProgramHandles.find(uberOption.Value()) != m_compiledProgramHandles.end();
 }
 
 void ShaderSchema::AddUberOptionVSBlob(ShaderBlob shaderBlob)
