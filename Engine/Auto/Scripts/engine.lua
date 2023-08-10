@@ -36,7 +36,6 @@ project("Engine")
 		}
 	end
 
-	
 	local bgfxBuildBinPath = nil
 	local platformDefines = {}
 	local platformIncludeDirs = {}
@@ -161,22 +160,26 @@ project("Engine")
 		}
 	filter {}
 	
-	filter { "configurations:Release" }
-		if DDGI_SDK_PATH ~= "" then
-			includedirs {
-				path.join(DDGI_SDK_PATH, "include"),
-			}
-			libdirs {
-				path.join(DDGI_SDK_PATH, "lib"),
-			}
-			links {
-				"ddgi_sdk", "mright_sdk", "DDGIProbeDecoderBin"
-			}
-			defines {
-				"DDGI_SDK_PATH=\""..DDGI_SDK_PATH.."\"",
-			}
-		end
-	filter {}
+	if ENABLE_DDGI then
+		includedirs {
+			path.join(DDGI_SDK_PATH, "include"),
+		}
+		libdirs {
+			path.join(DDGI_SDK_PATH, "lib"),
+		}
+		links {
+			"ddgi_sdk", "mright_sdk", "DDGIProbeDecoderBin"
+		}
+		defines {
+			"ENABLE_DDGI",
+			"DDGI_SDK_PATH=\""..DDGI_SDK_PATH.."\"",
+		}
+	else
+		excludes {
+			path.join(RuntimeSourcePath, "ECWorld/DDGIComponent.*"),
+			path.join(RuntimeSourcePath, "Rendering/DDGIRenderer.*"),
+		}
+	end
 	
 	if "SharedLib" == EngineBuildLibKind then
 		table.insert(platformDefines, "ENGINE_BUILD_SHARED")
@@ -217,7 +220,7 @@ project("Engine")
 		"MultiProcessorCompile", -- compiler uses multiple thread
 	}
 
-	if DDGI_SDK_PATH == "" and not USE_CLANG_TOOLSET then
+	if ShouldTreatWaringAsError then
 		flags {
 			"FatalWarnings", -- treat warnings as errors
 		}

@@ -69,6 +69,9 @@ public:
 	void SynchronizeTrackingCamera();
 
 	void MoveToPosition(cd::Point position, cd::Vec3f lookAt);
+
+	// TODO : generic solution to process mouse / key input events for UI panels in different areas.
+	void SetIsInViewScene(bool isIn) { m_isInViewScene = isIn; }
 	
 private:
 	engine::CameraComponent* GetMainCameraComponent() const;
@@ -99,6 +102,7 @@ private:
 
 	bool m_isTracking = false;
 	bool m_isMoving = false;
+	bool m_isInViewScene = false;
 };
 
 }

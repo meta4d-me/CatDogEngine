@@ -261,6 +261,7 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 	ImGui::PopStyleVar();
 }
 
+#ifdef ENABLE_DDGI
 template<>
 void UpdateComponentWidget<engine::DDGIComponent>(engine::SceneWorld *pSceneWorld, engine::Entity entity)
 {
@@ -289,6 +290,7 @@ void UpdateComponentWidget<engine::DDGIComponent>(engine::SceneWorld *pSceneWorl
 	ImGui::Separator();
 	ImGui::PopStyleVar();
 }
+#endif
 
 template<>
 void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
@@ -373,7 +375,9 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::CameraComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, selectedEntity);
+#ifdef ENABLE_DDGI
 	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, selectedEntity);
+#endif
 	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, selectedEntity);
 
 	ImGui::End();

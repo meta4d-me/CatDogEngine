@@ -13,7 +13,9 @@
 #include "Rendering/AABBRenderer.h"
 #include "Rendering/AnimationRenderer.h"
 #include "Rendering/BlitRenderTargetPass.h"
+#ifdef ENABLE_DDGI
 #include "Rendering/DDGIRenderer.h"
+#endif
 #include "Rendering/DebugRenderer.h"
 #include "Rendering/ImGuiRenderer.h"
 #include "Rendering/PBRSkyRenderer.h"
@@ -36,11 +38,6 @@
 #include "UILayers/Splash.h"
 #include "Window/Input.h"
 #include "Window/Window.h"
-
-#ifdef ENABLE_TERRAIN_PRODUCER
-#include "UILayers/TerrainEditor.h"
-#include "Rendering/TerrainRenderer.h"
-#endif
 
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -99,7 +96,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 
 	std::thread resourceThread([]()
 	{
-		ResourceBuilder::Get().Update();
+		ResourceBuilder::Get().Update(false/*doPrintLog*/);
 	});
 	resourceThread.detach();
 }
@@ -162,12 +159,8 @@ void EditorApp::InitEditorUILayers()
 
 	auto pSceneView = std::make_unique<SceneView>("SceneView");
 	m_pSceneView = pSceneView.get();
+	pSceneView->SetCameraController(m_pViewportCameraController.get());
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
-
-#ifdef ENABLE_TERRAIN_PRODUCER
-	auto pTerrainEditor = std::make_unique<TerrainEditor>("Terrain Editor");
-	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pTerrainEditor));
-#endif
 
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
 
@@ -233,8 +226,10 @@ void EditorApp::InitECWorld()
 	
 	InitEditorCameraEntity();
 	
+#ifdef ENABLE_DDGI
 	m_pSceneWorld->InitDDGISDK();
 	InitDDGIEntity();
+#endif
 
 	InitSkyEntity();
 }
@@ -268,6 +263,7 @@ void EditorApp::InitEditorCameraEntity()
 	cameraComponent.BuildViewMatrix(cameraTransform);
 }
 
+#ifdef ENABLE_DDGI
 void EditorApp::InitDDGIEntity()
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
@@ -280,6 +276,7 @@ void EditorApp::InitDDGIEntity()
 
 	pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
 }
+#endif
 
 void EditorApp::InitSkyEntity()
 {
@@ -352,12 +349,6 @@ void EditorApp::InitEngineRenderers()
 		AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
 	}
 
-#ifdef ENABLE_TERRAIN_PRODUCER
-	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-	pTerrainRenderer->SetSceneWorld(m_pSceneWorld.get());
-	AddEngineRenderer(cd::MoveTemp(pTerrainRenderer));
-#endif
-
 	auto pSceneRenderer = std::make_unique<engine::WorldRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pSceneRenderer = pSceneRenderer.get();
 	pSceneRenderer->SetSceneWorld(m_pSceneWorld.get());
@@ -373,6 +364,7 @@ void EditorApp::InitEngineRenderers()
 	pDebugRenderer->SetEnable(false);
 	AddEngineRenderer(cd::MoveTemp(pDebugRenderer));
 
+
 	auto pAABBAllRenderer = std::make_unique<engine::AABBAllRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pAABBAllRenderer = pAABBAllRenderer.get();
 	pAABBAllRenderer->SetEnable(false);
@@ -385,9 +377,11 @@ void EditorApp::InitEngineRenderers()
 	pAABBSelectedRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pAABBSelectedRenderer));
 
+#ifdef ENABLE_DDGI
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pDDGIRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pDDGIRenderer));
+#endif
 
 	auto pBlitRTRenderPass = std::make_unique<engine::BlitRenderTargetPass>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	AddEngineRenderer(cd::MoveTemp(pBlitRTRenderPass));
@@ -421,8 +415,9 @@ void EditorApp::InitShaderPrograms() const
 
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetPBRMaterialType());
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetAnimationMaterialType());
-	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetTerrainMaterialType());
+#ifdef ENABLE_DDGI
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetDDGIMaterialType());
+#endif
 }
 
 void EditorApp::InitEditorController()
@@ -452,49 +447,40 @@ bool EditorApp::Update(float deltaTime)
 {
 	// TODO : it is better to remove these logics about splash -> editor switch here.
 	// Better implementation is to have multiple Application or Window classes and they can switch.
-	if (!m_bInitEditor)
+	if (!m_bInitEditor && ResourceBuilder::Get().IsIdle())
 	{
-		if (0 == ResourceBuilder::Get().GetCurrentTaskCount())
-		{
-			m_bInitEditor = true;
-			engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetPBRMaterialType());
-			engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetAnimationMaterialType());
-			engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetTerrainMaterialType());
-			engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetDDGIMaterialType());
+		m_bInitEditor = true;
+		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetPBRMaterialType());
+		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetAnimationMaterialType());
+#ifdef ENABLE_DDGI
+		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetDDGIMaterialType());
+#endif
 
-			// Phase 2 - Project Manager
-			//		* TODO : Show project selector
-			//GetMainWindow()->SetTitle("Project Manager");
-			//GetMainWindow()->SetSize(800, 600);
+		// Phase 2 - Project Manager
+		//		* TODO : Show project selector
+		//GetMainWindow()->SetTitle("Project Manager");
+		//GetMainWindow()->SetSize(800, 600);
 
-			// Phase 3 - Editor
-			//		* Load selected project to create assets, components, entities, ...s
-			//		* Init engine renderers in SceneView to display visual results
-			//		* Init editor ui layers
-			//		* Init engine imgui context for ingame debug UI
-			//		* Init engine ui layers
-			GetMainWindow()->SetTitle(m_initArgs.pTitle);
-			GetMainWindow()->SetSize(m_initArgs.width, m_initArgs.height);
-			GetMainWindow()->SetFullScreen(m_initArgs.useFullScreen);
-			GetMainWindow()->SetBordedLess(false);
-			GetMainWindow()->SetResizeable(true);
+		// Phase 3 - Editor
+		//		* Load selected project to create assets, components, entities, ...s
+		//		* Init engine renderers in SceneView to display visual results
+		//		* Init editor ui layers
+		//		* Init engine imgui context for ingame debug UI
+		//		* Init engine ui layers
+		GetMainWindow()->SetTitle(m_initArgs.pTitle);
+		GetMainWindow()->SetSize(m_initArgs.width, m_initArgs.height);
+		GetMainWindow()->SetFullScreen(m_initArgs.useFullScreen);
+		GetMainWindow()->SetBordedLess(false);
+		GetMainWindow()->SetResizeable(true);
 
-			InitEngineRenderers();
-			m_pEditorImGuiContext->ClearUILayers();
-			InitEditorUILayers();
+		InitEngineRenderers();
+		m_pEditorImGuiContext->ClearUILayers();
+		InitEditorUILayers();
 
-			InitEngineImGuiContext(m_initArgs.language);
-			m_pEngineImGuiContext->SetSceneWorld(m_pSceneWorld.get());
+		InitEngineImGuiContext(m_initArgs.language);
+		m_pEngineImGuiContext->SetSceneWorld(m_pSceneWorld.get());
 
-			InitEngineUILayers();
-		}
-	}
-	else
-	{
-		if (m_pViewportCameraController)
-		{
-			m_pViewportCameraController->Update(deltaTime);
-		}
+		InitEngineUILayers();
 	}
 
 	GetMainWindow()->Update();
@@ -519,6 +505,11 @@ bool EditorApp::Update(float deltaTime)
 
 	if (m_pEngineImGuiContext)
 	{
+		if (m_pViewportCameraController)
+		{
+			m_pViewportCameraController->Update(deltaTime);
+		}
+
 		m_pEngineImGuiContext->SetWindowPosOffset(m_pSceneView->GetWindowPosX(), m_pSceneView->GetWindowPosY());
 		m_pEngineImGuiContext->Update(deltaTime);
 

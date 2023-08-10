@@ -103,16 +103,10 @@ project("Editor")
 	if not USE_CLANG_TOOLSET then
 		links {
 			"GenericProducer",
-			"TerrainProducer",
 		}
 
 		defines {
 			"ENABLE_GENERIC_PRODUCER",
-			"ENABLE_TERRAIN_PRODUCER",
-		}
-	else
-		excludes {
-			path.join(EditorSourcePath, "UILayers/TerrainEditor.*")
 		}
 	end
 
