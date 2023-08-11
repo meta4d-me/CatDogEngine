@@ -386,10 +386,10 @@ void EditorApp::InitEngineRenderers()
 bool EditorApp::IsAtmosphericScatteringEnable() const
 {
 	engine::GraphicsBackend backend = engine::Path::GetGraphicsBackend();
-	return true
-		&& engine::GraphicsBackend::Vulkan == backend
-		&& engine::GraphicsBackend::OpenGL == backend
-		&& engine::GraphicsBackend::OpenGLES == backend;
+	
+	return engine::GraphicsBackend::Vulkan != backend
+		&& engine::GraphicsBackend::OpenGL != backend
+		&& engine::GraphicsBackend::OpenGLES != backend;
 }
 
 void EditorApp::InitShaderPrograms() const

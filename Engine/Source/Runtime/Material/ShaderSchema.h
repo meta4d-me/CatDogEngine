@@ -80,8 +80,8 @@ public:
 	std::vector<std::string>& GetUberCombines() { return m_uberCombines; }
 	const std::vector<std::string>& GetUberCombines() const { return m_uberCombines; }
 
-	std::unordered_map<uint32_t, uint16_t>& GetUberPrograms() { return m_compiledProgramHandles; }
-	const std::unordered_map<uint32_t, uint16_t>& GetUberPrograms() const { return m_compiledProgramHandles; }
+	std::map<uint32_t, uint16_t>& GetUberPrograms() { return m_compiledProgramHandles; }
+	const std::map<uint32_t, uint16_t>& GetUberPrograms() const { return m_compiledProgramHandles; }
 
 	std::unordered_multimap<std::string, std::string>& GetConflictOptions() { return m_conflictOptions; }
 	const std::unordered_multimap<std::string, std::string>& GetConflictOptions() const { return m_conflictOptions; }
@@ -105,7 +105,7 @@ private:
 	std::unordered_multimap<std::string, std::string> m_conflictOptions;
 
 	// Key: StringCrc(option combine), Value: shader handle.
-	std::unordered_map<uint32_t, uint16_t> m_compiledProgramHandles;
+	std::map<uint32_t, uint16_t> m_compiledProgramHandles;
 
 	std::unique_ptr<ShaderBlob> m_pVSBlob;
 	std::map<uint32_t, std::unique_ptr<ShaderBlob>> m_uberOptionToFSBlobs;
