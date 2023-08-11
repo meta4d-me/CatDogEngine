@@ -3,7 +3,7 @@
 #define COMPUTE
 #include "atm_functions.sh"
 
-uniform vec4 u_num_scattering_orders[1];
+uniform vec4 u_numScatteringOrders;
 
 IMAGE3D_WR(s_scattering_density, rgba32f, 8);
 
@@ -11,7 +11,7 @@ NUM_THREADS(8, 8, 8)
 void main()
 {
 	ivec3 uvw = ivec3(gl_GlobalInvocationID.xyz);
-	int scatteringOrder = u_num_scattering_orders[0].x;
+	int scatteringOrder = u_numScatteringOrders.x;
 	
 	vec3 density = ComputeScatteringDensityTexture(ATMOSPHERE, uvw, scatteringOrder);
 	

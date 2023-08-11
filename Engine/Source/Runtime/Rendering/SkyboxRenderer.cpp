@@ -15,11 +15,9 @@ constexpr const char* skyboxSampler = "s_texSkybox";
 constexpr const char* skyboxShader = "skyboxShader";
 
 constexpr uint16_t sampleFalg = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
-constexpr uint16_t renderState = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
+constexpr uint64_t renderState = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LEQUAL;
 
 }
-
-SkyboxRenderer::~SkyboxRenderer() = default;
 
 void SkyboxRenderer::Init()
 {
@@ -65,8 +63,8 @@ void SkyboxRenderer::Render(float deltaTime)
 	{
 		return;
 	}
-	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()});
-	bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
+	bgfx::setIndexBuffer(bgfx::IndexBufferHandle(pMeshComponent->GetIndexBuffer()));
+	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle(pMeshComponent->GetVertexBuffer()));
 
 	// Create a new TextureHandle each frame if the skybox texture path has been updated,
 	// otherwise RenderContext::CreateTexture will automatically skip it.
