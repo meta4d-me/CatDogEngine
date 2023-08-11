@@ -2,6 +2,9 @@
 
 #include "ECWorld/SceneWorld.h"
 #include "Renderer.h"
+#include<bgfx/bgfx.h>
+
+#define TEX_CHAIN_LEN 5
 
 namespace engine
 {
@@ -23,6 +26,14 @@ public:
 
 private:
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
+
+	bgfx::FrameBufferHandle m_texChainFb[TEX_CHAIN_LEN];
+	uint8_t capturebrightness_id;
+	uint8_t start_downsample_id;
+	uint8_t start_upsample_id;
+
+	uint16_t pre_width;
+	uint16_t pre_height;
 };
 
 }

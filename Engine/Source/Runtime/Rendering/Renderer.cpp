@@ -39,6 +39,20 @@ void Renderer::UpdateViewRenderTarget()
 	}
 }
 
+void Renderer::GetWidthHeight(uint16_t& width, uint16_t& height) {
+	if (m_pRenderTarget)
+	{
+		width = GetRenderTarget()->GetWidth();
+		height = GetRenderTarget()->GetHeight();
+	}
+	else
+	{
+		assert(m_pRenderContext);
+		width = m_pRenderContext->GetBackBufferWidth();
+		height = m_pRenderContext->GetBackBufferHeight();
+	}
+}
+
 struct PosColorTexCoord0Vertex
 {
 	float m_x;

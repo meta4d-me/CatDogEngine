@@ -79,6 +79,7 @@ public:
 	bgfx::ProgramHandle GetProgram(StringCrc resourceCrc) const;
 	bgfx::TextureHandle GetTexture(StringCrc resourceCrc) const;
 	bgfx::UniformHandle GetUniform(StringCrc resourceCrc) const;
+	uint8_t GetCurrentViewID() const { return m_currentViewCount; }
 
 	void Destory(StringCrc resourceCrc);
 	void DestoryRenderTarget(StringCrc resourceCrc);

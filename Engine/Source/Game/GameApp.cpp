@@ -157,6 +157,8 @@ void GameApp::InitEditorCameraEntity()
 	cameraComponent.SetFarPlane(2000.0f);
 	cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
 	cameraComponent.SetGammaCorrection(0.45f);
+	cameraComponent.SetBloomIntensity(0.0f);
+	cameraComponent.SetBloomRange(1.0f);
 	cameraComponent.BuildProjectMatrix();
 	cameraComponent.BuildViewMatrix(cameraTransform);
 }
