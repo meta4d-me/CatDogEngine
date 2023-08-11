@@ -138,11 +138,14 @@ void PBRSkyRenderer::Render(float deltaTime)
 	bgfx::setUniform(GetRenderContext()->GetUniform(StringCrc(CameraPos)), &(tmpCameraPos.x()), 1);
 
 	TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetSkyEntity());
-	bgfx::setUniform(GetRenderContext()->GetUniform(StringCrc(LightDir)), &(pTransformComponent->GetTransform().GetRotation()), 1);
+	bgfx::setUniform(GetRenderContext()->GetUniform(StringCrc(LightDir)), &(pTransformComponent->GetTransform().GetTranslation()), 1);
+	// Its better to use the rotation of TransformComponent to represent light direction.
+	// As the rotate ui is difficult to control for now, we use the transform of TransformComponent to represent light direction.
+	// cd::Vec3f tmpLightDir = pTransformComponent->GetTransform().GetRotation().ToEulerAngles();
+	// bgfx::setUniform(GetRenderContext()->GetUniform(StringCrc(LightDir)), &(tmpLightDir.x()), 1);
 
 	bgfx::setState(StateRendering);
 	bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(StringCrc(ProgramAtmosphericScatteringLUT)));
-	//bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(StringCrc(ProgramSingleScatteringRayMarching)));
 }
 
 bool PBRSkyRenderer::IsEnable() const
@@ -211,11 +214,6 @@ void PBRSkyRenderer::Precompute() const
 	CD_ENGINE_TRACE("All compute shaders for precomputing atmospheric scattering texture dispatched.");
 	CD_ENGINE_INFO("Atmospheric scattering orders : {0}", ScatteringOrders);
 	
-	for (uint8_t i = 0; i < 16; ++i)
-	{
-		bgfx::setImage(i, BGFX_INVALID_HANDLE, 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
-	}
-
 	SafeDestroyTexture(TextureDeltaIrradiance);
 	SafeDestroyTexture(TextureDeltaRayleighScattering);
 	SafeDestroyTexture(TextureDeltaMieScattering);
