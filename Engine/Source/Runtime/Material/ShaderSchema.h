@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Core/StringCrc.h"
 
@@ -6,6 +6,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -59,18 +60,31 @@ public:
 	const char* GetVertexShaderPath() const { return m_vertexShaderPath.c_str(); }
 	const char* GetFragmentShaderPath() const { return m_fragmentShaderPath.c_str(); }
 
-	// This option will combien with every exists combination.
-	void RegisterUberOption(Uber uberOption);
+	void AddUberOption(Uber uberOption);
+	void SetConflictOptions(Uber a, Uber b);
 
-	bool IsUberOptionValid(StringCrc uberOption) const;
-	StringCrc GetOptionsCrc(const std::unordered_set<Uber>& options) const;
+	// Calling "AddUberOption/SetConflictOptions and Build" after Build will cause unnecessary performance overhead.
+	void Build();
+	void CleanBuild();
+	void CleanAll();
 
 	void SetCompiledProgram(StringCrc uberOption, uint16_t programHandle);
 	uint16_t GetCompiledProgram(StringCrc uberOption) const;
 
+	StringCrc GetOptionsCrc(const std::unordered_set<Uber>& options) const;
+	bool IsUberOptionsValid(StringCrc uberOption) const;
+
+	std::vector<Uber>& GetUberOptions() { return m_uberOptions; }
 	const std::vector<Uber>& GetUberOptions() const { return m_uberOptions; }
+
+	std::vector<std::string>& GetUberCombines() { return m_uberCombines; }
 	const std::vector<std::string>& GetUberCombines() const { return m_uberCombines; }
+
+	std::map<uint32_t, uint16_t>& GetUberPrograms() { return m_compiledProgramHandles; }
 	const std::map<uint32_t, uint16_t>& GetUberPrograms() const { return m_compiledProgramHandles; }
+
+	std::unordered_multimap<std::string, std::string>& GetConflictOptions() { return m_conflictOptions; }
+	const std::unordered_multimap<std::string, std::string>& GetConflictOptions() const { return m_conflictOptions; }
 
 	// TODO : More generic.
 	void AddUberOptionVSBlob(ShaderBlob shaderBlob);
@@ -82,10 +96,14 @@ private:
 	std::string m_vertexShaderPath;
 	std::string m_fragmentShaderPath;
 
+	bool m_isDirty;
 	// Registration order of options. 
 	std::vector<Uber> m_uberOptions;
 	// Parameters to compile shaders.
 	std::vector<std::string> m_uberCombines;
+	// Record options that will not be active at the same time to skip permutation.
+	std::unordered_multimap<std::string, std::string> m_conflictOptions;
+
 	// Key: StringCrc(option combine), Value: shader handle.
 	std::map<uint32_t, uint16_t> m_compiledProgramHandles;
 

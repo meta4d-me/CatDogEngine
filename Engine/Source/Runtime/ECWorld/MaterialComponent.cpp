@@ -251,6 +251,8 @@ void MaterialComponent::Build()
 
 void MaterialComponent::SetSkyType(SkyType crtType)
 {
+	// SkyType::None is a special case which is not a uber option but means deactive Uber::IBL and Uber::ATM.
+
 	if (SkyType::Count == crtType || m_skyType == crtType)
 	{
 		return;
