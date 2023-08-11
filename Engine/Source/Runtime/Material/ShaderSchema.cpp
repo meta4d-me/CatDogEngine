@@ -114,6 +114,10 @@ void ShaderSchema::Build()
 			m_compiledProgramHandles[StringCrc(newOpt).Value()] = InvalidProgramHandle;
 		}
 	}
+
+	// ShaderSchema also handle non-uber case.
+	m_uberCombines.emplace_back("");
+	m_compiledProgramHandles[DefaultUberShaderCrc.Value()] = InvalidProgramHandle;
 }
 
 void ShaderSchema::CleanBuild()
