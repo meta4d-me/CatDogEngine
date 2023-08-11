@@ -159,8 +159,6 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 		ImGuiUtils::ImGuiBoolProperty("Constrain Aspect Ratio", pCameraComponent->GetDoConstrainAspectRatio());
 		ImGuiUtils::ImGuiBoolProperty("Post Processing", pCameraComponent->GetIsPostProcessEnable());
 		ImGuiUtils::ImGuiFloatProperty("Gamma Correction", pCameraComponent->GetGammaCorrection(), cd::Unit::None, 0.0f, 1.0f);
-		ImGuiUtils::ImGuiFloatProperty("Bloom Intensity", pCameraComponent->GetBloomIntensity(), cd::Unit::None, 0.0f, 3.0f);
-		ImGuiUtils::ImGuiFloatProperty("Bloom Range", pCameraComponent->GetBloomRange(), cd::Unit::None, 1.0f, 10.0f);
 	}
 
 	ImGui::Separator();

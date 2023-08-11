@@ -36,8 +36,6 @@ public:
 	virtual void SetEnable(bool value) { m_isEnable = value; }
 	virtual bool IsEnable() const { return m_isEnable; }
 
-	void GetWidthHeight(uint16_t& width, uint16_t& height);
-
 public:
 	static void ScreenSpaceQuad(const RenderTarget* pRenderTarget, bool _originBottomLeft = false, float _width = 1.0f, float _height = 1.0f);
 
