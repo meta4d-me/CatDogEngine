@@ -87,6 +87,14 @@ public:
 	float& GetGammaCorrection() { return m_gammaCorrection; }
 	const float& GetGammaCorrection() const { return m_gammaCorrection; }
 	void SetGammaCorrection(float gamma) { m_gammaCorrection = gamma; }
+
+	float& GetBloomIntensity() { return m_bloomIntensity; }
+	const float& GetBloomIntensity() const { return m_bloomIntensity; }
+	void SetBloomIntensity(float bloomintensity) { m_bloomIntensity = bloomintensity; }
+
+	float& GetBloomRange() { return m_bloomRange; }
+	const float& GetBloomRange() const { return m_bloomRange; }
+	void SetBloomRange(float bloomrange) { m_bloomRange = bloomrange; }
 #endif
 
 private:
@@ -109,6 +117,8 @@ private:
 	bool m_doConstainAspectRatio;
 	bool m_enablePostProcess;
 	float m_gammaCorrection;
+	float m_bloomIntensity;
+	float m_bloomRange;
 #endif
 };
 
