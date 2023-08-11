@@ -45,6 +45,7 @@
 
 //#include <format>
 #include <thread>
+#include <Rendering/TerrainRenderer.h>
 
 namespace editor
 {
@@ -95,7 +96,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 
 	std::thread resourceThread([]()
 	{
-		ResourceBuilder::Get().Update(false/*doPrintLog*/);
+		ResourceBuilder::Get().Update(true/*falsedoPrintLog*/);
 	});
 	resourceThread.detach();
 }
@@ -351,6 +352,11 @@ void EditorApp::InitEngineRenderers()
 	m_pSceneRenderer = pSceneRenderer.get();
 	pSceneRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pSceneRenderer));
+
+	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pTerrainRenderer = pTerrainRenderer.get();
+	pTerrainRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pTerrainRenderer));
 
 	auto pAnimationRenderer = std::make_unique<engine::AnimationRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pAnimationRenderer->SetSceneWorld(m_pSceneWorld.get());

@@ -1,27 +1,24 @@
-$input a_position, a_texcoord0
-$output v_worldPos, v_normal, v_texcoord0, v_alphaMapTexCoord
+$input a_position, a_normal, a_tangent, a_texcoord0
+$output v_worldPos, v_normal, v_texcoord0, v_TBN
 
 #include "../common/common.sh"
-
-uniform vec4 u_SectorOrigin;
-uniform vec4 u_SectorDimension;
-
-ISAMPLER2D(s_elevationMap, 1);
-
-float getElevation(vec3 worldPosition)
-{
-    int u = int(worldPosition.x - u_SectorOrigin.x);
-    int v = int(worldPosition.z - u_SectorOrigin.z);
-    ivec4 elevation = texelFetch(s_elevationMap, ivec2(u, v), 0);
-    return elevation.r;
-}
+//#include "../common/Terrain.sh"
 
 void main()
 {
-    float height = getElevation(a_position);
-	gl_Position = mul(u_modelViewProj, vec4(a_position.x, height, a_position.z, 1.0));
+	gl_Position = mul(u_modelViewProj, vec4(a_position.x, a_position.y, a_position.z, 1.0));
+
 	v_worldPos = mul(u_model[0], vec4(a_position, 1.0)).xyz;
-	v_normal = normalize(mul(u_modelInvTrans, vec4(0.0, 1.0, 0.0, 0.0)).xyz);
+	
+	v_normal     = normalize(mul(u_modelInvTrans, vec4(a_normal, 0.0)).xyz);
+	vec3 tangent = normalize(mul(u_modelInvTrans, vec4(a_tangent, 0.0)).xyz);
+	
+	// re-orthogonalize T with respect to N
+	tangent        = normalize(tangent - dot(tangent, v_normal) * v_normal);
+	vec3 biTangent = normalize(cross(v_normal, tangent));
+	
+	// TBN
+	v_TBN = mtxFromCols(tangent, biTangent, v_normal);
+	
 	v_texcoord0 = a_texcoord0;
-    v_alphaMapTexCoord = vec2((a_position.x - u_SectorOrigin.x) / u_SectorDimension.x, (a_position.z - u_SectorOrigin.z) / u_SectorDimension.y);
 }

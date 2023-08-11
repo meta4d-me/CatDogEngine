@@ -37,6 +37,7 @@ SceneWorld::SceneWorld()
 
 	CreatePBRMaterialType();
 	CreateAnimationMaterialType();
+	CreateTerrainMaterialType();
 #ifdef ENABLE_DDGI
 	CreateDDGIMaterialType();
 #endif
@@ -87,6 +88,22 @@ void SceneWorld::CreateAnimationMaterialType()
 	animationVertexFormat.AddAttributeLayout(cd::VertexAttributeType::BoneIndex, cd::AttributeValueType::Int16, 4U);
 	animationVertexFormat.AddAttributeLayout(cd::VertexAttributeType::BoneWeight, cd::AttributeValueType::Float, 4U);
 	m_pAnimationMaterialType->SetRequiredVertexFormat(cd::MoveTemp(animationVertexFormat));
+}
+
+void SceneWorld::CreateTerrainMaterialType()
+{
+	m_pTerrainMaterialType = std::make_unique<MaterialType>();
+	m_pTerrainMaterialType->SetMaterialName("CD_Terrain");
+
+	ShaderSchema shaderSchema;
+	m_pTerrainMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
+
+	cd::VertexFormat terrainVertexFormat;
+	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
+	m_pTerrainMaterialType->SetRequiredVertexFormat(cd::MoveTemp(terrainVertexFormat));
 }
 
 #ifdef ENABLE_DDGI

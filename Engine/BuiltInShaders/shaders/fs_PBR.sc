@@ -21,6 +21,7 @@ vec3 GetEnvironment(Material material, vec3 normal, vec3 viewDir) {
 
 void main()
 {
+	
 	Material material = GetMaterial(v_texcoord0, v_normal, v_TBN);
 	if (material.opacity < u_alphaCutOff.x) {
 		discard;
@@ -40,6 +41,6 @@ void main()
 	
 	// Fragment Color
 	gl_FragColor = vec4(dirColor + envColor + emiColor, 1.0);
-	
+	//gl_FragColor = vec4(v_normal.x,v_normal.y,v_normal.z, 1.0);
 	// Post-processing will be used in the last pass.
 }

@@ -12,4 +12,5 @@
 #include "ECWorld/NameComponent.h"
 #include "ECWorld/SkyComponent.h"
 #include "ECWorld/StaticMeshComponent.h"
+#include "ECWorld/TerrainComponent.h"
 #include "ECWorld/TransformComponent.h"

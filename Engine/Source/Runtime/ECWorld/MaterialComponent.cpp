@@ -203,7 +203,7 @@ void MaterialComponent::AddTextureFileBlob(cd::MaterialTextureType textureType, 
 {
 	std::optional<uint8_t> optTextureSlot = m_pMaterialType->GetTextureSlot(textureType);
 	if (!optTextureSlot.has_value())
-	{
+	{ 
 		return;
 	}
 
