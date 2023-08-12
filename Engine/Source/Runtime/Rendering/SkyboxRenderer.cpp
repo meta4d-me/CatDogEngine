@@ -63,8 +63,8 @@ void SkyboxRenderer::Render(float deltaTime)
 	{
 		return;
 	}
-	bgfx::setIndexBuffer(bgfx::IndexBufferHandle(pMeshComponent->GetIndexBuffer()));
-	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle(pMeshComponent->GetVertexBuffer()));
+	bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pMeshComponent->GetIndexBuffer() });
+	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pMeshComponent->GetVertexBuffer() });
 
 	// Create a new TextureHandle each frame if the skybox texture path has been updated,
 	// otherwise RenderContext::CreateTexture will automatically skip it.

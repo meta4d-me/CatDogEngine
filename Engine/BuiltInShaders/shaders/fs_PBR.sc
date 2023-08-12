@@ -5,7 +5,7 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 #include "../common/Material.sh"
 #include "../common/Camera.sh"
 
-#include "../common/Light.sh"
+#include "../common/LightSource.sh"
 #include "../common/Envirnoment.sh"
 
 uniform vec4 u_emissiveColor;

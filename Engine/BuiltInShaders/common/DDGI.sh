@@ -1,6 +1,8 @@
-// @brief Get environment diffuse irradiance by ddgi textures.
-// 
-// vec3 GetDDGIIrradiance(vec3 worldPos, vec3 normal);
+//-------------------------------------------------------------//
+// @brief Get environment diffuse irradiance by ddgi textures. //
+//                                                             //
+// vec3 GetDDGIIrradiance(vec3 worldPos, vec3 normal);         //
+//-------------------------------------------------------------//
 
 #include "../UniformDefines/U_DDGI.sh"
 

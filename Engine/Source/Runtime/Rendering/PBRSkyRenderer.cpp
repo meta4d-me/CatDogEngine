@@ -7,7 +7,7 @@
 #include "RenderContext.h"
 #include "Scene/Mesh.h"
 #include "Scene/VertexFormat.h"
-#include "U_AtmTextureSize.sh"
+#include "U_AtmophericScattering.sh"
 
 namespace engine
 {
@@ -118,16 +118,14 @@ void PBRSkyRenderer::Render(float deltaTime)
 		m_isPrecomputed = true;
 	}
 
-	// Mesh
 	StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(m_pCurrentSceneWorld->GetSkyEntity());
 	if (!pMeshComponent)
 	{
 		return;
 	}
-	bgfx::setIndexBuffer(bgfx::IndexBufferHandle(pMeshComponent->GetIndexBuffer()));
-	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle(pMeshComponent->GetVertexBuffer()));
+	bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pMeshComponent->GetIndexBuffer() });
+	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pMeshComponent->GetVertexBuffer() });
 
-	// Texture
 	bgfx::setImage(0, GetRenderContext()->GetTexture(StringCrc(TextureTransmittance)), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
 	bgfx::setImage(5, GetRenderContext()->GetTexture(StringCrc(TextureIrradiance)), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
 	bgfx::setImage(6, GetRenderContext()->GetTexture(StringCrc(TextureScattering)), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);

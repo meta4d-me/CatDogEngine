@@ -9,7 +9,7 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 
 #include "../common/DDGI.sh"
 #include "../common/Envirnoment.sh"
-#include "../common/Light.sh"
+#include "../common/LightSource.sh"
 
 vec3 GetDirectional(Material material, vec3 worldPos, vec3 viewDir) {
 	vec3 diffuseBRDF = material.albedo * CD_INV_PI;

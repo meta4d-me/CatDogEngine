@@ -1,6 +1,12 @@
-// @brief Calculates the contribution of environment.
-// 
-// vec3 GetEnvironment(Material material, vec3 vertexNormal, vec3 viewDir);
+//------------------------------------------------------------------------------------//
+// @brief Calculates the contribution of Image Based Lighting if defined macro IBL.   //
+//                                                                                    //
+// vec3 GetIBL(Material material, vec3 vertexNormal, vec3 viewDir);                   //
+//------------------------------------------------------------------------------------//
+// @brief Calculates the contribution of Atmospheric Scattering if defined macro ATM. //
+//                                                                                    //
+// vec3 GetATM(Material material, vec3 vertexNormal, vec3 viewDir);                   //
+//------------------------------------------------------------------------------------//
 
 #include "../UniformDefines/U_Environment.sh"
 
