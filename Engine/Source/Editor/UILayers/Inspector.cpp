@@ -97,7 +97,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		ImGuiUtils::ImGuiFloatProperty("RoughnessFactor", pMaterialComponent->GetRoughnessFactor(), cd::Unit::None, 0.0f, 1.0f);
 		ImGuiUtils::ImGuiVectorProperty("EmissiveColor", pMaterialComponent->GetEmissiveColor(), cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One());
 		ImGuiUtils::ImGuiBoolProperty("TwoSided", pMaterialComponent->GetTwoSided());
-		ImGuiUtils::ImGuiStringProperty("BlendMode", cd::GetBlendModeName(pMaterialComponent->GetBlendMode()));
+		ImGuiUtils::ImGuiStringProperty("BlendMode", nameof::nameof_enum(pMaterialComponent->GetBlendMode()).data());
 		if (cd::BlendMode::Mask == pMaterialComponent->GetBlendMode())
 		{
 			ImGuiUtils::ImGuiFloatProperty("AlphaCutOff", pMaterialComponent->GetAlphaCutOff(), cd::Unit::None, 0.0f, 1.0f);
@@ -108,7 +108,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		{
 			if (engine::MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)))
 			{
-				const char* title = cd::GetMaterialPropertyGroupName(static_cast<cd::MaterialPropertyGroup>(textureTypeValue));
+				const char* title = nameof::nameof_enum(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)).data();
 				bool isOpen = ImGui::CollapsingHeader(title, ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 				ImGui::Separator();
@@ -316,10 +316,10 @@ void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld
 			{
 				continue;
 			}
-			skyTypes.emplace_back(GetSkyTypeName(static_cast<engine::SkyType>(type)));
+			skyTypes.emplace_back(nameof::nameof_enum(static_cast<engine::SkyType>(type)).data());
 		}
 
-		static const char* crtItem = GetSkyTypeName(engine::SkyType::SkyBox);
+		static const char* crtItem = nameof::nameof_enum(engine::SkyType::SkyBox).data();
 		if (ImGui::BeginCombo("##combo", crtItem))
 		{
 			for (size_t index = 0; index < skyTypes.size(); ++index)
