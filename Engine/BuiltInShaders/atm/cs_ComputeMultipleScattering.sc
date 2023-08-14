@@ -3,8 +3,8 @@
 #define COMPUTE
 #include "atm_functions.sh"
 
-IMAGE3D_WR(s_delta_multiple_scattering, rgba32f, 8);
-IMAGE3D_RW(s_scattering, rgba32f, 9);
+IMAGE3D_WR(s_delta_multiple_scattering, rgba32f, 0);
+IMAGE3D_RW(s_scattering, rgba32f, 1);
 
 NUM_THREADS(8, 8, 8)
 void main()

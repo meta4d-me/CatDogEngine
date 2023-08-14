@@ -3,9 +3,9 @@
 #define COMPUTE
 #include "atm_functions.sh"
 
-IMAGE3D_WR(s_delta_rayleigh_scattering, rgba32f, 8);
-IMAGE3D_WR(s_delta_mie_scattering, rgba32f, 9);
-IMAGE3D_WR(s_scattering, rgba32f, 10);
+IMAGE3D_WR(s_delta_rayleigh_scattering, rgba32f, 0);
+IMAGE3D_WR(s_delta_mie_scattering, rgba32f, 1);
+IMAGE3D_WR(s_scattering, rgba32f, 2);
 
 NUM_THREADS(8, 8, 8)
 void main()

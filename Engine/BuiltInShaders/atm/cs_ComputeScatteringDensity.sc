@@ -5,7 +5,7 @@
 
 uniform vec4 u_numScatteringOrders;
 
-IMAGE3D_WR(s_scattering_density, rgba32f, 8);
+IMAGE3D_WR(s_scattering_density, rgba32f, 0);
 
 NUM_THREADS(8, 8, 8)
 void main()

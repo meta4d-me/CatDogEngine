@@ -16,34 +16,34 @@
 
 // TODO : add function to generate these parameters.
 static const AtmosphereParameters ATMOSPHERE = {
-	vec3(10.000000,10.000000,10.000000),
+	vec3(10.000000, 10.000000, 10.000000),
 	0.004675,
 	6360.000000,
 	6420.000000,
-	{{0.000000,0.000000,0.000000,0.000000,0.000000},
-		{0.000000,1.000000,-0.125000,0.000000,0.000000}},
-	vec3(0.005802,0.013558,0.033100),
-	{{0.000000,0.000000,0.000000,0.000000,0.000000},
-		{0.000000,1.000000,-0.833333,0.000000,0.000000}},
-	vec3(0.003996,0.003996,0.003996),
-	vec3(0.004440,0.004440,0.004440),
+	{{0.000000, 0.000000, 0.000000, 0.000000, 0.000000},
+		{0.000000, 1.000000, -0.125000, 0.000000, 0.000000}},
+	vec3(0.005802, 0.013558, 0.033100),
+	{{0.000000, 0.000000, 0.000000, 0.000000, 0.000000},
+		{0.000000, 1.000000, -0.833333, 0.000000, 0.000000}},
+	vec3(0.003996, 0.003996, 0.003996),
+	vec3(0.004440, 0.004440, 0.004440),
 	0.900000,
-	{{25.000000,0.000000,0.000000,0.066667,-0.666667},
-		{0.000000,0.000000,0.000000,-0.066667,2.666667}},
-	vec3(0.000650,0.001881,0.000085),
-	vec3(0.100000,0.100000,0.100000),
+	{{25.000000, 0.000000, 0.000000, 0.066667, -0.666667},
+		{0.000000, 0.000000, 0.000000, -0.066667, 2.666667}},
+	vec3(0.000650, 0.001881, 0.000085),
+	vec3(0.100000, 0.100000, 0.100000),
 	-0.207912};
 
 // ------------------------------ Textures ------------------------------ //
 
 #if defined(COMPUTE)
-	IMAGE2D_RO(s_textureTransmittance_LUT, rgba32f, 0);
-	IMAGE3D_RO(s_textureSingleRayleighScattering_LUT, rgba32f, 1);
-	IMAGE3D_RO(s_textureSingleMieScattering_LUT, rgba32f, 2);
-	IMAGE3D_RO(s_textureMultipleScattering_LUT, rgba32f, 3);
-	IMAGE3D_RO(s_textureScatteringDensity_LUT, rgba32f, 4);
-	IMAGE2D_RO(s_textureIrradiance_LUT, rgba32f, 5);
-	IMAGE3D_RO(s_textureScattering_LUT, rgba32f, 6);
+	IMAGE2D_RO(s_textureTransmittance_LUT, rgba32f, ATM_TRANSMITTANCE_SLOT);
+	IMAGE3D_RO(s_textureSingleRayleighScattering_LUT, rgba32f, ATM_SINGLE_RAYLEIGH_SCATTERING_SLOT);
+	IMAGE3D_RO(s_textureSingleMieScattering_LUT, rgba32f, ATM_SINGLE_MIE_SCATTERING_SLOT);
+	IMAGE3D_RO(s_textureMultipleScattering_LUT, rgba32f, ATM_MULTIPLE_SCATTERING_SLOT);
+	IMAGE3D_RO(s_textureScatteringDensity_LUT, rgba32f, ATM_SCATTERING_DENSITY);
+	IMAGE2D_RO(s_textureIrradiance_LUT, rgba32f, ATM_IRRADIANCE_SLOT);
+	IMAGE3D_RO(s_textureScattering_LUT, rgba32f, ATM_SCATTERING_SLOT);
 
 	ivec2 GetTransmittanceImageUV(vec2 uv) {
 		return ivec2(uv * ivec2(TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT));
@@ -55,13 +55,13 @@ static const AtmosphereParameters ATMOSPHERE = {
 		return ivec3(uvw * ivec3(SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH));
 	}
 #else
-	SAMPLER2D(s_textureTransmittance_LUT, 0);
-	SAMPLER3D(s_textureSingleRayleighScattering_LUT, 1);
-	SAMPLER3D(s_textureSingleMieScattering_LUT, 2);
-	SAMPLER3D(s_textureMultipleScattering_LUT, 3);
-	SAMPLER3D(s_textureScatteringDensity_LUT, 4);
-	SAMPLER2D(s_textureIrradiance_LUT, 5);
-	SAMPLER3D(s_textureScattering_LUT, 6);
+	SAMPLER2D(s_textureTransmittance_LUT, ATM_TRANSMITTANCE_SLOT);
+	SAMPLER3D(s_textureSingleRayleighScattering_LUT, ATM_SINGLE_RAYLEIGH_SCATTERING_SLOT);
+	SAMPLER3D(s_textureSingleMieScattering_LUT, ATM_SINGLE_MIE_SCATTERING_SLOT);
+	SAMPLER3D(s_textureMultipleScattering_LUT, ATM_MULTIPLE_SCATTERING_SLOT);
+	SAMPLER3D(s_textureScatteringDensity_LUT, ATM_SCATTERING_DENSITY);
+	SAMPLER2D(s_textureIrradiance_LUT, ATM_IRRADIANCE_SLOT);
+	SAMPLER3D(s_textureScattering_LUT, ATM_SCATTERING_SLOT);
 #endif
 
 // ------------------------------ Utils ------------------------------ //
