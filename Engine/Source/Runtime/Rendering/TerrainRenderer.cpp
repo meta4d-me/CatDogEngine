@@ -22,10 +22,12 @@ namespace
 constexpr const char* snowSampler = "s_texSnow";
 constexpr const char* rockSampler = "s_texRock";
 constexpr const char* grassSampler = "s_texGrass";
+constexpr const char* elevationSampler = "s_texElevation";
 
 constexpr const char* snowTexture = "Textures/terrain/snow_baseColor.dds";
 constexpr const char* rockTexture = "Textures/terrain/rock_baseColor.dds";
 constexpr const char* grassTexture = "Textures/terrain/grass_baseColor.dds";
+constexpr const char* elevationTexture = "Textures/terrain/Terrain_Height.dds";
 
 constexpr const char* lutSampler = "s_texLUT";
 constexpr const char* cubeIrradianceSampler = "s_texCubeIrr";
@@ -57,10 +59,12 @@ void TerrainRenderer::Init()
 	GetRenderContext()->CreateUniform(snowSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(rockSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(grassSampler, bgfx::UniformType::Sampler);
+	GetRenderContext()->CreateUniform(elevationSampler, bgfx::UniformType::Sampler);
 
 	GetRenderContext()->CreateTexture(snowTexture);
 	GetRenderContext()->CreateTexture(rockTexture);
 	GetRenderContext()->CreateTexture(grassTexture);
+	GetRenderContext()->CreateTexture(elevationTexture);
 
 	GetRenderContext()->CreateTexture(lutTexture);
 	GetRenderContext()->CreateTexture(pSkyComponent->GetIrradianceTexturePath().c_str(), samplerFlags);
@@ -129,6 +133,22 @@ void TerrainRenderer::Render(float deltaTime)
 		bgfx::setTexture(9,
 			GetRenderContext()->GetUniform(StringCrc(grassSampler)),
 			GetRenderContext()->GetTexture(StringCrc(grassTexture)));
+
+		/*
+		bgfx::setTexture(10,
+			GetRenderContext()->GetUniform(StringCrc(elevationSampler)),
+			GetRenderContext()->GetTexture(StringCrc(elevationTexture)));
+		*/
+		
+		/**/
+		for (const auto& [textureType, _] : pMaterialComponent->GetTextureResources())
+		{
+			if (const MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(textureType))
+			{
+				bgfx::setTexture(pTextureInfo->slot, bgfx::UniformHandle{ pTextureInfo->samplerHandle }, bgfx::TextureHandle{pTextureInfo->textureHandle});
+			}
+		}
+
 
 		// Sky
 		SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());

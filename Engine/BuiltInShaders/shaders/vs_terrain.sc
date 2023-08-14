@@ -2,13 +2,16 @@ $input a_position, a_normal, a_tangent, a_texcoord0
 $output v_worldPos, v_normal, v_texcoord0, v_TBN
 
 #include "../common/common.sh"
-//#include "../common/Terrain.sh"
+
+SAMPLER2D(s_texElevation, 10);
 
 void main()
 {
-	gl_Position = mul(u_modelViewProj, vec4(a_position.x, a_position.y, a_position.z, 1.0));
+	vec2 uvElevation = vec2(a_texcoord0.x/129,a_texcoord0.y/129);
+	float elevation = texture2DLod(s_texElevation, uvElevation, 0);
 
-	v_worldPos = mul(u_model[0], vec4(a_position, 1.0)).xyz;
+	gl_Position = mul(u_modelViewProj, vec4(a_position.x, elevation, a_position.z, 1.0));
+	v_worldPos = mul(u_model[0], vec4(a_position.x, elevation, a_position.z, 1.0)).xyz;
 	
 	v_normal     = normalize(mul(u_modelInvTrans, vec4(a_normal, 0.0)).xyz);
 	vec3 tangent = normalize(mul(u_modelInvTrans, vec4(a_tangent, 0.0)).xyz);

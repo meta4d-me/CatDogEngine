@@ -104,7 +104,9 @@ void SceneWorld::CreateTerrainMaterialType()
 	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
 	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
 	m_pTerrainMaterialType->SetRequiredVertexFormat(cd::MoveTemp(terrainVertexFormat));
-}
+
+	m_pTerrainMaterialType->AddRequiredTextureType(cd::MaterialTextureType::Elevation, 10);//ELEVATION_MAP_SLOT
+} 
 
 #ifdef ENABLE_DDGI
 void SceneWorld::CreateDDGIMaterialType()

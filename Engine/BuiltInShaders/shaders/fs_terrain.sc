@@ -62,8 +62,11 @@ vec4 CalcTexColor(vec3 pos, vec2 texcoord)
 
 void main()
 {
-	
-	Material material = GetMaterial(v_texcoord0, v_normal, v_TBN);
+   vec3 dx = dFdx(v_worldPos);
+	vec3 dy = dFdy(v_worldPos);
+	vec3 flatNormal = normalize(cross(dx, dy));
+   
+	Material material = GetMaterial(v_texcoord0, flatNormal, v_TBN);
 	if (material.opacity < u_alphaCutOff.x) {
 		discard;
 	}
@@ -77,7 +80,7 @@ void main()
 	vec3 dirColor = GetDirectional(material, v_worldPos, viewDir);
 	
 	// Environment Light
-	vec3 envColor = GetEnvironment(material, v_normal, viewDir);
+	vec3 envColor = GetEnvironment(material, flatNormal, viewDir);
 	
 	// Emissive
 	vec3 emiColor = material.emissive * u_emissiveColor.xyz;
