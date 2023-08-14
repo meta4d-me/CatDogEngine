@@ -1,3 +1,4 @@
+#include "Base/NameOf.h"
 #include "Rendering/Utility/VertexLayoutUtility.h"
 #include "Log/Log.h"
 
@@ -26,35 +27,6 @@ constexpr bgfx::Attrib::Enum AllAttribUVTypes[] = {
 	bgfx::Attrib::Enum::TexCoord6,
 	bgfx::Attrib::Enum::TexCoord7
 };
-
-constexpr const char* VertexAttributeTypeName[] =
-{
-	"Position",
-	"Normal",
-	"Tangent",
-	"Bitangent",
-	"UV",
-	"Color",
-	"BoneWeight",
-	"BoneIndex",
-};
-
-CD_FORCEINLINE const char* GetVertexAttributeTypeName(cd::VertexAttributeType attribType)
-{
-	return VertexAttributeTypeName[static_cast<size_t>(attribType)];
-}
-
-constexpr const char *AttributeValueTypeName[] =
-{
-	"Uint8",
-	"Float",
-	"Int16",
-};
-
-CD_FORCEINLINE const char* GetAttributeValueTypeName(const cd::AttributeValueType& attribValueType)
-{
-	return AttributeValueTypeName[static_cast<size_t>(attribValueType)];
-}
 
 void ConvertVertexLayout(const cd::VertexAttributeLayout& vertexAttributeLayout, bgfx::VertexLayout& outVertexLayout)
 {
@@ -147,8 +119,8 @@ void VertexLayoutUtility::CreateVertexLayout(bgfx::VertexLayout& outVertexLayout
 		if (debugPrint)
 		{
 			CD_ENGINE_TRACE("\t\tVA: ({0}, {1}, {2})",
-				GetVertexAttributeTypeName(vertexAttributeLayout.vertexAttributeType),
-				GetAttributeValueTypeName(vertexAttributeLayout.attributeValueType),
+				nameof::nameof_enum(vertexAttributeLayout.vertexAttributeType),
+				nameof::nameof_enum(vertexAttributeLayout.attributeValueType),
 				vertexAttributeLayout.attributeCount);
 		}
 		ConvertVertexLayout(vertexAttributeLayout, outVertexLayout);
@@ -163,8 +135,8 @@ void VertexLayoutUtility::CreateVertexLayout(bgfx::VertexLayout& outVertexLayout
 	if (debugPrint)
 	{
 		CD_ENGINE_TRACE("\t\tVA: ({0}, {1}, {2})",
-			GetVertexAttributeTypeName(vertexAttribute.vertexAttributeType),
-			GetAttributeValueTypeName(vertexAttribute.attributeValueType),
+			nameof::nameof_enum(vertexAttribute.vertexAttributeType),
+			nameof::nameof_enum(vertexAttribute.attributeValueType),
 			vertexAttribute.attributeCount);
 	}
 	ConvertVertexLayout(vertexAttribute, outVertexLayout);
