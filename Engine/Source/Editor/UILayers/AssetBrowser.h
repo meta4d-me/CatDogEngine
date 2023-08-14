@@ -55,10 +55,10 @@ constexpr const char *IOAssetTypeName[] =
 	"Unknown",
 };
 
-static_assert(static_cast<int>(IOAssetType::Count) == sizeof(IOAssetTypeName) / sizeof(char *),
+static_assert(static_cast<int>(IOAssetType::Count) == sizeof(IOAssetTypeName) / sizeof(char*),
 	"IO asset type and names mismatch.");
 
-CD_FORCEINLINE const char *GetDDGITextureTypeName(IOAssetType type)
+CD_FORCEINLINE const char* GetIOAssetTypeName(IOAssetType type)
 {
 	return IOAssetTypeName[static_cast<size_t>(type)];
 }

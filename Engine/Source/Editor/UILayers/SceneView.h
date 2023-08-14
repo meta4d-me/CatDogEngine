@@ -1,4 +1,5 @@
 #include "Core/Delegates/MulticastDelegate.hpp"
+#include "Display/CameraController.h"
 #include "ECWorld/Entity.h"
 #include "ImGui/ImGuiBaseLayer.h"
 
@@ -36,12 +37,14 @@ public:
 
 	ImGuizmo::OPERATION GetImGuizmoOperation() const { return m_currentOperation; }
 
+	void SetCameraController(engine::CameraController* pCameraController) { m_pCameraController = pCameraController; }
+
 private:
 	void UpdateToolMenuButtons();
 	void Update2DAnd3DButtons();
 	void UpdateSwitchAABBButton();
 	void UpdateOperationButtons();
-	
+
 private:
 	uint16_t m_lastContentWidth = 0;
 	uint16_t m_lastContentHeight = 0;
@@ -53,6 +56,8 @@ private:
 
 	engine::RenderTarget* m_pRenderTarget = nullptr;
 	bool m_isMouseDownFirstTime = true;
+
+	engine::CameraController* m_pCameraController = nullptr;
 };
 
 }

@@ -49,12 +49,14 @@ void SceneWorld::CreatePBRMaterialType()
 	m_pPBRMaterialType->SetMaterialName("CD_PBR");
 
 	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("shaders/vs_PBR"), Path::GetBuiltinShaderInputPath("shaders/fs_PBR"));
-	shaderSchema.RegisterUberOption(Uber::ALBEDO_MAP);
-	shaderSchema.RegisterUberOption(Uber::NORMAL_MAP);
-	shaderSchema.RegisterUberOption(Uber::ORM_MAP);
-	shaderSchema.RegisterUberOption(Uber::EMISSIVE_MAP);
-	shaderSchema.RegisterUberOption(Uber::IBL);
-	shaderSchema.RegisterUberOption(Uber::ATM);
+	shaderSchema.AddUberOption(Uber::ALBEDO_MAP);
+	shaderSchema.AddUberOption(Uber::NORMAL_MAP);
+	shaderSchema.AddUberOption(Uber::ORM_MAP);
+	shaderSchema.AddUberOption(Uber::IBL);
+	shaderSchema.AddUberOption(Uber::ATM);
+	shaderSchema.AddUberOption(Uber::EMISSIVE_MAP);
+	shaderSchema.SetConflictOptions(Uber::ATM, Uber::IBL);
+	shaderSchema.Build();
 	m_pPBRMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat pbrVertexFormat;
@@ -115,11 +117,11 @@ void SceneWorld::CreateDDGIMaterialType()
 	m_pDDGIMaterialType->SetMaterialName("CD_DDGI");
 
 	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("shaders/vs_DDGI"), Path::GetBuiltinShaderInputPath("shaders/fs_DDGI"));
-	shaderSchema.RegisterUberOption(Uber::ALBEDO_MAP);
-	shaderSchema.RegisterUberOption(Uber::NORMAL_MAP);
-	shaderSchema.RegisterUberOption(Uber::ORM_MAP);
-	shaderSchema.RegisterUberOption(Uber::EMISSIVE_MAP);
-	// shaderSchema.RegisterUberOption(Uber::DDGI);
+	shaderSchema.AddUberOption(Uber::ALBEDO_MAP);
+	shaderSchema.AddUberOption(Uber::NORMAL_MAP);
+	shaderSchema.AddUberOption(Uber::ORM_MAP);
+	shaderSchema.AddUberOption(Uber::EMISSIVE_MAP);
+	shaderSchema.Build();
 	m_pDDGIMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat ddgiVertexFormat;

@@ -159,6 +159,7 @@ void EditorApp::InitEditorUILayers()
 
 	auto pSceneView = std::make_unique<SceneView>("SceneView");
 	m_pSceneView = pSceneView.get();
+	pSceneView->SetCameraController(m_pViewportCameraController.get());
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
 
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
@@ -390,8 +391,11 @@ void EditorApp::InitEngineRenderers()
 
 bool EditorApp::IsAtmosphericScatteringEnable() const
 {
-	return engine::GraphicsBackend::OpenGL != engine::Path::GetGraphicsBackend() &&
-		engine::GraphicsBackend::Vulkan != engine::Path::GetGraphicsBackend();
+	engine::GraphicsBackend backend = engine::Path::GetGraphicsBackend();
+
+	return engine::GraphicsBackend::Vulkan != backend
+		&& engine::GraphicsBackend::OpenGL != backend
+		&& engine::GraphicsBackend::OpenGLES != backend;
 }
 
 void EditorApp::InitShaderPrograms() const

@@ -348,7 +348,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 			//m_pImportFileBrowser->SetTypeFilters({ ".dds", "*.exr", "*.hdr", "*.ktx", ".tga" });
 			m_pImportFileBrowser->Open();
 
-			CD_INFO("Import asset type: {}", GetDDGITextureTypeName(m_importOptions.AssetType));
+			CD_INFO("Import asset type: {}", GetIOAssetTypeName(m_importOptions.AssetType));
 		}
 
 		else if (ImGui::Selectable("Shader"))
@@ -358,7 +358,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 			//m_pImportFileBrowser->SetTypeFilters({ ".sc" }); // ".hlsl"
 			m_pImportFileBrowser->Open();
 
-			CD_INFO("Import asset type: {}", GetDDGITextureTypeName(m_importOptions.AssetType));
+			CD_INFO("Import asset type: {}", GetIOAssetTypeName(m_importOptions.AssetType));
 		}
 		else if (ImGui::Selectable("Model"))
 		{
@@ -367,23 +367,26 @@ void AssetBrowser::UpdateAssetFolderTree()
 			//m_pImportFileBrowser->SetTypeFilters({ ".fbx", ".gltf" }); // ".obj", ".dae", ".ogex"
 			m_pImportFileBrowser->Open();
 
-			CD_INFO("Import asset type: {}", GetDDGITextureTypeName(m_importOptions.AssetType));
+			CD_INFO("Import asset type: {}", GetIOAssetTypeName(m_importOptions.AssetType));
 		}
+
+#ifdef ENABLE_DDGI
 		else if (ImGui::Selectable("DDGI Model"))
 		{
 			m_importOptions.AssetType = IOAssetType::DDGIModel;
 			m_pImportFileBrowser->SetTitle("ImportAssets - DDGI Model");
 			m_pImportFileBrowser->Open();
 
-			CD_INFO("Import asset type: {}", GetDDGITextureTypeName(m_importOptions.AssetType));
+			CD_INFO("Import asset type: {}", GetIOAssetTypeName(m_importOptions.AssetType));
 		}
 		else if (ImGui::Selectable("Light from json"))
 		{
 			m_importOptions.AssetType = IOAssetType::Light;
 			m_pImportFileBrowser->SetTitle("ImportAssets - Light");
 			m_pImportFileBrowser->Open();
-			CD_INFO("Import asset type: {}", GetDDGITextureTypeName(m_importOptions.AssetType));
+			CD_INFO("Import asset type: {}", GetIOAssetTypeName(m_importOptions.AssetType));
 		}
+#endif
 
 		ImGui::EndPopup();
 	}
@@ -399,7 +402,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 			m_pExportFileBrowser->SetTitle("ExportAssets - SceneDatabase");
 			m_pExportFileBrowser->Open();
 
-			CD_INFO("Export asset type: {}", GetDDGITextureTypeName(m_exportOptions.AssetType));
+			CD_INFO("Export asset type: {}", GetIOAssetTypeName(m_exportOptions.AssetType));
 		}
 
 		ImGui::EndPopup();
