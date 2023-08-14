@@ -23,6 +23,11 @@ void SkyComponent::SetSkyType(SkyType crtType)
 	} 
 }
 
+void SkyComponent::SetSunDirection(cd::Direction dir)
+{
+	m_sunDirection = cd::MoveTemp(dir);
+}
+
 void SkyComponent::SetIrradianceTexturePath(std::string path)
 {
 	m_irradianceTexturePath = cd::MoveTemp(path);

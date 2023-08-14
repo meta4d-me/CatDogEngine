@@ -11,7 +11,8 @@
 #include "Math/Transform.hpp"
 #include "RenderContext.h"
 #include "Scene/Texture.h"
-#include "U_Environment.sh"
+#include "U_IBL.sh"
+#include "U_AtmophericScattering.sh"
 
 namespace engine
 {
@@ -132,7 +133,7 @@ void WorldRenderer::Render(float deltaTime)
 		SkyType crtSkyType = pSkyComponent->GetSkyType();
 		pMaterialComponent->SetSkyType(crtSkyType);
 
-		if (crtSkyType == SkyType::SkyBox)
+		if (SkyType::SkyBox == crtSkyType)
 		{
 			// Create a new TextureHandle each frame if the skybox texture path has been updated,
 			// otherwise RenderContext::CreateTexture will automatically skip it.
@@ -152,6 +153,12 @@ void WorldRenderer::Render(float deltaTime)
 			constexpr StringCrc lutsamplerCrc(lutSampler);
 			constexpr StringCrc luttextureCrc(lutTexture);
 			bgfx::setTexture(BRDF_LUT_SLOT, GetRenderContext()->GetUniform(lutsamplerCrc), GetRenderContext()->GetTexture(luttextureCrc));
+		}
+		else if (SkyType::AtmosphericScattering == crtSkyType)
+		{
+			bgfx::setImage(ATM_TRANSMITTANCE_SLOT, GetRenderContext()->GetTexture(pSkyComponent->GetATMTransmittanceCrc()), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
+			bgfx::setImage(ATM_IRRADIANCE_SLOT, GetRenderContext()->GetTexture(pSkyComponent->GetATMIrradianceCrc()), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
+			bgfx::setImage(ATM_SCATTERING_SLOT, GetRenderContext()->GetTexture(pSkyComponent->GetATMScatteringCrc()), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
 		}
 
 		// Submit uniform values : camera settings

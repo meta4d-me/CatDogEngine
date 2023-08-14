@@ -37,6 +37,7 @@ constexpr const char* TextureDeltaMultipleScattering     = "textureDeltaMultiple
 
 constexpr const char* LightDir                           = "u_LightDir";
 constexpr const char* CameraPos                          = "u_cameraPos";
+constexpr const char* HeightOffset                       = "u_HeightOffset";
 constexpr const char* NumScatteringOrders                = "u_numScatteringOrders";
 										                 
 constexpr uint64_t FlagTexture2D                         = BGFX_TEXTURE_COMPUTE_WRITE | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
@@ -79,6 +80,7 @@ void PBRSkyRenderer::Init()
 
 	GetRenderContext()->CreateUniform(LightDir, bgfx::UniformType::Enum::Vec4, 1);
 	GetRenderContext()->CreateUniform(CameraPos, bgfx::UniformType::Enum::Vec4, 1);
+	GetRenderContext()->CreateUniform(HeightOffset, bgfx::UniformType::Enum::Vec4, 1);
 	GetRenderContext()->CreateUniform(NumScatteringOrders, bgfx::UniformType::Enum::Vec4, 1);
 
 	bgfx::setViewName(GetViewID(), "PBRSkyRenderer");
@@ -130,17 +132,17 @@ void PBRSkyRenderer::Render(float deltaTime)
 	bgfx::setImage(ATM_IRRADIANCE_SLOT, GetRenderContext()->GetTexture(StringCrc(TextureIrradiance)), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
 	bgfx::setImage(ATM_SCATTERING_SLOT, GetRenderContext()->GetTexture(StringCrc(TextureScattering)), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
 
-	// Unit: km
-	// TODO : Use real camera component data.
-	cd::Vec4f tmpCameraPos = cd::Vec4f(0.0f, 1.0f, -0.5f, 1.0f);
-	bgfx::setUniform(GetRenderContext()->GetUniform(StringCrc(CameraPos)), &(tmpCameraPos.x()), 1);
+	constexpr StringCrc cameraPosCrc(CameraPos);
+	GetRenderContext()->FillUniform(cameraPosCrc, &(m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetTransform().GetTranslation().x()), 1);
 
-	TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetSkyEntity());
-	bgfx::setUniform(GetRenderContext()->GetUniform(StringCrc(LightDir)), &(pTransformComponent->GetTransform().GetTranslation()), 1);
-	// Its better to use the rotation of TransformComponent to represent light direction.
-	// As the rotate ui is difficult to control for now, we use the transform of TransformComponent to represent light direction.
-	// cd::Vec3f tmpLightDir = pTransformComponent->GetTransform().GetRotation().ToEulerAngles();
-	// bgfx::setUniform(GetRenderContext()->GetUniform(StringCrc(LightDir)), &(tmpLightDir.x()), 1);
+	auto skyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+
+	constexpr StringCrc HeightOffsetCrc(HeightOffset);
+	cd::Vec4f tmpHeightOffset = cd::Vec4f(skyComponent->GetHeightOffset(), 0.0f, 0.0f, 0.0f);
+	GetRenderContext()->FillUniform(HeightOffsetCrc, &tmpHeightOffset, 1);
+	
+	constexpr StringCrc LightDirCrc(LightDir);
+	GetRenderContext()->FillUniform(LightDirCrc, &(skyComponent->GetSunDirection().x()), 1);
 
 	bgfx::setState(StateRendering);
 	bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(StringCrc(ProgramAtmosphericScatteringLUT)));
@@ -212,6 +214,11 @@ void PBRSkyRenderer::Precompute() const
 	CD_ENGINE_TRACE("All compute shaders for precomputing atmospheric scattering texture dispatched.");
 	CD_ENGINE_INFO("Atmospheric scattering orders : {0}", ScatteringOrders);
 	
+	auto skyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+	skyComponent->SetATMTransmittanceCrc(StringCrc(TextureTransmittance));
+	skyComponent->SetATMIrradianceCrc(StringCrc(TextureDeltaIrradiance));
+	skyComponent->SetATMScatteringCrc(StringCrc(TextureScattering));
+
 	SafeDestroyTexture(TextureDeltaIrradiance);
 	SafeDestroyTexture(TextureDeltaRayleighScattering);
 	SafeDestroyTexture(TextureDeltaMieScattering);
