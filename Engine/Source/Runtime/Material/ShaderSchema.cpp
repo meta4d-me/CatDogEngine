@@ -21,7 +21,7 @@ constexpr const char* UberNames[] =
 	"ORMMAP;",
 	"EMISSIVEMAP;",
 	"IBL;",
-	"ATM",
+	"ATM;",
 	"AREAL_LIGHT;",
 };
 

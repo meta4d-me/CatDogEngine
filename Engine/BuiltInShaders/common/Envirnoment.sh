@@ -13,7 +13,7 @@
 #include "../atm/atm_functions.sh"
 
 uniform vec4 u_LightDir;
-uniform vec4 u_HeightOffset;
+uniform vec4 u_HeightOffsetAndshadowLength;
 
 #endif
 
@@ -83,29 +83,29 @@ vec3 GetATM(Material material, vec3 worldPos) {
 	vec3 envColor = vec3_splat(0.0);
 	
 #if defined(ATM)
-	vec3 sunDir = normalize(u_LightDir.xyz);
+	vec3 sunDir = normalize(-u_LightDir.xyz);
 	
 	// Tramsform unit from cm to km.
 	vec3 cameraPos = GetCamera().position / vec3_splat(100.0 * 100.0);
 	vec3 worldPosOnEarth = worldPos / vec3_splat(100.0 * 100.0);
 	// The coordinate system's origin of atmospheric scattering is the planet center.
-	cameraPos += vec3(0.0, ATMOSPHERE.bottom_radius + u_HeightOffset.x, 0.0);
-	worldPosOnEarth += vec3(0.0, ATMOSPHERE.bottom_radius, 0.0);
+	cameraPos += vec3(0.0, ATMOSPHERE.bottom_radius + u_HeightOffsetAndshadowLength.x, 0.0);
+	worldPosOnEarth += vec3(0.0, ATMOSPHERE.bottom_radius + u_HeightOffsetAndshadowLength.x, 0.0);
 	
-	// Irradiance from Sun and Sky
+	// Irradiance from Sun and Sky.
 	vec3 irradiance = vec3_splat(0.0);
 	vec3 sunIrradiance = GetSunAndSkyIrradiance(ATMOSPHERE, worldPosOnEarth, material.normal, sunDir, irradiance);
 	irradiance += sunIrradiance;
 	
-	vec3 radiance = material.albedo / vec3_splat(PI) * irradiance;
+	vec3 radianceToCamera = material.albedo * vec3_splat(CD_INV_PI) * irradiance;
 	
-	// Aerial perspective
+	// Aerial perspective.
 	vec3 transmittance;
 	// TODO : Need a shadow volume algorithm to get shadow_length parameter.
-	vec3 skyRadianceToPoint = GetSkyRadianceToPoint(ATMOSPHERE, cameraPos, worldPosOnEarth, 0.1, sunDir, transmittance);
-	radiance = radiance * transmittance + skyRadianceToPoint;
+	vec3 skyRadianceToPoint = GetSkyRadianceToPoint(ATMOSPHERE, cameraPos, worldPosOnEarth, u_HeightOffsetAndshadowLength.y, sunDir, transmittance);
+	radianceToCamera = radianceToCamera * transmittance + skyRadianceToPoint;
 	
-	envColor = radiance;
+	envColor = radianceToCamera;
 #endif
 	
 	return envColor;

@@ -15,25 +15,25 @@ namespace engine
 namespace
 {
 
-constexpr const char* ProgramAtmosphericScatteringLUT    = "programAtmosphericScatteringLUT";
-constexpr const char* ProgramSingleScatteringRayMarching = "programSingleScatteringRayMarching";
+constexpr const char* ProgramAtmosphericScatteringLUT    = "ProgramAtmosphericScatteringLUT";
+constexpr const char* ProgramSingleScatteringRayMarching = "ProgramSingleScatteringRayMarching";
 
 // Compute shaders
-constexpr const char* ProgramComputeTransmittance        = "programComputeTransmittance";
-constexpr const char* ProgramComputeDirectIrradiance     = "programComputeDirectIrradiance";
-constexpr const char* ProgramComputeSingleScattering     = "programComputeSingleScattering";
-constexpr const char* ProgramComputeScatteringDensity    = "programComputeScatteringDensity";
-constexpr const char* ProgramComputeIndirectIrradiance   = "programComputeIndirectIrradiance";
-constexpr const char* ProgramComputeMultipleScattering   = "programComputeMultipleScattering";
+constexpr const char* ProgramComputeTransmittance        = "ProgramComputeTransmittance";
+constexpr const char* ProgramComputeDirectIrradiance     = "ProgramComputeDirectIrradiance";
+constexpr const char* ProgramComputeSingleScattering     = "ProgramComputeSingleScattering";
+constexpr const char* ProgramComputeScatteringDensity    = "ProgramComputeScatteringDensity";
+constexpr const char* ProgramComputeIndirectIrradiance   = "ProgramComputeIndirectIrradiance";
+constexpr const char* ProgramComputeMultipleScattering   = "ProgramComputeMultipleScattering";
 
-constexpr const char* TextureTransmittance               = "textureTransmittance";
-constexpr const char* TextureIrradiance                  = "textureIrradiance";
-constexpr const char* TextureScattering                  = "textureScattering";
-constexpr const char* TextureDeltaIrradiance             = "textureDeltaIrradiance";
-constexpr const char* TextureDeltaRayleighScattering     = "textureDeltaRayleighScattering";
-constexpr const char* TextureDeltaMieScattering          = "textureDeltaMieScattering";
-constexpr const char* TextureDeltaScatteringDensity      = "textureDeltaScatteringDensity";
-constexpr const char* TextureDeltaMultipleScattering     = "textureDeltaMultipleScattering";
+constexpr const char* TextureTransmittance               = "TextureTransmittance";
+constexpr const char* TextureIrradiance                  = "TextureIrradiance";
+constexpr const char* TextureScattering                  = "TextureScattering";
+constexpr const char* TextureDeltaIrradiance             = "TextureDeltaIrradiance";
+constexpr const char* TextureDeltaRayleighScattering     = "TextureDeltaRayleighScattering";
+constexpr const char* TextureDeltaMieScattering          = "TextureDeltaMieScattering";
+constexpr const char* TextureDeltaScatteringDensity      = "TextureDeltaScatteringDensity";
+constexpr const char* TextureDeltaMultipleScattering     = "TextureDeltaMultipleScattering";
 
 constexpr const char* LightDir                           = "u_LightDir";
 constexpr const char* CameraPos                          = "u_cameraPos";
@@ -137,12 +137,12 @@ void PBRSkyRenderer::Render(float deltaTime)
 
 	auto skyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
-	constexpr StringCrc HeightOffsetCrc(HeightOffset);
-	cd::Vec4f tmpHeightOffset = cd::Vec4f(skyComponent->GetHeightOffset(), 0.0f, 0.0f, 0.0f);
-	GetRenderContext()->FillUniform(HeightOffsetCrc, &tmpHeightOffset, 1);
-	
 	constexpr StringCrc LightDirCrc(LightDir);
 	GetRenderContext()->FillUniform(LightDirCrc, &(skyComponent->GetSunDirection().x()), 1);
+
+	constexpr StringCrc HeightOffsetCrc(HeightOffset);
+	cd::Vec4f tmpHeightOffset = cd::Vec4f(skyComponent->GetHeightOffset(), 0.0f, 0.0f, 0.0f);
+	GetRenderContext()->FillUniform(HeightOffsetCrc, &(tmpHeightOffset.x()), 1);
 
 	bgfx::setState(StateRendering);
 	bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(StringCrc(ProgramAtmosphericScatteringLUT)));
@@ -216,7 +216,7 @@ void PBRSkyRenderer::Precompute() const
 	
 	auto skyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 	skyComponent->SetATMTransmittanceCrc(StringCrc(TextureTransmittance));
-	skyComponent->SetATMIrradianceCrc(StringCrc(TextureDeltaIrradiance));
+	skyComponent->SetATMIrradianceCrc(StringCrc(TextureIrradiance));
 	skyComponent->SetATMScatteringCrc(StringCrc(TextureScattering));
 
 	SafeDestroyTexture(TextureDeltaIrradiance);

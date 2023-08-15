@@ -74,13 +74,17 @@ public:
 	StringCrc& GetATMScatteringCrc() { return m_ATMScatteringCrc; }
 	const StringCrc& GetATMScatteringCrc() const { return m_ATMScatteringCrc; }
 
-	void SetSunDirection(cd::Direction dir);
-	cd::Direction& GetSunDirection() { return m_sunDirection; }
-	const cd::Direction& GetSunDirection() const { return m_sunDirection; }
-
 	void SetHeightOffset(float height) { m_heightOffset = height; }
 	float& GetHeightOffset() { return m_heightOffset; }
 	const float& GetHeightOffset() const { return m_heightOffset; }
+
+	void SetShadowLength(float length) { m_shadowLength = length; }
+	float& GetShadowLength() { return m_shadowLength; }
+	const float& GetShadowLength() const { return m_shadowLength; }
+
+	void SetSunDirection(cd::Direction dir);
+	cd::Direction& GetSunDirection() { return m_sunDirection; }
+	const cd::Direction& GetSunDirection() const { return m_sunDirection; }
 
 	void SetIrradianceTexturePath(std::string path);
 	std::string& GetIrradianceTexturePath() { return m_irradianceTexturePath; }
@@ -97,8 +101,11 @@ private:
 	StringCrc m_ATMTransmittanceCrc;
 	StringCrc m_ATMIrradianceCrc;
 	StringCrc m_ATMScatteringCrc;
+
+	// Unit : km
+	float m_heightOffset = 1.0f;
+	float m_shadowLength = 0.1f;
 	cd::Direction m_sunDirection = cd::Direction(0.0f, -1.0f, 0.0f);
-	float m_heightOffset = 1.0f; // Unit : km
 
 	std::string m_irradianceTexturePath = DefaultIrradainceTexturePath;
 	std::string m_radianceTexturePath = DefaultRadianceTexturePath;
