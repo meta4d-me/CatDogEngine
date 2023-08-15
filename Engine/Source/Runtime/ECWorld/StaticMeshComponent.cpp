@@ -187,14 +187,44 @@ void StaticMeshComponent::Build()
 	// Create vertex buffer.
 	bgfx::VertexLayout vertexLayout;
 	VertexLayoutUtility::CreateVertexLayout(vertexLayout, m_pRequiredVertexFormat->GetVertexLayout());
-	bgfx::VertexBufferHandle vertexBufferHandle = bgfx::createVertexBuffer(bgfx::makeRef(m_vertexBuffer.data(), static_cast<uint32_t>(m_vertexBuffer.size())), vertexLayout);
+	const bgfx::Memory* pVertexBufferRef = bgfx::makeRef(m_vertexBuffer.data(), static_cast<uint32_t>(m_vertexBuffer.size()));
+	bgfx::VertexBufferHandle vertexBufferHandle = bgfx::createVertexBuffer(pVertexBufferRef, vertexLayout);
 	assert(bgfx::isValid(vertexBufferHandle));
 	m_vertexBufferHandle = vertexBufferHandle.idx;
 
+	// Fill index buffer data.
+	bool useU16Index = vertexCount <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()) + 1U;
+	uint32_t indexTypeSize = useU16Index ? sizeof(uint16_t) : sizeof(uint32_t);
+	m_indexBuffer.resize(m_pMeshData->GetPolygonCount() * 3 * indexTypeSize);
+
+	currentDataSize = 0U;
+	currentDataPtr = m_indexBuffer.data();
+	auto FillIndexBuffer = [&currentDataPtr, &currentDataSize](const void* pData, uint32_t dataSize)
+	{
+		std::memcpy(&currentDataPtr[currentDataSize], pData, dataSize);
+		currentDataSize += dataSize;
+	};
+
+	for (const auto& polygon : m_pMeshData->GetPolygons())
+	{
+		if (useU16Index)
+		{
+			// cd::Mesh always uses uint32_t to store index so it is not convenient to copy servals elements at the same time.
+			for (auto vertexID : polygon)
+			{
+				uint16_t vertexIndex = static_cast<uint16_t>(vertexID.Data());
+				FillIndexBuffer(&vertexIndex, indexTypeSize);
+			}
+		}
+		else
+		{
+			FillIndexBuffer(polygon.data(), static_cast<uint32_t>(polygon.size() * indexTypeSize));
+		}
+	}
+
 	// Create index buffer.
-	m_indexBuffer.resize(m_pMeshData->GetPolygonCount() * 3 * sizeof(uint32_t));
-	std::memcpy(m_indexBuffer.data(), m_pMeshData->GetPolygons().data(), m_indexBuffer.size());
-	bgfx::IndexBufferHandle indexBufferHandle = bgfx::createIndexBuffer(bgfx::makeRef(m_indexBuffer.data(), static_cast<uint32_t>(m_indexBuffer.size())), BGFX_BUFFER_INDEX32);
+	const bgfx::Memory* pIndexBufferRef = bgfx::makeRef(m_indexBuffer.data(), static_cast<uint32_t>(m_indexBuffer.size()));
+	bgfx::IndexBufferHandle indexBufferHandle = bgfx::createIndexBuffer(pIndexBufferRef, useU16Index ? 0U : BGFX_BUFFER_INDEX32);
 	assert(bgfx::isValid(indexBufferHandle));
 	m_indexBufferHandle = indexBufferHandle.idx;
 
