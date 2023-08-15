@@ -2,6 +2,8 @@
 
 #include "Renderer.h"
 
+#include "Core/StringCrc.h"
+
 namespace engine
 {
 
@@ -21,7 +23,7 @@ public:
 
 private:
 	void Precompute() const;
-	void SafeDestroyTexture(const char* str) const;
+	void SafeDestroyTexture(StringCrc crc) const;
 
 private:
 	bool m_isPrecomputed = false;

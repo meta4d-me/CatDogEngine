@@ -290,7 +290,7 @@ void EditorApp::InitSkyEntity()
 	auto& skyComponent = pWorld->CreateComponent<engine::SkyComponent>(skyEntity);
 	if (IsAtmosphericScatteringEnable())
 	{
-		skyComponent.SetSunDirection(cd::Direction(0.0f, -1.0f, 0.0f));
+		skyComponent.SetSunDirection(cd::Direction(-0.1f, -0.9f, 0.5f));
 		skyComponent.SetHeightOffset(1.0f);
 		skyComponent.SetAtmophericScatteringEnable(true);
 	}
