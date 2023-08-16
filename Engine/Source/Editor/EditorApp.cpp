@@ -322,7 +322,7 @@ void EditorApp::InitSkyEntity()
 
 void EditorApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
 {
-	CD_INFO("Init graphics backend : {}", engine::GetGraphicsBackendName(backend));
+	CD_INFO("Init graphics backend : {}", nameof::nameof_enum(backend));
 
 	engine::Path::SetGraphicsBackend(backend);
 	m_pRenderContext = std::make_unique<engine::RenderContext>();

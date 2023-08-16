@@ -1,5 +1,6 @@
 #include "Path.h"
 
+#include "Base/NameOf.h"
 #include "Base/Template.h"
 #include "Log/Log.h"
 
@@ -95,7 +96,7 @@ std::string Path::GetBuiltinShaderInputPath(const char* pShaderName)
 
 std::filesystem::path Path::GetShaderOutputDirectory()
 {
-    return GetProjectsSharedPath() / "BuiltInShaders" / GetGraphicsBackendName(s_backend);
+    return GetProjectsSharedPath() / "BuiltInShaders" / nameof::nameof_enum(s_backend);
 }
 
 std::string Path::GetShaderOutputPath(const char* pInputFilePath, const std::string& options)

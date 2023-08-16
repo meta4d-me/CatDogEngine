@@ -90,7 +90,7 @@ void MainMenu::EditMenu()
 				theme = static_cast<engine::ThemeColor>(static_cast<int>(theme) + 1))
 			{
 				engine::ImGuiContextInstance* pImGuiContextInstance = GetImGuiContextInstance();
-				if (ImGui::MenuItem(GetThemeColorName(theme), "", pImGuiContextInstance->GetImGuiThemeColor() == theme))
+				if (ImGui::MenuItem(nameof::nameof_enum(theme).data(), "", pImGuiContextInstance->GetImGuiThemeColor() == theme))
 				{
 					pImGuiContextInstance->SetImGuiThemeColor(theme);
 				}
@@ -105,7 +105,7 @@ void MainMenu::EditMenu()
 				 language = static_cast<engine::Language>(static_cast<int>(language) + 1))
 			{
 				engine::ImGuiContextInstance* pImGuiContextInstance = GetImGuiContextInstance();
-				if (ImGui::MenuItem(GetLanguageName(language), "", pImGuiContextInstance->GetImGuiLanguage() == language))
+				if (ImGui::MenuItem(nameof::nameof_enum(language).data(), "", pImGuiContextInstance->GetImGuiLanguage() == language))
 				{
 					pImGuiContextInstance->SetImGuiLanguage(language);
 				}

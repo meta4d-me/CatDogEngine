@@ -230,7 +230,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 			{
 				missRequiredTextures = true;
 				CD_ENGINE_ERROR("Material {0} massing required texture {1}!", pMaterial->GetName(),
-					GetMaterialPropertyGroupName(requiredTextureType));
+					nameof::nameof_enum(requiredTextureType));
 				break;
 			}
 
@@ -238,7 +238,8 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 			if (!optTextureSlot.has_value())
 			{
 				unknownTextureSlot = true;
-				CD_ENGINE_ERROR("Material {0} unknown texture slot of textuere type {1}!", pMaterial->GetName(), GetMaterialPropertyGroupName(requiredTextureType));
+				CD_ENGINE_ERROR("Material {0} unknown texture slot of textuere type {1}!", pMaterial->GetName(),
+					nameof::nameof_enum(requiredTextureType));
 				break;
 			}
 
@@ -279,14 +280,15 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 				if (!textureID.IsValid())
 				{
 					// TODO : Its ok to have a material factor instead of texture, remove factor case warning.
-					CD_WARN("Material {0} does not have optional texture type {1}!", pMaterial->GetName(), GetMaterialPropertyGroupName(optionalTextureType));
+					CD_WARN("Material {0} does not have optional texture type {1}!", pMaterial->GetName(),
+						nameof::nameof_enum(optionalTextureType));
 					continue;
 				}
 
 				std::optional<uint8_t> optTextureSlot = pMaterialType->GetTextureSlot(optionalTextureType);
 				if (!optTextureSlot.has_value())
 				{
-					CD_ERROR("Unknow texture {0} slot!", GetMaterialPropertyGroupName(optionalTextureType));
+					CD_ERROR("Unknow texture {0} slot!", nameof::nameof_enum(optionalTextureType));
 					break;
 				}
 
