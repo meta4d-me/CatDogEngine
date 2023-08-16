@@ -23,7 +23,6 @@ public:
 
 private:
 	void Precompute() const;
-	void SafeDestroyTexture(StringCrc crc) const;
 
 private:
 	bool m_isPrecomputed = false;

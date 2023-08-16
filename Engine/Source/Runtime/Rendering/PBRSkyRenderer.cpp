@@ -238,20 +238,11 @@ void PBRSkyRenderer::Precompute() const
 	skyComponent->SetATMIrradianceCrc(TextureIrradianceCrc);
 	skyComponent->SetATMScatteringCrc(TextureScatteringCrc);
 
-	SafeDestroyTexture(TextureDeltaIrradianceCrc);
-	SafeDestroyTexture(TextureDeltaRayleighScatteringCrc);
-	SafeDestroyTexture(TextureDeltaMieScatteringCrc);
-	SafeDestroyTexture(TextureDeltaScatteringDensityCrc);
-	SafeDestroyTexture(TextureDeltaMultipleScatteringCrc);
-}
-
-void PBRSkyRenderer::SafeDestroyTexture(StringCrc crc) const
-{
-	bgfx::TextureHandle handle = GetRenderContext()->GetTexture(crc);
-	if (bgfx::isValid(handle))
-	{
-		bgfx::destroy(handle);
-	}
+	GetRenderContext()->Destory(TextureDeltaIrradianceCrc);
+	GetRenderContext()->Destory(TextureDeltaRayleighScatteringCrc);
+	GetRenderContext()->Destory(TextureDeltaMieScatteringCrc);
+	GetRenderContext()->Destory(TextureDeltaScatteringDensityCrc);
+	GetRenderContext()->Destory(TextureDeltaMultipleScatteringCrc);
 }
 
 }
