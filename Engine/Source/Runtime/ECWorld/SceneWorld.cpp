@@ -35,14 +35,12 @@ SceneWorld::SceneWorld()
 	m_pStaticMeshComponentStorage = m_pWorld->Register<engine::StaticMeshComponent>();
 	m_pTransformComponentStorage = m_pWorld->Register<engine::TransformComponent>();
 
-	CreatePBRMaterialType();
-	CreateAnimationMaterialType();
 #ifdef ENABLE_DDGI
 	CreateDDGIMaterialType();
 #endif
 }
 
-void SceneWorld::CreatePBRMaterialType()
+void SceneWorld::CreatePBRMaterialType(bool isAtmosphericScatteringEnable)
 {
 	m_pPBRMaterialType = std::make_unique<MaterialType>();
 	m_pPBRMaterialType->SetMaterialName("CD_PBR");
@@ -52,7 +50,11 @@ void SceneWorld::CreatePBRMaterialType()
 	shaderSchema.AddUberOption(Uber::NORMAL_MAP);
 	shaderSchema.AddUberOption(Uber::ORM_MAP);
 	shaderSchema.AddUberOption(Uber::IBL);
-	shaderSchema.AddUberOption(Uber::ATM);
+	if (isAtmosphericScatteringEnable)
+	{
+		// TODO : Compile atm shader in GL/VK mode correctly.
+		shaderSchema.AddUberOption(Uber::ATM);
+	}
 	shaderSchema.AddUberOption(Uber::EMISSIVE_MAP);
 	shaderSchema.SetConflictOptions(Uber::ATM, Uber::IBL);
 	shaderSchema.Build();

@@ -223,6 +223,17 @@ void EditorApp::InitECWorld()
 {
 	m_pSceneWorld = std::make_unique<engine::SceneWorld>();
 	
+	if (IsAtmosphericScatteringEnable())
+	{
+		m_pSceneWorld->CreatePBRMaterialType(true);
+	}
+	else
+	{
+		m_pSceneWorld->CreatePBRMaterialType(false);
+	}
+
+	m_pSceneWorld->CreateAnimationMaterialType();
+
 	InitEditorCameraEntity();
 	
 #ifdef ENABLE_DDGI
