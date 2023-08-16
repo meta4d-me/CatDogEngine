@@ -96,10 +96,11 @@ public:
 	void ActiveUberShaderOption(engine::Uber option);
 	void DeactiveUberShaderOption(engine::Uber option);
 	void MatchUberShaderCrc();
-	void SetUberShaderOptions(std::unordered_set<engine::Uber> options) { m_uberShaderOptions = cd::MoveTemp(m_uberShaderOptions); }
-	const std::unordered_set<engine::Uber>& GetUberShaderOptions() const { return m_uberShaderOptions; }
-	std::unordered_set<engine::Uber>& GetUberShaderOptions() { return m_uberShaderOptions; }
 	uint16_t GetShadreProgram() const;
+
+	void SetUberShaderOptions(std::unordered_set<engine::Uber> options) { m_uberShaderOptions = cd::MoveTemp(m_uberShaderOptions); }
+	std::unordered_set<engine::Uber>& GetUberShaderOptions() { return m_uberShaderOptions; }
+	const std::unordered_set<engine::Uber>& GetUberShaderOptions() const { return m_uberShaderOptions; }
 
 	// Texture data.
 	void AddTextureBlob(cd::MaterialTextureType textureType, cd::TextureFormat textureFormat, cd::TextureMapMode uMapMode, cd::TextureMapMode vMapMode, TextureBlob textureBlob, uint32_t width, uint32_t height, uint32_t depth = 1);

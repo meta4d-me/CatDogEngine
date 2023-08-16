@@ -303,6 +303,7 @@ void EditorApp::InitSkyEntity()
 	{
 		skyComponent.SetSunDirection(cd::Direction(-0.1f, -0.9f, 0.5f));
 		skyComponent.SetHeightOffset(1.0f);
+		skyComponent.SetShadowLength(0.1f);
 		skyComponent.SetAtmophericScatteringEnable(true);
 	}
 

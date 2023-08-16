@@ -49,14 +49,14 @@ void SceneWorld::CreatePBRMaterialType(bool isAtmosphericScatteringEnable)
 	shaderSchema.AddUberOption(Uber::ALBEDO_MAP);
 	shaderSchema.AddUberOption(Uber::NORMAL_MAP);
 	shaderSchema.AddUberOption(Uber::ORM_MAP);
+	shaderSchema.AddUberOption(Uber::EMISSIVE_MAP);
 	shaderSchema.AddUberOption(Uber::IBL);
 	if (isAtmosphericScatteringEnable)
 	{
 		// TODO : Compile atm shader in GL/VK mode correctly.
 		shaderSchema.AddUberOption(Uber::ATM);
+		shaderSchema.SetConflictOptions(Uber::ATM, Uber::IBL);
 	}
-	shaderSchema.AddUberOption(Uber::EMISSIVE_MAP);
-	shaderSchema.SetConflictOptions(Uber::ATM, Uber::IBL);
 	shaderSchema.Build();
 	m_pPBRMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
