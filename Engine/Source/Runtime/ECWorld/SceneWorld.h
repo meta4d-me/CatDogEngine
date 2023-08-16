@@ -96,7 +96,7 @@ public:
 		DeleteTransformComponent(entity);
 	}
 
-	void CreatePBRMaterialType();
+	void CreatePBRMaterialType(bool isAtmosphericScatteringEnable = false);
 	CD_FORCEINLINE engine::MaterialType* GetPBRMaterialType() const { return m_pPBRMaterialType.get(); }
 
 	void CreateAnimationMaterialType();

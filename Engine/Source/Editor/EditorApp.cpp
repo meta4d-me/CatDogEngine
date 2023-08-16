@@ -223,6 +223,17 @@ void EditorApp::InitECWorld()
 {
 	m_pSceneWorld = std::make_unique<engine::SceneWorld>();
 	
+	if (IsAtmosphericScatteringEnable())
+	{
+		m_pSceneWorld->CreatePBRMaterialType(true);
+	}
+	else
+	{
+		m_pSceneWorld->CreatePBRMaterialType(false);
+	}
+
+	m_pSceneWorld->CreateAnimationMaterialType();
+
 	InitEditorCameraEntity();
 	
 #ifdef ENABLE_DDGI
@@ -288,6 +299,13 @@ void EditorApp::InitSkyEntity()
 	nameComponent.SetName("Sky");
 
 	auto& skyComponent = pWorld->CreateComponent<engine::SkyComponent>(skyEntity);
+	if (IsAtmosphericScatteringEnable())
+	{
+		skyComponent.SetSunDirection(cd::Direction(-0.1f, -0.9f, 0.5f));
+		skyComponent.SetHeightOffset(1.0f);
+		skyComponent.SetShadowLength(0.1f);
+		skyComponent.SetAtmophericScatteringEnable(true);
+	}
 
 	cd::VertexFormat vertexFormat;
 	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
@@ -297,15 +315,10 @@ void EditorApp::InitSkyEntity()
 	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(skyBox, vertexFormat, false);
 	assert(optMesh.has_value());
 
-
 	auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(skyEntity);
 	meshComponent.SetMeshData(&optMesh.value());
 	meshComponent.SetRequiredVertexFormat(&vertexFormat);
 	meshComponent.Build();
-
-	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(skyEntity);
-	transformComponent.SetTransform(cd::Transform(cd::Vec3f(0.0f, -1.0f, 0.0f), cd::Quaternion::Identity(), cd::Vec3f::One()));
-	transformComponent.Build();
 }
 
 void EditorApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)

@@ -10,7 +10,7 @@
 #include "Rendering/DDGIDefinition.h"
 #include "Scene/Texture.h"
 #include "U_DDGI.sh"
-#include "U_Environment.sh"
+#include "U_IBL.sh"
 
 namespace engine
 {

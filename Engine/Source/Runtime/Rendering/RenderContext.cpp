@@ -37,6 +37,7 @@ void DestoryImpl(engine::StringCrc resourceCrc, T& caches)
 	auto itResource = caches.find(resourceCrc.Value());
 	if(itResource != caches.end())
 	{
+		assert(bgfx::isValid(itResource->second));
 		bgfx::destroy(itResource->second);
 		caches.erase(itResource);
 	}

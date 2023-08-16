@@ -1,7 +1,10 @@
-// @brief Returns Material object whose members' values are determined by
-// the bound texture if macro definitions are turned on, otherwise they are default values.
-// 
-// Material GetMaterial(vec2 uv, vec3 normal, mat3 TBN);
+//------------------------------------------------------------------------//
+// @brief Returns Material object whose members' values are determined by //
+// the bound texture if macro definitions are turned on,                  //
+// otherwise they are default values.                                     //
+//                                                                        //
+// Material GetMaterial(vec2 uv, vec3 normal, mat3 TBN);                  //
+//------------------------------------------------------------------------//
 
 // To reuse Material.sh, we reserve the first 4 slots (0 - 3) in U_BaseSlot.sh.
 #include "../UniformDefines/U_BaseSlot.sh"

@@ -11,7 +11,6 @@ class SkyboxRenderer final : public Renderer
 {
 public:
 	using Renderer::Renderer;
-	virtual ~SkyboxRenderer();
 
 	virtual void Init() override;
 	virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) override;

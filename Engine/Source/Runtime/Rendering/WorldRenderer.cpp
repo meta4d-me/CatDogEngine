@@ -11,7 +11,8 @@
 #include "Math/Transform.hpp"
 #include "RenderContext.h"
 #include "Scene/Texture.h"
-#include "U_Environment.sh"
+#include "U_IBL.sh"
+#include "U_AtmophericScattering.sh"
 
 namespace engine
 {
@@ -19,22 +20,25 @@ namespace engine
 namespace
 {
 
-constexpr const char* lutSampler              = "s_texLUT";
-constexpr const char* cubeIrradianceSampler   = "s_texCubeIrr";
-constexpr const char* cubeRadianceSampler     = "s_texCubeRad";
-
-constexpr const char* lutTexture              = "Textures/lut/ibl_brdf_lut.dds";
-
-constexpr const char* cameraPos               = "u_cameraPos";
-constexpr const char* albedoColor             = "u_albedoColor";
-constexpr const char* emissiveColor           = "u_emissiveColor";
-constexpr const char* metallicRoughnessFactor = "u_metallicRoughnessFactor";
-
-constexpr const char* albedoUVOffsetAndScale  = "u_albedoUVOffsetAndScale";
-constexpr const char* alphaCutOff             = "u_alphaCutOff";
-
-constexpr const char* lightCountAndStride     = "u_lightCountAndStride";
-constexpr const char* lightParams             = "u_lightParams";
+constexpr const char* lutSampler                  = "s_texLUT";
+constexpr const char* cubeIrradianceSampler       = "s_texCubeIrr";
+constexpr const char* cubeRadianceSampler         = "s_texCubeRad";
+											      
+constexpr const char* lutTexture                  = "Textures/lut/ibl_brdf_lut.dds";
+											      
+constexpr const char* cameraPos                   = "u_cameraPos";
+constexpr const char* albedoColor                 = "u_albedoColor";
+constexpr const char* emissiveColor               = "u_emissiveColor";
+constexpr const char* metallicRoughnessFactor     = "u_metallicRoughnessFactor";
+											      
+constexpr const char* albedoUVOffsetAndScale      = "u_albedoUVOffsetAndScale";
+constexpr const char* alphaCutOff                 = "u_alphaCutOff";
+											      
+constexpr const char* lightCountAndStride         = "u_lightCountAndStride";
+constexpr const char* lightParams                 = "u_lightParams";
+											      
+constexpr const char* LightDir                    = "u_LightDir";
+constexpr const char* HeightOffsetAndshadowLength = "u_HeightOffsetAndshadowLength";
 
 constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
@@ -63,6 +67,9 @@ void WorldRenderer::Init()
 	GetRenderContext()->CreateUniform(lightCountAndStride, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(lightParams, bgfx::UniformType::Vec4, LightUniform::VEC4_COUNT);
 
+	GetRenderContext()->CreateUniform(LightDir, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(HeightOffsetAndshadowLength, bgfx::UniformType::Vec4, 1);
+
 	bgfx::setViewName(GetViewID(), "WorldRenderer");
 }
 
@@ -76,6 +83,8 @@ void WorldRenderer::Render(float deltaTime)
 {
 	// TODO : Remove it. If every renderer need to submit camera related uniform, it should be done not inside Renderer class.
 	const cd::Transform& cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetTransform();
+	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+
 	for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
 	{
 		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
@@ -128,11 +137,10 @@ void WorldRenderer::Render(float deltaTime)
 		}
 
 		// Sky
-		SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 		SkyType crtSkyType = pSkyComponent->GetSkyType();
 		pMaterialComponent->SetSkyType(crtSkyType);
 
-		if (crtSkyType == SkyType::SkyBox)
+		if (SkyType::SkyBox == crtSkyType)
 		{
 			// Create a new TextureHandle each frame if the skybox texture path has been updated,
 			// otherwise RenderContext::CreateTexture will automatically skip it.
@@ -152,6 +160,19 @@ void WorldRenderer::Render(float deltaTime)
 			constexpr StringCrc lutsamplerCrc(lutSampler);
 			constexpr StringCrc luttextureCrc(lutTexture);
 			bgfx::setTexture(BRDF_LUT_SLOT, GetRenderContext()->GetUniform(lutsamplerCrc), GetRenderContext()->GetTexture(luttextureCrc));
+		}
+		else if (SkyType::AtmosphericScattering == crtSkyType)
+		{
+			bgfx::setImage(ATM_TRANSMITTANCE_SLOT, GetRenderContext()->GetTexture(pSkyComponent->GetATMTransmittanceCrc()), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
+			bgfx::setImage(ATM_IRRADIANCE_SLOT, GetRenderContext()->GetTexture(pSkyComponent->GetATMIrradianceCrc()), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
+			bgfx::setImage(ATM_SCATTERING_SLOT, GetRenderContext()->GetTexture(pSkyComponent->GetATMScatteringCrc()), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
+
+			constexpr StringCrc LightDirCrc(LightDir);
+			GetRenderContext()->FillUniform(LightDirCrc, &(pSkyComponent->GetSunDirection().x()), 1);
+
+			constexpr StringCrc HeightOffsetAndshadowLengthCrc(HeightOffsetAndshadowLength);
+			cd::Vec4f tmpHeightOffsetAndshadowLength = cd::Vec4f(pSkyComponent->GetHeightOffset(), pSkyComponent->GetShadowLength(), 0.0f, 0.0f);
+			GetRenderContext()->FillUniform(HeightOffsetAndshadowLengthCrc, &(tmpHeightOffsetAndshadowLength.x()), 1);
 		}
 
 		// Submit uniform values : camera settings

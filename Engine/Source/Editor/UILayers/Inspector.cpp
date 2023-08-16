@@ -7,15 +7,6 @@
 namespace details
 {
 
-CD_FORCEINLINE bool EnableAtmosphericScattering()
-{
-	engine::GraphicsBackend backend = engine::Path::GetGraphicsBackend();
-
-	return engine::GraphicsBackend::Vulkan != backend
-		&& engine::GraphicsBackend::OpenGL != backend
-		&& engine::GraphicsBackend::OpenGLES != backend;
-}
-
 template<typename Component>
 void UpdateComponentWidget(engine::SceneWorld* pSceneWorld, engine::Entity entity)
 {
@@ -312,7 +303,7 @@ void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld
 		std::vector<const char*> skyTypes;
 		for (size_t type = 0; type < static_cast<size_t>(engine::SkyType::Count); ++type)
 		{
-			if (!EnableAtmosphericScattering() && static_cast<engine::SkyType>(type) == engine::SkyType::AtmosphericScattering)
+			if (!pSkyComponent->GetAtmophericScatteringEnable() && engine::SkyType::AtmosphericScattering == static_cast<engine::SkyType>(type))
 			{
 				continue;
 			}
@@ -336,6 +327,14 @@ void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld
 				}
 			}
 			ImGui::EndCombo();
+		}
+
+		if (pSkyComponent->GetAtmophericScatteringEnable())
+		{
+			ImGui::Separator();
+			ImGuiUtils::ImGuiFloatProperty("Height Offset", pSkyComponent->GetHeightOffset(), cd::Unit::Kilometer, -1000.0f, 1000.0f, false, 0.1f);
+			ImGuiUtils::ImGuiFloatProperty("Shadow Length", pSkyComponent->GetShadowLength(), cd::Unit::Kilometer, 0.0f, 10.0f, false, 0.1f);
+			ImGuiUtils::ImGuiVectorProperty("Sun Direction", pSkyComponent->GetSunDirection(), cd::Unit::None, cd::Direction(-1.0f, -1.0f, -1.0f), cd::Direction::One(), true, 0.01f);
 		}
 	}
 
