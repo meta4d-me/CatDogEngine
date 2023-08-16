@@ -176,6 +176,16 @@ void MaterialComponent::Reset()
 	m_skyType = SkyType::None;
 }
 
+std::string MaterialComponent::GetVertexShaderName() const
+{
+	return std::filesystem::path(m_pMaterialType->GetShaderSchema().GetVertexShaderPath()).filename().string();
+}
+
+std::string MaterialComponent::GetFragmentShaderName() const
+{
+	return std::filesystem::path(m_pMaterialType->GetShaderSchema().GetFragmentShaderPath()).filename().string();
+}
+
 void MaterialComponent::AddTextureBlob(cd::MaterialTextureType textureType, cd::TextureFormat textureFormat, cd::TextureMapMode uMapMode, cd::TextureMapMode vMapMode,
 	TextureBlob textureBlob, uint32_t width, uint32_t height, uint32_t depth /* = 1 */)
 {

@@ -102,6 +102,9 @@ public:
 	std::unordered_set<engine::Uber>& GetUberShaderOptions() { return m_uberShaderOptions; }
 	const std::unordered_set<engine::Uber>& GetUberShaderOptions() const { return m_uberShaderOptions; }
 
+	std::string GetVertexShaderName() const;
+	std::string GetFragmentShaderName() const;
+
 	// Texture data.
 	void AddTextureBlob(cd::MaterialTextureType textureType, cd::TextureFormat textureFormat, cd::TextureMapMode uMapMode, cd::TextureMapMode vMapMode, TextureBlob textureBlob, uint32_t width, uint32_t height, uint32_t depth = 1);
 	void AddTextureFileBlob(cd::MaterialTextureType textureType, const cd::Material* pMaterial, const cd::Texture& texture, TextureBlob textureBlob);
