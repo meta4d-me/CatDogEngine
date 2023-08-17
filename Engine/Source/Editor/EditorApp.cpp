@@ -509,7 +509,7 @@ bool EditorApp::Update(float deltaTime)
 		/* write a similar func like this to update terrain*/
 		if (pTerrainComponent)
 		{
-			pTerrainComponent->Update(deltaTime);
+			//pTerrainComponent->Update(deltaTime);
 			if (engine::Input::Get().IsMouseLBPressed())
 			{
 				cd::Vec4f ray_clip;
