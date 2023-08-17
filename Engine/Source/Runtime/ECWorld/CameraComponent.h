@@ -80,13 +80,41 @@ public:
 	bool DoConstrainAspectRatio() const { return m_doConstainAspectRatio; }
 	void SetConstrainAspectRatio(bool use) { m_doConstainAspectRatio = use; }
 
-	bool& GetIsPostProcessEnable() { return m_enablePostProcess; }
-	bool IsPostProcessEnable() { return m_enablePostProcess; }
-	void SetPostProcessEnable(bool use) { m_enablePostProcess = use; }
+	bool& GetIsToneMapping() { return m_enableToneMapping; }
+	bool IsToneMappingEnable() { return m_enableToneMapping; }
+	void SetToneMappingEnable(bool use) { m_enableToneMapping = use; }
 
 	float& GetGammaCorrection() { return m_gammaCorrection; }
 	const float& GetGammaCorrection() const { return m_gammaCorrection; }
 	void SetGammaCorrection(float gamma) { m_gammaCorrection = gamma; }
+
+	bool& GetIsBloomEnable() { return m_enableBloom; }
+	const float& GetIsBloomEnable() const { return m_enableBloom; }
+	void SetBloomEnable(bool bloom) { m_enableBloom = bloom; }
+
+	bool& GetIsBlurEnable() { return m_enableBlur; }
+	const float& GetIsBlurEnable() const { return m_enableBlur; }
+	void SetBlurEnable(bool blur) { m_enableBloom = blur; }
+
+	float& GetBloomDownSampleTimes() { return m_blomDownSampleTimes; }
+	const float& GetBloomDownSampleTimes() const { return m_blomDownSampleTimes; }
+	void SetBloomDownSampleTImes(float downsampletimes) { m_blomDownSampleTimes = downsampletimes; }
+
+	float& GetBloomIntensity() { return m_bloomIntensity; }
+	const float& GetBloomIntensity() const { return m_bloomIntensity; }
+	void SetBloomIntensity(float intensity) { m_bloomIntensity = intensity; }
+
+	float& GetLuminanceThreshold() { return m_luminanceThreshold; }
+	const float& GetLuminanceThreshold() const { return m_luminanceThreshold; }
+	void SetLuminanceThreshold(float luminancethreshold) { m_luminanceThreshold = luminancethreshold; }
+
+	float& GetBlurTimes() { return m_blurTimes; }
+	const float& GetBlurTimes() const { return m_blurTimes; }
+	void SetBlurTimes(float blurtimes) { m_blurTimes = blurtimes; }
+
+	float& GetBlurSize() { return m_blurSize; }
+	const float& GetBlurSize() const { return m_blurSize; }
+	void SetBlurSize(float blursize) { m_blurSize = blursize; }
 #endif
 
 private:
@@ -107,7 +135,14 @@ private:
 
 #ifdef EDITOR_MODE
 	bool m_doConstainAspectRatio;
-	bool m_enablePostProcess;
+	bool m_enableToneMapping;
+	bool m_enableBloom;
+	bool m_enableBlur;
+	float m_blomDownSampleTimes;
+	float m_bloomIntensity;
+	float m_luminanceThreshold;
+	float m_blurTimes;
+	float m_blurSize;
 	float m_gammaCorrection;
 #endif
 };
