@@ -506,53 +506,19 @@ bool EditorApp::Update(float deltaTime)
 		{
 			m_pViewportCameraController->Update(deltaTime);
 		}
-		/* write a similar func like this to update terrain*/
-		if (pTerrainComponent)
+		//Do Screen Space Smoothing
+		if (pTerrainComponent &&engine::Input::Get().IsMouseLBPressed())
 		{
-			//pTerrainComponent->Update(deltaTime);
-			if (engine::Input::Get().IsMouseLBPressed())
-			{
-				cd::Vec4f ray_clip;
-				ray_clip[0] = 2.0f * static_cast<float>(engine::Input::Get().GetMousePositionX() - m_pSceneView->GetWindowPosX()) /
-					m_pSceneView->GetRenderTarget()->GetWidth() - 1.0f;
-				ray_clip[1] = 1.0f - 2.0f * static_cast<float>(engine::Input::Get().GetMousePositionY() - m_pSceneView->GetWindowPosY()) /
-					m_pSceneView->GetRenderTarget()->GetHeight();
-				ray_clip[2] = -1.0f;
-				ray_clip[3] = 1.0f;
+			float screenSpaceX = 2.0f * static_cast<float>(engine::Input::Get().GetMousePositionX() - m_pSceneView->GetWindowPosX()) /
+				m_pSceneView->GetRenderTarget()->GetWidth() - 1.0f;
+			float screenSpaceY = 1.0f - 2.0f * static_cast<float>(engine::Input::Get().GetMousePositionY() - m_pSceneView->GetWindowPosY()) /
+				m_pSceneView->GetRenderTarget()->GetHeight();
 
-				cd::Matrix4x4 invProjMtx = pMainCameraComponent->GetProjectionMatrix().Inverse();
-				cd::Vec4f ray_eye = invProjMtx * ray_clip;
-				ray_eye[0] /= ray_eye[3];
-				ray_eye[1] /= ray_eye[3];
-				ray_eye[2] /= ray_eye[3];
-				ray_eye[3] = 0.0f;
+			engine::TransformComponent* pCameraTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity());
+			cd::Vec3f camPos = pCameraTransformComponent->GetTransform().GetTranslation();
 
-				cd::Matrix4x4 invViewMtx = pMainCameraComponent->GetViewMatrix().Inverse();
-				cd::Vec4f ray_world = invViewMtx * ray_eye;
-				cd::Vec3f rayDir = ray_world.xyz().Normalize();
-
-				engine::TransformComponent* pCameraTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity());
-				cd::Transform camTransform = pCameraTransformComponent->GetTransform();
-
-				cd::Vec3f pos = camTransform.GetTranslation();
-				for (int i = 0; i < 1000; ++i)
-				{
-					pos = pos+rayDir;
-					uint32_t posX = static_cast<uint32_t>(pos.x());
-					uint32_t posZ = static_cast<uint32_t>(pos.z());
-					if  (posX < 0U || posX >= 129U || posZ < 0U || posZ >= 129U)
-					{
-						continue;
-					}
-
-					float terrainY = pTerrainComponent->GetElevationRawDataAt(posX, posZ);
-					if (pos.y() < (terrainY))
-					{
-						pTerrainComponent->SmoothElevationRawDataAround(posX, posZ, 10, 0.5f);
-						break;
-					}
-				}
-			}
+			pTerrainComponent->ScreenSpaceSmooth(screenSpaceX, screenSpaceY, pMainCameraComponent->GetProjectionMatrix().Inverse(),
+				pMainCameraComponent->GetViewMatrix().Inverse(), camPos);
 		}
 		
 		m_pEngineImGuiContext->SetWindowPosOffset(m_pSceneView->GetWindowPosX(), m_pSceneView->GetWindowPosY());

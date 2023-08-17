@@ -54,8 +54,7 @@ public:
 
 	void SmoothElevationRawDataAround(uint16_t x, uint16_t z, int16_t brushSize, float power);
 	
-	//void Build() {};
-	//void Update(float deltaTime) {};
+	void ScreenSpaceSmooth(float screenSpaceX, float screenSpaceY, cd::Matrix4x4 invProjMtx, cd::Matrix4x4 invViewMtx, cd::Vec3f camPos);
 
 private:
 	//height map input

@@ -202,6 +202,40 @@ void TerrainComponent::SmoothElevationRawDataAround(uint16_t x, uint16_t z, int1
 	}
 }
 
+void TerrainComponent::ScreenSpaceSmooth(float screenSpaceX, float screenSpaceY, cd::Matrix4x4 invProjMtx, cd::Matrix4x4 invViewMtx, cd::Vec3f camPos)
+{
+    cd::Vec4f ray_clip;
+    ray_clip[0] = screenSpaceX;
+    ray_clip[1] = screenSpaceY;
+    ray_clip[2] = -1.0f;
+    ray_clip[3] = 1.0f;
 
+    cd::Vec4f ray_eye = invProjMtx * ray_clip;
+    ray_eye[0] /= ray_eye[3];
+    ray_eye[1] /= ray_eye[3];
+    ray_eye[2] /= ray_eye[3];
+    ray_eye[3] = 0.0f;
+
+    cd::Vec4f ray_world = invViewMtx * ray_eye;
+    cd::Vec3f rayDir = ray_world.xyz().Normalize();
+
+    for (int i = 0; i < 1000; ++i)
+    {
+        camPos = camPos + rayDir;
+        uint32_t posX = static_cast<uint32_t>(camPos.x());
+        uint32_t posZ = static_cast<uint32_t>(camPos.z());
+        if (posX < 0U || posX >= 129U || posZ < 0U || posZ >= 129U)
+        {
+            continue;
+        }
+
+        float terrainY = GetElevationRawDataAt(posX, posZ);
+        if (camPos.y() < (terrainY))
+        {
+            SmoothElevationRawDataAround(posX, posZ, 10, 0.5f);
+            break;
+        }
+    }
+}
 
 }
