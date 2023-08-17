@@ -1,2 +1,0 @@
-#ifndef IBL
-#define IBL

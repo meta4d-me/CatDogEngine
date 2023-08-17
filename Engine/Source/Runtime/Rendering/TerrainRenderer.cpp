@@ -137,10 +137,7 @@ void TerrainRenderer::Render(float deltaTime)
 			GetRenderContext()->GetTexture(StringCrc(grassTexture)));
 
 		TerrainComponent* pTerrainComponent = m_pCurrentSceneWorld->GetTerrainComponent(entity);
-		//GetRenderContext()->UpdateTexture("Terrain", 0, 0, 0, 0, 0, pTerrainComponent->GetWidth(), pTerrainComponent->GetDepth(),
-		//	1, pTerrainComponent->GetElevationRawData(), pTerrainComponent->GetElevationRawDataSize());
-		
-		GetRenderContext()->UpdateTexture("Terrain", 0, 0, 0, 0, 0, 129U, 129U,
+		GetRenderContext()->UpdateTexture("Terrain", 0, 0, 0, 0, 0, pTerrainComponent->GetWidth(), pTerrainComponent->GetDepth(),
 			1, pTerrainComponent->GetElevationRawData(), pTerrainComponent->GetElevationRawDataSize());
 
 		bgfx::setTexture(10, 

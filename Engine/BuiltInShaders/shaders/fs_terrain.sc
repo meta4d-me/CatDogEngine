@@ -8,7 +8,6 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 
 #include "../common/Light.sh"
 #include "../common/Envirnoment.sh"
-//#include "../common/Terrain.sh"
 
 uniform vec4 u_emissiveColor;
 

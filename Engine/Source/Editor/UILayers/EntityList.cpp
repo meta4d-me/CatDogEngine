@@ -208,6 +208,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     else if (ImGui::MenuItem("Add Terrain Mesh"))
     {
         uint32_t TerrainSize = 129U;
+        uint32_t HeightMapSize = 129U;//must be 129 now
         engine::Entity entity = AddNamedEntity("Terrain");
 
         std::optional<cd::Mesh> optMesh = cd::Generate(TerrainSize, TerrainSize, pTerrainMaterialType->GetRequiredVertexFormat());
@@ -224,8 +225,8 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
 
         auto& terrainComponent = pWorld->CreateComponent<engine::TerrainComponent>(entity);
-        terrainComponent.SetWidth(TerrainSize);
-        terrainComponent.SetDepth(TerrainSize);
+        terrainComponent.SetWidth(HeightMapSize);
+        terrainComponent.SetDepth(HeightMapSize);
         terrainComponent.InitElevationRawData();
 
         auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
