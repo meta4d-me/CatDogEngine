@@ -8,7 +8,7 @@ uniform vec4 s_tex_size;
 void main()
 {
     vec2 tex_offset = s_tex_size.xy;
-    vec2 uv = v_texcoord0;
+    vec2 uv = v_texcoord0.xy;
     bool horizontal = s_tex_size.z == 1.0 ? true : false;
     float blurSize = s_tex_size.w;
 
