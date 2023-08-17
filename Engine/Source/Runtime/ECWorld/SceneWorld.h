@@ -39,6 +39,7 @@ class SceneWorld
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Name);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Sky);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(StaticMesh);
+	DEFINE_COMPONENT_STORAGE_WITH_APIS(Terrain);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Transform);
 
 public:
@@ -93,6 +94,7 @@ public:
 		DeleteNameComponent(entity);
 		DeleteSkyComponent(entity);
 		DeleteStaticMeshComponent(entity);
+		DeleteTerrainComponent(entity);
 		DeleteTransformComponent(entity);
 	}
 

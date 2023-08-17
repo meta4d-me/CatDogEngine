@@ -7,15 +7,16 @@
 
 #include <cstdint>
 #include <vector>
+#include <optional>
+#include <bgfx/bgfx.h>
+#include <bx/math.h>
+
 
 namespace cd
 {
-
-class Mesh;
-class VertexFormat;
-
+//GeoMipmaping Algrithom to Generate Elevation Map
+static std::optional<std::vector<std::byte>> GenerateElevationMap(uint16_t terrainWidth, uint16_t terrainDepth, float roughness, float minHeight, float maxHeight);
 }
-
 namespace engine
 {
 
@@ -26,7 +27,7 @@ class TerrainComponent final
 public:
 	static constexpr StringCrc GetClassName()
 	{
-		constexpr StringCrc className("StaticMeshComponent");
+		constexpr StringCrc className("TerrainComponent");
 		return className;
 	}
 
@@ -38,43 +39,37 @@ public:
 	TerrainComponent& operator=(TerrainComponent&&) = default;
 	~TerrainComponent() = default;
 
-	const cd::Mesh* GetMeshData() const { return m_pMeshData; }
-	void SetMeshData(const cd::Mesh* pMeshData) { m_pMeshData = pMeshData; }
-	void SetRequiredVertexFormat(const cd::VertexFormat* pVertexFormat) { m_pRequiredVertexFormat = pVertexFormat; }
+	void SetWidth(const uint16_t width) { m_width = width; }
+	uint16_t GetWidth() const { return m_width; }
+	void SetDepth(const uint16_t depth) { m_depth = depth;}
+	uint16_t GetDepth() const { return m_depth; }
+	
+	void InitElevationRawData();
+	void SetElevationRawData(std::vector<std::byte> data) { m_elevationRawData = data; }
+	const std::byte* GetElevationRawData() const { return m_elevationRawData.data(); }
+	uint32_t GetElevationRawDataSize() const {return static_cast<uint32_t>(m_elevationRawData.size()); }
 
-	const cd::AABB& GetAABB() const { return m_aabb; }
-	uint16_t GetVertexBuffer() const { return m_vertexBufferHandle; }
-	uint16_t GetIndexBuffer() const { return m_indexBufferHandle; }
-	uint16_t GetAABBVertexBuffer() const { return m_aabbVBH; }
-	uint16_t GetAABBIndexBuffer() const { return m_aabbIBH; }
+	void SetElevationRawDataAt(uint16_t x, uint16_t z, float data);
+	float GetElevationRawDataAt(uint16_t x, uint16_t z);
 
-	void Reset();
-	void Build();
+	void SmoothElevationRawDataAround(uint16_t x, uint16_t z, int16_t brushSize, float power);
+	
+	//void Build() {};
+	//void Update(float deltaTime) {};
 
 private:
-	void BuildDebug();
+	//height map input
+	uint16_t m_width = 129U;//uint32_t is too big for width
+	uint16_t m_depth = 129U;//
+	float m_roughness = 1.55f;
+	float m_minHeight = 0.0f;
+	float m_maxHeight = 30.0f;
+	
+	//for patch wise generating
+	//uint32_t m_PatchSize;
 
-private:
-	// Input
-	uint32_t width;
-	uint32_t depth;
-	uint32_t patchSize;
-	const cd::Mesh* m_pMeshData = nullptr;
-	const cd::VertexFormat* m_pRequiredVertexFormat = nullptr;
-
-	// Output
-	//std::vector<LodInfo>
-	std::vector<std::byte> m_vertexBuffer;
-	std::vector<std::byte> m_indexBuffer;
-	uint16_t m_vertexBufferHandle = UINT16_MAX;
-	uint16_t m_indexBufferHandle = UINT16_MAX;
-
-	// For debug use
-	cd::AABB m_aabb;
-	std::vector<std::byte> m_aabbVertexBuffer;
-	std::vector<std::byte> m_aabbIndexBuffer;
-	uint16_t m_aabbVBH = UINT16_MAX;
-	uint16_t m_aabbIBH = UINT16_MAX;
+	//height map output
+	std::vector<std::byte> m_elevationRawData;
 };
 
 }

@@ -64,7 +64,7 @@ void main()
 {
    vec3 dx = dFdx(v_worldPos);
 	vec3 dy = dFdy(v_worldPos);
-	vec3 flatNormal = normalize(cross(dx, dy));
+	vec3 flatNormal =  v_normal;// normalize(cross(dx, dy));
    
 	Material material = GetMaterial(v_texcoord0, flatNormal, v_TBN);
 	if (material.opacity < u_alphaCutOff.x) {

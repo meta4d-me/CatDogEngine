@@ -46,6 +46,7 @@
 //#include <format>
 #include <thread>
 #include <Rendering/TerrainRenderer.h>
+//#include <bx/math.h>
 
 namespace editor
 {
@@ -483,6 +484,7 @@ bool EditorApp::Update(float deltaTime)
 	m_pEditorImGuiContext->Update(deltaTime);
 
 	engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
+	engine::TerrainComponent* pTerrainComponent = m_pSceneWorld->GetTerrainComponent(m_pSceneWorld->GetSelectedEntity());
 	assert(pMainCameraComponent);
 	pMainCameraComponent->BuildProjectMatrix();
 
@@ -504,7 +506,55 @@ bool EditorApp::Update(float deltaTime)
 		{
 			m_pViewportCameraController->Update(deltaTime);
 		}
+		/* write a similar func like this to update terrain*/
+		if (pTerrainComponent)
+		{
+			pTerrainComponent->Update(deltaTime);
+			if (engine::Input::Get().IsMouseLBPressed())
+			{
+				cd::Vec4f ray_clip;
+				ray_clip[0] = 2.0f * static_cast<float>(engine::Input::Get().GetMousePositionX() - m_pSceneView->GetWindowPosX()) /
+					m_pSceneView->GetRenderTarget()->GetWidth() - 1.0f;
+				ray_clip[1] = 1.0f - 2.0f * static_cast<float>(engine::Input::Get().GetMousePositionY() - m_pSceneView->GetWindowPosY()) /
+					m_pSceneView->GetRenderTarget()->GetHeight();
+				ray_clip[2] = -1.0f;
+				ray_clip[3] = 1.0f;
 
+				cd::Matrix4x4 invProjMtx = pMainCameraComponent->GetProjectionMatrix().Inverse();
+				cd::Vec4f ray_eye = invProjMtx * ray_clip;
+				ray_eye[0] /= ray_eye[3];
+				ray_eye[1] /= ray_eye[3];
+				ray_eye[2] /= ray_eye[3];
+				ray_eye[3] = 0.0f;
+
+				cd::Matrix4x4 invViewMtx = pMainCameraComponent->GetViewMatrix().Inverse();
+				cd::Vec4f ray_world = invViewMtx * ray_eye;
+				cd::Vec3f rayDir = ray_world.xyz().Normalize();
+
+				engine::TransformComponent* pCameraTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity());
+				cd::Transform camTransform = pCameraTransformComponent->GetTransform();
+
+				cd::Vec3f pos = camTransform.GetTranslation();
+				for (int i = 0; i < 1000; ++i)
+				{
+					pos = pos+rayDir;
+					uint32_t posX = static_cast<uint32_t>(pos.x());
+					uint32_t posZ = static_cast<uint32_t>(pos.z());
+					if  (posX < 0U || posX >= 129U || posZ < 0U || posZ >= 129U)
+					{
+						continue;
+					}
+
+					float terrainY = pTerrainComponent->GetElevationRawDataAt(posX, posZ);
+					if (pos.y() < (terrainY))
+					{
+						pTerrainComponent->SmoothElevationRawDataAround(posX, posZ, 10, 0.5f);
+						break;
+					}
+				}
+			}
+		}
+		
 		m_pEngineImGuiContext->SetWindowPosOffset(m_pSceneView->GetWindowPosX(), m_pSceneView->GetWindowPosY());
 		m_pEngineImGuiContext->Update(deltaTime);
 		for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)

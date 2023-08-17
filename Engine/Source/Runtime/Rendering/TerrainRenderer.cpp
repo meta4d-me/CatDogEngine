@@ -80,6 +80,8 @@ void TerrainRenderer::Init()
 	GetRenderContext()->CreateUniform(lightCountAndStride, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(lightParams, bgfx::UniformType::Vec4, LightUniform::VEC4_COUNT);
 
+	GetRenderContext()->CreateTexture("Terrain", 129U, 129U, 1, bgfx::TextureFormat::Enum::R32F, samplerFlags, nullptr, 0);
+
 	bgfx::setViewName(GetViewID(), "TerrainRenderer");
 }
 
@@ -93,8 +95,8 @@ void TerrainRenderer::Render(float deltaTime)
 {
 	// TODO : Remove it. If every renderer need to submit camera related uniform, it should be done not inside Renderer class.
 	const cd::Transform& cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetTransform();
-	for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
-	{
+	for (Entity entity : m_pCurrentSceneWorld->GetTerrainEntities())
+	{		
 		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
 		if (!pMaterialComponent ||
 			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetTerrainMaterialType())
@@ -134,21 +136,16 @@ void TerrainRenderer::Render(float deltaTime)
 			GetRenderContext()->GetUniform(StringCrc(grassSampler)),
 			GetRenderContext()->GetTexture(StringCrc(grassTexture)));
 
-		/*
-		bgfx::setTexture(10,
-			GetRenderContext()->GetUniform(StringCrc(elevationSampler)),
-			GetRenderContext()->GetTexture(StringCrc(elevationTexture)));
-		*/
+		TerrainComponent* pTerrainComponent = m_pCurrentSceneWorld->GetTerrainComponent(entity);
+		//GetRenderContext()->UpdateTexture("Terrain", 0, 0, 0, 0, 0, pTerrainComponent->GetWidth(), pTerrainComponent->GetDepth(),
+		//	1, pTerrainComponent->GetElevationRawData(), pTerrainComponent->GetElevationRawDataSize());
 		
-		/**/
-		for (const auto& [textureType, _] : pMaterialComponent->GetTextureResources())
-		{
-			if (const MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(textureType))
-			{
-				bgfx::setTexture(pTextureInfo->slot, bgfx::UniformHandle{ pTextureInfo->samplerHandle }, bgfx::TextureHandle{pTextureInfo->textureHandle});
-			}
-		}
+		GetRenderContext()->UpdateTexture("Terrain", 0, 0, 0, 0, 0, 129U, 129U,
+			1, pTerrainComponent->GetElevationRawData(), pTerrainComponent->GetElevationRawDataSize());
 
+		bgfx::setTexture(10, 
+			GetRenderContext()->GetUniform(StringCrc(elevationSampler)),
+			GetRenderContext()->GetTexture(StringCrc("Terrain")));
 
 		// Sky
 		SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());

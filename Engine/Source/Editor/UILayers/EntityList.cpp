@@ -122,134 +122,6 @@ static std::optional<Mesh> Generate(uint32_t width, uint32_t depth, const Vertex
     return mesh;
 }
 
-
-int CalcNextPowerOfTwo(int x)
-{
-    int ret = 1;
-
-    if (x == 1) {
-        return 2;
-    }
-
-    while (ret < x) {
-        ret = ret * 2;
-    }
-
-    return ret;
-}
-
-float RandomFloatRange(float Start, float End)
-{
-    if (End == Start) {
-        printf("Invalid random range: (%f, %f)\n", Start, End);
-        exit(0);
-    }
-
-    float Delta = End - Start;
-
-    float RandomValue = rand() * Delta + Start;
-
-    return RandomValue;
-}
-/* */
-static std::optional<std::vector<std::byte>> GenerateElevationMap(uint32_t terrainSize, uint32_t PatchSize, float Roughness, float MinHeight, float MaxHeight)
-{
-    assert(Roughness > 0.0f);
-
-    uint32_t RectSize = CalcNextPowerOfTwo(terrainSize - 1);
-    float CurElevation = (float)RectSize / 2.0f;
-    float ElevationReduce = pow(2.0f, -Roughness);
-    std::vector<float> ElevationMap;
-    ElevationMap.resize(terrainSize * terrainSize,0);//* sizeof(int32_t)
-
-    while (RectSize > 0) {
-        //DiamondStep
-        int HalfRectSize = RectSize / 2;
-        for (uint32_t z = 0; z < terrainSize; z += RectSize) {
-            for (uint32_t x = 0; x < terrainSize; x += RectSize) {
-                uint32_t next_x = (x + RectSize) % terrainSize;
-                uint32_t next_z = (z + RectSize) % terrainSize;
-                if (next_x < x) {
-                    next_x = terrainSize - 1;
-                }
-                if (next_z < z) {
-                    next_z = terrainSize - 1;
-                }
-                float TopLeft = ElevationMap[z * terrainSize + x];
-                float TopRight = ElevationMap[z * terrainSize + next_x];
-                float BottomLeft = ElevationMap[next_z * terrainSize + x];
-                float BottomRight = ElevationMap[next_z * terrainSize + next_x];
-
-                uint32_t mid_x = (x + HalfRectSize) % terrainSize;
-                uint32_t mid_z = (z + HalfRectSize) % terrainSize;
-
-                float RandValue = RandomFloatRange(CurElevation, -CurElevation);
-                float MidPoint = (TopLeft + TopRight + BottomLeft + BottomRight) / 4.0f;
-
-                ElevationMap[mid_z * terrainSize + mid_x] = MidPoint + RandValue;
-            }
-        }
-
-        //SquareStep
-        //int HalfRectSize = RectSize / 2;
-        for (uint32_t z = 0; z < terrainSize; z += RectSize) {
-            for (uint32_t x = 0; x < terrainSize; x += RectSize) {
-                uint32_t next_x = (x + RectSize) % terrainSize;
-                uint32_t next_z = (z + RectSize) % terrainSize;
-
-                if (next_x < x) {
-                    next_x = terrainSize - 1;
-                }
-
-                if (next_z < z) {
-                    next_z = terrainSize - 1;
-                }
-
-                uint32_t mid_x = (x + HalfRectSize) % terrainSize;
-                uint32_t mid_z = (z + HalfRectSize) % terrainSize;
-
-                uint32_t prev_mid_x = (x - HalfRectSize - 1  + terrainSize) % terrainSize;
-                uint32_t prev_mid_z = (z - HalfRectSize - 1 + terrainSize) % terrainSize;
-
-                float CurTopLeft = ElevationMap[z * terrainSize + x];
-                float CurTopRight = ElevationMap[z * terrainSize + next_x];
-                float CurCenter = ElevationMap[mid_z * terrainSize + mid_x];
-                float PrevYCenter = ElevationMap[prev_mid_z * terrainSize + mid_x];
-                float CurBotLeft = ElevationMap[next_z * terrainSize + x];
-                float PrevXCenter = ElevationMap[mid_z * terrainSize + prev_mid_x];
-
-                float CurLeftMid = (CurTopLeft + CurCenter + CurBotLeft + PrevXCenter) / 4.0f + RandomFloatRange(-CurElevation, CurElevation);
-                float CurTopMid = (CurTopLeft + CurCenter + CurTopRight + PrevYCenter) / 4.0f + RandomFloatRange(-CurElevation, CurElevation);
-
-                ElevationMap[z * terrainSize + mid_x] = CurTopMid;
-                ElevationMap[mid_z * terrainSize + x] = CurLeftMid;
-            }
-        }
-        RectSize /= 2;
-        CurElevation *= ElevationReduce;
-
-    }
-
-    float min = *std::min_element(ElevationMap.begin(), ElevationMap.end());
-    float max = *std::max_element(ElevationMap.begin(), ElevationMap.end());
-    for (auto & Elevation : ElevationMap) {
-        Elevation = (Elevation - min) / (max - min) * (MaxHeight - MinHeight) + MinHeight;
-    }
-    
-    std::vector<std::byte> outElevationMap;
-    outElevationMap.reserve(terrainSize * terrainSize * sizeof(float));//
-    for (auto & Elevation : ElevationMap) {
-        std::byte* bytePtr = reinterpret_cast<std::byte*>(&Elevation);
-        for (std::size_t i = 0; i < sizeof(float); ++i)
-        {
-            outElevationMap.push_back(bytePtr[i]);
-        }
-        /*outElevationMap.push_back(static_cast<std::byte>(static_cast<int>(Elevation)));*/
-    }
-    
-    return outElevationMap;
-}
-
 }
 
 namespace editor
@@ -335,10 +207,9 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     }
     else if (ImGui::MenuItem("Add Terrain Mesh"))
     {
-        uint32_t TerrainSize = 9U;
+        uint32_t TerrainSize = 129U;
         engine::Entity entity = AddNamedEntity("Terrain");
-        std::optional<std::vector<std::byte>> optMap = cd::GenerateElevationMap(TerrainSize, 0U, 1.2f, 0.0f, 30.0f);//std::vector<std::byte>129U
-        assert(optMap.has_value());
+
         std::optional<cd::Mesh> optMesh = cd::Generate(TerrainSize, TerrainSize, pTerrainMaterialType->GetRequiredVertexFormat());
         assert(optMesh.has_value());
         cd::Mesh& mesh = optMesh.value();
@@ -352,57 +223,17 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         mesh.SetID(cd::MeshID(pSceneDatabase->GetMeshCount()));
         pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
 
+        auto& terrainComponent = pWorld->CreateComponent<engine::TerrainComponent>(entity);
+        terrainComponent.SetWidth(TerrainSize);
+        terrainComponent.SetDepth(TerrainSize);
+        terrainComponent.InitElevationRawData();
+
         auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
         materialComponent.Init();
         materialComponent.SetMaterialType(pTerrainMaterialType);
         materialComponent.SetAlbedoColor(cd::Vec3f(0.2f));
         materialComponent.SetSkyType(pSceneWorld->GetSkyComponent(pSceneWorld->GetSkyEntity())->GetSkyType());
         materialComponent.SetTwoSided(true);
-        /*std::vector<std::byte>* map = new std::vector<std::byte>;
-        map->resize(81, std::byte{2});
-        (*map)[30] = std::byte{ 10 };
-        (*map)[31] = std::byte{ 10 };
-        (*map)[32] = std::byte{ 10 };
-        (*map)[39] = std::byte{ 10 };
-        (*map)[40] = std::byte{ 10 };
-        (*map)[41] = std::byte{ 10 };
-        (*map)[48] = std::byte{ 10 };
-        (*map)[49] = std::byte{ 10 };
-        (*map)[50] = std::byte{ 10 };*/
-
-        std::vector<std::byte> map;
-        map.resize(81, std::byte{2});
-        map[20] = std::byte{ 10 };//
-        map[21] = std::byte{ 10 };
-        map[22] = std::byte{ 10 };
-        map[23] = std::byte{ 10 };
-        map[24] = std::byte{ 10 };
-        map[29] = std::byte{ 10 };//
-        map[30] = std::byte{ 10 };
-        map[31] = std::byte{ 10 };
-        map[32] = std::byte{ 10 };
-        map[33] = std::byte{ 10 };
-        map[38] = std::byte{ 10 };//
-        map[39] = std::byte{ 10 };
-        map[40] = std::byte{ 10 };
-        map[41] = std::byte{ 10 };
-        map[42] = std::byte{ 10 };
-        map[47] = std::byte{ 10 };//
-        map[48] = std::byte{ 10 };
-        map[49] = std::byte{ 10 };
-        map[50] = std::byte{ 10 };
-        map[51] = std::byte{ 10 };
-        map[56] = std::byte{ 10 };//
-        map[57] = std::byte{ 10 };
-        map[58] = std::byte{ 10 };
-        map[59] = std::byte{ 10 };
-        map[60] = std::byte{ 10 };
-
-        materialComponent.AddTextureBlob(cd::MaterialTextureType::Elevation, cd::TextureFormat::R8, cd::TextureMapMode::Clamp,
-            cd::TextureMapMode::Clamp, cd::MoveTemp(map), 9U, 9U);
-
-        /*materialComponent.AddTextureBlob(cd::MaterialTextureType::Elevation, cd::TextureFormat::R32F, cd::TextureMapMode::Clamp,
-           cd::TextureMapMode::Clamp, cd::MoveTemp(optMap.value()), TerrainSize, TerrainSize);*/
         materialComponent.Build();
 
         auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
