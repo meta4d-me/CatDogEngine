@@ -1,0 +1,1 @@
+#define ELEVATION_MAP_SLOT 10

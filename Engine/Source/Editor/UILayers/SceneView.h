@@ -39,10 +39,13 @@ public:
 
 	void SetCameraController(engine::CameraController* pCameraController) { m_pCameraController = pCameraController; }
 
+	const engine::RenderTarget* GetRenderTarget() const { return m_pRenderTarget; }
+
 private:
 	void UpdateToolMenuButtons();
 	void Update2DAnd3DButtons();
 	void UpdateSwitchAABBButton();
+	void UpdateSwitchTerrainButton();
 	void UpdateOperationButtons();
 
 private:
@@ -53,6 +56,7 @@ private:
 
 	bool m_is3DMode = true;
 	bool m_isIBLActive = false;
+	bool m_isTerrainEditMode = false;
 
 	engine::RenderTarget* m_pRenderTarget = nullptr;
 	bool m_isMouseDownFirstTime = true;

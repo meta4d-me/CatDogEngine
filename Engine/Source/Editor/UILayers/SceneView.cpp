@@ -160,6 +160,25 @@ void SceneView::UpdateSwitchAABBButton()
 	}
 }
 
+void SceneView::UpdateSwitchTerrainButton()
+{
+	bool isTerrainActive = m_isTerrainEditMode;
+	if (isTerrainActive)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+	}
+
+	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CUBE " Terrain Edit")))
+	{
+		m_isTerrainEditMode = !m_isTerrainEditMode;
+	}
+
+	if (isTerrainActive)
+	{
+		ImGui::PopStyleColor();
+	}
+}
+
 void SceneView::UpdateToolMenuButtons()
 {
 	ImGui::Indent();
@@ -191,6 +210,9 @@ void SceneView::UpdateToolMenuButtons()
 
 	ImGui::SameLine();
 	UpdateSwitchAABBButton();
+
+	ImGui::SameLine();
+	UpdateSwitchTerrainButton();
 
 	ImGui::PopStyleColor();
 }
@@ -254,6 +276,7 @@ void SceneView::Update()
 {
 	engine::SceneWorld* pSceneWorld = GetSceneWorld();
 	engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
+	engine::TerrainComponent* pTerrainComponent = pSceneWorld->GetTerrainComponent(pSceneWorld->GetSelectedEntity());
 
 	if (nullptr == m_pRenderTarget)
 	{
@@ -270,7 +293,7 @@ void SceneView::Update()
 		ImVec2 windowPos = ImGui::GetWindowPos();
 		ImVec2 mousePos = ImGui::GetMousePos();
 		cd::Vec2f rightDown(windowPos.x + windowSize.x, windowPos.y + windowSize.y);
-		if (mousePos.x > windowPos.x && mousePos.x < rightDown.x() && mousePos.y > windowPos.y && mousePos.y < rightDown.y())
+		if (mousePos.x > windowPos.x && mousePos.x < rightDown.x() && mousePos.y > windowPos.y && mousePos.y < rightDown.y() && !m_isTerrainEditMode)
 		{
 			m_pCameraController->SetIsInViewScene(true);
 		}

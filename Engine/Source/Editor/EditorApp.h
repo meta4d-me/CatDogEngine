@@ -89,6 +89,7 @@ private:
 	engine::Renderer* m_pDebugRenderer = nullptr;
 	engine::Renderer* m_pPBRSkyRenderer = nullptr;
 	engine::Renderer* m_pIBLSkyRenderer = nullptr;
+	engine::Renderer* m_pTerrainRenderer = nullptr;
 
 	// Rendering
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;

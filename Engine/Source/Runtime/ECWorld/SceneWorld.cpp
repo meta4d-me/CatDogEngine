@@ -3,6 +3,7 @@
 #include "Log/Log.h"
 #include "Path/Path.h"
 #include "U_BaseSlot.sh"
+#include "U_Terrain.sh"
 
 #ifdef ENABLE_DDGI
 #include "ddgi_sdk.h"
@@ -33,6 +34,7 @@ SceneWorld::SceneWorld()
 	m_pNameComponentStorage = m_pWorld->Register<engine::NameComponent>();
 	m_pSkyComponentStorage = m_pWorld->Register<engine::SkyComponent>();
 	m_pStaticMeshComponentStorage = m_pWorld->Register<engine::StaticMeshComponent>();
+	m_pTerrainComponentStorage = m_pWorld->Register<engine::TerrainComponent>();
 	m_pTransformComponentStorage = m_pWorld->Register<engine::TransformComponent>();
 
 #ifdef ENABLE_DDGI
@@ -122,6 +124,25 @@ void SceneWorld::CreateDDGIMaterialType()
 	m_pDDGIMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Emissive, EMISSIVE_MAP_SLOT);
 }
 #endif
+
+void SceneWorld::CreateTerrainMaterialType()
+{
+	m_pTerrainMaterialType = std::make_unique<MaterialType>();
+	m_pTerrainMaterialType->SetMaterialName("CD_Terrain");
+
+	ShaderSchema shaderSchema;
+	m_pTerrainMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
+
+	cd::VertexFormat terrainVertexFormat;
+	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
+	m_pTerrainMaterialType->SetRequiredVertexFormat(cd::MoveTemp(terrainVertexFormat));
+
+	m_pTerrainMaterialType->AddRequiredTextureType(cd::MaterialTextureType::Elevation, ELEVATION_MAP_SLOT);
+}
+
 
 void SceneWorld::SetSelectedEntity(engine::Entity entity)
 {
