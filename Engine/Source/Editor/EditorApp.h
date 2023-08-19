@@ -90,6 +90,8 @@ private:
 	engine::Renderer* m_pPBRSkyRenderer = nullptr;
 	engine::Renderer* m_pIBLSkyRenderer = nullptr;
 	engine::Renderer* m_pTerrainRenderer = nullptr;
+	engine::Renderer* m_pAABBSelectedRenderer = nullptr;
+	engine::Renderer* m_pAABBAllRenderer = nullptr;
 
 	// Rendering
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;

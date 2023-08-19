@@ -44,7 +44,7 @@ void StaticMeshComponent::BuildDebug()
 	cd::VertexFormat vertexFormat;
 	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
 
-	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Color, cd::AttributeValueType::Float, 4);
+	//vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Color, cd::AttributeValueType::Float, 4);
 	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Box(m_aabb.Min(), m_aabb.Max()), vertexFormat);
 	if (!optMesh.has_value())
 	{
@@ -65,14 +65,28 @@ void StaticMeshComponent::BuildDebug()
 		currentDataSize += posDataSize;
 
 		// barycentric
-		const cd::Vec4f& barycentricCoordinates = meshData.GetVertexColor(0U, vertexIndex);
-		constexpr uint32_t bcDataSize = cd::Vec4f::Size * sizeof(cd::Vec4f::ValueType);
-		std::memcpy(&currentDataPtr[currentDataSize], barycentricCoordinates.Begin(), bcDataSize);
-		currentDataSize += bcDataSize;
+		//const cd::Vec4f& barycentricCoordinates = meshData.GetVertexColor(0U, vertexIndex);
+		//constexpr uint32_t bcDataSize = cd::Vec4f::Size * sizeof(cd::Vec4f::ValueType);
+		//std::memcpy(&currentDataPtr[currentDataSize], barycentricCoordinates.Begin(), bcDataSize);
+		//currentDataSize += bcDataSize;
 	}
 	
-	m_aabbIndexBuffer.resize(meshData.GetPolygonCount() * 3 * sizeof(uint32_t));
-	std::memcpy(m_aabbIndexBuffer.data(), meshData.GetPolygons().data(), m_aabbIndexBuffer.size());
+	// AABB should always use u16 index type.
+	size_t indexTypeSize = sizeof(uint16_t);
+	m_aabbIndexBuffer.resize(12 * 2 * indexTypeSize);
+	assert(meshData.GetPolygonCount() <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()));
+	currentDataSize = 0U;
+	currentDataPtr = m_aabbIndexBuffer.data();
+
+	for (const auto& polygon : meshData.GetPolygons())
+	{
+		for (auto vertexID : polygon)
+		{
+			uint16_t vertexIndex = static_cast<uint16_t>(vertexID.Data());
+			std::memcpy(&currentDataPtr[currentDataSize], &vertexIndex, indexTypeSize);
+			currentDataSize += static_cast<uint32_t>(indexTypeSize);
+		}
+	}
 
 	bgfx::VertexLayout vertexLayout;
 	VertexLayoutUtility::CreateVertexLayout(vertexLayout, vertexFormat.GetVertexLayout());

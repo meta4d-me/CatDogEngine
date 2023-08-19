@@ -9,11 +9,13 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 #include "../common/LightSource.sh"
 #include "../common/Envirnoment.sh"
 
+#include "../UniformDefines/U_Terrain.sh"
+
 uniform vec4 u_emissiveColor;
 
-SAMPLER2D(s_texSnow, 7);
-SAMPLER2D(s_texRock, 8);
-SAMPLER2D(s_texGrass, 9);
+SAMPLER2D(s_texSnow, TERRAIN_TOP_ALBEDO_MAP_SLOT);
+SAMPLER2D(s_texRock, TERRAIN_MEDIUM_ALBEDO_MAP_SLOT);
+SAMPLER2D(s_texGrass, TERRAIN_BOTTOM_ALBEDO_MAP_SLOT);
 
 vec3 GetDirectional(Material material, vec3 worldPos, vec3 viewDir) {
 	vec3 diffuseBRDF = material.albedo * CD_INV_PI;

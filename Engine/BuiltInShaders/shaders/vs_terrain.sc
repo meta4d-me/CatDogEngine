@@ -3,7 +3,9 @@ $output v_worldPos, v_normal, v_texcoord0, v_TBN
 
 #include "../common/common.sh"
 
-SAMPLER2D(s_texElevation, 10);
+#include "../UniformDefines/U_Terrain.sh"
+
+SAMPLER2D(s_texElevation, TERRAIN_ELEVATION_MAP_SLOT);
 
 void main()
 {

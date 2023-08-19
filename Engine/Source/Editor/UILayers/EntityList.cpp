@@ -12,119 +12,6 @@
 #include <bgfx/bgfx.h>
 #include <imgui/imgui_internal.h>
 
-namespace cd
-{
-
-static std::optional<Mesh> Generate(uint32_t width, uint32_t depth, const VertexFormat& vertexFormat) /*HeightMap*/
-{
-    assert(vertexFormat.Contains(VertexAttributeType::Position));
-
-    std::vector<cd::Point> positions;
-    positions.reserve(width * depth);
-    for (uint32_t z = 0U; z < depth; z++) {
-        for (uint32_t x = 0U; x < width; x++) {
-            positions.push_back(cd::Point(x, 0, z));
-        }
-    }
-
-    std::vector<cd::Polygon> polygons;
-    uint32_t NumQuads = (width - 1) * (depth - 1);
-    polygons.reserve(NumQuads * 2);
-
-    for (uint32_t z = 1U; z < depth - 1; z += 2) {
-        for (uint32_t x = 1U; x < width - 1; x += 2) {
-            uint32_t IndexCenter = z * width + x;
-
-            uint32_t IndexTemp1 = (z - 1) * width + x - 1;
-            uint32_t IndexTemp2 = z * width + x - 1;
-
-            polygons.push_back(cd::Polygon{IndexCenter, IndexTemp1, IndexTemp2});
-
-            IndexTemp1 = IndexTemp2;
-            IndexTemp2 += width;
-            polygons.push_back(cd::Polygon{IndexCenter, IndexTemp1, IndexTemp2});
-
-            IndexTemp1 = IndexTemp2;
-            IndexTemp2++;
-            polygons.push_back(cd::Polygon{IndexCenter, IndexTemp1, IndexTemp2});
-
-            IndexTemp1 = IndexTemp2;
-            IndexTemp2++;
-            polygons.push_back(cd::Polygon{IndexCenter, IndexTemp1, IndexTemp2});
-
-            IndexTemp1 = IndexTemp2;
-            IndexTemp2 -= width;
-            polygons.push_back(cd::Polygon{IndexCenter, IndexTemp1, IndexTemp2});
-
-            IndexTemp1 = IndexTemp2;
-            IndexTemp2 -= width;
-            polygons.push_back(cd::Polygon{IndexCenter, IndexTemp1, IndexTemp2});
-
-            IndexTemp1 = IndexTemp2;
-            IndexTemp2--;
-            polygons.push_back(cd::Polygon{IndexCenter, IndexTemp1, IndexTemp2});
-
-            IndexTemp1 = IndexTemp2;
-            IndexTemp2--;
-            polygons.push_back(cd::Polygon{IndexCenter, IndexTemp1, IndexTemp2});
-        }
-    }
-
-    cd::Mesh mesh(static_cast<uint32_t>(positions.size()), static_cast<uint32_t>(polygons.size()));
-
-    for (uint32_t i = 0U; i < positions.size(); ++i)
-    {
-        mesh.SetVertexPosition(i, positions[i]);
-    }
-
-    for (uint32_t i = 0U; i < polygons.size(); ++i)
-    {
-        mesh.SetPolygon(i, polygons[i]);
-    }
-
-    cd::VertexFormat meshVertexFormat;
-    meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
-
-    if (vertexFormat.Contains(VertexAttributeType::Normal))
-    {
-        mesh.ComputeVertexNormals();
-        meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
-    }
-
-    if (vertexFormat.Contains(VertexAttributeType::UV))
-    {
-        mesh.SetVertexUVSetCount(1);
-        for (uint32_t vertexIndex = 0U; vertexIndex < mesh.GetVertexCount(); ++vertexIndex)
-        {
-            const auto& position = mesh.GetVertexPosition(vertexIndex);
-            mesh.SetVertexUV(0U, vertexIndex, cd::UV(position.x() / 4, position.z() / 4));
-        }
-
-        meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
-    }
-
-    if (vertexFormat.Contains(VertexAttributeType::Tangent) || vertexFormat.Contains(VertexAttributeType::Bitangent))
-    {
-        mesh.ComputeVertexTangents();
-        meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
-        meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Bitangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
-    }
-
-    // Use VertexColor0 to present braycentric coordinates.
-    if (vertexFormat.Contains(VertexAttributeType::Color))
-    {
-        mesh.SetVertexColorSetCount(1U);
-        meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Color, cd::GetAttributeValueType<cd::Vec4f::ValueType>(), cd::Vec4f::Size);
-    }
-
-    mesh.SetVertexFormat(MoveTemp(meshVertexFormat));
-    mesh.SetAABB(AABB(cd::Point(0, 0, 0), cd::Point(width, 0, depth)));
-
-    return mesh;
-}
-
-}
-
 namespace editor
 {
 
@@ -208,26 +95,23 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     }
     else if (ImGui::MenuItem("Add Terrain Mesh"))
     {
-        uint32_t TerrainSize = 129U;
-        uint32_t HeightMapSize = 129U;//must be 129 now
-
         engine::Entity entity = AddNamedEntity("Terrain");
 
-        std::optional<cd::Mesh> optMesh = cd::Generate(TerrainSize, TerrainSize, pTerrainMaterialType->GetRequiredVertexFormat());
+        auto& terrainComponent = pWorld->CreateComponent<engine::TerrainComponent>(entity);
+        terrainComponent.InitElevationRawData();
+
+        std::optional<cd::Mesh> optMesh = engine::GenerateTerrainMesh(terrainComponent.GetMeshWidth(), terrainComponent.GetMeshDepth(), pTerrainMaterialType->GetRequiredVertexFormat());
         assert(optMesh.has_value());
         cd::Mesh& mesh = optMesh.value();
+
         auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
         meshComponent.SetMeshData(&mesh);
         meshComponent.SetRequiredVertexFormat(&pTerrainMaterialType->GetRequiredVertexFormat());//to do : modify vertexFormat
         meshComponent.Build();
+
         mesh.SetName(pSceneWorld->GetNameComponent(entity)->GetName());
         mesh.SetID(cd::MeshID(pSceneDatabase->GetMeshCount()));
         pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
-
-        auto& terrainComponent = pWorld->CreateComponent<engine::TerrainComponent>(entity);
-        terrainComponent.SetWidth(HeightMapSize);
-        terrainComponent.SetDepth(HeightMapSize);
-        terrainComponent.InitElevationRawData();
 
         auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
         materialComponent.Init();

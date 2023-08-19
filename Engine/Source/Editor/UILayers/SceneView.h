@@ -21,6 +21,41 @@ class RenderTarget;
 namespace editor
 {
 
+enum class debugModeType
+{
+	NoDebug,
+	WhiteModel,
+
+	Count,
+};
+
+constexpr const char* debugModes[] = {
+	"NoDebug",
+	"WhiteModel",
+	//"WireFrame" 
+};
+
+static_assert(static_cast<int>(debugModeType::Count) == sizeof(debugModes) / sizeof(char*),
+	"debug mode type and names mismatch.");
+
+enum class AABBModeType
+{
+	NoAABB,
+	AABBSelected,
+	AABBAll,
+
+	Count,
+};
+
+constexpr const char* AABBModes[] = {
+	"NoAABB",
+	"AABBSelected",
+	"AABBAll"
+};
+
+static_assert(static_cast<int>(AABBModeType::Count) == sizeof(AABBModes) / sizeof(char*),
+	"AABB mode type and names mismatch.");
+
 class SceneView : public engine::ImGuiBaseLayer
 {
 public:
@@ -36,6 +71,10 @@ public:
 	void PickSceneMesh(float regionWidth, float regionHeight);
 
 	ImGuizmo::OPERATION GetImGuizmoOperation() const { return m_currentOperation; }
+	debugModeType GetDebugMode() const { return m_debugMode; }
+	AABBModeType GetAABBMode() const { return m_AABBMode; }
+	int GetDebug() const { return m_debug; }
+	int GetAABB() const { return m_AABB; }
 
 	void SetCameraController(engine::CameraController* pCameraController) { m_pCameraController = pCameraController; }
 
@@ -47,6 +86,8 @@ private:
 	void UpdateSwitchAABBButton();
 	void UpdateSwitchTerrainButton();
 	void UpdateOperationButtons();
+	void UpdateDebugCombo();
+	void UpdateAABBCombo();
 
 private:
 	uint16_t m_lastContentWidth = 0;
@@ -57,6 +98,10 @@ private:
 	bool m_is3DMode = true;
 	bool m_isIBLActive = false;
 	bool m_isTerrainEditMode = false;
+	debugModeType m_debugMode = debugModeType::NoDebug;
+	AABBModeType m_AABBMode = AABBModeType::NoAABB;
+	int m_debug = 0;
+	int m_AABB = 0;
 
 	engine::RenderTarget* m_pRenderTarget = nullptr;
 	bool m_isMouseDownFirstTime = true;

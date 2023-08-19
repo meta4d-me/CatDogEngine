@@ -104,6 +104,22 @@ void SceneView::UpdateOperationButtons()
 	}
 }
 
+void SceneView::UpdateAABBCombo()
+{
+	ImGui::SetNextItemWidth(150);
+	//ImGui::Combo("##AABBCombo", &m_AABB, AABBModes, IM_ARRAYSIZE(AABBModes));
+	ImGui::Combo("##AABBCombo", reinterpret_cast<int*>(&m_AABBMode), AABBModes, IM_ARRAYSIZE(AABBModes));
+	ImGui::PushItemWidth(140);
+}
+
+void SceneView::UpdateDebugCombo()
+{
+	ImGui::SetNextItemWidth(130);
+	//ImGui::Combo("##DebugCombo", &m_debug, debugModes, IM_ARRAYSIZE(debugModes));
+	ImGui::Combo("##DebugCombo", reinterpret_cast<int*>(&m_debugMode), debugModes, IM_ARRAYSIZE(debugModes));
+	ImGui::PushItemWidth(110);
+}
+
 void SceneView::Update2DAnd3DButtons()
 {
 	bool is3DMode = m_is3DMode;
@@ -209,7 +225,10 @@ void SceneView::UpdateToolMenuButtons()
 	//ImGui::SameLine();
 
 	ImGui::SameLine();
-	UpdateSwitchAABBButton();
+	UpdateAABBCombo();
+
+	ImGui::SameLine();
+	UpdateDebugCombo();
 
 	ImGui::SameLine();
 	UpdateSwitchTerrainButton();

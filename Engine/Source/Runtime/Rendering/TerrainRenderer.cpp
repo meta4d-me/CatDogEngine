@@ -12,6 +12,7 @@
 #include "RenderContext.h"
 #include "Scene/Texture.h"
 #include "U_IBL.sh"
+#include "U_Terrain.sh"
 
 namespace engine
 {
@@ -27,7 +28,7 @@ constexpr const char* elevationSampler = "s_texElevation";
 constexpr const char* snowTexture = "Textures/terrain/snow_baseColor.dds";
 constexpr const char* rockTexture = "Textures/terrain/rock_baseColor.dds";
 constexpr const char* grassTexture = "Textures/terrain/grass_baseColor.dds";
-constexpr const char* elevationTexture = "Textures/terrain/Terrain_Height.dds";
+constexpr const char* elevationTexture = "Terrain";
 
 constexpr const char* lutSampler = "s_texLUT";
 constexpr const char* cubeIrradianceSampler = "s_texCubeIrr";
@@ -80,7 +81,7 @@ void TerrainRenderer::Init()
 	GetRenderContext()->CreateUniform(lightCountAndStride, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(lightParams, bgfx::UniformType::Vec4, LightUniform::VEC4_COUNT);
 
-	GetRenderContext()->CreateTexture("Terrain", 129U, 129U, 1, bgfx::TextureFormat::Enum::R32F, samplerFlags, nullptr, 0);
+	GetRenderContext()->CreateTexture(elevationTexture, 129U, 129U, 1, bgfx::TextureFormat::Enum::R32F, samplerFlags, nullptr, 0);
 
 	bgfx::setViewName(GetViewID(), "TerrainRenderer");
 }
@@ -124,25 +125,25 @@ void TerrainRenderer::Render(float deltaTime)
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
 
 		// Material
-		bgfx::setTexture(7,
+		bgfx::setTexture(TERRAIN_TOP_ALBEDO_MAP_SLOT,
 			GetRenderContext()->GetUniform(StringCrc(snowSampler)),
 			GetRenderContext()->GetTexture(StringCrc(snowTexture)));
 
-		bgfx::setTexture(8,
+		bgfx::setTexture(TERRAIN_MEDIUM_ALBEDO_MAP_SLOT,
 			GetRenderContext()->GetUniform(StringCrc(rockSampler)),
 			GetRenderContext()->GetTexture(StringCrc(rockTexture)));
 
-		bgfx::setTexture(9,
+		bgfx::setTexture(TERRAIN_BOTTOM_ALBEDO_MAP_SLOT,
 			GetRenderContext()->GetUniform(StringCrc(grassSampler)),
 			GetRenderContext()->GetTexture(StringCrc(grassTexture)));
 
 		TerrainComponent* pTerrainComponent = m_pCurrentSceneWorld->GetTerrainComponent(entity);
-		GetRenderContext()->UpdateTexture("Terrain", 0, 0, 0, 0, 0, pTerrainComponent->GetWidth(), pTerrainComponent->GetDepth(),
+		GetRenderContext()->UpdateTexture(elevationTexture, 0, 0, 0, 0, 0, pTerrainComponent->GetTexWidth(), pTerrainComponent->GetTexDepth(),
 			1, pTerrainComponent->GetElevationRawData(), pTerrainComponent->GetElevationRawDataSize());
 
-		bgfx::setTexture(10, 
+		bgfx::setTexture(TERRAIN_ELEVATION_MAP_SLOT,
 			GetRenderContext()->GetUniform(StringCrc(elevationSampler)),
-			GetRenderContext()->GetTexture(StringCrc("Terrain")));
+			GetRenderContext()->GetTexture(StringCrc(elevationTexture)));
 
 		// Sky
 		SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
