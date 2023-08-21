@@ -10,19 +10,19 @@
 namespace engine
 {
 
-void AABBAllRenderer::Init()
+void AABBRenderer::Init()
 {
 	GetRenderContext()->CreateProgram("AABBProgram", "vs_AABB.bin", "fs_AABB.bin");
 	bgfx::setViewName(GetViewID(), "AABBRenderer");
 }
 
-void AABBAllRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
+void AABBRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
 	UpdateViewRenderTarget();
 	bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
 }
 
-void AABBAllRenderer::Render(float deltaTime)
+void AABBRenderer::RenderAll(float deltaTime)
 {
 	for (Entity entity : m_pCurrentSceneWorld->GetStaticMeshEntities())
 	{
@@ -62,19 +62,7 @@ void AABBAllRenderer::Render(float deltaTime)
 	}
 }
 
-void AABBSelectedRenderer::Init()
-{
-	GetRenderContext()->CreateProgram("AABBProgram", "vs_AABB.bin", "fs_AABB.bin");
-	bgfx::setViewName(GetViewID(), "AABBRenderer");
-}
-
-void AABBSelectedRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
-{
-	UpdateViewRenderTarget();
-	bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
-}
-
-void AABBSelectedRenderer::Render(float deltaTime)
+void AABBRenderer::RenderSelected(float deltaTime) 
 {
 	Entity entity = m_pCurrentSceneWorld->GetSelectedEntity();
 	if (m_pCurrentSceneWorld->GetSkyEntity() == entity)
@@ -103,6 +91,18 @@ void AABBSelectedRenderer::Render(float deltaTime)
 
 	constexpr StringCrc AABBProgram("AABBProgram");
 	bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(AABBProgram));
+}
+
+void AABBRenderer::Render(float deltaTime)
+{
+	if (m_isRenderSelected) 
+	{
+		RenderSelected(deltaTime);
+	}
+	else
+	{
+		RenderAll(deltaTime);
+	}
 }
 
 }

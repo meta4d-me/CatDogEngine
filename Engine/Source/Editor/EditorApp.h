@@ -15,6 +15,7 @@ class ImGuiContextInstance;
 class Window;
 class RenderContext;
 class Renderer;
+class AABBRenderer;
 class RenderTarget;
 class SceneWorld;
 
@@ -90,8 +91,7 @@ private:
 	engine::Renderer* m_pPBRSkyRenderer = nullptr;
 	engine::Renderer* m_pIBLSkyRenderer = nullptr;
 	engine::Renderer* m_pTerrainRenderer = nullptr;
-	engine::Renderer* m_pAABBSelectedRenderer = nullptr;
-	engine::Renderer* m_pAABBAllRenderer = nullptr;
+	engine::Renderer* m_pAABBRenderer = nullptr;
 
 	// Rendering
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;

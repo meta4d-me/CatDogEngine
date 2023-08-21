@@ -2,6 +2,8 @@
 #include "Display/CameraController.h"
 #include "ECWorld/Entity.h"
 #include "ImGui/ImGuiBaseLayer.h"
+#include "Rendering/AABBRenderer.h"
+#include "Rendering/DebugRenderer.h"
 
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -21,7 +23,7 @@ class RenderTarget;
 namespace editor
 {
 
-enum class debugModeType
+enum class DebugModeType
 {
 	NoDebug,
 	WhiteModel,
@@ -29,14 +31,14 @@ enum class debugModeType
 	Count,
 };
 
-constexpr const char* debugModes[] = {
+constexpr const char* DebugModes[] = {
 	"NoDebug",
 	"WhiteModel",
 	//"WireFrame" 
 };
 
-static_assert(static_cast<int>(debugModeType::Count) == sizeof(debugModes) / sizeof(char*),
-	"debug mode type and names mismatch.");
+static_assert(static_cast<int>(DebugModeType::Count) == sizeof(DebugModes) / sizeof(char*),
+	"Debug mode type and names mismatch.");
 
 enum class AABBModeType
 {
@@ -67,12 +69,16 @@ public:
 
 	engine::MulticastDelegate<void(uint16_t, uint16_t)> OnResize;
 
-
 	void PickSceneMesh(float regionWidth, float regionHeight);
 
 	ImGuizmo::OPERATION GetImGuizmoOperation() const { return m_currentOperation; }
-	debugModeType GetDebugMode() const { return m_debugMode; }
+	DebugModeType GetDebugMode() const { return m_debugMode; }
 	AABBModeType GetAABBMode() const { return m_AABBMode; }
+
+	void SetSceneRenderer(engine::Renderer* pSceneRenderer) { m_pSceneRenderer = pSceneRenderer; }
+	void SetDebugRenderer(engine::Renderer* pDebugRenderer) { m_pDebugRenderer = pDebugRenderer; }
+	void SetAABBRenderer(engine::Renderer* pAABBRenderer) { m_pAABBRenderer = pAABBRenderer; }
+	
 	bool IsTerrainEditMode() const { return m_isTerrainEditMode; }
 
 	void SetCameraController(engine::CameraController* pCameraController) { m_pCameraController = pCameraController; }
@@ -97,8 +103,12 @@ private:
 	bool m_is3DMode = true;
 	bool m_isIBLActive = false;
 	bool m_isTerrainEditMode = false;
-	debugModeType m_debugMode = debugModeType::NoDebug;
+	DebugModeType m_debugMode = DebugModeType::NoDebug;
 	AABBModeType m_AABBMode = AABBModeType::NoAABB;
+
+	engine::Renderer* m_pSceneRenderer = nullptr;
+	engine::Renderer* m_pDebugRenderer = nullptr;
+	engine::Renderer* m_pAABBRenderer = nullptr;
 
 	engine::RenderTarget* m_pRenderTarget = nullptr;
 	bool m_isMouseDownFirstTime = true;

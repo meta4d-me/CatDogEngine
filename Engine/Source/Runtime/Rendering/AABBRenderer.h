@@ -9,7 +9,7 @@ namespace engine
 
 class SceneWorld;
 
-class AABBAllRenderer final : public Renderer
+class AABBRenderer final : public Renderer
 {
 public:
 	using Renderer::Renderer;
@@ -19,24 +19,14 @@ public:
 	virtual void Render(float deltaTime) override;
 
 	void SetSceneWorld(SceneWorld* pSceneWorld) { m_pCurrentSceneWorld = pSceneWorld; }
+	void SetIsRenderSelected(bool isRenderSelected) { m_isRenderSelected = isRenderSelected; }
 
 private:
+	void RenderSelected(float deltaTime);
+	void RenderAll(float deltaTime);
+
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
-};
-
-class AABBSelectedRenderer final : public Renderer
-{
-public:
-	using Renderer::Renderer;
-
-	virtual void Init() override;
-	virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) override;
-	virtual void Render(float deltaTime) override;
-
-	void SetSceneWorld(SceneWorld* pSceneWorld) { m_pCurrentSceneWorld = pSceneWorld; }
-
-private:
-	SceneWorld* m_pCurrentSceneWorld = nullptr;
+	bool m_isRenderSelected = true;	//	false : all , true : selected
 };
 
 }

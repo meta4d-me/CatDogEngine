@@ -161,6 +161,9 @@ void EditorApp::InitEditorUILayers()
 	auto pSceneView = std::make_unique<SceneView>("SceneView");
 	m_pSceneView = pSceneView.get();
 	pSceneView->SetCameraController(m_pViewportCameraController.get());
+	pSceneView->SetSceneRenderer(m_pSceneRenderer);
+	pSceneView->SetDebugRenderer(m_pDebugRenderer);
+	pSceneView->SetAABBRenderer(m_pAABBRenderer);
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
 
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
@@ -383,17 +386,11 @@ void EditorApp::InitEngineRenderers()
 	pDebugRenderer->SetEnable(false);
 	AddEngineRenderer(cd::MoveTemp(pDebugRenderer));
 
-	auto pAABBAllRenderer = std::make_unique<engine::AABBAllRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-	m_pAABBAllRenderer = pAABBAllRenderer.get();
-	pAABBAllRenderer->SetEnable(false);
-	pAABBAllRenderer->SetSceneWorld(m_pSceneWorld.get());
-	AddEngineRenderer(cd::MoveTemp(pAABBAllRenderer));
-
-	auto pAABBSelectedRenderer = std::make_unique<engine::AABBSelectedRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-	m_pAABBSelectedRenderer = pAABBSelectedRenderer.get();
-	pAABBSelectedRenderer->SetEnable(false);
-	pAABBSelectedRenderer->SetSceneWorld(m_pSceneWorld.get());
-	AddEngineRenderer(cd::MoveTemp(pAABBSelectedRenderer));
+	auto pAABBRenderer = std::make_unique<engine::AABBRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pAABBRenderer = pAABBRenderer.get();
+	pAABBRenderer->SetSceneWorld(m_pSceneWorld.get());
+	pAABBRenderer->SetEnable(false);
+	AddEngineRenderer(cd::MoveTemp(pAABBRenderer));
 
 #ifdef ENABLE_DDGI
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
@@ -548,33 +545,6 @@ bool EditorApp::Update(float deltaTime)
 
 		m_pEngineImGuiContext->SetWindowPosOffset(m_pSceneView->GetWindowPosX(), m_pSceneView->GetWindowPosY());
 		m_pEngineImGuiContext->Update(deltaTime);
-
-		if (debugModeType::NoDebug == m_pSceneView->GetDebugMode())
-		{
-			m_pSceneRenderer->SetEnable(true);
-			m_pDebugRenderer->SetEnable(false);
-		}
-		else if (debugModeType::WhiteModel == m_pSceneView->GetDebugMode())
-		{
-			m_pSceneRenderer->SetEnable(false);
-			m_pDebugRenderer->SetEnable(true);
-		}
-
-		if (AABBModeType::NoAABB == m_pSceneView->GetAABBMode())
-		{
-			m_pAABBAllRenderer->SetEnable(false);
-			m_pAABBSelectedRenderer->SetEnable(false);
-		}
-		else if (AABBModeType::AABBSelected == m_pSceneView->GetAABBMode())
-		{
-			m_pAABBAllRenderer->SetEnable(false);
-			m_pAABBSelectedRenderer->SetEnable(true);
-		}
-		else if (AABBModeType::AABBAll == m_pSceneView->GetAABBMode())
-		{
-			m_pAABBAllRenderer->SetEnable(true);
-			m_pAABBSelectedRenderer->SetEnable(false);
-		}
 
 		for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
 		{

@@ -107,15 +107,43 @@ void SceneView::UpdateOperationButtons()
 void SceneView::UpdateAABBCombo()
 {
 	ImGui::SetNextItemWidth(150);
-	ImGui::Combo("##AABBCombo", reinterpret_cast<int*>(&m_AABBMode), AABBModes, IM_ARRAYSIZE(AABBModes));
-	ImGui::PushItemWidth(140);
+	if(ImGui::Combo("##AABBCombo", reinterpret_cast<int*>(&m_AABBMode), AABBModes, IM_ARRAYSIZE(AABBModes)))
+	{
+		if (AABBModeType::NoAABB == m_AABBMode)
+		{
+			m_pAABBRenderer->SetEnable(false);
+		}
+		else if (AABBModeType::AABBSelected == m_AABBMode)
+		{
+			m_pAABBRenderer->SetEnable(true);
+			static_cast<engine::AABBRenderer*>(m_pAABBRenderer)->SetIsRenderSelected(true);
+		}
+		else if (AABBModeType::AABBAll == m_AABBMode)
+		{
+			m_pAABBRenderer->SetEnable(true);
+			static_cast<engine::AABBRenderer*>(m_pAABBRenderer)->SetIsRenderSelected(false);
+		}
+	}
+	ImGui::PushItemWidth(150);
 }
 
 void SceneView::UpdateDebugCombo()
 {
 	ImGui::SetNextItemWidth(130);
-	ImGui::Combo("##DebugCombo", reinterpret_cast<int*>(&m_debugMode), debugModes, IM_ARRAYSIZE(debugModes));
-	ImGui::PushItemWidth(110);
+	if (ImGui::Combo("##DebugCombo", reinterpret_cast<int*>(&m_debugMode), DebugModes, IM_ARRAYSIZE(DebugModes)))
+	{
+		if (DebugModeType::NoDebug == m_debugMode)
+		{
+			m_pSceneRenderer->SetEnable(true);
+			m_pDebugRenderer->SetEnable(false);
+		}
+		else if (DebugModeType::WhiteModel == m_debugMode)
+		{
+			m_pSceneRenderer->SetEnable(false);
+			m_pDebugRenderer->SetEnable(true);
+		}
+	}
+	ImGui::PushItemWidth(130);
 }
 
 void SceneView::Update2DAnd3DButtons()
