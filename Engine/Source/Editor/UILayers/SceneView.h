@@ -73,8 +73,7 @@ public:
 	ImGuizmo::OPERATION GetImGuizmoOperation() const { return m_currentOperation; }
 	debugModeType GetDebugMode() const { return m_debugMode; }
 	AABBModeType GetAABBMode() const { return m_AABBMode; }
-	int GetDebug() const { return m_debug; }
-	int GetAABB() const { return m_AABB; }
+	bool IsTerrainEditMode() const { return m_isTerrainEditMode; }
 
 	void SetCameraController(engine::CameraController* pCameraController) { m_pCameraController = pCameraController; }
 
@@ -100,8 +99,6 @@ private:
 	bool m_isTerrainEditMode = false;
 	debugModeType m_debugMode = debugModeType::NoDebug;
 	AABBModeType m_AABBMode = AABBModeType::NoAABB;
-	int m_debug = 0;
-	int m_AABB = 0;
 
 	engine::RenderTarget* m_pRenderTarget = nullptr;
 	bool m_isMouseDownFirstTime = true;

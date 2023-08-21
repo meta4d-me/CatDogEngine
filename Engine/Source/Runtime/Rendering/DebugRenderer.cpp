@@ -31,6 +31,12 @@ void DebugRenderer::Render(float deltaTime)
 			continue;
 		}
 
+		TerrainComponent* pTerrainComponent = m_pCurrentSceneWorld->GetTerrainComponent(entity);
+		if (pTerrainComponent)
+		{
+			continue;
+		}
+
 		StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
 		if (!pMeshComponent)
 		{

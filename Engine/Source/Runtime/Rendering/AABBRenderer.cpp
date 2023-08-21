@@ -12,8 +12,8 @@ namespace engine
 
 void AABBAllRenderer::Init()
 {
-	GetRenderContext()->CreateProgram("AABBAllProgram", "vs_AABB.bin", "fs_AABB.bin");
-	bgfx::setViewName(GetViewID(), "AABBAllRenderer");
+	GetRenderContext()->CreateProgram("AABBProgram", "vs_AABB.bin", "fs_AABB.bin");
+	bgfx::setViewName(GetViewID(), "AABBRenderer");
 }
 
 void AABBAllRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -27,6 +27,12 @@ void AABBAllRenderer::Render(float deltaTime)
 	for (Entity entity : m_pCurrentSceneWorld->GetStaticMeshEntities())
 	{
 		if (m_pCurrentSceneWorld->GetSkyEntity() == entity)
+		{
+			continue;
+		}
+
+		TerrainComponent* pTerrainComponent = m_pCurrentSceneWorld->GetTerrainComponent(entity);
+		if (pTerrainComponent)
 		{
 			continue;
 		}
@@ -47,10 +53,10 @@ void AABBAllRenderer::Render(float deltaTime)
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pMeshComponent->GetAABBIndexBuffer() });
 
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
-			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_LINESTRIP;
+			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_LINES;
 		bgfx::setState(state);
 
-		constexpr StringCrc AABBAllProgram("AABBAllProgram");
+		constexpr StringCrc AABBAllProgram("AABBProgram");
 		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(AABBAllProgram));
 
 	}
@@ -92,7 +98,7 @@ void AABBSelectedRenderer::Render(float deltaTime)
 	bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pMeshComponent->GetAABBIndexBuffer() });
 
 	constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
-		BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_LINESTRIP;
+		BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_LINES;
 	bgfx::setState(state);
 
 	constexpr StringCrc AABBProgram("AABBProgram");

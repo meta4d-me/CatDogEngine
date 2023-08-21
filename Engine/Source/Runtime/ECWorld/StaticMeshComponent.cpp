@@ -78,20 +78,23 @@ void StaticMeshComponent::BuildDebug()
 	currentDataSize = 0U;
 	currentDataPtr = m_aabbIndexBuffer.data();
 
-	for (const auto& polygon : meshData.GetPolygons())
+	std::vector<uint16_t> indexes =
 	{
-		for (auto vertexID : polygon)
-		{
-			uint16_t vertexIndex = static_cast<uint16_t>(vertexID.Data());
-			std::memcpy(&currentDataPtr[currentDataSize], &vertexIndex, indexTypeSize);
-			currentDataSize += static_cast<uint32_t>(indexTypeSize);
-		}
+		0U,1U,1U,5U,5U,4U,4U,0U,
+		0U,2U,1U,3U,5U,7U,4U,6U,
+		2U,3U,3U,7U,7U,6U,6U,2U
+	};
+
+	for (const auto& index : indexes)
+	{
+		std::memcpy(&currentDataPtr[currentDataSize], &index, indexTypeSize);
+		currentDataSize += static_cast<uint32_t>(indexTypeSize);
 	}
 
 	bgfx::VertexLayout vertexLayout;
 	VertexLayoutUtility::CreateVertexLayout(vertexLayout, vertexFormat.GetVertexLayout());
 	m_aabbVBH = bgfx::createVertexBuffer(bgfx::makeRef(m_aabbVertexBuffer.data(), static_cast<uint32_t>(m_aabbVertexBuffer.size())), vertexLayout).idx;
-	m_aabbIBH = bgfx::createIndexBuffer(bgfx::makeRef(m_aabbIndexBuffer.data(), static_cast<uint32_t>(m_aabbIndexBuffer.size())), BGFX_BUFFER_INDEX32).idx;
+	m_aabbIBH = bgfx::createIndexBuffer(bgfx::makeRef(m_aabbIndexBuffer.data(), static_cast<uint32_t>(m_aabbIndexBuffer.size())), 0U).idx;
 }
 
 void StaticMeshComponent::Build()

@@ -107,7 +107,6 @@ void SceneView::UpdateOperationButtons()
 void SceneView::UpdateAABBCombo()
 {
 	ImGui::SetNextItemWidth(150);
-	//ImGui::Combo("##AABBCombo", &m_AABB, AABBModes, IM_ARRAYSIZE(AABBModes));
 	ImGui::Combo("##AABBCombo", reinterpret_cast<int*>(&m_AABBMode), AABBModes, IM_ARRAYSIZE(AABBModes));
 	ImGui::PushItemWidth(140);
 }
@@ -115,7 +114,6 @@ void SceneView::UpdateAABBCombo()
 void SceneView::UpdateDebugCombo()
 {
 	ImGui::SetNextItemWidth(130);
-	//ImGui::Combo("##DebugCombo", &m_debug, debugModes, IM_ARRAYSIZE(debugModes));
 	ImGui::Combo("##DebugCombo", reinterpret_cast<int*>(&m_debugMode), debugModes, IM_ARRAYSIZE(debugModes));
 	ImGui::PushItemWidth(110);
 }
@@ -184,7 +182,7 @@ void SceneView::UpdateSwitchTerrainButton()
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 	}
 
-	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CUBE " Terrain Edit")))
+	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CUBE "Smooth Terrain ")))
 	{
 		m_isTerrainEditMode = !m_isTerrainEditMode;
 	}

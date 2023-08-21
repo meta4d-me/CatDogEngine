@@ -532,7 +532,7 @@ bool EditorApp::Update(float deltaTime)
 			m_pViewportCameraController->Update(deltaTime);
 		}
 		//Do Screen Space Smoothing
-		if (pTerrainComponent && engine::Input::Get().IsMouseLBPressed())
+		if (pTerrainComponent && m_pSceneView->IsTerrainEditMode() && engine::Input::Get().IsMouseLBPressed())
 		{
 			float screenSpaceX = 2.0f * static_cast<float>(engine::Input::Get().GetMousePositionX() - m_pSceneView->GetWindowPosX()) /
 				m_pSceneView->GetRenderTarget()->GetWidth() - 1.0f;
@@ -560,20 +560,17 @@ bool EditorApp::Update(float deltaTime)
 			m_pDebugRenderer->SetEnable(true);
 		}
 
-		if (//0 == m_pSceneView->GetAABB())
-			AABBModeType::NoAABB == m_pSceneView->GetAABBMode())
+		if (AABBModeType::NoAABB == m_pSceneView->GetAABBMode())
 		{
 			m_pAABBAllRenderer->SetEnable(false);
 			m_pAABBSelectedRenderer->SetEnable(false);
 		}
-		else if (//1== m_pSceneView->GetAABB())
-			AABBModeType::AABBSelected == m_pSceneView->GetAABBMode())
+		else if (AABBModeType::AABBSelected == m_pSceneView->GetAABBMode())
 		{
 			m_pAABBAllRenderer->SetEnable(false);
 			m_pAABBSelectedRenderer->SetEnable(true);
 		}
-		else if (//2 == m_pSceneView->GetAABB())
-			AABBModeType::AABBAll == m_pSceneView->GetAABBMode())
+		else if (AABBModeType::AABBAll == m_pSceneView->GetAABBMode())
 		{
 			m_pAABBAllRenderer->SetEnable(true);
 			m_pAABBSelectedRenderer->SetEnable(false);
