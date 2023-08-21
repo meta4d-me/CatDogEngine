@@ -167,7 +167,7 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 			if (ImGui::TreeNode("Bloom")) {
 				ImGuiUtils::ImGuiBoolProperty("Open Bloom", pCameraComponent->GetIsBloomEnable());
 				if (pCameraComponent->GetIsBloomEnable()) {
-					ImGuiUtils::ImGuiFloatProperty("DownSampleTimes", pCameraComponent->GetBloomDownSampleTimes(), cd::Unit::None, 4.0f, 8.0f, false, 1.0f);
+					ImGuiUtils::ImGuiIntProperty("DownSampleTimes", pCameraComponent->GetBloomDownSampleTimes(), cd::Unit::None, 4, 8, false, 1.0f);
 					ImGuiUtils::ImGuiFloatProperty("Bloom Intensity", pCameraComponent->GetBloomIntensity(), cd::Unit::None, 0.0f, 3.0f, false, 0.01f);
 					ImGuiUtils::ImGuiFloatProperty("Luminance Threshold", pCameraComponent->GetLuminanceThreshold(), cd::Unit::None, 0.0f, 3.0f, false, 0.01f);
 				}
@@ -178,8 +178,8 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 			if (ImGui::TreeNode("Gaussian Blur")) {
 				ImGuiUtils::ImGuiBoolProperty("Open Blur", pCameraComponent->GetIsBlurEnable());
 				if (pCameraComponent->GetIsBlurEnable()) {
-					ImGuiUtils::ImGuiFloatProperty("Blur Iteration", pCameraComponent->GetBlurTimes(), cd::Unit::None, 0.0f, 10.0f , false, 1.0f);
-					ImGuiUtils::ImGuiFloatProperty("Blur Size", pCameraComponent->GetBlurSize(), cd::Unit::None, 0.2f, 3.0f);
+					ImGuiUtils::ImGuiIntProperty("BlurIteration",pCameraComponent->GetBlurTimes(), cd::Unit::None, 0, 20, false, 1.0f);
+					ImGuiUtils::ImGuiFloatProperty("Blur Size", pCameraComponent->GetBlurSize(), cd::Unit::None, 0.0f, 3.0f);
 				}
 				ImGui::TreePop();
 			}

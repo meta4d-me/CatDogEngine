@@ -81,7 +81,7 @@ public:
 	void SetConstrainAspectRatio(bool use) { m_doConstainAspectRatio = use; }
 
 	bool& GetIsToneMapping() { return m_enableToneMapping; }
-	bool IsToneMappingEnable() { return m_enableToneMapping; }
+	bool GetIsToneMappingEnable() { return m_enableToneMapping; }
 	void SetToneMappingEnable(bool use) { m_enableToneMapping = use; }
 
 	float& GetGammaCorrection() { return m_gammaCorrection; }
@@ -96,9 +96,9 @@ public:
 	const float& GetIsBlurEnable() const { return m_enableBlur; }
 	void SetBlurEnable(bool blur) { m_enableBloom = blur; }
 
-	float& GetBloomDownSampleTimes() { return m_blomDownSampleTimes; }
-	const float& GetBloomDownSampleTimes() const { return m_blomDownSampleTimes; }
-	void SetBloomDownSampleTImes(float downsampletimes) { m_blomDownSampleTimes = downsampletimes; }
+	int& GetBloomDownSampleTimes() { return m_blomDownSampleTimes; }
+	const int& GetBloomDownSampleTimes() const { return m_blomDownSampleTimes; }
+	void SetBloomDownSampleTImes(int downsampletimes) { m_blomDownSampleTimes = downsampletimes; }
 
 	float& GetBloomIntensity() { return m_bloomIntensity; }
 	const float& GetBloomIntensity() const { return m_bloomIntensity; }
@@ -108,9 +108,9 @@ public:
 	const float& GetLuminanceThreshold() const { return m_luminanceThreshold; }
 	void SetLuminanceThreshold(float luminancethreshold) { m_luminanceThreshold = luminancethreshold; }
 
-	float& GetBlurTimes() { return m_blurTimes; }
-	const float& GetBlurTimes() const { return m_blurTimes; }
-	void SetBlurTimes(float blurtimes) { m_blurTimes = blurtimes; }
+	int& GetBlurTimes() { return m_blurTimes; }
+	const int& GetBlurTimes() const { return m_blurTimes; }
+	void SetBlurTimes(int blurtimes) { m_blurTimes = blurtimes; }
 
 	float& GetBlurSize() { return m_blurSize; }
 	const float& GetBlurSize() const { return m_blurSize; }
@@ -138,10 +138,10 @@ private:
 	bool m_enableToneMapping;
 	bool m_enableBloom;
 	bool m_enableBlur;
-	float m_blomDownSampleTimes;
+	int m_blomDownSampleTimes;
 	float m_bloomIntensity;
 	float m_luminanceThreshold;
-	float m_blurTimes;
+	int m_blurTimes;
 	float m_blurSize;
 	float m_gammaCorrection;
 #endif
