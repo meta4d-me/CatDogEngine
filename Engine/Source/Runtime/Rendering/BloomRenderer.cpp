@@ -1,4 +1,4 @@
-#include "Bloom.h"
+#include "BloomRenderer.h"
 
 #include "RenderContext.h"
 
