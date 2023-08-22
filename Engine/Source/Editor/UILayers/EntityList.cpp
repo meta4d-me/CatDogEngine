@@ -29,6 +29,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     engine::World* pWorld = pSceneWorld->GetWorld();
     cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
     engine::MaterialType* pPBRMaterialType = pSceneWorld->GetPBRMaterialType();
+    engine::MaterialType* pTerrainMaterialType = pSceneWorld->GetTerrainMaterialType();
 
     auto AddNamedEntity = [&pWorld](std::string defaultName) -> engine::Entity
     {
@@ -91,6 +92,38 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Sphere(cd::Point(0.0f), 10.0f), 100U, 100U, pPBRMaterialType->GetRequiredVertexFormat());
         assert(optMesh.has_value());
         CreateShapeComponents(entity, cd::MoveTemp(optMesh.value()), pPBRMaterialType);
+    }
+    else if (ImGui::MenuItem("Add Terrain Mesh"))
+    {
+        engine::Entity entity = AddNamedEntity("Terrain");
+
+        auto& terrainComponent = pWorld->CreateComponent<engine::TerrainComponent>(entity);
+        terrainComponent.InitElevationRawData();
+
+        std::optional<cd::Mesh> optMesh = engine::GenerateTerrainMesh(terrainComponent.GetMeshWidth(), terrainComponent.GetMeshDepth(), pTerrainMaterialType->GetRequiredVertexFormat());
+        assert(optMesh.has_value());
+        cd::Mesh& mesh = optMesh.value();
+
+        auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
+        meshComponent.SetMeshData(&mesh);
+        meshComponent.SetRequiredVertexFormat(&pTerrainMaterialType->GetRequiredVertexFormat());//to do : modify vertexFormat
+        meshComponent.Build();
+
+        mesh.SetName(pSceneWorld->GetNameComponent(entity)->GetName());
+        mesh.SetID(cd::MeshID(pSceneDatabase->GetMeshCount()));
+        pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
+
+        auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
+        materialComponent.Init();
+        materialComponent.SetMaterialType(pTerrainMaterialType);
+        materialComponent.SetAlbedoColor(cd::Vec3f(0.2f));
+        materialComponent.SetSkyType(pSceneWorld->GetSkyComponent(pSceneWorld->GetSkyEntity())->GetSkyType());
+        materialComponent.SetTwoSided(true);
+        materialComponent.Build();
+
+        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+        transformComponent.SetTransform(cd::Transform::Identity());
+        transformComponent.Build();
     }
 
     // ---------------------------------------- Add Camera ---------------------------------------- //

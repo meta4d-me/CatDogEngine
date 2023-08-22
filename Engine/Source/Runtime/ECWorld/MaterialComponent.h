@@ -162,6 +162,7 @@ private:
 	float m_alphaCutOff;
 
 	SkyType m_skyType;
+	std::vector<TextureBlob> m_cacheTextureBlobs;
 
 	// Output
 	std::map<cd::MaterialTextureType, TextureInfo> m_textureResources;
