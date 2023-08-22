@@ -18,7 +18,7 @@
 #include "Rendering/DebugRenderer.h"
 #include "Rendering/ImGuiRenderer.h"
 #include "Rendering/PBRSkyRenderer.h"
-#include "Rendering/Bloom.h"
+#include "Rendering/BloomRenderer.h"
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/SkyboxRenderer.h"
