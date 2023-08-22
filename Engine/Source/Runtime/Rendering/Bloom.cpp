@@ -14,13 +14,13 @@ namespace engine
 		GetRenderContext()->CreateProgram("BlurVerticalProgram", "vs_fullscreen.bin", "fs_blurvertical.bin");
 		GetRenderContext()->CreateProgram("BlurHorizontalProgram", "vs_fullscreen.bin", "fs_blurhorizontal.bin");
 		GetRenderContext()->CreateProgram("UpSampleProgram", "vs_fullscreen.bin", "fs_upsample.bin");
+		GetRenderContext()->CreateProgram("KawaseBlurProgram", "vs_fullscreen.bin", "fs_kawaseblur.bin");
 
 		for (int i = 0; i < TEX_CHAIN_LEN; i++) m_sampleChainFB[i] = BGFX_INVALID_HANDLE;
 		for (int i = 0; i < 2; i++) m_blurChainFB[i] = BGFX_INVALID_HANDLE;
 
 		start_dowmSamplePassID = GetRenderContext()->CreateView();
-		downsampleOrder.push_back(start_dowmSamplePassID);
-		for (int i = 0; i < TEX_CHAIN_LEN - 2; i++) downsampleOrder.push_back(GetRenderContext()->CreateView());
+		for (int i = 0; i < TEX_CHAIN_LEN - 2; i++) GetRenderContext()->CreateView();
 		start_verticalBlurPassID = GetRenderContext()->CreateView();
 		start_horizontalBlurPassID = GetRenderContext()->CreateView();
 		for (int i = 0; i < 40 - 2; i++) GetRenderContext()->CreateView();
@@ -163,7 +163,7 @@ namespace engine
 		}
 
 		if (pCameraComponent->GetIsBlurEnable() && pCameraComponent->GetBlurTimes() != 0) {
-			Blur(width >> tempshift, height >> tempshift, pCameraComponent->GetBlurTimes(), pCameraComponent->GetBlurSize(), orthoMatrix, bgfx::getTexture(m_sampleChainFB[tempshift]));
+			Blur(width >> tempshift, height >> tempshift, pCameraComponent->GetBlurTimes(), pCameraComponent->GetBlurSize(),pCameraComponent->GetBlurScaling(), orthoMatrix, bgfx::getTexture(m_sampleChainFB[tempshift]));
 		}
 
 		// upsample
@@ -205,11 +205,13 @@ namespace engine
 		constexpr StringCrc bloomColor("BloomColor");
 		bgfx::TextureHandle bloomColorHandle = GetRenderContext()->GetTexture(bloomColor);
 		bgfx::blit(blit_colorPassID, bloomColorHandle, 0, 0, bgfx::getTexture(m_sampleChainFB[0]));
-
 	}
 
-	void BloomRenderer::Blur(uint16_t width, uint16_t height, int iteration,float blursize, cd::Matrix4x4 ortho,bgfx::TextureHandle texture)
+	void BloomRenderer::Blur(uint16_t width, uint16_t height, int iteration,float blursize, int blurscaling,cd::Matrix4x4 ortho,bgfx::TextureHandle texture)
 	{
+		width = int(width / blurscaling);
+		height = int(height / blurscaling);
+
 		const uint64_t tsFlags = 0 | BGFX_TEXTURE_RT | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
 		for (int ii = 0; ii < 2; ++ii)
 		{
@@ -217,18 +219,14 @@ namespace engine
 			m_blurChainFB[ii] = bgfx::createFrameBuffer(width, height, bgfx::TextureFormat::RGBA32F, tsFlags);
 		}
 
-		blurOrder.clear();
-
 		uint16_t vertical = start_verticalBlurPassID;
 		uint16_t horizontal = start_horizontalBlurPassID;
-		blurOrder.push_back(vertical);
-		blurOrder.push_back(horizontal);
 		for (int i = 0; i < iteration; i++) {
 			float pixelSize[4] =
 			{
 				1.0f / (float)(width),
 				1.0f / (float)(height),
-				1.0f + blursize,
+				float(i / blurscaling) + blursize, /*i + blursize*/
 				1.0f,
 			};
 
@@ -245,8 +243,10 @@ namespace engine
 			bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 			Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
-			constexpr StringCrc BlurHorizontalprogramName("BlurHorizontalProgram");
-			bgfx::submit(vertical, GetRenderContext()->GetProgram(BlurHorizontalprogramName));
+			constexpr StringCrc kawaseBlurprogramName("KawaseBlurProgram");
+			bgfx::submit(vertical, GetRenderContext()->GetProgram(kawaseBlurprogramName));
+			//constexpr StringCrc BlurHorizontalprogramName("BlurVerticalProgram");
+			//bgfx::submit(horizontal, GetRenderContext()->GetProgram(BlurHorizontalprogramName));
 
 			// vertical
 			bgfx::setViewFrameBuffer(horizontal, m_blurChainFB[1]);
@@ -262,11 +262,11 @@ namespace engine
 
 			constexpr StringCrc BlurVerticalprogramName("BlurVerticalProgram");
 			bgfx::submit(horizontal, GetRenderContext()->GetProgram(BlurVerticalprogramName));
+			//constexpr StringCrc BlurVerticalprogramName("BlurVerticalProgram");
+			//bgfx::submit(horizontal, GetRenderContext()->GetProgram(BlurVerticalprogramName));
 
 			vertical += 2;
 			horizontal += 2;
-			blurOrder.push_back(vertical);
-			blurOrder.push_back(horizontal);
 		}
 	}
 

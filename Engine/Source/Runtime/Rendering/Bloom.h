@@ -26,7 +26,7 @@ namespace engine
 		void SetSceneWorld(SceneWorld* pSceneWorld) { m_pCurrentSceneWorld = pSceneWorld; }
 
 	private:
-		void Blur(uint16_t width , uint16_t height,int iteration, float blursize, cd::Matrix4x4 ortho, bgfx::TextureHandle texture);
+		void Blur(uint16_t width , uint16_t height,int iteration, float blursize, int blurscaling,cd::Matrix4x4 ortho, bgfx::TextureHandle texture);
 
 		SceneWorld* m_pCurrentSceneWorld = nullptr;
 
@@ -35,9 +35,6 @@ namespace engine
 
 		uint16_t width;
 		uint16_t height;
-
-		std::vector<uint16_t> blurOrder;
-		std::vector<uint16_t> downsampleOrder;
 
 		uint16_t start_dowmSamplePassID;
 		uint16_t start_verticalBlurPassID;

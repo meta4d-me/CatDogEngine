@@ -115,6 +115,10 @@ public:
 	float& GetBlurSize() { return m_blurSize; }
 	const float& GetBlurSize() const { return m_blurSize; }
 	void SetBlurSize(float blursize) { m_blurSize = blursize; }
+
+	int& GetBlurScaling() { return m_blurScaling; }
+	const int& GetBlurScaling() const { return m_blurScaling; }
+	void SetBlurScaling(int blurscaling) { m_blurScaling = blurscaling; }
 #endif
 
 private:
@@ -143,6 +147,7 @@ private:
 	float m_luminanceThreshold;
 	int m_blurTimes;
 	float m_blurSize;
+	int m_blurScaling;
 	float m_gammaCorrection;
 #endif
 };

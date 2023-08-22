@@ -264,6 +264,7 @@ void EditorApp::InitEditorCameraEntity()
 	cameraComponent.SetLuminanceThreshold(1.0f);
 	cameraComponent.SetBlurTimes(0);
 	cameraComponent.SetBlurSize(0.0f);
+	cameraComponent.SetBlurScaling(1);
 	cameraComponent.SetBloomEnable(false);
 	cameraComponent.SetBlurEnable(false);
 	cameraComponent.BuildProjectMatrix();

@@ -180,6 +180,7 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 				if (pCameraComponent->GetIsBlurEnable()) {
 					ImGuiUtils::ImGuiIntProperty("BlurIteration",pCameraComponent->GetBlurTimes(), cd::Unit::None, 0, 20, false, 1.0f);
 					ImGuiUtils::ImGuiFloatProperty("Blur Size", pCameraComponent->GetBlurSize(), cd::Unit::None, 0.0f, 3.0f);
+					ImGuiUtils::ImGuiIntProperty("Blur Scaling", pCameraComponent->GetBlurScaling(), cd::Unit::None, 1, 4, false, 1.0f);
 				}
 				ImGui::TreePop();
 			}
