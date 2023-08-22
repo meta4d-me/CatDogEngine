@@ -16,6 +16,8 @@ namespace engine
 		GetRenderContext()->CreateProgram("UpSampleProgram", "vs_fullscreen.bin", "fs_upsample.bin");
 		GetRenderContext()->CreateProgram("KawaseBlurProgram", "vs_fullscreen.bin", "fs_kawaseblur.bin");
 
+		bgfx::setViewName(GetViewID(), "BloomRenderer");
+
 		for (int i = 0; i < TEX_CHAIN_LEN; i++) m_sampleChainFB[i] = BGFX_INVALID_HANDLE;
 		for (int i = 0; i < 2; i++) m_blurChainFB[i] = BGFX_INVALID_HANDLE;
 
@@ -101,12 +103,12 @@ namespace engine
 		bgfx::TextureHandle screenTextureHandle;
 		if (pInputRT == pOutputRT)
 		{
-			constexpr StringCrc sceneRenderTargetBlitSRV("SceneRenderTargetBlitSRV");
-			screenTextureHandle = GetRenderContext()->GetTexture(sceneRenderTargetBlitSRV);
+			constexpr StringCrc sceneRenderTargetBlitEmissColor("SceneRenderTargetBlitEmissColor");
+			screenTextureHandle = GetRenderContext()->GetTexture(sceneRenderTargetBlitEmissColor);
 		}
 		else
 		{
-			screenTextureHandle = pInputRT->GetTextureHandle(0);
+			screenTextureHandle = pInputRT->GetTextureHandle(1);
 		}
 
 		Entity entity = m_pCurrentSceneWorld->GetMainCameraEntity();

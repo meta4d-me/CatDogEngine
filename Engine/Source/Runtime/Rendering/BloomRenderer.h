@@ -5,7 +5,7 @@
 #include<bgfx/bgfx.h>
 #include<vector>
 
-#define TEX_CHAIN_LEN 9
+constexpr int TEX_CHAIN_LEN = 9;
 
 namespace engine
 {

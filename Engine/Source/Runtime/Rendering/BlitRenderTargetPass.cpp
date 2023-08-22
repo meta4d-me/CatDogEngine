@@ -23,9 +23,12 @@ void BlitRenderTargetPass::Render(float deltaTime)
 	constexpr StringCrc sceneRenderTarget("SceneRenderTarget");
 	const RenderTarget* pSceneRT = GetRenderContext()->GetRenderTarget(sceneRenderTarget);
 	bgfx::TextureHandle sceneColorTextureHandle = pSceneRT->GetTextureHandle(0);
+	bgfx::TextureHandle emissColorTextureHandle = pSceneRT->GetTextureHandle(1);
 
 	constexpr StringCrc sceneRenderTargetBlitSRV("SceneRenderTargetBlitSRV");
+	constexpr StringCrc sceneRenderTargetBlitEmissColor("SceneRenderTargetBlitEmissColor");
 	bgfx::TextureHandle blitTargetSRVHandle = GetRenderContext()->GetTexture(sceneRenderTargetBlitSRV);
+	bgfx::TextureHandle blitTargetEmissColorHandle = GetRenderContext()->GetTexture(sceneRenderTargetBlitEmissColor);
 	bool buildSRV = false;
 	if (bgfx::isValid(blitTargetSRVHandle))
 	{
@@ -33,6 +36,7 @@ void BlitRenderTargetPass::Render(float deltaTime)
 			pSceneRT->GetHeight() != m_blitTextureHeight)
 		{
 			bgfx::destroy(blitTargetSRVHandle);
+			bgfx::destroy(blitTargetEmissColorHandle);
 			buildSRV = true;
 		}
 	}
@@ -48,9 +52,14 @@ void BlitRenderTargetPass::Render(float deltaTime)
 		blitTargetSRVHandle = bgfx::createTexture2D(m_blitTextureWidth, m_blitTextureHeight, false, 1, bgfx::TextureFormat::RGBA32F,
 			BGFX_TEXTURE_BLIT_DST | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
 		GetRenderContext()->SetTexture(sceneRenderTargetBlitSRV, blitTargetSRVHandle);
+		blitTargetEmissColorHandle = bgfx::createTexture2D(m_blitTextureWidth, m_blitTextureHeight, false, 1, bgfx::TextureFormat::RGBA32F,
+			BGFX_TEXTURE_BLIT_DST | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
+		GetRenderContext()->SetTexture(sceneRenderTargetBlitEmissColor, blitTargetEmissColorHandle);
 	}
 
 	bgfx::blit(GetViewID(), blitTargetSRVHandle, 0, 0, sceneColorTextureHandle);
+	bgfx::blit(GetViewID(), blitTargetEmissColorHandle, 0, 0, emissColorTextureHandle);
+
 }
 
 }
