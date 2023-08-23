@@ -42,12 +42,6 @@ class SceneWorld;
 namespace editor
 {
 
-enum class MeshAssetType : uint8_t
-{
-	Standard,
-	DDGI,
-};
-
 class ECWorldConsumer final : public cdtools::IConsumer
 {
 public:
@@ -59,17 +53,9 @@ public:
 	ECWorldConsumer& operator=(ECWorldConsumer&&) = delete;
 	virtual ~ECWorldConsumer() = default;
 
+	void SetDefaultMaterialType(engine::MaterialType* pMaterialType) { m_pDefaultMaterialType = pMaterialType; }
 	void SetSceneDatabaseIDs(uint32_t nodeID, uint32_t meshID);
 	virtual void Execute(const cd::SceneDatabase* pSceneDatabase) override;
-
-	void ActivateUberOption(cd::MaterialTextureType textureType);
-	void DeactivateUberOption(cd::MaterialTextureType textureType);
-	void ClearActiveUberOption();
-
-	std::set<engine::Uber>& GetActiveUberOptions() { return m_activeUberOptions; }
-	const std::set<engine::Uber>& GetActiveUberOptions() const { return m_activeUberOptions; }
-
-	void ActivateDDGIService() { m_meshAssetType = MeshAssetType::DDGI; }
 
 private:
 	void AddCamera(engine::Entity entity, const cd::Camera& camera);
@@ -81,14 +67,11 @@ private:
 	void AddMaterial(engine::Entity entity, const cd::Material* pMaterial, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase);
 
 private:
-	engine::RenderContext* m_pRenderContext;
-	engine::SceneWorld* m_pSceneWorld;
+	engine::MaterialType* m_pDefaultMaterialType = nullptr;
+	engine::SceneWorld* m_pSceneWorld = nullptr;
 
 	uint32_t m_nodeMinID;
 	uint32_t m_meshMinID;
-	std::set<engine::Uber> m_activeUberOptions;
-
-	MeshAssetType m_meshAssetType = MeshAssetType::Standard;
 };
 
 }

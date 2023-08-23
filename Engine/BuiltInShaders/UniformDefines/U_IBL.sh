@@ -1,0 +1,3 @@
+#define BRDF_LUT_SLOT 4
+#define IBL_IRRADIANCE_SLOT 5
+#define IBL_RADIANCE_SLOT 6

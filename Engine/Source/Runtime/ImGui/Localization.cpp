@@ -1,12 +1,14 @@
 #include "Localization.h"
 
-#include <Log/log.h>
+#include "Base/Template.h"
+
+#include <fstream>
 
 namespace engine
 {
-std::map<std::string, std::vector<std::string>> Localization::TextMap;
-//editors default languages is English
+
 Language Localization::m_language = Language::English;
+std::map<std::string, std::vector<std::string>> Localization::TextMap;
 
 void Localization::SetLanguage(Language language)
 {
@@ -15,58 +17,51 @@ void Localization::SetLanguage(Language language)
 
 const char* Localization::GetText(const std::string& key)
 {
-    if (TextMap.empty())
+    if (!TextMap.empty())
     {
-        Localization::ReadCSV();
-    }
-    
-    auto itKeyValue = TextMap.find(key);
-    if (itKeyValue != TextMap.end())
-    {
-        if ( m_language == Language::ChineseSimplied)
+        auto itKeyValue = TextMap.find(key);
+        if (itKeyValue != TextMap.end())
         {
-            return itKeyValue->second[0].c_str();
-        }
-        else if (m_language == Language::English)
-        {
-            return itKeyValue->second[1].c_str();
+            if (m_language == Language::ChineseSimplied)
+            {
+                return itKeyValue->second[0].c_str();
+            }
+            else if (m_language == Language::English)
+            {
+                return itKeyValue->second[1].c_str();
+            }
         }
     }
 
     return key.c_str();
 }
 
-void Localization::ReadCSV()
+bool Localization::ReadCSV(std::string filePath)
 {
-    std::filesystem::path rootPath = CDEDITOR_RESOURCES_ROOT_PATH;
-    std::string CSVPath = (rootPath / "Text.csv").string();
-    std::ifstream file(std::move(CSVPath));
-    if (!file.is_open())
+    std::ifstream fin(filePath);
+    if (!fin.is_open())
     {
-        CD_ERROR("Failed to open CSV file");
-        return;
+        return false;
     }
 
     std::string line;
-    std::getline(file, line);
-    int num_words = 0;
+    std::getline(fin, line);
+    int numWords = 0;
     for (char c : line)
     {
-        if (c == ',') 
+        if (',' == c)
         {
-
-            num_words++;
-
+            ++numWords;
         }
     }
-    num_words++;
+    ++numWords;
 
-    while (std::getline(file, line))
+    while (std::getline(fin, line))
     {
         std::string::size_type pos = 0, last_pos = 0;
         std::vector<std::string> words;
-        words.reserve(num_words); 
-        for (char& c : line)
+        words.reserve(numWords);
+        for (char c : line)
         {
             if (c == ',')
             {
@@ -76,8 +71,12 @@ void Localization::ReadCSV()
             ++pos;
         }
         words.push_back(line.substr(last_pos));
-        TextMap[std::move(words[0])] = { std::move(words[1]), std::move(words[2]) };
+        TextMap[cd::MoveTemp(words[0])] = { cd::MoveTemp(words[1]), cd::MoveTemp(words[2]) };
     }
+
+    fin.close();
+
+    return true;
 }
 
 }

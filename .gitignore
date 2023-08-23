@@ -5,6 +5,15 @@ Engine/Binaries
 Engine/Intermediate
 Engine/ThirdPartyProjects
 
+# build
+ARM64
+
 # tmp
 Projects/Shared
-Projects/Test/Textures
+Projects/Test/*
+!Projects/Test/*/
+Projects/Test/Textures/*
+!Projects/Test/Textures/*/
+
+# Commercial SKD
+Engine/Auto/commercial_sdk_locations.bat

@@ -4,20 +4,14 @@
 
 project("Engine")
 	kind(EngineBuildLibKind)
-	language("C++")
-	cppdialect("C++20")
+	SetLanguageAndToolset("Engine/Runtime")
 	dependson { "bx", "bimg", "bimg_decode", "bgfx" } -- sdl is pre-built in makefile.
-	
-	location(path.join(IntermediatePath, "Engine/Runtime"))
-	targetdir(BinariesPath)
 
 	files {
 		path.join(RuntimeSourcePath, "**.*"),
 		path.join(ThirdPartySourcePath, "rapidxml/**.hpp"),
 		path.join(ThirdPartySourcePath, "imgui/*.h"),
 		path.join(ThirdPartySourcePath, "imgui/*.cpp"),
-		path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
-		path.join(ThirdPartySourcePath, "spdlog/include/spdlog/**.*"),
 	}
 	
 	vpaths {
@@ -27,20 +21,34 @@ project("Engine")
 		["ImGui"] = {
 			path.join(ThirdPartySourcePath, "imgui/*.h"),
 			path.join(ThirdPartySourcePath, "imgui/*.cpp"),
-			path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
 		},
 	}
-	
-	local bgfxBuildBinPath = nil
-	local platformDefines = nil
-	local platformIncludeDirs = nil
 
-	filter { "system:windows" }
-		bgfxBuildBinPath = ThirdPartySourcePath.."/bgfx/.build/win64_"..IDEConfigs.BuildIDEName.."/bin"
-		platformIncludeDirs = { 
-			path.join(ThirdPartySourcePath, "bx/include/compat/msvc")
+	if ENABLE_FREETYPE then
+		files {
+			path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
 		}
-	filter {}
+
+		vpaths {
+			["ImGui"] = {
+				path.join(ThirdPartySourcePath, "imgui/misc/freetype/imgui_freetype.*"),
+			},
+		}
+	end
+
+	local bgfxBuildBinPath = nil
+	local platformDefines = {}
+	local platformIncludeDirs = {}
+	if IsWindowsPlatform() then
+		bgfxBuildBinPath = ThirdPartySourcePath.."/bgfx/.build/win64_"..IDEConfigs.BuildIDEName.."/bin"
+		table.insert(platformIncludeDirs, path.join(ThirdPartySourcePath, "bx/include/compat/msvc"))
+	elseif IsLinuxPlatform() then
+		bgfxBuildBinPath = ThirdPartySourcePath.."/bgfx/.build/linux_"..IDEConfigs.BuildIDEName.."/bin"
+		table.insert(platformIncludeDirs, path.join(ThirdPartySourcePath, "bx/include/compat/linux"))
+	elseif IsAndroidPlatform() then
+		bgfxBuildBinPath = ThirdPartySourcePath.."/bgfx/.build/android_arm64/bin"
+		table.insert(platformIncludeDirs, path.join(ThirdPartySourcePath, "bx/include/compat/android"))
+	end
 
 	includedirs {
 		RuntimeSourcePath,
@@ -53,57 +61,141 @@ project("Engine")
 		path.join(ThirdPartySourcePath, "bx/include"),
 		path.join(ThirdPartySourcePath, "sdl/include"),
 		path.join(ThirdPartySourcePath, "imgui"),
-		path.join(ThirdPartySourcePath, "freetype/include"),
 		table.unpack(platformIncludeDirs),
 		path.join(EnginePath, "BuiltInShaders/shaders"),
 		path.join(EnginePath, "BuiltInShaders/UniformDefines"),
-		path.join(ThirdPartySourcePath, "spdlog/include"),
 	}
 
-	filter { "configurations:Debug" }
-		platformDefines = {
-			"BX_CONFIG_DEBUG",
+	if ENABLE_FREETYPE then
+		includedirs {
+			path.join(ThirdPartySourcePath, "freetype/include"),
 		}
+
+		defines {
+			"IMGUI_ENABLE_FREETYPE",
+		}
+
+		filter { "configurations:Debug" }
+			libdirs {
+				path.join(ThirdPartySourcePath, "freetype/build/Debug"),
+			}
+			links {
+				"freetyped"
+			}
+		filter { "configurations:Release" }
+			libdirs {
+				path.join(ThirdPartySourcePath, "freetype/build/Release"),
+			}
+			links {
+				"freetype"
+			}
+		filter {}
+	end
+
+	if ENABLE_SPDLOG then
+		files {
+			path.join(ThirdPartySourcePath, "spdlog/include/spdlog/**.*"),
+		}
+	
+		vpaths {
+			["spdlog/*"] = { 
+				path.join(ThirdPartySourcePath, "spdlog/include/spdlog/**.*"),
+			},
+		}
+
+		includedirs {
+			path.join(ThirdPartySourcePath, "spdlog/include"),
+		}
+
+		defines {
+			"SPDLOG_ENABLE", "SPDLOG_NO_EXCEPTIONS", "FMT_USE_NONTYPE_TEMPLATE_ARGS=0",
+		}
+	end
+
+	if ENABLE_TRACY then
+		files {
+			path.join(ThirdPartySourcePath, "tracy/public/TracyClient.cpp"),
+		}
+
+		vpaths {
+			["Tracy"] = {
+				path.join(ThirdPartySourcePath, "tracy/public/TracyClient.cpp"),
+			}
+		}
+
+		includedirs {
+			path.join(ThirdPartySourcePath, "tracy/public"),
+		}
+
+		defines {
+			"TRACY_ENABLE",
+		}
+	end
+
+	if ENABLE_SUBPROCESS then
+		defines {
+			"ENABLE_SUBPROCESS"
+		}
+	end
+
+	filter { "configurations:Debug" }
+		table.insert(platformDefines, "BX_CONFIG_DEBUG")
+
 		libdirs {
 			path.join(ThirdPartySourcePath, "sdl/build/Debug"),
-			path.join(ThirdPartySourcePath, "freetype/build/Debug"),
 			bgfxBuildBinPath,
 		}
 		links {
 			"sdl2d", "sdl2maind",
-			"bgfxDebug", "bimgDebug", "bxDebug", "bimg_decodeDebug",
-			"freetyped"
+			"bgfxDebug", "bimgDebug", "bxDebug", "bimg_decodeDebug"
 		}
 	filter { "configurations:Release" }
 		libdirs {
 			path.join(ThirdPartySourcePath, "sdl/build/Release"),
-			path.join(ThirdPartySourcePath, "freetype/build/Release"),
 			bgfxBuildBinPath,
 		}
 		links {
 			"sdl2", "sdl2main",
-			"bgfxRelease", "bimgRelease", "bxRelease", "bimg_decodeRelease",
-			"freetype"
+			"bgfxRelease", "bimgRelease", "bxRelease", "bimg_decodeRelease"
 		}
 	filter {}
-
+	
+	if ENABLE_DDGI then
+		includedirs {
+			path.join(DDGI_SDK_PATH, "include"),
+		}
+		libdirs {
+			path.join(DDGI_SDK_PATH, "lib"),
+		}
+		links {
+			"ddgi_sdk", "mright_sdk", "DDGIProbeDecoderBin"
+		}
+		defines {
+			"ENABLE_DDGI",
+			"DDGI_SDK_PATH=\""..DDGI_SDK_PATH.."\"",
+		}
+	else
+		excludes {
+			path.join(RuntimeSourcePath, "ECWorld/DDGIComponent.*"),
+			path.join(RuntimeSourcePath, "Rendering/DDGIRenderer.*"),
+		}
+	end
+	
 	if "SharedLib" == EngineBuildLibKind then
 		table.insert(platformDefines, "ENGINE_BUILD_SHARED")
 	end
-
+	
 	defines {
 		"SDL_MAIN_HANDLED", -- don't use SDL_main() as entry point
 		"__STDC_LIMIT_MACROS", "__STDC_FORMAT_MACROS", "__STDC_CONSTANT_MACROS",
 		"STB_IMAGE_STATIC",
-		"IMGUI_ENABLE_FREETYPE",
-		"SPDLOG_NO_EXCEPTIONS", "FMT_USE_NONTYPE_TEMPLATE_ARGS=0",
 		GetPlatformMacroName(),
 		table.unpack(platformDefines),
 		"CDENGINE_BUILTIN_SHADER_PATH=\""..BuiltInShaderSourcePath.."\"",
 		"CDPROJECT_RESOURCES_SHARED_PATH=\""..ProjectSharedPath.."\"",
 		"CDPROJECT_RESOURCES_ROOT_PATH=\""..ProjectResourceRootPath.."\"",
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..EditorResourceRootPath.."\"",
-		"EDITOR_MODE",
+		"EDITOR_MODE", -- TODO : remove it
 	}
 
 	-- use /MT /MTd, not /MD /MDd
@@ -125,29 +217,13 @@ project("Engine")
 	externalwarnings("Off")
 	
 	flags {
-		"FatalWarnings", -- treat warnings as errors
 		"MultiProcessorCompile", -- compiler uses multiple thread
 	}
+
+	if ShouldTreatWaringAsError then
+		flags {
+			"FatalWarnings", -- treat warnings as errors
+		}
+	end
 	
-	-- copy dll into binary folder automatically.
-	filter { "configurations:Debug" }
-		postbuildcommands {
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Debug/SDL2d.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDProducer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/GenericProducer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/TerrainProducer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDConsumer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/assimp-*-mtd.*").."\" \""..BinariesPath.."\"",
-		}
-	filter { "configurations:Release" }
-		postbuildcommands {
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Release/SDL2.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CDProducer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/GenericProducer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/TerrainProducer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CDConsumer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/assimp-*-mt.*").."\" \""..BinariesPath.."\"",
-		}
-	filter {}
+	CopyDllAutomatically()

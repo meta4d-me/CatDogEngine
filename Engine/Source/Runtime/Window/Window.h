@@ -2,7 +2,7 @@
 
 #include "Core/Delegates/MulticastDelegate.hpp"
 
-#include <inttypes.h>
+#include <cstdint>
 
 struct SDL_Window;
 

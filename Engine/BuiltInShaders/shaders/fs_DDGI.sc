@@ -1,25 +1,39 @@
 $input v_worldPos, v_normal, v_texcoord0, v_TBN
 
+#define IBL
+
 #include "../common/common.sh"
-#include "uniforms.sh"
+#include "../common/BRDF.sh"
+#include "../common/Material.sh"
+#include "../common/Camera.sh"
 
-#define PI 3.1415926536
-#define PI2 9.8696044011
-#define INV_PI 0.3183098862
-#define INV_PI2 0.1013211836
+#include "../common/DDGI.sh"
+#include "../common/Envirnoment.sh"
+#include "../common/LightSource.sh"
 
-SAMPLER2D(s_texBaseColor, 0);
-SAMPLER2D(s_texClassification, 1);
-SAMPLER2D(s_texDistance, 2);
-SAMPLER2D(s_texIrradiance, 3);
-SAMPLER2D(s_texRelocation, 4);
+vec3 GetDirectional(Material material, vec3 worldPos, vec3 viewDir) {
+	vec3 diffuseBRDF = material.albedo * CD_INV_PI;
+	return CalculateLights(material, worldPos, viewDir, diffuseBRDF);
+}
 
-vec3 SampleAlbedoTexture(vec2 uv) {
-	return texture2D(s_texDistance, uv).xyz;
-	// return vec3_splat(5.0) * texture2D(s_texIrradiance, uv).xyz;
+vec3 GetEnvironment(Material material, vec3 worldPos, vec3 viewDir, vec3 normal) {
+	vec3 envDiffuseIrradiance = GetDDGIIrradiance(worldPos, normal, viewDir);
+	vec3 ddgiRadiance = material.albedo * vec3_splat(CD_INV_PI) * envDiffuseIrradiance;
+	vec3 iblRadiance = GetIBL(material, normal, viewDir);
+	return material.metallic * iblRadiance + (1.0 - material.metallic) * ddgiRadiance;
 }
 
 void main()
 {
-	gl_FragColor = vec4(SampleAlbedoTexture(v_texcoord0), 1.0);
+	Material material = GetMaterial(v_texcoord0, v_normal, v_TBN);
+	material.roughness = 1.0 - material.roughness;
+	
+	vec3 cameraPos = GetCamera().position.xyz;
+	vec3 viewDir = normalize(cameraPos - v_worldPos);
+	
+	vec3 dirColor = GetDirectional(material, v_worldPos, viewDir);
+	vec3 envColor = GetEnvironment(material, v_worldPos, viewDir, v_normal);
+	vec3 emiColor = material.emissive;
+	
+	gl_FragColor = vec4(dirColor + envColor + emiColor, 1.0);
 }

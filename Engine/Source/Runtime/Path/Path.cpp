@@ -1,6 +1,12 @@
 #include "Path.h"
 
+#include "Base/NameOf.h"
+#include "Base/Template.h"
 #include "Log/Log.h"
+
+#include <SDL_stdinc.h>
+
+#include <cassert>
 
 namespace engine
 {
@@ -9,19 +15,15 @@ GraphicsBackend Path::s_backend = engine::GraphicsBackend::Noop;
 
 std::optional<std::filesystem::path> Path::GetApplicationDataPath()
 {
-
-    char value[MAX_PATH_SIZE];
-    size_t len;
-    errno_t err = getenv_s(&len, value, MAX_PATH_SIZE, GetPlatformPathKey());
-    if (err)
+    const char* pKey = GetPlatformPathKey();
+    char* pValue = SDL_getenv(pKey);
+    if (!pValue)
     {
-        CD_ENGINE_ERROR(err);
+        CD_ENGINE_ERROR("Cannot find environment variable %s.", pKey);
         return std::nullopt;
     }
-    else
-    {
-        return GetPlatformAppDataPath(value);
-    }
+    
+    return GetPlatformAppDataPath(pValue);
 }
 
 const char* Path::GetPlatformPathKey()
@@ -37,15 +39,15 @@ const char* Path::GetPlatformPathKey()
 #endif
 }
 
-std::filesystem::path Path::GetPlatformAppDataPath(char(&value)[MAX_PATH_SIZE])
+std::filesystem::path Path::GetPlatformAppDataPath(const char* pRootPath)
 {
     // TODO : Need more test.
 #if defined(_WIN32)
-    return std::filesystem::path(value);
+    return std::filesystem::path(pRootPath);
 #elif defined(__linux__)
-    return std::filesystem::path(value) / ".local" / "share";
+    return std::filesystem::path(pRootPath) / ".local" / "share";
 #elif defined(__APPLE__)
-    return std::filesystem::path(value) / "Library" / "Application Support";
+    return std::filesystem::path(pRootPath) / "Library" / "Application Support";
 #else
     #error Unsupport platform!
 #endif
@@ -71,6 +73,11 @@ std::filesystem::path Path::GetProjectsSharedPath()
     return std::filesystem::path(CDPROJECT_RESOURCES_SHARED_PATH);
 }
 
+engine::GraphicsBackend Path::GetGraphicsBackend()
+{
+    return s_backend;
+}
+
 void Path::SetGraphicsBackend(engine::GraphicsBackend backend)
 {
     s_backend = backend;
@@ -84,12 +91,12 @@ void Path::SetGraphicsBackend(engine::GraphicsBackend backend)
 
 std::string Path::GetBuiltinShaderInputPath(const char* pShaderName)
 {
-    return (GetEngineBuiltinShaderPath() / std::filesystem::path(pShaderName).stem()).replace_extension(ShaderInputExtension).string();
+    return (GetEngineBuiltinShaderPath() / std::filesystem::path(pShaderName)).replace_extension(ShaderInputExtension).string();
 }
 
 std::filesystem::path Path::GetShaderOutputDirectory()
 {
-    return GetProjectsSharedPath() / "BuiltInShaders" / GetGraphicsBackendName(s_backend);
+    return GetProjectsSharedPath() / "BuiltInShaders" / nameof::nameof_enum(s_backend);
 }
 
 std::string Path::GetShaderOutputPath(const char* pInputFilePath, const std::string& options)

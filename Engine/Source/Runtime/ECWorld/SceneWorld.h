@@ -4,6 +4,7 @@
 #include "ECWorld/World.h"
 #include "Log/Log.h"
 #include "Material/MaterialType.h"
+#include "Math/Transform.hpp"
 #include "Scene/SceneDatabase.h"
 
 #include <memory>
@@ -29,19 +30,22 @@ class SceneWorld
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Animation);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Camera);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(CollisionMesh);
+#ifdef ENABLE_DDGI
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(DDGI);
+#endif
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Hierarchy);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Light);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Material);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Name);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Sky);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(StaticMesh);
+	DEFINE_COMPONENT_STORAGE_WITH_APIS(Terrain);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Transform);
 
 public:
 	SceneWorld();
-	SceneWorld(const SceneWorld&) = default;
-	SceneWorld& operator=(const SceneWorld&) = default;
+	SceneWorld(const SceneWorld&) = delete;
+	SceneWorld& operator=(const SceneWorld&) = delete;
 	SceneWorld(SceneWorld&&) = default;
 	SceneWorld& operator=(SceneWorld&&) = default;
 	~SceneWorld() = default;
@@ -56,11 +60,13 @@ public:
 	void SetMainCameraEntity(engine::Entity entity);
 	CD_FORCEINLINE engine::Entity GetMainCameraEntity() const { return m_mainCameraEntity; }
 
+#ifdef ENABLE_DDGI
 	void SetDDGIEntity(engine::Entity entity);
 	CD_FORCEINLINE engine::Entity GetDDGIEntity() const { return m_ddgiEntity; }
+#endif
 
-	void SetPBRSkyEntity(engine::Entity entity);
-	CD_FORCEINLINE engine::Entity GetPBRSkyEntity() const { return m_pbrskyEntity; }
+	void SetSkyEntity(engine::Entity entity);
+	CD_FORCEINLINE engine::Entity GetSkyEntity() const { return m_skyEntity; }
 
 	void DeleteEntity(engine::Entity entity)
 	{
@@ -79,17 +85,20 @@ public:
 		DeleteAnimationComponent(entity);
 		DeleteCameraComponent(entity);
 		DeleteCollisionMeshComponent(entity);
+#ifdef ENABLE_DDGI
 		DeleteDDGIComponent(entity);
+#endif
 		DeleteHierarchyComponent(entity);
 		DeleteLightComponent(entity);
 		DeleteMaterialComponent(entity);
 		DeleteNameComponent(entity);
 		DeleteSkyComponent(entity);
 		DeleteStaticMeshComponent(entity);
+		DeleteTerrainComponent(entity);
 		DeleteTransformComponent(entity);
 	}
 
-	void CreatePBRMaterialType();
+	void CreatePBRMaterialType(bool isAtmosphericScatteringEnable = false);
 	CD_FORCEINLINE engine::MaterialType* GetPBRMaterialType() const { return m_pPBRMaterialType.get(); }
 
 	void CreateAnimationMaterialType();
@@ -98,8 +107,20 @@ public:
 	void CreateTerrainMaterialType();
 	CD_FORCEINLINE engine::MaterialType* GetTerrainMaterialType() const { return m_pTerrainMaterialType.get(); }
 
+#ifdef ENABLE_DDGI
 	void CreateDDGIMaterialType();
 	CD_FORCEINLINE engine::MaterialType* GetDDGIMaterialType() const { return m_pDDGIMaterialType.get(); }
+#endif
+
+	void AddCameraToSceneDatabase(engine::Entity entity);
+	void AddLightToSceneDatabase(engine::Entity entity);
+	void AddMaterialToSceneDatabase(engine::Entity entity);
+
+#ifdef ENABLE_DDGI
+	void InitDDGISDK();
+#endif
+
+	void Update();
 
 private:
 	std::unique_ptr<cd::SceneDatabase> m_pSceneDatabase;
@@ -113,8 +134,10 @@ private:
 	// TODO : wrap them into another class?
 	engine::Entity m_selectedEntity = engine::INVALID_ENTITY;
 	engine::Entity m_mainCameraEntity = engine::INVALID_ENTITY;
+#ifdef ENABLE_DDGI
 	engine::Entity m_ddgiEntity = engine::INVALID_ENTITY;
-	engine::Entity m_pbrskyEntity = engine::INVALID_ENTITY;
+#endif
+	engine::Entity m_skyEntity = engine::INVALID_ENTITY;
 };
 
 }

@@ -2,26 +2,31 @@
 
 #include "Application/Engine.h"
 #include "Display/CameraController.h"
-#include "Display/FirstPersonCameraController.h"
 #include "ECWorld/SceneWorld.h"
 #include "ImGui/EditorImGuiViewport.h"
 #include "ImGui/ImGuiContextInstance.h"
+#include "ImGui/Localization.h"
 #include "ImGui/UILayers/DebugPanel.h"
 #include "Log/Log.h"
+#include "Math/MeshGenerator.h"
 #include "Path/Path.h"
+#include "Rendering/AABBRenderer.h"
 #include "Rendering/AnimationRenderer.h"
 #include "Rendering/BlitRenderTargetPass.h"
+#ifdef ENABLE_DDGI
 #include "Rendering/DDGIRenderer.h"
+#endif
 #include "Rendering/DebugRenderer.h"
 #include "Rendering/ImGuiRenderer.h"
 #include "Rendering/PBRSkyRenderer.h"
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
-#include "Rendering/SkyRenderer.h"
+#include "Rendering/SkyboxRenderer.h"
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ShaderBuilder.h"
+#include "Resources/ShaderLoader.h"
 #include "Scene/SceneDatabase.h"
 #include "UILayers/AssetBrowser.h"
 #include "UILayers/EntityList.h"
@@ -32,7 +37,6 @@
 #include "UILayers/OutputLog.h"
 #include "UILayers/SceneView.h"
 #include "UILayers/Splash.h"
-#include "UILayers/TerrainEditor.h"
 #include "Window/Input.h"
 #include "Window/Window.h"
 
@@ -41,7 +45,7 @@
 #include <imgui/imgui_internal.h>
 #include "ImGui/imfilebrowser.h"
 
-#include <format>
+//#include <format>
 #include <thread>
 
 namespace editor
@@ -59,22 +63,31 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 {
 	m_initArgs = cd::MoveTemp(initArgs);
 
-	// Init graphics backend
-	InitRenderContext(m_initArgs.backend);
+	// Load config files
+	std::filesystem::path rootPath = CDEDITOR_RESOURCES_ROOT_PATH;
+	rootPath /= "Text.csv";
+	if (!engine::Localization::ReadCSV(rootPath.string()))
+	{
+		CD_ERROR("Failed to open CSV file");
+	}
+
 
 	// Phase 1 - Splash
 	//		* Compile uber shader permutations automatically when initialization or detect changes
 	//		* Show compile progresses so it still needs to update ui
-	auto pSplashWindow = std::make_unique<engine::Window>("Loading", 500,400);
+	auto pSplashWindow = std::make_unique<engine::Window>("Loading", 500, 400);
 	pSplashWindow->SetWindowIcon(m_initArgs.pIconFilePath);
 	pSplashWindow->SetBordedLess(true);
 	pSplashWindow->SetResizeable(false);
+
+	// Init graphics backend
+	InitRenderContext(m_initArgs.backend, pSplashWindow->GetNativeHandle());
 	pSplashWindow->OnResize.Bind<engine::RenderContext, &engine::RenderContext::OnResize>(m_pRenderContext.get());
 	AddWindow(cd::MoveTemp(pSplashWindow));
 
 	InitEditorRenderers();
 	InitEditorImGuiContext(m_initArgs.language);
-	
+
 	InitECWorld();
 	m_pEditorImGuiContext->SetSceneWorld(m_pSceneWorld.get());
 
@@ -83,9 +96,9 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	m_pEditorImGuiContext->AddStaticLayer(std::make_unique<Splash>("Splash"));
 
 	std::thread resourceThread([]()
-	{
-		ResourceBuilder::Get().Update();
-	});
+		{
+			ResourceBuilder::Get().Update(true/*doPrintLog*/);
+		});
 	resourceThread.detach();
 }
 
@@ -132,20 +145,26 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 
 void EditorApp::InitEditorUILayers()
 {
+	InitEditorController();
+
 	// Add UI layers after finish imgui and rendering contexts' initialization.
-	m_pEditorImGuiContext->AddStaticLayer(std::make_unique<MainMenu>("MainMenu"));
+	auto pMainMenu = std::make_unique<MainMenu>("MainMenu");
+	pMainMenu->SetCameraController(m_pViewportCameraController.get());
+	m_pEditorImGuiContext->AddStaticLayer(cd::MoveTemp(pMainMenu));
 
 	auto pEntityList = std::make_unique<EntityList>("EntityList");
+	pEntityList->SetCameraController(m_pViewportCameraController.get());
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pEntityList));
 
 	//m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<GameView>("GameView"));
 
 	auto pSceneView = std::make_unique<SceneView>("SceneView");
 	m_pSceneView = pSceneView.get();
+	pSceneView->SetCameraController(m_pViewportCameraController.get());
+	pSceneView->SetSceneRenderer(m_pSceneRenderer);
+	pSceneView->SetDebugRenderer(m_pDebugRenderer);
+	pSceneView->SetAABBRenderer(m_pAABBRenderer);
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
-
-	auto pTerrainEditor = std::make_unique<TerrainEditor>("Terrain Editor");
-	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pTerrainEditor));
 
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
 
@@ -175,7 +194,10 @@ void EditorApp::InitEngineImGuiContext(engine::Language language)
 
 void EditorApp::InitEngineUILayers()
 {
-	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<engine::DebugPanel>("DebugPanel"));
+	//auto pEntityList = std::make_unique<engine::DebugPanel>("DebugPanel");
+	//pEntityList->SetCameraController(m_pCameraController);
+	//m_pEngineImGuiContext->AddDynamicLayer(cd::MoveTemp(pEntityList));
+
 	auto pImGuizmoView = std::make_unique<editor::ImGuizmoView>("ImGuizmoView");
 	pImGuizmoView->SetSceneView(m_pSceneView);
 	m_pEngineImGuiContext->AddDynamicLayer(cd::MoveTemp(pImGuizmoView));
@@ -206,68 +228,118 @@ void EditorApp::InitECWorld()
 {
 	m_pSceneWorld = std::make_unique<engine::SceneWorld>();
 
+	if (IsAtmosphericScatteringEnable())
+	{
+		m_pSceneWorld->CreatePBRMaterialType(true);
+	}
+	else
+	{
+		m_pSceneWorld->CreatePBRMaterialType(false);
+	}
+
+	m_pSceneWorld->CreateAnimationMaterialType();
+	m_pSceneWorld->CreateTerrainMaterialType();
+	InitEditorCameraEntity();
+
+#ifdef ENABLE_DDGI
+	m_pSceneWorld->InitDDGISDK();
+	InitDDGIEntity();
+#endif
+
+	InitSkyEntity();
+}
+
+void EditorApp::InitEditorCameraEntity()
+{
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
+
 	engine::Entity cameraEntity = pWorld->CreateEntity();
 	m_pSceneWorld->SetMainCameraEntity(cameraEntity);
 	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(cameraEntity);
 	nameComponent.SetName("MainCamera");
 
-	//auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
-	//transformComponent.SetTransform(cd::Transform::Identity());
-	//transformComponent.Build();
+	auto& cameraTransformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
+	cameraTransformComponent.SetTransform(cd::Transform::Identity());
+	cameraTransformComponent.Build();
+
+	auto& cameraTransform = cameraTransformComponent.GetTransform();
+	cameraTransform.SetTranslation(cd::Point(0.0f, 0.0f, -100.0f));
+	engine::CameraComponent::SetLookAt(cd::Direction(0.0f, 0.0f, 1.0f), cameraTransform);
+	engine::CameraComponent::SetUp(cd::Direction(0.0f, 1.0f, 0.0f), cameraTransform);
 
 	auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(cameraEntity);
-	cameraComponent.SetEye(cd::Point(0.0f, 0.0f, -100.0f));
-	cameraComponent.SetLookAt(cd::Direction(0.0f, 0.0f, 1.0f));
-	cameraComponent.SetUp(cd::Direction(0.0f, 1.0f, 0.0f));
 	cameraComponent.SetAspect(1.0f);
 	cameraComponent.SetFov(45.0f);
 	cameraComponent.SetNearPlane(0.1f);
 	cameraComponent.SetFarPlane(2000.0f);
 	cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
-	cameraComponent.SetGammaCorrection(cd::Vec3f(0.45f));
+	cameraComponent.SetGammaCorrection(0.45f);
+	cameraComponent.BuildProjectMatrix();
+	cameraComponent.BuildViewMatrix(cameraTransform);
 
-	// Controller for Input events.
-	m_pCameraController = std::make_unique<engine::FirstPersonCameraController>(
-		m_pSceneWorld.get(),
-		15.0f /* horizontal sensitivity */,
-		5.0f/* vertical sensitivity */);
-	engine::Entity ddgiEntity = pWorld->CreateEntity();
-	m_pSceneWorld->SetDDGIEntity(ddgiEntity);
-	auto& ddgiNameComponent = pWorld->CreateComponent<engine::NameComponent>(ddgiEntity);
-	ddgiNameComponent.SetName("DDGI");
-	auto& ddgiComponent = pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
-
-	engine::Entity skyEntity = pWorld->CreateEntity();
-	m_pSceneWorld->SetPBRSkyEntity(skyEntity);
-	auto& skyNameComponent = pWorld->CreateComponent<engine::NameComponent>(skyEntity);
-	skyNameComponent.SetName("Sky");
-
-	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(skyEntity);
-	transformComponent.SetTransform(cd::Transform(cd::Vec3f(0.0f, -1.0f, 0.0f), cd::Quaternion::Identity(), cd::Vec3f::One()));
-	transformComponent.Build();
-
-	m_pNewCameraController = std::make_unique<engine::CameraController>(
-		m_pSceneWorld.get(),
-		5.0f /* horizontal sensitivity */,
-		5.0f /* vertical sensitivity */,
-		5.0f /* Movement Speed*/);
 }
 
-void EditorApp::InitRenderContext(engine::GraphicsBackend backend)
+#ifdef ENABLE_DDGI
+void EditorApp::InitDDGIEntity()
 {
-	CD_INFO("Init graphics backend : {}", engine::GetGraphicsBackendName(backend));
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+
+		engine::Entity ddgiEntity = pWorld->CreateEntity();
+	m_pSceneWorld->SetDDGIEntity(ddgiEntity);
+
+	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(ddgiEntity);
+	nameComponent.SetName("DDGI");
+
+	pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
+}
+#endif
+
+void EditorApp::InitSkyEntity()
+{
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+
+	engine::Entity skyEntity = pWorld->CreateEntity();
+	m_pSceneWorld->SetSkyEntity(skyEntity);
+
+	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(skyEntity);
+	nameComponent.SetName("Sky");
+
+	auto& skyComponent = pWorld->CreateComponent<engine::SkyComponent>(skyEntity);
+	if (IsAtmosphericScatteringEnable())
+	{
+		skyComponent.SetSunDirection(cd::Direction(-0.1f, -0.9f, 0.5f));
+		skyComponent.SetHeightOffset(1.0f);
+		skyComponent.SetShadowLength(0.1f);
+		skyComponent.SetAtmophericScatteringEnable(true);
+	}
+
+	cd::VertexFormat vertexFormat;
+	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
+	m_pRenderContext->CreateVertexLayout(engine::StringCrc("PosistionOnly"), vertexFormat.GetVertexLayout());
+
+	cd::Box skyBox(cd::Point(-1.0f), cd::Point(1.0f));
+	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(skyBox, vertexFormat, false);
+	assert(optMesh.has_value());
+
+	auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(skyEntity);
+	meshComponent.SetMeshData(&optMesh.value());
+	meshComponent.SetRequiredVertexFormat(&vertexFormat);
+	meshComponent.Build();
+}
+
+void EditorApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
+{
+	CD_INFO("Init graphics backend : {}", nameof::nameof_enum(backend));
 
 	engine::Path::SetGraphicsBackend(backend);
 	m_pRenderContext = std::make_unique<engine::RenderContext>();
-	m_pRenderContext->Init(backend);
+	m_pRenderContext->Init(backend, hwnd);
+	engine::Renderer::SetRenderContext(m_pRenderContext.get());
 }
 
 void EditorApp::InitEditorRenderers()
 {
-	constexpr engine::StringCrc editorSwapChainName("EditorUISwapChain");
-	m_pEditorRenderTarget = m_pRenderContext->CreateRenderTarget(editorSwapChainName, GetMainWindow()->GetWidth(), GetMainWindow()->GetHeight(), GetMainWindow()->GetNativeHandle());
-	AddEditorRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), m_pEditorRenderTarget));
+	AddEditorRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext->CreateView()));
 }
 
 void EditorApp::InitEngineRenderers()
@@ -282,59 +354,99 @@ void EditorApp::InitEngineRenderers()
 	// The init size doesn't make sense. It will resize by SceneView.
 	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->CreateRenderTarget(sceneViewRenderTargetName, 1, 1, std::move(attachmentDesc));
 
-	auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
-	m_pPBRSkyRenderer = pPBRSkyRenderer.get();
-	pPBRSkyRenderer->SetSceneWorld(m_pSceneWorld.get());
-	AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
+	auto pSkyboxRenderer = std::make_unique<engine::SkyboxRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pIBLSkyRenderer = pSkyboxRenderer.get();
+	pSkyboxRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pSkyboxRenderer));
 
-	auto pIBLSkyRenderer = std::make_unique<engine::SkyRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
-	pIBLSkyRenderer->SetEnable(false);
-	m_pIBLSkyRenderer = pIBLSkyRenderer.get();
-	AddEngineRenderer(cd::MoveTemp(pIBLSkyRenderer));
+	if (IsAtmosphericScatteringEnable())
+	{
+		auto pPBRSkyRenderer = std::make_unique<engine::PBRSkyRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+		m_pPBRSkyRenderer = pPBRSkyRenderer.get();
+		pPBRSkyRenderer->SetSceneWorld(m_pSceneWorld.get());
+		AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
+	}
 
-	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
-	pTerrainRenderer->SetSceneWorld(m_pSceneWorld.get());
-	AddEngineRenderer(cd::MoveTemp(pTerrainRenderer));
-
-	auto pSceneRenderer = std::make_unique<engine::WorldRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	auto pSceneRenderer = std::make_unique<engine::WorldRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pSceneRenderer = pSceneRenderer.get();
 	pSceneRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pSceneRenderer));
 
-	auto pAnimationRenderer = std::make_unique<engine::AnimationRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pTerrainRenderer = pTerrainRenderer.get();
+	pTerrainRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pTerrainRenderer));
+
+	auto pAnimationRenderer = std::make_unique<engine::AnimationRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pAnimationRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pAnimationRenderer));
 
-	auto pDebugRenderer = std::make_unique<engine::DebugRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	auto pDebugRenderer = std::make_unique<engine::DebugRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pDebugRenderer = pDebugRenderer.get();
-	pDebugRenderer->SetEnable(false);
 	pDebugRenderer->SetSceneWorld(m_pSceneWorld.get());
+	pDebugRenderer->SetEnable(false);
 	AddEngineRenderer(cd::MoveTemp(pDebugRenderer));
 
-	auto pBlitRTRenderPass = std::make_unique<engine::BlitRenderTargetPass>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
-	AddEngineRenderer(cd::MoveTemp(pBlitRTRenderPass));
+	auto pAABBRenderer = std::make_unique<engine::AABBRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pAABBRenderer = pAABBRenderer.get();
+	pAABBRenderer->SetSceneWorld(m_pSceneWorld.get());
+	pAABBRenderer->SetEnable(false);
+	AddEngineRenderer(cd::MoveTemp(pAABBRenderer));
 
-	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+#ifdef ENABLE_DDGI
+	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pDDGIRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pDDGIRenderer));
+#endif
+
+	auto pBlitRTRenderPass = std::make_unique<engine::BlitRenderTargetPass>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	AddEngineRenderer(cd::MoveTemp(pBlitRTRenderPass));
 
 	// We can debug vertex/material/texture information by just output that to screen as fragmentColor.
 	// But postprocess will bring unnecessary confusion. 
-	auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget);
+	auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pPostProcessRenderer->SetSceneWorld(m_pSceneWorld.get());
+	pPostProcessRenderer->SetEnable(true);
 	AddEngineRenderer(cd::MoveTemp(pPostProcessRenderer));
 
 	// Note that if you don't want to use ImGuiRenderer for engine, you should also disable EngineImGuiContext.
-	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext.get(), m_pRenderContext->CreateView(), pSceneRenderTarget));
+	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget));
+}
+
+bool EditorApp::IsAtmosphericScatteringEnable() const
+{
+	engine::GraphicsBackend backend = engine::Path::GetGraphicsBackend();
+
+	return engine::GraphicsBackend::Vulkan != backend
+		&& engine::GraphicsBackend::OpenGL != backend
+		&& engine::GraphicsBackend::OpenGLES != backend;
 }
 
 void EditorApp::InitShaderPrograms() const
 {
-	ShaderBuilder::BuildNonUberShader();
+	std::string nonUberBuildPath = CDENGINE_BUILTIN_SHADER_PATH;
+	ShaderBuilder::BuildNonUberShader(nonUberBuildPath + "shaders");
+	if (IsAtmosphericScatteringEnable())
+	{
+		std::string atmBuildPath = CDENGINE_BUILTIN_SHADER_PATH;
+		ShaderBuilder::BuildNonUberShader(atmBuildPath + "atm");
+	}
+
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetPBRMaterialType());
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetAnimationMaterialType());
-	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetTerrainMaterialType());
+#ifdef ENABLE_DDGI
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetDDGIMaterialType());
+#endif
+}
+
+void EditorApp::InitEditorController()
+{
+	// Controller for Input events.
+	m_pViewportCameraController = std::make_unique<engine::CameraController>(
+		m_pSceneWorld.get(),
+		12.0f /* horizontal sensitivity */,
+		12.0f /* vertical sensitivity */);
+	m_pViewportCameraController->CameraToController();
 }
 
 void EditorApp::AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer)
@@ -353,13 +465,14 @@ bool EditorApp::Update(float deltaTime)
 {
 	// TODO : it is better to remove these logics about splash -> editor switch here.
 	// Better implementation is to have multiple Application or Window classes and they can switch.
-	if (!m_bInitEditor && 0 == ResourceBuilder::Get().GetCurrentTaskCount())
+	if (!m_bInitEditor && ResourceBuilder::Get().IsIdle())
 	{
 		m_bInitEditor = true;
-		ShaderBuilder::UploadUberShader(m_pSceneWorld->GetPBRMaterialType());
-		ShaderBuilder::UploadUberShader(m_pSceneWorld->GetAnimationMaterialType());
-		ShaderBuilder::UploadUberShader(m_pSceneWorld->GetTerrainMaterialType());
-		ShaderBuilder::UploadUberShader(m_pSceneWorld->GetDDGIMaterialType());
+		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetPBRMaterialType());
+		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetAnimationMaterialType());
+#ifdef ENABLE_DDGI
+		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetDDGIMaterialType());
+#endif
 
 		// Phase 2 - Project Manager
 		//		* TODO : Show project selector
@@ -389,9 +502,14 @@ bool EditorApp::Update(float deltaTime)
 	}
 
 	GetMainWindow()->Update();
-
+	m_pSceneWorld->Update();
 	m_pEditorImGuiContext->Update(deltaTime);
-	
+
+	engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
+	engine::TerrainComponent* pTerrainComponent = m_pSceneWorld->GetTerrainComponent(m_pSceneWorld->GetSelectedEntity());
+	assert(pMainCameraComponent);
+	pMainCameraComponent->BuildProjectMatrix();
+
 	m_pRenderContext->BeginFrame();
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEditorRenderers)
 	{
@@ -407,23 +525,31 @@ bool EditorApp::Update(float deltaTime)
 	if (m_pEngineImGuiContext)
 	{
 		engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
-		if (engine::TransformComponent* pTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity()))
+		m_pViewportCameraController->SetMovementSpeed(pMainCameraComponent->GetCurrentSpeed());
+		if (m_pViewportCameraController)
 		{
-			cd::Transform transform = pTransformComponent->GetTransform();
-			pMainCameraComponent->SetEye(transform.GetTranslation());
-			cd::Matrix4x4 rotMatrix = transform.GetRotation().ToMatrix4x4();
-			pMainCameraComponent->SetLookAt(cd::Vec3f(rotMatrix.Data(8), rotMatrix.Data(9), rotMatrix.Data(10)));
-			pMainCameraComponent->SetUp(cd::Vec3f(rotMatrix.Data(4), rotMatrix.Data(5), rotMatrix.Data(6)));
+			m_pViewportCameraController->Update(deltaTime);
 		}
 
-		assert(pMainCameraComponent);
-		m_pNewCameraController->Update(deltaTime);
-		m_pCameraController->SetMovementSpeed(m_pSceneView->m_MainCameraSpeed);
-		m_pCameraController->Update(deltaTime);
-		pMainCameraComponent->Build();
+
+		//Do Screen Space Smoothing
+		if (pTerrainComponent && m_pSceneView->IsTerrainEditMode() && engine::Input::Get().IsMouseLBPressed())
+		{
+			float screenSpaceX = 2.0f * static_cast<float>(engine::Input::Get().GetMousePositionX() - m_pSceneView->GetWindowPosX()) /
+				m_pSceneView->GetRenderTarget()->GetWidth() - 1.0f;
+			float screenSpaceY = 1.0f - 2.0f * static_cast<float>(engine::Input::Get().GetMousePositionY() - m_pSceneView->GetWindowPosY()) /
+				m_pSceneView->GetRenderTarget()->GetHeight();
+
+			engine::TransformComponent* pCameraTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity());
+			cd::Vec3f camPos = pCameraTransformComponent->GetTransform().GetTranslation();
+
+				pTerrainComponent->ScreenSpaceSmooth(screenSpaceX, screenSpaceY, pMainCameraComponent->GetProjectionMatrix().Inverse(),
+				pMainCameraComponent->GetViewMatrix().Inverse(), camPos);
+		}
 
 		m_pEngineImGuiContext->SetWindowPosOffset(m_pSceneView->GetWindowPosX(), m_pSceneView->GetWindowPosY());
 		m_pEngineImGuiContext->Update(deltaTime);
+
 		for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
 		{
 			if (pRenderer->IsEnable())
@@ -439,7 +565,7 @@ bool EditorApp::Update(float deltaTime)
 	m_pRenderContext->EndFrame();
 
 	engine::Input::Get().FlushInputs();
-	
+
 	return !GetMainWindow()->ShouldClose();
 }
 

@@ -25,44 +25,12 @@ void ShaderBuilder::BuildUberShader(engine::MaterialType* pMaterialType)
 			shaderSchema.GetFragmentShaderPath(), outputFSFilePath.c_str(), combine.c_str());
 	}
 
-	CD_ENGINE_INFO("Material type {0} have shader variant count : {1}.", pMaterialType->GetMaterialName(), shaderSchema.GetUberCombines().size());
+	CD_ENGINE_INFO("Shader variant count of material type {0} : {1}", pMaterialType->GetMaterialName(), shaderSchema.GetUberCombines().size());
 }
 
-void ShaderBuilder::UploadUberShader(engine::MaterialType* pMaterialType)
+void ShaderBuilder::BuildNonUberShader(std::string folderPath)
 {
-	std::map<std::string, engine::StringCrc> outputFSPathToUberOption;
-
-	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
-	std::string outputVSFilePath = engine::Path::GetShaderOutputPath(shaderSchema.GetVertexShaderPath());
-	for (const auto& combine : shaderSchema.GetUberCombines())
-	{
-		std::string outputFSFilePath = engine::Path::GetShaderOutputPath(shaderSchema.GetFragmentShaderPath(), combine);
-		outputFSPathToUberOption[cd::MoveTemp(outputFSFilePath)] = engine::StringCrc(combine);
-	}
-	CD_ENGINE_INFO("Material type {0} have shader variant count : {1}.", pMaterialType->GetMaterialName(), shaderSchema.GetUberCombines().size());
-
-	// Vertex shader.
-	shaderSchema.AddUberOptionVSBlob(ResourceLoader::LoadShader(outputVSFilePath.c_str()));
-	const auto& VSBlob = shaderSchema.GetVSBlob();
-	bgfx::ShaderHandle vsHandle = bgfx::createShader(bgfx::makeRef(VSBlob.data(), static_cast<uint32_t>(VSBlob.size())));
-	
-	// Fragment shader.
-	for (const auto& [outputFSFilePath, uberOptionCrc] : outputFSPathToUberOption)
-	{
-		shaderSchema.AddUberOptionFSBlob(uberOptionCrc, ResourceLoader::LoadShader(outputFSFilePath.c_str()));
-	
-		const auto& FSBlob = shaderSchema.GetFSBlob(uberOptionCrc);
-		bgfx::ShaderHandle fsHandle = bgfx::createShader(bgfx::makeRef(FSBlob.data(), static_cast<uint32_t>(FSBlob.size())));
-	
-		// Program.
-		bgfx::ProgramHandle uberProgramHandle = bgfx::createProgram(vsHandle, fsHandle);
-		shaderSchema.SetCompiledProgram(uberOptionCrc, uberProgramHandle.idx);
-	}
-}
-
-void ShaderBuilder::BuildNonUberShader()
-{
-	for (const auto& entry : std::filesystem::recursive_directory_iterator(CDENGINE_BUILTIN_SHADER_PATH))
+	for (const auto& entry : std::filesystem::recursive_directory_iterator(folderPath))
 	{
 		const auto& inputFilePath = entry.path();
 		if (".sc" != inputFilePath.extension())
@@ -84,15 +52,15 @@ void ShaderBuilder::BuildNonUberShader()
 
 const ShaderType ShaderBuilder::GetShaderType(const std::string& fileName)
 {
-	if (fileName.starts_with("vs_") || fileName.starts_with("VS_"))
+	if (fileName._Starts_with("vs_") || fileName._Starts_with("VS_"))
 	{
 		return ShaderType::Vertex;
 	}
-	else if (fileName.starts_with("fs_") || fileName.starts_with("FS_"))
+	else if (fileName._Starts_with("fs_") || fileName._Starts_with("FS_"))
 	{
 		return ShaderType::Fragment;
 	}
-	else if (fileName.starts_with("cs_") || fileName.starts_with("CS_"))
+	else if (fileName._Starts_with("cs_") || fileName._Starts_with("CS_"))
 	{
 		return ShaderType::Compute;
 	}

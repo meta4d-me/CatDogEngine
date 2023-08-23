@@ -7,21 +7,18 @@
 #include "RenderContext.h"
 #include "Scene/Texture.h"
 
-#include <format>
-
 namespace engine
 {
 
 void DebugRenderer::Init()
 {
-	m_pRenderContext->CreateProgram("WireFrameProgram", "vs_wireframe.bin", "fs_wireframe.bin");
+	GetRenderContext()->CreateProgram("DebugProgram", "vs_debug.bin", "fs_debug.bin");
 	bgfx::setViewName(GetViewID(), "DebugRenderer");
 }
 
 void DebugRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
-	bgfx::setViewFrameBuffer(GetViewID(), *GetRenderTarget()->GetFrameBufferHandle());
-	bgfx::setViewRect(GetViewID(), 0, 0, GetRenderTarget()->GetWidth(), GetRenderTarget()->GetHeight());
+	UpdateViewRenderTarget();
 	bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
 }
 
@@ -29,6 +26,17 @@ void DebugRenderer::Render(float deltaTime)
 {
 	for (Entity entity : m_pCurrentSceneWorld->GetStaticMeshEntities())
 	{
+		if (m_pCurrentSceneWorld->GetSkyEntity() == entity)
+		{
+			continue;
+		}
+
+		TerrainComponent* pTerrainComponent = m_pCurrentSceneWorld->GetTerrainComponent(entity);
+		if (pTerrainComponent)
+		{
+			continue;
+		}
+
 		StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
 		if (!pMeshComponent)
 		{
@@ -41,15 +49,15 @@ void DebugRenderer::Render(float deltaTime)
 			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
 		}
 
-		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle(pMeshComponent->GetAABBVertexBuffer()));
-		bgfx::setIndexBuffer(bgfx::IndexBufferHandle(pMeshComponent->GetAABBIndexBuffer()));
+		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pMeshComponent->GetVertexBuffer() });
+		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pMeshComponent->GetIndexBuffer() });
 
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
 		bgfx::setState(state);
 
-		constexpr StringCrc wireframeProgram("WireFrameProgram");
-		bgfx::submit(GetViewID(), m_pRenderContext->GetProgram(wireframeProgram));
+		constexpr StringCrc debugProgram("DebugProgram");
+		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(debugProgram));
 	}
 }
 

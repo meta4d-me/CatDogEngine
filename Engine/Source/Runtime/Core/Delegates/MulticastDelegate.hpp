@@ -29,7 +29,7 @@ public:
 	void Bind()
 	{
 		Delegate<RetVal(Args...)> delegate;
-		delegate.Bind<Function>();
+		delegate.template Bind<Function>();
 		m_delegates.emplace_back(std::move(delegate));
 	}
 
@@ -37,7 +37,7 @@ public:
 	void Bind(C* pInstance)
 	{
 		Delegate<RetVal(Args...)> delegate;
-		delegate.Bind<C, Function>(pInstance);
+		delegate.template Bind<C, Function>(pInstance);
 		m_delegates.emplace_back(std::move(delegate));
 	}
 
@@ -45,7 +45,7 @@ public:
 	void Bind(const C* pInstance)
 	{
 		Delegate<RetVal(Args...)> delegate;
-		delegate.Bind<C, Function>(pInstance);
+		delegate.template Bind<C, Function>(pInstance);
 		m_delegates.emplace_back(std::move(delegate));
 	}
 

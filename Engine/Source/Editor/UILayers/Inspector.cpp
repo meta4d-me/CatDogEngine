@@ -1,191 +1,12 @@
-#include "Inspector.h"
+﻿#include "Inspector.h"
 
-#include "ECWorld/SceneWorld.h"
-#include "ECWorld/TransformComponent.h"
-#include "ImGui/ImGuiContextInstance.h"
 #include "Rendering/RenderContext.h"
-#include "Resources/ResourceBuilder.h"
-
-#include <imgui/imgui.h>
+#include "Graphics/GraphicsBackend.h"
+#include "ImGui/ImGuiUtils.hpp"
+#include "Path/Path.h"
 
 namespace details
 {
-
-template<typename T>
-bool ImGuiProperty(const char* pName, T& value, const T& minValue = {}, const T& maxValue = {})
-{
-	bool dirty = false;
-	bool isUniform = true;
-
-	if constexpr (std::is_same<T, std::string>())
-	{
-		ImGui::Columns(2);
-		ImGui::TextUnformatted(pName);
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-
-		ImGui::TextUnformatted(value.c_str());
-
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
-		ImGui::Columns(1);
-	}
-	else if constexpr (std::is_same<T, bool>())
-	{
-		if (ImGui::Checkbox(pName, &value))
-		{
-			dirty = true;
-		}
-	}
-	else if constexpr (std::is_same<T, float>())
-	{
-		ImGui::Columns(2);
-		ImGui::TextUnformatted(pName);
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-
-		std::string labelName = std::format("##{}", pName);
-		float delta = maxValue - minValue;
-		float speed = cd::Math::IsEqualToZero(delta) ? 1.0f : delta * 0.05f;
-		if (ImGui::DragFloat(labelName.c_str(), &value, speed, minValue, maxValue))
-		{
-			dirty = true;
-		}
-
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
-		ImGui::Columns(1);
-	}
-	else if constexpr (std::is_same<T, cd::Vec2f>() || std::is_same<T, cd::Vec3f>() || std::is_same<T, cd::Vec4f>())
-	{
-		ImGui::Columns(2);
-		ImGui::TextUnformatted(pName);
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-
-		std::string labelName = std::format("##{}", pName);
-		float delta = maxValue.x() - minValue.x();
-		float speed = cd::Math::IsEqualToZero(delta) ? 1.0f : delta * 0.05f;
-		if constexpr (std::is_same<T, cd::Vec2f>())
-		{
-			if (ImGui::DragFloat2(labelName.c_str(), value.Begin(), speed, minValue.x(), maxValue.x()))
-			{
-				dirty = true;
-			}
-		}
-		else if constexpr (std::is_same<T, cd::Vec3f>())
-		{
-			if (ImGui::DragFloat3(labelName.c_str(), value.Begin(), speed, minValue.x(), maxValue.x()))
-			{
-				dirty = true;
-			}
-		}
-		else if constexpr (std::is_same<T, cd::Vec4f>())
-		{
-			if (ImGui::DragFloat4(labelName.c_str(), value.Begin(), speed, minValue.x(), maxValue.x()))
-			{
-				dirty = true;
-			}
-		}
-
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
-		ImGui::Columns(1);
-	}
-	else if constexpr (std::is_same<T, cd::Transform>())
-	{
-		if (ImGuiProperty<cd::Vec3f>("Translation", value.GetTranslation()))
-		{
-			dirty = true;
-		}
-
-		cd::Vec3f eularAngles = value.GetRotation().ToEulerAngles();
-		if (ImGuiProperty<cd::Vec3f>("Rotation", eularAngles, cd::Vec3f::Zero(), cd::Vec3f(360.0f)))
-		{
-			float pitch = std::min(eularAngles.x(), 89.9f);
-			pitch = std::max(pitch, -89.9f);
-
-			value.SetRotation(cd::Quaternion::FromPitchYawRoll(pitch, eularAngles.y(), eularAngles.z()));
-			dirty = true;
-		}
-
-		cd::Vec3f originScale = value.GetScale();
-		cd::Vec3f scale = originScale;
-		ImGui::TextUnformatted("Scale");
-		ImGui::SameLine();
-		bool UniformScaleEnabled = engine::TransformComponent::DoUseUniformScale();
-		ImGui::Checkbox("Uniform",&UniformScaleEnabled);
-		engine::TransformComponent::SetUseUniformScale(UniformScaleEnabled);
-
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-
-		if (ImGui::DragFloat3("##Scale", scale.Begin(),0.1f,0.001f,999.0f))
-		{
-			if (!cd::Math::IsEqualTo(scale.x(), originScale.x()))
-			{
-				if (UniformScaleEnabled)
-				{
-					float ratio = scale.x() / originScale.x();
-					cd::Vec3f _scale = value.GetScale();
-					_scale *= ratio;
-					value.SetScale(_scale);
-					
-					dirty = true;
-				}
-				else
-				{
-					value.SetScale(scale);
-					dirty = true;
-				}
-			}
-
-			if (!cd::Math::IsEqualTo(scale.y(), originScale.y()))
-			{
-				if (UniformScaleEnabled)
-				{
-					float ratio = scale.y() / originScale.y();
-					cd::Vec3f _scale = value.GetScale();
-					_scale *= ratio;
-					value.SetScale(_scale);
-					dirty = true;
-				}
-				else
-				{
-					value.SetScale(scale);
-					dirty = true;
-				}
-			}
-
-			if (!cd::Math::IsEqualTo(scale.z(), originScale.z()))
-			{
-				if (UniformScaleEnabled)
-				{
-					float ratio = scale.z() / originScale.z();
-					cd::Vec3f _scale = value.GetScale();
-					_scale *= ratio;
-					value.SetScale(_scale);
-					dirty = true;
-				}
-				else
-				{
-					value.SetScale(scale);
-					dirty = true;
-				}
-			}
-		}
-
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
-		ImGui::Columns(1);
-	}
-	else
-	{
-		static_assert("Unsupported data type for imgui property.");
-	}
-
-	return dirty;
-}
 
 template<typename Component>
 void UpdateComponentWidget(engine::SceneWorld* pSceneWorld, engine::Entity entity)
@@ -201,13 +22,13 @@ void UpdateComponentWidget<engine::NameComponent>(engine::SceneWorld* pSceneWorl
 		return;
 	}
 
-	bool isHeaderOpen = ImGui::CollapsingHeader("NameComponent", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	bool isHeaderOpen = ImGui::CollapsingHeader("Name Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 	ImGui::Separator();
 
 	if (isHeaderOpen)
 	{
-		ImGuiProperty<std::string>("Name", pNameComponent->GetNameForWrite());
+		ImGuiUtils::ImGuiStringProperty("Name", pNameComponent->GetNameForWrite());
 	}
 
 	ImGui::Separator();
@@ -223,13 +44,13 @@ void UpdateComponentWidget<engine::TransformComponent>(engine::SceneWorld* pScen
 		return;
 	}
 
-	bool isHeaderOpen = ImGui::CollapsingHeader("TransformComponent", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	bool isHeaderOpen = ImGui::CollapsingHeader("Transform Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 	ImGui::Separator();
 
 	if (isHeaderOpen)
 	{
-		if (ImGuiProperty<cd::Transform>("Transform", pTransformComponent->GetTransform()))
+		if (ImGuiUtils::ImGuiTransformProperty("Transform", pTransformComponent->GetTransform()))
 		{
 			pTransformComponent->Dirty();
 			pTransformComponent->Build();
@@ -254,15 +75,15 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		return;
 	}
 
-	bool isOpen = ImGui::CollapsingHeader("MaterialComponent", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	bool isOpen = ImGui::CollapsingHeader("Material Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 	ImGui::Separator();
 
 	if (isOpen)
 	{
 		std::vector<std::string> fileNames;
-		std::filesystem::path dirPath{ "C:/CatDogEngine/Projects/Test/test" };
-		std::filesystem::path frontPath{ "test" }; 
+		std::filesystem::path dirPath{ CDPROJECT_RESOURCES_ROOT_PATH "test" };
+		std::filesystem::path frontPath{ "test" };
 		engine::RenderContext* pRenderContext = engine::ImGuiBaseLayer::GetRenderContext();
 
 		for (const auto& it : std::filesystem::directory_iterator(dirPath))
@@ -271,18 +92,20 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 			fileNames.push_back(fileName);
 		}
 
-		std::vector<std::string> textyrePaths;
-		for (int i = 0;  i < fileNames.size();  ++i)
+		std::vector<std::string> texturePaths;
+		for (int i = 0; i < fileNames.size(); ++i)
 		{
-			std::string fullpath = (frontPath / fileNames[i]).string(); 
+			std::string fullpath = (frontPath / fileNames[i]).string();
 			pRenderContext->CreateTexture(fullpath.c_str());
-			textyrePaths.emplace_back(std::move(fullpath));
+
+			//	->CreateTexture(fullpath.c_str());
+			texturePaths.emplace_back(std::move(fullpath));
 		}
 
 		static int currentItem = 0;
 		if (ImGui::BeginCombo("Select Texture", fileNames[currentItem].c_str()))
 		{
-			for (int i = 0;  i < fileNames.size();  ++i)
+			for (int i = 0; i < fileNames.size(); ++i)
 			{
 				bool isSelected = (currentItem == i);
 				if (ImGui::Selectable(fileNames[i].c_str(), isSelected))
@@ -294,13 +117,49 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 			ImGui::EndCombo();
 		}
 
-		bgfx::TextureHandle textureHandle = pRenderContext->GetTexture(engine::StringCrc(textyrePaths[currentItem].c_str()));
+		bgfx::TextureHandle textureHandle = pRenderContext->GetTexture(engine::StringCrc(texturePaths[currentItem].c_str()));
+		//sparater
 		ImGui::Separator();
 		ImGui::Image(ImTextureID(textureHandle.idx), ImVec2(64, 64));
 
 		ImGui::Separator();
-		ImGuiProperty<cd::Vec3f>("AlbedoColor", pMaterialComponent->GetAlbedoColor(), cd::Vec3f::Zero(), cd::Vec3f::One());
-		ImGuiProperty<cd::Vec3f>("EmissiveColor", pMaterialComponent->GetEmissiveColor(), cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ImGuiStringProperty("Name", pMaterialComponent->GetName());
+		
+		// Parameters
+		ImGuiUtils::ImGuiVectorProperty("AlbedoColor", pMaterialComponent->GetAlbedoColor(), cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ImGuiFloatProperty("MetallicFactor", pMaterialComponent->GetMetallicFactor(), cd::Unit::None, 0.0f, 1.0f);
+		ImGuiUtils::ImGuiFloatProperty("RoughnessFactor", pMaterialComponent->GetRoughnessFactor(), cd::Unit::None, 0.0f, 1.0f);
+		ImGuiUtils::ImGuiVectorProperty("EmissiveColor", pMaterialComponent->GetEmissiveColor(), cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ImGuiBoolProperty("TwoSided", pMaterialComponent->GetTwoSided());
+		ImGuiUtils::ImGuiStringProperty("BlendMode", nameof::nameof_enum(pMaterialComponent->GetBlendMode()).data());
+		if (cd::BlendMode::Mask == pMaterialComponent->GetBlendMode())
+		{
+			ImGuiUtils::ImGuiFloatProperty("AlphaCutOff", pMaterialComponent->GetAlphaCutOff(), cd::Unit::None, 0.0f, 1.0f);
+		}
+
+		// Textures
+		for (int textureTypeValue = 0; textureTypeValue < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
+		{
+			if (engine::MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)))
+			{
+				const char* title = nameof::nameof_enum(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)).data();
+				bool isOpen = ImGui::CollapsingHeader(title, ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+				ImGui::Separator();
+
+				std::string uvOffset = std::string(title) + std::string(" UVOffset");
+				std::string uvScale = std::string(title) + std::string(" UVScale");
+				if (isOpen)
+				{
+					ImGuiUtils::ImGuiVectorProperty(uvOffset.c_str(), pTextureInfo->GetUVOffset());
+					ImGuiUtils::ImGuiVectorProperty(uvScale.c_str(), pTextureInfo->GetUVScale());
+
+				}
+
+				ImGui::Separator();
+				ImGui::PopStyleVar();
+			}
+		}
 	}
 
 	ImGui::Separator();
@@ -316,24 +175,24 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 		return;
 	}
 
-	bool isOpen = ImGui::CollapsingHeader("CameraComponent", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	bool isOpen = ImGui::CollapsingHeader("Camera Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 	ImGui::Separator();
 
 	if (isOpen)
 	{
-		if (ImGuiProperty<float>("Aspect", pCameraComponent->GetAspect()) ||
-			ImGuiProperty<float>("Field Of View", pCameraComponent->GetFov()) ||
-			ImGuiProperty<float>("NearPlane", pCameraComponent->GetNearPlane()) ||
-			ImGuiProperty<float>("FarPlane", pCameraComponent->GetFarPlane()))
+		if (ImGuiUtils::ImGuiFloatProperty("Aspect", pCameraComponent->GetAspect()) ||
+			ImGuiUtils::ImGuiFloatProperty("Field Of View", pCameraComponent->GetFov()) ||
+			ImGuiUtils::ImGuiFloatProperty("NearPlane", pCameraComponent->GetNearPlane()) ||
+			ImGuiUtils::ImGuiFloatProperty("FarPlane", pCameraComponent->GetFarPlane()))
 		{
 			pCameraComponent->Dirty();
-			pCameraComponent->Build();
+			pCameraComponent->BuildProjectMatrix();
 		}
 
-		ImGuiProperty<bool>("Constrain Aspect Ratio", pCameraComponent->GetDoConstrainAspectRatio());
-		ImGuiProperty<bool>("Post Processing", pCameraComponent->GetIsPostProcessEnable());
-		ImGuiProperty<cd::Vec3f>("Gamma Correction", pCameraComponent->GetGammaCorrection(), cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ImGuiBoolProperty("Constrain Aspect Ratio", pCameraComponent->GetDoConstrainAspectRatio());
+		ImGuiUtils::ImGuiBoolProperty("Post Processing", pCameraComponent->GetIsPostProcessEnable());
+		ImGuiUtils::ImGuiFloatProperty("Gamma Correction", pCameraComponent->GetGammaCorrection(), cd::Unit::None, 0.0f, 1.0f);
 	}
 
 	ImGui::Separator();
@@ -349,7 +208,7 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 		return;
 	}
 
-	bool isOpen = ImGui::CollapsingHeader("LightComponent", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	bool isOpen = ImGui::CollapsingHeader("Light Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 	ImGui::Separator();
 	
@@ -358,54 +217,200 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 		cd::LightType lightType = pLightComponent->GetType();
 		std::string lightTypeName = cd::GetLightTypeName(lightType);
 
-		ImGuiProperty<std::string>("Type", lightTypeName);
-		ImGuiProperty<cd::Vec3f>("Color", pLightComponent->GetColor());
-		ImGuiProperty<float>("Intensity", pLightComponent->GetIntensity());
+		ImGuiUtils::ImGuiStringProperty("Type", lightTypeName);
+		ImGuiUtils::ImGuiVectorProperty("Color", pLightComponent->GetColor(), cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One());
 
-		switch (lightType)
+		float s_spotInnerAngle = 8.0f;
+		float s_spotOuterAngle = 16.0f;
+		bool spotInnerDirty = false;
+		bool spotOuterDirty = false;
+
+		if (cd::LightType::Point == lightType)
 		{
-		case cd::LightType::Point:
-			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
-			ImGuiProperty<float>("Range", pLightComponent->GetRange());
-			break;
-		case cd::LightType::Directional:
-			ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
-			break;
-		case cd::LightType::Spot:
-			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
-			ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
-			ImGuiProperty<float>("Range", pLightComponent->GetRange());
-			ImGuiProperty<float>("AngleScale", pLightComponent->GetAngleScale());
-			ImGuiProperty<float>("AngleOffset", pLightComponent->GetAngleOffset());
-			break;
-		case cd::LightType::Disk:
-			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
-			ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
-			ImGuiProperty<float>("Range", pLightComponent->GetRange());
-			ImGuiProperty<float>("Radius", pLightComponent->GetRadius());
-			break;
-		case cd::LightType::Rectangle:
-			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
-			ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
-			ImGuiProperty<cd::Vec3f>("Up", pLightComponent->GetUp());
-			ImGuiProperty<float>("Range", pLightComponent->GetRange());
-			ImGuiProperty<float>("Width", pLightComponent->GetWidth());
-			ImGuiProperty<float>("Height", pLightComponent->GetHeight());
-			break;
-		case cd::LightType::Sphere:
-			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
-			ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
-			ImGuiProperty<float>("Radius", pLightComponent->GetRadius());
-			break;
-		case cd::LightType::Tube:
-			ImGuiProperty<cd::Vec3f>("Position", pLightComponent->GetPosition());
-			ImGuiProperty<cd::Vec3f>("Direction", pLightComponent->GetDirection());
-			ImGuiProperty<float>("Range", pLightComponent->GetRange());
-			ImGuiProperty<float>("Width", pLightComponent->GetWidth());
-			break;
-		default:
-			assert("TODO");
-			break;
+			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lumen, 0.0f, 10000.0f, false, 5.0f);
+			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition(), cd::Unit::CenterMeter);
+			ImGuiUtils::ImGuiFloatProperty("Range", pLightComponent->GetRange(), cd::Unit::CenterMeter, 0.0f, 10000.0f, false, 1.0f);
+		}
+		else if (cd::LightType::Directional == lightType)
+		{
+			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lux, 0.0f, 100.0f, false, 0.1f);
+			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection(), cd::Unit::Degree, cd::Vec3f(-1.0f), cd::Vec3f::One(), true);
+		}
+		else if (cd::LightType::Spot == lightType)
+		{
+			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lumen, 0.0f, 10000.0f, false, 5.0f);
+			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition(), cd::Unit::CenterMeter);
+			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection(), cd::Unit::Degree, cd::Vec3f(-1.0f), cd::Vec3f::One(), true);
+			ImGuiUtils::ImGuiFloatProperty("Range", pLightComponent->GetRange(), cd::Unit::CenterMeter, 0.0f, 10000.0f, false, 1.0f);
+
+			cd::Vec2f innerAndOuter = pLightComponent->GetInnerAndOuter();
+			s_spotInnerAngle = innerAndOuter.x();
+			s_spotOuterAngle = innerAndOuter.y();
+
+			spotInnerDirty = ImGuiUtils::ImGuiFloatProperty("InnerAngle", s_spotInnerAngle, cd::Unit::Degree, 0.1f, 90.0f);
+			spotOuterDirty = ImGuiUtils::ImGuiFloatProperty("OuterAngle", s_spotOuterAngle, cd::Unit::Degree, 0.1f, 90.0f);
+			if (spotInnerDirty || spotOuterDirty)
+			{
+				pLightComponent->SetInnerAndOuter(s_spotInnerAngle, s_spotOuterAngle);
+			}
+		}
+		else if (cd::LightType::Disk == lightType)
+		{
+			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lumen, 0.0f, 10000.0f, false, 5.0f);
+			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition(), cd::Unit::CenterMeter);
+			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection(), cd::Unit::Degree, cd::Vec3f(-1.0f), cd::Vec3f::One(), true);
+			ImGuiUtils::ImGuiFloatProperty("Range", pLightComponent->GetRange(), cd::Unit::CenterMeter, 0.0f);
+			ImGuiUtils::ImGuiFloatProperty("Radius", pLightComponent->GetRadius());
+		}
+		else if (cd::LightType::Rectangle == lightType)
+		{
+			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lumen, 0.0f, 10000.0f, false, 5.0f);
+			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition());
+			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection());
+			ImGuiUtils::ImGuiVectorProperty("Up", pLightComponent->GetUp());
+			ImGuiUtils::ImGuiFloatProperty("Range", pLightComponent->GetRange());
+			ImGuiUtils::ImGuiFloatProperty("Width", pLightComponent->GetWidth());
+			ImGuiUtils::ImGuiFloatProperty("Height", pLightComponent->GetHeight());
+		}
+		else if (cd::LightType::Sphere == lightType)
+		{
+			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lumen, 0.0f, 10000.0f, false, 5.0f);
+			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition());
+			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection());
+			ImGuiUtils::ImGuiFloatProperty("Radius", pLightComponent->GetRadius());
+		}
+		else if (cd::LightType::Tube == lightType)
+		{
+			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lumen, 0.0f, 10000.0f, false, 5.0f);
+			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition());
+			ImGuiUtils::ImGuiVectorProperty("Direction", pLightComponent->GetDirection());
+			ImGuiUtils::ImGuiFloatProperty("Range", pLightComponent->GetRange());
+			ImGuiUtils::ImGuiFloatProperty("Width", pLightComponent->GetWidth());
+		}
+		else
+		{
+			CD_ERROR("Unknown light type in inspector!");
+		}
+	}
+
+	ImGui::Separator();
+	ImGui::PopStyleVar();
+}
+
+template<>
+void UpdateComponentWidget<engine::TerrainComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+{
+	auto* pTerrainComponent = pSceneWorld->GetTerrainComponent(entity);
+	if (!pTerrainComponent)
+	{
+		return;
+	}
+
+	bool isOpen = ImGui::CollapsingHeader("Terrain Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+	ImGui::Separator();
+
+	if (isOpen)
+	{
+
+		/*// Parameters
+		ImGuiUtils::ImGuiVectorProperty("AlbedoColor", pMaterialComponent->GetAlbedoColor(), cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ImGuiFloatProperty("MetallicFactor", pMaterialComponent->GetMetallicFactor(), cd::Unit::None, 0.0f, 1.0f);
+		ImGuiUtils::ImGuiFloatProperty("RoughnessFactor", pMaterialComponent->GetRoughnessFactor(), cd::Unit::None, 0.0f, 1.0f);
+		ImGuiUtils::ImGuiVectorProperty("EmissiveColor", pMaterialComponent->GetEmissiveColor(), cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ImGuiBoolProperty("TwoSided", pMaterialComponent->GetTwoSided());
+		ImGuiUtils::ImGuiStringProperty("BlendMode", cd::GetBlendModeName(pMaterialComponent->GetBlendMode()));
+		if (cd::BlendMode::Mask == pMaterialComponent->GetBlendMode())
+		{
+			ImGuiUtils::ImGuiFloatProperty("AlphaCutOff", pMaterialComponent->GetAlphaCutOff(), cd::Unit::None, 0.0f, 1.0f);
+		}*/
+	}
+
+	ImGui::Separator();
+	ImGui::PopStyleVar();
+}
+
+#ifdef ENABLE_DDGI
+template<>
+void UpdateComponentWidget<engine::DDGIComponent>(engine::SceneWorld *pSceneWorld, engine::Entity entity)
+{
+	auto *pDDGIComponent = pSceneWorld->GetDDGIComponent(entity);
+	if (!pDDGIComponent)
+	{
+		return;
+	}
+
+	bool isOpen = ImGui::CollapsingHeader("DDGI Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+	ImGui::Separator();
+
+	if (isOpen)
+	{
+		ImGuiUtils::ImGuiVectorProperty("Origin", pDDGIComponent->GetVolumeOrigin(), cd::Unit::CenterMeter);
+		ImGuiUtils::ImGuiVectorProperty("Probe Spacing", pDDGIComponent->GetProbeSpacing(), cd::Unit::CenterMeter);
+		ImGuiUtils::ImGuiVectorProperty("Probe Count", pDDGIComponent->GetProbeCount(), cd::Unit::CenterMeter);
+		ImGui::Separator();
+		ImGuiUtils::ImGuiFloatProperty("Normal Bias", pDDGIComponent->GetNormalBias(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+		ImGuiUtils::ImGuiFloatProperty("View Bias", pDDGIComponent->GetViewBias(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+		ImGui::Separator();
+		ImGuiUtils::ImGuiFloatProperty("Ambient Multiplier", pDDGIComponent->GetAmbientMultiplier(), cd::Unit::None, 0.0f, 10.0f);
+	}
+
+	ImGui::Separator();
+	ImGui::PopStyleVar();
+}
+#endif
+
+template<>
+void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+{
+	auto* pSkyComponent = pSceneWorld->GetSkyComponent(entity);
+	if (!pSkyComponent)
+	{
+		return;
+	}
+
+	bool isOpen = ImGui::CollapsingHeader("Sky Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+	ImGui::Separator();
+
+	if (isOpen)
+	{
+		std::vector<const char*> skyTypes;
+		for (size_t type = 0; type < static_cast<size_t>(engine::SkyType::Count); ++type)
+		{
+			if (!pSkyComponent->GetAtmophericScatteringEnable() && engine::SkyType::AtmosphericScattering == static_cast<engine::SkyType>(type))
+			{
+				continue;
+			}
+			skyTypes.emplace_back(nameof::nameof_enum(static_cast<engine::SkyType>(type)).data());
+		}
+
+		static const char* crtItem = nameof::nameof_enum(engine::SkyType::SkyBox).data();
+		if (ImGui::BeginCombo("##combo", crtItem))
+		{
+			for (size_t index = 0; index < skyTypes.size(); ++index)
+			{
+				bool isSelected = (crtItem == skyTypes[index]);
+				if (ImGui::Selectable(skyTypes[index], isSelected))
+				{
+					crtItem = skyTypes[index];
+					pSkyComponent->SetSkyType(static_cast<engine::SkyType>(index));
+				}
+				if (isSelected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+			ImGui::EndCombo();
+		}
+
+		if (pSkyComponent->GetAtmophericScatteringEnable())
+		{
+			ImGui::Separator();
+			ImGuiUtils::ImGuiFloatProperty("Height Offset", pSkyComponent->GetHeightOffset(), cd::Unit::Kilometer, -1000.0f, 1000.0f, false, 0.1f);
+			ImGuiUtils::ImGuiFloatProperty("Shadow Length", pSkyComponent->GetShadowLength(), cd::Unit::Kilometer, 0.0f, 10.0f, false, 0.1f);
+			ImGuiUtils::ImGuiVectorProperty("Sun Direction", pSkyComponent->GetSunDirection(), cd::Unit::None, cd::Direction(-1.0f, -1.0f, -1.0f), cd::Direction::One(), true, 0.01f);
 		}
 	}
 
@@ -447,6 +452,11 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::CameraComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, selectedEntity);
+#ifdef ENABLE_DDGI
+	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, selectedEntity);
+#endif
+	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, selectedEntity);
 
 	ImGui::End();
 }

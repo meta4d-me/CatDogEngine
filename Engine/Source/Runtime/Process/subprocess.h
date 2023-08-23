@@ -243,7 +243,7 @@ typedef int subprocess_intptr_t;
 typedef unsigned int subprocess_size_t;
 #endif
 #else
-#include <inttypes.h>
+#include <cstdint>
 
 typedef intptr_t subprocess_intptr_t;
 typedef size_t subprocess_size_t;

@@ -1,6 +1,6 @@
 #include "ImGui/ImGuiBaseLayer.h"
 
-#include <inttypes.h>
+#include <cstdint>
 
 namespace editor
 {

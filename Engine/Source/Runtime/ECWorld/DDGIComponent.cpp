@@ -1,9 +1,10 @@
 #include "DDGIComponent.h"
 
 #include "Log/Log.h"
+#include "U_DDGI.sh"
 
 #include <filesystem>
-#include <format>
+//#include <format>
 #include <fstream>
 #include <iostream>
 
@@ -12,7 +13,30 @@ namespace
 
 CD_FORCEINLINE std::string GetBinaryFileRealPath(const std::string &path)
 {
-    return std::format("{}Textures/{}", CDPROJECT_RESOURCES_ROOT_PATH, path);
+    //return std::format("{}Textures/{}", CDPROJECT_RESOURCES_ROOT_PATH, path);
+    std::string filePath = CDPROJECT_RESOURCES_ROOT_PATH;
+    filePath += "Textures/" + path;
+    return filePath;
+}
+
+void ReadTextureBinaryFile(const std::string& path, std::vector<uint8_t>& buffer)
+{
+    std::ifstream file(path, std::ios::binary | std::ios::in);
+    if(!file.is_open())
+    {
+        CD_ENGINE_ERROR("Failed to open file: {0}", path);
+        return;
+    }
+
+    buffer.resize(std::filesystem::file_size(path));
+    file.read(reinterpret_cast<char *>(buffer.data()), buffer.size());
+    file.close();
+}
+
+CD_FORCEINLINE size_t GetTextureRaoDataSize(const cd::Vec3f &probeCount, uint32_t gridSize, uint32_t  pixelSize)
+{
+    cd::Vec2f textureSize = cd::Vec2f(probeCount.y() * probeCount.z(), probeCount.x()) * static_cast<float>(gridSize);
+    return static_cast<size_t>(static_cast<uint32_t>(textureSize.x() * textureSize.y()) * pixelSize / 8);
 }
 
 }
@@ -20,68 +44,65 @@ CD_FORCEINLINE std::string GetBinaryFileRealPath(const std::string &path)
 namespace engine
 {
 
-void DDGIComponent::SetClassificationRawData(const std::string& path)
+void DDGIComponent::ResetTextureRawData(const cd::Vec3f& probeCount)
 {
-    std::string absolutePath = GetBinaryFileRealPath(path);
-    std::ifstream file(absolutePath, std::ios::binary | std::ios::in);
-    if(!file.is_open())
-    {
-        CD_ENGINE_ERROR("Failed to open file: {0}", absolutePath);
-        return;
-    }
+    m_distanceRawData.clear();
+    m_irradianceRawData.clear();
+    m_relocationRawData.clear();
+    m_classificationRawData.clear();
 
-    m_classificationRawData.resize(std::filesystem::file_size(absolutePath));
-
-    file.read(reinterpret_cast<char*>(m_classificationRawData.data()), m_classificationRawData.size());
-    file.close();
+    // R32G32_FLOAT
+    m_distanceRawData.resize(GetTextureRaoDataSize(probeCount, DISTANCE_GRID_SIZE, 64), 0);
+    // R16G16B16A16_FLOAT
+    m_irradianceRawData.resize(GetTextureRaoDataSize(probeCount, IRRADIANCE_GRID_SIZE, 64), 0);
+    // R16G16B16A16_FLOAT
+    m_relocationRawData.resize(GetTextureRaoDataSize(probeCount, RELOCATION_GRID_SIZE, 64), 0);
+    // R32_FLOAT
+    m_classificationRawData.resize(GetTextureRaoDataSize(probeCount, CLASSIFICATICON_GRID_SIZE, 32), 0);
 }
 
 void DDGIComponent::SetDistanceRawData(const std::string& path)
 {
     std::string absolutePath = GetBinaryFileRealPath(path);
-    std::ifstream file(absolutePath, std::ios::binary | std::ios::in);
-    if(!file.is_open())
-    {
-        CD_ENGINE_ERROR("Failed to open file: {0}", absolutePath);
-        return;
-    }
+    ReadTextureBinaryFile(absolutePath, m_distanceRawData);
+}
 
-    m_distanceRawData.resize(std::filesystem::file_size(absolutePath));
-
-    file.read(reinterpret_cast<char*>(m_distanceRawData.data()), m_distanceRawData.size());
-    file.close();
+void DDGIComponent::SetDistanceRawData(const std::shared_ptr<std::vector<uint8_t>>& distance)
+{
+    m_distanceRawData = *distance;
 }
 
 void DDGIComponent::SetIrradianceRawData(const std::string& path)
 {
     std::string absolutePath = GetBinaryFileRealPath(path);
-    std::ifstream file(absolutePath, std::ios::binary | std::ios::in);
-    if(!file.is_open())
-    {
-        CD_ENGINE_ERROR("Failed to open file: {0}", absolutePath);
-        return;
-    }
+    ReadTextureBinaryFile(absolutePath, m_irradianceRawData);
+}
 
-    m_irradianceRawData.resize(std::filesystem::file_size(absolutePath));
-
-    file.read(reinterpret_cast<char*>(m_irradianceRawData.data()), m_irradianceRawData.size());
-    file.close();
+void DDGIComponent::SetIrradianceRawData(const std::shared_ptr<std::vector<uint8_t>>& irrdiance)
+{
+    m_irradianceRawData = *irrdiance;
 }
 
 void DDGIComponent::SetRelocationRawData(const std::string& path)
 {
     std::string absolutePath = GetBinaryFileRealPath(path);
-    std::ifstream file(absolutePath, std::ios::binary | std::ios::in);
-    if(!file.is_open())
-    {
-        CD_ENGINE_ERROR("Failed to open file: {0}", absolutePath);
-        return;
-    }
+    ReadTextureBinaryFile(absolutePath, m_relocationRawData);
+}
 
-    m_relocationRawData.resize(std::filesystem::file_size(absolutePath));
+void DDGIComponent::SetRelocationRawData(const std::shared_ptr<std::vector<uint8_t>>& relocation)
+{
+    m_relocationRawData = cd::MoveTemp(*relocation);
+}
 
-    file.read(reinterpret_cast<char*>(m_relocationRawData.data()), m_relocationRawData.size());
-    file.close();
+void DDGIComponent::SetClassificationRawData(const std::string& path)
+{
+    std::string absolutePath = GetBinaryFileRealPath(path);
+    ReadTextureBinaryFile(absolutePath, m_classificationRawData);
+}
+
+void DDGIComponent::SetClassificationRawData(const std::shared_ptr<std::vector<uint8_t>>& classification)
+{
+    m_classificationRawData = *classification;
 }
 
 }

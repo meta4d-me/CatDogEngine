@@ -5,7 +5,7 @@
 
 #include <imgui/imgui.h>
 
-#include <format>
+//#include <format>
 
 namespace editor
 {
@@ -29,6 +29,7 @@ void Splash::Update()
 	size_t currentBuildCount = ResourceBuilder::Get().GetCurrentTaskCount();
 	assert(currentBuildCount <= m_shaderBuildTaskTotalCount);
 
+
 	std::string title = std::format("{}({}/{})", GetName(), m_shaderBuildTaskTotalCount - currentBuildCount, m_shaderBuildTaskTotalCount);
 	ImGui::Begin(" ", &m_isEnable, flags);
 
@@ -39,6 +40,7 @@ void Splash::Update()
 	ImGui::Separator();
 	ImGui::Text("%s", title.c_str());
 	ImGui::Separator();	
+
 	ImGui::End();
 }
 

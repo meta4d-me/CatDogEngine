@@ -1,3 +1,5 @@
+#ifdef ENABLE_SUBPROCESS
+
 #include "Process.h"
 #include "Log/Log.h"
 
@@ -36,7 +38,8 @@ void Process::Run()
 	}
 	environments.push_back(nullptr);
 
-	subprocess_create_ex(commandLine.data(), 0, environments.data(), m_pProcess.get());
+	int processOptions = subprocess_option_combined_stdout_stderr | subprocess_option_no_window | subprocess_option_enable_async;
+	subprocess_create_ex(commandLine.data(), processOptions, environments.data(), m_pProcess.get());
 
 	// LOG
 	CD_ENGINE_INFO("Start process {0}", m_processName.c_str());
@@ -71,15 +74,19 @@ void Process::Run()
 		}
 	};
 
-	PrintSubProcessLog("StdOut", m_pProcess.get(), subprocess_read_stdout);
-	PrintSubProcessLog("StdErr", m_pProcess.get(), subprocess_read_stderr);
+	if (m_printChildProcessLog)
+	{
+		PrintSubProcessLog("StdErr", m_pProcess.get(), subprocess_read_stderr);
+	}
 
 	if (m_waitUntilFinished)
 	{
 		int processResult;
 		subprocess_join(m_pProcess.get(), &processResult);
+		CD_ENGINE_INFO("End process {0}", m_processName.c_str());
 	}
-	CD_ENGINE_INFO("End process {0}", m_processName.c_str());
 }
 
 }
+
+#endif

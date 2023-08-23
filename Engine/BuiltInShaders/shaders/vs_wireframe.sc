@@ -2,7 +2,6 @@ $input a_position, a_color0
 $output v_bc
 
 #include "../common/common.sh"
-#include "uniforms.sh"
 
 void main()
 {

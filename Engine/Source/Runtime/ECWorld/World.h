@@ -36,7 +36,7 @@ public:
 	ComponentsStorage<Component>* Register()
 	{
 		StringCrc componentName = Component::GetClassName();
-		assert(!m_componentsLib.contains(componentName.Value()));
+		assert(m_componentsLib.find(componentName.Value()) == m_componentsLib.end());
 		m_componentsLib[componentName.Value()] = std::make_unique<ComponentsStorage<Component>>();
 		return static_cast<ComponentsStorage<Component>*>(m_componentsLib[componentName.Value()].get());
 	}
@@ -45,7 +45,7 @@ public:
 	ComponentsStorage<Component>* GetComponents()
 	{
 		StringCrc componentName = Component::GetClassName();
-		assert(m_componentsLib.contains(componentName.Value()));
+		assert(m_componentsLib.find(componentName.Value()) != m_componentsLib.end());
 		return static_cast<ComponentsStorage<Component>*>(m_componentsLib[componentName.Value()].get());
 	}
 
@@ -53,7 +53,7 @@ public:
 	Component& CreateComponent(Entity entity)
 	{
 		StringCrc componentName = Component::GetClassName();
-		assert(m_componentsLib.contains(componentName.Value()));
+		assert(m_componentsLib.find(componentName.Value()) != m_componentsLib.end());
 		ComponentsStorage<Component>* pStorage = static_cast<ComponentsStorage<Component>*>(m_componentsLib[componentName.Value()].get());
 		return pStorage->CreateComponent(entity);
 	}

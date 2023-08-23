@@ -5,6 +5,8 @@
 #include "Time/Clock.h"
 #include "Log/Log.h"
 
+#include <cassert>
+
 namespace editor
 {
 
@@ -96,6 +98,7 @@ std::string ResourceBuilder::GetModifyCacheFilePath()
 	{
 		return (appDataPath.value() / engine::Path::EngineName / "modifyTimeCache.bin").string();
 	}
+
 	CD_ERROR("Can not find application data path!");
 	return "";
 }
@@ -164,61 +167,115 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 	shaderSourceFolderPath += "/varying.def.sc";
 
 	std::vector<std::string> commandArguments{ "-f", pInputFilePath, "--varyingdef", shaderSourceFolderPath.string().c_str(),
-		"-o", pOutputFilePath, "--platform", "windows", "-O", "3"};
+		"-o", pOutputFilePath, "-O", "3"};
 	
+	commandArguments.push_back("--platform");
+#if CD_PLATFORM_OSX
+	commandArguments.push_back("osx");
+#elif CD_PLATFORM_IOS
+	commandArguments.push_back("ios");
+#elif CD_PLATFORM_WINDOWS
+	commandArguments.push_back("windows");
+#elif CD_PLATFORM_ANDROID || CD_PLATFORM_LINUX
+	commandArguments.push_back("android");
+#else
+	static_assert("CD_PLATFORM macro not defined!");
+#endif
+
+	commandArguments.push_back("--type");
 	if (ShaderType::Compute == shaderType)
 	{
-		commandArguments.push_back("--type");
 		commandArguments.push_back("c");
-		commandArguments.push_back("-p");
-		commandArguments.push_back("cs_5_0");
 	}
 	else if (ShaderType::Fragment == shaderType)
 	{
-		commandArguments.push_back("--type");
 		commandArguments.push_back("f");
-		commandArguments.push_back("-p");
-		commandArguments.push_back("ps_5_0");
 	}
 	else if (ShaderType::Vertex == shaderType)
 	{
-		commandArguments.push_back("--type");
 		commandArguments.push_back("v");
-		commandArguments.push_back("-p");
-		commandArguments.push_back("vs_5_0");
+	}
+
+	std::string shaderLanguageDefine;
+	commandArguments.push_back("-p");
+	switch (engine::Path::GetGraphicsBackend())
+	{
+	case engine::GraphicsBackend::Direct3D11:
+	case engine::GraphicsBackend::Direct3D12:
+		commandArguments.push_back("s_5_0");
+		shaderLanguageDefine = "BGFX_SHADER_LANGUAGE_HLSL";
+		break;
+	case engine::GraphicsBackend::OpenGL:
+		commandArguments.push_back("440");
+		shaderLanguageDefine = "BGFX_SHADER_LANGUAGE_GLSL";
+		break;
+	case engine::GraphicsBackend::OpenGLES:
+		commandArguments.push_back("320_es");
+		shaderLanguageDefine = "BGFX_SHADER_LANGUAGE_GLSL";
+		break;
+	case engine::GraphicsBackend::Metal:
+		commandArguments.push_back("metal");
+		shaderLanguageDefine = "BGFX_SHADER_LANGUAGE_METAL";
+		break;
+	case engine::GraphicsBackend::Vulkan:
+		commandArguments.push_back("spirv15-12");
+		shaderLanguageDefine = "BGFX_SHADER_LANGUAGE_SPIRV";
+		break;
+	default:
+		assert("Unknown shader compile profile.");
 	}
 
 	if (pUberOptions && *pUberOptions != '\0')
 	{
 		commandArguments.push_back("--define");
-		commandArguments.push_back(pUberOptions);
+		commandArguments.push_back(shaderLanguageDefine + ";" + pUberOptions);
 	}
 
 	process.SetCommandArguments(cd::MoveTemp(commandArguments));
-
-	process.SetWaitUntilFinished(true);
 	AddTask(cd::MoveTemp(process));
 
 	return true;
 }
 
-bool ResourceBuilder::AddCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath)
+bool ResourceBuilder::AddIrradianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath)
 {
 	if (s_SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
 	{
 		return false;
 	}
 
-	// Document : In command line, ./cmft -h
-	std::string cmftExePath = CDENGINE_TOOL_PATH;
-	cmftExePath += "/cmft";
+	std::string cmftExePath = (std::filesystem::path(CDENGINE_TOOL_PATH) / "cmft").generic_string();
 	Process process(cmftExePath.c_str());
+	std::string pathWithoutExtension = std::filesystem::path(pOutputFilePath).replace_extension().generic_string();
 
-	std::vector<std::string> commandArguments{ "--input", pInputFilePath,
-		"--outputNum", "1", "--output0", pOutputFilePath,
-		"--excludeBase", "true", "--mipCount", "7", "--glossScale", "10", "--glossBias", "2", "--edgeFixup", "warp" };
-	process.SetCommandArguments(cd::MoveTemp(commandArguments));
-	process.SetWaitUntilFinished(true);
+	std::vector<std::string> irradianceCommandArguments{"--input", pInputFilePath,
+		"--filter", "irradiance",
+		"--dstFaceSize", "256",
+		"--outputNum", "1", "--output0", cd::MoveTemp(pathWithoutExtension), "--output0params", "dds,rgba16f,cubemap"};
+
+	process.SetCommandArguments(cd::MoveTemp(irradianceCommandArguments));
+	AddTask(cd::MoveTemp(process));
+
+	return true;
+}
+
+bool ResourceBuilder::AddRadianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath)
+{
+	if (s_SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
+	{
+		return false;
+	}
+
+	std::string cmftExePath = (std::filesystem::path(CDENGINE_TOOL_PATH) / "cmft").generic_string();
+	Process process(cmftExePath.c_str());
+	std::string pathWithoutExtension = std::filesystem::path(pOutputFilePath).replace_extension().generic_string();
+
+	std::vector<std::string> radianceCommandArguments{"--input", pInputFilePath,
+		"--filter", "radiance", "--lightingModel", "phongbrdf", "--excludeBase", "true", "--mipCount", "7",
+		"--dstFaceSize", "256",
+		"--outputNum", "1", "--output0", cd::MoveTemp(pathWithoutExtension), "--output0params", "dds,rgba16f,cubemap"};
+
+	process.SetCommandArguments(cd::MoveTemp(radianceCommandArguments));
 	AddTask(cd::MoveTemp(process));
 
 	return true;
@@ -236,7 +293,7 @@ bool ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, c
 	texturecExePath += "/texturec";
 	Process process(texturecExePath.c_str());
 
-	std::vector<std::string> commandArguments{ "-f", pInputFilePath, "-o", pOutputFilePath, "-t", "BC3", "--mips", "-q", "fastest", "--max", "1024"};
+	std::vector<std::string> commandArguments{ "-f", pInputFilePath, "-o", pOutputFilePath, "-t", "BC3", "--mips", "-q", "highest", "--max", "1024"};
 	if (cd::MaterialTextureType::Normal == textureType)
 	{
 		commandArguments.push_back("--normalmap");
@@ -246,13 +303,12 @@ bool ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, c
 		commandArguments.push_back("--linear");
 	}
 	process.SetCommandArguments(cd::MoveTemp(commandArguments));
-	process.SetWaitUntilFinished(true);
 	AddTask(cd::MoveTemp(process));
 
 	return true;
 }
 
-void ResourceBuilder::Update()
+void ResourceBuilder::Update(bool doPrintLog)
 {
 	if (m_buildTasks.empty())
 	{
@@ -263,6 +319,8 @@ void ResourceBuilder::Update()
 	while (!m_buildTasks.empty())
 	{
 		Process& process = m_buildTasks.front();
+		process.SetWaitUntilFinished(m_buildTasks.size() == 1);
+		process.SetPrintChildProcessLog(doPrintLog);
 		process.Run();
 		m_buildTasks.pop();
 	}

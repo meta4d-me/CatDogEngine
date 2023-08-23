@@ -6,11 +6,12 @@
 #include "Rendering/Utility/VertexLayoutUtility.h"
 
 #include <bgfx/bgfx.h>
+#include <bgfx/platform.h>
 #include <bimg/decode.h>
 #include <bx/allocator.h>
 
 #include <cassert>
-#include <format>
+//#include <format>
 #include <fstream>
 #include <memory>
 
@@ -36,6 +37,7 @@ void DestoryImpl(engine::StringCrc resourceCrc, T& caches)
 	auto itResource = caches.find(resourceCrc.Value());
 	if(itResource != caches.end())
 	{
+		assert(bgfx::isValid(itResource->second));
 		bgfx::destroy(itResource->second);
 		caches.erase(itResource);
 	}
@@ -51,7 +53,7 @@ RenderContext::~RenderContext()
 	bgfx::shutdown();
 }
 
-void RenderContext::Init(GraphicsBackend backend)
+void RenderContext::Init(GraphicsBackend backend, void* hwnd)
 {
 	bgfx::Init initDesc;
 	switch (backend)
@@ -64,11 +66,6 @@ void RenderContext::Init(GraphicsBackend backend)
 	case GraphicsBackend::OpenGLES:
 	{
 		initDesc.type = bgfx::RendererType::OpenGLES;
-		break;
-	}
-	case GraphicsBackend::Direct3D9:
-	{
-		initDesc.type = bgfx::RendererType::Direct3D9;
 		break;
 	}
 	case GraphicsBackend::Direct3D11:
@@ -99,8 +96,8 @@ void RenderContext::Init(GraphicsBackend backend)
 	}
 	}
 
+	initDesc.platformData.nwh = hwnd;
 	bgfx::init(initDesc);
-	bgfx::setDebug(BGFX_DEBUG_NONE);
 }
 
 void RenderContext::Shutdown()
@@ -139,14 +136,9 @@ void RenderContext::EndFrame()
 
 void RenderContext::OnResize(uint16_t width, uint16_t height)
 {
-	// Update swap chain RT size which presents main window.
-	constexpr engine::StringCrc editorSwapChainName("EditorUISwapChain");
-	if (engine::RenderTarget* pRenderTarget = GetRenderTarget(editorSwapChainName))
-	{
-		pRenderTarget->Resize(width, height);
-	}
-	
-	bgfx::reset(width, height, BGFX_RESET_MSAA_X16 | BGFX_RESET_VSYNC);
+	bgfx::reset(width, height, BGFX_RESET_VSYNC);
+	m_backBufferWidth = width;
+	m_backBufferHeight = height;
 }
 
 uint16_t RenderContext::CreateView()
@@ -192,7 +184,7 @@ bgfx::ShaderHandle RenderContext::CreateShader(const char* pFilePath)
 	std::ifstream fin(shaderFileFullPath, std::ios::in | std::ios::binary);
 	if (!fin.is_open())
 	{
-		return bgfx::ShaderHandle(bgfx::kInvalidHandle);
+		return bgfx::ShaderHandle{bgfx::kInvalidHandle};
 	}
 
 	fin.seekg(0L, std::ios::end);
@@ -269,11 +261,13 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pFilePath, uint64_t
 		return itTextureCache->second;
 	}
 
-	std::string textureFileFullPath = std::format("{}{}", CDPROJECT_RESOURCES_ROOT_PATH, pFilePath);
+	//std::string textureFileFullPath = std::format("{}{}", CDPROJECT_RESOURCES_ROOT_PATH, pFilePath);
+	std::string textureFileFullPath = CDPROJECT_RESOURCES_ROOT_PATH;
+	textureFileFullPath += pFilePath;
 	std::ifstream fin(textureFileFullPath, std::ios::in | std::ios::binary);
 	if (!fin.is_open())
 	{
-		return bgfx::TextureHandle(bgfx::kInvalidHandle);
+		return bgfx::TextureHandle{bgfx::kInvalidHandle};
 	}
 
 	fin.seekg(0L, std::ios::end);
@@ -294,7 +288,7 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pFilePath, uint64_t
 	delete[] pRawData;
 	pRawData = nullptr;
 
-	bgfx::TextureHandle handle(bgfx::kInvalidHandle);
+	bgfx::TextureHandle handle{bgfx::kInvalidHandle};
 	if (imageContainer->m_cubeMap)
 	{
 		handle = bgfx::createTextureCube(
@@ -377,6 +371,37 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pName, uint16_t wid
 	}
 
 	return texture;
+}
+
+bgfx::TextureHandle RenderContext::UpdateTexture(const char* pName, uint16_t layer, uint8_t mip, uint16_t x, uint16_t y, uint16_t z, uint16_t width, uint16_t height, uint16_t depth, const void* data, uint32_t size)
+{
+	bgfx::TextureHandle handle = BGFX_INVALID_HANDLE;
+	const bgfx::Memory* mem = nullptr;
+
+	StringCrc textureName(pName);
+	auto itTextureCache = m_textureHandleCaches.find(textureName.Value());
+	if (itTextureCache == m_textureHandleCaches.end())
+	{
+		CD_ENGINE_WARN("Texture handle of {} can not find!", pName);
+		return handle;
+	}
+
+	if (nullptr != data && size > 0)
+	{
+		mem = bgfx::makeRef(data, size);
+	}
+
+	handle = itTextureCache->second;
+	if (depth > 1)
+	{
+		bgfx::updateTexture3D(handle, mip, x, y, z, width, height, depth, mem);
+	}
+	else
+	{
+		bgfx::updateTexture2D(handle, layer, mip, x, y, width, height, mem);
+	}
+
+	return handle;
 }
 
 bgfx::UniformHandle RenderContext::CreateUniform(const char* pName, bgfx::UniformType::Enum uniformType, uint16_t number)
@@ -476,7 +501,7 @@ bgfx::ShaderHandle RenderContext::GetShader(StringCrc resourceCrc) const
 		return itResource->second;
 	}
 
-	return bgfx::ShaderHandle(bgfx::kInvalidHandle);
+	return bgfx::ShaderHandle{bgfx::kInvalidHandle};
 }
 
 bgfx::ProgramHandle RenderContext::GetProgram(StringCrc resourceCrc) const
@@ -487,7 +512,7 @@ bgfx::ProgramHandle RenderContext::GetProgram(StringCrc resourceCrc) const
 		return itResource->second;
 	}
 
-	return bgfx::ProgramHandle(bgfx::kInvalidHandle);
+	return bgfx::ProgramHandle{bgfx::kInvalidHandle};
 }
 
 bgfx::TextureHandle RenderContext::GetTexture(StringCrc resourceCrc) const
@@ -498,7 +523,7 @@ bgfx::TextureHandle RenderContext::GetTexture(StringCrc resourceCrc) const
 		return itResource->second;
 	}
 
-	return bgfx::TextureHandle(bgfx::kInvalidHandle);
+	return bgfx::TextureHandle{bgfx::kInvalidHandle};
 }
 
 bgfx::UniformHandle RenderContext::GetUniform(StringCrc resourceCrc) const
@@ -509,7 +534,7 @@ bgfx::UniformHandle RenderContext::GetUniform(StringCrc resourceCrc) const
 		return itResource->second;
 	}
 
-	return bgfx::UniformHandle(bgfx::kInvalidHandle);
+	return bgfx::UniformHandle{bgfx::kInvalidHandle};
 }
 
 void RenderContext::Destory(StringCrc resourceCrc)

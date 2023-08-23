@@ -7,14 +7,15 @@
 
 namespace engine
 {
+
 class CameraController;
-class FirstPersonCameraController;
 class FlybyCamera;
 class ImGuiBaseLayer;
 class ImGuiContextInstance;
 class Window;
 class RenderContext;
 class Renderer;
+class AABBRenderer;
 class RenderTarget;
 class SceneWorld;
 
@@ -47,7 +48,7 @@ public:
 	size_t AddWindow(std::unique_ptr<engine::Window> pWindow);
 	void RemoveWindow(size_t index);
 
-	void InitRenderContext(engine::GraphicsBackend backend);
+	void InitRenderContext(engine::GraphicsBackend backend, void* hwnd = nullptr);
 	void InitEditorRenderers();
 	void InitEngineRenderers();
 	void InitShaderPrograms() const;
@@ -62,8 +63,15 @@ public:
 	void RegisterImGuiUserData(engine::ImGuiContextInstance* pImGuiContext);
 
 	void InitECWorld();
+	void InitEditorController();
+
+	bool IsAtmosphericScatteringEnable() const;
 
 private:
+	void InitEditorCameraEntity();
+	void InitDDGIEntity();
+	void InitSkyEntity();
+
 	bool m_bInitEditor = false;
 	engine::EngineInitArgs m_initArgs;
 
@@ -82,17 +90,16 @@ private:
 	engine::Renderer* m_pDebugRenderer = nullptr;
 	engine::Renderer* m_pPBRSkyRenderer = nullptr;
 	engine::Renderer* m_pIBLSkyRenderer = nullptr;
-	engine::Renderer* m_pDDGIRenderer = nullptr;
+	engine::Renderer* m_pTerrainRenderer = nullptr;
+	engine::Renderer* m_pAABBRenderer = nullptr;
 
 	// Rendering
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;
-	engine::RenderTarget* m_pEditorRenderTarget = nullptr;
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEditorRenderers;
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEngineRenderers;
 
 	// Controllers for processing input events.
-	std::unique_ptr<engine::FirstPersonCameraController> m_pCameraController;
-	std::unique_ptr<engine::CameraController> m_pNewCameraController;
+	std::unique_ptr<engine::CameraController> m_pViewportCameraController;
 };
 
 }

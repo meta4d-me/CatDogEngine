@@ -3,6 +3,13 @@
 #include "Time/Clock.h"
 #include "Window/Window.h"
 
+#ifdef TRACY_ENABLE
+#include <tracy/Tracy.hpp>
+#else
+#define ZoneScoped
+#define FrameMark
+#endif
+
 namespace engine
 {
 
@@ -31,6 +38,8 @@ void Engine::Run()
 
 	while (true)
 	{
+		ZoneScoped;
+
 		clock.Update();
 
 		if (!m_pApplication->Update(clock.GetDeltaTime()))
@@ -38,6 +47,8 @@ void Engine::Run()
 			// quit
 			break;
 		}
+
+		FrameMark;
 	}
 }
 

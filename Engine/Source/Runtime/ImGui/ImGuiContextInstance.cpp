@@ -10,8 +10,12 @@
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui/imgui_internal.h>
-#include <misc/freetype/imgui_freetype.h>
 
+#ifdef IMGUI_ENABLE_FREETYPE
+#include <misc/freetype/imgui_freetype.h>
+#endif
+
+//#include <format>
 #include <string>
 #include <unordered_map>
 
@@ -440,7 +444,9 @@ void ImGuiContextInstance::LoadFontFiles(const std::vector<std::string>& ttfFile
 	bool ttfFileLoaded = false;
 	for (const std::string& ttfFileName : ttfFileNames)
 	{
+		//std::string editorFontResourcePath = std::format("{}/Font/{}", CDEDITOR_RESOURCES_ROOT_PATH, ttfFileName);
 		std::string editorFontResourcePath = CDEDITOR_RESOURCES_ROOT_PATH;
+		editorFontResourcePath += "/Font/";
 		editorFontResourcePath += ttfFileName;
 
 		const ImWchar* pGlyphRanges = nullptr;
@@ -507,7 +513,9 @@ void ImGuiContextInstance::LoadFontFiles(const std::vector<std::string>& ttfFile
 	}
 
 	ImFontAtlas* pFontAtlas = ImGui::GetIO().Fonts;
+#ifdef IMGUI_ENABLE_FREETYPE
 	pFontAtlas->FontBuilderIO = ImGuiFreeType::GetBuilderForFreeType();
+#endif
 	pFontAtlas->FontBuilderFlags = 0;
 	pFontAtlas->Build();
 }

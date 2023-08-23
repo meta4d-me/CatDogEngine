@@ -7,13 +7,33 @@
 #include "RenderContext.h"
 #include "Scene/Texture.h"
 
-#include <format>
+#include <cmath>
+//#include <format>
 
 namespace engine
 {
 
-namespace detail
+namespace details
 {
+
+float CustomFModf(float dividend, float divisor)
+{
+	if (divisor == 0.0f)
+		return 0.0f;
+
+	int quotient = static_cast<int>(dividend / divisor);
+	float result = dividend - static_cast<float>(quotient) * divisor;
+
+	// Handle potential precision issues near zero
+	if (result == 0.0f && dividend != 0.0f)
+		result = 0.0f;
+
+	// Ensure the result has the same sign as the divisor
+	if ((dividend < 0 && divisor > 0) || (dividend > 0 && divisor < 0))
+		result = -result;
+
+	return result;
+}
 
 void CalculateBoneTransform(std::vector<cd::Matrix4x4>& boneMatrices, const cd::SceneDatabase* pSceneDatabase,
 	float animationTime, const cd::Bone& bone, const cd::Matrix4x4& parentBoneTransform, const cd::Matrix4x4& globalInverse)
@@ -119,7 +139,7 @@ void AnimationRenderer::Init()
 	m_pRenderContext->CreateUniform("u_debugBoneIndex", bgfx::UniformType::Vec4, 1);
 	m_pRenderContext->CreateProgram("AnimationProgram", "vs_visualize_bone_weight.bin", "fs_visualize_bone_weight.bin");
 #else
-	m_pRenderContext->CreateProgram("AnimationProgram", "vs_animation.bin", "fs_animation.bin");
+	GetRenderContext()->CreateProgram("AnimationProgram", "vs_animation.bin", "fs_animation.bin");
 #endif
 
 	bgfx::setViewName(GetViewID(), "AnimationRenderer");
@@ -127,8 +147,7 @@ void AnimationRenderer::Init()
 
 void AnimationRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
-	bgfx::setViewFrameBuffer(GetViewID(), *GetRenderTarget()->GetFrameBufferHandle());
-	bgfx::setViewRect(GetViewID(), 0, 0, GetRenderTarget()->GetWidth(), GetRenderTarget()->GetHeight());
+	UpdateViewRenderTarget();
 	bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
 }
 
@@ -173,7 +192,7 @@ void AnimationRenderer::Render(float deltaTime)
 		const cd::Animation* pAnimation = pAnimationComponent->GetAnimationData();
 		float ticksPerSecond = pAnimation->GetTicksPerSecnod();
 		assert(ticksPerSecond > 1.0f);
-		float animationTime = std::fmodf(animationRunningTime * ticksPerSecond, pAnimation->GetDuration());
+		float animationTime = details::CustomFModf(animationRunningTime * ticksPerSecond, pAnimation->GetDuration());
 
 		static std::vector<cd::Matrix4x4> boneMatrices;
 		boneMatrices.clear();
@@ -183,17 +202,17 @@ void AnimationRenderer::Render(float deltaTime)
 		}
 
 		const cd::Bone& rootBone = pSceneDatabase->GetBone(0);
-		detail::CalculateBoneTransform(boneMatrices, pSceneDatabase, animationTime, rootBone,
+		details::CalculateBoneTransform(boneMatrices, pSceneDatabase, animationTime, rootBone,
 			cd::Matrix4x4::Identity(), pTransformComponent->GetWorldMatrix().Inverse());
-		bgfx::setUniform(bgfx::UniformHandle(pAnimationComponent->GetBoneMatrixsUniform()), boneMatrices.data(), static_cast<uint16_t>(boneMatrices.size()));
-		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle(pMeshComponent->GetVertexBuffer()));
-		bgfx::setIndexBuffer(bgfx::IndexBufferHandle(pMeshComponent->GetIndexBuffer()));
+		bgfx::setUniform(bgfx::UniformHandle{pAnimationComponent->GetBoneMatrixsUniform()}, boneMatrices.data(), static_cast<uint16_t>(boneMatrices.size()));
+		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()});
+		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
 
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);
 
 		constexpr StringCrc animationProgram("AnimationProgram");
-		bgfx::submit(GetViewID(), m_pRenderContext->GetProgram(animationProgram));
+		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(animationProgram));
 	}
 }
 

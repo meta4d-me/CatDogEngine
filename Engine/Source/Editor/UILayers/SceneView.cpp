@@ -16,18 +16,18 @@
 #include "Scene/SceneDatabase.h"
 #include "Window/Input.h"
 
-#include <imgui/imgui.h>
-#define IMGUI_DEFINE_MATH_OPERATORS
-#include <imgui/imgui_internal.h>
-#include <imguizmo/ImGuizmo.h>
-
 namespace
 {
 
 struct ImGuizmoOperationMode
 {
-	// icon font is 16 bits
+#ifdef __clang__
+	const char* pIconFontName;
+#else
 	const char8_t* pIconFontName;
+#endif // __clang__
+
+	// icon font is 16 bits
 	const char* pToolStripName;
 	ImGuizmo::OPERATION operation;
 	bool createUIVerticalLine;
@@ -104,6 +104,48 @@ void SceneView::UpdateOperationButtons()
 	}
 }
 
+void SceneView::UpdateAABBCombo()
+{
+	ImGui::SetNextItemWidth(150);
+	if(ImGui::Combo("##AABBCombo", reinterpret_cast<int*>(&m_AABBMode), AABBModes, IM_ARRAYSIZE(AABBModes)))
+	{
+		if (AABBModeType::NoAABB == m_AABBMode)
+		{
+			m_pAABBRenderer->SetEnable(false);
+		}
+		else if (AABBModeType::AABBSelected == m_AABBMode)
+		{
+			m_pAABBRenderer->SetEnable(true);
+			static_cast<engine::AABBRenderer*>(m_pAABBRenderer)->SetIsRenderSelected(true);
+		}
+		else if (AABBModeType::AABBAll == m_AABBMode)
+		{
+			m_pAABBRenderer->SetEnable(true);
+			static_cast<engine::AABBRenderer*>(m_pAABBRenderer)->SetIsRenderSelected(false);
+		}
+	}
+	ImGui::PushItemWidth(150);
+}
+
+void SceneView::UpdateDebugCombo()
+{
+	ImGui::SetNextItemWidth(130);
+	if (ImGui::Combo("##DebugCombo", reinterpret_cast<int*>(&m_debugMode), DebugModes, IM_ARRAYSIZE(DebugModes)))
+	{
+		if (DebugModeType::NoDebug == m_debugMode)
+		{
+			m_pSceneRenderer->SetEnable(true);
+			m_pDebugRenderer->SetEnable(false);
+		}
+		else if (DebugModeType::WhiteModel == m_debugMode)
+		{
+			m_pSceneRenderer->SetEnable(false);
+			m_pDebugRenderer->SetEnable(true);
+		}
+	}
+	ImGui::PushItemWidth(130);
+}
+
 void SceneView::Update2DAnd3DButtons()
 {
 	bool is3DMode = m_is3DMode;
@@ -141,27 +183,6 @@ void SceneView::Update2DAnd3DButtons()
 	}
 }
 
-void SceneView::UpdateSwitchIBLButton()
-{
-	bool isIBLActive = m_isIBLActive;
-	if (isIBLActive)
-	{
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
-	}
-
-	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CUBE " IBL")))
-	{
-		m_isIBLActive = !m_isIBLActive;
-		
-		// TODO
-	}
-
-	if (isIBLActive)
-	{
-		ImGui::PopStyleColor();
-	}
-}
-
 void SceneView::UpdateSwitchAABBButton()
 {
 	bool isAABBActive = false;
@@ -176,6 +197,25 @@ void SceneView::UpdateSwitchAABBButton()
 	}
 
 	if (isAABBActive)
+	{
+		ImGui::PopStyleColor();
+	}
+}
+
+void SceneView::UpdateSwitchTerrainButton()
+{
+	bool isTerrainActive = m_isTerrainEditMode;
+	if (isTerrainActive)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+	}
+
+	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CUBE "Smooth Terrain ")))
+	{
+		m_isTerrainEditMode = !m_isTerrainEditMode;
+	}
+
+	if (isTerrainActive)
 	{
 		ImGui::PopStyleColor();
 	}
@@ -203,29 +243,21 @@ void SceneView::UpdateToolMenuButtons()
 
 	//ImGui::SameLine();
 	//ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-	ImGui::SameLine();
-
-	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CAMERA " FrameAll")))
-	{
-		engine::SceneWorld* pSceneWorld = GetSceneWorld();
-		if (cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase())
-		{
-			pSceneDatabase->UpdateAABB();
-
-			engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
-			pCameraComponent->FrameAll(pSceneDatabase->GetAABB());
-		}
-	}
-
-	ImGui::SameLine();
-
+	
 	//Update2DAnd3DButtons();
 	//ImGui::SameLine();
 
 	//UpdateSwitchIBLButton();
 	//ImGui::SameLine();
 
-	UpdateSwitchAABBButton();
+	ImGui::SameLine();
+	UpdateAABBCombo();
+
+	ImGui::SameLine();
+	UpdateDebugCombo();
+
+	ImGui::SameLine();
+	UpdateSwitchTerrainButton();
 
 	ImGui::SameLine();
 	static bool show_slider = false;
@@ -236,6 +268,9 @@ void SceneView::UpdateToolMenuButtons()
 		ImGui::Begin("Slider", &show_slider); 
 	    ImGui::InputFloat2("Slider Range", sliderRange);
 		ImGui::SliderFloat("Speed", &m_MainCameraSpeed, sliderRange[0], sliderRange[1]);
+		engine::SceneWorld* pSceneWorld = GetSceneWorld();
+		engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
+		pCameraComponent->SetCurrentSpeed(m_MainCameraSpeed);
 		ImGui::End();
 	}
 	ImGui::PopStyleColor();
@@ -300,6 +335,7 @@ void SceneView::Update()
 {
 	engine::SceneWorld* pSceneWorld = GetSceneWorld();
 	engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
+	engine::TerrainComponent* pTerrainComponent = pSceneWorld->GetTerrainComponent(pSceneWorld->GetSelectedEntity());
 
 	if (nullptr == m_pRenderTarget)
 	{
@@ -310,7 +346,21 @@ void SceneView::Update()
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 	auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 	ImGui::Begin(GetName(), &m_isEnable, flags);
-
+	if (engine::Input::Get().IsMouseLBPressed())
+	{
+		ImVec2 windowSize = ImGui::GetWindowSize();
+		ImVec2 windowPos = ImGui::GetWindowPos();
+		ImVec2 mousePos = ImGui::GetMousePos();
+		cd::Vec2f rightDown(windowPos.x + windowSize.x, windowPos.y + windowSize.y);
+		if (mousePos.x > windowPos.x && mousePos.x < rightDown.x() && mousePos.y > windowPos.y && mousePos.y < rightDown.y() && !m_isTerrainEditMode)
+		{
+			m_pCameraController->SetIsInViewScene(true);
+		}
+		else
+		{
+			m_pCameraController->SetIsInViewScene(false);
+		}
+	}
 	// Draw top menu buttons which include ImGuizmo operation modes, ViewCamera settings.
 	UpdateToolMenuButtons();
 
@@ -337,7 +387,7 @@ void SceneView::Update()
 	SetWindowPos(sceneViewPosition.x, sceneViewPosition.y);
 
 	// Draw scene.
-	ImGui::Image(ImTextureID(m_pRenderTarget->GetTextureHandle(0).idx),
+	ImGui::Image(reinterpret_cast<ImTextureID>(m_pRenderTarget->GetTextureHandle(0).idx),
 		ImVec2(m_pRenderTarget->GetWidth(), m_pRenderTarget->GetHeight()));
 
 	// Check if there is a file to drop in the scene view to import assets automatically.

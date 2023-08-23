@@ -1,6 +1,6 @@
 #pragma once
 
-#include <inttypes.h>
+#include <cstdint>
 
 // This file was copied from SDL_Keycode.h and modified.
 // All engine::KeyCode and engine::KeyMod match SDL values.

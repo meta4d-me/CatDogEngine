@@ -1,5 +1,6 @@
 #include "EntityList.h"
 
+#include "Display/CameraController.h"
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/World.h"
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
@@ -27,10 +28,10 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
 {
     engine::World* pWorld = pSceneWorld->GetWorld();
     cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
-    ImVec2 popupSize = ImGui::GetContentRegionAvail();
     engine::MaterialType* pPBRMaterialType = pSceneWorld->GetPBRMaterialType();
+    engine::MaterialType* pTerrainMaterialType = pSceneWorld->GetTerrainMaterialType();
 
-    auto AddNamedEntity = [&pWorld, &pSceneWorld](std::string defaultName) -> engine::Entity
+    auto AddNamedEntity = [&pWorld](std::string defaultName) -> engine::Entity
     {
         engine::Entity entity = pWorld->CreateEntity();
         auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
@@ -51,10 +52,10 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
 
         auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
-        materialComponent.Init(pMaterialType);
-        engine::StringCrc currentUberOption(pMaterialType->GetShaderSchema().GetUberCombines().at(0));
-        materialComponent.SetUberShaderOption(currentUberOption);
+        materialComponent.Init();
+        materialComponent.SetMaterialType(pMaterialType);
         materialComponent.SetAlbedoColor(cd::Vec3f(0.2f));
+        materialComponent.SetSkyType(pSceneWorld->GetSkyComponent(pSceneWorld->GetSkyEntity())->GetSkyType());
         materialComponent.Build();
 
         auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
@@ -76,6 +77,8 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         return lightComponent;
     };
 
+    // ---------------------------------------- Add Mesh ---------------------------------------- //
+
     if (ImGui::MenuItem("Add Cube Mesh"))
     {
         engine::Entity entity = AddNamedEntity("CubeMesh");
@@ -90,53 +93,89 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         assert(optMesh.has_value());
         CreateShapeComponents(entity, cd::MoveTemp(optMesh.value()), pPBRMaterialType);
     }
-    else if (ImGui::MenuItem("Add Camera"))
+    else if (ImGui::MenuItem("Add Terrain Mesh"))
     {
-        engine::Entity entity = AddNamedEntity("Camera");
-        auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(entity);
-        cameraComponent.SetEye(cd::Point(0.0f, 0.0f, -100.0f));
-        cameraComponent.SetLookAt(cd::Direction(0.0f, 0.0f, 1.0f));
-        cameraComponent.SetUp(cd::Direction(0.0f, 1.0f, 0.0f));
-        cameraComponent.SetAspect(1.0f);
-        cameraComponent.SetFov(45.0f);
-        cameraComponent.SetNearPlane(0.1f);
-        cameraComponent.SetFarPlane(2000.0f);
-        cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
-        cameraComponent.Build();
+        engine::Entity entity = AddNamedEntity("Terrain");
+
+        auto& terrainComponent = pWorld->CreateComponent<engine::TerrainComponent>(entity);
+        terrainComponent.InitElevationRawData();
+
+        std::optional<cd::Mesh> optMesh = engine::GenerateTerrainMesh(terrainComponent.GetMeshWidth(), terrainComponent.GetMeshDepth(), pTerrainMaterialType->GetRequiredVertexFormat());
+        assert(optMesh.has_value());
+        cd::Mesh& mesh = optMesh.value();
+
+        auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
+        meshComponent.SetMeshData(&mesh);
+        meshComponent.SetRequiredVertexFormat(&pTerrainMaterialType->GetRequiredVertexFormat());//to do : modify vertexFormat
+        meshComponent.Build();
+
+        mesh.SetName(pSceneWorld->GetNameComponent(entity)->GetName());
+        mesh.SetID(cd::MeshID(pSceneDatabase->GetMeshCount()));
+        pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
+
+        auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
+        materialComponent.Init();
+        materialComponent.SetMaterialType(pTerrainMaterialType);
+        materialComponent.SetAlbedoColor(cd::Vec3f(0.2f));
+        materialComponent.SetSkyType(pSceneWorld->GetSkyComponent(pSceneWorld->GetSkyEntity())->GetSkyType());
+        materialComponent.SetTwoSided(true);
+        materialComponent.Build();
 
         auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
         transformComponent.SetTransform(cd::Transform::Identity());
         transformComponent.Build();
     }
 
+    // ---------------------------------------- Add Camera ---------------------------------------- //
+
+    else if (ImGui::MenuItem("Add Camera"))
+    {
+        engine::Entity entity = AddNamedEntity("Camera");
+        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+        transformComponent.SetTransform(cd::Transform::Identity());
+        transformComponent.Build();
+
+        auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(entity);
+        cameraComponent.SetAspect(1.0f);
+        cameraComponent.SetFov(45.0f);
+        cameraComponent.SetNearPlane(0.1f);
+        cameraComponent.SetFarPlane(2000.0f);
+        cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
+        cameraComponent.BuildProjectMatrix();
+        cameraComponent.BuildViewMatrix(cd::Transform::Identity());
+    }
+
+    // ---------------------------------------- Add Light ---------------------------------------- //
+
     else if (ImGui::MenuItem("Add Point Light"))
     {
         engine::Entity entity = AddNamedEntity("PointLight");
         auto& lightComponent = CreateLightComponents(entity, cd::LightType::Point, 1024.0f, cd::Vec3f(1.0f, 0.0f, 0.0f));
-        lightComponent.SetPosition(cd::Point(0.0f, 0.0f, -12.0f));
+        lightComponent.SetPosition(cd::Point(0.0f, 0.0f, -16.0f));
         lightComponent.SetRange(1024.0f);
     }
     else if (ImGui::MenuItem("Add Spot Light"))
     {
         engine::Entity entity = AddNamedEntity("SpotLight");
         auto& lightComponent = CreateLightComponents(entity, cd::LightType::Spot, 1024.0f, cd::Vec3f(0.0f, 1.0f, 0.0f));
-        lightComponent.SetPosition(cd::Point(0.0f, 0.0f, -12.0f));
+        lightComponent.SetPosition(cd::Point(0.0f, 0.0f, -16.0f));
         lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
         lightComponent.SetRange(1024.0f);
-        lightComponent.SetAngleScale(1.0f);
-        lightComponent.SetAngleOffset(10.0f);
+        lightComponent.SetInnerAndOuter(24.0f, 40.0f);
     }
     else if (ImGui::MenuItem("Add Directional Light"))
     {
         engine::Entity entity = AddNamedEntity("DirectionalLight");
-        auto& lightComponent = CreateLightComponents(entity, cd::LightType::Directional, 4.0f, cd::Vec3f(0.0f, 0.0f, 1.0f));
+        auto& lightComponent = CreateLightComponents(entity, cd::LightType::Directional, 4.0f, cd::Vec3f(1.0f, 1.0f, 1.0f));
         lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
     }
+
+    // ---------------------------------------- Add Area Light ---------------------------------------- //
+
     else if (ImGui::MenuItem("Add Rectangle Light"))
     {
         engine::Entity entity = AddNamedEntity("RectangleLight");
         auto& lightComponent = CreateLightComponents(entity, cd::LightType::Rectangle, 1024.0f, cd::Vec3f(1.0f, 0.0f, 0.0f));
-
         lightComponent.SetPosition(cd::Point(0.0f, 0.0f, -12.0f));
         lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
         lightComponent.SetUp(cd::Direction(0.0f, 1.0f, 0.0f));
@@ -148,7 +187,6 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     {
         engine::Entity entity = AddNamedEntity("DiskLight");
         auto& lightComponent = CreateLightComponents(entity, cd::LightType::Disk, 1024.0f, cd::Vec3f(1.0f, 0.0f, 0.0f));
-
         lightComponent.SetPosition(cd::Point(0.0f, 0.0f, -12.0f));
         lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
         lightComponent.SetRange(1024.0f);
@@ -167,7 +205,6 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     {
         engine::Entity entity = AddNamedEntity("TubeLight");
         auto& lightComponent = CreateLightComponents(entity, cd::LightType::Tube, 1024.0f, cd::Vec3f(1.0f, 0.0f, 0.0f));
-
         lightComponent.SetPosition(cd::Point(0.0f, 0.0f, -12.0f));
         lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
         lightComponent.SetRange(1024.0f);
@@ -232,8 +269,9 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
     ImGui::PopStyleColor();
 
     ImGui::SameLine();
-    ImGui::TextUnformatted(pNameComponent->GetName());
 
+    ImGui::Selectable(pNameComponent->GetName());
+    
     if (!isEntityActive)
     {
         ImGui::PopStyleColor();
@@ -276,7 +314,24 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
     if (ImGui::IsItemClicked())
     {
         pSceneWorld->SetSelectedEntity(entity);
+        if (ImGui::IsMouseDoubleClicked(0))
+        {
+            if (engine::StaticMeshComponent* pStaticMesh = pSceneWorld->GetStaticMeshComponent(entity))
+            {
+                cd::AABB meshAABB = pStaticMesh->GetAABB();
+                if (engine::TransformComponent* pTransform = pSceneWorld->GetTransformComponent(entity))
+                {
+                    meshAABB = meshAABB.Transform(pTransform->GetWorldMatrix());
+                    if (m_pCameraController)
+                    {
+                        m_pCameraController->CameraFocus(meshAABB);
+                    }
+                }
+            }
+        }
     }
+
+    
 
     //if (m_editingEntityName)
     //{

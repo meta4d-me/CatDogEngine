@@ -57,12 +57,14 @@ public:
 	}
 
 	bool AddTask(Process process);
-	bool AddCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
-	bool AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char *pUberOptions = nullptr);
+	bool AddIrradianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
+	bool AddRadianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
+	bool AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pUberOptions = nullptr);
 	bool AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath);
-	
-	void Update();
+
+	void Update(bool doPrintLog = true);
 	size_t GetCurrentTaskCount() const { return m_buildTasks.size(); }
+	bool IsIdle() const { return m_buildTasks.empty(); }
 
 private:
 	ResourceBuilder();
@@ -80,6 +82,7 @@ private:
 
 	ProcessStatus CheckFileStatus(const char* pInputFilePath, const char* pOutputFilePath);
 
+private:
 	std::queue<Process> m_buildTasks;
 	
 	std::unordered_map<std::string, long long> m_modifyTimeCache;

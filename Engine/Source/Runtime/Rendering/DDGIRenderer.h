@@ -20,11 +20,6 @@ public:
 
 	void SetSceneWorld(SceneWorld* pSceneWorld) { m_pCurrentSceneWorld = pSceneWorld; }
 
-	void UpdateClassificationTexture(const char* path);
-	void UpdateDistanceTexture(const char* path);
-	void UpdateIrradianceTexture(const char* path);
-	void UpdateRelocationTexture(const char* path);
-
 private:
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
 	DDGIComponent* m_pDDGIComponent = nullptr;

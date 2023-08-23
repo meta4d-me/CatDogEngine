@@ -1,7 +1,13 @@
 数据格式：
-Irradiance：R16G16B16A16_UNORM   80x32x1
+Irradiance：R16G16B16A16_FLOAT   80x32x1
 Distance：R32G32_FLOAT 160x64x1
 Relocation：R16G16B16A16_FLOAT 10x4x1
 Classification：R32_FLOAT 10x4x1
 probe密度：4x5x2
 
+数据格式：
+Distance：R32G32_FLOAT 1920x240x1
+Irradiance：R16G16B16A16_FLOAT   960x120x1
+Relocation：R16G16B16A16_FLOAT 120x15x1
+Classification：R32_FLOAT 120x15x1
+probe密度：15x12x10

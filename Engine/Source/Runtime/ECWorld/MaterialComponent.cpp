@@ -1,5 +1,6 @@
 #include "MaterialComponent.h"
 
+#include "Log/Log.h"
 #include "Material/MaterialType.h"
 #include "Scene/Material.h"
 #include "Scene/Texture.h"
@@ -10,6 +11,7 @@
 
 #include <cassert>
 #include <filesystem>
+#include <unordered_map>
 
 namespace
 {
@@ -33,7 +35,7 @@ bgfx::TextureHandle BGFXCreateTexture(
 	uint64_t textureFlags, 
 	const bgfx::Memory* pMemory)
 {
-	bgfx::TextureHandle textureHandle(bgfx::kInvalidHandle);
+	bgfx::TextureHandle textureHandle = BGFX_INVALID_HANDLE;
 	if (isCubeMap)
 	{
 		textureHandle = bgfx::createTextureCube(width, hasMips, numLayers, textureFormat, textureFlags, pMemory);
@@ -93,53 +95,85 @@ uint64_t GetBGFXTextureFlag(cd::MaterialTextureType textureType, cd::TextureMapM
 	return textureFlag;
 }
 
+const std::unordered_map<engine::SkyType, engine::Uber> skyTypeToUber
+{
+	{ engine::SkyType::SkyBox, engine::Uber::IBL},
+	{ engine::SkyType::AtmosphericScattering, engine::Uber::ATM },
+};
+
+CD_FORCEINLINE bool IsSkyTypeValid(engine::SkyType type)
+{
+	return skyTypeToUber.find(type) != skyTypeToUber.end();
+}
+
 }
 
 namespace engine
 {
 
-void MaterialComponent::Init(const engine::MaterialType* pMaterialType, const cd::Material* pMaterialData)
+void MaterialComponent::Init()
 {
 	Reset();
-
-	m_pMaterialData = pMaterialData;
-	m_pMaterialType = pMaterialType;
 }
 
-std::optional<const MaterialComponent::TextureInfo> MaterialComponent::GetTextureInfo(cd::MaterialTextureType textureType) const
+MaterialComponent::TextureInfo* MaterialComponent::GetTextureInfo(cd::MaterialTextureType textureType)
+{
+	auto itTextureInfo = m_textureResources.find(textureType);
+	if (itTextureInfo == m_textureResources.end())
+	{
+		return nullptr;
+	}
+
+	return &itTextureInfo->second;
+}
+
+const MaterialComponent::TextureInfo* MaterialComponent::GetTextureInfo(cd::MaterialTextureType textureType) const
 {
 	auto itTextureInfo = m_textureResources.find(textureType);
 	if (itTextureInfo == m_textureResources.cend())
 	{
-		return std::nullopt;
+		return nullptr;
 	}
 
-	return itTextureInfo->second;
+	return &itTextureInfo->second;
 }
 
-void MaterialComponent::SetUberShaderOption(StringCrc uberOption)
+void MaterialComponent::ActiveUberShaderOption(engine::Uber option)
 {
-	m_uberShaderOption = uberOption;
+	m_uberShaderOptions.insert(option);
 }
 
-StringCrc MaterialComponent::GetUberShaderOption() const
+void MaterialComponent::DeactiveUberShaderOption(engine::Uber option)
 {
-	return m_uberShaderOption;
+	m_uberShaderOptions.erase(option);
 }
 
-uint16_t MaterialComponent::GetShadingProgram() const
+void MaterialComponent::MatchUberShaderCrc()
 {
-	return m_pMaterialType->GetShaderSchema().GetCompiledProgram(m_uberShaderOption);
+	m_uberShaderCrc = m_pMaterialType->GetShaderSchema().GetOptionsCrc(m_uberShaderOptions);
+}
+
+uint16_t MaterialComponent::GetShadreProgram() const
+{
+	return m_pMaterialType->GetShaderSchema().GetCompiledProgram(m_uberShaderCrc);
 }
 
 void MaterialComponent::Reset()
 {
 	m_pMaterialData = nullptr;
 	m_pMaterialType = nullptr;
-	m_uberShaderOption = ShaderSchema::DefaultUberOption;
+	m_uberShaderOptions.clear();
+	m_uberShaderCrc = ShaderSchema::DefaultUberShaderCrc;
+	m_name.clear();
 	m_albedoColor = cd::Vec3f::One();
 	m_emissiveColor = cd::Vec3f::One();
+	m_metallicFactor = 0.1f;
+	m_roughnessFactor = 0.9f;
+	m_twoSided = false;
+	m_blendMode = cd::BlendMode::Opaque;
+	m_alphaCutOff = 1.0f;
 	m_textureResources.clear();
+	m_skyType = SkyType::None;
 }
 
 void MaterialComponent::AddTextureBlob(cd::MaterialTextureType textureType, cd::TextureFormat textureFormat, cd::TextureMapMode uMapMode, cd::TextureMapMode vMapMode,
@@ -163,9 +197,12 @@ void MaterialComponent::AddTextureBlob(cd::MaterialTextureType textureType, cd::
 	textureInfo.uvOffset = cd::Vec2f::Zero();
 	textureInfo.uvScale = cd::Vec2f::One();
 	m_textureResources[textureType] = cd::MoveTemp(textureInfo);
+	
+	// TODO : generic CPU/GPU resource manager.
+	m_cacheTextureBlobs.emplace_back(cd::MoveTemp(textureBlob));
 }
 
-void MaterialComponent::AddTextureFileBlob(cd::MaterialTextureType textureType, const cd::Texture& texture, TextureBlob textureBlob)
+void MaterialComponent::AddTextureFileBlob(cd::MaterialTextureType textureType, const cd::Material* pMaterial, const cd::Texture& texture, TextureBlob textureBlob)
 {
 	std::optional<uint8_t> optTextureSlot = m_pMaterialType->GetTextureSlot(textureType);
 	if (!optTextureSlot.has_value())
@@ -183,13 +220,24 @@ void MaterialComponent::AddTextureFileBlob(cd::MaterialTextureType textureType, 
 	textureInfo.format = static_cast<cd::TextureFormat>(pImageContainer->m_format);
 	textureInfo.data = bgfx::makeRef(pImageContainer->m_data, pImageContainer->m_size);
 	textureInfo.flag = GetBGFXTextureFlag(textureType, texture.GetUMapMode(), texture.GetVMapMode());
-	textureInfo.uvOffset = texture.GetUVOffset();
-	textureInfo.uvScale = texture.GetUVScale();
+	if (auto optUVScale = pMaterial->GetVec2fProperty(textureType, cd::MaterialProperty::UVScale); optUVScale.has_value())
+	{
+		textureInfo.uvScale = optUVScale.value();
+	}
+	if (auto optUVOffset = pMaterial->GetVec2fProperty(textureType, cd::MaterialProperty::UVOffset); optUVOffset.has_value())
+	{
+		textureInfo.uvOffset = optUVOffset.value();
+	}
 	m_textureResources[textureType] = cd::MoveTemp(textureInfo);
 }
 
 void MaterialComponent::Build()
 {
+	if (m_pMaterialData)
+	{
+		m_name = m_pMaterialData->GetName();
+	}
+	
 	for (auto& [textureType, textureInfo] : m_textureResources)
 	{
 		textureInfo.textureHandle = BGFXCreateTexture(textureInfo.width, textureInfo.height, textureInfo.depth, false, textureInfo.mipCount > 1,
@@ -202,6 +250,29 @@ void MaterialComponent::Build()
 		assert(textureInfo.textureHandle != bgfx::kInvalidHandle);
 		assert(textureInfo.samplerHandle != bgfx::kInvalidHandle);
 	}
+}
+
+void MaterialComponent::SetSkyType(SkyType crtType)
+{
+	// SkyType::None is a special case which is not a uber option but means deactive Uber::IBL and Uber::ATM.
+
+	if (SkyType::Count == crtType || m_skyType == crtType)
+	{
+		return;
+	}
+
+	if (IsSkyTypeValid(m_skyType))
+	{
+		m_uberShaderOptions.erase(skyTypeToUber.at(m_skyType));
+	}
+
+	if (IsSkyTypeValid(crtType))
+	{
+		m_uberShaderOptions.insert(skyTypeToUber.at(crtType));
+	}
+
+	m_uberShaderCrc = m_pMaterialType->GetShaderSchema().GetOptionsCrc(m_uberShaderOptions);
+	m_skyType = crtType;
 }
 
 }

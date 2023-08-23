@@ -2,11 +2,8 @@
 
 #include "Input.h"
 
-#include <sdl.h>
+#include <SDL.h>
 #include <SDL_syswm.h>
-#include <SDL_video.h>
-#include <SDL_joystick.h>
-#include <SDL_gamecontroller.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
@@ -49,8 +46,13 @@ Window::Window(const char* pTitle, uint16_t width, uint16_t height, bool useFull
 	m_pNativeWindowHandle = wmi.info.cocoa.window;
 #elif CD_PLATFORM_WINDOWS
 	m_pNativeWindowHandle = wmi.info.win.window;
-#elif CD_PLATFORM_ANDRIOD
+#elif CD_PLATFORM_ANDROID
 	m_pNativeWindowHandle = wmi.info.android.window;
+#elif CD_PLATFORM_LINUX
+	m_pNativeWindowHandle = wmi.info.x11.window;
+	// m_pNativeWindowHandle = wmi.info.wl.window;
+#else
+	static_assert("CD_PLATFORM macro not defined!");
 #endif
 }
 
@@ -260,6 +262,11 @@ void Window::SetSize(uint16_t width, uint16_t height)
 
 void Window::SetWindowIcon(const char* pFilePath) const
 {
+	if (!pFilePath)
+	{
+		return;
+	}
+
 	std::string iconFilePath = CDEDITOR_RESOURCES_ROOT_PATH;
 	iconFilePath += pFilePath;
 

@@ -15,14 +15,14 @@ namespace
 
 constexpr uint16_t MAX_LIGHT_COUNT = 64;
 
+constexpr uint16_t ConstexprCeil(float x)
+{
+	// In C++ 23, we can simply use std::ceil as a constexpr function.
+	return x == static_cast<float>(static_cast<uint16_t>(x))
+		? static_cast<uint16_t>(x)
+		: static_cast<uint16_t>(x) + 1;
 }
 
-constexpr uint16_t ConstexprCeil(const float num) {
-	const uint16_t inum = (uint16_t)num;
-	if (num == (float)inum) {
-		return inum;
-	}
-	return inum + 1;
 }
 
 class LightUniform final {
@@ -44,17 +44,16 @@ public:
 	void Submit();
 
 private:
-	union {
-		struct {
-			/*0*/ struct { float type; vec3 position; };
-			/*1*/ struct { float intensity; vec3 color; };
-			/*2*/ struct { float range; vec3 direction; };
-			/*3*/ struct { float radius; vec3 up; };
-			/*4*/ struct { float width, height, lightAngleScale, lightAngleOffeset; };
-		}m_light[MAX_LIGHT_COUNT];
-		float m_lightParams[4 * VEC4_COUNT];
+	struct LightParameters
+	{
+		float type; vec3 position;
+		float intensity; vec3 color;
+		float range; vec3 direction;
+		float radius; vec3 up;
+		float width, height, lightAngleScale, lightAngleOffeset;
 	};
 
+	LightParameters m_lightParameters[MAX_LIGHT_COUNT];
 	RenderContext *m_pRenderContext = nullptr;
 	uint16_t m_lightCount = 0;
 };

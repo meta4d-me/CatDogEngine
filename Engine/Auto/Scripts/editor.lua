@@ -4,12 +4,8 @@
 
 project("Editor")
 	kind("ConsoleApp")
-	language("C++")
-	cppdialect("C++20")
+	SetLanguageAndToolset("Editor")
 	dependson { "Engine" }
-
-	location(path.join(IntermediatePath, "Editor"))
-	targetdir(BinariesPath)
 
 	files {
 		path.join(EditorSourcePath, "**.*"),
@@ -29,13 +25,13 @@ project("Editor")
 
 	defines {
 		"BX_CONFIG_DEBUG",
-		"SPDLOG_NO_EXCEPTIONS", "FMT_USE_NONTYPE_TEMPLATE_ARGS=0",
 		"CDENGINE_BUILTIN_SHADER_PATH=\""..BuiltInShaderSourcePath.."\"",
 		"CDPROJECT_RESOURCES_SHARED_PATH=\""..ProjectSharedPath.."\"",
 		"CDPROJECT_RESOURCES_ROOT_PATH=\""..ProjectResourceRootPath.."\"",
 		"CDEDITOR_RESOURCES_ROOT_PATH=\""..EditorResourceRootPath.."\"",
 		"CDENGINE_TOOL_PATH=\""..ToolRootPath.."\"",
 		"EDITOR_MODE",
+		GetPlatformMacroName(),
 	}
 
 	includedirs {
@@ -52,12 +48,34 @@ project("Editor")
 		path.join(ThirdPartySourcePath, "bx/include/compat/msvc"),
 		path.join(ThirdPartySourcePath, "imgui"),
 		path.join(ThirdPartySourcePath, "imguizmo"),
-		path.join(ThirdPartySourcePath, "spdlog/include"),
 		ThirdPartySourcePath,
 	}
 
-	defines {
-	}
+	if ENABLE_SPDLOG then
+		defines {
+			"SPDLOG_ENABLE", "SPDLOG_NO_EXCEPTIONS", "FMT_USE_NONTYPE_TEMPLATE_ARGS=0",
+		}
+
+		includedirs {
+			path.join(ThirdPartySourcePath, "spdlog/include"),
+		}
+	end
+
+	if ENABLE_TRACY then
+		defines {
+			"TRACY_ENABLE",
+		}
+
+		includedirs {
+			path.join(ThirdPartySourcePath, "tracy/public"),
+		}
+	end
+
+	if ENABLE_SUBPROCESS then
+		defines {
+			"ENABLE_SUBPROCESS"
+		}
+	end
 
 	-- use /MT /MTd, not /MD /MDd
 	staticruntime "on"
@@ -79,10 +97,18 @@ project("Editor")
 		"Engine",
 		"AssetPipelineCore",
 		"CDProducer",
-		"GenericProducer",
-		"TerrainProducer",
 		"CDConsumer",
 	}
+
+	if not USE_CLANG_TOOLSET then
+		links {
+			"GenericProducer",
+		}
+
+		defines {
+			"ENABLE_GENERIC_PRODUCER",
+		}
+	end
 
 	-- Disable these options can reduce the size of compiled binaries.
 	justmycode("Off")
@@ -104,6 +130,13 @@ project("Editor")
 	-- linkoptions { "-IGNORE:4006" }
 
 	flags {
-		"FatalWarnings", -- treat warnings as errors
 		"MultiProcessorCompile", -- compiler uses multiple thread
 	}
+
+	if not USE_CLANG_TOOLSET then
+		flags {
+			"FatalWarnings", -- treat warnings as errors
+		}
+	end
+
+	CopyDllAutomatically()

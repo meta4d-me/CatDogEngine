@@ -3,7 +3,7 @@
 #include "KeyCode.h"
 
 #include <array>
-#include <inttypes.h>
+#include <cstdint>
 #include <vector>
 
 namespace engine

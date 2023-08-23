@@ -8,11 +8,35 @@
 namespace engine
 {
 
-Renderer::Renderer(RenderContext* pRenderContext, uint16_t viewID, RenderTarget* pRenderTarget)
-	: m_pRenderContext(pRenderContext)
-	, m_viewID(viewID)
+Renderer::Renderer(uint16_t viewID, RenderTarget* pRenderTarget)
+	: m_viewID(viewID)
 	, m_pRenderTarget(pRenderTarget)
 {
+}
+
+static RenderContext* m_pRenderContext = nullptr;
+void Renderer::SetRenderContext(RenderContext* pRenderContext)
+{
+	m_pRenderContext = pRenderContext;
+}
+
+RenderContext* Renderer::GetRenderContext()
+{
+	return m_pRenderContext;
+}
+
+void Renderer::UpdateViewRenderTarget()
+{
+	if (m_pRenderTarget)
+	{
+		bgfx::setViewFrameBuffer(GetViewID(), *GetRenderTarget()->GetFrameBufferHandle());
+		bgfx::setViewRect(GetViewID(), 0, 0, GetRenderTarget()->GetWidth(), GetRenderTarget()->GetHeight());
+	}
+	else
+	{
+		assert(m_pRenderContext);
+		bgfx::setViewRect(GetViewID(), 0, 0, m_pRenderContext->GetBackBufferWidth(), m_pRenderContext->GetBackBufferHeight());
+	}
 }
 
 struct PosColorTexCoord0Vertex
@@ -39,8 +63,22 @@ struct PosColorTexCoord0Vertex
 static bool bInitScreenSpaceQuadVertexLayout = false;
 bgfx::VertexLayout PosColorTexCoord0Vertex::ms_layout;
 
-void Renderer::ScreenSpaceQuad(float _textureWidth, float _textureHeight, bool _originBottomLeft, float _width, float _height)
+void Renderer::ScreenSpaceQuad(const RenderTarget* pRenderTarget, bool _originBottomLeft, float _width, float _height)
 {
+	float _textureWidth;
+	float _textureHeight;
+	if (pRenderTarget)
+	{
+		_textureWidth = pRenderTarget->GetWidth();
+		_textureHeight = pRenderTarget->GetHeight();
+	}
+	else
+	{
+		assert(m_pRenderContext);
+		_textureWidth = m_pRenderContext->GetBackBufferWidth();
+		_textureHeight = m_pRenderContext->GetBackBufferHeight();
+	}
+
 	if (!bInitScreenSpaceQuadVertexLayout)
 	{
 		PosColorTexCoord0Vertex::init();

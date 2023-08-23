@@ -11,11 +11,7 @@ function MakeTest(testName)
 
 	project(testName)
 		kind("ConsoleApp")
-		language("C++")
-		cppdialect("C++20")
-		
-		location(path.join(IntermediatePath, "Tests/"..testName))
-		targetdir(BinariesPath)
+		SetLanguageAndToolset("Tests/"..testName)
 
 		files {
 			path.join(testSourcePath, "**.*"),
@@ -27,6 +23,7 @@ function MakeTest(testName)
 
 		includedirs {
 			path.join(EngineSourcePath, "Runtime/"),
+			ThirdPartySourcePath,
 			path.join(ThirdPartySourcePath, "AssetPipeline/public"),
 			path.join(EnginePath, "BuiltInShaders/UniformDefines"),
 		}

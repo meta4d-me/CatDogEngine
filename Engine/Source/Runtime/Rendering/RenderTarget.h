@@ -4,7 +4,7 @@
 
 #include <bgfx/bgfx.h>
 
-#include <inttypes.h>
+#include <cstdint>
 #include <memory>
 #include <vector>
 
@@ -54,8 +54,8 @@ public:
 	MulticastDelegate<void(uint16_t, uint16_t)> OnResize;
 
 private:
-	uint16_t m_width = 1;
-	uint16_t m_height = 1;
+	uint16_t m_width = 0;
+	uint16_t m_height = 0;
 	void* m_hwnd = nullptr;
 	std::vector<AttachmentDescriptor> m_attachmentDescriptors;
 

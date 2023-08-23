@@ -44,7 +44,7 @@ void StaticMeshComponent::BuildDebug()
 	cd::VertexFormat vertexFormat;
 	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
 
-	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Color, cd::AttributeValueType::Float, 4);
+	//vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Color, cd::AttributeValueType::Float, 4);
 	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Box(m_aabb.Min(), m_aabb.Max()), vertexFormat);
 	if (!optMesh.has_value())
 	{
@@ -65,19 +65,36 @@ void StaticMeshComponent::BuildDebug()
 		currentDataSize += posDataSize;
 
 		// barycentric
-		const cd::Vec4f& barycentricCoordinates = meshData.GetVertexColor(0U, vertexIndex);
-		constexpr uint32_t bcDataSize = cd::Vec4f::Size * sizeof(cd::Vec4f::ValueType);
-		std::memcpy(&currentDataPtr[currentDataSize], barycentricCoordinates.Begin(), bcDataSize);
-		currentDataSize += bcDataSize;
+		//const cd::Vec4f& barycentricCoordinates = meshData.GetVertexColor(0U, vertexIndex);
+		//constexpr uint32_t bcDataSize = cd::Vec4f::Size * sizeof(cd::Vec4f::ValueType);
+		//std::memcpy(&currentDataPtr[currentDataSize], barycentricCoordinates.Begin(), bcDataSize);
+		//currentDataSize += bcDataSize;
 	}
 	
-	m_aabbIndexBuffer.resize(meshData.GetPolygonCount() * cd::Polygon::Size * sizeof(cd::Polygon::ValueType));
-	std::memcpy(m_aabbIndexBuffer.data(), meshData.GetPolygons().data(), m_aabbIndexBuffer.size());
+	// AABB should always use u16 index type.
+	size_t indexTypeSize = sizeof(uint16_t);
+	m_aabbIndexBuffer.resize(12 * 2 * indexTypeSize);
+	assert(meshData.GetPolygonCount() <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()));
+	currentDataSize = 0U;
+	currentDataPtr = m_aabbIndexBuffer.data();
+
+	std::vector<uint16_t> indexes =
+	{
+		0U,1U,1U,5U,5U,4U,4U,0U,
+		0U,2U,1U,3U,5U,7U,4U,6U,
+		2U,3U,3U,7U,7U,6U,6U,2U
+	};
+
+	for (const auto& index : indexes)
+	{
+		std::memcpy(&currentDataPtr[currentDataSize], &index, indexTypeSize);
+		currentDataSize += static_cast<uint32_t>(indexTypeSize);
+	}
 
 	bgfx::VertexLayout vertexLayout;
 	VertexLayoutUtility::CreateVertexLayout(vertexLayout, vertexFormat.GetVertexLayout());
 	m_aabbVBH = bgfx::createVertexBuffer(bgfx::makeRef(m_aabbVertexBuffer.data(), static_cast<uint32_t>(m_aabbVertexBuffer.size())), vertexLayout).idx;
-	m_aabbIBH = bgfx::createIndexBuffer(bgfx::makeRef(m_aabbIndexBuffer.data(), static_cast<uint32_t>(m_aabbIndexBuffer.size())), BGFX_BUFFER_INDEX32).idx;
+	m_aabbIBH = bgfx::createIndexBuffer(bgfx::makeRef(m_aabbIndexBuffer.data(), static_cast<uint32_t>(m_aabbIndexBuffer.size())), 0U).idx;
 }
 
 void StaticMeshComponent::Build()
@@ -187,14 +204,44 @@ void StaticMeshComponent::Build()
 	// Create vertex buffer.
 	bgfx::VertexLayout vertexLayout;
 	VertexLayoutUtility::CreateVertexLayout(vertexLayout, m_pRequiredVertexFormat->GetVertexLayout());
-	bgfx::VertexBufferHandle vertexBufferHandle = bgfx::createVertexBuffer(bgfx::makeRef(m_vertexBuffer.data(), static_cast<uint32_t>(m_vertexBuffer.size())), vertexLayout);
+	const bgfx::Memory* pVertexBufferRef = bgfx::makeRef(m_vertexBuffer.data(), static_cast<uint32_t>(m_vertexBuffer.size()));
+	bgfx::VertexBufferHandle vertexBufferHandle = bgfx::createVertexBuffer(pVertexBufferRef, vertexLayout);
 	assert(bgfx::isValid(vertexBufferHandle));
 	m_vertexBufferHandle = vertexBufferHandle.idx;
 
+	// Fill index buffer data.
+	bool useU16Index = vertexCount <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()) + 1U;
+	uint32_t indexTypeSize = useU16Index ? sizeof(uint16_t) : sizeof(uint32_t);
+	m_indexBuffer.resize(m_pMeshData->GetPolygonCount() * 3 * indexTypeSize);
+
+	currentDataSize = 0U;
+	currentDataPtr = m_indexBuffer.data();
+	auto FillIndexBuffer = [&currentDataPtr, &currentDataSize](const void* pData, uint32_t dataSize)
+	{
+		std::memcpy(&currentDataPtr[currentDataSize], pData, dataSize);
+		currentDataSize += dataSize;
+	};
+
+	for (const auto& polygon : m_pMeshData->GetPolygons())
+	{
+		if (useU16Index)
+		{
+			// cd::Mesh always uses uint32_t to store index so it is not convenient to copy servals elements at the same time.
+			for (auto vertexID : polygon)
+			{
+				uint16_t vertexIndex = static_cast<uint16_t>(vertexID.Data());
+				FillIndexBuffer(&vertexIndex, indexTypeSize);
+			}
+		}
+		else
+		{
+			FillIndexBuffer(polygon.data(), static_cast<uint32_t>(polygon.size() * indexTypeSize));
+		}
+	}
+
 	// Create index buffer.
-	m_indexBuffer.resize(m_pMeshData->GetPolygonCount() * cd::Polygon::Size * sizeof(cd::Polygon::ValueType));
-	std::memcpy(m_indexBuffer.data(), m_pMeshData->GetPolygons().data(), m_indexBuffer.size());
-	bgfx::IndexBufferHandle indexBufferHandle = bgfx::createIndexBuffer(bgfx::makeRef(m_indexBuffer.data(), static_cast<uint32_t>(m_indexBuffer.size())), BGFX_BUFFER_INDEX32);
+	const bgfx::Memory* pIndexBufferRef = bgfx::makeRef(m_indexBuffer.data(), static_cast<uint32_t>(m_indexBuffer.size()));
+	bgfx::IndexBufferHandle indexBufferHandle = bgfx::createIndexBuffer(pIndexBufferRef, useU16Index ? 0U : BGFX_BUFFER_INDEX32);
 	assert(bgfx::isValid(indexBufferHandle));
 	m_indexBufferHandle = indexBufferHandle.idx;
 

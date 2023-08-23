@@ -1,11 +1,13 @@
 ﻿#include "MainMenu.h"
 
+#include "Display/CameraController.h"
 #include "ECWorld/SceneWorld.h"
 #include "EditorApp.h"
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/Localization.h"
 #include "ImGui/ThemeColor.h"
 #include "Log/Log.h"
+#include "Path/Path.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ShaderBuilder.h"
 #include "Window/Window.h"
@@ -15,7 +17,7 @@
 #include <imgui/imgui.h>
 #include "ImGui/imfilebrowser.h"
 #include <filesystem>
-
+#include <format>
 
 namespace editor
 {
@@ -65,8 +67,6 @@ void MainMenu::FileMenu()
 
 void MainMenu::EditMenu()
 {
-	ImGuiIO& io = ImGui::GetIO();
-
 	if (ImGui::BeginMenu(CD_TEXT("TEXT_EDIT")))
 	{
 		if (ImGui::MenuItem("Undo", "Ctrl Z"))
@@ -90,7 +90,7 @@ void MainMenu::EditMenu()
 				theme = static_cast<engine::ThemeColor>(static_cast<int>(theme) + 1))
 			{
 				engine::ImGuiContextInstance* pImGuiContextInstance = GetImGuiContextInstance();
-				if (ImGui::MenuItem(GetThemeColorName(theme), "", pImGuiContextInstance->GetImGuiThemeColor() == theme))
+				if (ImGui::MenuItem(nameof::nameof_enum(theme).data(), "", pImGuiContextInstance->GetImGuiThemeColor() == theme))
 				{
 					pImGuiContextInstance->SetImGuiThemeColor(theme);
 				}
@@ -105,7 +105,7 @@ void MainMenu::EditMenu()
 				 language = static_cast<engine::Language>(static_cast<int>(language) + 1))
 			{
 				engine::ImGuiContextInstance* pImGuiContextInstance = GetImGuiContextInstance();
-				if (ImGui::MenuItem(GetLanguageName(language), "", pImGuiContextInstance->GetImGuiLanguage() == language))
+				if (ImGui::MenuItem(nameof::nameof_enum(language).data(), "", pImGuiContextInstance->GetImGuiLanguage() == language))
 				{
 					pImGuiContextInstance->SetImGuiLanguage(language);
 				}
@@ -117,10 +117,93 @@ void MainMenu::EditMenu()
 	}
 }
 
+void MainMenu::ViewMenu()
+{
+	auto FrameEntities = [](engine::SceneWorld* pSceneWorld, const std::vector<engine::Entity>& entities, engine::CameraController* pCameraController)
+	{
+		if (entities.empty())
+		{
+			return;
+		}
+
+		std::optional<cd::AABB> optAABB;
+		for (auto entity : entities)
+		{
+			if (pSceneWorld->GetSkyComponent(entity))
+			{
+				continue;
+			}
+
+			if (engine::StaticMeshComponent* pStaticMesh = pSceneWorld->GetStaticMeshComponent(entity))
+			{
+				cd::AABB meshAABB = pStaticMesh->GetAABB();
+				if (engine::TransformComponent* pTransform = pSceneWorld->GetTransformComponent(entity))
+				{
+					meshAABB = meshAABB.Transform(pTransform->GetWorldMatrix());
+				}
+
+				if (optAABB.has_value())
+				{
+					optAABB.value().Merge(meshAABB);
+				}
+				else
+				{
+					optAABB = meshAABB;
+				}
+			}
+		}
+
+		if (optAABB.value().IsEmpty())
+		{
+			return;
+		}
+
+		engine::Entity mainCamera = pSceneWorld->GetMainCameraEntity();
+		if (engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(mainCamera))
+		{
+			auto* pTransformComponent = pSceneWorld->GetTransformComponent(mainCamera);
+			pCameraComponent->FrameAll(optAABB.value(), pTransformComponent->GetTransform());
+			
+			pTransformComponent->Dirty();
+			pTransformComponent->Build();
+			pCameraComponent->ViewDirty();
+			pCameraComponent->BuildViewMatrix(pTransformComponent->GetTransform());
+
+			// TODO : add event queue to get mouse down and up events.
+			pCameraController->CameraToController();
+		}
+	};
+
+	if (ImGui::BeginMenu("View"))
+	{
+		if (ImGui::MenuItem("Frame All"))
+		{
+			engine::SceneWorld* pSceneWorld = GetSceneWorld();
+			if (size_t meshCount = pSceneWorld->GetStaticMeshEntities().size(); meshCount > 0)
+			{
+				FrameEntities(pSceneWorld, pSceneWorld->GetStaticMeshEntities(), m_pCameraController);
+			}
+		}
+
+		if (ImGui::MenuItem("Frame Selection"))
+		{
+			engine::SceneWorld* pSceneWorld = GetSceneWorld();
+			if (engine::Entity selectedEntity = pSceneWorld->GetSelectedEntity(); selectedEntity != engine::INVALID_ENTITY)
+			{
+				FrameEntities(pSceneWorld, { selectedEntity }, m_pCameraController);
+			}
+		}
+
+		//if (ImGui::MenuItem("Frame Selection with Children"))
+		//{
+		//}
+
+		ImGui::EndMenu();
+	}
+}
+
 void MainMenu::WindowMenu()
 {
-	ImGuiIO& io = ImGui::GetIO();
-
 	if (ImGui::BeginMenu(CD_TEXT("TEXT_WINDOW")))
 	{
 		for (const auto& pDockableLayer : GetImGuiContextInstance()->GetDockableLayers())
@@ -143,7 +226,8 @@ void MainMenu::BuildMenu()
 
 		if (ImGui::MenuItem(CD_TEXT("TEXT_REBUILD_NONUBER_SHADERS")))
 		{
-			ShaderBuilder::BuildNonUberShader();
+			std::string nonUberPath = CDENGINE_BUILTIN_SHADER_PATH;
+			ShaderBuilder::BuildNonUberShader(nonUberPath + "shaders");
 		}
 		if (ImGui::MenuItem(CD_TEXT("TEXT_REBUILD_PBR_SHADERS")))
 		{
@@ -182,6 +266,7 @@ void MainMenu::Update()
 	{
 		FileMenu();
 		EditMenu();
+		ViewMenu();
 		WindowMenu();
 		BuildMenu();
 		AboutMenu();
