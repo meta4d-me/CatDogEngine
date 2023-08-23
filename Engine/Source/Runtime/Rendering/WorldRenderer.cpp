@@ -140,7 +140,6 @@ void WorldRenderer::Render(float deltaTime)
 		SkyType crtSkyType = pSkyComponent->GetSkyType();
 		pMaterialComponent->SetSkyType(crtSkyType);
 
-
 		if (SkyType::SkyBox == crtSkyType)
 		{
 			// Create a new TextureHandle each frame if the skybox texture path has been updated,

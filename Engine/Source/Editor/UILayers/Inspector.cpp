@@ -95,11 +95,11 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		std::vector<std::string> texturePaths;
 		for (int i = 0; i < fileNames.size(); ++i)
 		{
-			std::string fullpath = (frontPath / fileNames[i]).string();
-			pRenderContext->CreateTexture(fullpath.c_str());
+					std::string fullpath = (frontPath / fileNames[i]).string();
+					pRenderContext->CreateTexture(fullpath.c_str());
 
-			//	->CreateTexture(fullpath.c_str());
-			texturePaths.emplace_back(std::move(fullpath));
+					//	->CreateTexture(fullpath.c_str());
+					texturePaths.emplace_back(std::move(fullpath));
 		}
 
 		static int currentItem = 0;

@@ -84,8 +84,6 @@ public:
 	void SetCameraController(engine::CameraController* pCameraController) { m_pCameraController = pCameraController; }
 
 	const engine::RenderTarget* GetRenderTarget() const { return m_pRenderTarget; }
-
-	float m_MainCameraSpeed  = 160.0f;
 private:
 	void UpdateToolMenuButtons();
 	void Update2DAnd3DButtons();

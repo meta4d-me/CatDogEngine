@@ -259,20 +259,6 @@ void SceneView::UpdateToolMenuButtons()
 	ImGui::SameLine();
 	UpdateSwitchTerrainButton();
 
-	ImGui::SameLine();
-	static bool show_slider = false;
-	if (ImGui::Button("Camera Speed")) {
-		show_slider = true;
-	}
-	if (show_slider) {
-		ImGui::Begin("Slider", &show_slider); 
-	    ImGui::InputFloat2("Slider Range", sliderRange);
-		ImGui::SliderFloat("Speed", &m_MainCameraSpeed, sliderRange[0], sliderRange[1]);
-		engine::SceneWorld* pSceneWorld = GetSceneWorld();
-		engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
-		pCameraComponent->SetCurrentSpeed(m_MainCameraSpeed);
-		ImGui::End();
-	}
 	ImGui::PopStyleColor();
 }
 

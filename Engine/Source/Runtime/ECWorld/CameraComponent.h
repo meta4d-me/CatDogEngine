@@ -54,8 +54,6 @@ public:
 	void SetNDCDepth(cd::NDCDepth ndcDepth) { m_ndcDepth = ndcDepth; m_isProjectionDirty = true; }
 	cd::NDCDepth GetNDCDepth() const { return m_ndcDepth; }
 
-	void SetCurrentSpeed(float speed) { m_MainCameraSpeed = speed; }
-	float GetCurrentSpeed() { return m_MainCameraSpeed; }
 
 	// View
 	static cd::Vec3f GetLookAt(const cd::Transform& transform) { return transform.GetRotation().ToMatrix3x3() * cd::Vec3f(0, 0, 1); }
@@ -107,9 +105,6 @@ private:
 	// Output
 	cd::Matrix4x4 m_viewMatrix;
 	cd::Matrix4x4 m_projectionMatrix;
-
-	//speed
-	float m_MainCameraSpeed = 160.0f;
 
 #ifdef EDITOR_MODE
 	bool m_doConstainAspectRatio;

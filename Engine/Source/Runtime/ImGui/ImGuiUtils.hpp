@@ -7,7 +7,6 @@
 #include "Math/UnitSystem.hpp"
 
 #include <imgui/imgui.h>
-
 namespace ImGuiUtils
 {
 
