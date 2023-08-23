@@ -119,7 +119,6 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 				{
 					ImGuiUtils::ImGuiVectorProperty(uvOffset.c_str(), pTextureInfo->GetUVOffset());
 					ImGuiUtils::ImGuiVectorProperty(uvScale.c_str(), pTextureInfo->GetUVScale());
-
 				}
 
 				ImGui::Separator();
