@@ -8,7 +8,6 @@ namespace engine
 	void PostProcessRenderer::Init()
 	{
 		GetRenderContext()->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
-		GetRenderContext()->CreateUniform("s_bloomColor", bgfx::UniformType::Sampler);
 		GetRenderContext()->CreateUniform("u_gamma", bgfx::UniformType::Vec4);
 		GetRenderContext()->CreateProgram("PostProcessProgram", "vs_fullscreen.bin", "fs_PBR_postProcessing.bin");
 
@@ -67,12 +66,6 @@ namespace engine
 
 		constexpr StringCrc lightingResultSampler("s_lightingColor");
 		bgfx::setTexture(0, GetRenderContext()->GetUniform(lightingResultSampler), screenTextureHandle);
-
-		if (pCameraComponent->GetIsBloomEnable()) {
-			constexpr StringCrc bloomRender("BloomColor");
-			constexpr StringCrc bloomColorSampler("s_bloomColor");
-			bgfx::setTexture(1, GetRenderContext()->GetUniform(bloomColorSampler), GetRenderContext()->GetTexture(bloomRender));
-		}
 
 		bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 		Renderer::ScreenSpaceQuad(GetRenderTarget(), false);

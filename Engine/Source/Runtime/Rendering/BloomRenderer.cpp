@@ -6,6 +6,8 @@ namespace engine
 {
 	void BloomRenderer::Init(){
 		GetRenderContext()->CreateUniform("s_tex", bgfx::UniformType::Sampler);
+		GetRenderContext()->CreateUniform("s_bloom", bgfx::UniformType::Sampler);
+		GetRenderContext()->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
 		GetRenderContext()->CreateUniform("s_tex_size", bgfx::UniformType::Vec4);
 		GetRenderContext()->CreateUniform("_bloomIntensity", bgfx::UniformType::Vec4);
 		GetRenderContext()->CreateUniform("_luminanceThreshold", bgfx::UniformType::Vec4);
@@ -15,11 +17,13 @@ namespace engine
 		GetRenderContext()->CreateProgram("BlurHorizontalProgram", "vs_fullscreen.bin", "fs_blurhorizontal.bin");
 		GetRenderContext()->CreateProgram("UpSampleProgram", "vs_fullscreen.bin", "fs_upsample.bin");
 		GetRenderContext()->CreateProgram("KawaseBlurProgram", "vs_fullscreen.bin", "fs_kawaseblur.bin");
+		GetRenderContext()->CreateProgram("CombineProgram", "vs_fullscreen.bin", "fs_bloom.bin");
 
 		bgfx::setViewName(GetViewID(), "BloomRenderer");
 
 		for (int i = 0; i < TEX_CHAIN_LEN; i++) m_sampleChainFB[i] = BGFX_INVALID_HANDLE;
 		for (int i = 0; i < 2; i++) m_blurChainFB[i] = BGFX_INVALID_HANDLE;
+		m_combineFB = BGFX_INVALID_HANDLE;
 
 		start_dowmSamplePassID = GetRenderContext()->CreateView();
 		for (int i = 0; i < TEX_CHAIN_LEN - 2; i++) GetRenderContext()->CreateView();
@@ -28,12 +32,8 @@ namespace engine
 		for (int i = 0; i < 40 - 2; i++) GetRenderContext()->CreateView();
 		start_upSamplePassID = GetRenderContext()->CreateView();
 		for (int i = 0; i < TEX_CHAIN_LEN - 2; i++) GetRenderContext()->CreateView();
+		combinePassID = GetRenderContext()->CreateView();
 		blit_colorPassID = GetRenderContext()->CreateView();
-
-		constexpr StringCrc bloomColor("BloomColor");
-		bgfx::TextureHandle bloomColorHandle = bgfx::createTexture2D(1, 1, false, 1, bgfx::TextureFormat::RGBA32F,
-			BGFX_TEXTURE_BLIT_DST | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
-		GetRenderContext()->SetTexture(bloomColor, bloomColorHandle);
 	}
 
 	BloomRenderer::~BloomRenderer()
@@ -82,14 +82,7 @@ namespace engine
 				m_sampleChainFB[ii] = bgfx::createFrameBuffer(width >> ii, height >> ii, bgfx::TextureFormat::RGBA32F, tsFlags);
 			}
 
-			constexpr StringCrc bloomColor("BloomColor");
-			bgfx::TextureHandle bloomColorHandle = GetRenderContext()->GetTexture(bloomColor);
-			if (bgfx::isValid(bloomColorHandle)) {
-				bgfx::destroy(bloomColorHandle);
-			}
-			bloomColorHandle = bgfx::createTexture2D(width, height, false, 1, bgfx::TextureFormat::RGBA32F,
-				BGFX_TEXTURE_BLIT_DST | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
-			GetRenderContext()->SetTexture(bloomColor, bloomColorHandle);
+			m_combineFB = bgfx::createFrameBuffer(width, height, bgfx::TextureFormat::RGBA32F, tsFlags);
 		}
 	}
 
@@ -100,15 +93,20 @@ namespace engine
 		const RenderTarget* pInputRT = GetRenderContext()->GetRenderTarget(sceneRenderTarget);
 		const RenderTarget* pOutputRT = GetRenderTarget();
 
+		bgfx::TextureHandle screenEmissColorTextureHandle;
 		bgfx::TextureHandle screenTextureHandle;
 		if (pInputRT == pOutputRT)
 		{
 			constexpr StringCrc sceneRenderTargetBlitEmissColor("SceneRenderTargetBlitEmissColor");
-			screenTextureHandle = GetRenderContext()->GetTexture(sceneRenderTargetBlitEmissColor);
+			screenEmissColorTextureHandle = GetRenderContext()->GetTexture(sceneRenderTargetBlitEmissColor);
+
+			constexpr StringCrc sceneRenderTargetBlitSRV("SceneRenderTargetBlitSRV");
+			screenTextureHandle = GetRenderContext()->GetTexture(sceneRenderTargetBlitSRV);
 		}
 		else
 		{
-			screenTextureHandle = pInputRT->GetTextureHandle(1);
+			screenEmissColorTextureHandle = pInputRT->GetTextureHandle(1);
+			screenTextureHandle = pInputRT->GetTextureHandle(0);
 		}
 
 		Entity entity = m_pCurrentSceneWorld->GetMainCameraEntity();
@@ -125,7 +123,7 @@ namespace engine
 		bgfx::setUniform(GetRenderContext()->GetUniform(luminanceThresholdUniformName), &pCameraComponent->GetLuminanceThreshold());
 
 		constexpr StringCrc texSampler("s_tex");
-		bgfx::setTexture(0, GetRenderContext()->GetUniform(texSampler), screenTextureHandle);
+		bgfx::setTexture(0, GetRenderContext()->GetUniform(texSampler), screenEmissColorTextureHandle);
 
 		bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 		Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
@@ -204,9 +202,24 @@ namespace engine
 			bgfx::submit(start_upSamplePassID + i, GetRenderContext()->GetProgram(UpSampleprogramName));
 		}
 
-		constexpr StringCrc bloomColor("BloomColor");
-		bgfx::TextureHandle bloomColorHandle = GetRenderContext()->GetTexture(bloomColor);
-		bgfx::blit(blit_colorPassID, bloomColorHandle, 0, 0, bgfx::getTexture(m_sampleChainFB[0]));
+		// combine 
+		bgfx::setViewFrameBuffer(combinePassID, m_combineFB);
+		bgfx::setViewRect(combinePassID, 0, 0, width, height);
+		bgfx::setViewTransform(combinePassID, nullptr, orthoMatrix.Begin());
+
+		constexpr StringCrc lightcolorSampler("s_lightingColor");
+		bgfx::setTexture(0, GetRenderContext()->GetUniform(lightcolorSampler), screenTextureHandle);
+
+		constexpr StringCrc bloomcolorSampler("s_bloom");
+		bgfx::setTexture(1, GetRenderContext()->GetUniform(bloomcolorSampler), bgfx::getTexture(m_sampleChainFB[0]));
+
+		bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
+		Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
+
+		constexpr StringCrc CombineprogramName("CombineProgram");
+		bgfx::submit(combinePassID, GetRenderContext()->GetProgram(CombineprogramName));
+
+		bgfx::blit(blit_colorPassID, screenTextureHandle, 0, 0, bgfx::getTexture(m_combineFB));
 	}
 
 	void BloomRenderer::Blur(uint16_t width, uint16_t height, int iteration,float blursize, int blurscaling,cd::Matrix4x4 ortho,bgfx::TextureHandle texture)

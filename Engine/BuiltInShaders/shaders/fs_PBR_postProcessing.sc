@@ -3,7 +3,6 @@ $input v_texcoord0
 #include "../common/common.sh"
 
 SAMPLER2D(s_lightingColor, 0);
-SAMPLER2D(s_bloomColor, 1);
 uniform vec4 u_gamma;
 
 vec3 ACES(vec3 color) {
@@ -46,8 +45,6 @@ float ConvertEV100ToExposure(float EV100) {
 void main()
 {
 	vec3 color = texture2D(s_lightingColor, v_texcoord0).rgb;
-	vec3 bloom = texture2D(s_bloomColor, v_texcoord0).rgb;
-	color += bloom;
 	
 	// Exposure
 	color *= ConvertEV100ToExposure(0.0);

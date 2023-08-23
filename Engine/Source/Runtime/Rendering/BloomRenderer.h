@@ -32,6 +32,7 @@ namespace engine
 
 		bgfx::FrameBufferHandle m_blurChainFB[2];
 		bgfx::FrameBufferHandle m_sampleChainFB[TEX_CHAIN_LEN];
+		bgfx::FrameBufferHandle m_combineFB;
 
 		uint16_t width;
 		uint16_t height;
@@ -39,8 +40,9 @@ namespace engine
 		uint16_t start_dowmSamplePassID;
 		uint16_t start_verticalBlurPassID;
 		uint16_t start_horizontalBlurPassID;
-		uint16_t blit_colorPassID;
 		uint16_t start_upSamplePassID;
+		uint16_t blit_colorPassID;
+		uint16_t combinePassID;
 	};
 
 }
