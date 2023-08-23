@@ -30,8 +30,10 @@ void Splash::Update()
 	assert(currentBuildCount <= m_shaderBuildTaskTotalCount);
 
 
-	std::string title = std::format("{}({}/{})", GetName(), m_shaderBuildTaskTotalCount - currentBuildCount, m_shaderBuildTaskTotalCount);
-	ImGui::Begin(" ", &m_isEnable, flags);
+	//std::string title = std::format("{}({}/{})", GetName(), m_shaderBuildTaskTotalCount - currentBuildCount, m_shaderBuildTaskTotalCount);
+	std::string title = GetName();
+	title += "(" + std::to_string(m_shaderBuildTaskTotalCount - currentBuildCount) + "/" + std::to_string(m_shaderBuildTaskTotalCount) + ")";
+	ImGui::Begin(title.c_str(), &m_isEnable, flags);
 
 	engine::StringCrc splashTexture("Textures/image.png");
 	bgfx::TextureHandle textureHandle = GetRenderContext()->GetTexture(splashTexture);
