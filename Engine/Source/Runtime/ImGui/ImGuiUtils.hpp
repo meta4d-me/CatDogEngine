@@ -209,4 +209,23 @@ static bool ImGuiTransformProperty(const char* pName, cd::Transform& value)
 	return dirty;
 }
 
+static void ColorPickerProperty(const char* Name, cd::Vec3f& veccolor)
+{
+			static std::map<const char*, bool> showMap;
+			if (!showMap.count(Name))
+			{
+					showMap[Name] = false; 
+			}
+			if (ImGui::Button(Name))
+			{
+					showMap[Name] = true; 
+			}
+			if (showMap[Name])
+			{
+					ImGui::Begin(Name, &showMap[Name]);
+					ImGui::ColorPicker3(Name, veccolor.Begin());
+					ImGui::End();
+			}
+}
+
 }

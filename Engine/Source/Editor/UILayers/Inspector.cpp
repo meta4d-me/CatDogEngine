@@ -95,11 +95,11 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		std::vector<std::string> texturePaths;
 		for (int i = 0; i < fileNames.size(); ++i)
 		{
-					std::string fullpath = (frontPath / fileNames[i]).string();
-					pRenderContext->CreateTexture(fullpath.c_str());
+			std::string fullpath = (frontPath / fileNames[i]).string();
+			pRenderContext->CreateTexture(fullpath.c_str());
 
-					//	->CreateTexture(fullpath.c_str());
-					texturePaths.emplace_back(std::move(fullpath));
+			//	->CreateTexture(fullpath.c_str());
+			texturePaths.emplace_back(std::move(fullpath));
 		}
 
 		static int currentItem = 0;
@@ -124,12 +124,13 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 
 		ImGui::Separator();
 		ImGuiUtils::ImGuiStringProperty("Name", pMaterialComponent->GetName());
-		
+
 		// Parameters
-		ImGuiUtils::ImGuiVectorProperty("AlbedoColor", pMaterialComponent->GetAlbedoColor(), cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGui::Separator();
+		ImGuiUtils::ColorPickerProperty("AlbedoColor", pMaterialComponent->GetAlbedoColor());
 		ImGuiUtils::ImGuiFloatProperty("MetallicFactor", pMaterialComponent->GetMetallicFactor(), cd::Unit::None, 0.0f, 1.0f);
 		ImGuiUtils::ImGuiFloatProperty("RoughnessFactor", pMaterialComponent->GetRoughnessFactor(), cd::Unit::None, 0.0f, 1.0f);
-		ImGuiUtils::ImGuiVectorProperty("EmissiveColor", pMaterialComponent->GetEmissiveColor(), cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ColorPickerProperty("EmissiveColor", pMaterialComponent->GetEmissiveColor());
 		ImGuiUtils::ImGuiBoolProperty("TwoSided", pMaterialComponent->GetTwoSided());
 		ImGuiUtils::ImGuiStringProperty("BlendMode", nameof::nameof_enum(pMaterialComponent->GetBlendMode()).data());
 		if (cd::BlendMode::Mask == pMaterialComponent->GetBlendMode())
@@ -218,7 +219,7 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 		std::string lightTypeName = cd::GetLightTypeName(lightType);
 
 		ImGuiUtils::ImGuiStringProperty("Type", lightTypeName);
-		ImGuiUtils::ImGuiVectorProperty("Color", pLightComponent->GetColor(), cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ColorPickerProperty("Color", pLightComponent->GetColor());
 
 		float s_spotInnerAngle = 8.0f;
 		float s_spotOuterAngle = 16.0f;
