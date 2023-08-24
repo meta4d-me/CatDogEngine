@@ -118,7 +118,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		}
 
 		// Shaders
-		const char* title = "Uber Shader";
+		const char* title = "Shader";
 		bool isOpen = ImGui::CollapsingHeader(title, ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 		ImGui::Separator();
@@ -129,10 +129,22 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 			ImGuiUtils::ImGuiStringProperty("Fragment Shader", pMaterialComponent->GetFragmentShaderName());
 			ImGui::Separator();
 
+			std::vector<const char*> activeUberOptions;
 			for (const auto& uber : pMaterialComponent->GetUberShaderOptions())
 			{
-				const char* uberName = nameof::nameof_enum(uber).data();
-				ImGuiUtils::ImGuiStringProperty("Active Uber Option", uberName);
+				activeUberOptions.emplace_back(nameof::nameof_enum(uber).data());
+			}
+
+			if (!activeUberOptions.empty())
+			{
+				if (ImGui::BeginCombo("##combo", "Active uber options"))
+				{
+					for (size_t index = 0; index < activeUberOptions.size(); ++index)
+					{
+						ImGui::Selectable(activeUberOptions[index], false);
+					}
+					ImGui::EndCombo();
+				}
 			}
 		}
 
@@ -364,23 +376,27 @@ void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld
 			skyTypes.emplace_back(nameof::nameof_enum(static_cast<engine::SkyType>(type)).data());
 		}
 
-		static const char* crtItem = nameof::nameof_enum(engine::SkyType::SkyBox).data();
-		if (ImGui::BeginCombo("##combo", crtItem))
+		if (!skyTypes.empty())
 		{
-			for (size_t index = 0; index < skyTypes.size(); ++index)
+			static const char* crtItem = nameof::nameof_enum(engine::SkyType::SkyBox).data();
+			if (ImGui::BeginCombo("##combo", crtItem))
 			{
-				bool isSelected = (crtItem == skyTypes[index]);
-				if (ImGui::Selectable(skyTypes[index], isSelected))
+				for (size_t index = 0; index < skyTypes.size(); ++index)
 				{
-					crtItem = skyTypes[index];
-					pSkyComponent->SetSkyType(static_cast<engine::SkyType>(index));
+					bool isSelected = (crtItem == skyTypes[index]);
+					if (ImGui::Selectable(skyTypes[index], isSelected))
+					{
+						crtItem = skyTypes[index];
+						pSkyComponent->SetSkyType(static_cast<engine::SkyType>(index));
+					}
+					if (isSelected)
+					{
+						ImGui::SetItemDefaultFocus();
+					}
 				}
-				if (isSelected)
-				{
-					ImGui::SetItemDefaultFocus();
-				}
+				ImGui::EndCombo();
 			}
-			ImGui::EndCombo();
+
 		}
 
 		if (pSkyComponent->GetAtmophericScatteringEnable())
