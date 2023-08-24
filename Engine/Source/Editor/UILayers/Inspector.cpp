@@ -82,25 +82,22 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 	if (isOpen)
 	{
 		std::vector<std::string> fileNames;
-		std::filesystem::path dirPath{ CDPROJECT_RESOURCES_ROOT_PATH "test" };
+		std::filesystem::path dirPath{ CDPROJECT_RESOURCES_ROOT_PATH };
+		dirPath /= "test";
 		std::filesystem::path frontPath{ "test" };
 		engine::RenderContext* pRenderContext = engine::ImGuiBaseLayer::GetRenderContext();
 
+		std::vector<std::string> texturePaths;
 		for (const auto& it : std::filesystem::directory_iterator(dirPath))
 		{
 			std::string fileName = it.path().filename().string();
-			fileNames.push_back(fileName);
-		}
-
-		std::vector<std::string> texturePaths;
-		for (int i = 0; i < fileNames.size(); ++i)
-		{
-			std::string fullpath = (frontPath / fileNames[i]).string();
+			std::string fullpath = (frontPath / fileName).string();
 			pRenderContext->CreateTexture(fullpath.c_str());
 
-			//	->CreateTexture(fullpath.c_str());
-			texturePaths.emplace_back(std::move(fullpath));
+			fileNames.emplace_back(cd::MoveTemp(fileName));
+			texturePaths.emplace_back(cd::MoveTemp(fullpath));
 		}
+
 
 		static int currentItem = 0;
 		if (ImGui::BeginCombo("Select Texture", fileNames[currentItem].c_str()))
