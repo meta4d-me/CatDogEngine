@@ -76,7 +76,28 @@ project("Editor")
 			"ENABLE_SUBPROCESS"
 		}
 	end
-
+	
+	if ENABLE_DDGI then
+		includedirs {
+			path.join(DDGI_SDK_PATH, "include"),
+		}
+		libdirs {
+			path.join(DDGI_SDK_PATH, "lib"),
+		}
+		links {
+			"ddgi_sdk", "mright_sdk", "DDGIProbeDecoderBin"
+		}
+		defines {
+			"ENABLE_DDGI",
+			"DDGI_SDK_PATH=\""..DDGI_SDK_PATH.."\"",
+		}
+	else
+		excludes {
+			path.join(RuntimeSourcePath, "ECWorld/DDGIComponent.*"),
+			path.join(RuntimeSourcePath, "Rendering/DDGIRenderer.*"),
+		}
+	end
+	
 	-- use /MT /MTd, not /MD /MDd
 	staticruntime "on"
 	filter { "configurations:Debug" }

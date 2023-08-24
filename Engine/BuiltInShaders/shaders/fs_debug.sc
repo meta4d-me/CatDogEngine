@@ -1,4 +1,4 @@
-$input v_bc, v_worldPos
+$input v_worldPos, v_normal, v_bc
 
 #include "../common/common.sh"
 

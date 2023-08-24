@@ -10,6 +10,7 @@
 #include "Log/Log.h"
 #include "Math/MeshGenerator.h"
 #include "Path/Path.h"
+#include "Rendering/AABBRenderer.h"
 #include "Rendering/AnimationRenderer.h"
 #include "Rendering/BlitRenderTargetPass.h"
 #ifdef ENABLE_DDGI
@@ -21,6 +22,7 @@
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/SkyboxRenderer.h"
+#include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ShaderBuilder.h"
@@ -95,7 +97,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 
 	std::thread resourceThread([]()
 	{
-		ResourceBuilder::Get().Update(false/*doPrintLog*/);
+		ResourceBuilder::Get().Update(true/*doPrintLog*/);
 	});
 	resourceThread.detach();
 }
@@ -159,6 +161,9 @@ void EditorApp::InitEditorUILayers()
 	auto pSceneView = std::make_unique<SceneView>("SceneView");
 	m_pSceneView = pSceneView.get();
 	pSceneView->SetCameraController(m_pViewportCameraController.get());
+	pSceneView->SetSceneRenderer(m_pSceneRenderer);
+	pSceneView->SetDebugRenderer(m_pDebugRenderer);
+	pSceneView->SetAABBRenderer(m_pAABBRenderer);
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
 
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
@@ -233,7 +238,7 @@ void EditorApp::InitECWorld()
 	}
 
 	m_pSceneWorld->CreateAnimationMaterialType();
-
+	m_pSceneWorld->CreateTerrainMaterialType();
 	InitEditorCameraEntity();
 	
 #ifdef ENABLE_DDGI
@@ -366,6 +371,11 @@ void EditorApp::InitEngineRenderers()
 	pSceneRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pSceneRenderer));
 
+	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pTerrainRenderer = pTerrainRenderer.get();
+	pTerrainRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pTerrainRenderer));
+
 	auto pAnimationRenderer = std::make_unique<engine::AnimationRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pAnimationRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pAnimationRenderer));
@@ -375,6 +385,12 @@ void EditorApp::InitEngineRenderers()
 	pDebugRenderer->SetSceneWorld(m_pSceneWorld.get());
 	pDebugRenderer->SetEnable(false);
 	AddEngineRenderer(cd::MoveTemp(pDebugRenderer));
+
+	auto pAABBRenderer = std::make_unique<engine::AABBRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pAABBRenderer = pAABBRenderer.get();
+	pAABBRenderer->SetSceneWorld(m_pSceneWorld.get());
+	pAABBRenderer->SetEnable(false);
+	AddEngineRenderer(cd::MoveTemp(pAABBRenderer));
 
 #ifdef ENABLE_DDGI
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
@@ -490,6 +506,7 @@ bool EditorApp::Update(float deltaTime)
 	m_pEditorImGuiContext->Update(deltaTime);
 
 	engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
+	engine::TerrainComponent* pTerrainComponent = m_pSceneWorld->GetTerrainComponent(m_pSceneWorld->GetSelectedEntity());
 	assert(pMainCameraComponent);
 	pMainCameraComponent->BuildProjectMatrix();
 
@@ -511,9 +528,24 @@ bool EditorApp::Update(float deltaTime)
 		{
 			m_pViewportCameraController->Update(deltaTime);
 		}
+		//Do Screen Space Smoothing
+		if (pTerrainComponent && m_pSceneView->IsTerrainEditMode() && engine::Input::Get().IsMouseLBPressed())
+		{
+			float screenSpaceX = 2.0f * static_cast<float>(engine::Input::Get().GetMousePositionX() - m_pSceneView->GetWindowPosX()) /
+				m_pSceneView->GetRenderTarget()->GetWidth() - 1.0f;
+			float screenSpaceY = 1.0f - 2.0f * static_cast<float>(engine::Input::Get().GetMousePositionY() - m_pSceneView->GetWindowPosY()) /
+				m_pSceneView->GetRenderTarget()->GetHeight();
+
+			engine::TransformComponent* pCameraTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity());
+			cd::Vec3f camPos = pCameraTransformComponent->GetTransform().GetTranslation();
+
+			pTerrainComponent->ScreenSpaceSmooth(screenSpaceX, screenSpaceY, pMainCameraComponent->GetProjectionMatrix().Inverse(),
+				pMainCameraComponent->GetViewMatrix().Inverse(), camPos);
+		}
 
 		m_pEngineImGuiContext->SetWindowPosOffset(m_pSceneView->GetWindowPosX(), m_pSceneView->GetWindowPosY());
 		m_pEngineImGuiContext->Update(deltaTime);
+
 		for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
 		{
 			if (pRenderer->IsEnable())

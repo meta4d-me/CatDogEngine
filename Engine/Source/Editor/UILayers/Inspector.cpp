@@ -275,6 +275,39 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 	ImGui::PopStyleVar();
 }
 
+template<>
+void UpdateComponentWidget<engine::TerrainComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+{
+	auto* pTerrainComponent = pSceneWorld->GetTerrainComponent(entity);
+	if (!pTerrainComponent)
+	{
+		return;
+	}
+
+	bool isOpen = ImGui::CollapsingHeader("Terrain Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+	ImGui::Separator();
+
+	if (isOpen)
+	{
+
+		/*// Parameters
+		ImGuiUtils::ImGuiVectorProperty("AlbedoColor", pMaterialComponent->GetAlbedoColor(), cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ImGuiFloatProperty("MetallicFactor", pMaterialComponent->GetMetallicFactor(), cd::Unit::None, 0.0f, 1.0f);
+		ImGuiUtils::ImGuiFloatProperty("RoughnessFactor", pMaterialComponent->GetRoughnessFactor(), cd::Unit::None, 0.0f, 1.0f);
+		ImGuiUtils::ImGuiVectorProperty("EmissiveColor", pMaterialComponent->GetEmissiveColor(), cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ImGuiBoolProperty("TwoSided", pMaterialComponent->GetTwoSided());
+		ImGuiUtils::ImGuiStringProperty("BlendMode", cd::GetBlendModeName(pMaterialComponent->GetBlendMode()));
+		if (cd::BlendMode::Mask == pMaterialComponent->GetBlendMode())
+		{
+			ImGuiUtils::ImGuiFloatProperty("AlphaCutOff", pMaterialComponent->GetAlphaCutOff(), cd::Unit::None, 0.0f, 1.0f);
+		}*/
+	}
+
+	ImGui::Separator();
+	ImGui::PopStyleVar();
+}
+
 #ifdef ENABLE_DDGI
 template<>
 void UpdateComponentWidget<engine::DDGIComponent>(engine::SceneWorld *pSceneWorld, engine::Entity entity)
@@ -400,6 +433,7 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::CameraComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, selectedEntity);
 
 #ifdef ENABLE_DDGI
 	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, selectedEntity);

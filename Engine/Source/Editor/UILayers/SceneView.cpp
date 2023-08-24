@@ -104,6 +104,48 @@ void SceneView::UpdateOperationButtons()
 	}
 }
 
+void SceneView::UpdateAABBCombo()
+{
+	ImGui::SetNextItemWidth(150);
+	if(ImGui::Combo("##AABBCombo", reinterpret_cast<int*>(&m_AABBMode), AABBModes, IM_ARRAYSIZE(AABBModes)))
+	{
+		if (AABBModeType::NoAABB == m_AABBMode)
+		{
+			m_pAABBRenderer->SetEnable(false);
+		}
+		else if (AABBModeType::AABBSelected == m_AABBMode)
+		{
+			m_pAABBRenderer->SetEnable(true);
+			static_cast<engine::AABBRenderer*>(m_pAABBRenderer)->SetIsRenderSelected(true);
+		}
+		else if (AABBModeType::AABBAll == m_AABBMode)
+		{
+			m_pAABBRenderer->SetEnable(true);
+			static_cast<engine::AABBRenderer*>(m_pAABBRenderer)->SetIsRenderSelected(false);
+		}
+	}
+	ImGui::PushItemWidth(150);
+}
+
+void SceneView::UpdateDebugCombo()
+{
+	ImGui::SetNextItemWidth(130);
+	if (ImGui::Combo("##DebugCombo", reinterpret_cast<int*>(&m_debugMode), DebugModes, IM_ARRAYSIZE(DebugModes)))
+	{
+		if (DebugModeType::NoDebug == m_debugMode)
+		{
+			m_pSceneRenderer->SetEnable(true);
+			m_pDebugRenderer->SetEnable(false);
+		}
+		else if (DebugModeType::WhiteModel == m_debugMode)
+		{
+			m_pSceneRenderer->SetEnable(false);
+			m_pDebugRenderer->SetEnable(true);
+		}
+	}
+	ImGui::PushItemWidth(130);
+}
+
 void SceneView::Update2DAnd3DButtons()
 {
 	bool is3DMode = m_is3DMode;
@@ -160,6 +202,25 @@ void SceneView::UpdateSwitchAABBButton()
 	}
 }
 
+void SceneView::UpdateSwitchTerrainButton()
+{
+	bool isTerrainActive = m_isTerrainEditMode;
+	if (isTerrainActive)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+	}
+
+	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CUBE "Smooth Terrain ")))
+	{
+		m_isTerrainEditMode = !m_isTerrainEditMode;
+	}
+
+	if (isTerrainActive)
+	{
+		ImGui::PopStyleColor();
+	}
+}
+
 void SceneView::UpdateToolMenuButtons()
 {
 	ImGui::Indent();
@@ -190,7 +251,13 @@ void SceneView::UpdateToolMenuButtons()
 	//ImGui::SameLine();
 
 	ImGui::SameLine();
-	UpdateSwitchAABBButton();
+	UpdateAABBCombo();
+
+	ImGui::SameLine();
+	UpdateDebugCombo();
+
+	ImGui::SameLine();
+	UpdateSwitchTerrainButton();
 
 	ImGui::PopStyleColor();
 }
@@ -254,6 +321,7 @@ void SceneView::Update()
 {
 	engine::SceneWorld* pSceneWorld = GetSceneWorld();
 	engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
+	engine::TerrainComponent* pTerrainComponent = pSceneWorld->GetTerrainComponent(pSceneWorld->GetSelectedEntity());
 
 	if (nullptr == m_pRenderTarget)
 	{
@@ -270,7 +338,7 @@ void SceneView::Update()
 		ImVec2 windowPos = ImGui::GetWindowPos();
 		ImVec2 mousePos = ImGui::GetMousePos();
 		cd::Vec2f rightDown(windowPos.x + windowSize.x, windowPos.y + windowSize.y);
-		if (mousePos.x > windowPos.x && mousePos.x < rightDown.x() && mousePos.y > windowPos.y && mousePos.y < rightDown.y())
+		if (mousePos.x > windowPos.x && mousePos.x < rightDown.x() && mousePos.y > windowPos.y && mousePos.y < rightDown.y() && !m_isTerrainEditMode)
 		{
 			m_pCameraController->SetIsInViewScene(true);
 		}

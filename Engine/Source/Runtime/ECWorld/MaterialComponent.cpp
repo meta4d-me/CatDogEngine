@@ -207,6 +207,9 @@ void MaterialComponent::AddTextureBlob(cd::MaterialTextureType textureType, cd::
 	textureInfo.uvOffset = cd::Vec2f::Zero();
 	textureInfo.uvScale = cd::Vec2f::One();
 	m_textureResources[textureType] = cd::MoveTemp(textureInfo);
+	
+	// TODO : generic CPU/GPU resource manager.
+	m_cacheTextureBlobs.emplace_back(cd::MoveTemp(textureBlob));
 }
 
 void MaterialComponent::AddTextureFileBlob(cd::MaterialTextureType textureType, const cd::Material* pMaterial, const cd::Texture& texture, TextureBlob textureBlob)
