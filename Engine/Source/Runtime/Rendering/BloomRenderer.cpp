@@ -5,12 +5,12 @@
 namespace engine
 {
 	void BloomRenderer::Init(){
-		GetRenderContext()->CreateUniform("s_tex", bgfx::UniformType::Sampler);
+		GetRenderContext()->CreateUniform("s_texture", bgfx::UniformType::Sampler);
 		GetRenderContext()->CreateUniform("s_bloom", bgfx::UniformType::Sampler);
 		GetRenderContext()->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
-		GetRenderContext()->CreateUniform("s_tex_size", bgfx::UniformType::Vec4);
-		GetRenderContext()->CreateUniform("_bloomIntensity", bgfx::UniformType::Vec4);
-		GetRenderContext()->CreateUniform("_luminanceThreshold", bgfx::UniformType::Vec4);
+		GetRenderContext()->CreateUniform("u_textureSize", bgfx::UniformType::Vec4);
+		GetRenderContext()->CreateUniform("u_bloomIntensity", bgfx::UniformType::Vec4);
+		GetRenderContext()->CreateUniform("u_luminanceThreshold", bgfx::UniformType::Vec4);
 		GetRenderContext()->CreateProgram("CapTureBrightnessProgram", "vs_fullscreen.bin", "fs_captureBrightness.bin");
 		GetRenderContext()->CreateProgram("DownSampleProgram", "vs_fullscreen.bin", "fs_dowmsample.bin");
 		GetRenderContext()->CreateProgram("BlurVerticalProgram", "vs_fullscreen.bin", "fs_blurvertical.bin");
@@ -97,16 +97,16 @@ namespace engine
 		bgfx::TextureHandle screenTextureHandle;
 		if (pInputRT == pOutputRT)
 		{
-			constexpr StringCrc sceneRenderTargetBlitEmissColor("SceneRenderTargetBlitEmissColor");
-			screenEmissColorTextureHandle = GetRenderContext()->GetTexture(sceneRenderTargetBlitEmissColor);
-
 			constexpr StringCrc sceneRenderTargetBlitSRV("SceneRenderTargetBlitSRV");
 			screenTextureHandle = GetRenderContext()->GetTexture(sceneRenderTargetBlitSRV);
+
+			constexpr StringCrc sceneRenderTargetBlitEmissColor("SceneRenderTargetBlitEmissColor");
+			screenEmissColorTextureHandle = GetRenderContext()->GetTexture(sceneRenderTargetBlitEmissColor);
 		}
 		else
 		{
-			screenEmissColorTextureHandle = pInputRT->GetTextureHandle(1);
 			screenTextureHandle = pInputRT->GetTextureHandle(0);
+			screenEmissColorTextureHandle = pInputRT->GetTextureHandle(1);
 		}
 
 		Entity entity = m_pCurrentSceneWorld->GetMainCameraEntity();
@@ -119,11 +119,11 @@ namespace engine
 		bgfx::setViewRect(GetViewID(), 0, 0, width, height);
 		bgfx::setViewTransform(GetViewID(), nullptr, orthoMatrix.Begin());
 
-		constexpr StringCrc luminanceThresholdUniformName("_luminanceThreshold");
+		constexpr StringCrc luminanceThresholdUniformName("u_luminanceThreshold");
 		bgfx::setUniform(GetRenderContext()->GetUniform(luminanceThresholdUniformName), &pCameraComponent->GetLuminanceThreshold());
 
-		constexpr StringCrc texSampler("s_tex");
-		bgfx::setTexture(0, GetRenderContext()->GetUniform(texSampler), screenEmissColorTextureHandle);
+		constexpr StringCrc textureSampler("s_texture");
+		bgfx::setTexture(0, GetRenderContext()->GetUniform(textureSampler), screenEmissColorTextureHandle);
 
 		bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 		Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
@@ -140,8 +140,8 @@ namespace engine
 			tempshift = shift;
 			const float pixelSize[4] =
 			{
-				1.0f / (float)(width >> shift),
-				1.0f / (float)(height >> shift),
+				1.0f / static_cast<float>(width >> shift),
+				1.0f / static_cast<float>(height >> shift),
 				0.0f,
 				0.0f,
 			};
@@ -150,10 +150,10 @@ namespace engine
 			bgfx::setViewRect(start_dowmSamplePassID + i, 0, 0, width >> shift, height >> shift);
 			bgfx::setViewTransform(start_dowmSamplePassID + i, nullptr, orthoMatrix.Begin());
 
-			constexpr StringCrc texelSizeName("s_tex_size");
-			bgfx::setUniform(GetRenderContext()->GetUniform(texelSizeName), pixelSize);
+			constexpr StringCrc textureSizeUniformName("u_textureSize");
+			bgfx::setUniform(GetRenderContext()->GetUniform(textureSizeUniformName), pixelSize);
 
-			bgfx::setTexture(0, GetRenderContext()->GetUniform(texSampler), bgfx::getTexture(m_sampleChainFB[shift - 1]));
+			bgfx::setTexture(0, GetRenderContext()->GetUniform(textureSampler), bgfx::getTexture(m_sampleChainFB[shift - 1]));
 
 			bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 			Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
@@ -172,8 +172,8 @@ namespace engine
 			if ((width >> shift) < 2 || (height >> shift) < 2) continue;
 			const float pixelSize[4] =
 			{
-				1.0f / (float)(width >> shift),
-				1.0f / (float)(height >> shift),
+				1.0f / static_cast<float>(width >> shift),
+				1.0f / static_cast<float>(height >> shift),
 				0.0f,
 				0.0f,
 			};
@@ -182,17 +182,19 @@ namespace engine
 			bgfx::setViewRect(start_upSamplePassID + i, 0, 0, width >> shift, height >> shift);
 			bgfx::setViewTransform(start_upSamplePassID + i, nullptr, orthoMatrix.Begin());
 
-			constexpr StringCrc texelSizeName("s_tex_size");
-			bgfx::setUniform(GetRenderContext()->GetUniform(texelSizeName), pixelSize);
+			constexpr StringCrc textureSizeUniformName("u_textureSize");
+			bgfx::setUniform(GetRenderContext()->GetUniform(textureSizeUniformName), pixelSize);
 
-			constexpr StringCrc bloomIntensityName("_bloomIntensity");
-			bgfx::setUniform(GetRenderContext()->GetUniform(bloomIntensityName), &pCameraComponent->GetBloomIntensity());
+			constexpr StringCrc bloomIntensityUniformName("u_bloomIntensity");
+			bgfx::setUniform(GetRenderContext()->GetUniform(bloomIntensityUniformName), &pCameraComponent->GetBloomIntensity());
 
-			if (pCameraComponent->GetIsBlurEnable() && pCameraComponent->GetBlurTimes() != 0 && i == 0) {
-				bgfx::setTexture(0, GetRenderContext()->GetUniform(texSampler), bgfx::getTexture(m_blurChainFB[1]));
+			if (pCameraComponent->GetIsBlurEnable() && pCameraComponent->GetBlurTimes() != 0 && 0 == i) 
+			{
+				bgfx::setTexture(0, GetRenderContext()->GetUniform(textureSampler), bgfx::getTexture(m_blurChainFB[1]));
 			}
-			else {
-				bgfx::setTexture(0, GetRenderContext()->GetUniform(texSampler), bgfx::getTexture(m_sampleChainFB[shift + 1]));
+			else 
+			{
+				bgfx::setTexture(0, GetRenderContext()->GetUniform(textureSampler), bgfx::getTexture(m_sampleChainFB[shift + 1]));
 			}
 
 			bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_BLEND_ADD);
@@ -207,8 +209,8 @@ namespace engine
 		bgfx::setViewRect(combinePassID, 0, 0, width, height);
 		bgfx::setViewTransform(combinePassID, nullptr, orthoMatrix.Begin());
 
-		constexpr StringCrc lightcolorSampler("s_lightingColor");
-		bgfx::setTexture(0, GetRenderContext()->GetUniform(lightcolorSampler), screenTextureHandle);
+		constexpr StringCrc lightColorSampler("s_lightingColor");
+		bgfx::setTexture(0, GetRenderContext()->GetUniform(lightColorSampler), screenTextureHandle);
 
 		constexpr StringCrc bloomcolorSampler("s_bloom");
 		bgfx::setTexture(1, GetRenderContext()->GetUniform(bloomcolorSampler), bgfx::getTexture(m_sampleChainFB[0]));
@@ -224,8 +226,8 @@ namespace engine
 
 	void BloomRenderer::Blur(uint16_t width, uint16_t height, int iteration,float blursize, int blurscaling,cd::Matrix4x4 ortho,bgfx::TextureHandle texture)
 	{
-		width = int(width / blurscaling);
-		height = int(height / blurscaling);
+		width = static_cast<int>(width / blurscaling);
+		height = static_cast<int>(height / blurscaling);
 
 		const uint64_t tsFlags = 0 | BGFX_TEXTURE_RT | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
 		for (int ii = 0; ii < 2; ++ii)
@@ -239,9 +241,9 @@ namespace engine
 		for (int i = 0; i < iteration; i++) {
 			float pixelSize[4] =
 			{
-				1.0f / (float)(width),
-				1.0f / (float)(height),
-				float(i / blurscaling) + blursize, /*i + blursize*/
+				1.0f / static_cast<float>(width),
+				1.0f / static_cast<float>(height),
+				static_cast<float>(i / blurscaling) + blursize, /*i + blursize*/
 				1.0f,
 			};
 
@@ -249,18 +251,18 @@ namespace engine
 			bgfx::setViewRect(vertical, 0, 0, width, height);
 			bgfx::setViewTransform(vertical, nullptr, ortho.Begin());
 
-			constexpr StringCrc texelSizeName("s_tex_size");
-			bgfx::setUniform(GetRenderContext()->GetUniform(texelSizeName), pixelSize);
+			constexpr StringCrc textureSizeUniformName("u_textureSize");
+			bgfx::setUniform(GetRenderContext()->GetUniform(textureSizeUniformName), pixelSize);
 
-			constexpr StringCrc texSampler("s_tex");
-			bgfx::setTexture(0, GetRenderContext()->GetUniform(texSampler), i == 0 ? texture : bgfx::getTexture(m_blurChainFB[1]));
+			constexpr StringCrc textureSampler("s_texture");
+			bgfx::setTexture(0, GetRenderContext()->GetUniform(textureSampler), i == 0 ? texture : bgfx::getTexture(m_blurChainFB[1]));
 
 			bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 			Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
 			constexpr StringCrc kawaseBlurprogramName("KawaseBlurProgram");
 			bgfx::submit(vertical, GetRenderContext()->GetProgram(kawaseBlurprogramName));
-			//constexpr StringCrc BlurHorizontalprogramName("BlurVerticalProgram");
+			//constexpr StringCrc BlurHorizontalprogramName("BlurVerticalProgram"); // use Gaussian Blur
 			//bgfx::submit(horizontal, GetRenderContext()->GetProgram(BlurHorizontalprogramName));
 
 			// vertical
@@ -268,16 +270,15 @@ namespace engine
 			bgfx::setViewRect(horizontal, 0, 0, width, height);
 			bgfx::setViewTransform(horizontal, nullptr, ortho.Begin());
 
-			bgfx::setUniform(GetRenderContext()->GetUniform(texelSizeName), pixelSize);
+			bgfx::setUniform(GetRenderContext()->GetUniform(textureSizeUniformName), pixelSize);
 
-			bgfx::setTexture(0, GetRenderContext()->GetUniform(texSampler), bgfx::getTexture(m_blurChainFB[0]));
+			bgfx::setTexture(0, GetRenderContext()->GetUniform(textureSampler), bgfx::getTexture(m_blurChainFB[0]));
 
 			bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 			Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
-			constexpr StringCrc BlurVerticalprogramName("BlurVerticalProgram");
-			bgfx::submit(horizontal, GetRenderContext()->GetProgram(BlurVerticalprogramName));
-			//constexpr StringCrc BlurVerticalprogramName("BlurVerticalProgram");
+			bgfx::submit(horizontal, GetRenderContext()->GetProgram(kawaseBlurprogramName));
+			//constexpr StringCrc BlurVerticalprogramName("BlurVerticalProgram");  // use Gaussian Blur
 			//bgfx::submit(horizontal, GetRenderContext()->GetProgram(BlurVerticalprogramName));
 
 			vertical += 2;

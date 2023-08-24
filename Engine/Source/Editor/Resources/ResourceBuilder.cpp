@@ -319,9 +319,8 @@ void ResourceBuilder::Update(bool doPrintLog)
 	while (!m_buildTasks.empty())
 	{
 		Process& process = m_buildTasks.front();
-		// process.SetWaitUntilFinished(m_buildTasks.size() == 1);
-		process.SetWaitUntilFinished(true);
-		process.SetPrintChildProcessLog(true);
+		process.SetWaitUntilFinished(m_buildTasks.size() == 1);
+		process.SetPrintChildProcessLog(doPrintLog);
 		process.Run();
 		m_buildTasks.pop();
 	}
