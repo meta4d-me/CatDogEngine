@@ -6,6 +6,7 @@ namespace engine
 {
 
 class SceneWorld;
+class Emitter;
 
 class ParticleRenderer final : public Renderer
 {
@@ -20,6 +21,7 @@ public:
 
 private:
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
+	Emitter* m_pEmitter = nullptr;
 };
 
 }
