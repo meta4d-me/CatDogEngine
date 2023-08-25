@@ -14,3 +14,4 @@
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TerrainComponent.h"
 #include "ECWorld/TransformComponent.h"
+#include "ECWorld/ParticleComponent.h"

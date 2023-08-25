@@ -25,6 +25,7 @@
 #include "Rendering/SkyboxRenderer.h"
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
+#include "Rendering/ParticleRenderer.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ShaderBuilder.h"
 #include "Resources/ShaderLoader.h"
@@ -248,6 +249,7 @@ void EditorApp::InitECWorld()
 #endif
 
 	InitSkyEntity();
+	InitParticleEntity();
 }
 
 void EditorApp::InitEditorCameraEntity()
@@ -335,6 +337,17 @@ void EditorApp::InitSkyEntity()
 	meshComponent.Build();
 }
 
+void EditorApp::InitParticleEntity()
+{
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+	engine::Entity particleEntity = pWorld->CreateEntity();
+
+	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(particleEntity);
+	nameComponent.SetName("Particle Emitter");
+
+	auto& particleComponent = pWorld->CreateComponent<engine::ParticleComponent>(particleEntity);
+}
+
 void EditorApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
 {
 	CD_INFO("Init graphics backend : {}", nameof::nameof_enum(backend));
@@ -416,6 +429,10 @@ void EditorApp::InitEngineRenderers()
 	pPostProcessRenderer->SetSceneWorld(m_pSceneWorld.get());
 	pPostProcessRenderer->SetEnable(true);
 	AddEngineRenderer(cd::MoveTemp(pPostProcessRenderer));
+
+	auto pParticlerenderer = std::make_unique<engine::ParticleRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pParticlerenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pParticlerenderer));
 
 	// Note that if you don't want to use ImGuiRenderer for engine, you should also disable EngineImGuiContext.
 	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget));

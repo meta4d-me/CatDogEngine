@@ -71,6 +71,7 @@ private:
 	void InitEditorCameraEntity();
 	void InitDDGIEntity();
 	void InitSkyEntity();
+	void InitParticleEntity();
 
 	bool m_bInitEditor = false;
 	engine::EngineInitArgs m_initArgs;
