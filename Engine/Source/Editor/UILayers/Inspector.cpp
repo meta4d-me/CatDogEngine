@@ -81,7 +81,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 	if (isOpen)
 	{
 		ImGuiUtils::ImGuiStringProperty("Name", pMaterialComponent->GetName());
-		
+
 		// Parameters
 		ImGuiUtils::ImGuiVectorProperty("AlbedoColor", pMaterialComponent->GetAlbedoColor(), cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One());
 		ImGuiUtils::ImGuiFloatProperty("MetallicFactor", pMaterialComponent->GetMetallicFactor(), cd::Unit::None, 0.0f, 1.0f);
@@ -110,13 +110,46 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 				{
 					ImGuiUtils::ImGuiVectorProperty(uvOffset.c_str(), pTextureInfo->GetUVOffset());
 					ImGuiUtils::ImGuiVectorProperty(uvScale.c_str(), pTextureInfo->GetUVScale());
-
 				}
 
 				ImGui::Separator();
 				ImGui::PopStyleVar();
 			}
 		}
+
+		// Shaders
+		const char* title = "Shader";
+		bool isOpen = ImGui::CollapsingHeader(title, ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+		ImGui::Separator();
+
+		if (isOpen)
+		{
+			ImGuiUtils::ImGuiStringProperty("Vertex Shader", pMaterialComponent->GetVertexShaderName());
+			ImGuiUtils::ImGuiStringProperty("Fragment Shader", pMaterialComponent->GetFragmentShaderName());
+			ImGui::Separator();
+
+			std::vector<const char*> activeUberOptions;
+			for (const auto& uber : pMaterialComponent->GetUberShaderOptions())
+			{
+				activeUberOptions.emplace_back(nameof::nameof_enum(uber).data());
+			}
+
+			if (!activeUberOptions.empty())
+			{
+				if (ImGui::BeginCombo("##combo", "Active uber options"))
+				{
+					for (size_t index = 0; index < activeUberOptions.size(); ++index)
+					{
+						ImGui::Selectable(activeUberOptions[index], false);
+					}
+					ImGui::EndCombo();
+				}
+			}
+		}
+
+		ImGui::Separator();
+		ImGui::PopStyleVar();
 	}
 
 	ImGui::Separator();
@@ -343,23 +376,27 @@ void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld
 			skyTypes.emplace_back(nameof::nameof_enum(static_cast<engine::SkyType>(type)).data());
 		}
 
-		static const char* crtItem = nameof::nameof_enum(engine::SkyType::SkyBox).data();
-		if (ImGui::BeginCombo("##combo", crtItem))
+		if (!skyTypes.empty())
 		{
-			for (size_t index = 0; index < skyTypes.size(); ++index)
+			static const char* crtItem = nameof::nameof_enum(engine::SkyType::SkyBox).data();
+			if (ImGui::BeginCombo("##combo", crtItem))
 			{
-				bool isSelected = (crtItem == skyTypes[index]);
-				if (ImGui::Selectable(skyTypes[index], isSelected))
+				for (size_t index = 0; index < skyTypes.size(); ++index)
 				{
-					crtItem = skyTypes[index];
-					pSkyComponent->SetSkyType(static_cast<engine::SkyType>(index));
+					bool isSelected = (crtItem == skyTypes[index]);
+					if (ImGui::Selectable(skyTypes[index], isSelected))
+					{
+						crtItem = skyTypes[index];
+						pSkyComponent->SetSkyType(static_cast<engine::SkyType>(index));
+					}
+					if (isSelected)
+					{
+						ImGui::SetItemDefaultFocus();
+					}
 				}
-				if (isSelected)
-				{
-					ImGui::SetItemDefaultFocus();
-				}
+				ImGui::EndCombo();
 			}
-			ImGui::EndCombo();
+
 		}
 
 		if (pSkyComponent->GetAtmophericScatteringEnable())
@@ -403,17 +440,22 @@ void Inspector::Update()
 		return;
 	}
 
+	ImGui::BeginChild("Inspector");
+
 	details::UpdateComponentWidget<engine::NameComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::TransformComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::StaticMeshComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::CameraComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, selectedEntity);
+
 #ifdef ENABLE_DDGI
 	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, selectedEntity);
 #endif
-	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, selectedEntity);
+
+	ImGui::EndChild();
 
 	ImGui::End();
 }

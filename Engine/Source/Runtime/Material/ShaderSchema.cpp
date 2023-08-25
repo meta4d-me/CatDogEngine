@@ -22,7 +22,7 @@ constexpr const char* UberNames[] =
 	"EMISSIVEMAP;",
 	"IBL;",
 	"ATM;",
-	"AREAL_LIGHT;",
+	"AREALLIGHT;",
 };
 
 static_assert(static_cast<int>(Uber::COUNT) == sizeof(UberNames) / sizeof(char*),
