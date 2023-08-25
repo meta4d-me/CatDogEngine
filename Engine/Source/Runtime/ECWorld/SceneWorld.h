@@ -41,6 +41,7 @@ class SceneWorld
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(StaticMesh);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Terrain);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Transform);
+	DEFINE_COMPONENT_STORAGE_WITH_APIS(Particle);
 
 public:
 	SceneWorld();
@@ -96,6 +97,7 @@ public:
 		DeleteStaticMeshComponent(entity);
 		DeleteTerrainComponent(entity);
 		DeleteTransformComponent(entity);
+		DeleteParticleComponent(entity);
 	}
 
 	void CreatePBRMaterialType(bool isAtmosphericScatteringEnable = false);

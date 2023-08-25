@@ -412,6 +412,28 @@ void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld
 	ImGui::PopStyleVar();
 }
 
+template<>
+void UpdateComponentWidget<engine::ParticleComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+{
+	auto* pParticleComponent = pSceneWorld->GetParticleComponent(entity);
+	if (!pParticleComponent)
+	{
+		return;
+	}
+
+	bool isOpen = ImGui::CollapsingHeader("Particle Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+	ImGui::Separator();
+
+	if (isOpen)
+	{
+
+	}
+
+	ImGui::Separator();
+	ImGui::PopStyleVar();
+}
+
 }
 
 namespace editor
@@ -450,6 +472,7 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::ParticleComponent>(pSceneWorld, selectedEntity);
 
 #ifdef ENABLE_DDGI
 	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, selectedEntity);
