@@ -16,19 +16,13 @@ namespace engine
 namespace
 {
 
-static bx::AllocatorI* GetResourceAllocator()
-{
-	static bx::DefaultAllocator s_allocator;
-	return &s_allocator;
-}
-
 bimg::ImageContainer* imageLoad(const char* _filePath, bgfx::TextureFormat::Enum _dstFormat)
 {
 	size_t size = 0;
 	char* data = nullptr;
 
 	std::string fullPath = (std::filesystem::path(CDPROJECT_RESOURCES_ROOT_PATH) / "Textures" / "particle" / _filePath).generic_string();
-	std::ifstream file(fullPath, std::ios::binary);
+	std::ifstream file(fullPath, std::ios::in | std::ios::binary);
 	if (file)
 	{
 		file.seekg(0, file.end);
@@ -37,76 +31,15 @@ bimg::ImageContainer* imageLoad(const char* _filePath, bgfx::TextureFormat::Enum
 
 		data = new char[size];
 		file.read(data, size);
+
+		file.close();
 	}
+	static bx::DefaultAllocator s_allocator;
 
-	return bimg::imageParse(GetResourceAllocator(), (void*)data, static_cast<uint32_t>(size), bimg::TextureFormat::Enum(_dstFormat));
+	return bimg::imageParse(&s_allocator, (void*)data, static_cast<uint32_t>(size), bimg::TextureFormat::Enum(_dstFormat));
 }
 
 }
-
-static const char* s_shapeNames[] =
-{
-	"Sphere",
-	"Hemisphere",
-	"Circle",
-	"Disc",
-	"Rect",
-};
-
-static const char* s_directionName[] =
-{
-	"Up",
-	"Outward",
-};
-
-static const char* s_easeFuncName[] =
-{
-	"Linear",
-	"Step",
-	"SmoothStep",
-	"InQuad",
-	"OutQuad",
-	"InOutQuad",
-	"OutInQuad",
-	"InCubic",
-	"OutCubic",
-	"InOutCubic",
-	"OutInCubic",
-	"InQuart",
-	"OutQuart",
-	"InOutQuart",
-	"OutInQuart",
-	"InQuint",
-	"OutQuint",
-	"InOutQuint",
-	"OutInQuint",
-	"InSine",
-	"OutSine",
-	"InOutSine",
-	"OutInSine",
-	"InExpo",
-	"OutExpo",
-	"InOutExpo",
-	"OutInExpo",
-	"InCirc",
-	"OutCirc",
-	"InOutCirc",
-	"OutInCirc",
-	"InElastic",
-	"OutElastic",
-	"InOutElastic",
-	"OutInElastic",
-	"InBack",
-	"OutBack",
-	"InOutBack",
-	"OutInBack",
-	"InBounce",
-	"OutBounce",
-	"InOutBounce",
-	"OutInBounce",
-};
-
-BX_STATIC_ASSERT(BX_COUNTOF(s_easeFuncName) == bx::Easing::Count);
 
 class Emitter
 {
@@ -139,8 +72,6 @@ public:
 
 void ParticleRenderer::Init()
 {
-	bgfx::setViewName(GetViewID(), "ParticleRenderer");
-
 	psInit();
 
 	bimg::ImageContainer* image = imageLoad(
@@ -160,6 +91,8 @@ void ParticleRenderer::Init()
 	m_pEmitter->create();
 	m_pEmitter->m_uniforms.m_handle = sprite;
 	m_pEmitter->update();
+
+	bgfx::setViewName(GetViewID(), "ParticleRenderer");
 }
 
 void ParticleRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -170,7 +103,17 @@ void ParticleRenderer::UpdateView(const float* pViewMatrix, const float* pProjec
 
 void ParticleRenderer::Render(float deltaTime)
 {
+	const cd::Matrix4x4& viewMatrix = m_pCurrentSceneWorld->GetCameraComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetViewMatrix();
 	const cd::Transform& cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetTransform();
+
+	m_pEmitter->update();
+
+	float timeScale = 1.0f;
+	psUpdate(deltaTime * timeScale);
+
+	bx::Vec3 cameraPos = { 0.0f, 0.0f , 0.0f };
+	memcpy(&cameraPos.x, cameraTransform.GetTranslation().Begin(), 3 * sizeof(float));
+	psRender(static_cast<uint8_t>(GetViewID()), viewMatrix.Begin(), cameraPos);
 }
 
 }
