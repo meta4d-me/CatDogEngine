@@ -171,6 +171,8 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 
 	if (isOpen)
 	{
+		ImGui::BeginChild("Camera Component  Child Window");
+
 		if (ImGuiUtils::ImGuiFloatProperty("Aspect", pCameraComponent->GetAspect()) ||
 			ImGuiUtils::ImGuiFloatProperty("Field Of View", pCameraComponent->GetFov()) ||
 			ImGuiUtils::ImGuiFloatProperty("NearPlane", pCameraComponent->GetNearPlane()) ||
@@ -181,8 +183,37 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 		}
 
 		ImGuiUtils::ImGuiBoolProperty("Constrain Aspect Ratio", pCameraComponent->GetDoConstrainAspectRatio());
-		ImGuiUtils::ImGuiBoolProperty("Post Processing", pCameraComponent->GetIsPostProcessEnable());
-		ImGuiUtils::ImGuiFloatProperty("Gamma Correction", pCameraComponent->GetGammaCorrection(), cd::Unit::None, 0.0f, 1.0f);
+
+		if (ImGui::TreeNode("Post Processing")) {
+
+			ImGuiUtils::ImGuiBoolProperty("Tone Mapping", pCameraComponent->GetIsToneMapping());
+			ImGuiUtils::ImGuiFloatProperty("Gamma Correction", pCameraComponent->GetGammaCorrection(), cd::Unit::None, 0.0f, 1.0f);
+			if (ImGui::TreeNode("Bloom")) {
+				ImGuiUtils::ImGuiBoolProperty("Open Bloom", pCameraComponent->GetIsBloomEnable());
+				if (pCameraComponent->GetIsBloomEnable()) {
+					ImGuiUtils::ImGuiIntProperty("DownSampleTimes", pCameraComponent->GetBloomDownSampleTimes(), cd::Unit::None, 4, 8, false, 1.0f);
+					ImGuiUtils::ImGuiFloatProperty("Bloom Intensity", pCameraComponent->GetBloomIntensity(), cd::Unit::None, 0.0f, 3.0f, false, 0.01f);
+					ImGuiUtils::ImGuiFloatProperty("Luminance Threshold", pCameraComponent->GetLuminanceThreshold(), cd::Unit::None, 0.0f, 3.0f, false, 0.01f);
+				}
+
+				ImGui::TreePop();
+			}
+
+			if (ImGui::TreeNode("Gaussian Blur")) {
+				ImGuiUtils::ImGuiBoolProperty("Open Blur", pCameraComponent->GetIsBlurEnable());
+				if (pCameraComponent->GetIsBlurEnable()) {
+					ImGuiUtils::ImGuiIntProperty("BlurIteration",pCameraComponent->GetBlurTimes(), cd::Unit::None, 0, 20, false, 1.0f);
+					ImGuiUtils::ImGuiFloatProperty("Blur Size", pCameraComponent->GetBlurSize(), cd::Unit::None, 0.0f, 3.0f);
+					ImGuiUtils::ImGuiIntProperty("Blur Scaling", pCameraComponent->GetBlurScaling(), cd::Unit::None, 1, 4, false, 1.0f);
+				}
+				ImGui::TreePop();
+			}
+
+			ImGui::TreePop();
+		}
+
+		ImGui::EndChild();
+
 	}
 
 	ImGui::Separator();

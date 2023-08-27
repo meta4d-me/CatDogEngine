@@ -48,7 +48,7 @@ void SkyboxRenderer::UpdateView(const float* pViewMatrix, const float* pProjecti
 
 	UpdateViewRenderTarget();
 	bgfx::setViewTransform(GetViewID(), fixedViewMatrix, pProjectionMatrix);
-	bgfx::setViewClear(GetViewID(), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
+	bgfx::setViewClear(GetViewID(), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x000000ff, 1.0f, 0);
 }
 
 void SkyboxRenderer::Render(float deltaTime)

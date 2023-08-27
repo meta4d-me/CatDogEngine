@@ -38,6 +38,29 @@ static bool ImGuiStringProperty(const char* pName, const std::string& value)
 	return ImGuiStringProperty(pName, value.c_str());
 }
 
+static bool ImGuiIntProperty(const char* pName, int& value, cd::Unit unit = cd::Unit::None, int minValue = {}, int maxValue = {}, bool isNormalized = false, float speed = -1.0f) 
+{
+	bool dirty = false;
+
+	ImGui::Columns(2);
+	ImGui::TextUnformatted(pName);
+	ImGui::NextColumn();
+	ImGui::PushItemWidth(-1);
+
+	std::string labelName = "##";
+	labelName += pName;
+	if (ImGui::DragInt(labelName.c_str(), &value, speed, minValue, maxValue, "%d"))
+	{
+		dirty = true;
+	}
+
+	ImGui::PopItemWidth();
+	ImGui::NextColumn();
+	ImGui::Columns(1);
+
+	return dirty;
+}
+
 static bool ImGuiFloatProperty(const char* pName, float& value, cd::Unit unit = cd::Unit::None, float minValue = {}, float maxValue = {}, bool isNormalized = false, float speed = -1.0f)
 {
 	bool dirty = false;

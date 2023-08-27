@@ -19,6 +19,7 @@
 #include "Rendering/DebugRenderer.h"
 #include "Rendering/ImGuiRenderer.h"
 #include "Rendering/PBRSkyRenderer.h"
+#include "Rendering/BloomRenderer.h"
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/SkyboxRenderer.h"
@@ -274,6 +275,14 @@ void EditorApp::InitEditorCameraEntity()
 	cameraComponent.SetFarPlane(2000.0f);
 	cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
 	cameraComponent.SetGammaCorrection(0.45f);
+	cameraComponent.SetBloomDownSampleTImes(4);
+	cameraComponent.SetBloomIntensity(1.0f);
+	cameraComponent.SetLuminanceThreshold(1.0f);
+	cameraComponent.SetBlurTimes(0);
+	cameraComponent.SetBlurSize(0.0f);
+	cameraComponent.SetBlurScaling(1);
+	cameraComponent.SetBloomEnable(false);
+	cameraComponent.SetBlurEnable(false);
 	cameraComponent.BuildProjectMatrix();
 	cameraComponent.BuildViewMatrix(cameraTransform);
 }
@@ -400,6 +409,11 @@ void EditorApp::InitEngineRenderers()
 
 	auto pBlitRTRenderPass = std::make_unique<engine::BlitRenderTargetPass>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	AddEngineRenderer(cd::MoveTemp(pBlitRTRenderPass));
+
+	auto pBloomRenderPass = std::make_unique<engine::BloomRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pBloomRenderPass->SetSceneWorld(m_pSceneWorld.get());
+	pBloomRenderPass->SetEnable(false);
+	AddEngineRenderer(cd::MoveTemp(pBloomRenderPass));
 
 	// We can debug vertex/material/texture information by just output that to screen as fragmentColor.
 	// But postprocess will bring unnecessary confusion. 
