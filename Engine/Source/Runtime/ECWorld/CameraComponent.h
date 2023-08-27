@@ -89,11 +89,11 @@ public:
 	void SetGammaCorrection(float gamma) { m_gammaCorrection = gamma; }
 
 	bool& GetIsBloomEnable() { return m_enableBloom; }
-	const bool& GetIsBloomEnable() const { return m_enableBloom; }
+	const float& GetIsBloomEnable() const { return m_enableBloom; }
 	void SetBloomEnable(bool bloom) { m_enableBloom = bloom; }
 
 	bool& GetIsBlurEnable() { return m_enableBlur; }
-	const bool& GetIsBlurEnable() const { return m_enableBlur; }
+	const float& GetIsBlurEnable() const { return m_enableBlur; }
 	void SetBlurEnable(bool blur) { m_enableBloom = blur; }
 
 	int& GetBloomDownSampleTimes() { return m_blomDownSampleTimes; }
@@ -119,10 +119,6 @@ public:
 	int& GetBlurScaling() { return m_blurScaling; }
 	const int& GetBlurScaling() const { return m_blurScaling; }
 	void SetBlurScaling(int blurscaling) { m_blurScaling = blurscaling; }
-
-	bool& GetIsSSAOEnable() { return m_enableSSAO; }
-	const bool& GetIsSSAOEnable() const { return m_enableSSAO; }
-	void SetSSAOEnable(bool ssao) { m_enableSSAO = ssao; }
 #endif
 
 private:
@@ -153,7 +149,6 @@ private:
 	float m_blurSize;
 	int m_blurScaling;
 	float m_gammaCorrection;
-	bool m_enableSSAO;
 #endif
 };
 
