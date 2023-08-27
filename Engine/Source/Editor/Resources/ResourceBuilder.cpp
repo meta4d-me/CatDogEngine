@@ -320,7 +320,7 @@ void ResourceBuilder::Update(bool doPrintLog)
 	{
 		Process& process = m_buildTasks.front();
 		process.SetWaitUntilFinished(m_buildTasks.size() == 1);
-		process.SetPrintChildProcessLog(true);
+		process.SetPrintChildProcessLog(doPrintLog);
 		process.Run();
 		m_buildTasks.pop();
 	}
