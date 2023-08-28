@@ -42,10 +42,15 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
 
     auto CreateShapeComponents = [&pSceneWorld, &pWorld, &pSceneDatabase](engine::Entity entity, cd::Mesh&& mesh, engine::MaterialType* pMaterialType)
     {
-        auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
-        meshComponent.SetMeshData(&mesh);
-        meshComponent.SetRequiredVertexFormat(&pMaterialType->GetRequiredVertexFormat());
-        meshComponent.Build();
+        auto& collisionMeshComponent = pWorld->CreateComponent<engine::CollisionMeshComponent>(entity);
+        collisionMeshComponent.SetType(engine::CollisonMeshType::AABB);
+        collisionMeshComponent.SetAABB(mesh.GetAABB());
+        collisionMeshComponent.Build();
+
+        auto& staticMeshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
+        staticMeshComponent.SetMeshData(&mesh);
+        staticMeshComponent.SetRequiredVertexFormat(&pMaterialType->GetRequiredVertexFormat());
+        staticMeshComponent.Build();
 
         mesh.SetName(pSceneWorld->GetNameComponent(entity)->GetName());
         mesh.SetID(cd::MeshID(pSceneDatabase->GetMeshCount()));
@@ -316,9 +321,9 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
         pSceneWorld->SetSelectedEntity(entity);
         if (ImGui::IsMouseDoubleClicked(0))
         {
-            if (engine::StaticMeshComponent* pStaticMesh = pSceneWorld->GetStaticMeshComponent(entity))
+            if (auto* pCollisionMesh = pSceneWorld->GetCollisionMeshComponent(entity))
             {
-                cd::AABB meshAABB = pStaticMesh->GetAABB();
+                cd::AABB meshAABB = pCollisionMesh->GetAABB();
                 if (engine::TransformComponent* pTransform = pSceneWorld->GetTransformComponent(entity))
                 {
                     meshAABB = meshAABB.Transform(pTransform->GetWorldMatrix());
@@ -330,8 +335,6 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
             }
         }
     }
-
-    
 
     //if (m_editingEntityName)
     //{

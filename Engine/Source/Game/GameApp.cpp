@@ -196,7 +196,6 @@ void GameApp::InitSkyEntity()
 	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(skyBox, vertexFormat, false);
 	assert(optMesh.has_value());
 
-
 	auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(skyEntity);
 	meshComponent.SetMeshData(&optMesh.value());
 	meshComponent.SetRequiredVertexFormat(&vertexFormat);

@@ -134,9 +134,9 @@ void MainMenu::ViewMenu()
 				continue;
 			}
 
-			if (engine::StaticMeshComponent* pStaticMesh = pSceneWorld->GetStaticMeshComponent(entity))
+			if (auto* pCollisionMesh = pSceneWorld->GetCollisionMeshComponent(entity))
 			{
-				cd::AABB meshAABB = pStaticMesh->GetAABB();
+				cd::AABB meshAABB = pCollisionMesh->GetAABB();
 				if (engine::TransformComponent* pTransform = pSceneWorld->GetTransformComponent(entity))
 				{
 					meshAABB = meshAABB.Transform(pTransform->GetWorldMatrix());

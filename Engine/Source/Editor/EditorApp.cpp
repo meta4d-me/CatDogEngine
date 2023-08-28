@@ -19,6 +19,7 @@
 #include "Rendering/DebugRenderer.h"
 #include "Rendering/ImGuiRenderer.h"
 #include "Rendering/PBRSkyRenderer.h"
+#include "Rendering/BloomRenderer.h"
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/SkyboxRenderer.h"
@@ -267,15 +268,23 @@ void EditorApp::InitEditorCameraEntity()
 			engine::CameraComponent::SetLookAt(cd::Direction(0.0f, 0.0f, 1.0f), cameraTransform);
 			engine::CameraComponent::SetUp(cd::Direction(0.0f, 1.0f, 0.0f), cameraTransform);
 
-			auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(cameraEntity);
-			cameraComponent.SetAspect(1.0f);
-			cameraComponent.SetFov(45.0f);
-			cameraComponent.SetNearPlane(0.1f);
-			cameraComponent.SetFarPlane(2000.0f);
-			cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
-			cameraComponent.SetGammaCorrection(0.45f);
-			cameraComponent.BuildProjectMatrix();
-			cameraComponent.BuildViewMatrix(cameraTransform);
+	auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(cameraEntity);
+	cameraComponent.SetAspect(1.0f);
+	cameraComponent.SetFov(45.0f);
+	cameraComponent.SetNearPlane(0.1f);
+	cameraComponent.SetFarPlane(2000.0f);
+	cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
+	cameraComponent.SetGammaCorrection(0.45f);
+	cameraComponent.SetBloomDownSampleTImes(4);
+	cameraComponent.SetBloomIntensity(1.0f);
+	cameraComponent.SetLuminanceThreshold(1.0f);
+	cameraComponent.SetBlurTimes(0);
+	cameraComponent.SetBlurSize(0.0f);
+	cameraComponent.SetBlurScaling(1);
+	cameraComponent.SetBloomEnable(false);
+	cameraComponent.SetBlurEnable(false);
+	cameraComponent.BuildProjectMatrix();
+	cameraComponent.BuildViewMatrix(cameraTransform);
 }
 
 #ifdef ENABLE_DDGI
@@ -401,12 +410,12 @@ void EditorApp::InitEngineRenderers()
 			auto pBlitRTRenderPass = std::make_unique<engine::BlitRenderTargetPass>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 			AddEngineRenderer(cd::MoveTemp(pBlitRTRenderPass));
 
-			// We can debug vertex/material/texture information by just output that to screen as fragmentColor.
-			// But postprocess will bring unnecessary confusion. 
-			auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-			pPostProcessRenderer->SetSceneWorld(m_pSceneWorld.get());
-			pPostProcessRenderer->SetEnable(true);
-			AddEngineRenderer(cd::MoveTemp(pPostProcessRenderer));
+	// We can debug vertex/material/texture information by just output that to screen as fragmentColor.
+	// But postprocess will bring unnecessary confusion. 
+	auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pPostProcessRenderer->SetSceneWorld(m_pSceneWorld.get());
+	pPostProcessRenderer->SetEnable(true);
+	AddEngineRenderer(cd::MoveTemp(pPostProcessRenderer));
 
 			// Note that if you don't want to use ImGuiRenderer for engine, you should also disable EngineImGuiContext.
 			AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget));

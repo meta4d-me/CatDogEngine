@@ -26,31 +26,20 @@ void AABBRenderer::RenderAll(float deltaTime)
 {
 	for (Entity entity : m_pCurrentSceneWorld->GetStaticMeshEntities())
 	{
-		if (m_pCurrentSceneWorld->GetSkyEntity() == entity)
+		auto* pCollisionMesh = m_pCurrentSceneWorld->GetCollisionMeshComponent(entity);
+		if (!pCollisionMesh)
 		{
 			continue;
 		}
 
-		TerrainComponent* pTerrainComponent = m_pCurrentSceneWorld->GetTerrainComponent(entity);
-		if (pTerrainComponent)
-		{
-			continue;
-		}
-
-		StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
-		if (!pMeshComponent)
-		{
-			continue;
-		}
-
-		if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
+		if (auto* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 		{
 			pTransformComponent->Build();
 			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
 		}
 
-		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pMeshComponent->GetAABBVertexBuffer() });
-		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pMeshComponent->GetAABBIndexBuffer() });
+		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pCollisionMesh->GetVertexBuffer() });
+		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pCollisionMesh->GetIndexBuffer() });
 
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_LINES;
@@ -65,13 +54,8 @@ void AABBRenderer::RenderAll(float deltaTime)
 void AABBRenderer::RenderSelected(float deltaTime) 
 {
 	Entity entity = m_pCurrentSceneWorld->GetSelectedEntity();
-	if (m_pCurrentSceneWorld->GetSkyEntity() == entity)
-	{
-		return;
-	}
-
-	StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
-	if (!pMeshComponent)
+	auto* pCollisionMesh = m_pCurrentSceneWorld->GetCollisionMeshComponent(entity);
+	if (!pCollisionMesh)
 	{
 		return;
 	}
@@ -82,8 +66,8 @@ void AABBRenderer::RenderSelected(float deltaTime)
 		bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
 	}
 
-	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pMeshComponent->GetAABBVertexBuffer() });
-	bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pMeshComponent->GetAABBIndexBuffer() });
+	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pCollisionMesh->GetVertexBuffer() });
+	bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pCollisionMesh->GetIndexBuffer() });
 
 	constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
 		BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_LINES;

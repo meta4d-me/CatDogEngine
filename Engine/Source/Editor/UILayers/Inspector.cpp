@@ -152,13 +152,46 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 				{
 					ImGuiUtils::ImGuiVectorProperty(uvOffset.c_str(), pTextureInfo->GetUVOffset());
 					ImGuiUtils::ImGuiVectorProperty(uvScale.c_str(), pTextureInfo->GetUVScale());
-
 				}
 
 				ImGui::Separator();
 				ImGui::PopStyleVar();
 			}
 		}
+
+		// Shaders
+		const char* title = "Shader";
+		bool isOpen = ImGui::CollapsingHeader(title, ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+		ImGui::Separator();
+
+		if (isOpen)
+		{
+			ImGuiUtils::ImGuiStringProperty("Vertex Shader", pMaterialComponent->GetVertexShaderName());
+			ImGuiUtils::ImGuiStringProperty("Fragment Shader", pMaterialComponent->GetFragmentShaderName());
+			ImGui::Separator();
+
+			std::vector<const char*> activeUberOptions;
+			for (const auto& uber : pMaterialComponent->GetUberShaderOptions())
+			{
+				activeUberOptions.emplace_back(nameof::nameof_enum(uber).data());
+			}
+
+			if (!activeUberOptions.empty())
+			{
+				if (ImGui::BeginCombo("##combo", "Active uber options"))
+				{
+					for (size_t index = 0; index < activeUberOptions.size(); ++index)
+					{
+						ImGui::Selectable(activeUberOptions[index], false);
+					}
+					ImGui::EndCombo();
+				}
+			}
+		}
+
+		ImGui::Separator();
+		ImGui::PopStyleVar();
 	}
 
 	ImGui::Separator();
@@ -180,6 +213,8 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 
 	if (isOpen)
 	{
+		ImGui::BeginChild("Camera Component  Child Window");
+
 		if (ImGuiUtils::ImGuiFloatProperty("Aspect", pCameraComponent->GetAspect()) ||
 			ImGuiUtils::ImGuiFloatProperty("Field Of View", pCameraComponent->GetFov()) ||
 			ImGuiUtils::ImGuiFloatProperty("NearPlane", pCameraComponent->GetNearPlane()) ||
@@ -190,8 +225,37 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 		}
 
 		ImGuiUtils::ImGuiBoolProperty("Constrain Aspect Ratio", pCameraComponent->GetDoConstrainAspectRatio());
-		ImGuiUtils::ImGuiBoolProperty("Post Processing", pCameraComponent->GetIsPostProcessEnable());
-		ImGuiUtils::ImGuiFloatProperty("Gamma Correction", pCameraComponent->GetGammaCorrection(), cd::Unit::None, 0.0f, 1.0f);
+
+		if (ImGui::TreeNode("Post Processing")) {
+
+			ImGuiUtils::ImGuiBoolProperty("Tone Mapping", pCameraComponent->GetIsToneMapping());
+			ImGuiUtils::ImGuiFloatProperty("Gamma Correction", pCameraComponent->GetGammaCorrection(), cd::Unit::None, 0.0f, 1.0f);
+			if (ImGui::TreeNode("Bloom")) {
+				ImGuiUtils::ImGuiBoolProperty("Open Bloom", pCameraComponent->GetIsBloomEnable());
+				if (pCameraComponent->GetIsBloomEnable()) {
+					ImGuiUtils::ImGuiIntProperty("DownSampleTimes", pCameraComponent->GetBloomDownSampleTimes(), cd::Unit::None, 4, 8, false, 1.0f);
+					ImGuiUtils::ImGuiFloatProperty("Bloom Intensity", pCameraComponent->GetBloomIntensity(), cd::Unit::None, 0.0f, 3.0f, false, 0.01f);
+					ImGuiUtils::ImGuiFloatProperty("Luminance Threshold", pCameraComponent->GetLuminanceThreshold(), cd::Unit::None, 0.0f, 3.0f, false, 0.01f);
+				}
+
+				ImGui::TreePop();
+			}
+
+			if (ImGui::TreeNode("Gaussian Blur")) {
+				ImGuiUtils::ImGuiBoolProperty("Open Blur", pCameraComponent->GetIsBlurEnable());
+				if (pCameraComponent->GetIsBlurEnable()) {
+					ImGuiUtils::ImGuiIntProperty("BlurIteration",pCameraComponent->GetBlurTimes(), cd::Unit::None, 0, 20, false, 1.0f);
+					ImGuiUtils::ImGuiFloatProperty("Blur Size", pCameraComponent->GetBlurSize(), cd::Unit::None, 0.0f, 3.0f);
+					ImGuiUtils::ImGuiIntProperty("Blur Scaling", pCameraComponent->GetBlurScaling(), cd::Unit::None, 1, 4, false, 1.0f);
+				}
+				ImGui::TreePop();
+			}
+
+			ImGui::TreePop();
+		}
+
+		ImGui::EndChild();
+
 	}
 
 	ImGui::Separator();
@@ -385,23 +449,27 @@ void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld
 			skyTypes.emplace_back(nameof::nameof_enum(static_cast<engine::SkyType>(type)).data());
 		}
 
-		static const char* crtItem = nameof::nameof_enum(engine::SkyType::SkyBox).data();
-		if (ImGui::BeginCombo("##combo", crtItem))
+		if (!skyTypes.empty())
 		{
-			for (size_t index = 0; index < skyTypes.size(); ++index)
+			static const char* crtItem = nameof::nameof_enum(engine::SkyType::SkyBox).data();
+			if (ImGui::BeginCombo("##combo", crtItem))
 			{
-				bool isSelected = (crtItem == skyTypes[index]);
-				if (ImGui::Selectable(skyTypes[index], isSelected))
+				for (size_t index = 0; index < skyTypes.size(); ++index)
 				{
-					crtItem = skyTypes[index];
-					pSkyComponent->SetSkyType(static_cast<engine::SkyType>(index));
+					bool isSelected = (crtItem == skyTypes[index]);
+					if (ImGui::Selectable(skyTypes[index], isSelected))
+					{
+						crtItem = skyTypes[index];
+						pSkyComponent->SetSkyType(static_cast<engine::SkyType>(index));
+					}
+					if (isSelected)
+					{
+						ImGui::SetItemDefaultFocus();
+					}
 				}
-				if (isSelected)
-				{
-					ImGui::SetItemDefaultFocus();
-				}
+				ImGui::EndCombo();
 			}
-			ImGui::EndCombo();
+
 		}
 
 		if (pSkyComponent->GetAtmophericScatteringEnable())
@@ -445,17 +513,22 @@ void Inspector::Update()
 		return;
 	}
 
+	ImGui::BeginChild("Inspector");
+
 	details::UpdateComponentWidget<engine::NameComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::TransformComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::StaticMeshComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::CameraComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, selectedEntity);
+
 #ifdef ENABLE_DDGI
 	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, selectedEntity);
 #endif
-	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, selectedEntity);
+
+	ImGui::EndChild();
 
 	ImGui::End();
 }

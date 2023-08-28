@@ -152,10 +152,10 @@ void ECWorldConsumer::AddCamera(engine::Entity entity, const cd::Camera& camera)
 void ECWorldConsumer::AddLight(engine::Entity entity, const cd::Light& light)
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
-	engine::NameComponent& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
+	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
 	nameComponent.SetName(light.GetName());
 
-	engine::LightComponent& lightComponent = pWorld->CreateComponent<engine::LightComponent>(entity);
+	auto& lightComponent = pWorld->CreateComponent<engine::LightComponent>(entity);
 	lightComponent.SetType(light.GetType());
 	lightComponent.SetIntensity(light.GetIntensity());
 	lightComponent.SetRadius(light.GetRadius());
@@ -169,7 +169,7 @@ void ECWorldConsumer::AddLight(engine::Entity entity, const cd::Light& light)
 	lightComponent.SetDirection(light.GetDirection());
 	lightComponent.SetUp(light.GetUp());
 
-	engine::TransformComponent& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
 	transformComponent.SetTransform(cd::Transform::Identity());
 	transformComponent.Build();
 }
@@ -177,7 +177,7 @@ void ECWorldConsumer::AddLight(engine::Entity entity, const cd::Light& light)
 void ECWorldConsumer::AddTransform(engine::Entity entity, const cd::Transform& transform)
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
-	engine::TransformComponent& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
 	transformComponent.SetTransform(transform);
 	transformComponent.Build();
 }
@@ -187,10 +187,15 @@ void ECWorldConsumer::AddStaticMesh(engine::Entity entity, const cd::Mesh& mesh,
 	assert(mesh.GetVertexCount() > 0 && mesh.GetPolygonCount() > 0);
 
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
-	engine::NameComponent& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
+	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
 	nameComponent.SetName(mesh.GetName());
 
-	engine::StaticMeshComponent& staticMeshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
+	auto& collisionMeshComponent = pWorld->CreateComponent<engine::CollisionMeshComponent>(entity);
+	collisionMeshComponent.SetType(engine::CollisonMeshType::AABB);
+	collisionMeshComponent.SetAABB(mesh.GetAABB());
+	collisionMeshComponent.Build();
+
+	auto& staticMeshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
 	staticMeshComponent.SetMeshData(&mesh);
 	staticMeshComponent.SetRequiredVertexFormat(&vertexFormat);
 	staticMeshComponent.Build();
