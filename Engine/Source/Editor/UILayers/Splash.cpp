@@ -41,7 +41,7 @@ void Splash::Update()
 	ImGui::Spacing();
 	ImGui::Separator();
 	ImGui::Text("%s", title.c_str());
-	ImGui::Separator();	
+	ImGui::Separator();
 
 	ImGui::End();
 }
