@@ -12,7 +12,6 @@ project("Engine")
 		path.join(ThirdPartySourcePath, "rapidxml/**.hpp"),
 		path.join(ThirdPartySourcePath, "imgui/*.h"),
 		path.join(ThirdPartySourcePath, "imgui/*.cpp"),
-		path.join(ThirdPartySourcePath, "bgfx/examples/common/ps/**.*"),
 	}
 	
 	vpaths {
@@ -22,9 +21,6 @@ project("Engine")
 		["ImGui"] = {
 			path.join(ThirdPartySourcePath, "imgui/*.h"),
 			path.join(ThirdPartySourcePath, "imgui/*.cpp"),
-		},
-		["BgfxCommon"] = {
-			path.join(ThirdPartySourcePath, "bgfx/examples/common/ps/**.*");
 		},
 	}
 
