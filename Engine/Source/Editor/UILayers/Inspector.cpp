@@ -81,6 +81,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 
 	if (isOpen)
 	{
+		/*
 		std::vector<std::string> fileNames;
 		std::filesystem::path dirPath{ CDPROJECT_RESOURCES_ROOT_PATH };
 		dirPath /= "test";
@@ -118,7 +119,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		//sparater
 		ImGui::Separator();
 		ImGui::Image(ImTextureID(textureHandle.idx), ImVec2(64, 64));
-
+		*/
 		ImGui::Separator();
 		ImGuiUtils::ImGuiStringProperty("Name", pMaterialComponent->GetName());
 
