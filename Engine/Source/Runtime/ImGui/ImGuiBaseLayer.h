@@ -28,9 +28,9 @@ public:
 	void SetEnable(bool enable) { m_isEnable = enable; }
 	bool IsEnable() const { return m_isEnable; }
 
-	static ImGuiContextInstance* GetImGuiContextInstance();
-	static RenderContext* GetRenderContext();
-	static SceneWorld* GetSceneWorld();
+	ImGuiContextInstance* GetImGuiContextInstance() const;
+	RenderContext* GetRenderContext() const;
+	SceneWorld* GetSceneWorld() const;
 
 protected:
 	const char* m_pName = nullptr;

@@ -17,7 +17,7 @@ Splash::~Splash()
 
 void Splash::Init()
 {
-	GetRenderContext()->CreateTexture("Textures/image.png");
+	GetRenderContext()->CreateTexture("Textures/splash_texture.png");
 
 	m_shaderBuildTaskTotalCount = ResourceBuilder::Get().GetCurrentTaskCount();
 }
@@ -35,7 +35,7 @@ void Splash::Update()
 	title += "(" + std::to_string(m_shaderBuildTaskTotalCount - currentBuildCount) + "/" + std::to_string(m_shaderBuildTaskTotalCount) + ")";
 	ImGui::Begin(title.c_str(), &m_isEnable, flags);
 
-	engine::StringCrc splashTexture("Textures/image.png");
+	engine::StringCrc splashTexture("Textures/splash_texture.png");
 	bgfx::TextureHandle textureHandle = GetRenderContext()->GetTexture(splashTexture);
 	ImGui::Image(ImTextureID(textureHandle.idx), ImVec2(400, 300));
 	ImGui::Spacing();
