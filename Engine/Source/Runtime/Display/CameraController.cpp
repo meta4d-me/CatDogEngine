@@ -177,7 +177,7 @@ void CameraController::Update(float deltaTime)
 			Yaw(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
 		}
 
-		if (Input::Get().IsMouseLBPressed()&&m_isInViewScene)
+		if (Input::Get().IsMouseLBPressed()&& m_isInViewScene && !m_isUsingImGuiZmo)
 		{
 			m_isTracking = false;
 			PitchLocal(m_verticalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);

@@ -72,6 +72,8 @@ public:
 
 	// TODO : generic solution to process mouse / key input events for UI panels in different areas.
 	void SetIsInViewScene(bool isIn) { m_isInViewScene = isIn; }
+
+	void SetIsUsingImGuiZmo(bool isUse) { m_isUsingImGuiZmo = isUse; }
 	
 private:
 	engine::CameraComponent* GetMainCameraComponent() const;
@@ -103,6 +105,7 @@ private:
 	bool m_isTracking = false;
 	bool m_isMoving = false;
 	bool m_isInViewScene = false;
+	bool m_isUsingImGuiZmo = false;
 };
 
 }
