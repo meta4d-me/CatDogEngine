@@ -6,6 +6,8 @@
 #include "RenderContext.h"
 
 #include <filesystem>
+#include <fstream>
+#include <string>
 
 #include <bimg/decode.h>
 #include <ps/particle_system.h>
@@ -22,7 +24,7 @@ bimg::ImageContainer* imageLoad(const char* _filePath, bgfx::TextureFormat::Enum
 	char* data = nullptr;
 
 	std::string fullPath = (std::filesystem::path(CDPROJECT_RESOURCES_ROOT_PATH) / "Textures" / "particle" / _filePath).generic_string();
-	std::ifstream file(fullPath, std::ios::in | std::ios::binary);
+	std::ifstream file(fullPath.c_str(), std::ios::in | std::ios::binary);
 	if (file)
 	{
 		file.seekg(0, file.end);
