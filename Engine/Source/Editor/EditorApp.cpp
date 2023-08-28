@@ -37,6 +37,7 @@
 #include "UILayers/MainMenu.h"
 #include "UILayers/OutputLog.h"
 #include "UILayers/SceneView.h"
+#include "UILayers/SkeletonView.h"
 #include "UILayers/Splash.h"
 #include "Window/Input.h"
 #include "Window/Window.h"
@@ -168,6 +169,7 @@ void EditorApp::InitEditorUILayers()
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
 
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
+	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<SkeletonView>("SkeletonView"));
 
 	auto pAssetBrowser = std::make_unique<AssetBrowser>("AssetBrowser");
 	pAssetBrowser->SetSceneRenderer(m_pSceneRenderer);
