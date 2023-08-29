@@ -141,6 +141,7 @@ void ParticleRenderer::Render(float deltaTime)
 	{
 		psDestroyEmitter(m_pEmitter->m_handle);
 		m_pEmitter->m_handle = psCreateEmitter(m_pEmitter->m_shape, m_pEmitter->m_direction, 1024);
+		pParticleComponent->SetNeedRecreate(false);
 	}
 
 	m_pEmitter->m_uniforms.m_particlesPerSecond = pParticleComponent->GetParticlesPerSecond();
