@@ -54,7 +54,6 @@ void ImGuizmoView::Update()
 
 	if (ImGuizmo::IsUsing())
 	{
-		m_pCameraController->SetIsUsingImGuiZmo(true);
 		if (ImGuizmo::OPERATION::TRANSLATE & operation)
 		{
 			pTransformComponent->GetTransform().SetTranslation(worldMatrix.GetTranslation());
@@ -74,10 +73,6 @@ void ImGuizmoView::Update()
 		}
 
 		pTransformComponent->Build();
-	}
-	else
-	{
-		m_pCameraController->SetIsUsingImGuiZmo(false);
 	}
 }
 

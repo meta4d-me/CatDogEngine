@@ -201,7 +201,6 @@ void EditorApp::InitEngineUILayers()
 
 	auto pImGuizmoView = std::make_unique<editor::ImGuizmoView>("ImGuizmoView");
 	pImGuizmoView->SetSceneView(m_pSceneView);
-	pImGuizmoView->SetCameraController(m_pViewportCameraController.get());
 	m_pEngineImGuiContext->AddDynamicLayer(cd::MoveTemp(pImGuizmoView));
 }
 
