@@ -215,6 +215,15 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         lightComponent.SetRange(1024.0f);
         lightComponent.SetWidth(10.0f);
     }
+    
+    // ---------------------------------------- Add Particle Emitter ---------------------------------------- //
+
+    else if (ImGui::MenuItem("Add Particle Emitter"))
+    {
+        engine::Entity entity = AddNamedEntity("ParticleEmitter");
+        auto& particleEmitterComponent = pWorld->CreateComponent<engine::ParticleEmitterComponent>(entity);
+        // TODO : Some initialization here.
+    }
 }
 
 void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity entity)

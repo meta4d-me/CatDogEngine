@@ -15,3 +15,4 @@
 #include "ECWorld/TerrainComponent.h"
 #include "ECWorld/TransformComponent.h"
 #include "ECWorld/ParticleComponent.h"
+#include "ECWorld/ParticleEmitterComponent.h"
