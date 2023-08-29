@@ -2,6 +2,7 @@
 
 #include "ECWorld/SceneWorld.h"
 #include <imgui/imgui.h>
+#include <ImGui/IconFont/IconsMaterialDesignIcons.h>
 
 namespace editor
 {
@@ -40,22 +41,41 @@ void SkeletonView::SkeletonWidow()
 	}
 }
 
+void SkeletonView::DrawBone(cd::SceneDatabase* pSceneDatabase,cd::Bone* pBone)
+{
+    if(ImGui::TreeNode(pBone->GetName()))
+    {
+        for (auto& child : pBone->GetChildIDs())
+        {
+           // cd::Bone bone = pSceneDatabase->GetBone(child.Data());
+           // if (ImGui::TreeNode((void*)(intptr_t)i, "Child %d", i))
+           // {
+           //     ImGui::Text(reinterpret_cast<const char*>(ICON_MDI_BONE));
+           //     
+           //     ImGui::SameLine();
+           //     ImGui::Selectable("blah blah");                         
+           //     ImGui::TreePop();
+           // }
+        }
+
+        ImGui::TreePop();
+    }
+}
+
+void SkeletonView::DrawSkeleton(engine::SceneWorld* pSceneWorld, cd::Bone* root)
+{
+    ImGui::Begin("Skeleton");
+    cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
+   // DrawBone(root);
+
+    ImGui::End();
+}
+
 void SkeletonView::Update()
 {
     auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
     ImGui::Begin(GetName(), &m_isEnable, flags);
-    engine::SceneWorld* pSceneWorld = GetSceneWorld();
-    engine::Entity selectedEntity = pSceneWorld->GetSelectedEntity();
-   
-    if (engine::INVALID_ENTITY == selectedEntity)
-    {
-        ImGui::End();
-        return;
-    }
-
-    ImGui::BeginChild("SkeletonView");
-    ImGui::Text("Skeleton");
-    ImGui::EndChild();
+   // DrawBone();
 
     ImGui::End();
 }

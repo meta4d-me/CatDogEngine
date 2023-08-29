@@ -1,4 +1,7 @@
 #include "ImGui/ImGuiBaseLayer.h"
+
+#include "Scene/Bone.h"
+#include "Scene/SceneDatabase.h"
 namespace editor
 {
 
@@ -12,8 +15,9 @@ public:
 	virtual void Update() override;
 
 	void SkeletonWidow();
-	void SetSkeletonIsOpen(bool isOpen) { m_isSkeletonWidowOpen = isOpen; }
-	bool GetSkeletonIsOpem() { return m_isSkeletonWidowOpen; }
+
+	void DrawBone(cd::SceneDatabase* pSceneDatabase,cd::Bone* pBone = nullptr);
+	void DrawSkeleton(engine::SceneWorld* pSceneWorld, cd::Bone* root = nullptr);
 
 
 private:
