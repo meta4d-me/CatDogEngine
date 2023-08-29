@@ -69,6 +69,9 @@ public:
 	void SetSkyEntity(engine::Entity entity);
 	CD_FORCEINLINE engine::Entity GetSkyEntity() const { return m_skyEntity; }
 
+	void SetParticleEntity(engine::Entity entity);
+	CD_FORCEINLINE engine::Entity GetParticleEntity() const { return m_particleEntity; }
+
 	void DeleteEntity(engine::Entity entity)
 	{
 		if (entity == m_mainCameraEntity)
@@ -140,6 +143,7 @@ private:
 	engine::Entity m_ddgiEntity = engine::INVALID_ENTITY;
 #endif
 	engine::Entity m_skyEntity = engine::INVALID_ENTITY;
+	engine::Entity m_particleEntity = engine::INVALID_ENTITY;
 };
 
 }

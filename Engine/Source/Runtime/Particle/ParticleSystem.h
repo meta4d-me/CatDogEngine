@@ -6,6 +6,8 @@
 #ifndef PARTICLE_SYSTEM_H_HEADER_GUARD
 #define PARTICLE_SYSTEM_H_HEADER_GUARD
 
+#include "EmitterDefinition.h"
+
 #include <bx/allocator.h>
 #include <bx/bounds.h>
 #include <bx/easing.h>
@@ -19,31 +21,6 @@ inline bool isValid(Ty _handle)
 {
 	return _handle.idx != UINT16_MAX;
 }
-
-struct EmitterShape
-{
-	enum Enum
-	{
-		Sphere,
-		Hemisphere,
-		Circle,
-		Disc,
-		Rect,
-
-		Count
-	};
-};
-
-struct EmitterDirection
-{
-	enum Enum
-	{
-		Up,
-		Outward,
-
-		Count
-	};
-};
 
 struct EmitterUniforms
 {

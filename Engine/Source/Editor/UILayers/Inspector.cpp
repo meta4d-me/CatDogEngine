@@ -3,6 +3,48 @@
 #include "Graphics/GraphicsBackend.h"
 #include "ImGui/ImGuiUtils.hpp"
 #include "Path/Path.h"
+#include "Particle/EmitterDefinition.h"
+
+namespace ImGui
+{
+void ColorWheel(const char* _text, float* _rgba, float _size)
+{
+	(void)_size;
+	ColorEdit4(_text
+		, _rgba, 0
+		| ImGuiColorEditFlags_PickerHueWheel
+		| ImGuiColorEditFlags_Float
+	);
+}
+
+inline void decodeRgba(float* _dst, const uint32_t* _src)
+{
+	uint8_t* src = (uint8_t*)_src;
+	_dst[0] = float(src[0] / 255.0f);
+	_dst[1] = float(src[1] / 255.0f);
+	_dst[2] = float(src[2] / 255.0f);
+	_dst[3] = float(src[3] / 255.0f);
+}
+
+inline void encodeRgba(uint32_t* _dst, const float* _src)
+{
+	uint8_t* dst = (uint8_t*)_dst;
+	dst[0] = uint8_t(_src[0] * 255.0);
+	dst[1] = uint8_t(_src[1] * 255.0);
+	dst[2] = uint8_t(_src[2] * 255.0);
+	dst[3] = uint8_t(_src[3] * 255.0);
+}
+
+void ColorWheel(const char* _text, uint32_t* _rgba, float _size)
+{
+	float rgba[4];
+	decodeRgba(rgba, _rgba);
+	ColorWheel(_text, rgba, _size);
+	encodeRgba(_rgba, rgba);
+}
+
+} // namespace ImGui
+
 
 namespace details
 {
@@ -427,7 +469,40 @@ void UpdateComponentWidget<engine::ParticleComponent>(engine::SceneWorld* pScene
 
 	if (isOpen)
 	{
+		if (ImGui::Combo("Shape", (int*)&pParticleComponent->GetShape(), s_shapeNames, 5)
+			|| ImGui::Combo("Direction", (int*)&pParticleComponent->GetDirection(), s_directionName, 2))
+		{
+			pParticleComponent->SetNeedRecreate(true);
+		}
+		ImGui::SliderInt("particles / s", (int*)&pParticleComponent->GetParticlesPerSecond(), 0, 1024);
+		ImGui::SliderFloat("Gravity scale", &pParticleComponent->GetGravityScale(), -2.0f, 2.0f);
+		ImGui::SliderFloat("Life span min", &pParticleComponent->GetLifeSpan(0), 0.1f, 5.0f);
+		ImGui::SliderFloat("Life span max", &pParticleComponent->GetLifeSpan(1), 0.1f, 5.0f);
 
+		if (ImGui::CollapsingHeader("Position and scale"))
+		{
+			ImGui::Text("Position:");
+			ImGui::SliderFloat("Offset Start min", &pParticleComponent->GetOffsetStart(0), 0.0f, 10.0f);
+			ImGui::SliderFloat("Offset Start max", &pParticleComponent->GetOffsetStart(1), 0.0f, 10.0f);
+			ImGui::SliderFloat("Offset End min", &pParticleComponent->GetOffsetEnd(0), 0.0f, 10.0f);
+			ImGui::SliderFloat("Offset End max", &pParticleComponent->GetOffsetEnd(1), 0.0f, 10.0f);
+
+			ImGui::Text("Scale:");
+			ImGui::SliderFloat("Scale Start min", &pParticleComponent->GetScaleStart(0), 0.0f, 3.0f);
+			ImGui::SliderFloat("Scale Start max", &pParticleComponent->GetScaleStart(1), 0.0f, 3.0f);
+			ImGui::SliderFloat("Scale End min", &pParticleComponent->GetScaleEnd(0), 0.0f, 3.0f);
+			ImGui::SliderFloat("Scale End max", &pParticleComponent->GetScaleEnd(1), 0.0f, 3.0f);
+		}
+
+		if (ImGui::CollapsingHeader("Blending and color"))
+		{
+			ImGui::Text("Color:");
+			ImGui::ColorWheel("RGBA0", &pParticleComponent->GetRgba(0), 0.3f);
+			ImGui::ColorWheel("RGBA1", &pParticleComponent->GetRgba(1), 0.3f);
+			ImGui::ColorWheel("RGBA2", &pParticleComponent->GetRgba(2), 0.3f);
+			ImGui::ColorWheel("RGBA3", &pParticleComponent->GetRgba(3), 0.3f);
+			ImGui::ColorWheel("RGBA4", &pParticleComponent->GetRgba(4), 0.3f);
+		}
 	}
 
 	ImGui::Separator();

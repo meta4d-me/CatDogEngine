@@ -93,6 +93,32 @@ void ParticleRenderer::Init()
 	m_pEmitter->m_uniforms.m_handle = sprite;
 	m_pEmitter->update();
 
+	engine::ParticleComponent* pParticleComponent = m_pCurrentSceneWorld->GetParticleComponent(m_pCurrentSceneWorld->GetParticleEntity());
+
+	pParticleComponent->SetShape(m_pEmitter->m_shape);
+	pParticleComponent->SetDirection(m_pEmitter->m_direction);
+
+	pParticleComponent->SetParticlesPerSecond(m_pEmitter->m_uniforms.m_particlesPerSecond);
+	pParticleComponent->SetGravityScale(m_pEmitter->m_uniforms.m_gravityScale);
+	pParticleComponent->SetLifeSpan(m_pEmitter->m_uniforms.m_lifeSpan[0], 0);
+	pParticleComponent->SetLifeSpan(m_pEmitter->m_uniforms.m_lifeSpan[1], 1);
+
+	pParticleComponent->SetOffsetStart(m_pEmitter->m_uniforms.m_offsetStart[0], 0);
+	pParticleComponent->SetOffsetStart(m_pEmitter->m_uniforms.m_offsetStart[1], 1);
+	pParticleComponent->SetOffsetEnd(m_pEmitter->m_uniforms.m_offsetEnd[0], 0);
+	pParticleComponent->SetOffsetEnd(m_pEmitter->m_uniforms.m_offsetEnd[1], 1);
+
+	pParticleComponent->SetScaleStart(m_pEmitter->m_uniforms.m_scaleStart[0], 0);
+	pParticleComponent->SetScaleStart(m_pEmitter->m_uniforms.m_scaleStart[1], 1);
+	pParticleComponent->SetScaleEnd(m_pEmitter->m_uniforms.m_scaleEnd[0], 0);
+	pParticleComponent->SetScaleEnd(m_pEmitter->m_uniforms.m_scaleEnd[1], 1);
+	
+	pParticleComponent->SetRgba(m_pEmitter->m_uniforms.m_rgba[0], 0);
+	pParticleComponent->SetRgba(m_pEmitter->m_uniforms.m_rgba[1], 1);
+	pParticleComponent->SetRgba(m_pEmitter->m_uniforms.m_rgba[2], 2);
+	pParticleComponent->SetRgba(m_pEmitter->m_uniforms.m_rgba[3], 3);
+	pParticleComponent->SetRgba(m_pEmitter->m_uniforms.m_rgba[4], 4);
+
 	bgfx::setViewName(GetViewID(), "ParticleRenderer");
 }
 
@@ -106,6 +132,37 @@ void ParticleRenderer::Render(float deltaTime)
 {
 	const cd::Matrix4x4& viewMatrix = m_pCurrentSceneWorld->GetCameraComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetViewMatrix();
 	const cd::Transform& cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetTransform();
+	engine::ParticleComponent* pParticleComponent = m_pCurrentSceneWorld->GetParticleComponent(m_pCurrentSceneWorld->GetParticleEntity());
+
+	m_pEmitter->m_shape = pParticleComponent->GetShape();
+	m_pEmitter->m_direction = pParticleComponent->GetDirection();
+
+	if (pParticleComponent->GetNeedRecreate())
+	{
+		psDestroyEmitter(m_pEmitter->m_handle);
+		m_pEmitter->m_handle = psCreateEmitter(m_pEmitter->m_shape, m_pEmitter->m_direction, 1024);
+	}
+
+	m_pEmitter->m_uniforms.m_particlesPerSecond = pParticleComponent->GetParticlesPerSecond();
+	m_pEmitter->m_uniforms.m_gravityScale = pParticleComponent->GetGravityScale();
+	m_pEmitter->m_uniforms.m_lifeSpan[0] = pParticleComponent->GetLifeSpan(0);
+	m_pEmitter->m_uniforms.m_lifeSpan[1] = pParticleComponent->GetLifeSpan(1);
+
+	m_pEmitter->m_uniforms.m_offsetStart[0] = pParticleComponent->GetOffsetStart(0);
+	m_pEmitter->m_uniforms.m_offsetStart[1] = pParticleComponent->GetOffsetStart(1);
+	m_pEmitter->m_uniforms.m_offsetEnd[0] = pParticleComponent->GetOffsetEnd(0);
+	m_pEmitter->m_uniforms.m_offsetEnd[1] = pParticleComponent->GetOffsetEnd(1);
+
+	m_pEmitter->m_uniforms.m_scaleStart[0] = pParticleComponent->GetScaleStart(0);
+	m_pEmitter->m_uniforms.m_scaleStart[1] = pParticleComponent->GetScaleStart(1);
+	m_pEmitter->m_uniforms.m_scaleEnd[0] = pParticleComponent->GetScaleEnd(0);
+	m_pEmitter->m_uniforms.m_scaleEnd[1] = pParticleComponent->GetScaleEnd(1);
+
+	m_pEmitter->m_uniforms.m_rgba[0] = pParticleComponent->GetRgba(0);
+	m_pEmitter->m_uniforms.m_rgba[1] = pParticleComponent->GetRgba(1);
+	m_pEmitter->m_uniforms.m_rgba[2] = pParticleComponent->GetRgba(2);
+	m_pEmitter->m_uniforms.m_rgba[3] = pParticleComponent->GetRgba(3);
+	m_pEmitter->m_uniforms.m_rgba[4] = pParticleComponent->GetRgba(4);
 
 	m_pEmitter->update();
 

@@ -169,6 +169,12 @@ void SceneWorld::SetSkyEntity(engine::Entity entity)
 	m_skyEntity = entity;
 }
 
+void SceneWorld::SetParticleEntity(engine::Entity entity)
+{
+	CD_TRACE("Setup Partile entity : {0}", entity);
+	m_particleEntity = entity;
+}
+
 void SceneWorld::AddCameraToSceneDatabase(engine::Entity entity)
 {
 	engine::CameraComponent* pCameraComponent = GetCameraComponent(entity);

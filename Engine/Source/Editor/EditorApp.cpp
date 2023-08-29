@@ -332,6 +332,7 @@ void EditorApp::InitParticleEntity()
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
 	engine::Entity particleEntity = pWorld->CreateEntity();
+	m_pSceneWorld->SetParticleEntity(particleEntity);
 
 	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(particleEntity);
 	nameComponent.SetName("Particle Emitter");
