@@ -1,9 +1,8 @@
 #include "ImGui/ImGuiBaseLayer.h"
 
-#include "Display/CameraController.h"
 namespace editor
 {
-class CameraController;
+
 class SceneView;
 
 class ImGuizmoView : public engine::ImGuiBaseLayer
