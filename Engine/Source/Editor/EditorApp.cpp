@@ -25,6 +25,7 @@
 #include "Rendering/SkyboxRenderer.h"
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
+#include "Rendering/ParticleRenderer.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ShaderBuilder.h"
 #include "Resources/ShaderLoader.h"
@@ -400,6 +401,10 @@ void EditorApp::InitEngineRenderers()
 	pAABBRenderer->SetSceneWorld(m_pSceneWorld.get());
 	pAABBRenderer->SetEnable(false);
 	AddEngineRenderer(cd::MoveTemp(pAABBRenderer));
+
+	auto pParticlerenderer = std::make_unique<engine::ParticleRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pParticlerenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pParticlerenderer));
 
 #ifdef ENABLE_DDGI
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
