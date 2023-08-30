@@ -286,7 +286,7 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 
 	float minRayTime = FLT_MAX;
 	engine::Entity nearestEntity = engine::INVALID_ENTITY;
-	for (engine::Entity entity : pSceneWorld->GetStaticMeshEntities())
+	for (engine::Entity entity : pSceneWorld->GetCollisionMeshEntities())
 	{
 		engine::TransformComponent* pTransformComponent = pSceneWorld->GetTransformComponent(entity);
 		if (!pTransformComponent)
@@ -294,13 +294,13 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 			continue;
 		}
 
-		engine::StaticMeshComponent* pMeshComponent = pSceneWorld->GetStaticMeshComponent(entity);
-		if (!pMeshComponent)
+		auto* pCollisionMesh = pSceneWorld->GetCollisionMeshComponent(entity);
+		if (!pCollisionMesh)
 		{
 			continue;
 		}
 
-		cd::AABB collisonMeshAABB = pMeshComponent->GetAABB();
+		cd::AABB collisonMeshAABB = pCollisionMesh->GetAABB();
 		collisonMeshAABB = collisonMeshAABB.Transform(pTransformComponent->GetWorldMatrix());
 
 		float rayTime;

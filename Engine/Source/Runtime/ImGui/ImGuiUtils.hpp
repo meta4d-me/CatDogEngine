@@ -7,7 +7,6 @@
 #include "Math/UnitSystem.hpp"
 
 #include <imgui/imgui.h>
-
 namespace ImGuiUtils
 {
 
@@ -36,6 +35,29 @@ static bool ImGuiStringProperty(const char* pName, const char* pValue)
 static bool ImGuiStringProperty(const char* pName, const std::string& value)
 {
 	return ImGuiStringProperty(pName, value.c_str());
+}
+
+static bool ImGuiIntProperty(const char* pName, int& value, cd::Unit unit = cd::Unit::None, int minValue = {}, int maxValue = {}, bool isNormalized = false, float speed = -1.0f)
+{
+	bool dirty = false;
+
+	ImGui::Columns(2);
+	ImGui::TextUnformatted(pName);
+	ImGui::NextColumn();
+	ImGui::PushItemWidth(-1);
+
+	std::string labelName = "##";
+	labelName += pName;
+	if (ImGui::DragInt(labelName.c_str(), &value, speed, minValue, maxValue, "%d"))
+	{
+		dirty = true;
+	}
+
+	ImGui::PopItemWidth();
+	ImGui::NextColumn();
+	ImGui::Columns(1);
+
+	return dirty;
 }
 
 static bool ImGuiFloatProperty(const char* pName, float& value, cd::Unit unit = cd::Unit::None, float minValue = {}, float maxValue = {}, bool isNormalized = false, float speed = -1.0f)
@@ -208,6 +230,43 @@ static bool ImGuiTransformProperty(const char* pName, cd::Transform& value)
 	ImGui::Columns(1);
 
 	return dirty;
+}
+
+static void ColorPickerProperty(const char* Name, cd::Vec3f& veccolor)
+{
+	static std::map<const char*, bool> showMap;
+	if (!showMap.count(Name))
+	{
+		showMap[Name] = false;
+	}
+	ImGui::TextUnformatted(Name);
+	ImGui::SameLine();
+	ImGui::NextColumn();
+	ImGui::PushID(Name);
+	if (ImGui::Button("Change"))
+	{
+		showMap[Name] = true;
+	}
+	ImGui::PopID();
+	ImGui::PushItemWidth(-1);
+	ImGui::SameLine();
+	ImGui::NextColumn();
+	ImGui::DragFloat3("", veccolor.Begin(), 0, 0.0f, 1.0f);
+	ImGui::PopItemWidth();
+	if (showMap[Name])
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		ImVec2 mainWindowSize = io.DisplaySize;
+		float offsetX = 400;
+		float offsetY = 400;
+		ImVec2 windowPos(mainWindowSize.x - offsetX, mainWindowSize.y - offsetY);
+
+		ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+		ImGui::Begin(Name, &showMap[Name], ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
+		ImGui::ColorPicker3("Color Picker", veccolor.Begin());
+		ImGui::End();
+	}
+	ImGui::Separator();
 }
 
 }

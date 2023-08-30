@@ -2,6 +2,8 @@
 
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/SceneWorld.h"
+#include "ImGui/imgui.h"
+#include "ImGuizmo/ImGuizmo.h"
 #include "Math/Quaternion.hpp"
 #include "Window/Input.h"
 
@@ -177,7 +179,7 @@ void CameraController::Update(float deltaTime)
 			Yaw(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
 		}
 
-		if (Input::Get().IsMouseLBPressed()&&m_isInViewScene)
+		if (Input::Get().IsMouseLBPressed() && m_isInViewScene && !ImGuizmo::IsUsing())
 		{
 			m_isTracking = false;
 			PitchLocal(m_verticalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);

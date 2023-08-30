@@ -129,11 +129,14 @@ void ImGuiRenderer::Render(float deltaTime)
 						struct
 						{
 							bgfx::TextureHandle handle;
-							uint8_t flags;
-							uint8_t mip;
+							uint16_t unused;
 						} s;
 					} texture = { cmd->TextureId };
 					textureHandle = texture.s.handle;
+
+					// Some widgets such as color picker need to use color blend.
+					// TODO : only open color blend for color picker?
+					state |= BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
 				}
 				else
 				{

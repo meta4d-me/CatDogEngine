@@ -19,6 +19,7 @@
 #include "Rendering/DebugRenderer.h"
 #include "Rendering/ImGuiRenderer.h"
 #include "Rendering/PBRSkyRenderer.h"
+#include "Rendering/BloomRenderer.h"
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/SkyboxRenderer.h"
@@ -76,11 +77,11 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	// Phase 1 - Splash
 	//		* Compile uber shader permutations automatically when initialization or detect changes
 	//		* Show compile progresses so it still needs to update ui
-	auto pSplashWindow = std::make_unique<engine::Window>("Splash", 500, 300);
+	auto pSplashWindow = std::make_unique<engine::Window>("Loading", 500, 400);
 	pSplashWindow->SetWindowIcon(m_initArgs.pIconFilePath);
 	pSplashWindow->SetBordedLess(true);
 	pSplashWindow->SetResizeable(false);
-	
+
 	// Init graphics backend
 	InitRenderContext(m_initArgs.backend, pSplashWindow->GetNativeHandle());
 	pSplashWindow->OnResize.Bind<engine::RenderContext, &engine::RenderContext::OnResize>(m_pRenderContext.get());
@@ -88,7 +89,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 
 	InitEditorRenderers();
 	InitEditorImGuiContext(m_initArgs.language);
-	
+
 	InitECWorld();
 	m_pEditorImGuiContext->SetSceneWorld(m_pSceneWorld.get());
 
@@ -97,9 +98,9 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	m_pEditorImGuiContext->AddStaticLayer(std::make_unique<Splash>("Splash"));
 
 	std::thread resourceThread([]()
-	{
-		ResourceBuilder::Get().Update(true/*doPrintLog*/);
-	});
+		{
+			ResourceBuilder::Get().Update(true/*doPrintLog*/);
+		});
 	resourceThread.detach();
 }
 
@@ -152,7 +153,7 @@ void EditorApp::InitEditorUILayers()
 	auto pMainMenu = std::make_unique<MainMenu>("MainMenu");
 	pMainMenu->SetCameraController(m_pViewportCameraController.get());
 	m_pEditorImGuiContext->AddStaticLayer(cd::MoveTemp(pMainMenu));
-	
+
 	auto pEntityList = std::make_unique<EntityList>("EntityList");
 	pEntityList->SetCameraController(m_pViewportCameraController.get());
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pEntityList));
@@ -228,7 +229,7 @@ void EditorApp::RegisterImGuiUserData(engine::ImGuiContextInstance* pImGuiContex
 void EditorApp::InitECWorld()
 {
 	m_pSceneWorld = std::make_unique<engine::SceneWorld>();
-	
+
 	if (IsAtmosphericScatteringEnable())
 	{
 		m_pSceneWorld->CreatePBRMaterialType(true);
@@ -241,7 +242,7 @@ void EditorApp::InitECWorld()
 	m_pSceneWorld->CreateAnimationMaterialType();
 	m_pSceneWorld->CreateTerrainMaterialType();
 	InitEditorCameraEntity();
-	
+
 #ifdef ENABLE_DDGI
 	m_pSceneWorld->InitDDGISDK();
 	InitDDGIEntity();
@@ -259,7 +260,7 @@ void EditorApp::InitEditorCameraEntity()
 	m_pSceneWorld->SetMainCameraEntity(cameraEntity);
 	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(cameraEntity);
 	nameComponent.SetName("MainCamera");
-	
+
 	auto& cameraTransformComponent = pWorld->CreateComponent<engine::TransformComponent>(cameraEntity);
 	cameraTransformComponent.SetTransform(cd::Transform::Identity());
 	cameraTransformComponent.Build();
@@ -276,6 +277,14 @@ void EditorApp::InitEditorCameraEntity()
 	cameraComponent.SetFarPlane(2000.0f);
 	cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
 	cameraComponent.SetGammaCorrection(0.45f);
+	cameraComponent.SetBloomDownSampleTImes(4);
+	cameraComponent.SetBloomIntensity(1.0f);
+	cameraComponent.SetLuminanceThreshold(1.0f);
+	cameraComponent.SetBlurTimes(0);
+	cameraComponent.SetBlurSize(0.0f);
+	cameraComponent.SetBlurScaling(1);
+	cameraComponent.SetBloomEnable(false);
+	cameraComponent.SetBlurEnable(false);
 	cameraComponent.BuildProjectMatrix();
 	cameraComponent.BuildViewMatrix(cameraTransform);
 }
@@ -288,7 +297,7 @@ void EditorApp::InitDDGIEntity()
 	engine::Entity ddgiEntity = pWorld->CreateEntity();
 	m_pSceneWorld->SetDDGIEntity(ddgiEntity);
 
-	auto &nameComponent = pWorld->CreateComponent<engine::NameComponent>(ddgiEntity);
+	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(ddgiEntity);
 	nameComponent.SetName("DDGI");
 
 	pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
@@ -302,7 +311,7 @@ void EditorApp::InitSkyEntity()
 	engine::Entity skyEntity = pWorld->CreateEntity();
 	m_pSceneWorld->SetSkyEntity(skyEntity);
 
-	auto &nameComponent = pWorld->CreateComponent<engine::NameComponent>(skyEntity);
+	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(skyEntity);
 	nameComponent.SetName("Sky");
 
 	auto& skyComponent = pWorld->CreateComponent<engine::SkyComponent>(skyEntity);
@@ -468,8 +477,7 @@ void EditorApp::InitEditorController()
 	m_pViewportCameraController = std::make_unique<engine::CameraController>(
 		m_pSceneWorld.get(),
 		12.0f /* horizontal sensitivity */,
-		12.0f /* vertical sensitivity */,
-		30.0f /* Movement Speed*/);
+		12.0f /* vertical sensitivity */);
 	m_pViewportCameraController->CameraToController();
 }
 
@@ -585,7 +593,7 @@ bool EditorApp::Update(float deltaTime)
 	m_pRenderContext->EndFrame();
 
 	engine::Input::Get().FlushInputs();
-	
+
 	return !GetMainWindow()->ShouldClose();
 }
 

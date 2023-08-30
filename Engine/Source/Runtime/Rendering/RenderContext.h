@@ -46,6 +46,7 @@ public:
 
 	uint16_t CreateView();
 	void ResetViewCount() { m_currentViewCount = 0; }
+	uint16_t GetCurrentViewCount() const { return m_currentViewCount; }
 
 	/////////////////////////////////////////////////////////////////////
 	// Resource related apis

@@ -229,7 +229,7 @@ if not IsAndroidPlatform() then
 end
 
 -- game projects
-dofile("game.lua")
+--dofile("game.lua")
 
 -- regression tests for engine core modules
 dofile("test.lua")
