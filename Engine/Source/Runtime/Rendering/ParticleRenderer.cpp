@@ -133,6 +133,7 @@ void ParticleRenderer::Render(float deltaTime)
 	const cd::Matrix4x4& viewMatrix = m_pCurrentSceneWorld->GetCameraComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetViewMatrix();
 	const cd::Transform& cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetTransform();
 	engine::ParticleComponent* pParticleComponent = m_pCurrentSceneWorld->GetParticleComponent(m_pCurrentSceneWorld->GetParticleEntity());
+	const cd::Transform& transform = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetParticleEntity())->GetTransform();
 
 	m_pEmitter->m_shape = pParticleComponent->GetShape();
 	m_pEmitter->m_direction = pParticleComponent->GetDirection();
@@ -143,6 +144,10 @@ void ParticleRenderer::Render(float deltaTime)
 		m_pEmitter->m_handle = psCreateEmitter(m_pEmitter->m_shape, m_pEmitter->m_direction, 1024);
 		pParticleComponent->SetNeedRecreate(false);
 	}
+
+	m_pEmitter->m_uniforms.m_position[0] = transform.GetTranslation().x();
+	m_pEmitter->m_uniforms.m_position[1] = transform.GetTranslation().y();
+	m_pEmitter->m_uniforms.m_position[2] = transform.GetTranslation().z();
 
 	m_pEmitter->m_uniforms.m_particlesPerSecond = pParticleComponent->GetParticlesPerSecond();
 	m_pEmitter->m_uniforms.m_gravityScale = pParticleComponent->GetGravityScale();

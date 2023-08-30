@@ -47,15 +47,15 @@ bgfx::VertexLayout PosColorTexCoord0Vertex::ms_layout;
 
 void EmitterUniforms::reset()
 {
-	m_position[0] = 0.0f;
-	m_position[1] = 0.0f;
-	m_position[2] = 0.0f;
+	// m_position[0] = 0.0f;
+	// m_position[1] = 0.0f;
+	// m_position[2] = 0.0f;
 
 	m_angle[0] = 0.0f;
 	m_angle[1] = 0.0f;
 	m_angle[2] = 0.0f;
 
-	m_particlesPerSecond = 1024;
+	m_particlesPerSecond = 0;
 
 	m_offsetStart[0] = 0.0f;
 	m_offsetStart[1] = 1.0f;

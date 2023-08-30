@@ -272,7 +272,7 @@ void EditorApp::InitEditorCameraEntity()
 	auto& cameraComponent = pWorld->CreateComponent<engine::CameraComponent>(cameraEntity);
 	cameraComponent.SetAspect(1.0f);
 	cameraComponent.SetFov(45.0f);
-	cameraComponent.SetNearPlane(0.1f);
+	cameraComponent.SetNearPlane(0.01f);
 	cameraComponent.SetFarPlane(2000.0f);
 	cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
 	cameraComponent.SetGammaCorrection(0.45f);
@@ -338,6 +338,12 @@ void EditorApp::InitParticleEntity()
 	nameComponent.SetName("Particle Emitter");
 
 	auto& particleComponent = pWorld->CreateComponent<engine::ParticleComponent>(particleEntity);
+
+	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(particleEntity);
+	transformComponent.SetTransform(cd::Transform::Identity());
+	auto& transform = transformComponent.GetTransform();
+	transform.SetTranslation(cd::Point(0.0f, 0.0f, -80.0f));
+	transformComponent.Build();
 }
 
 void EditorApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
