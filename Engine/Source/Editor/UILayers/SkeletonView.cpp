@@ -6,6 +6,15 @@
 
 namespace editor
 {
+namespace details
+{
+
+void CalculateBoneWorldTransform(std::vector<cd::Matrix4x4>& boneMatrices, const cd::SceneDatabase* pSceneDatabase,const cd::Bone& bone, const cd::Matrix4x4& parentBoneTransform)
+{
+
+}
+
+}
 SkeletonView::~SkeletonView()
 {
 
@@ -14,68 +23,57 @@ void SkeletonView::Init()
 {
    
 }
-void SkeletonView::SkeletonWidow()
+
+
+void SkeletonView::DrawBone(cd::SceneDatabase* pSceneDatabase, const cd::Bone& Bone)
 {
-	if (m_isSkeletonWidowOpen)
-	{
-        ImGui::SetNextWindowSize(ImVec2(200, 200), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowPos(ImVec2(100, 100), ImGuiCond_FirstUseEver);
-        bool showDetachedWindow = true;
-        bool isDetachedWindowDragged;
-        ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoDocking;
-        if (!showDetachedWindow)
-            windowFlags |= ImGuiWindowFlags_NoCollapse;
-
-        ImGui::Begin("Detached Window", &showDetachedWindow, windowFlags);
-
-        if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
-            isDetachedWindowDragged = true;
-
-        if (isDetachedWindowDragged)
-            ImGui::SetWindowPos(ImGui::GetMousePos());
-
-        ImGui::Text("Drag me outside the main window!");
-
-        if (!isDetachedWindowDragged && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-            isDetachedWindowDragged = ImGui::IsWindowHovered();
-	}
-}
-
-void SkeletonView::DrawBone(cd::SceneDatabase* pSceneDatabase,cd::Bone* pBone)
-{
-    if(ImGui::TreeNode(pBone->GetName()))
+    if (Bone.GetChildIDs().empty())
     {
-        for (auto& child : pBone->GetChildIDs())
+        ImGui::Selectable(Bone.GetName());
+        ImGui::SameLine();
+        ImGui::Text(reinterpret_cast<const char*>(ICON_MDI_BONE));
+        return;
+    }
+
+    bool isOpen = ImGui::TreeNode(Bone.GetName());
+    ImGui::SameLine();
+    ImGui::Text(reinterpret_cast<const char*>(ICON_MDI_BONE));
+    if(isOpen)
+    {
+        for (auto& child : Bone.GetChildIDs())
         {
-           // cd::Bone bone = pSceneDatabase->GetBone(child.Data());
-           // if (ImGui::TreeNode((void*)(intptr_t)i, "Child %d", i))
-           // {
-           //     ImGui::Text(reinterpret_cast<const char*>(ICON_MDI_BONE));
-           //     
-           //     ImGui::SameLine();
-           //     ImGui::Selectable("blah blah");                         
-           //     ImGui::TreePop();
-           // }
+            const cd::Bone& bone = pSceneDatabase->GetBone(child.Data());
+            DrawBone(pSceneDatabase, bone);
         }
 
         ImGui::TreePop();
     }
 }
 
-void SkeletonView::DrawSkeleton(engine::SceneWorld* pSceneWorld, cd::Bone* root)
+void SkeletonView::DrawSkeleton(engine::SceneWorld* pSceneWorld)
 {
-    ImGui::Begin("Skeleton");
     cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
-   // DrawBone(root);
 
-    ImGui::End();
+    const cd::Bone& rootBone = pSceneDatabase->GetBone(0);
+    DrawBone(pSceneDatabase, rootBone);
 }
 
 void SkeletonView::Update()
 {
     auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
     ImGui::Begin(GetName(), &m_isEnable, flags);
-   // DrawBone();
+    engine::SceneWorld* pSceneWorld = GetSceneWorld();
+    engine::Entity selectedEntity = pSceneWorld->GetSelectedEntity();
+    if (engine::INVALID_ENTITY == selectedEntity)
+    {
+        ImGui::End();
+        return;
+    }
+    engine::AnimationComponent* pAnimationConponent = pSceneWorld->GetAnimationComponent(selectedEntity);
+    if (pAnimationConponent)
+    { 
+    DrawSkeleton(pSceneWorld);
+    }
 
     ImGui::End();
 }

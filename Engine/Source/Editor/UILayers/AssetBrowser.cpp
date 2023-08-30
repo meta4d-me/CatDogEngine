@@ -922,11 +922,11 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 		genericProducer.ActivateTangentsSpaceService();
 		genericProducer.ActivateTriangulateService();
 		genericProducer.ActivateSimpleAnimationService();
-		genericProducer.ActivateFlattenHierarchyService();
+		//genericProducer.ActivateFlattenHierarchyService();
 
 		cdtools::Processor processor(&genericProducer, nullptr, pSceneDatabase);
 		processor.SetDumpSceneDatabaseEnable(false);
-		processor.SetFlattenSceneDatabaseEnable(true);
+		//processor.SetFlattenSceneDatabaseEnable(true);
 		processor.Run();
 #else
 		assert("Unable to import this file format.");

@@ -14,10 +14,8 @@ public:
 	virtual void Init() override;
 	virtual void Update() override;
 
-	void SkeletonWidow();
-
-	void DrawBone(cd::SceneDatabase* pSceneDatabase,cd::Bone* pBone = nullptr);
-	void DrawSkeleton(engine::SceneWorld* pSceneWorld, cd::Bone* root = nullptr);
+	void DrawBone(cd::SceneDatabase* pSceneDatabase,const cd::Bone& Bone);
+	void DrawSkeleton(engine::SceneWorld* pSceneWorld);
 
 
 private:
