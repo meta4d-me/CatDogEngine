@@ -22,6 +22,7 @@
 #include "Rendering/BloomRenderer.h"
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
+#include "Rendering/SkeletonRenderer.h"
 #include "Rendering/SkyboxRenderer.h"
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
@@ -402,6 +403,10 @@ void EditorApp::InitEngineRenderers()
 	pAABBRenderer->SetSceneWorld(m_pSceneWorld.get());
 	pAABBRenderer->SetEnable(false);
 	AddEngineRenderer(cd::MoveTemp(pAABBRenderer));
+
+	auto pSkeletonRenderer = std::make_unique<engine::SkeletonRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pSkeletonRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pSkeletonRenderer));
 
 #ifdef ENABLE_DDGI
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
