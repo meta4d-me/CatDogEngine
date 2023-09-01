@@ -20,7 +20,7 @@ void ParticleRenderer::UpdateView(const float* pViewMatrix, const float* pProjec
 
 void ParticleRenderer::Render(float deltaTime)
 {
-	const cd::Transform& cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetTransform();
+ const cd::Transform& cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetTransform();
 }
 
 }

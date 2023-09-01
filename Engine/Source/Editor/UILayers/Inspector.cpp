@@ -499,7 +499,7 @@ void UpdateComponentWidget<engine::ParticleComponent>(engine::SceneWorld* pScene
 		return;
 	}
 
-	bool isOpen = ImGui::CollapsingHeader("Particle Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	bool isOpen = ImGui::CollapsingHeader("ParticleComponent", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 	ImGui::Separator();
 
