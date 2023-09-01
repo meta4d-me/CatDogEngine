@@ -31,10 +31,8 @@ public:
     void Start();
     void Stop();
 
-    void SetPath(std::string path);
-    std::string& GetPath() { return m_path; }
     const std::string& GetPath() const { return m_path; }
-
+    
     const bool GetIsRunning() const { return m_isRunning; }
 
     void EnableWatchSubTree() { m_isWatchSubTree = true; }

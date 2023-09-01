@@ -6,9 +6,7 @@
 #include <filesystem>
 
 #ifdef _WIN32
-	#include <Windows.h>
-#else
-	// TODO : Remaining cross-platform code.
+    #include <Windows.h>
 #endif
 
 namespace editor
@@ -88,11 +86,6 @@ void FileWatcher::Stop()
     }
 }
 
-void FileWatcher::SetPath(std::string path)
-{
-    m_path = cd::MoveTemp(path);
-}
-
 void FileWatcher::Watch()
 {
 #ifdef _WIN32
@@ -106,6 +99,7 @@ void FileWatcher::Watch()
 
     char buffer[BUFFER_SIZE];
     DWORD bytesReturned = { 0 };
+
     OVERLAPPED overlapped = { 0 };
     overlapped.hEvent = CreateEvent(nullptr, true, false, nullptr);
     if (nullptr == overlapped.hEvent)
@@ -131,8 +125,10 @@ void FileWatcher::Watch()
             break;
         }
 
+        // Wait for ReadDirectoryChangesW for 100 milliseconds.
+        // If it times out then the next ReadDirectoryChangesW will be called.
         DWORD waitResault = WaitForSingleObject(overlapped.hEvent, 100);
-        
+
         if (WAIT_TIMEOUT == waitResault)
         {
             continue;
@@ -152,7 +148,7 @@ void FileWatcher::Watch()
 
         FILE_NOTIFY_INFORMATION* pFileNotifyInfo = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(buffer);
 
-        while(true)
+        while (true)
         {
             int fileNameSize = pFileNotifyInfo->FileNameLength / sizeof(WCHAR);
             int utf8Size = WideCharToMultiByte(CP_UTF8, 0, pFileNotifyInfo->FileName, fileNameSize, nullptr, 0, nullptr, nullptr);
@@ -162,59 +158,59 @@ void FileWatcher::Watch()
 
             DWORD fileAction = pFileNotifyInfo->Action;
 
-           switch (fileAction)
-           {
-               case FILE_ACTION_ADDED:
-                   CD_INFO("File added {0}", fullFilePath);
-                   if (m_fileAddedCallback)
-                   {
-                       m_fileAddedCallback(fullFilePath);
-                   }
-                   break;
+            switch (fileAction)
+            {
+                case FILE_ACTION_ADDED:
+                    if (m_fileAddedCallback)
+                    {
+                        CD_INFO("File added {0}", fullFilePath);
+                        m_fileAddedCallback(fullFilePath);
+                    }
+                    break;
 
-               case FILE_ACTION_MODIFIED:
-                   CD_INFO("File modified {0}", fullFilePath);
-                   if (m_fileModifiedCallback)
-                   {
-                       m_fileModifiedCallback(fullFilePath);
-                   }
-                   break;
+                case FILE_ACTION_MODIFIED:
+                    if (m_fileModifiedCallback)
+                    {
+                        CD_INFO("File modified {0}", fullFilePath);
+                        m_fileModifiedCallback(fullFilePath);
+                    }
+                    break;
 
-               case FILE_ACTION_REMOVED:
-                   CD_INFO("File removed {0}", fullFilePath);
-                   if (m_fileRemovedCallback)
-                   {
-                       m_fileRemovedCallback(fullFilePath);
-                   }
-                   break;
+                case FILE_ACTION_REMOVED:
+                    if (m_fileRemovedCallback)
+                    {
+                        CD_INFO("File removed {0}", fullFilePath);
+                        m_fileRemovedCallback(fullFilePath);
+                    }
+                    break;
 
-               case FILE_ACTION_RENAMED_OLD_NAME:
-                   CD_INFO("File renamed old {0}", fullFilePath);
-                   if (m_fileRenamedOldCallBack)
-                   {
-                       m_fileRenamedOldCallBack(fullFilePath);
-                   }
-                   break;
+                case FILE_ACTION_RENAMED_OLD_NAME:
+                    if (m_fileRenamedOldCallBack)
+                    {
+                        CD_INFO("File renamed old {0}", fullFilePath);
+                        m_fileRenamedOldCallBack(fullFilePath);
+                    }
+                    break;
 
-               case FILE_ACTION_RENAMED_NEW_NAME:
-                   CD_INFO("File renamed new {0}", fullFilePath);
-                   if (m_fileRenamedNewCallBack)
-                   {
-                       m_fileRenamedNewCallBack(fullFilePath);
-                   }
-                   break;
+                case FILE_ACTION_RENAMED_NEW_NAME:
+                    if (m_fileRenamedNewCallBack)
+                    {
+                        CD_INFO("File renamed new {0}", fullFilePath);
+                        m_fileRenamedNewCallBack(fullFilePath);
+                    }
+                    break;
 
-               default:
-                   CD_ERROR("{0} unknown file whatcher status!", fullFilePath);
-                   break;
-           }
+                default:
+                    CD_ERROR("{0} unknown file whatcher status!", fullFilePath);
+                    break;
+            }
 
-           if (0 == pFileNotifyInfo->NextEntryOffset)
-           {
-               break;
-           }
-           
-           pFileNotifyInfo = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(reinterpret_cast<char*>(pFileNotifyInfo) + pFileNotifyInfo->NextEntryOffset);
+            if (0 == pFileNotifyInfo->NextEntryOffset)
+            {
+                break;
+            }
+
+            pFileNotifyInfo = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(reinterpret_cast<char*>(pFileNotifyInfo) + pFileNotifyInfo->NextEntryOffset);
         }
 
         memset(buffer, 0, bytesReturned);
