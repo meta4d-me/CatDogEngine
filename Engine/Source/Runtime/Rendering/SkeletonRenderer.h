@@ -8,6 +8,7 @@ namespace engine
 
 class Bone;
 class SceneWorld;
+class SceneDatabase;
 
 class SkeletonRenderer final : public Renderer
 {
@@ -23,6 +24,7 @@ private:
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
 	std::vector<std::byte> m_vertexBuffer;
 	std::vector<std::byte> m_indexBuffer;
+	std::vector<uint16_t> m_index;
 	uint16_t m_boneVBH = UINT16_MAX;
 	uint16_t m_boneIBH = UINT16_MAX;
 };
