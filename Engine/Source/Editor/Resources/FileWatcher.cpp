@@ -97,24 +97,56 @@ void FileWatcher::Watch()
 {
 #ifdef _WIN32
     HANDLE pathHandle = CreateFileA(m_path.c_str(), FILE_LIST_DIRECTORY, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-        nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
+        nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, nullptr);
     if (INVALID_HANDLE_VALUE == pathHandle)
     {
-        CD_ERROR("FileWatcher create path handle failed!");
+        CD_ERROR("FileWatcher create path handle failed with error code {0}", GetLastError());
         return;
     }
 
     char buffer[BUFFER_SIZE];
-    DWORD bytesReturned;
+    DWORD bytesReturned = { 0 };
+    OVERLAPPED overlapped = { 0 };
+    overlapped.hEvent = CreateEvent(nullptr, true, false, nullptr);
+    if (nullptr == overlapped.hEvent)
+    {
+        CD_ERROR("Filewatcher create event failed with error code {0}", GetLastError());
+        CloseHandle(pathHandle);
+        return;
+    }
 
     while (m_isRunning)
     {
+        if (!ResetEvent(overlapped.hEvent))
+        {
+            CD_ERROR("FileWatcher reset event failed with error code {0}", GetLastError());
+            break;
+        }
+
         constexpr uint32_t WatchStatus = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_LAST_ACCESS | FILE_NOTIFY_CHANGE_CREATION | FILE_NOTIFY_CHANGE_SECURITY;
 
-        // TODO : Use LPOVERLAPPED
-        if (!ReadDirectoryChangesW(pathHandle, buffer, BUFFER_SIZE, m_isWatchSubTree, WatchStatus, &bytesReturned, nullptr, nullptr))
+        if (!ReadDirectoryChangesW(pathHandle, buffer, BUFFER_SIZE, m_isWatchSubTree, WatchStatus, &bytesReturned, &overlapped, nullptr))
         {
-            CD_ERROR("FileWatcher read directory changes failed!");
+            CD_ERROR("FileWatcher read directory changes failed with error code {0}", GetLastError());
+            break;
+        }
+
+        DWORD waitResault = WaitForSingleObject(overlapped.hEvent, 100);
+        
+        if (WAIT_TIMEOUT == waitResault)
+        {
+            continue;
+        }
+        else if (WAIT_OBJECT_0 != waitResault)
+        {
+            CD_ERROR("FileWatcher wait for IO failed with error code {0}", GetLastError());
+            break;
+        }
+
+        DWORD overlappedReadByteCount;
+        if (!GetOverlappedResult(pathHandle, &overlapped, &overlappedReadByteCount, false))
+        {
+            CD_ERROR("FileWatcher get overlapped result failed with error code {0}", GetLastError());
             break;
         }
 
@@ -189,6 +221,7 @@ void FileWatcher::Watch()
     }
 
     CloseHandle(pathHandle);
+    CloseHandle(overlapped.hEvent);
 
 #else
     // TODO : Remaining cross-platform code.

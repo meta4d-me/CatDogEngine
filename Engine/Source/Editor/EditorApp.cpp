@@ -51,6 +51,32 @@
 //#include <format>
 #include <thread>
 
+// TODO : Some test call back function, delete these.
+void CreateCB(std::string path)
+{
+	CD_FATAL("Create : {0}.", cd::MoveTemp(path));
+}
+
+void ModifyCB(std::string path)
+{
+	CD_FATAL("Modify : {0}.", cd::MoveTemp(path));
+}
+
+void RenameOldCB(std::string path)
+{
+	CD_FATAL("RenameOld : {0}.", cd::MoveTemp(path));
+}
+
+void RenameNewCB(std::string path)
+{
+	CD_FATAL("RenameNew : {0}.", cd::MoveTemp(path));
+}
+
+void DeleteCB(std::string path)
+{
+	CD_FATAL("Delete : {0}.", cd::MoveTemp(path));
+}
+
 namespace editor
 {
 
@@ -73,7 +99,6 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	{
 		CD_ERROR("Failed to open CSV file");
 	}
-
 
 	// Phase 1 - Splash
 	//		* Compile uber shader permutations automatically when initialization or detect changes
@@ -106,6 +131,12 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 
 	m_pFileWatcher = std::make_unique<FileWatcher>(CDENGINE_BUILTIN_SHADER_PATH);
 	m_pFileWatcher->EnableWatchSubTree();
+	// TODO : Test code.
+	m_pFileWatcher->SetFileAddedCallback(CreateCB);
+	m_pFileWatcher->SetFileModifiedCallback(ModifyCB);
+	m_pFileWatcher->SetFileRenamedOldCallback(RenameOldCB);
+	m_pFileWatcher->SetFileRenamedNewCallback(RenameNewCB);
+	m_pFileWatcher->SetFileRemovedCallback(DeleteCB);
 	m_pFileWatcher->Start();
 }
 
