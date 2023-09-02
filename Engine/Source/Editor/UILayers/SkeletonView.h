@@ -17,9 +17,6 @@ public:
 	void DrawBone(cd::SceneDatabase* pSceneDatabase,const cd::Bone& Bone);
 	void DrawSkeleton(engine::SceneWorld* pSceneWorld);
 
-
-private:
-	bool m_isSkeletonWidowOpen = false;
 };
 
 }

@@ -6,15 +6,7 @@
 
 namespace editor
 {
-namespace details
-{
 
-void CalculateBoneWorldTransform(std::vector<cd::Matrix4x4>& boneMatrices, const cd::SceneDatabase* pSceneDatabase,const cd::Bone& bone, const cd::Matrix4x4& parentBoneTransform)
-{
-
-}
-
-}
 SkeletonView::~SkeletonView()
 {
 
