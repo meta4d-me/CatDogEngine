@@ -42,3 +42,6 @@
 	path = Engine/Source/ThirdParty/spdlog
 	url = https://github.com/CatDogEngine/spdlog
 	branch = v1.x
+[submodule "Engine/Source/ThirdParty/imgui-node-editor"]
+	path = Engine/Source/ThirdParty/imgui-node-editor
+	url = https://github.com/thedmd/imgui-node-editor

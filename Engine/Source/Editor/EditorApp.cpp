@@ -39,6 +39,7 @@
 #include "UILayers/OutputLog.h"
 #include "UILayers/SceneView.h"
 #include "UILayers/Splash.h"
+#include "UILayers/TestNodeEditor.h"
 #include "Window/Input.h"
 #include "Window/Window.h"
 
@@ -203,6 +204,7 @@ void EditorApp::InitEngineUILayers()
 	auto pImGuizmoView = std::make_unique<editor::ImGuizmoView>("ImGuizmoView");
 	pImGuizmoView->SetSceneView(m_pSceneView);
 	m_pEngineImGuiContext->AddDynamicLayer(cd::MoveTemp(pImGuizmoView));
+	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<TestNodeEditor>("TestNodeEditor"));
 }
 
 void EditorApp::InitImGuiViewports(engine::RenderContext* pRenderContext)
