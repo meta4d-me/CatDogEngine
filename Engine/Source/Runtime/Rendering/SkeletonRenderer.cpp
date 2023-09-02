@@ -23,7 +23,7 @@ cd::Vec3f CalculateBoneTranslate(const cd::Bone& bone,cd::Vec3f& translate, cons
 	return translate;
 }
 void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase, std::byte* currentDataPtr,
-	std::byte* currentIndexPtr, size_t indexTypeSize, uint32_t& currentDataSize, uint32_t& currentIndexSize)
+	std::byte* currentIndexPtr, size_t indexTypeSize, uint32_t& vertexOffset, uint32_t& indexOffset)
 {
 	constexpr uint32_t posDataSize = cd::Point::Size * sizeof(cd::Point::ValueType);
 	for (auto& child : bone.GetChildIDs())
@@ -36,14 +36,14 @@ void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase,
 
 		uint16_t parentID = currBone.GetParentID().Data();
 		uint16_t currBoneID = currBone.GetID().Data();
-		std::memcpy(&currentDataPtr[currentDataSize], translate.Begin(), posDataSize);
-		currentDataSize += posDataSize;
-		std::memcpy(&currentIndexPtr[currentIndexSize], &parentID, indexTypeSize);
-		currentIndexSize += static_cast<uint32_t>(indexTypeSize);
-		std::memcpy(&currentIndexPtr[currentIndexSize], &currBoneID, indexTypeSize);
-		currentIndexSize += static_cast<uint32_t>(indexTypeSize);
+		std::memcpy(&currentDataPtr[vertexOffset], translate.Begin(), posDataSize);
+		vertexOffset += posDataSize;
+		std::memcpy(&currentIndexPtr[indexOffset], &parentID, indexTypeSize);
+		indexOffset += static_cast<uint32_t>(indexTypeSize);
+		std::memcpy(&currentIndexPtr[indexOffset], &currBoneID, indexTypeSize);
+		indexOffset += static_cast<uint32_t>(indexTypeSize);
 
-		TraverseBone(currBone, pSceneDatabase, currentDataPtr, currentIndexPtr, indexTypeSize, currentDataSize, currentIndexSize);
+		TraverseBone(currBone, pSceneDatabase, currentDataPtr, currentIndexPtr, indexTypeSize, vertexOffset, indexOffset);
 	}
 }
 }
@@ -62,9 +62,19 @@ void SkeletonRenderer::UpdateView(const float* pViewMatrix, const float* pProjec
 void SkeletonRenderer::Build()
 {
 	const cd::SceneDatabase* pSceneDatabase = m_pCurrentSceneWorld->GetSceneDatabase();
-	const cd::Bone& firstBone = pSceneDatabase->GetBone(0);
 
 	const uint32_t vertexCount = pSceneDatabase->GetBoneCount();
+	if (0 == vertexCount)
+	{
+		return;
+	}
+
+	const cd::Bone& firstBone = pSceneDatabase->GetBone(0);
+	if (0U != firstBone.GetID())
+	{
+		CD_ENGINE_WARN("First BoneID is not 0");
+		return;
+	}
 
 	bgfx::setTransform(cd::Matrix4x4::Identity().Begin());
 	cd::VertexFormat vertexFormat;
