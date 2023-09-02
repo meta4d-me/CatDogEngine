@@ -84,7 +84,6 @@ public:
 	void SetCameraController(engine::CameraController* pCameraController) { m_pCameraController = pCameraController; }
 
 	const engine::RenderTarget* GetRenderTarget() const { return m_pRenderTarget; }
-
 private:
 	void UpdateToolMenuButtons();
 	void Update2DAnd3DButtons();

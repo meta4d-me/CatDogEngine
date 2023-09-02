@@ -1,5 +1,6 @@
 ﻿#include "Inspector.h"
 
+#include "Rendering/RenderContext.h"
 #include "Graphics/GraphicsBackend.h"
 #include "ImGui/ImGuiUtils.hpp"
 #include "Path/Path.h"
@@ -80,13 +81,54 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 
 	if (isOpen)
 	{
+		/*
+		std::vector<std::string> fileNames;
+		std::filesystem::path dirPath{ CDPROJECT_RESOURCES_ROOT_PATH };
+		dirPath /= "test";
+		std::filesystem::path frontPath{ "test" };
+		engine::RenderContext* pRenderContext = engine::ImGuiBaseLayer::GetRenderContext();
+
+		std::vector<std::string> texturePaths;
+		for (const auto& it : std::filesystem::directory_iterator(dirPath))
+		{
+			std::string fileName = it.path().filename().string();
+			std::string fullpath = (frontPath / fileName).string();
+			pRenderContext->CreateTexture(fullpath.c_str());
+
+			fileNames.emplace_back(cd::MoveTemp(fileName));
+			texturePaths.emplace_back(cd::MoveTemp(fullpath));
+		}
+
+
+		static int currentItem = 0;
+		if (ImGui::BeginCombo("Select Texture", fileNames[currentItem].c_str()))
+		{
+			for (int i = 0; i < fileNames.size(); ++i)
+			{
+				bool isSelected = (currentItem == i);
+				if (ImGui::Selectable(fileNames[i].c_str(), isSelected))
+				{
+					currentItem = i;
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+			ImGui::EndCombo();
+		}
+
+		bgfx::TextureHandle textureHandle = pRenderContext->GetTexture(engine::StringCrc(texturePaths[currentItem].c_str()));
+		//sparater
+		ImGui::Separator();
+		ImGui::Image(ImTextureID(textureHandle.idx), ImVec2(64, 64));
+		*/
+		ImGui::Separator();
 		ImGuiUtils::ImGuiStringProperty("Name", pMaterialComponent->GetName());
 
 		// Parameters
-		ImGuiUtils::ImGuiVectorProperty("AlbedoColor", pMaterialComponent->GetAlbedoColor(), cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGui::Separator();
+		ImGuiUtils::ColorPickerProperty("AlbedoColor", pMaterialComponent->GetAlbedoColor());
 		ImGuiUtils::ImGuiFloatProperty("MetallicFactor", pMaterialComponent->GetMetallicFactor(), cd::Unit::None, 0.0f, 1.0f);
 		ImGuiUtils::ImGuiFloatProperty("RoughnessFactor", pMaterialComponent->GetRoughnessFactor(), cd::Unit::None, 0.0f, 1.0f);
-		ImGuiUtils::ImGuiVectorProperty("EmissiveColor", pMaterialComponent->GetEmissiveColor(), cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ColorPickerProperty("EmissiveColor", pMaterialComponent->GetEmissiveColor());
 		ImGuiUtils::ImGuiBoolProperty("TwoSided", pMaterialComponent->GetTwoSided());
 		ImGuiUtils::ImGuiStringProperty("BlendMode", nameof::nameof_enum(pMaterialComponent->GetBlendMode()).data());
 		if (cd::BlendMode::Mask == pMaterialComponent->GetBlendMode())
@@ -184,13 +226,16 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 
 		ImGuiUtils::ImGuiBoolProperty("Constrain Aspect Ratio", pCameraComponent->GetDoConstrainAspectRatio());
 
-		if (ImGui::TreeNode("Post Processing")) {
+		if (ImGui::TreeNode("Post Processing"))
+		{
 
 			ImGuiUtils::ImGuiBoolProperty("Tone Mapping", pCameraComponent->GetIsToneMapping());
 			ImGuiUtils::ImGuiFloatProperty("Gamma Correction", pCameraComponent->GetGammaCorrection(), cd::Unit::None, 0.0f, 1.0f);
-			if (ImGui::TreeNode("Bloom")) {
+			if (ImGui::TreeNode("Bloom"))
+			{
 				ImGuiUtils::ImGuiBoolProperty("Open Bloom", pCameraComponent->GetIsBloomEnable());
-				if (pCameraComponent->GetIsBloomEnable()) {
+				if (pCameraComponent->GetIsBloomEnable())
+				{
 					ImGuiUtils::ImGuiIntProperty("DownSampleTimes", pCameraComponent->GetBloomDownSampleTimes(), cd::Unit::None, 4, 8, false, 1.0f);
 					ImGuiUtils::ImGuiFloatProperty("Bloom Intensity", pCameraComponent->GetBloomIntensity(), cd::Unit::None, 0.0f, 3.0f, false, 0.01f);
 					ImGuiUtils::ImGuiFloatProperty("Luminance Threshold", pCameraComponent->GetLuminanceThreshold(), cd::Unit::None, 0.0f, 3.0f, false, 0.01f);
@@ -199,10 +244,12 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 				ImGui::TreePop();
 			}
 
-			if (ImGui::TreeNode("Gaussian Blur")) {
+			if (ImGui::TreeNode("Gaussian Blur"))
+			{
 				ImGuiUtils::ImGuiBoolProperty("Open Blur", pCameraComponent->GetIsBlurEnable());
-				if (pCameraComponent->GetIsBlurEnable()) {
-					ImGuiUtils::ImGuiIntProperty("BlurIteration",pCameraComponent->GetBlurTimes(), cd::Unit::None, 0, 20, false, 1.0f);
+				if (pCameraComponent->GetIsBlurEnable())
+				{
+					ImGuiUtils::ImGuiIntProperty("BlurIteration", pCameraComponent->GetBlurTimes(), cd::Unit::None, 0, 20, false, 1.0f);
 					ImGuiUtils::ImGuiFloatProperty("Blur Size", pCameraComponent->GetBlurSize(), cd::Unit::None, 0.0f, 3.0f);
 					ImGuiUtils::ImGuiIntProperty("Blur Scaling", pCameraComponent->GetBlurScaling(), cd::Unit::None, 1, 4, false, 1.0f);
 				}
@@ -232,14 +279,14 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 	bool isOpen = ImGui::CollapsingHeader("Light Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 	ImGui::Separator();
-	
+
 	if (isOpen)
 	{
 		cd::LightType lightType = pLightComponent->GetType();
 		std::string lightTypeName = cd::GetLightTypeName(lightType);
 
 		ImGuiUtils::ImGuiStringProperty("Type", lightTypeName);
-		ImGuiUtils::ImGuiVectorProperty("Color", pLightComponent->GetColor(), cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One());
+		ImGuiUtils::ColorPickerProperty("Color", pLightComponent->GetColor());
 
 		float s_spotInnerAngle = 8.0f;
 		float s_spotOuterAngle = 16.0f;
@@ -353,9 +400,9 @@ void UpdateComponentWidget<engine::TerrainComponent>(engine::SceneWorld* pSceneW
 
 #ifdef ENABLE_DDGI
 template<>
-void UpdateComponentWidget<engine::DDGIComponent>(engine::SceneWorld *pSceneWorld, engine::Entity entity)
+void UpdateComponentWidget<engine::DDGIComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
 {
-	auto *pDDGIComponent = pSceneWorld->GetDDGIComponent(entity);
+	auto* pDDGIComponent = pSceneWorld->GetDDGIComponent(entity);
 	if (!pDDGIComponent)
 	{
 		return;
@@ -443,6 +490,28 @@ void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld
 	ImGui::PopStyleVar();
 }
 
+template<>
+void UpdateComponentWidget<engine::ParticleComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+{
+	auto* pParticleComponent = pSceneWorld->GetParticleComponent(entity);
+	if (!pParticleComponent)
+	{
+		return;
+	}
+
+	bool isOpen = ImGui::CollapsingHeader("Particle Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+	ImGui::Separator();
+
+	if (isOpen)
+	{
+
+	}
+
+	ImGui::Separator();
+	ImGui::PopStyleVar();
+}
+
 }
 
 namespace editor
@@ -481,6 +550,7 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::ParticleComponent>(pSceneWorld, selectedEntity);
 
 #ifdef ENABLE_DDGI
 	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, selectedEntity);
