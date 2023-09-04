@@ -20,6 +20,7 @@
 #include "Rendering/ImGuiRenderer.h"
 #include "Rendering/PBRSkyRenderer.h"
 #include "Rendering/BloomRenderer.h"
+#include "Rendering/SSAORenderer.h"
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/SkyboxRenderer.h"
@@ -356,6 +357,8 @@ void EditorApp::InitEngineRenderers()
 	std::vector<engine::AttachmentDescriptor> attachmentDesc = {
 		{.textureFormat = engine::TextureFormat::RGBA32F },
 		{.textureFormat = engine::TextureFormat::RGBA32F },
+		{.textureFormat = engine::TextureFormat::RGBA32F },
+		{.textureFormat = engine::TextureFormat::RGBA32F },
 		{.textureFormat = engine::TextureFormat::D32F },
 	};
 
@@ -409,6 +412,11 @@ void EditorApp::InitEngineRenderers()
 
 	auto pBlitRTRenderPass = std::make_unique<engine::BlitRenderTargetPass>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	AddEngineRenderer(cd::MoveTemp(pBlitRTRenderPass));
+
+	auto pSSAORenderPass = std::make_unique<engine::SSAORenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pSSAORenderPass->SetSceneWorld(m_pSceneWorld.get());
+	pSSAORenderPass->SetEnable(true);
+	AddEngineRenderer(cd::MoveTemp(pSSAORenderPass));
 
 	auto pBloomRenderPass = std::make_unique<engine::BloomRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pBloomRenderPass->SetSceneWorld(m_pSceneWorld.get());

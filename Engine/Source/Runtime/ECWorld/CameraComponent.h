@@ -81,7 +81,7 @@ public:
 	void SetConstrainAspectRatio(bool use) { m_doConstainAspectRatio = use; }
 
 	bool& GetIsToneMapping() { return m_enableToneMapping; }
-	bool GetIsToneMappingEnable() { return m_enableToneMapping; }
+	bool GetIsToneMappingEnable() const { return m_enableToneMapping; }
 	void SetToneMappingEnable(bool use) { m_enableToneMapping = use; }
 
 	float& GetGammaCorrection() { return m_gammaCorrection; }
@@ -119,6 +119,10 @@ public:
 	int& GetBlurScaling() { return m_blurScaling; }
 	const int& GetBlurScaling() const { return m_blurScaling; }
 	void SetBlurScaling(int blurscaling) { m_blurScaling = blurscaling; }
+
+	bool& GetIsSSAO() { return m_enableToneMapping; }
+	bool GetIsSSAOEnable() const { return m_enableToneMapping; }
+	void SetSSAOEnable(bool use) { m_enableToneMapping = use; }
 #endif
 
 private:
@@ -142,6 +146,7 @@ private:
 	bool m_enableToneMapping;
 	bool m_enableBloom;
 	bool m_enableBlur;
+	bool m_enableSSAO;
 	int m_blomDownSampleTimes;
 	float m_bloomIntensity;
 	float m_luminanceThreshold;
