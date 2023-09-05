@@ -27,6 +27,7 @@
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Rendering/ParticleRenderer.h"
+#include "Resources/FileWatcher.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ShaderBuilder.h"
 #include "Resources/ShaderLoader.h"
@@ -41,6 +42,7 @@
 #include "UILayers/SceneView.h"
 #include "UILayers/SkeletonView.h"
 #include "UILayers/Splash.h"
+#include "UILayers/TestNodeEditor.h"
 #include "Window/Input.h"
 #include "Window/Window.h"
 
@@ -75,7 +77,6 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 		CD_ERROR("Failed to open CSV file");
 	}
 
-
 	// Phase 1 - Splash
 	//		* Compile uber shader permutations automatically when initialization or detect changes
 	//		* Show compile progresses so it still needs to update ui
@@ -100,10 +101,12 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	m_pEditorImGuiContext->AddStaticLayer(std::make_unique<Splash>("Splash"));
 
 	std::thread resourceThread([]()
-		{
-			ResourceBuilder::Get().Update(true/*doPrintLog*/);
-		});
+	{
+		ResourceBuilder::Get().Update(true/*doPrintLog*/);
+	});
 	resourceThread.detach();
+
+	m_pFileWatcher = std::make_unique<FileWatcher>(CDENGINE_BUILTIN_SHADER_PATH);
 }
 
 void EditorApp::Shutdown()
@@ -206,6 +209,7 @@ void EditorApp::InitEngineUILayers()
 	auto pImGuizmoView = std::make_unique<editor::ImGuizmoView>("ImGuizmoView");
 	pImGuizmoView->SetSceneView(m_pSceneView);
 	m_pEngineImGuiContext->AddDynamicLayer(cd::MoveTemp(pImGuizmoView));
+	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<TestNodeEditor>("TestNodeEditor"));
 }
 
 void EditorApp::InitImGuiViewports(engine::RenderContext* pRenderContext)

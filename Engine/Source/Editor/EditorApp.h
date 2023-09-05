@@ -27,6 +27,7 @@ namespace editor
 {
 
 class EditorImGuiViewport;
+class FileWatcher;
 class SceneView;
 
 class EditorApp final : public engine::IApplication
@@ -100,6 +101,8 @@ private:
 
 	// Controllers for processing input events.
 	std::unique_ptr<engine::CameraController> m_pViewportCameraController;
+
+	std::unique_ptr<FileWatcher> m_pFileWatcher;
 };
 
 }

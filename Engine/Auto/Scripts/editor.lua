@@ -11,6 +11,8 @@ project("Editor")
 		path.join(EditorSourcePath, "**.*"),
 		path.join(ThirdPartySourcePath, "imguizmo/*.h"),
 		path.join(ThirdPartySourcePath, "imguizmo/*.cpp"),
+		path.join(ThirdPartySourcePath, "imgui-node-editor/*.h"),
+		path.join(ThirdPartySourcePath, "imgui-node-editor/*.cpp"),
 	}
 	
 	vpaths {
@@ -21,6 +23,10 @@ project("Editor")
 			path.join(ThirdPartySourcePath, "imguizmo/*.h"),
 			path.join(ThirdPartySourcePath, "imguizmo/*.cpp"),
 		},
+		["imgui-node-editor"] = {
+			path.join(ThirdPartySourcePath, "imgui-node-editor/*.h"),
+			path.join(ThirdPartySourcePath, "imgui-node-editor/*.cpp"),
+		}
 	}
 
 	defines {
@@ -48,6 +54,7 @@ project("Editor")
 		path.join(ThirdPartySourcePath, "bx/include/compat/msvc"),
 		path.join(ThirdPartySourcePath, "imgui"),
 		path.join(ThirdPartySourcePath, "imguizmo"),
+		path.join(ThirdPartySourcePath, "imgui-node-editor"),
 		ThirdPartySourcePath,
 	}
 
