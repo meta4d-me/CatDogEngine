@@ -16,7 +16,6 @@ void SkeletonView::Init()
    
 }
 
-
 void SkeletonView::DrawBone(cd::SceneDatabase* pSceneDatabase, const cd::Bone& Bone)
 {
     if (Bone.GetChildIDs().empty())
@@ -52,7 +51,7 @@ void SkeletonView::DrawSkeleton(engine::SceneWorld* pSceneWorld)
 
 void SkeletonView::Update()
 {
-    auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+    constexpr auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
     ImGui::Begin(GetName(), &m_isEnable, flags);
     engine::SceneWorld* pSceneWorld = GetSceneWorld();
     engine::Entity selectedEntity = pSceneWorld->GetSelectedEntity();
@@ -64,7 +63,7 @@ void SkeletonView::Update()
     engine::AnimationComponent* pAnimationConponent = pSceneWorld->GetAnimationComponent(selectedEntity);
     if (pAnimationConponent)
     { 
-    DrawSkeleton(pSceneWorld);
+        DrawSkeleton(pSceneWorld);
     }
 
     ImGui::End();

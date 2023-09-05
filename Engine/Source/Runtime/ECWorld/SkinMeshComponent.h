@@ -6,7 +6,9 @@
 
 namespace cd
 {
+
 class Bone;
+
 }
 
 namespace engine
@@ -29,7 +31,6 @@ public:
 	SkinMeshComponent& operator=(SkinMeshComponent&&) = default;
 	~SkinMeshComponent() = default;
 
-
 	uint16_t GetBonePositionBuffer() const { return m_boneVBH; }
 	uint16_t GetIndexBuffer() const { return m_boneIBH; }
 
@@ -37,8 +38,6 @@ public:
 	void Build();
 
 private:
-
-
 	//output
 	std::vector<std::byte> m_vertexBuffer;
 	std::vector<std::byte> m_indexBuffer;
