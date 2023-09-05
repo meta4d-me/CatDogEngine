@@ -6,9 +6,7 @@
 namespace engine
 {
 
-class Bone;
 class SceneWorld;
-class SceneDatabase;
 
 class SkeletonRenderer final : public Renderer
 {

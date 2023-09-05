@@ -12,7 +12,7 @@ namespace engine
 namespace details
 {
 
-cd::Vec3f CalculateBoneTranslate(const cd::Bone& bone,cd::Vec3f& translate, const cd::SceneDatabase* pSceneDatabase)
+cd::Vec3f CalculateBoneTranslate(const cd::Bone& bone, cd::Vec3f& translate, const cd::SceneDatabase* pSceneDatabase)
 {
 	const cd::Bone& parentBone = pSceneDatabase->GetBone(bone.GetParentID().Data());
 	translate += parentBone.GetTransform().GetTranslation();
@@ -22,6 +22,7 @@ cd::Vec3f CalculateBoneTranslate(const cd::Bone& bone,cd::Vec3f& translate, cons
 	}
 	return translate;
 }
+
 void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase, std::byte* currentDataPtr,
 	std::byte* currentIndexPtr, size_t indexTypeSize, uint32_t& vertexOffset, uint32_t& indexOffset)
 {
@@ -46,6 +47,7 @@ void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase,
 		TraverseBone(currBone, pSceneDatabase, currentDataPtr, currentIndexPtr, indexTypeSize, vertexOffset, indexOffset);
 	}
 }
+
 }
 
 void SkeletonRenderer::Init()
@@ -53,6 +55,7 @@ void SkeletonRenderer::Init()
 	GetRenderContext()->CreateProgram("SkeletonProgram", "vs_AABB.bin", "fs_AABB.bin");
 	bgfx::setViewName(GetViewID(), "SkeletonRenderer");
 }
+
 void SkeletonRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
 	UpdateViewRenderTarget();
@@ -83,16 +86,15 @@ void SkeletonRenderer::Build()
 	size_t indexTypeSize = sizeof(uint16_t);
 	m_indexBuffer.resize((vertexCount - 1) * 2 * indexTypeSize);
 	m_vertexBuffer.resize(vertexCount * vertexFormat.GetStride());
-	uint32_t currentDataSize = 0U;
-	uint32_t currentIndexSize = 0U;
-	auto currentDataPtr = m_vertexBuffer.data();
-	auto currentIndexPtr = m_indexBuffer.data();
+	uint32_t currentVertexOffset = 0U;
+	uint32_t currentIndexOffset = 0U;
+	std::byte* pCurrentVertexBuffer = m_vertexBuffer.data();
 	constexpr uint32_t posDataSize = cd::Point::Size * sizeof(cd::Point::ValueType);
 	const cd::Point& position = firstBone.GetTransform().GetTranslation();
-	std::memcpy(&currentDataPtr[currentDataSize], position.Begin(), posDataSize);
-	currentDataSize += posDataSize;
+	std::memcpy(&pCurrentVertexBuffer[currentVertexOffset], position.Begin(), posDataSize);
+	currentVertexOffset += posDataSize;
 
-	details::TraverseBone(firstBone, pSceneDatabase, m_vertexBuffer.data(), m_indexBuffer.data(), indexTypeSize, currentDataSize, currentIndexSize);
+	details::TraverseBone(firstBone, pSceneDatabase, m_vertexBuffer.data(), m_indexBuffer.data(), indexTypeSize, currentVertexOffset, currentIndexOffset);
 	bgfx::VertexLayout vertexLayout;
 	VertexLayoutUtility::CreateVertexLayout(vertexLayout, vertexFormat.GetVertexLayout());
 	m_boneVBH = bgfx::createVertexBuffer(bgfx::makeRef(m_vertexBuffer.data(), static_cast<uint32_t>(m_vertexBuffer.size())), vertexLayout).idx;
