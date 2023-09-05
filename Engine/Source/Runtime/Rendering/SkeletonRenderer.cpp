@@ -70,7 +70,7 @@ void SkeletonRenderer::Build()
 	}
 
 	const cd::Bone& firstBone = pSceneDatabase->GetBone(0);
-	if (0 != firstBone.GetID())
+	if (0 != firstBone.GetID().Data())
 	{
 		CD_ENGINE_WARN("First BoneID is not 0");
 		return;
