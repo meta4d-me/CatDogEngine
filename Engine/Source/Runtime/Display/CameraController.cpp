@@ -365,10 +365,22 @@ void CameraController::CameraFocus(const cd::AABB& aabb)
 	m_movementSpeed = aabb.Size().Length() * 1.5f;
 }
 
+void CameraController::CameraFocus(const cd::Vec3f& position)
+{
+	// this is a tempo
+	m_isMoving = true;
+	m_eyeDestination = position - m_lookAt * m_distanceFromLookAt;
+}
+
 void CameraController::Moving()
 {
 	if (m_isMoving)
 	{
+		if (cd::Math::IsSmallThan((m_eye - m_eyeDestination).Length(), 0.01f))
+		{
+			m_isMoving = false;
+			return;
+		}
 		cd::Direction eyeMove = (m_eye - m_eyeDestination).Normalize();
 		float stepDistance = (m_eye - m_eyeDestination).Length() / 5.0f;
 		m_eye = m_eye - eyeMove * stepDistance;
@@ -376,10 +388,6 @@ void CameraController::Moving()
 		SynchronizeTrackingCamera();
 		ControllerToCamera();
 
-		if (cd::Math::IsSmallThan((m_eye - m_eyeDestination).Length(), 0.01f))
-		{
-			m_isMoving = false;
-		}
 	}
 }
 
