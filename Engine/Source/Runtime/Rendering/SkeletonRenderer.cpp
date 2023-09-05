@@ -83,7 +83,7 @@ void SkeletonRenderer::Build()
 	cd::VertexFormat vertexFormat;
 	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
 
-	size_t indexTypeSize = sizeof(uint16_t);
+	constexpr size_t indexTypeSize = sizeof(uint16_t);
 	m_indexBuffer.resize((vertexCount - 1) * 2 * indexTypeSize);
 	m_vertexBuffer.resize(vertexCount * vertexFormat.GetStride());
 	uint32_t currentVertexOffset = 0U;

@@ -43,8 +43,13 @@ void SkeletonView::DrawBone(cd::SceneDatabase* pSceneDatabase, const cd::Bone& B
 
 void SkeletonView::DrawSkeleton(engine::SceneWorld* pSceneWorld)
 {
-    cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
 
+    cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
+    const uint32_t vertexCount = pSceneDatabase->GetBoneCount();
+    if (0 == vertexCount)
+    {
+        return;
+    }
     const cd::Bone& rootBone = pSceneDatabase->GetBone(0);
     DrawBone(pSceneDatabase, rootBone);
 }
