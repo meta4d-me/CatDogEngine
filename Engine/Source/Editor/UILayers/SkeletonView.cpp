@@ -45,8 +45,7 @@ void SkeletonView::DrawSkeleton(engine::SceneWorld* pSceneWorld)
 {
 
     cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
-    const uint32_t vertexCount = pSceneDatabase->GetBoneCount();
-    if (0 == vertexCount)
+    if (0 == pSceneDatabase->GetBoneCount())
     {
         return;
     }

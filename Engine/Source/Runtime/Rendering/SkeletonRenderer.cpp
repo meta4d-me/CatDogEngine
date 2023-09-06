@@ -12,6 +12,10 @@ namespace engine
 namespace details
 {
 
+constexpr uint32_t posDataSize = cd::Point::Size * sizeof(cd::Point::ValueType);
+
+constexpr size_t indexTypeSize = sizeof(uint16_t);
+
 cd::Vec3f CalculateBoneTranslate(const cd::Bone& bone, cd::Vec3f& translate, const cd::SceneDatabase* pSceneDatabase)
 {
 	const cd::Bone& parentBone = pSceneDatabase->GetBone(bone.GetParentID().Data());
@@ -24,7 +28,7 @@ cd::Vec3f CalculateBoneTranslate(const cd::Bone& bone, cd::Vec3f& translate, con
 }
 
 void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase, std::byte* currentDataPtr,
-	std::byte* currentIndexPtr, size_t indexTypeSize, uint32_t& vertexOffset, uint32_t& indexOffset)
+	std::byte* currentIndexPtr, uint32_t& vertexOffset, uint32_t& indexOffset)
 {
 	constexpr uint32_t posDataSize = cd::Point::Size * sizeof(cd::Point::ValueType);
 	for (auto& child : bone.GetChildIDs())
@@ -44,7 +48,7 @@ void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase,
 		std::memcpy(&currentIndexPtr[indexOffset], &currBoneID, indexTypeSize);
 		indexOffset += static_cast<uint32_t>(indexTypeSize);
 
-		TraverseBone(currBone, pSceneDatabase, currentDataPtr, currentIndexPtr, indexTypeSize, vertexOffset, indexOffset);
+		TraverseBone(currBone, pSceneDatabase, currentDataPtr, currentIndexPtr, vertexOffset, indexOffset);
 	}
 }
 
@@ -89,12 +93,11 @@ void SkeletonRenderer::Build()
 	uint32_t currentVertexOffset = 0U;
 	uint32_t currentIndexOffset = 0U;
 	std::byte* pCurrentVertexBuffer = m_vertexBuffer.data();
-	constexpr uint32_t posDataSize = cd::Point::Size * sizeof(cd::Point::ValueType);
 	const cd::Point& position = firstBone.GetTransform().GetTranslation();
-	std::memcpy(&pCurrentVertexBuffer[currentVertexOffset], position.Begin(), posDataSize);
-	currentVertexOffset += posDataSize;
+	std::memcpy(&pCurrentVertexBuffer[currentVertexOffset], position.Begin(), details::posDataSize);
+	currentVertexOffset += details::posDataSize;
 
-	details::TraverseBone(firstBone, pSceneDatabase, m_vertexBuffer.data(), m_indexBuffer.data(), indexTypeSize, currentVertexOffset, currentIndexOffset);
+	details::TraverseBone(firstBone, pSceneDatabase, m_vertexBuffer.data(), m_indexBuffer.data(), currentVertexOffset, currentIndexOffset);
 	bgfx::VertexLayout vertexLayout;
 	VertexLayoutUtility::CreateVertexLayout(vertexLayout, vertexFormat.GetVertexLayout());
 	m_boneVBH = bgfx::createVertexBuffer(bgfx::makeRef(m_vertexBuffer.data(), static_cast<uint32_t>(m_vertexBuffer.size())), vertexLayout).idx;
