@@ -12,20 +12,20 @@ void ShaderBuilder::BuildUberShader(engine::MaterialType* pMaterialType)
 {
 	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
 
-	// No uber option support for VS now.
+	// No shader feature support for VS now.
 	std::string outputVSFilePath = engine::Path::GetShaderOutputPath(shaderSchema.GetVertexShaderPath());
 	ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Vertex,
 		shaderSchema.GetVertexShaderPath(), outputVSFilePath.c_str());
 
 	// Compile fragment shaders with uber options.
-	for (const auto& combine : shaderSchema.GetUberCombines())
+	for (const auto& combine : shaderSchema.GetFeatureCombines())
 	{
 		std::string outputFSFilePath = engine::Path::GetShaderOutputPath(shaderSchema.GetFragmentShaderPath(), combine);
 		ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Fragment,
 			shaderSchema.GetFragmentShaderPath(), outputFSFilePath.c_str(), combine.c_str());
 	}
 
-	CD_ENGINE_INFO("Shader variant count of material type {0} : {1}", pMaterialType->GetMaterialName(), shaderSchema.GetUberCombines().size());
+	CD_ENGINE_INFO("Shader variant count of material type {0} : {1}", pMaterialType->GetMaterialName(), shaderSchema.GetFeatureCombines().size());
 }
 
 void ShaderBuilder::BuildNonUberShader(std::string folderPath)

@@ -50,17 +50,17 @@ void SceneWorld::CreatePBRMaterialType(bool isAtmosphericScatteringEnable)
 	m_pPBRMaterialType->SetMaterialName("CD_PBR");
 
 	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("shaders/vs_PBR"), Path::GetBuiltinShaderInputPath("shaders/fs_PBR"));
-	shaderSchema.AddUberOption(Uber::ALBEDO_MAP);
-	shaderSchema.AddUberOption(Uber::NORMAL_MAP);
-	shaderSchema.AddUberOption(Uber::ORM_MAP);
-	shaderSchema.AddUberOption(Uber::EMISSIVE_MAP);
-	shaderSchema.AddUberOption(Uber::IBL);
+	shaderSchema.AddFeatureSet({ ShaderFeature::ALBEDO_MAP });
+	shaderSchema.AddFeatureSet({ ShaderFeature::NORMAL_MAP });
+	shaderSchema.AddFeatureSet({ ShaderFeature::ORM_MAP });
+	shaderSchema.AddFeatureSet({ ShaderFeature::EMISSIVE_MAP });
+	std::set<ShaderFeature> envFeatures = { ShaderFeature::IBL };
 	if (isAtmosphericScatteringEnable)
 	{
 		// TODO : Compile atm shader in GL/VK mode correctly.
-		shaderSchema.AddUberOption(Uber::ATM);
-		shaderSchema.SetConflictOptions(Uber::ATM, Uber::IBL);
+		envFeatures.insert(ShaderFeature::ATM);
 	}
+	shaderSchema.AddFeatureSet(cd::MoveTemp(envFeatures));
 	shaderSchema.Build();
 	m_pPBRMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
@@ -104,10 +104,10 @@ void SceneWorld::CreateDDGIMaterialType()
 	m_pDDGIMaterialType->SetMaterialName("CD_DDGI");
 
 	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("shaders/vs_DDGI"), Path::GetBuiltinShaderInputPath("shaders/fs_DDGI"));
-	shaderSchema.AddUberOption(Uber::ALBEDO_MAP);
-	shaderSchema.AddUberOption(Uber::NORMAL_MAP);
-	shaderSchema.AddUberOption(Uber::ORM_MAP);
-	shaderSchema.AddUberOption(Uber::EMISSIVE_MAP);
+	shaderSchema.AddFeatureSet({ ShaderFeature::ALBEDO_MAP });
+	shaderSchema.AddFeatureSet({ ShaderFeature::NORMAL_MAP });
+	shaderSchema.AddFeatureSet({ ShaderFeature::ORM_MAP });
+	shaderSchema.AddFeatureSet({ ShaderFeature::EMISSIVE_MAP });
 	shaderSchema.Build();
 	m_pDDGIMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 

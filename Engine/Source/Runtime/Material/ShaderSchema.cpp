@@ -13,7 +13,7 @@ namespace engine
 namespace
 {
 
-constexpr const char* UberNames[] =
+constexpr const char* ShaderFeatureNames[] =
 {
 	"", // Use empty string to represent default shader option in the name so we can reuse non-uber built shader.
 	"ALBEDOMAP;",
@@ -25,12 +25,12 @@ constexpr const char* UberNames[] =
 	"AREALLIGHT;",
 };
 
-static_assert(static_cast<int>(Uber::COUNT) == sizeof(UberNames) / sizeof(char*),
-	"Uber and names mismatch.");
+static_assert(static_cast<int>(ShaderFeature::COUNT) == sizeof(ShaderFeatureNames) / sizeof(char*),
+	"Shader features and names mismatch.");
 
-constexpr const char* GetUberName(Uber uber)
+CD_FORCEINLINE constexpr const char* GetFeatureName(ShaderFeature feature)
 {
-	return UberNames[static_cast<size_t>(uber)];
+	return ShaderFeatureNames[static_cast<size_t>(feature)];
 }
 
 }
@@ -43,86 +43,80 @@ ShaderSchema::ShaderSchema(std::string vsPath, std::string fsPath)
 	m_isDirty = false;
 }
 
-void ShaderSchema::AddUberOption(Uber uberOption)
+void ShaderSchema::AddFeatureSet(ShaderFeatureSet featureSet)
 {
-	if (std::find(m_uberOptions.begin(), m_uberOptions.end(), uberOption) != m_uberOptions.end())
+	for (const auto& existingFeatureSet : m_shaderFeatureSets)
 	{
-		CD_ENGINE_TRACE("Uber option {0} already has been registered!", GetUberName(uberOption));
-		return;
-	}
-	
-	m_isDirty = true;
-	m_uberOptions.emplace_back(uberOption);
-}
-
-void ShaderSchema::SetConflictOptions(Uber a, Uber b)
-{
-	const auto& range = m_conflictOptions.equal_range(GetUberName(a));
-	for (auto conflict = range.first; conflict != range.second; ++conflict)
-	{
-		if (conflict->second == GetUberName(b))
+		for (const auto& newFeature : featureSet)
 		{
-			CD_ENGINE_TRACE("Conflict uber option combine ({0}, {1}) are already exist.", GetUberName(a), GetUberName(b));
-			return;
+			if (existingFeatureSet.find(newFeature) != existingFeatureSet.end())
+			{
+				CD_ENGINE_WARN("Shader feature {0} repetitive, skip adding current feature set!", GetFeatureName(newFeature));
+				return;
+			}
 		}
 	}
 
 	m_isDirty = true;
-	m_conflictOptions.emplace(GetUberName(a), GetUberName(b));
-	m_conflictOptions.emplace(GetUberName(b), GetUberName(a));
+	m_shaderFeatureSets.emplace_back(cd::MoveTemp(featureSet));
 }
 
 void ShaderSchema::Build()
 {
 	if (!m_isDirty)
 	{
-		CD_ENGINE_TRACE("Uber shader options have no changes since the last build.");
+		CD_ENGINE_TRACE("Shader features have no changes since the last build.");
 		return;
 	}
 
 	CleanBuild();
 	m_isDirty = false;
 
-	for(auto itOption = m_uberOptions.begin(); itOption != m_uberOptions.end(); ++itOption)
+	for (const auto& featureSet : m_shaderFeatureSets)
 	{
-		std::string newOption = GetUberName(*itOption);
-		std::vector<std::string> newOptions = { newOption };
-		const auto& conflictRange = m_conflictOptions.equal_range(newOption);
-
-		for(const auto& cobine : m_uberCombines)
+		for (const auto& feature : featureSet)
 		{
-			bool isConflict = false;
-			for (auto conflict = conflictRange.first; conflict != conflictRange.second; ++conflict)
+			std::string newFeatureName = GetFeatureName(feature);
+			std::vector<std::string> newFeatureCombines = { newFeatureName };
+
+			for (const auto& combine : m_featureCombines)
 			{
-				if (cobine.find(conflict->second) != std::string::npos)
+				// Skip combination which has features in same set.
+				bool skip = false;
+				for (const auto& conflict : featureSet)
 				{
-					// Skip conflict uber option combine.
-					isConflict = true;
-					break;
+					if (conflict == feature)
+					{
+						continue;
+					}
+					if (combine.find(GetFeatureName(conflict)) != std::string::npos)
+					{
+						skip = true;
+						break;
+					}
+				}
+				if (!skip)
+				{
+					newFeatureCombines.emplace_back(combine + newFeatureName);
 				}
 			}
-			if (!isConflict)
+			m_featureCombines.insert(m_featureCombines.end(), newFeatureCombines.begin(), newFeatureCombines.end());
+			for (const auto& combine : newFeatureCombines)
 			{
-				newOptions.emplace_back(cobine + newOption);
+				assert(!IsFeaturesValid(StringCrc(combine)));
+				m_compiledProgramHandles[StringCrc(combine).Value()] = InvalidProgramHandle;
 			}
-		}
-		m_uberCombines.insert(m_uberCombines.end(), newOptions.begin(), newOptions.end());
-
-		for (const auto& newOpt : newOptions)
-		{
-			assert(!IsUberOptionsValid(StringCrc(newOpt)));
-			m_compiledProgramHandles[StringCrc(newOpt).Value()] = InvalidProgramHandle;
 		}
 	}
 
 	// ShaderSchema also handle non-uber case.
-	m_uberCombines.emplace_back("");
+	m_featureCombines.emplace_back("");
 	m_compiledProgramHandles[DefaultUberShaderCrc.Value()] = InvalidProgramHandle;
 }
 
 void ShaderSchema::CleanBuild()
 {
-	m_uberCombines.clear();
+	m_featureCombines.clear();
 	m_compiledProgramHandles.clear();
 	m_isDirty = true;
 }
@@ -132,23 +126,22 @@ void ShaderSchema::CleanAll()
 	CleanBuild();
 	m_isDirty = false;
 
-	m_uberOptions.clear();
-	m_conflictOptions.clear();
+	m_shaderFeatureSets.clear();
 }
 
-void ShaderSchema::SetCompiledProgram(StringCrc uberOption, uint16_t programHandle)
+void ShaderSchema::SetCompiledProgram(StringCrc shaderFeaturesCrc, uint16_t programHandle)
 {
-	assert(IsUberOptionsValid(uberOption));
-	m_compiledProgramHandles[uberOption.Value()] = programHandle;
+	assert(IsFeaturesValid(shaderFeaturesCrc));
+	m_compiledProgramHandles[shaderFeaturesCrc.Value()] = programHandle;
 }
 
-uint16_t ShaderSchema::GetCompiledProgram(StringCrc uberOption) const
+uint16_t ShaderSchema::GetCompiledProgram(StringCrc shaderFeaturesCrc) const
 {
-	auto itProgram = m_compiledProgramHandles.find(uberOption.Value());
+	auto itProgram = m_compiledProgramHandles.find(shaderFeaturesCrc.Value());
 
 	if (itProgram == m_compiledProgramHandles.end())
 	{
-		CD_ENGINE_ERROR("Unregistered uber shader options!");
+		CD_ENGINE_ERROR("Unregistered shader features!");
 		return InvalidProgramHandle;
 	}
 
@@ -156,39 +149,43 @@ uint16_t ShaderSchema::GetCompiledProgram(StringCrc uberOption) const
 
 	if (programHandle == InvalidProgramHandle)
 	{
-		CD_ENGINE_ERROR("Uncompiled uber shader options！");
+		CD_ENGINE_ERROR("Uncompiled shader features");
 		return InvalidProgramHandle;
 	}
 
 	return programHandle;
 }
 
-StringCrc ShaderSchema::GetOptionsCrc(const std::unordered_set<Uber>& options) const
+StringCrc ShaderSchema::GetFeaturesCrc(const ShaderFeatureSet& featureSet) const
 {
-	if (options.empty())
+	if (featureSet.empty())
 	{
 		return DefaultUberShaderCrc;
 	}
 
 	std::stringstream ss;
-	// Use the option order in m_uberOptions to ensure that inputs in different orders can get the same optionsCrc.
-	for (const auto& registered : m_uberOptions)
+	// Use the option order in m_shaderFeatureSets to ensure that inputs in different orders can get the same optionsCrc.
+	for (const auto& registeredSet : m_shaderFeatureSets)
 	{
-		// Ignore option which contain in parameter but not contain in m_uberOptions.
-		if (options.find(registered) != options.end())
+		// Ignore option which contain in parameter but not contain in m_shaderFeatureSets.
+		for (const auto& registeredFeature : registeredSet)
 		{
-			ss << GetUberName(registered);
+			if (featureSet.find(registeredFeature) != featureSet.end())
+			{
+				ss << GetFeatureName(registeredFeature);
+			}
 		}
+
 	}
 	return StringCrc(ss.str());
 }
 
-bool ShaderSchema::IsUberOptionsValid(StringCrc uberOption) const
+bool ShaderSchema::IsFeaturesValid(StringCrc shaderFeatures) const
 {
-	return m_compiledProgramHandles.find(uberOption.Value()) != m_compiledProgramHandles.end();
+	return m_compiledProgramHandles.find(shaderFeatures.Value()) != m_compiledProgramHandles.end();
 }
 
-void ShaderSchema::AddUberOptionVSBlob(ShaderBlob shaderBlob)
+void ShaderSchema::AddUberVSBlob(ShaderBlob shaderBlob)
 {
 	if (m_pVSBlob)
 	{
@@ -199,20 +196,20 @@ void ShaderSchema::AddUberOptionVSBlob(ShaderBlob shaderBlob)
 	m_pVSBlob = std::make_unique<ShaderBlob>(cd::MoveTemp(shaderBlob));
 }
 
-void ShaderSchema::AddUberOptionFSBlob(StringCrc uberOption, ShaderBlob shaderBlob)
+void ShaderSchema::AddUberFSBlob(StringCrc shaderFeaturesCrc, ShaderBlob shaderBlob)
 {
-	if (m_uberOptionToFSBlobs.find(uberOption.Value()) != m_uberOptionToFSBlobs.end())
+	if (m_shaderFeaturesToFSBlobs.find(shaderFeaturesCrc.Value()) != m_shaderFeaturesToFSBlobs.end())
 	{
 		return;
 	}
 
-	m_uberOptionToFSBlobs[uberOption.Value()] = std::make_unique<ShaderBlob>(cd::MoveTemp(shaderBlob));
+	m_shaderFeaturesToFSBlobs[shaderFeaturesCrc.Value()] = std::make_unique<ShaderBlob>(cd::MoveTemp(shaderBlob));
 }
 
-const ShaderSchema::ShaderBlob& ShaderSchema::GetFSBlob(StringCrc uberOption) const
+const ShaderSchema::ShaderBlob& ShaderSchema::GetFSBlob(StringCrc shaderFeaturesCrc) const
 {
-	auto itBlob = m_uberOptionToFSBlobs.find(uberOption.Value());
-	assert(itBlob != m_uberOptionToFSBlobs.end());
+	auto itBlob = m_shaderFeaturesToFSBlobs.find(shaderFeaturesCrc.Value());
+	assert(itBlob != m_shaderFeaturesToFSBlobs.end());
 	return *(itBlob->second.get());
 }
 
