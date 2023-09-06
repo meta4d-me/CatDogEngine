@@ -28,6 +28,9 @@ public:
     
 	uint16_t GetWidth() const { return m_width; }
 	uint16_t GetHeight() const { return m_height; }
+    
+    const bool GetInputFocus() const;
+    const bool GetMouseFocus() const;
 
     void SetTitle(const char* pTitle);
     void SetFullScreen(bool flag);
