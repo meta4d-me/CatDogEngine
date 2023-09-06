@@ -22,6 +22,7 @@
 #include "Rendering/BloomRenderer.h"
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
+#include "Rendering/SkeletonRenderer.h"
 #include "Rendering/SkyboxRenderer.h"
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
@@ -39,6 +40,7 @@
 #include "UILayers/MainMenu.h"
 #include "UILayers/OutputLog.h"
 #include "UILayers/SceneView.h"
+#include "UILayers/SkeletonView.h"
 #include "UILayers/Splash.h"
 #include "UILayers/TestNodeEditor.h"
 #include "Window/Input.h"
@@ -172,6 +174,7 @@ void EditorApp::InitEditorUILayers()
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
 
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
+	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<SkeletonView>("SkeletonView"));
 
 	auto pAssetBrowser = std::make_unique<AssetBrowser>("AssetBrowser");
 	pAssetBrowser->SetSceneRenderer(m_pSceneRenderer);
@@ -409,6 +412,10 @@ void EditorApp::InitEngineRenderers()
 	auto pParticlerenderer = std::make_unique<engine::ParticleRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pParticlerenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pParticlerenderer));
+
+	auto pSkeletonRenderer = std::make_unique<engine::SkeletonRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pSkeletonRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pSkeletonRenderer));
 
 #ifdef ENABLE_DDGI
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
