@@ -37,12 +37,13 @@ class SceneWorld
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Light);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Material);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Name);
+	DEFINE_COMPONENT_STORAGE_WITH_APIS(ShaderVariantCollections);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Sky);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(StaticMesh);
-	DEFINE_COMPONENT_STORAGE_WITH_APIS(Terrain);
-	DEFINE_COMPONENT_STORAGE_WITH_APIS(Transform);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Particle);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(ParticleEmitter);
+	DEFINE_COMPONENT_STORAGE_WITH_APIS(Terrain);
+	DEFINE_COMPONENT_STORAGE_WITH_APIS(Transform);
 
 public:
 	SceneWorld();
@@ -70,6 +71,9 @@ public:
 	void SetSkyEntity(engine::Entity entity);
 	CD_FORCEINLINE engine::Entity GetSkyEntity() const { return m_skyEntity; }
 
+	void SetShaderVariantCollectionEntity(engine::Entity entity);
+	CD_FORCEINLINE engine::Entity GetShaderVariantCollectionEntity() const { return m_shaderVariantCollectionEntity; }
+
 	void DeleteEntity(engine::Entity entity)
 	{
 		if (entity == m_mainCameraEntity)
@@ -94,12 +98,13 @@ public:
 		DeleteLightComponent(entity);
 		DeleteMaterialComponent(entity);
 		DeleteNameComponent(entity);
+		DeleteShaderVariantCollectionsComponent(entity);
 		DeleteSkyComponent(entity);
 		DeleteStaticMeshComponent(entity);
-		DeleteTerrainComponent(entity);
-		DeleteTransformComponent(entity);
 		DeleteParticleComponent(entity);
 		DeleteParticleEmitterComponent(entity);
+		DeleteTerrainComponent(entity);
+		DeleteTransformComponent(entity);
 	}
 
 	void CreatePBRMaterialType(bool isAtmosphericScatteringEnable = false);
@@ -138,10 +143,14 @@ private:
 	// TODO : wrap them into another class?
 	engine::Entity m_selectedEntity = engine::INVALID_ENTITY;
 	engine::Entity m_mainCameraEntity = engine::INVALID_ENTITY;
+
+	// TODO : wrap them to project data.
+	engine::Entity m_skyEntity = engine::INVALID_ENTITY;
+	engine::Entity m_shaderVariantCollectionEntity = engine::INVALID_ENTITY;
+
 #ifdef ENABLE_DDGI
 	engine::Entity m_ddgiEntity = engine::INVALID_ENTITY;
 #endif
-	engine::Entity m_skyEntity = engine::INVALID_ENTITY;
 };
 
 }
