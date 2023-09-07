@@ -158,7 +158,7 @@ uint16_t ShaderSchema::GetCompiledProgram(StringCrc shaderFeaturesCrc) const
 
 StringCrc ShaderSchema::GetFeaturesCrc(const ShaderFeatureSet& featureSet) const
 {
-	if (featureSet.empty())
+	if (m_shaderFeatureSets.empty() || featureSet.empty())
 	{
 		return DefaultUberShaderCrc;
 	}
