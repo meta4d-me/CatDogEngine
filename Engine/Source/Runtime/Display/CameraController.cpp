@@ -367,7 +367,6 @@ void CameraController::CameraFocus(const cd::AABB& aabb)
 
 void CameraController::CameraFocus(const cd::Vec3f& position)
 {
-	// this is a tempo
 	m_isMoving = true;
 	m_eyeDestination = position - m_lookAt * m_distanceFromLookAt;
 }
