@@ -17,7 +17,6 @@ public:
 
 	void DrawBone(cd::SceneDatabase* pSceneDatabase,const cd::Bone& Bone);
 	void DrawSkeleton(engine::SceneWorld* pSceneWorld);
-
 };
 
 }
