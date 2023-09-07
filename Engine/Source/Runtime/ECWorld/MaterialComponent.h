@@ -93,8 +93,8 @@ public:
 	const std::string& GetName() const { return m_name; }
 
 	// Uber shader data.
-	void ActiveShaderFeature(engine::ShaderFeature option);
-	void DeactiveShaderFeature(engine::ShaderFeature option);
+	void ActiveShaderFeature(ShaderFeature feature);
+	void DeactiveShaderFeature(ShaderFeature feature);
 	void MatchUberShaderCrc();
 	uint16_t GetShadreProgram() const;
 

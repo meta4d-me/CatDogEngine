@@ -51,7 +51,7 @@ void ShaderSchema::AddFeatureSet(ShaderFeatureSet featureSet)
 		{
 			if (existingFeatureSet.find(newFeature) != existingFeatureSet.end())
 			{
-				CD_ENGINE_WARN("Shader feature {0} repetitive, skip adding current feature set!", GetFeatureName(newFeature));
+				CD_ENGINE_WARN("Shader feature {0} repetitive, skip current feature set adding!", GetFeatureName(newFeature));
 				return;
 			}
 		}
@@ -180,9 +180,9 @@ StringCrc ShaderSchema::GetFeaturesCrc(const ShaderFeatureSet& featureSet) const
 	return StringCrc(ss.str());
 }
 
-bool ShaderSchema::IsFeaturesValid(StringCrc shaderFeatures) const
+bool ShaderSchema::IsFeaturesValid(StringCrc shaderFeaturesCrc) const
 {
-	return m_compiledProgramHandles.find(shaderFeatures.Value()) != m_compiledProgramHandles.end();
+	return m_compiledProgramHandles.find(shaderFeaturesCrc.Value()) != m_compiledProgramHandles.end();
 }
 
 void ShaderSchema::AddUberVSBlob(ShaderBlob shaderBlob)

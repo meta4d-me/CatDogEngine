@@ -138,14 +138,14 @@ const MaterialComponent::TextureInfo* MaterialComponent::GetTextureInfo(cd::Mate
 	return &itTextureInfo->second;
 }
 
-void MaterialComponent::ActiveShaderFeature(engine::ShaderFeature option)
+void MaterialComponent::ActiveShaderFeature(engine::ShaderFeature feature)
 {
-	m_shaderFeatures.insert(option);
+	m_shaderFeatures.insert(feature);
 }
 
-void MaterialComponent::DeactiveShaderFeature(engine::ShaderFeature option)
+void MaterialComponent::DeactiveShaderFeature(engine::ShaderFeature feature)
 {
-	m_shaderFeatures.erase(option);
+	m_shaderFeatures.erase(feature);
 }
 
 void MaterialComponent::MatchUberShaderCrc()

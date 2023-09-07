@@ -73,7 +73,7 @@ public:
 	uint16_t GetCompiledProgram(StringCrc shaderFeaturesCrc) const;
 
 	StringCrc GetFeaturesCrc(const ShaderFeatureSet& featureSet) const;
-	bool IsFeaturesValid(StringCrc uberOption) const;
+	bool IsFeaturesValid(StringCrc shaderFeaturesCrc) const;
 
 	std::vector<ShaderFeatureSet>& GetFeatures() { return m_shaderFeatureSets; }
 	const std::vector<ShaderFeatureSet>& GetFeatures() const { return m_shaderFeatureSets; }

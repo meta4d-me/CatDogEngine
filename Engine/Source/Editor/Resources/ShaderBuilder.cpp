@@ -17,7 +17,7 @@ void ShaderBuilder::BuildUberShader(engine::MaterialType* pMaterialType)
 	ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Vertex,
 		shaderSchema.GetVertexShaderPath(), outputVSFilePath.c_str());
 
-	// Compile fragment shaders with uber options.
+	// Compile fragment shaders with shader features.
 	for (const auto& combine : shaderSchema.GetFeatureCombines())
 	{
 		std::string outputFSFilePath = engine::Path::GetShaderOutputPath(shaderSchema.GetFragmentShaderPath(), combine);
