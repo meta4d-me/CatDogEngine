@@ -171,19 +171,19 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 			ImGuiUtils::ImGuiStringProperty("Fragment Shader", pMaterialComponent->GetFragmentShaderName());
 			ImGui::Separator();
 
-			std::vector<const char*> activeUberOptions;
-			for (const auto& uber : pMaterialComponent->GetUberShaderOptions())
+			std::vector<const char*> activeShaderFeatures;
+			for (const auto& feature : pMaterialComponent->GetShaderFeatures())
 			{
-				activeUberOptions.emplace_back(nameof::nameof_enum(uber).data());
+				activeShaderFeatures.emplace_back(nameof::nameof_enum(feature).data());
 			}
 
-			if (!activeUberOptions.empty())
+			if (!activeShaderFeatures.empty())
 			{
-				if (ImGui::BeginCombo("##combo", "Active uber options"))
+				if (ImGui::BeginCombo("##combo", "Active shader features"))
 				{
-					for (size_t index = 0; index < activeUberOptions.size(); ++index)
+					for (size_t index = 0; index < activeShaderFeatures.size(); ++index)
 					{
-						ImGui::Selectable(activeUberOptions[index], false);
+						ImGui::Selectable(activeShaderFeatures[index], false);
 					}
 					ImGui::EndCombo();
 				}
