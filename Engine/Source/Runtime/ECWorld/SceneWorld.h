@@ -38,6 +38,7 @@ class SceneWorld
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Material);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Name);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(ShaderVariantCollections);
+	DEFINE_COMPONENT_STORAGE_WITH_APIS(SkinMesh);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Sky);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(StaticMesh);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Particle);
@@ -59,6 +60,9 @@ public:
 
 	void SetSelectedEntity(engine::Entity entity);
 	CD_FORCEINLINE engine::Entity GetSelectedEntity() const { return m_selectedEntity; }
+
+	void SetSelectedBoneID(cd::BoneID boneID);
+	CD_FORCEINLINE cd::BoneID GetSelectedBoneID() const { return m_selectedBoneID; }
 
 	void SetMainCameraEntity(engine::Entity entity);
 	CD_FORCEINLINE engine::Entity GetMainCameraEntity() const { return m_mainCameraEntity; }
@@ -99,6 +103,7 @@ public:
 		DeleteMaterialComponent(entity);
 		DeleteNameComponent(entity);
 		DeleteShaderVariantCollectionsComponent(entity);
+		DeleteSkinMeshComponent(entity);
 		DeleteSkyComponent(entity);
 		DeleteStaticMeshComponent(entity);
 		DeleteParticleComponent(entity);
@@ -141,6 +146,7 @@ private:
 	std::unique_ptr<engine::MaterialType> m_pDDGIMaterialType;
 
 	// TODO : wrap them into another class?
+	cd::BoneID m_selectedBoneID = cd::BoneID::InvalidID;
 	engine::Entity m_selectedEntity = engine::INVALID_ENTITY;
 	engine::Entity m_mainCameraEntity = engine::INVALID_ENTITY;
 

@@ -3,6 +3,13 @@
 #include "Scene/Bone.h"
 #include "Scene/SceneDatabase.h"
 
+namespace engine
+{
+
+class CameraController;
+
+}
+
 namespace editor
 {
 
@@ -15,8 +22,13 @@ public:
 	virtual void Init() override;
 	virtual void Update() override;
 
-	void DrawBone(cd::SceneDatabase* pSceneDatabase,const cd::Bone& Bone);
+	void DrawBone(engine::SceneWorld* pSceneWorld, const cd::Bone& Bone);
 	void DrawSkeleton(engine::SceneWorld* pSceneWorld);
+
+	void SetCameraController(engine::CameraController* pCameraController) { m_pCameraController = pCameraController; }
+
+private:
+	engine::CameraController* m_pCameraController = nullptr;
 };
 
 }

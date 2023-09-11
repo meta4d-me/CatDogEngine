@@ -33,6 +33,7 @@ SceneWorld::SceneWorld()
 	m_pMaterialComponentStorage = m_pWorld->Register<engine::MaterialComponent>();
 	m_pNameComponentStorage = m_pWorld->Register<engine::NameComponent>();
 	m_pShaderVariantCollectionsComponentStorage = m_pWorld->Register<engine::ShaderVariantCollectionsComponent>();
+	m_pSkinMeshComponentStorage = m_pWorld->Register<engine::SkinMeshComponent>();
 	m_pSkyComponentStorage = m_pWorld->Register<engine::SkyComponent>();
 	m_pStaticMeshComponentStorage = m_pWorld->Register<engine::StaticMeshComponent>();
 	m_pParticleComponentStorage = m_pWorld->Register<engine::ParticleComponent>();
@@ -144,6 +145,11 @@ void SceneWorld::CreateTerrainMaterialType()
 	m_pTerrainMaterialType->SetRequiredVertexFormat(cd::MoveTemp(terrainVertexFormat));
 }
 
+void SceneWorld::SetSelectedBoneID(cd::BoneID boneID)
+{
+	CD_TRACE("Select BoneID : {0}", boneID.Data());
+	m_selectedBoneID = boneID;
+}
 
 void SceneWorld::SetSelectedEntity(engine::Entity entity)
 {

@@ -2,6 +2,7 @@
 
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/SceneWorld.h"
+#include "ECWorld/SkinMeshComponent.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
 #include "ImGui/ImGuiContextInstance.h"
@@ -27,18 +28,19 @@ void ImGuizmoView::Init()
 void ImGuizmoView::Update()
 {
 	engine::SceneWorld* pSceneWorld = GetSceneWorld();
+	cd::SceneDatabase* pSceneDatabese = pSceneWorld->GetSceneDatabase();
 	engine::Entity selectedEntity = pSceneWorld->GetSelectedEntity();
+	cd::BoneID selectedBoneID = pSceneWorld->GetSelectedBoneID();
 
-	if (engine::INVALID_ENTITY == selectedEntity)
+	if (engine::INVALID_ENTITY == selectedEntity && cd::BoneID::InvalidID == selectedBoneID)
 	{
 		return;
 	}
 
+	cd::Matrix4x4 worldMatrix = cd::Matrix4x4::Identity();
+	cd::Matrix4x4 deltaMatrix = cd::Matrix4x4::Identity();
 	engine::TransformComponent* pTransformComponent = pSceneWorld->GetTransformComponent(selectedEntity);
-	if (!pTransformComponent)
-	{
-		return;
-	}
+	engine::SkinMeshComponent* pSkinMeshComponent = pSceneWorld->GetSkinMeshComponent(selectedEntity);
 
 	ImGuizmo::OPERATION operation = m_pSceneView->GetImGuizmoOperation();
 	const engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
@@ -48,18 +50,32 @@ void ImGuizmoView::Update()
 	ImGuizmo::SetOrthographic(!isPerspective);
 	ImGuiIO& io = ImGui::GetIO();
 	ImGuizmo::SetRect(0.0f, 0.0f, ImGui::GetIO().DisplaySize.x, io.DisplaySize.y);
-	cd::Matrix4x4 worldMatrix = pTransformComponent->GetWorldMatrix();
-	ImGuizmo::Manipulate(pCameraComponent->GetViewMatrix().Begin(), pCameraComponent->GetProjectionMatrix().Begin(),
-		operation, ImGuizmo::LOCAL, worldMatrix.Begin());
+	if (engine::INVALID_ENTITY != selectedEntity && pTransformComponent)
+	{
+		cd::Matrix4x4 worldMatrix = pTransformComponent->GetWorldMatrix();
+		ImGuizmo::Manipulate(pCameraComponent->GetViewMatrix().Begin(), pCameraComponent->GetProjectionMatrix().Begin(),
+			operation, ImGuizmo::LOCAL, worldMatrix.Begin());
+	}
+	if (cd::BoneID::InvalidID != selectedBoneID && pSkinMeshComponent)
+	{
+		uint32_t index = selectedBoneID.Data();
+		auto matrices = pSkinMeshComponent->GetBoneChangeMatrices();
+		cd::Matrix4x4 worldMatrix = pSkinMeshComponent->GetBoneMatrix(index);
+		ImGuizmo::Manipulate(pCameraComponent->GetViewMatrix().Begin(), pCameraComponent->GetProjectionMatrix().Begin(),
+			operation, ImGuizmo::LOCAL, worldMatrix.Begin(), deltaMatrix.Begin());
+	}
 
 	if (ImGuizmo::IsUsing())
 	{
 		if (ImGuizmo::OPERATION::TRANSLATE & operation)
 		{
-			pTransformComponent->GetTransform().SetTranslation(worldMatrix.GetTranslation());
-			pTransformComponent->Dirty();
+			if (pTransformComponent)
+			{
+				pTransformComponent->GetTransform().SetTranslation(worldMatrix.GetTranslation());
+				pTransformComponent->Dirty();
+			}
 		}
-		
+
 		if (ImGuizmo::OPERATION::ROTATE & operation)
 		{
 			pTransformComponent->GetTransform().SetRotation(cd::Quaternion::FromMatrix(worldMatrix.GetRotation()));
@@ -73,6 +89,11 @@ void ImGuizmoView::Update()
 		}
 
 		pTransformComponent->Build();
+		if (pSkinMeshComponent)
+		{
+			//pSkinMeshComponent->SetBoneMatrix(selectedBoneID.Data(), worldMatrix);
+			pSkinMeshComponent->SetBoneChangeMatrix(selectedBoneID.Data(), deltaMatrix);
+		}
 	}
 }
 

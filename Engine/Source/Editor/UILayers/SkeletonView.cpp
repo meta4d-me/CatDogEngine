@@ -1,5 +1,6 @@
 #include "SkeletonView.h"
 
+#include "Display/CameraController.h"
 #include "ECWorld/SceneWorld.h"
 #include <imgui/imgui.h>
 #include <ImGui/IconFont/IconsMaterialDesignIcons.h>
@@ -13,11 +14,12 @@ SkeletonView::~SkeletonView()
 }
 void SkeletonView::Init()
 {
-   
+
 }
 
-void SkeletonView::DrawBone(cd::SceneDatabase* pSceneDatabase, const cd::Bone& Bone)
+void SkeletonView::DrawBone(engine::SceneWorld* pSceneWorld, const cd::Bone& Bone)
 {
+    cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
     if (Bone.GetChildIDs().empty())
     {
         ImGui::Selectable(Bone.GetName());
@@ -26,15 +28,30 @@ void SkeletonView::DrawBone(cd::SceneDatabase* pSceneDatabase, const cd::Bone& B
         return;
     }
 
-    bool isOpen = ImGui::TreeNode(Bone.GetName());
+    bool isOpen = ImGui::TreeNodeEx(Bone.GetName(), ImGuiTreeNodeFlags_OpenOnArrow);
+    if (ImGui::IsItemClicked())
+    {
+        if (ImGui::IsMouseDoubleClicked(0))
+        {
+            pSceneWorld->SetSelectedBoneID(Bone.GetID());
+            if (auto* pSkinMeshComponent = pSceneWorld->GetSkinMeshComponent(pSceneWorld->GetSelectedEntity()))
+            {
+                if (m_pCameraController)
+                {
+                    const cd::Vec3f& position = pSkinMeshComponent->GetBoneMatrix(pSceneWorld->GetSelectedBoneID().Data()).GetTranslation();
+                    m_pCameraController->CameraFocus(position);
+                }
+            }
+        }
+    }
     ImGui::SameLine();
     ImGui::Text(reinterpret_cast<const char*>(ICON_MDI_BONE));
-    if(isOpen)
+    if (isOpen)
     {
         for (auto& child : Bone.GetChildIDs())
         {
             const cd::Bone& bone = pSceneDatabase->GetBone(child.Data());
-            DrawBone(pSceneDatabase, bone);
+            DrawBone(pSceneWorld, bone);
         }
 
         ImGui::TreePop();
@@ -49,13 +66,12 @@ void SkeletonView::DrawSkeleton(engine::SceneWorld* pSceneWorld)
         return;
     }
     const cd::Bone& rootBone = pSceneDatabase->GetBone(0);
-    DrawBone(pSceneDatabase, rootBone);
+    DrawBone(pSceneWorld, rootBone);
 }
 
 void SkeletonView::Update()
 {
-    constexpr auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
-    ImGui::Begin(GetName(), &m_isEnable, flags);
+    ImGui::Begin(GetName(), &m_isEnable);
     engine::SceneWorld* pSceneWorld = GetSceneWorld();
     engine::Entity selectedEntity = pSceneWorld->GetSelectedEntity();
     if (engine::INVALID_ENTITY == selectedEntity)
@@ -65,7 +81,7 @@ void SkeletonView::Update()
     }
     engine::AnimationComponent* pAnimationConponent = pSceneWorld->GetAnimationComponent(selectedEntity);
     if (pAnimationConponent)
-    { 
+    {
         DrawSkeleton(pSceneWorld);
     }
 

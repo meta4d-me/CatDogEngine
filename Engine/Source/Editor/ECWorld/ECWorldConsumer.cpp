@@ -10,6 +10,7 @@
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ResourceLoader.h"
 #include "Resources/ShaderBuilder.h"
+#include "Rendering/Utility/VertexLayoutUtility.h"
 #include "Scene/SceneDatabase.h"
 
 #include <algorithm>
@@ -35,6 +36,56 @@ const std::unordered_map<cd::MaterialTextureType, engine::ShaderFeature> materia
 CD_FORCEINLINE bool IsMaterialTextureTypeValid(cd::MaterialTextureType type)
 {
 	return materialTextureTypeToShaderFeature.find(type) != materialTextureTypeToShaderFeature.end();
+}
+
+constexpr uint32_t posDataSize = cd::Point::Size * sizeof(cd::Point::ValueType);
+
+constexpr uint32_t indexDataSize = sizeof(uint16_t) * 4;
+
+constexpr size_t indexTypeSize = sizeof(uint16_t);
+
+cd::Vec3f CalculateBoneTranslate(const cd::Bone& bone, cd::Vec3f& translate, const cd::SceneDatabase* pSceneDatabase)
+{
+	const cd::Bone& parentBone = pSceneDatabase->GetBone(bone.GetParentID().Data());
+	translate += parentBone.GetTransform().GetTranslation();
+	if (0U != bone.GetParentID().Data())
+	{
+		CalculateBoneTranslate(parentBone, translate, pSceneDatabase);
+	}
+	return translate;
+}
+
+void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase, engine::SkinMeshComponent& skinmeshComponent, std::byte* currentDataPtr,
+	std::byte* currentIndexPtr, uint32_t& vertexOffset, uint32_t& indexOffset)
+{
+	for (auto& child : bone.GetChildIDs())
+	{
+		const cd::Bone& currBone = pSceneDatabase->GetBone(child.Data());
+		const cd::Bone& parent = pSceneDatabase->GetBone(currBone.GetParentID().Data());
+		cd::Vec3f translate = currBone.GetOffset().GetTranslation();
+
+		//const cd::Vec3f position = details::CalculateBoneTranslate(currBone, translate, pSceneDatabase);
+
+		uint16_t parentID = currBone.GetParentID().Data();
+		uint16_t currBoneID = currBone.GetID().Data();
+		std::memcpy(&currentDataPtr[vertexOffset], translate.Begin(), posDataSize);
+		vertexOffset += posDataSize;
+
+		uint16_t boneID[4] = { currBoneID, 0, 0, 0 };
+		std::memcpy(&currentDataPtr[vertexOffset], boneID, indexDataSize);
+		vertexOffset += indexDataSize;
+
+		std::memcpy(&currentIndexPtr[indexOffset], &parentID, indexTypeSize);
+		indexOffset += static_cast<uint32_t>(indexTypeSize);
+
+		std::memcpy(&currentIndexPtr[indexOffset], &currBoneID, indexTypeSize);
+		indexOffset += static_cast<uint32_t>(indexTypeSize);
+
+		const cd::Matrix4x4& boneMatrix = currBone.GetOffset();
+		skinmeshComponent.SetBoneMatrix(currBoneID, boneMatrix);
+
+		TraverseBone(currBone, pSceneDatabase, skinmeshComponent, currentDataPtr, currentIndexPtr, vertexOffset, indexOffset);
+	}
 }
 
 } // namespace Detail
@@ -82,6 +133,7 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 			// Currently, we assume that imported SkinMesh will play animation automatically for testing.
 			AddAnimation(meshEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
 			AddMaterial(meshEntity, nullptr, pMaterialType, pSceneDatabase);
+			AddSkeleton(meshEntity, pSceneDatabase);
 		}
 	};
 
@@ -370,6 +422,61 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	}
 
 	materialComponent.Build();
+}
+
+void ECWorldConsumer::AddSkeleton(engine::Entity entity, const cd::SceneDatabase* pSceneDatabase)
+{
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+	engine::SkinMeshComponent& skinmeshComponent = pWorld->CreateComponent<engine::SkinMeshComponent>(entity);
+	const uint32_t boneCount = pSceneDatabase->GetBoneCount();
+	if (0 == boneCount)
+	{
+		return;
+	}
+
+	const cd::Bone& firstBone = pSceneDatabase->GetBone(0);
+	if (0 != firstBone.GetID().Data())
+	{
+		CD_ENGINE_WARN("First BoneID is not 0");
+		return;
+	}
+	static std::vector<std::byte> vertexBuffer;
+	static std::vector<std::byte> indexBuffer;
+
+	cd::VertexFormat vertexFormat;
+	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
+	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::BoneIndex, cd::AttributeValueType::Int16, 4U);
+
+	constexpr size_t indexTypeSize = sizeof(uint16_t);
+	indexBuffer.resize((boneCount - 1) * 2 * indexTypeSize);
+	vertexBuffer.resize(boneCount * vertexFormat.GetStride());
+	skinmeshComponent.SetBoneMatricesSize(boneCount);
+	uint32_t currentVertexOffset = 0U;
+	uint32_t currentIndexOffset = 0U;
+	std::byte* pCurrentVertexBuffer = vertexBuffer.data();
+	const cd::Point& position = firstBone.GetOffset().GetTranslation();
+	uint16_t BoneID = firstBone.GetID().Data();
+	std::memcpy(&pCurrentVertexBuffer[currentVertexOffset], position.Begin(), Detail::posDataSize);
+	currentVertexOffset += Detail::posDataSize;
+
+	uint16_t currBoneID[4] = { BoneID, 0, 0, 0 };
+	std::memcpy(&pCurrentVertexBuffer[currentVertexOffset], currBoneID, Detail::indexDataSize);
+	currentVertexOffset += Detail::indexDataSize;
+
+	const cd::Matrix4x4& boneMatrix = firstBone.GetOffset();
+	skinmeshComponent.SetBoneMatrix(BoneID, boneMatrix);
+
+	Detail::TraverseBone(firstBone, pSceneDatabase, skinmeshComponent, vertexBuffer.data(), indexBuffer.data(), currentVertexOffset, currentIndexOffset);
+	bgfx::VertexLayout vertexLayout;
+	engine::VertexLayoutUtility::CreateVertexLayout(vertexLayout, vertexFormat.GetVertexLayout());
+	uint16_t boneVBH = bgfx::createVertexBuffer(bgfx::makeRef(vertexBuffer.data(), static_cast<uint32_t>(vertexBuffer.size())), vertexLayout).idx;
+	uint16_t boneIBH = bgfx::createIndexBuffer(bgfx::makeRef(indexBuffer.data(), static_cast<uint32_t>(indexBuffer.size())), 0U).idx;
+
+	skinmeshComponent.SetBoneVBH(boneVBH);
+	skinmeshComponent.SetBoneIBH(boneIBH);
+
+	bgfx::UniformHandle boneMatricesUniform = bgfx::createUniform("u_boneMatrices", bgfx::UniformType::Mat4, 128);
+	skinmeshComponent.SetBoneMatricesUniform(boneMatricesUniform.idx);
 }
 
 }
