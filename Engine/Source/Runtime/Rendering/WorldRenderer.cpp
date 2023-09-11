@@ -219,7 +219,7 @@ void WorldRenderer::Render(float deltaTime)
 
 		bgfx::setState(state);
 
-		bgfx::submit(GetViewID(), bgfx::ProgramHandle{pMaterialComponent->GetShadreProgram()});
+		bgfx::submit(GetViewID(), bgfx::ProgramHandle{ pMaterialComponent->GetShadreProgram() });
 	}
 }
 

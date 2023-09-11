@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Core/StringCrc.h"
+#include "Rendering/ShaderFeature.h"
 
 #include <map>
 #include <memory>
@@ -12,24 +13,6 @@
 
 namespace engine
 {
-
-enum class ShaderFeature : uint32_t
-{
-	DEFAULT = 0,
-
-	// PBR parameters
-	ALBEDO_MAP,
-	NORMAL_MAP,
-	ORM_MAP,
-	EMISSIVE_MAP,
-
-	// Techniques
-	IBL,
-	ATM,
-	AREAL_LIGHT,
-
-	COUNT,
-};
 
 enum class LoadingStatus : uint8_t
 {
@@ -48,7 +31,6 @@ public:
 	static constexpr StringCrc DefaultUberShaderCrc = StringCrc("");
 
 	using ShaderBlob = std::vector<std::byte>;
-	using ShaderFeatureSet = std::set<ShaderFeature>;
 
 public:
 	ShaderSchema() = default;
@@ -92,7 +74,7 @@ private:
 	std::string m_fragmentShaderPath;
 
 	bool m_isDirty = false;
-	// Adding order of shaer features.
+	// Adding order of shader features.
 	std::vector<ShaderFeatureSet> m_shaderFeatureSets;
 	// Parameters to compile shaders.
 	std::vector<std::string> m_featureCombines;
