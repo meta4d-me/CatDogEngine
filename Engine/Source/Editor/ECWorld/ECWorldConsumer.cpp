@@ -22,19 +22,19 @@ namespace editor
 namespace Detail
 {
 
-const std::unordered_map<cd::MaterialTextureType, engine::Uber> materialTextureTypeToUber
+const std::unordered_map<cd::MaterialTextureType, engine::ShaderFeature> materialTextureTypeToShaderFeature
 {
-	{ cd::MaterialTextureType::BaseColor, engine::Uber::ALBEDO_MAP },
-	{ cd::MaterialTextureType::Normal, engine::Uber::NORMAL_MAP },
-	{ cd::MaterialTextureType::Occlusion, engine::Uber::ORM_MAP },
-	{ cd::MaterialTextureType::Roughness, engine::Uber::ORM_MAP },
-	{ cd::MaterialTextureType::Metallic, engine::Uber::ORM_MAP },
-	{ cd::MaterialTextureType::Emissive, engine::Uber::EMISSIVE_MAP },
+	{ cd::MaterialTextureType::BaseColor, engine::ShaderFeature::ALBEDO_MAP },
+	{ cd::MaterialTextureType::Normal, engine::ShaderFeature::NORMAL_MAP },
+	{ cd::MaterialTextureType::Occlusion, engine::ShaderFeature::ORM_MAP },
+	{ cd::MaterialTextureType::Roughness, engine::ShaderFeature::ORM_MAP },
+	{ cd::MaterialTextureType::Metallic, engine::ShaderFeature::ORM_MAP },
+	{ cd::MaterialTextureType::Emissive, engine::ShaderFeature::EMISSIVE_MAP },
 };
 
 CD_FORCEINLINE bool IsMaterialTextureTypeValid(cd::MaterialTextureType type)
 {
-	return materialTextureTypeToUber.find(type) != materialTextureTypeToUber.end();
+	return materialTextureTypeToShaderFeature.find(type) != materialTextureTypeToShaderFeature.end();
 }
 
 } // namespace Detail
@@ -349,7 +349,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 
 				if (Detail::IsMaterialTextureTypeValid(optionalTextureType))
 				{
-					materialComponent.ActiveUberShaderOption(Detail::materialTextureTypeToUber.at(optionalTextureType));
+					materialComponent.ActiveShaderFeature(Detail::materialTextureTypeToShaderFeature.at(optionalTextureType));
 				}
 
 				uint8_t textureSlot = optTextureSlot.value();

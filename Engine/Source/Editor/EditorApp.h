@@ -70,8 +70,12 @@ public:
 
 private:
 	void InitEditorCameraEntity();
-	void InitDDGIEntity();
 	void InitSkyEntity();
+	void InitShaderVariantCollectionEntity();
+
+#ifdef ENABLE_DDGI
+	void InitDDGIEntity();
+#endif
 
 	bool m_bInitEditor = false;
 	engine::EngineInitArgs m_initArgs;

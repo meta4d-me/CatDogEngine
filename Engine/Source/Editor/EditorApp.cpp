@@ -238,25 +238,18 @@ void EditorApp::InitECWorld()
 {
 	m_pSceneWorld = std::make_unique<engine::SceneWorld>();
 
-	if (IsAtmosphericScatteringEnable())
-	{
-		m_pSceneWorld->CreatePBRMaterialType(true);
-	}
-	else
-	{
-		m_pSceneWorld->CreatePBRMaterialType(false);
-	}
-
+	m_pSceneWorld->CreatePBRMaterialType(IsAtmosphericScatteringEnable());
 	m_pSceneWorld->CreateAnimationMaterialType();
 	m_pSceneWorld->CreateTerrainMaterialType();
 	InitEditorCameraEntity();
+
+	InitSkyEntity();
+	InitShaderVariantCollectionEntity();
 
 #ifdef ENABLE_DDGI
 	m_pSceneWorld->InitDDGISDK();
 	InitDDGIEntity();
 #endif
-
-	InitSkyEntity();
 }
 
 void EditorApp::InitEditorCameraEntity()
@@ -296,21 +289,6 @@ void EditorApp::InitEditorCameraEntity()
 	cameraComponent.BuildViewMatrix(cameraTransform);
 }
 
-#ifdef ENABLE_DDGI
-void EditorApp::InitDDGIEntity()
-{
-	engine::World* pWorld = m_pSceneWorld->GetWorld();
-
-	engine::Entity ddgiEntity = pWorld->CreateEntity();
-	m_pSceneWorld->SetDDGIEntity(ddgiEntity);
-
-	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(ddgiEntity);
-	nameComponent.SetName("DDGI");
-
-	pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
-}
-#endif
-
 void EditorApp::InitSkyEntity()
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
@@ -343,6 +321,34 @@ void EditorApp::InitSkyEntity()
 	meshComponent.SetRequiredVertexFormat(&vertexFormat);
 	meshComponent.Build();
 }
+
+void EditorApp::InitShaderVariantCollectionEntity()
+{
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+
+	engine::Entity shaderVariantCollectionEntity = pWorld->CreateEntity();
+	m_pSceneWorld->SetShaderVariantCollectionEntity(shaderVariantCollectionEntity);
+
+	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(shaderVariantCollectionEntity);
+	nameComponent.SetName("ShaderVariantCollection");
+
+	auto& shaderVariantCollectionsComponent = pWorld->CreateComponent<engine::ShaderVariantCollectionsComponent>(shaderVariantCollectionEntity);
+}
+
+#ifdef ENABLE_DDGI
+void EditorApp::InitDDGIEntity()
+{
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+
+	engine::Entity ddgiEntity = pWorld->CreateEntity();
+	m_pSceneWorld->SetDDGIEntity(ddgiEntity);
+
+	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(ddgiEntity);
+	nameComponent.SetName("DDGI");
+
+	pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
+}
+#endif
 
 void EditorApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
 {

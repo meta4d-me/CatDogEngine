@@ -33,13 +33,14 @@ SceneWorld::SceneWorld()
 	m_pLightComponentStorage = m_pWorld->Register<engine::LightComponent>();
 	m_pMaterialComponentStorage = m_pWorld->Register<engine::MaterialComponent>();
 	m_pNameComponentStorage = m_pWorld->Register<engine::NameComponent>();
+	m_pShaderVariantCollectionsComponentStorage = m_pWorld->Register<engine::ShaderVariantCollectionsComponent>();
 	m_pSkyComponentStorage = m_pWorld->Register<engine::SkyComponent>();
 	m_pStaticMeshComponentStorage = m_pWorld->Register<engine::StaticMeshComponent>();
-	m_pTerrainComponentStorage = m_pWorld->Register<engine::TerrainComponent>();
-	m_pTransformComponentStorage = m_pWorld->Register<engine::TransformComponent>();
 	m_pParticleComponentStorage = m_pWorld->Register<engine::ParticleComponent>();
 	m_pParticleEmitterComponentStorage = m_pWorld->Register<engine::ParticleEmitterComponent>();
-
+	m_pTerrainComponentStorage = m_pWorld->Register<engine::TerrainComponent>();
+	m_pTransformComponentStorage = m_pWorld->Register<engine::TransformComponent>();
+	
 #ifdef ENABLE_DDGI
 	CreateDDGIMaterialType();
 #endif
@@ -51,17 +52,17 @@ void SceneWorld::CreatePBRMaterialType(bool isAtmosphericScatteringEnable)
 	m_pPBRMaterialType->SetMaterialName("CD_PBR");
 
 	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("shaders/vs_PBR"), Path::GetBuiltinShaderInputPath("shaders/fs_PBR"));
-	shaderSchema.AddUberOption(Uber::ALBEDO_MAP);
-	shaderSchema.AddUberOption(Uber::NORMAL_MAP);
-	shaderSchema.AddUberOption(Uber::ORM_MAP);
-	shaderSchema.AddUberOption(Uber::EMISSIVE_MAP);
-	shaderSchema.AddUberOption(Uber::IBL);
+	shaderSchema.AddFeatureSet({ ShaderFeature::ALBEDO_MAP });
+	shaderSchema.AddFeatureSet({ ShaderFeature::NORMAL_MAP });
+	shaderSchema.AddFeatureSet({ ShaderFeature::ORM_MAP });
+	shaderSchema.AddFeatureSet({ ShaderFeature::EMISSIVE_MAP });
+	std::set<ShaderFeature> envFeatures = { ShaderFeature::IBL };
 	if (isAtmosphericScatteringEnable)
 	{
 		// TODO : Compile atm shader in GL/VK mode correctly.
-		shaderSchema.AddUberOption(Uber::ATM);
-		shaderSchema.SetConflictOptions(Uber::ATM, Uber::IBL);
+		envFeatures.insert(ShaderFeature::ATM);
 	}
+	shaderSchema.AddFeatureSet(cd::MoveTemp(envFeatures));
 	shaderSchema.Build();
 	m_pPBRMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
@@ -105,10 +106,10 @@ void SceneWorld::CreateDDGIMaterialType()
 	m_pDDGIMaterialType->SetMaterialName("CD_DDGI");
 
 	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("shaders/vs_DDGI"), Path::GetBuiltinShaderInputPath("shaders/fs_DDGI"));
-	shaderSchema.AddUberOption(Uber::ALBEDO_MAP);
-	shaderSchema.AddUberOption(Uber::NORMAL_MAP);
-	shaderSchema.AddUberOption(Uber::ORM_MAP);
-	shaderSchema.AddUberOption(Uber::EMISSIVE_MAP);
+	shaderSchema.AddFeatureSet({ ShaderFeature::ALBEDO_MAP });
+	shaderSchema.AddFeatureSet({ ShaderFeature::NORMAL_MAP });
+	shaderSchema.AddFeatureSet({ ShaderFeature::ORM_MAP });
+	shaderSchema.AddFeatureSet({ ShaderFeature::EMISSIVE_MAP });
 	shaderSchema.Build();
 	m_pDDGIMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
@@ -169,6 +170,12 @@ void SceneWorld::SetSkyEntity(engine::Entity entity)
 {
 	CD_TRACE("Setup Sky entity : {0}", entity);
 	m_skyEntity = entity;
+}
+
+void SceneWorld::SetShaderVariantCollectionEntity(engine::Entity entity)
+{
+	CD_TRACE("Setup Shader Variant Collection entity : {0}", entity);
+	m_shaderVariantCollectionEntity = entity;
 }
 
 void SceneWorld::AddCameraToSceneDatabase(engine::Entity entity)
