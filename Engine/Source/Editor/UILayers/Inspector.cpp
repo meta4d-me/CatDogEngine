@@ -146,12 +146,10 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 				ImGui::Separator();
 
-				std::string uvOffset = std::string(title) + std::string(" UVOffset");
-				std::string uvScale = std::string(title) + std::string(" UVScale");
 				if (isOpen)
 				{
-					ImGuiUtils::ImGuiVectorProperty(uvOffset.c_str(), pTextureInfo->GetUVOffset());
-					ImGuiUtils::ImGuiVectorProperty(uvScale.c_str(), pTextureInfo->GetUVScale());
+					ImGuiUtils::ImGuiVectorProperty("UVOffset", pTextureInfo->GetUVOffset());
+					ImGuiUtils::ImGuiVectorProperty("UVScale", pTextureInfo->GetUVScale());
 				}
 
 				ImGui::Separator();
