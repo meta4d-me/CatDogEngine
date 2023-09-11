@@ -49,6 +49,19 @@ constexpr uint16_t ScatteringOrders                      = 6;
 
 void PBRSkyRenderer::Init()
 {
+	const auto& shaderVariantCollectionsEntity = m_pCurrentSceneWorld->GetShaderVariantCollectionEntity();
+	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(shaderVariantCollectionsEntity);
+
+	pShaderVariantCollectionsComponent->AddShader("vs_atmSkyBox");
+	pShaderVariantCollectionsComponent->AddShader("fs_PrecomputedAtmosphericScattering_LUT");
+	pShaderVariantCollectionsComponent->AddShader("fs_SingleScattering_RayMarching");
+	pShaderVariantCollectionsComponent->AddShader("cs_ComputeTransmittance");
+	pShaderVariantCollectionsComponent->AddShader("cs_ComputeDirectIrradiance");
+	pShaderVariantCollectionsComponent->AddShader("cs_ComputeSingleScattering");
+	pShaderVariantCollectionsComponent->AddShader("cs_ComputeScatteringDensity");
+	pShaderVariantCollectionsComponent->AddShader("cs_ComputeIndirectIrradiance");
+	pShaderVariantCollectionsComponent->AddShader("cs_ComputeMultipleScattering");
+
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
 	GetRenderContext()->CreateProgram(ProgramAtmosphericScatteringLUT, "vs_atmSkyBox.bin", "fs_PrecomputedAtmosphericScattering_LUT.bin");
@@ -84,6 +97,11 @@ void PBRSkyRenderer::Init()
 	GetRenderContext()->CreateUniform(NumScatteringOrders, bgfx::UniformType::Enum::Vec4, 1);
 
 	bgfx::setViewName(GetViewID(), "PBRSkyRenderer");
+}
+
+void PBRSkyRenderer::LoadShaders()
+{
+
 }
 
 void PBRSkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

@@ -4,7 +4,20 @@
 
 namespace engine
 {
-	void BloomRenderer::Init(){
+	void BloomRenderer::Init()
+	{
+		const auto& shaderVariantCollectionsEntity = m_pCurrentSceneWorld->GetShaderVariantCollectionEntity();
+		auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(shaderVariantCollectionsEntity);
+
+		pShaderVariantCollectionsComponent->AddShader("vs_fullscreen");
+		pShaderVariantCollectionsComponent->AddShader("fs_captureBrightness");
+		pShaderVariantCollectionsComponent->AddShader("fs_dowmsample");
+		pShaderVariantCollectionsComponent->AddShader("fs_blurvertical");
+		pShaderVariantCollectionsComponent->AddShader("fs_blurhorizontal");
+		pShaderVariantCollectionsComponent->AddShader("fs_upsample");
+		pShaderVariantCollectionsComponent->AddShader("fs_kawaseblur");
+		pShaderVariantCollectionsComponent->AddShader("fs_bloom");
+
 		GetRenderContext()->CreateUniform("s_texture", bgfx::UniformType::Sampler);
 		GetRenderContext()->CreateUniform("s_bloom", bgfx::UniformType::Sampler);
 		GetRenderContext()->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
@@ -34,6 +47,11 @@ namespace engine
 		for (int i = 0; i < TEX_CHAIN_LEN - 2; i++) GetRenderContext()->CreateView();
 		combinePassID = GetRenderContext()->CreateView();
 		blit_colorPassID = GetRenderContext()->CreateView();
+	}
+
+	void BloomRenderer::LoadShaders()
+	{
+
 	}
 
 	BloomRenderer::~BloomRenderer()
@@ -134,7 +152,8 @@ namespace engine
 		// downsample
 		int sampleTimes = int(pCameraComponent->GetBloomDownSampleTimes());
 		int tempshift = 0;
-		for (int i = 0; i < sampleTimes; ++i) {
+		for (int i = 0; i < sampleTimes; ++i)
+		{
 			int shift = i + 1;
 			if ((width >> shift) < 2 || (height >> shift) < 2) break;
 			tempshift = shift;
@@ -162,14 +181,20 @@ namespace engine
 			bgfx::submit(start_dowmSamplePassID + i, GetRenderContext()->GetProgram(DownSampleprogramName));
 		}
 
-		if (pCameraComponent->GetIsBlurEnable() && pCameraComponent->GetBlurTimes() != 0) {
+		if (pCameraComponent->GetIsBlurEnable() && pCameraComponent->GetBlurTimes() != 0)
+		{
 			Blur(width >> tempshift, height >> tempshift, pCameraComponent->GetBlurTimes(), pCameraComponent->GetBlurSize(),pCameraComponent->GetBlurScaling(), orthoMatrix, bgfx::getTexture(m_sampleChainFB[tempshift]));
 		}
 
 		// upsample
-		for (int i = 0; i < sampleTimes; ++i) {
+		for (int i = 0; i < sampleTimes; ++i)
+		{
 			int shift = sampleTimes - i - 1;
-			if ((width >> shift) < 2 || (height >> shift) < 2) continue;
+			if ((width >> shift) < 2 || (height >> shift) < 2)
+			{
+				continue;
+			}
+
 			const float pixelSize[4] =
 			{
 				1.0f / static_cast<float>(width >> shift),
@@ -238,7 +263,8 @@ namespace engine
 
 		uint16_t vertical = start_verticalBlurPassID;
 		uint16_t horizontal = start_horizontalBlurPassID;
-		for (int i = 0; i < iteration; i++) {
+		for (int i = 0; i < iteration; i++)
+		{
 			float pixelSize[4] =
 			{
 				1.0f / static_cast<float>(width),

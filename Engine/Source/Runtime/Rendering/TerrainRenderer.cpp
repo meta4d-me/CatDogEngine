@@ -54,6 +54,12 @@ constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MS
 
 void TerrainRenderer::Init()
 {
+	const auto& shaderVariantCollectionsEntity = m_pCurrentSceneWorld->GetShaderVariantCollectionEntity();
+	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(shaderVariantCollectionsEntity);
+
+	pShaderVariantCollectionsComponent->AddShader("vs_terrain");
+	pShaderVariantCollectionsComponent->AddShader("fs_terrain");
+
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 	
 	GetRenderContext()->CreateProgram("TerrainProgram", "vs_terrain.bin", "fs_terrain.bin");
@@ -84,6 +90,11 @@ void TerrainRenderer::Init()
 	GetRenderContext()->CreateTexture(elevationTexture, 129U, 129U, 1, bgfx::TextureFormat::Enum::R32F, samplerFlags, nullptr, 0);
 
 	bgfx::setViewName(GetViewID(), "TerrainRenderer");
+}
+
+void TerrainRenderer::LoadShaders()
+{
+
 }
 
 void TerrainRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

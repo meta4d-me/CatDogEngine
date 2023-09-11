@@ -21,6 +21,12 @@ constexpr uint64_t renderState = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | B
 
 void SkyboxRenderer::Init()
 {
+	const auto& shaderVariantCollectionsEntity = m_pCurrentSceneWorld->GetShaderVariantCollectionEntity();
+	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(shaderVariantCollectionsEntity);
+
+	pShaderVariantCollectionsComponent->AddShader("vs_skybox");
+	pShaderVariantCollectionsComponent->AddShader("fs_skybox");
+
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
 	GetRenderContext()->CreateUniform(skyboxSampler, bgfx::UniformType::Sampler);
@@ -28,6 +34,11 @@ void SkyboxRenderer::Init()
 	GetRenderContext()->CreateProgram(skyboxShader, "vs_skybox.bin", "fs_skybox.bin");
 
 	bgfx::setViewName(GetViewID(), "SkyboxRenderer");
+}
+
+void SkyboxRenderer::LoadShaders()
+{
+
 }
 
 void SkyboxRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

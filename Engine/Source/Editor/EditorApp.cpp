@@ -107,6 +107,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	resourceThread.detach();
 
 	m_pFileWatcher = std::make_unique<FileWatcher>(CDENGINE_BUILTIN_SHADER_PATH);
+	m_pFileWatcher->EnableWatchSubTree();
 }
 
 void EditorApp::Shutdown()

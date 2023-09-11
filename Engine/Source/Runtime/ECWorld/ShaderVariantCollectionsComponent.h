@@ -31,19 +31,19 @@ public:
 	void DeactiveShaderFeature(std::string path, ShaderFeature feature);
 
 	void SetShaderFeatureSet(std::string path, ShaderFeatureSet set);
-	std::optional<ShaderFeatureSet>& GetShaderFeatureSet(std::string path);
-	const std::optional<ShaderFeatureSet>& GetShaderFeatureSet(std::string path) const;
+	ShaderFeatureSet& GetShaderFeatureSet(std::string path);
+	const ShaderFeatureSet& GetShaderFeatureSet(std::string path) const;
 
-	void SetShaderInformations(std::map<std::string, std::optional<ShaderFeatureSet>> info);
-	std::map<std::string, std::optional<ShaderFeatureSet>>& GetShaderInformations() { return m_shaderInformations; }
-	const std::map<std::string, std::optional<ShaderFeatureSet>>& GetShaderInformations() const { return m_shaderInformations; }
+	void SetShaderInformations(std::map<std::string, ShaderFeatureSet> info);
+	std::map<std::string, ShaderFeatureSet>& GetShaderInformations() { return m_shaderInformations; }
+	const std::map<std::string, ShaderFeatureSet>& GetShaderInformations() const { return m_shaderInformations; }
 
 private:
 	bool inline IsValid(std::string path) const;
 
 	// Key : Shader source file path, Value : Shader feature set.
 	// Non-Uber shader has no features, in this case the value will be std::nullopt.
-	std::map<std::string, std::optional<ShaderFeatureSet>> m_shaderInformations;
+	std::map<std::string, ShaderFeatureSet> m_shaderInformations;
 };
 
 }

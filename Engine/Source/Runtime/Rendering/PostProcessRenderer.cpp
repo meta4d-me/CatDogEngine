@@ -7,11 +7,22 @@ namespace engine
 
 	void PostProcessRenderer::Init()
 	{
+		const auto& shaderVariantCollectionsEntity = m_pCurrentSceneWorld->GetShaderVariantCollectionEntity();
+		auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(shaderVariantCollectionsEntity);
+
+		pShaderVariantCollectionsComponent->AddShader("vs_fullscreen");
+		pShaderVariantCollectionsComponent->AddShader("fs_PBR_postProcessing");
+
 		GetRenderContext()->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
 		GetRenderContext()->CreateUniform("u_gamma", bgfx::UniformType::Vec4);
 		GetRenderContext()->CreateProgram("PostProcessProgram", "vs_fullscreen.bin", "fs_PBR_postProcessing.bin");
 
 		bgfx::setViewName(GetViewID(), "PostProcessRenderer");
+	}
+
+	void PostProcessRenderer::LoadShaders()
+	{
+
 	}
 
 	PostProcessRenderer::~PostProcessRenderer()

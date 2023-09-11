@@ -12,7 +12,7 @@ void ShaderBuilder::BuildUberShader(engine::MaterialType* pMaterialType)
 {
 	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
 
-	// No shader feature support for VS now.
+	// No shader feature supports for VS now.
 	std::string outputVSFilePath = engine::Path::GetShaderOutputPath(shaderSchema.GetVertexShaderPath());
 	ResourceBuilder::Get().AddShaderBuildTask(ShaderType::Vertex,
 		shaderSchema.GetVertexShaderPath(), outputVSFilePath.c_str());

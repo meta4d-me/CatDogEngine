@@ -27,6 +27,10 @@ void ImGuiRenderer::Init()
 	bgfx::setViewName(GetViewID(), "ImGuiRenderer");
 }
 
+void ImGuiRenderer::LoadShaders()
+{
+}
+
 ImGuiRenderer::~ImGuiRenderer()
 {
 }

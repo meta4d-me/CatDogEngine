@@ -14,6 +14,10 @@ BlitRenderTargetPass::~BlitRenderTargetPass()
 {
 }
 
+void BlitRenderTargetPass::LoadShaders()
+{
+}
+
 void BlitRenderTargetPass::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
 }

@@ -47,6 +47,12 @@ constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MS
 
 void WorldRenderer::Init()
 {
+	const auto& shaderVariantCollectionsEntity = m_pCurrentSceneWorld->GetShaderVariantCollectionEntity();
+	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(shaderVariantCollectionsEntity);
+
+	pShaderVariantCollectionsComponent->AddShader("vs_PBR");
+	pShaderVariantCollectionsComponent->AddShader("fs_PBR");
+
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
 	GetRenderContext()->CreateUniform(lutSampler, bgfx::UniformType::Sampler);
@@ -71,6 +77,11 @@ void WorldRenderer::Init()
 	GetRenderContext()->CreateUniform(HeightOffsetAndshadowLength, bgfx::UniformType::Vec4, 1);
 
 	bgfx::setViewName(GetViewID(), "WorldRenderer");
+}
+
+void WorldRenderer::LoadShaders()
+{
+
 }
 
 void WorldRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

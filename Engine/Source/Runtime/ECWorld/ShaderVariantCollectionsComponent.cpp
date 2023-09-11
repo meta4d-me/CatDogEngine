@@ -13,21 +13,21 @@ void ShaderVariantCollectionsComponent::AddShader(std::string path, ShaderFeatur
 		return;
 	}
 
-	m_shaderInformations[cd::MoveTemp(path)] = set.empty() ? std::nullopt : std::optional<ShaderFeatureSet>(cd::MoveTemp(set));
+	m_shaderInformations[cd::MoveTemp(path)] = cd::MoveTemp(set);
 }
 
 void ShaderVariantCollectionsComponent::ActiveShaderFeature(std::string path, ShaderFeature feature)
 {
 	assert(IsValid(path) && "Shader information does not exist!");
 
-	m_shaderInformations[cd::MoveTemp(path)].value().insert(cd::MoveTemp(feature));
+	m_shaderInformations[cd::MoveTemp(path)].insert(cd::MoveTemp(feature));
 }
 
 void ShaderVariantCollectionsComponent::DeactiveShaderFeature(std::string path, ShaderFeature feature)
 {
 	assert(IsValid(path) && "Shader information does not exist!");
 
-	m_shaderInformations[cd::MoveTemp(path)].value().erase(cd::MoveTemp(feature));
+	m_shaderInformations[cd::MoveTemp(path)].erase(cd::MoveTemp(feature));
 }
 
 void ShaderVariantCollectionsComponent::SetShaderFeatureSet(std::string path, ShaderFeatureSet set)
@@ -37,21 +37,21 @@ void ShaderVariantCollectionsComponent::SetShaderFeatureSet(std::string path, Sh
 	m_shaderInformations[cd::MoveTemp(path)] = cd::MoveTemp(set);
 }
 
-std::optional<ShaderFeatureSet>& ShaderVariantCollectionsComponent::GetShaderFeatureSet(std::string path)
+ShaderFeatureSet& ShaderVariantCollectionsComponent::GetShaderFeatureSet(std::string path)
 {
 	assert(IsValid(path) && "Shader information does not exist!");
 
 	return m_shaderInformations[cd::MoveTemp(path)];
 }
 
-const std::optional<ShaderFeatureSet>& ShaderVariantCollectionsComponent::GetShaderFeatureSet(std::string path) const
+const ShaderFeatureSet& ShaderVariantCollectionsComponent::GetShaderFeatureSet(std::string path) const
 {
 	assert(IsValid(path) && "Shader information does not exist!");
 	
 	return m_shaderInformations.at(cd::MoveTemp(path));
 }
 
-void ShaderVariantCollectionsComponent::SetShaderInformations(std::map<std::string, std::optional<ShaderFeatureSet>> info)
+void ShaderVariantCollectionsComponent::SetShaderInformations(std::map<std::string, ShaderFeatureSet> info)
 {
 	m_shaderInformations = cd::MoveTemp(info);
 }
