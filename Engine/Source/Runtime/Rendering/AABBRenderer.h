@@ -22,8 +22,7 @@ public:
 	void SetIsRenderSelected(bool isRenderSelected) { m_isRenderSelected = isRenderSelected; }
 
 private:
-	void RenderSelected(float deltaTime);
-	void RenderAll(float deltaTime);
+	void RenderLines(uint32_t entity);
 
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
 	bool m_isRenderSelected = true;	//	false : all , true : selected

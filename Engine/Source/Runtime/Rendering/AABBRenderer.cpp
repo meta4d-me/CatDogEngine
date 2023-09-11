@@ -22,45 +22,15 @@ void AABBRenderer::UpdateView(const float* pViewMatrix, const float* pProjection
 	bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
 }
 
-void AABBRenderer::RenderAll(float deltaTime)
+void AABBRenderer::RenderLines(uint32_t entity)
 {
-	for (Entity entity : m_pCurrentSceneWorld->GetStaticMeshEntities())
-	{
-		auto* pCollisionMesh = m_pCurrentSceneWorld->GetCollisionMeshComponent(entity);
-		if (!pCollisionMesh)
-		{
-			continue;
-		}
-
-		if (auto* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
-		{
-			pTransformComponent->Build();
-			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
-		}
-
-		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pCollisionMesh->GetVertexBuffer() });
-		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pCollisionMesh->GetIndexBuffer() });
-
-		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
-			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_LINES;
-		bgfx::setState(state);
-
-		constexpr StringCrc AABBAllProgram("AABBProgram");
-		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(AABBAllProgram));
-
-	}
-}
-
-void AABBRenderer::RenderSelected(float deltaTime) 
-{
-	Entity entity = m_pCurrentSceneWorld->GetSelectedEntity();
-	auto* pCollisionMesh = m_pCurrentSceneWorld->GetCollisionMeshComponent(entity);
+	auto* pCollisionMesh = m_pCurrentSceneWorld->GetCollisionMeshComponent(static_cast<Entity>(entity));
 	if (!pCollisionMesh)
 	{
 		return;
 	}
 
-	if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
+	if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(static_cast<Entity>(entity)))
 	{
 		pTransformComponent->Build();
 		bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
@@ -81,11 +51,15 @@ void AABBRenderer::Render(float deltaTime)
 {
 	if (m_isRenderSelected) 
 	{
-		RenderSelected(deltaTime);
+		Entity entity = m_pCurrentSceneWorld->GetSelectedEntity();
+		RenderLines(static_cast<uint32_t>(entity));
 	}
 	else
 	{
-		RenderAll(deltaTime);
+		for (Entity entity : m_pCurrentSceneWorld->GetStaticMeshEntities())
+		{
+			RenderLines(static_cast<uint32_t>(entity));
+		}
 	}
 }
 
