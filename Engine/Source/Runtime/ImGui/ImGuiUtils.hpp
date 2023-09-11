@@ -243,7 +243,7 @@ static void ColorPickerProperty(const char* Name, cd::Vec3f& veccolor)
 	ImGui::SameLine();
 	ImGui::NextColumn();
 	ImGui::PushID(Name);
-	if (ImGui::Button("Change"))
+	if (ImGui::Button("..."))
 	{
 		showMap[Name] = true;
 	}
