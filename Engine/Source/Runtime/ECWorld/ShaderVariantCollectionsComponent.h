@@ -5,7 +5,6 @@
 #include "Rendering/ShaderFeature.h"
 
 #include <map>
-#include <optional>
 
 namespace engine
 {
@@ -42,7 +41,7 @@ private:
 	bool inline IsValid(std::string path) const;
 
 	// Key : Shader source file path, Value : Shader feature set.
-	// Non-Uber shader has no features, in this case the value will be std::nullopt.
+	// Non-Uber shader has no features, in this case the value will be an empty std::set.
 	std::map<std::string, ShaderFeatureSet> m_shaderInformations;
 };
 
