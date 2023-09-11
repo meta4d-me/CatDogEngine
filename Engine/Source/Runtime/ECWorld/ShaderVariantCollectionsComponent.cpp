@@ -18,60 +18,36 @@ void ShaderVariantCollectionsComponent::AddShader(std::string path, ShaderFeatur
 
 void ShaderVariantCollectionsComponent::ActiveShaderFeature(std::string path, ShaderFeature feature)
 {
-	if (!IsValid(path))
-	{
-		CD_ENGINE_WARN("Shader information {0} does not exist!", cd::MoveTemp(path));
-		return;
-	}
+	assert(IsValid(path) && "Shader information does not exist!");
 
-	auto& setOpt = m_shaderInformations[cd::MoveTemp(path)];
-	assert(setOpt.has_value());
-	setOpt.value().insert(cd::MoveTemp(feature));
+	m_shaderInformations[cd::MoveTemp(path)].value().insert(cd::MoveTemp(feature));
 }
 
 void ShaderVariantCollectionsComponent::DeactiveShaderFeature(std::string path, ShaderFeature feature)
 {
-	if (!IsValid(path))
-	{
-		CD_ENGINE_WARN("Shader information {0} does not exist!", cd::MoveTemp(path));
-		return;
-	}
+	assert(IsValid(path) && "Shader information does not exist!");
 
-	auto& setOpt = m_shaderInformations[cd::MoveTemp(path)];
-	assert(setOpt.has_value());
-	setOpt.value().erase(cd::MoveTemp(feature));
+	m_shaderInformations[cd::MoveTemp(path)].value().erase(cd::MoveTemp(feature));
 }
 
 void ShaderVariantCollectionsComponent::SetShaderFeatureSet(std::string path, ShaderFeatureSet set)
 {
-	if (!IsValid(path))
-	{
-		CD_ENGINE_WARN("Shader information {0} does not exist!", cd::MoveTemp(path));
-		return;
-	}
+	assert(IsValid(path) && "Shader information does not exist!");
 
 	m_shaderInformations[cd::MoveTemp(path)] = cd::MoveTemp(set);
 }
 
 std::optional<ShaderFeatureSet>& ShaderVariantCollectionsComponent::GetShaderFeatureSet(std::string path)
 {
-	if (!IsValid(path))
-	{
-		CD_ENGINE_WARN("Shader information {0} does not exist!", cd::MoveTemp(path));
-		return;
-	}
+	assert(IsValid(path) && "Shader information does not exist!");
 
 	return m_shaderInformations[cd::MoveTemp(path)];
 }
 
 const std::optional<ShaderFeatureSet>& ShaderVariantCollectionsComponent::GetShaderFeatureSet(std::string path) const
 {
-	if (!IsValid(path))
-	{
-		CD_ENGINE_WARN("Shader information {0} does not exist!", cd::MoveTemp(path));
-		return;
-	}
-
+	assert(IsValid(path) && "Shader information does not exist!");
+	
 	return m_shaderInformations.at(cd::MoveTemp(path));
 }
 
