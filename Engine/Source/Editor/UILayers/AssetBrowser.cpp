@@ -909,15 +909,15 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 	if (0 == inputFileExtension.compare(".cdbin"))
 	{
 		cdtools::CDProducer cdProducer(pFilePath);
-		cdtools::Processor processor(&cdProducer, nullptr, pSceneDatabase);
+		cd::SceneDatabase newSceneDatabase;
+		cdtools::Processor processor(&cdProducer, nullptr, &newSceneDatabase);
 		processor.Run();
+		pSceneDatabase->Merge(cd::MoveTemp(newSceneDatabase));
 	}
 	else
 	{
 #ifdef ENABLE_GENERIC_PRODUCER
 		cdtools::GenericProducer genericProducer(pFilePath);
-		genericProducer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount(), pSceneDatabase->GetMeshCount(),
-		pSceneDatabase->GetMaterialCount(), pSceneDatabase->GetTextureCount(), pSceneDatabase->GetLightCount());
 		genericProducer.ActivateBoundingBoxService();
 		genericProducer.ActivateCleanUnusedService();
 		genericProducer.ActivateTangentsSpaceService();
@@ -928,10 +928,12 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 			genericProducer.ActivateFlattenHierarchyService();
 		}
 
-		cdtools::Processor processor(&genericProducer, nullptr, pSceneDatabase);
+		cd::SceneDatabase newSceneDatabase;
+		cdtools::Processor processor(&genericProducer, nullptr, &newSceneDatabase);
 		processor.SetDumpSceneDatabaseEnable(false);
 		//processor.SetFlattenSceneDatabaseEnable(true);
 		processor.Run();
+		pSceneDatabase->Merge(cd::MoveTemp(newSceneDatabase));
 #else
 		assert("Unable to import this file format.");
 #endif

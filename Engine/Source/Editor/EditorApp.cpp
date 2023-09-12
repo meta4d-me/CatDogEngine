@@ -176,7 +176,6 @@ void EditorApp::InitEditorUILayers()
 	auto pSkeletonView = std::make_unique<SkeletonView>("SkeletonView");
 	pSkeletonView->SetCameraController(m_pViewportCameraController.get());
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSkeletonView));
-
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
 
 	auto pAssetBrowser = std::make_unique<AssetBrowser>("AssetBrowser");
