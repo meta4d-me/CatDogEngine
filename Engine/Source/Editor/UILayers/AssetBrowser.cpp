@@ -1130,7 +1130,7 @@ void AssetBrowser::Update()
 		// Column border size is fixed in ImGui
 		// https://stackoverflow.com/questions/72068188/how-do-i-change-the-border-size-for-a-table-in-dear-imgui
 
-		// Colomn m_width doesn't have a flag to set only in the first frame.
+		// Colomn width doesn't have a flag to set only in the first frame.
 		ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x * 0.3f);
 		bFirstUpdate = false;
 	}

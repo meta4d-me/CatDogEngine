@@ -123,7 +123,7 @@ void OutputLog::Draw() {
             // If you have tens of thousands of items and their processing cost is non-negligible, coarse clipping them
             // on your side is recommended. Using ImGuiListClipper requires
             // - A) random access into your data
-            // - B) items all being the  same m_height,
+            // - B) items all being the  same height,
             // both of which we can handle since we have an array pointing to the beginning of each line of text.
             // When using the filter (in the block of code above) we don't have random access into the data to display
             // anymore, which is why we don't use the clipper. Storing or skimming through the search result would make
