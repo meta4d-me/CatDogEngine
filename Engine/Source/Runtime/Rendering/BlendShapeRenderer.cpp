@@ -123,9 +123,11 @@ void BlendShapeRenderer::Render(float deltaTime)
 		}
 
 		// Mesh
-		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()});
+		//bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()});
+		bgfx::setVertexBuffer(0, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetDynamicVertexBuffer()});
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
-
+		//bgfx::setBuffer(1, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetDynamicVertexBuffer()}, bgfx::Access::Read);
+		
 		// Material
 		for (const auto& [textureType, _] : pMaterialComponent->GetTextureResources())
 		{

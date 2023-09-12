@@ -103,6 +103,12 @@ void WorldRenderer::Render(float deltaTime)
 			continue;
 		}
 
+		BlendShapeComponent* pBlendShapeComponent = m_pCurrentSceneWorld->GetBlendShapeComponent(entity);
+		if (pBlendShapeComponent)
+		{
+			continue;
+		}
+
 		// SkinMesh
 		if(m_pCurrentSceneWorld->GetAnimationComponent(entity))
 		{

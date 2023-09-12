@@ -42,6 +42,8 @@ public:
 	//void SetMorphAt() and record the changed one
 	//std::vector<cd::Morph> GetMorphs() { return m_morphs; };
 	float GetSourceMeshWeight() { return m_sourceMeshWeight; }
+	uint16_t GetDynamicVertexBuffer() const { return m_dynamicVertexBufferHandle;}
+	const float* GetDynamicVertexBufferData() const { return m_dynamicVertexBufferData.data(); }
 
 	void Reset();
 	void Build();
