@@ -54,15 +54,13 @@ constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MS
 
 void TerrainRenderer::Init()
 {
-	const auto& shaderVariantCollectionsEntity = m_pCurrentSceneWorld->GetShaderVariantCollectionEntity();
-	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(shaderVariantCollectionsEntity);
+	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
 
 	pShaderVariantCollectionsComponent->AddShader("vs_terrain");
 	pShaderVariantCollectionsComponent->AddShader("fs_terrain");
 
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 	
-	GetRenderContext()->CreateProgram("TerrainProgram", "vs_terrain.bin", "fs_terrain.bin");
 	GetRenderContext()->CreateUniform(snowSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(rockSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(grassSampler, bgfx::UniformType::Sampler);
@@ -94,7 +92,7 @@ void TerrainRenderer::Init()
 
 void TerrainRenderer::LoadShaders()
 {
-
+	GetRenderContext()->CreateProgram("TerrainProgram", "vs_terrain.bin", "fs_terrain.bin");
 }
 
 void TerrainRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

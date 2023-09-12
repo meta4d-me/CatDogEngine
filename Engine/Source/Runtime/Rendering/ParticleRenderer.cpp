@@ -9,8 +9,7 @@ namespace engine {
 
 void ParticleRenderer::Init()
 {
-	const auto& shaderVariantCollectionsEntity = m_pCurrentSceneWorld->GetShaderVariantCollectionEntity();
-	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(shaderVariantCollectionsEntity);
+	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
 
 	// pShaderVariantCollectionsComponent->AddShader("");
 	// pShaderVariantCollectionsComponent->AddShader("");

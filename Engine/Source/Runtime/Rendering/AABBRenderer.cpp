@@ -12,20 +12,17 @@ namespace engine
 
 void AABBRenderer::Init()
 {
-	const auto& shaderVariantCollectionsEntity = m_pCurrentSceneWorld->GetShaderVariantCollectionEntity();
-	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(shaderVariantCollectionsEntity);
+	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
 	
 	pShaderVariantCollectionsComponent->AddShader("vs_AABB");
 	pShaderVariantCollectionsComponent->AddShader("fs_AABB");
-	
-	GetRenderContext()->CreateProgram("AABBProgram", "vs_AABB.bin", "fs_AABB.bin");
 
 	bgfx::setViewName(GetViewID(), "AABBRenderer");
 }
 
 void AABBRenderer::LoadShaders()
 {
-
+	GetRenderContext()->CreateProgram("AABBProgram", "vs_AABB.bin", "fs_AABB.bin");
 }
 
 void AABBRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

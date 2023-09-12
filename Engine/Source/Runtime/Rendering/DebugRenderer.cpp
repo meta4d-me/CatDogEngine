@@ -12,19 +12,17 @@ namespace engine
 
 void DebugRenderer::Init()
 {
-	const auto& shaderVariantCollectionsEntity = m_pCurrentSceneWorld->GetShaderVariantCollectionEntity();
-	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(shaderVariantCollectionsEntity);
+	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
 
 	pShaderVariantCollectionsComponent->AddShader("vs_debug");
 	pShaderVariantCollectionsComponent->AddShader("fs_debug");
 
-	GetRenderContext()->CreateProgram("DebugProgram", "vs_debug.bin", "fs_debug.bin");
 	bgfx::setViewName(GetViewID(), "DebugRenderer");
 }
 
 void DebugRenderer::LoadShaders()
 {
-
+	GetRenderContext()->CreateProgram("DebugProgram", "vs_debug.bin", "fs_debug.bin");
 }
 
 void DebugRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

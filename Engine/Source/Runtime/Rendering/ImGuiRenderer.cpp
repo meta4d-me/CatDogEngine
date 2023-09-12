@@ -22,13 +22,13 @@ void ImGuiRenderer::Init()
 	}
 
 	GetRenderContext()->CreateUniform("s_tex", bgfx::UniformType::Sampler);
-	GetRenderContext()->CreateProgram("ImGuiProgram", "vs_imgui.bin", "fs_imgui.bin");
 
 	bgfx::setViewName(GetViewID(), "ImGuiRenderer");
 }
 
 void ImGuiRenderer::LoadShaders()
 {
+	GetRenderContext()->CreateProgram("ImGuiProgram", "vs_imgui.bin", "fs_imgui.bin");
 }
 
 ImGuiRenderer::~ImGuiRenderer()

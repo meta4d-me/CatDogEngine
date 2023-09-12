@@ -49,8 +49,7 @@ constexpr uint16_t ScatteringOrders                      = 6;
 
 void PBRSkyRenderer::Init()
 {
-	const auto& shaderVariantCollectionsEntity = m_pCurrentSceneWorld->GetShaderVariantCollectionEntity();
-	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(shaderVariantCollectionsEntity);
+	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
 
 	pShaderVariantCollectionsComponent->AddShader("vs_atmSkyBox");
 	pShaderVariantCollectionsComponent->AddShader("fs_PrecomputedAtmosphericScattering_LUT");
@@ -61,18 +60,6 @@ void PBRSkyRenderer::Init()
 	pShaderVariantCollectionsComponent->AddShader("cs_ComputeScatteringDensity");
 	pShaderVariantCollectionsComponent->AddShader("cs_ComputeIndirectIrradiance");
 	pShaderVariantCollectionsComponent->AddShader("cs_ComputeMultipleScattering");
-
-	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
-
-	GetRenderContext()->CreateProgram(ProgramAtmosphericScatteringLUT, "vs_atmSkyBox.bin", "fs_PrecomputedAtmosphericScattering_LUT.bin");
-	GetRenderContext()->CreateProgram(ProgramSingleScatteringRayMarching, "vs_atmSkyBox.bin", "fs_SingleScattering_RayMarching.bin");
-
-	GetRenderContext()->CreateProgram(ProgramComputeTransmittance,      "cs_ComputeTransmittance.bin");
-	GetRenderContext()->CreateProgram(ProgramComputeDirectIrradiance,   "cs_ComputeDirectIrradiance.bin");
-	GetRenderContext()->CreateProgram(ProgramComputeSingleScattering,   "cs_ComputeSingleScattering.bin");
-	GetRenderContext()->CreateProgram(ProgramComputeScatteringDensity,  "cs_ComputeScatteringDensity.bin");
-	GetRenderContext()->CreateProgram(ProgramComputeIndirectIrradiance, "cs_ComputeIndirectIrradiance.bin");
-	GetRenderContext()->CreateProgram(ProgramComputeMultipleScattering, "cs_ComputeMultipleScattering.bin");
 
 	GetRenderContext()->CreateTexture(TextureTransmittance, TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT, 1,
 		bgfx::TextureFormat::RGBA32F, FlagTexture2D);
@@ -101,7 +88,15 @@ void PBRSkyRenderer::Init()
 
 void PBRSkyRenderer::LoadShaders()
 {
+	GetRenderContext()->CreateProgram(ProgramAtmosphericScatteringLUT, "vs_atmSkyBox.bin", "fs_PrecomputedAtmosphericScattering_LUT.bin");
+	GetRenderContext()->CreateProgram(ProgramSingleScatteringRayMarching, "vs_atmSkyBox.bin", "fs_SingleScattering_RayMarching.bin");
 
+	GetRenderContext()->CreateProgram(ProgramComputeTransmittance, "cs_ComputeTransmittance.bin");
+	GetRenderContext()->CreateProgram(ProgramComputeDirectIrradiance, "cs_ComputeDirectIrradiance.bin");
+	GetRenderContext()->CreateProgram(ProgramComputeSingleScattering, "cs_ComputeSingleScattering.bin");
+	GetRenderContext()->CreateProgram(ProgramComputeScatteringDensity, "cs_ComputeScatteringDensity.bin");
+	GetRenderContext()->CreateProgram(ProgramComputeIndirectIrradiance, "cs_ComputeIndirectIrradiance.bin");
+	GetRenderContext()->CreateProgram(ProgramComputeMultipleScattering, "cs_ComputeMultipleScattering.bin");
 }
 
 void PBRSkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

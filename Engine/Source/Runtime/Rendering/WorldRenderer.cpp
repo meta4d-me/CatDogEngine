@@ -47,8 +47,7 @@ constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MS
 
 void WorldRenderer::Init()
 {
-	const auto& shaderVariantCollectionsEntity = m_pCurrentSceneWorld->GetShaderVariantCollectionEntity();
-	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(shaderVariantCollectionsEntity);
+	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
 
 	pShaderVariantCollectionsComponent->AddShader("vs_PBR");
 	pShaderVariantCollectionsComponent->AddShader("fs_PBR");
@@ -81,7 +80,7 @@ void WorldRenderer::Init()
 
 void WorldRenderer::LoadShaders()
 {
-
+	// TODO : Transfer controling of shader in material to SVC.
 }
 
 void WorldRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

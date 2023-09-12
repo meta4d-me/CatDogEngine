@@ -56,19 +56,17 @@ void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase,
 
 void SkeletonRenderer::Init()
 {
-	const auto& shaderVariantCollectionsEntity = m_pCurrentSceneWorld->GetShaderVariantCollectionEntity();
-	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(shaderVariantCollectionsEntity);
+	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
 
 	pShaderVariantCollectionsComponent->AddShader("vs_AABB");
 	pShaderVariantCollectionsComponent->AddShader("fs_AABB");
 
-	GetRenderContext()->CreateProgram("SkeletonProgram", "vs_AABB.bin", "fs_AABB.bin");
 	bgfx::setViewName(GetViewID(), "SkeletonRenderer");
 }
 
 void SkeletonRenderer::LoadShaders()
 {
-
+	GetRenderContext()->CreateProgram("SkeletonProgram", "vs_AABB.bin", "fs_AABB.bin");
 }
 
 void SkeletonRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

@@ -6,8 +6,7 @@ namespace engine
 {
 	void BloomRenderer::Init()
 	{
-		const auto& shaderVariantCollectionsEntity = m_pCurrentSceneWorld->GetShaderVariantCollectionEntity();
-		auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(shaderVariantCollectionsEntity);
+		auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
 
 		pShaderVariantCollectionsComponent->AddShader("vs_fullscreen");
 		pShaderVariantCollectionsComponent->AddShader("fs_captureBrightness");
@@ -24,13 +23,6 @@ namespace engine
 		GetRenderContext()->CreateUniform("u_textureSize", bgfx::UniformType::Vec4);
 		GetRenderContext()->CreateUniform("u_bloomIntensity", bgfx::UniformType::Vec4);
 		GetRenderContext()->CreateUniform("u_luminanceThreshold", bgfx::UniformType::Vec4);
-		GetRenderContext()->CreateProgram("CapTureBrightnessProgram", "vs_fullscreen.bin", "fs_captureBrightness.bin");
-		GetRenderContext()->CreateProgram("DownSampleProgram", "vs_fullscreen.bin", "fs_dowmsample.bin");
-		GetRenderContext()->CreateProgram("BlurVerticalProgram", "vs_fullscreen.bin", "fs_blurvertical.bin");
-		GetRenderContext()->CreateProgram("BlurHorizontalProgram", "vs_fullscreen.bin", "fs_blurhorizontal.bin");
-		GetRenderContext()->CreateProgram("UpSampleProgram", "vs_fullscreen.bin", "fs_upsample.bin");
-		GetRenderContext()->CreateProgram("KawaseBlurProgram", "vs_fullscreen.bin", "fs_kawaseblur.bin");
-		GetRenderContext()->CreateProgram("CombineProgram", "vs_fullscreen.bin", "fs_bloom.bin");
 
 		bgfx::setViewName(GetViewID(), "BloomRenderer");
 
@@ -51,7 +43,13 @@ namespace engine
 
 	void BloomRenderer::LoadShaders()
 	{
-
+		GetRenderContext()->CreateProgram("CapTureBrightnessProgram", "vs_fullscreen.bin", "fs_captureBrightness.bin");
+		GetRenderContext()->CreateProgram("DownSampleProgram", "vs_fullscreen.bin", "fs_dowmsample.bin");
+		GetRenderContext()->CreateProgram("BlurVerticalProgram", "vs_fullscreen.bin", "fs_blurvertical.bin");
+		GetRenderContext()->CreateProgram("BlurHorizontalProgram", "vs_fullscreen.bin", "fs_blurhorizontal.bin");
+		GetRenderContext()->CreateProgram("UpSampleProgram", "vs_fullscreen.bin", "fs_upsample.bin");
+		GetRenderContext()->CreateProgram("KawaseBlurProgram", "vs_fullscreen.bin", "fs_kawaseblur.bin");
+		GetRenderContext()->CreateProgram("CombineProgram", "vs_fullscreen.bin", "fs_bloom.bin");
 	}
 
 	BloomRenderer::~BloomRenderer()

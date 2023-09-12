@@ -135,25 +135,22 @@ void CalculateBoneTransform(std::vector<cd::Matrix4x4>& boneMatrices, const cd::
 
 void AnimationRenderer::Init()
 {
-	const auto& shaderVariantCollectionsEntity = m_pCurrentSceneWorld->GetShaderVariantCollectionEntity();
-	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(shaderVariantCollectionsEntity);
+	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
 
 	pShaderVariantCollectionsComponent->AddShader("vs_animation");
 	pShaderVariantCollectionsComponent->AddShader("fs_animation");
-
-#ifdef VISUALIZE_BONE_WEIGHTS
-	m_pRenderContext->CreateUniform("u_debugBoneIndex", bgfx::UniformType::Vec4, 1);
-	m_pRenderContext->CreateProgram("AnimationProgram", "vs_visualize_bone_weight.bin", "fs_visualize_bone_weight.bin");
-#else
-	GetRenderContext()->CreateProgram("AnimationProgram", "vs_animation.bin", "fs_animation.bin");
-#endif
 
 	bgfx::setViewName(GetViewID(), "AnimationRenderer");
 }
 
 void AnimationRenderer::LoadShaders()
 {
-
+#ifdef VISUALIZE_BONE_WEIGHTS
+	m_pRenderContext->CreateUniform("u_debugBoneIndex", bgfx::UniformType::Vec4, 1);
+	m_pRenderContext->CreateProgram("AnimationProgram", "vs_visualize_bone_weight.bin", "fs_visualize_bone_weight.bin");
+#else
+	GetRenderContext()->CreateProgram("AnimationProgram", "vs_animation.bin", "fs_animation.bin");
+#endif
 }
 
 void AnimationRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

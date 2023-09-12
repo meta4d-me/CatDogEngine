@@ -96,6 +96,8 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	InitECWorld();
 	m_pEditorImGuiContext->SetSceneWorld(m_pSceneWorld.get());
 
+	InitEngineRenderers();
+
 	// Add shader build tasks and create a thread to update tasks.
 	InitShaderPrograms();
 	m_pEditorImGuiContext->AddStaticLayer(std::make_unique<Splash>("Splash"));
@@ -499,6 +501,13 @@ bool EditorApp::Update(float deltaTime)
 	if (!m_bInitEditor && ResourceBuilder::Get().IsIdle())
 	{
 		m_bInitEditor = true;
+
+		// Load compiled shaders.
+		for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
+		{
+			pRenderer->LoadShaders();
+		}
+
 		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetPBRMaterialType());
 		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetAnimationMaterialType());
 #ifdef ENABLE_DDGI
@@ -522,7 +531,6 @@ bool EditorApp::Update(float deltaTime)
 		GetMainWindow()->SetBordedLess(false);
 		GetMainWindow()->SetResizeable(true);
 
-		InitEngineRenderers();
 		m_pEditorImGuiContext->ClearUILayers();
 		InitEditorUILayers();
 
