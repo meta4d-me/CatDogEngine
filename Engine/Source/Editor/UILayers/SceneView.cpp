@@ -313,8 +313,11 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 			}
 		}
 	}
-
-	pSceneWorld->SetSelectedEntity(nearestEntity);
+	//If the ray does not hit the AABB, then selectEntity remains unchanged.
+	if (nearestEntity != engine::INVALID_ENTITY)
+	{
+		pSceneWorld->SetSelectedEntity(nearestEntity);
+	}
 }
 
 void SceneView::Update()
@@ -332,21 +335,6 @@ void SceneView::Update()
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 	auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 	ImGui::Begin(GetName(), &m_isEnable, flags);
-	if (engine::Input::Get().IsMouseLBPressed())
-	{
-		ImVec2 windowSize = ImGui::GetWindowSize();
-		ImVec2 windowPos = ImGui::GetWindowPos();
-		ImVec2 mousePos = ImGui::GetMousePos();
-		cd::Vec2f rightDown(windowPos.x + windowSize.x, windowPos.y + windowSize.y);
-		if (mousePos.x > windowPos.x && mousePos.x < rightDown.x() && mousePos.y > windowPos.y && mousePos.y < rightDown.y() && !m_isTerrainEditMode)
-		{
-			m_pCameraController->SetIsInViewScene(true);
-		}
-		else
-		{
-			m_pCameraController->SetIsInViewScene(false);
-		}
-	}
 	// Draw top menu buttons which include ImGuizmo operation modes, ViewCamera settings.
 	UpdateToolMenuButtons();
 
@@ -366,6 +354,9 @@ void SceneView::Update()
 			pCameraComponent->SetAspect(static_cast<float>(regionWidth) / static_cast<float>(regionHeight));
 		}
 	}
+	ImVec2 windowPos = ImGui::GetWindowPos();
+	ImVec2 mousePos = ImGui::GetMousePos();
+	cd::Vec2f rightDown(windowPos.x + regionSize.x, windowPos.y + regionSize.y);
 
 	// Check if mouse hover on the area of SceneView so it can control.
 	ImVec2 cursorPosition = ImGui::GetCursorPos();
@@ -399,6 +390,14 @@ void SceneView::Update()
 
 		m_isMouseDownFirstTime = false;
 		PickSceneMesh(regionWidth, regionHeight);
+		if (mousePos.x > windowPos.x && mousePos.x < rightDown.x() && mousePos.y > windowPos.y && mousePos.y < rightDown.y() && !m_isTerrainEditMode)
+		{
+			m_pCameraController->SetIsInViewScene(true);
+		}
+		else
+		{
+			m_pCameraController->SetIsInViewScene(false);
+		}
 	}
 	else
 	{
