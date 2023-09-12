@@ -86,7 +86,7 @@ EditorImGuiViewport::EditorImGuiViewport(engine::RenderContext* pRenderContext)
 
 void EditorImGuiViewport::Update()
 {
-	//struct Rect { int left, top, width, height; };
+	//struct Rect { int left, top, m_width, m_height; };
 	//struct Monitor {
 	//	Rect work_rect;
 	//	Rect monitor_rect;
@@ -101,9 +101,9 @@ void EditorImGuiViewport::Update()
 	//	const os::Monitor& m = monitors[i];
 	//	ImGuiPlatformMonitor im;
 	//	im.MainPos = ImVec2((float)m.monitor_rect.left, (float)m.monitor_rect.top);
-	//	im.MainSize = ImVec2((float)m.monitor_rect.width, (float)m.monitor_rect.height);
+	//	im.MainSize = ImVec2((float)m.monitor_rect.m_width, (float)m.monitor_rect.m_height);
 	//	im.WorkPos = ImVec2((float)m.work_rect.left, (float)m.work_rect.top);
-	//	im.WorkSize = ImVec2((float)m.work_rect.width, (float)m.work_rect.height);
+	//	im.WorkSize = ImVec2((float)m.work_rect.m_width, (float)m.work_rect.m_height);
 	//
 	//	if (m.primary) {
 	//		pio.Monitors.push_front(im);

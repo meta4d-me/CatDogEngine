@@ -17,7 +17,7 @@ void ParticleRenderer::Init()
 	bgfx::setViewName(GetViewID(), "ParticleRenderer");
 }
 
-void ParticleRenderer::LoadShaders()
+void ParticleRenderer::CreateGraphicsResources()
 {
 
 }

@@ -14,7 +14,7 @@ BlitRenderTargetPass::~BlitRenderTargetPass()
 {
 }
 
-void BlitRenderTargetPass::LoadShaders()
+void BlitRenderTargetPass::CreateGraphicsResources()
 {
 }
 

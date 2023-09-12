@@ -26,16 +26,16 @@ void SkyboxRenderer::Init()
 	pShaderVariantCollectionsComponent->AddShader("vs_skybox");
 	pShaderVariantCollectionsComponent->AddShader("fs_skybox");
 
+	bgfx::setViewName(GetViewID(), "SkyboxRenderer");
+}
+
+void SkyboxRenderer::CreateGraphicsResources()
+{
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
 	GetRenderContext()->CreateUniform(skyboxSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), sampleFalg);
 
-	bgfx::setViewName(GetViewID(), "SkyboxRenderer");
-}
-
-void SkyboxRenderer::LoadShaders()
-{
 	GetRenderContext()->CreateProgram(skyboxShader, "vs_skybox.bin", "fs_skybox.bin");
 }
 

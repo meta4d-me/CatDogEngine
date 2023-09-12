@@ -91,6 +91,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	AddWindow(cd::MoveTemp(pSplashWindow));
 
 	InitEditorRenderers();
+	CreateEditorRendererGraphicsResources();
 	InitEditorImGuiContext(m_initArgs.language);
 
 	InitECWorld();
@@ -446,6 +447,22 @@ void EditorApp::InitEngineRenderers()
 	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget));
 }
 
+void EditorApp::CreateEditorRendererGraphicsResources()
+{
+	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEditorRenderers)
+	{
+		pRenderer->CreateGraphicsResources();
+	}
+}
+
+void EditorApp::CreateEngineRendererGraphicsResources()
+{
+	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
+	{
+		pRenderer->CreateGraphicsResources();
+	}
+}
+
 bool EditorApp::IsAtmosphericScatteringEnable() const
 {
 	engine::GraphicsBackend backend = engine::Path::GetGraphicsBackend();
@@ -502,17 +519,13 @@ bool EditorApp::Update(float deltaTime)
 	{
 		m_bInitEditor = true;
 
-		// Load compiled shaders.
-		for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
-		{
-			pRenderer->LoadShaders();
-		}
-
 		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetPBRMaterialType());
 		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetAnimationMaterialType());
 #ifdef ENABLE_DDGI
 		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetDDGIMaterialType());
 #endif
+
+		CreateEngineRendererGraphicsResources();
 
 		// Phase 2 - Project Manager
 		//		* TODO : Show project selector

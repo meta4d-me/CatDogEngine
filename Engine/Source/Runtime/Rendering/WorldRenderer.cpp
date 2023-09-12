@@ -52,6 +52,11 @@ void WorldRenderer::Init()
 	pShaderVariantCollectionsComponent->AddShader("vs_PBR");
 	pShaderVariantCollectionsComponent->AddShader("fs_PBR");
 
+	bgfx::setViewName(GetViewID(), "WorldRenderer");
+}
+
+void WorldRenderer::CreateGraphicsResources()
+{
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
 	GetRenderContext()->CreateUniform(lutSampler, bgfx::UniformType::Sampler);
@@ -74,13 +79,6 @@ void WorldRenderer::Init()
 
 	GetRenderContext()->CreateUniform(LightDir, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(HeightOffsetAndshadowLength, bgfx::UniformType::Vec4, 1);
-
-	bgfx::setViewName(GetViewID(), "WorldRenderer");
-}
-
-void WorldRenderer::LoadShaders()
-{
-	// TODO : Transfer controling of shader in material to SVC.
 }
 
 void WorldRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

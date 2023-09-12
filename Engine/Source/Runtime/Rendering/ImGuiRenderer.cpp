@@ -9,6 +9,11 @@ namespace engine
 
 void ImGuiRenderer::Init()
 {
+	bgfx::setViewName(GetViewID(), "ImGuiRenderer");
+}
+
+void ImGuiRenderer::CreateGraphicsResources()
+{
 	constexpr StringCrc imguiVertexLayoutName("imgui_vertex_layout");
 	if (0 == GetRenderContext()->GetVertexLayout(imguiVertexLayoutName).m_stride)
 	{
@@ -22,12 +27,6 @@ void ImGuiRenderer::Init()
 	}
 
 	GetRenderContext()->CreateUniform("s_tex", bgfx::UniformType::Sampler);
-
-	bgfx::setViewName(GetViewID(), "ImGuiRenderer");
-}
-
-void ImGuiRenderer::LoadShaders()
-{
 	GetRenderContext()->CreateProgram("ImGuiProgram", "vs_imgui.bin", "fs_imgui.bin");
 }
 

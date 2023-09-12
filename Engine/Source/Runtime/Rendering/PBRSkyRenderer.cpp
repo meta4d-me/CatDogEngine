@@ -61,6 +61,11 @@ void PBRSkyRenderer::Init()
 	pShaderVariantCollectionsComponent->AddShader("cs_ComputeIndirectIrradiance");
 	pShaderVariantCollectionsComponent->AddShader("cs_ComputeMultipleScattering");
 
+	bgfx::setViewName(GetViewID(), "PBRSkyRenderer");
+}
+
+void PBRSkyRenderer::CreateGraphicsResources()
+{
 	GetRenderContext()->CreateTexture(TextureTransmittance, TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT, 1,
 		bgfx::TextureFormat::RGBA32F, FlagTexture2D);
 	GetRenderContext()->CreateTexture(TextureIrradiance, IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT, 1,
@@ -83,11 +88,6 @@ void PBRSkyRenderer::Init()
 	GetRenderContext()->CreateUniform(HeightOffset, bgfx::UniformType::Enum::Vec4, 1);
 	GetRenderContext()->CreateUniform(NumScatteringOrders, bgfx::UniformType::Enum::Vec4, 1);
 
-	bgfx::setViewName(GetViewID(), "PBRSkyRenderer");
-}
-
-void PBRSkyRenderer::LoadShaders()
-{
 	GetRenderContext()->CreateProgram(ProgramAtmosphericScatteringLUT, "vs_atmSkyBox.bin", "fs_PrecomputedAtmosphericScattering_LUT.bin");
 	GetRenderContext()->CreateProgram(ProgramSingleScatteringRayMarching, "vs_atmSkyBox.bin", "fs_SingleScattering_RayMarching.bin");
 

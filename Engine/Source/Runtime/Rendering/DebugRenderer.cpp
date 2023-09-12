@@ -20,7 +20,7 @@ void DebugRenderer::Init()
 	bgfx::setViewName(GetViewID(), "DebugRenderer");
 }
 
-void DebugRenderer::LoadShaders()
+void DebugRenderer::CreateGraphicsResources()
 {
 	GetRenderContext()->CreateProgram("DebugProgram", "vs_debug.bin", "fs_debug.bin");
 }

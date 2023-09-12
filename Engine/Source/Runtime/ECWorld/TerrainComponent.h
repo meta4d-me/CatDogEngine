@@ -58,11 +58,11 @@ public:
 
 private:
 	//mesh
-	uint16_t m_meshWidth = 129U;//uint32_t is too big for width
+	uint16_t m_meshWidth = 129U;//uint32_t is too big for m_width
 	uint16_t m_meshDepth = 129U;
 
-	//height map input
-	uint16_t m_texWidth = 129U;//uint32_t is too big for width
+	//m_height map input
+	uint16_t m_texWidth = 129U;//uint32_t is too big for m_width
 	uint16_t m_texDepth = 129U;//
 	float m_roughness = 1.55f;
 	float m_minHeight = 0.0f;
@@ -71,7 +71,7 @@ private:
 	//for patch wise generating
 	//uint32_t m_PatchSize;
 
-	//height map output
+	//m_height map output
 	std::vector<std::byte> m_elevationRawData;
 };
 

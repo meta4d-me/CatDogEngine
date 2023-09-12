@@ -59,8 +59,13 @@ void TerrainRenderer::Init()
 	pShaderVariantCollectionsComponent->AddShader("vs_terrain");
 	pShaderVariantCollectionsComponent->AddShader("fs_terrain");
 
+	bgfx::setViewName(GetViewID(), "TerrainRenderer");
+}
+
+void TerrainRenderer::CreateGraphicsResources()
+{
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
-	
+
 	GetRenderContext()->CreateUniform(snowSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(rockSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(grassSampler, bgfx::UniformType::Sampler);
@@ -87,11 +92,6 @@ void TerrainRenderer::Init()
 
 	GetRenderContext()->CreateTexture(elevationTexture, 129U, 129U, 1, bgfx::TextureFormat::Enum::R32F, samplerFlags, nullptr, 0);
 
-	bgfx::setViewName(GetViewID(), "TerrainRenderer");
-}
-
-void TerrainRenderer::LoadShaders()
-{
 	GetRenderContext()->CreateProgram("TerrainProgram", "vs_terrain.bin", "fs_terrain.bin");
 }
 

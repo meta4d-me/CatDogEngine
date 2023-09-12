@@ -20,7 +20,7 @@ void AABBRenderer::Init()
 	bgfx::setViewName(GetViewID(), "AABBRenderer");
 }
 
-void AABBRenderer::LoadShaders()
+void AABBRenderer::CreateGraphicsResources()
 {
 	GetRenderContext()->CreateProgram("AABBProgram", "vs_AABB.bin", "fs_AABB.bin");
 }

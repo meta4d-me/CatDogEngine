@@ -52,6 +52,10 @@ public:
 	void InitRenderContext(engine::GraphicsBackend backend, void* hwnd = nullptr);
 	void InitEditorRenderers();
 	void InitEngineRenderers();
+
+	void CreateEditorRendererGraphicsResources();
+	void CreateEngineRendererGraphicsResources();
+
 	void InitShaderPrograms() const;
 	void AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer);
 	void AddEngineRenderer(std::unique_ptr<engine::Renderer> pRenderer);

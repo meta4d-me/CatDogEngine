@@ -249,7 +249,7 @@ void ImGuiContextInstance::BeginDockSpace()
 													  ImGuiWindowFlags_NoBackground;
 
 	// Place dock space window under static imgui layers.
-	// It is a hack now as only main menu bar is a static layer so we only need to adjust the height.
+	// It is a hack now as only main menu bar is a static layer so we only need to adjust the m_height.
 	// If we have more static layers, we need to calculate their accurate areas.
 	ImGuiViewport* pMainViewport = ImGui::GetMainViewport();
 	assert(pMainViewport && "The main viewport cannot be null");

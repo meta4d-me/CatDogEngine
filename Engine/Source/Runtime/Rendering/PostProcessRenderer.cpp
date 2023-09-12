@@ -12,14 +12,14 @@ namespace engine
 		pShaderVariantCollectionsComponent->AddShader("vs_fullscreen");
 		pShaderVariantCollectionsComponent->AddShader("fs_PBR_postProcessing");
 
-		GetRenderContext()->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
-		GetRenderContext()->CreateUniform("u_gamma", bgfx::UniformType::Vec4);
-
 		bgfx::setViewName(GetViewID(), "PostProcessRenderer");
 	}
 
-	void PostProcessRenderer::LoadShaders()
+	void PostProcessRenderer::CreateGraphicsResources()
 	{
+		GetRenderContext()->CreateUniform("u_gamma", bgfx::UniformType::Vec4);
+		GetRenderContext()->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
+
 		GetRenderContext()->CreateProgram("PostProcessProgram", "vs_fullscreen.bin", "fs_PBR_postProcessing.bin");
 	}
 

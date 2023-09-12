@@ -24,7 +24,7 @@ public:
 	static RenderContext* GetRenderContext();
 
 	virtual void Init() = 0;
-	virtual void LoadShaders() = 0;
+	virtual void CreateGraphicsResources() = 0;
 	virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) = 0;
 	virtual void Render(float deltaTime) = 0;
 
