@@ -43,6 +43,7 @@ private:
 	inline bool IsProgramValid(std::string programName) const;
 
 	// Key : Program Name, Value : Shader Path + Variant.
+	// TODO : StringCrc
 	std::map<std::string, ShaderProgramPack> m_shaderPrograms;
 };
 

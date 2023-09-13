@@ -53,8 +53,8 @@ public:
 	void InitEditorRenderers();
 	void InitEngineRenderers();
 
-	void CreateEditorRendererGraphicsResources();
-	void CreateEngineRendererGraphicsResources();
+	void EditorRendererSubmit();
+	void EngineRendererSubmit();
 
 	void InitShaderPrograms() const;
 	void AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer);

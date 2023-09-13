@@ -11,7 +11,7 @@ void ShaderVariantCollectionsComponent::RegisterPragram(std::string programName,
 {
 	if (IsProgramValid(programName))
 	{
-		CD_ENGINE_WARN("Program pack {0} already exists in ShaderLibrary!", cd::MoveTemp(programName));
+		CD_ENGINE_WARN("Program pack {0} already exists in SVC!", cd::MoveTemp(programName));
 		return;
 	}
 
@@ -20,14 +20,14 @@ void ShaderVariantCollectionsComponent::RegisterPragram(std::string programName,
 
 void ShaderVariantCollectionsComponent::ActivateShaderFeature(std::string programName, ShaderFeature feature)
 {
-	assert(IsProgramValid(programName) && "Program does not exist in ShaderLibrary!");
+	assert(IsProgramValid(programName) && "Program does not exist in SVC!");
 
 	m_shaderPrograms[cd::MoveTemp(programName)].ActivateShaderFeature(cd::MoveTemp(feature));
 }
 
 void ShaderVariantCollectionsComponent::DeactiveShaderFeature(std::string programName, ShaderFeature feature)
 {
-	assert(IsProgramValid(programName) && "Shader information does not exist!");
+	assert(IsProgramValid(programName) && "Program does not exist in SVC!");
 
 	m_shaderPrograms[cd::MoveTemp(programName)].DeactivateShaderFeature(cd::MoveTemp(feature));
 }

@@ -91,7 +91,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	AddWindow(cd::MoveTemp(pSplashWindow));
 
 	InitEditorRenderers();
-	CreateEditorRendererGraphicsResources();
+	EditorRendererSubmit();
 	InitEditorImGuiContext(m_initArgs.language);
 
 	InitECWorld();
@@ -447,7 +447,7 @@ void EditorApp::InitEngineRenderers()
 	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget));
 }
 
-void EditorApp::CreateEditorRendererGraphicsResources()
+void EditorApp::EditorRendererSubmit()
 {
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEditorRenderers)
 	{
@@ -455,7 +455,7 @@ void EditorApp::CreateEditorRendererGraphicsResources()
 	}
 }
 
-void EditorApp::CreateEngineRendererGraphicsResources()
+void EditorApp::EngineRendererSubmit()
 {
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
 	{
@@ -519,7 +519,7 @@ bool EditorApp::Update(float deltaTime)
 		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetDDGIMaterialType());
 #endif
 
-		CreateEngineRendererGraphicsResources();
+		EngineRendererSubmit();
 
 		// Phase 2 - Project Manager
 		//		* TODO : Show project selector
