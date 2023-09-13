@@ -7,15 +7,13 @@ namespace engine
 	void BloomRenderer::Init()
 	{
 		auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
-
-		pShaderVariantCollectionsComponent->AddShader("vs_fullscreen");
-		pShaderVariantCollectionsComponent->AddShader("fs_captureBrightness");
-		pShaderVariantCollectionsComponent->AddShader("fs_dowmsample");
-		pShaderVariantCollectionsComponent->AddShader("fs_blurvertical");
-		pShaderVariantCollectionsComponent->AddShader("fs_blurhorizontal");
-		pShaderVariantCollectionsComponent->AddShader("fs_upsample");
-		pShaderVariantCollectionsComponent->AddShader("fs_kawaseblur");
-		pShaderVariantCollectionsComponent->AddShader("fs_bloom");
+		pShaderVariantCollectionsComponent->RegisterPragram("CapTureBrightnessProgram", { "vs_fullscreen", "fs_captureBrightness" });
+		pShaderVariantCollectionsComponent->RegisterPragram("DownSampleProgram", { "vs_fullscreen", "fs_dowmsample" });
+		pShaderVariantCollectionsComponent->RegisterPragram("BlurVerticalProgram", { "vs_fullscreen", "fs_blurvertical" });
+		pShaderVariantCollectionsComponent->RegisterPragram("BlurHorizontalProgram", { "vs_fullscreen", "fs_blurhorizontal" });
+		pShaderVariantCollectionsComponent->RegisterPragram("UpSampleProgram", { "vs_fullscreen", "fs_upsample" });
+		pShaderVariantCollectionsComponent->RegisterPragram("KawaseBlurProgram", { "vs_fullscreen", "fs_kawaseblur" });
+		pShaderVariantCollectionsComponent->RegisterPragram("CombineProgram", { "vs_fullscreen", "fs_bloom" });
 	
 		bgfx::setViewName(GetViewID(), "BloomRenderer");
 	}

@@ -26,6 +26,7 @@ void ImGuiRenderer::CreateGraphicsResources()
 		GetRenderContext()->SetVertexLayout(imguiVertexLayoutName, std::move(imguiVertexLayout));
 	}
 
+	// SVC is not used here, as we don't have a need to lazy/hot load the imgui shader at runtime.
 	GetRenderContext()->CreateUniform("s_tex", bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateProgram("ImGuiProgram", "vs_imgui.bin", "fs_imgui.bin");
 }

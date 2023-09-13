@@ -8,9 +8,7 @@ namespace engine
 	void PostProcessRenderer::Init()
 	{
 		auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
-
-		pShaderVariantCollectionsComponent->AddShader("vs_fullscreen");
-		pShaderVariantCollectionsComponent->AddShader("fs_PBR_postProcessing");
+		pShaderVariantCollectionsComponent->RegisterPragram("PostProcessProgram", { "vs_fullscreen","fs_PBR_postProcessing" });
 
 		bgfx::setViewName(GetViewID(), "PostProcessRenderer");
 	}

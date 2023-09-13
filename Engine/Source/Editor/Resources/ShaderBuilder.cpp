@@ -56,18 +56,18 @@ void ShaderBuilder::BuildShaders(engine::SceneWorld* pSceneWorld)
 	auto* pShaderVariantCollectionsComponent = pSceneWorld->GetShaderVariantCollectionsComponent(pSceneWorld->GetShaderVariantCollectionEntity());
 	const auto& shaderInfos = pShaderVariantCollectionsComponent->GetShaderInformations();
 
-	for (const auto& info : shaderInfos)
-	{
-		if (info.second.empty())
-		{
-			// Non-Uber shader case
-			// BuildNonUberShader(info.first);
-		}
-		else
-		{
-			// Uber shader case
-		}
-	}
+	// for (const auto& info : shaderInfos)
+	// {
+	// 	if (info.second.empty())
+	// 	{
+	// 		// Non-Uber shader case
+	// 		BuildNonUberShader(info.first);
+	// 	}
+	// 	else
+	// 	{
+	// 		// Uber shader case
+	// 	}
+	// }
 }
 
 const ShaderType ShaderBuilder::GetShaderType(const std::string& fileName)

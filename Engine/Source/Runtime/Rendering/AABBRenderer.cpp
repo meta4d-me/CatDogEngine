@@ -13,9 +13,7 @@ namespace engine
 void AABBRenderer::Init()
 {
 	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
-	
-	pShaderVariantCollectionsComponent->AddShader("vs_AABB");
-	pShaderVariantCollectionsComponent->AddShader("fs_AABB");
+	pShaderVariantCollectionsComponent->RegisterPragram("AABBProgram", { "vs_AABB", "fs_AABB" });
 
 	bgfx::setViewName(GetViewID(), "AABBRenderer");
 }

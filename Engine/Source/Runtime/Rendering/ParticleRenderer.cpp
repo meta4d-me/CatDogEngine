@@ -10,9 +10,7 @@ namespace engine {
 void ParticleRenderer::Init()
 {
 	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
-
-	// pShaderVariantCollectionsComponent->AddShader("");
-	// pShaderVariantCollectionsComponent->AddShader("");
+	// pShaderVariantCollectionsComponent->RegisterPragram();
 
 	bgfx::setViewName(GetViewID(), "ParticleRenderer");
 }

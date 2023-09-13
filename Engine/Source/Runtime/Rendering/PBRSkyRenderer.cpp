@@ -50,16 +50,14 @@ constexpr uint16_t ScatteringOrders                      = 6;
 void PBRSkyRenderer::Init()
 {
 	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
-
-	pShaderVariantCollectionsComponent->AddShader("vs_atmSkyBox");
-	pShaderVariantCollectionsComponent->AddShader("fs_PrecomputedAtmosphericScattering_LUT");
-	pShaderVariantCollectionsComponent->AddShader("fs_SingleScattering_RayMarching");
-	pShaderVariantCollectionsComponent->AddShader("cs_ComputeTransmittance");
-	pShaderVariantCollectionsComponent->AddShader("cs_ComputeDirectIrradiance");
-	pShaderVariantCollectionsComponent->AddShader("cs_ComputeSingleScattering");
-	pShaderVariantCollectionsComponent->AddShader("cs_ComputeScatteringDensity");
-	pShaderVariantCollectionsComponent->AddShader("cs_ComputeIndirectIrradiance");
-	pShaderVariantCollectionsComponent->AddShader("cs_ComputeMultipleScattering");
+	pShaderVariantCollectionsComponent->RegisterPragram(ProgramAtmosphericScatteringLUT, { "vs_atmSkyBox", "fs_PrecomputedAtmosphericScattering_LUT" });
+	pShaderVariantCollectionsComponent->RegisterPragram(ProgramSingleScatteringRayMarching, { "vs_atmSkyBox", "fs_SingleScattering_RayMarching" });
+	pShaderVariantCollectionsComponent->RegisterPragram(ProgramComputeTransmittance, { "cs_ComputeTransmittance" });
+	pShaderVariantCollectionsComponent->RegisterPragram(ProgramComputeDirectIrradiance, { "cs_ComputeDirectIrradiance" });
+	pShaderVariantCollectionsComponent->RegisterPragram(ProgramComputeSingleScattering, { "cs_ComputeSingleScattering" });
+	pShaderVariantCollectionsComponent->RegisterPragram(ProgramComputeScatteringDensity, { "cs_ComputeScatteringDensity" });
+	pShaderVariantCollectionsComponent->RegisterPragram(ProgramComputeIndirectIrradiance, { "cs_ComputeIndirectIrradiance" });
+	pShaderVariantCollectionsComponent->RegisterPragram(ProgramComputeMultipleScattering, { "cs_ComputeMultipleScattering" });
 
 	bgfx::setViewName(GetViewID(), "PBRSkyRenderer");
 }

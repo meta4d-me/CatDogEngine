@@ -478,11 +478,6 @@ void EditorApp::InitShaderPrograms() const
 
 	std::string nonUberBuildPath = CDENGINE_BUILTIN_SHADER_PATH;
 	ShaderBuilder::BuildNonUberShader(nonUberBuildPath + "shaders");
-	if (IsAtmosphericScatteringEnable())
-	{
-		std::string atmBuildPath = CDENGINE_BUILTIN_SHADER_PATH;
-		ShaderBuilder::BuildNonUberShader(atmBuildPath + "atm");
-	}
 
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetPBRMaterialType());
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetAnimationMaterialType());

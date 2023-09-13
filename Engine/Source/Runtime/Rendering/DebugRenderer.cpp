@@ -13,9 +13,7 @@ namespace engine
 void DebugRenderer::Init()
 {
 	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
-
-	pShaderVariantCollectionsComponent->AddShader("vs_debug");
-	pShaderVariantCollectionsComponent->AddShader("fs_debug");
+	pShaderVariantCollectionsComponent->RegisterPragram("DebugProgram", { "vs_debug","fs_debug" });
 
 	bgfx::setViewName(GetViewID(), "DebugRenderer");
 }
