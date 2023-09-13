@@ -2,15 +2,30 @@
 
 #include "Base/Template.h"
 #include "Core/StringCrc.h"
-#include "Rendering/ShaderFeature.h"
+#include "Rendering/ShaderVariant.h"
 
 #include <map>
+#include <memory>
+#include <string>
 
 namespace engine
 {
 
+struct ShaderProgramPack
+{
+	std::string vertexShaderPath;
+	std::string fragmentShaderPath;
+
+	// No uber vertex shader support.
+	// ShaderVariant::IsUberShader will return false for non - uber shaders.
+	ShaderVariant variant;
+};
+
 class ShaderVariantCollectionsComponent final
 {
+public:
+		using ShaderBlob = std::vector<std::byte>;
+
 public:
 	static constexpr StringCrc GetClassName()
 	{
@@ -43,6 +58,12 @@ private:
 	// Key : Shader source file path, Value : Shader feature set.
 	// Non-Uber shader has no features, in this case the value will be an empty std::set.
 	std::map<std::string, ShaderFeatureSet> m_shaderInformations;
+
+	// Key : Program Name, Value : VS Path + FS Path + variant.
+	std::map<std::string, ShaderProgramPack> m_shaderPrograms;
+
+	// Key : Compiled Binary Shader File Name, Value : File Data.
+	// std::map<std::string, std::unique_ptr<ShaderBlob>> m_shaderData;
 };
 
 }

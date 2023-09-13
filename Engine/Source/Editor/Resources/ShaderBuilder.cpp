@@ -1,5 +1,6 @@
 #include "ShaderBuilder.h"
 
+#include "ECWorld/SceneWorld.h"
 #include "Log/Log.h"
 #include "Path/Path.h"
 #include "Rendering/RenderContext.h"
@@ -47,6 +48,25 @@ void ShaderBuilder::BuildNonUberShader(std::string folderPath)
 		std::string outputShaderPath = engine::Path::GetShaderOutputPath(inputFilePath.string().c_str());
 		ResourceBuilder::Get().AddShaderBuildTask(shaderType,
 			inputFilePath.string().c_str(), outputShaderPath.c_str());
+	}
+}
+
+void ShaderBuilder::BuildShaders(engine::SceneWorld* pSceneWorld)
+{
+	auto* pShaderVariantCollectionsComponent = pSceneWorld->GetShaderVariantCollectionsComponent(pSceneWorld->GetShaderVariantCollectionEntity());
+	const auto& shaderInfos = pShaderVariantCollectionsComponent->GetShaderInformations();
+
+	for (const auto& info : shaderInfos)
+	{
+		if (info.second.empty())
+		{
+			// Non-Uber shader case
+			// BuildNonUberShader(info.first);
+		}
+		else
+		{
+			// Uber shader case
+		}
 	}
 }
 

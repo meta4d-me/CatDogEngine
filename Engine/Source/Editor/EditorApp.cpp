@@ -474,6 +474,8 @@ bool EditorApp::IsAtmosphericScatteringEnable() const
 
 void EditorApp::InitShaderPrograms() const
 {
+	ShaderBuilder::BuildShaders(m_pSceneWorld.get());
+
 	std::string nonUberBuildPath = CDENGINE_BUILTIN_SHADER_PATH;
 	ShaderBuilder::BuildNonUberShader(nonUberBuildPath + "shaders");
 	if (IsAtmosphericScatteringEnable())

@@ -1,26 +1,23 @@
-﻿#include "ShaderSchema.h"
+#include "ShaderVariant.h"
 
 #include "Base/Template.h"
 #include "Log/Log.h"
 
-#include <algorithm>
 #include <cassert>
-#include <sstream>
 
 namespace engine
 {
 
-ShaderSchema::ShaderSchema(std::string vsPath, std::string fsPath)
+bool ShaderVariant::IsUberShader() const
 {
-	m_vertexShaderPath = cd::MoveTemp(vsPath);
-	m_fragmentShaderPath = cd::MoveTemp(fsPath);
-
-	m_isDirty = false;
+	assert((m_featureSets.empty() && m_featureCombines.empty()) || 
+		(!m_featureSets.empty() && !m_featureCombines.empty()));
+	return (!m_featureSets.empty());
 }
 
-void ShaderSchema::AddFeatureSet(ShaderFeatureSet featureSet)
+void ShaderVariant::AddFeatureSet(ShaderFeatureSet featureSet)
 {
-	for (const auto& existingFeatureSet : m_shaderFeatureSets)
+	for (const auto& existingFeatureSet : m_featureSets)
 	{
 		for (const auto& newFeature : featureSet)
 		{
@@ -33,10 +30,10 @@ void ShaderSchema::AddFeatureSet(ShaderFeatureSet featureSet)
 	}
 
 	m_isDirty = true;
-	m_shaderFeatureSets.emplace_back(cd::MoveTemp(featureSet));
+	m_featureSets.emplace_back(cd::MoveTemp(featureSet));
 }
 
-void ShaderSchema::Build()
+void ShaderVariant::Build()
 {
 	if (!m_isDirty)
 	{
@@ -47,7 +44,7 @@ void ShaderSchema::Build()
 	CleanBuild();
 	m_isDirty = false;
 
-	for (const auto& featureSet : m_shaderFeatureSets)
+	for (const auto& featureSet : m_featureSets)
 	{
 		for (const auto& feature : featureSet)
 		{
@@ -89,28 +86,28 @@ void ShaderSchema::Build()
 	m_compiledProgramHandles[DefaultUberShaderCrc.Value()] = InvalidProgramHandle;
 }
 
-void ShaderSchema::CleanBuild()
+void ShaderVariant::CleanBuild()
 {
 	m_featureCombines.clear();
 	m_compiledProgramHandles.clear();
 	m_isDirty = true;
 }
 
-void ShaderSchema::CleanAll()
+void ShaderVariant::CleanAll()
 {
 	CleanBuild();
 	m_isDirty = false;
 
-	m_shaderFeatureSets.clear();
+	m_featureSets.clear();
 }
 
-void ShaderSchema::SetCompiledProgram(StringCrc shaderFeaturesCrc, uint16_t programHandle)
+void ShaderVariant::SetCompiledProgram(StringCrc shaderFeaturesCrc, uint16_t programHandle)
 {
 	assert(IsFeaturesValid(shaderFeaturesCrc));
 	m_compiledProgramHandles[shaderFeaturesCrc.Value()] = programHandle;
 }
 
-uint16_t ShaderSchema::GetCompiledProgram(StringCrc shaderFeaturesCrc) const
+uint16_t ShaderVariant::GetCompiledProgram(StringCrc shaderFeaturesCrc) const
 {
 	auto itProgram = m_compiledProgramHandles.find(shaderFeaturesCrc.Value());
 
@@ -131,16 +128,16 @@ uint16_t ShaderSchema::GetCompiledProgram(StringCrc shaderFeaturesCrc) const
 	return programHandle;
 }
 
-StringCrc ShaderSchema::GetFeaturesCrc(const ShaderFeatureSet& featureSet) const
+StringCrc ShaderVariant::GetFeaturesCrc(const ShaderFeatureSet& featureSet) const
 {
-	if (m_shaderFeatureSets.empty() || featureSet.empty())
+	if (m_featureSets.empty() || featureSet.empty())
 	{
 		return DefaultUberShaderCrc;
 	}
 
 	std::stringstream ss;
 	// Use the option order in m_shaderFeatureSets to ensure that inputs in different orders can get the same optionsCrc.
-	for (const auto& registeredSet : m_shaderFeatureSets)
+	for (const auto& registeredSet : m_featureSets)
 	{
 		// Ignore option which contain in parameter but not contain in m_shaderFeatureSets.
 		for (const auto& registeredFeature : registeredSet)
@@ -155,37 +152,24 @@ StringCrc ShaderSchema::GetFeaturesCrc(const ShaderFeatureSet& featureSet) const
 	return StringCrc(ss.str());
 }
 
-bool ShaderSchema::IsFeaturesValid(StringCrc shaderFeaturesCrc) const
+bool ShaderVariant::IsFeaturesValid(StringCrc shaderFeaturesCrc) const
 {
 	return m_compiledProgramHandles.find(shaderFeaturesCrc.Value()) != m_compiledProgramHandles.end();
 }
 
-void ShaderSchema::AddUberVSBlob(ShaderBlob shaderBlob)
+void ShaderVariant::SetShaderFeatureSets(std::vector<ShaderFeatureSet> sets)
 {
-	if (m_pVSBlob)
-	{
-		// TODO : process vertex uber shaders.
-		return;
-	}
-
-	m_pVSBlob = std::make_unique<ShaderBlob>(cd::MoveTemp(shaderBlob));
+	m_featureSets = cd::MoveTemp(sets);
 }
 
-void ShaderSchema::AddUberFSBlob(StringCrc shaderFeaturesCrc, ShaderBlob shaderBlob)
+void ShaderVariant::SetFeatureCombines(std::vector<std::string> combines)
 {
-	if (m_shaderFeaturesToFSBlobs.find(shaderFeaturesCrc.Value()) != m_shaderFeaturesToFSBlobs.end())
-	{
-		return;
-	}
-
-	m_shaderFeaturesToFSBlobs[shaderFeaturesCrc.Value()] = std::make_unique<ShaderBlob>(cd::MoveTemp(shaderBlob));
+	m_featureCombines = cd::MoveTemp(combines);
 }
 
-const ShaderBlob& ShaderSchema::GetFSBlob(StringCrc shaderFeaturesCrc) const
+void ShaderVariant::SetCompiledProgramHandles(std::map<uint32_t, uint16_t> handles)
 {
-	auto itBlob = m_shaderFeaturesToFSBlobs.find(shaderFeaturesCrc.Value());
-	assert(itBlob != m_shaderFeaturesToFSBlobs.end());
-	return *(itBlob->second.get());
+	m_compiledProgramHandles = cd::MoveTemp(handles);
 }
 
 }

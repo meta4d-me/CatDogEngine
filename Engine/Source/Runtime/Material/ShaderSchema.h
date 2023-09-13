@@ -30,8 +30,6 @@ public:
 	static constexpr uint16_t InvalidProgramHandle = UINT16_MAX;
 	static constexpr StringCrc DefaultUberShaderCrc = StringCrc("");
 
-	using ShaderBlob = std::vector<std::byte>;
-
 public:
 	ShaderSchema() = default;
 	explicit ShaderSchema(std::string vsPath, std::string fsPath);
