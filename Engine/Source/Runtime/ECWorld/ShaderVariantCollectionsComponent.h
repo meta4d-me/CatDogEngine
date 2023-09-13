@@ -36,21 +36,14 @@ public:
 	void DeactiveShaderFeature(std::string programName, ShaderFeature feature);
 
 	void SetShaderPrograms(std::map<std::string, ShaderProgramPack> program);
-	std::map<std::string, ShaderProgramPack>& GetShaderInformations() { return m_shaderPrograms; }
-	const std::map<std::string, ShaderProgramPack>& GetShaderInformations() const { return m_shaderPrograms; }
+	std::map<std::string, ShaderProgramPack>& GetShaderPrograms() { return m_shaderPrograms; }
+	const std::map<std::string, ShaderProgramPack>& GetShaderPrograms() const { return m_shaderPrograms; }
 
 private:
-	inline bool IsValid(std::string path) const;
+	inline bool IsProgramValid(std::string programName) const;
 
-	// Key : Shader source file path, Value : Shader feature set.
-	// Non-Uber shader has no features, in this case the value will be an empty std::set.
-	// std::map<std::string, ShaderFeatureSet> m_shaderInformations;
-
-	// Key : Program Name, Value : VS Path + FS Path + variant.
+	// Key : Program Name, Value : Shader Path + Variant.
 	std::map<std::string, ShaderProgramPack> m_shaderPrograms;
-
-	// Key : Compiled Binary Shader File Name, Value : File Data.
-	// std::map<std::string, std::unique_ptr<ShaderBlob>> m_shaderData;
 };
 
 }

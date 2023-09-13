@@ -18,7 +18,7 @@ namespace engine
 		bgfx::setViewName(GetViewID(), "BloomRenderer");
 	}
 
-	void BloomRenderer::CreateGraphicsResources()
+	void BloomRenderer::Submit()
 	{
 		for (int i = 0; i < TEX_CHAIN_LEN; i++)
 		{

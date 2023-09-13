@@ -91,7 +91,7 @@ void Path::SetGraphicsBackend(engine::GraphicsBackend backend)
 
 std::string Path::GetBuiltinShaderInputPath(const char* pShaderName)
 {
-    return (GetEngineBuiltinShaderPath() / std::filesystem::path(pShaderName)).replace_extension(ShaderInputExtension).string();
+    return (GetEngineBuiltinShaderPath() / pShaderName).replace_extension(ShaderInputExtension).string();
 }
 
 std::filesystem::path Path::GetShaderOutputDirectory()

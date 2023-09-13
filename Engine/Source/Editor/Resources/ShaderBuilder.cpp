@@ -29,45 +29,40 @@ void ShaderBuilder::BuildUberShader(engine::MaterialType* pMaterialType)
 	CD_ENGINE_INFO("Shader variant count of material type {0} : {1}", pMaterialType->GetMaterialName(), shaderSchema.GetFeatureCombines().size());
 }
 
-void ShaderBuilder::BuildNonUberShader(std::string folderPath)
-{
-	for (const auto& entry : std::filesystem::recursive_directory_iterator(folderPath))
-	{
-		const auto& inputFilePath = entry.path();
-		if (".sc" != inputFilePath.extension())
-		{
-			continue;
-		}
-
-		ShaderType shaderType = GetShaderType(inputFilePath.stem().string());
-		if (shaderType == ShaderType::None)
-		{
-			continue;
-		}
-
-		std::string outputShaderPath = engine::Path::GetShaderOutputPath(inputFilePath.string().c_str());
-		ResourceBuilder::Get().AddShaderBuildTask(shaderType,
-			inputFilePath.string().c_str(), outputShaderPath.c_str());
-	}
-}
-
 void ShaderBuilder::BuildShaders(engine::SceneWorld* pSceneWorld)
 {
-	auto* pShaderVariantCollectionsComponent = pSceneWorld->GetShaderVariantCollectionsComponent(pSceneWorld->GetShaderVariantCollectionEntity());
-	const auto& shaderInfos = pShaderVariantCollectionsComponent->GetShaderInformations();
+	const auto& porgrams = pSceneWorld->GetShaderVariantCollectionsComponent(pSceneWorld->GetShaderVariantCollectionEntity())->GetShaderPrograms();
 
-	// for (const auto& info : shaderInfos)
-	// {
-	// 	if (info.second.empty())
-	// 	{
-	// 		// Non-Uber shader case
-	// 		BuildNonUberShader(info.first);
-	// 	}
-	// 	else
-	// 	{
-	// 		// Uber shader case
-	// 	}
-	// }
+	for (const auto& [programName, pack] : porgrams)
+	{
+		if (pack.GetFeatureSet().empty())
+		{
+			// Non-Uber Shaders
+
+			for (const auto& shaderName : pack.GetShaderNames())
+			{
+				ShaderType shaderType = GetShaderType(shaderName);
+				if (ShaderType::None == shaderType)
+				{
+					continue;
+				}
+
+				// TODO : GetBuiltinShaderInputPath()
+				std::filesystem::path inputShaderFullPath = CDENGINE_BUILTIN_SHADER_PATH;
+				inputShaderFullPath  += "shaders/";
+				inputShaderFullPath  += shaderName;
+				inputShaderFullPath .replace_extension(ShaderExtension);
+
+				std::string outputShaderPath = engine::Path::GetShaderOutputPath(shaderName.c_str());
+				ResourceBuilder::Get().AddShaderBuildTask(shaderType, inputShaderFullPath.generic_string().c_str(), outputShaderPath.c_str());
+			}
+		}
+		else
+		{
+			// Uber Shaders
+
+		}
+	}
 }
 
 const ShaderType ShaderBuilder::GetShaderType(const std::string& fileName)

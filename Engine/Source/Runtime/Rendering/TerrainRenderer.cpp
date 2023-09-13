@@ -60,7 +60,7 @@ void TerrainRenderer::Init()
 	bgfx::setViewName(GetViewID(), "TerrainRenderer");
 }
 
-void TerrainRenderer::CreateGraphicsResources()
+void TerrainRenderer::Submit()
 {
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 

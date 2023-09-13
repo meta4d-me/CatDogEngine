@@ -18,7 +18,7 @@ void DebugRenderer::Init()
 	bgfx::setViewName(GetViewID(), "DebugRenderer");
 }
 
-void DebugRenderer::CreateGraphicsResources()
+void DebugRenderer::Submit()
 {
 	GetRenderContext()->CreateProgram("DebugProgram", "vs_debug.bin", "fs_debug.bin");
 }

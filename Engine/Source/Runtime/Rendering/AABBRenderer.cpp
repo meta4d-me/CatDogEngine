@@ -18,7 +18,7 @@ void AABBRenderer::Init()
 	bgfx::setViewName(GetViewID(), "AABBRenderer");
 }
 
-void AABBRenderer::CreateGraphicsResources()
+void AABBRenderer::Submit()
 {
 	GetRenderContext()->CreateProgram("AABBProgram", "vs_AABB.bin", "fs_AABB.bin");
 }

@@ -62,7 +62,7 @@ void PBRSkyRenderer::Init()
 	bgfx::setViewName(GetViewID(), "PBRSkyRenderer");
 }
 
-void PBRSkyRenderer::CreateGraphicsResources()
+void PBRSkyRenderer::Submit()
 {
 	GetRenderContext()->CreateTexture(TextureTransmittance, TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT, 1,
 		bgfx::TextureFormat::RGBA32F, FlagTexture2D);

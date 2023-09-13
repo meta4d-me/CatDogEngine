@@ -62,7 +62,7 @@ void SkeletonRenderer::Init()
 	bgfx::setViewName(GetViewID(), "SkeletonRenderer");
 }
 
-void SkeletonRenderer::CreateGraphicsResources()
+void SkeletonRenderer::Submit()
 {
 	GetRenderContext()->CreateProgram("SkeletonProgram", "vs_AABB.bin", "fs_AABB.bin");
 }

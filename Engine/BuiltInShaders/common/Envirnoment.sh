@@ -10,7 +10,7 @@
 
 #if defined(ATM)
 
-#include "../atm/atm_functions.sh"
+#include "atm_functions.sh"
 
 uniform vec4 u_LightDir;
 uniform vec4 u_HeightOffsetAndshadowLength;

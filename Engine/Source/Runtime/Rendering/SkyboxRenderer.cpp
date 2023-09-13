@@ -27,7 +27,7 @@ void SkyboxRenderer::Init()
 	bgfx::setViewName(GetViewID(), "SkyboxRenderer");
 }
 
-void SkyboxRenderer::CreateGraphicsResources()
+void SkyboxRenderer::Submit()
 {
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 

@@ -451,7 +451,7 @@ void EditorApp::CreateEditorRendererGraphicsResources()
 {
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEditorRenderers)
 	{
-		pRenderer->CreateGraphicsResources();
+		pRenderer->Submit();
 	}
 }
 
@@ -459,7 +459,7 @@ void EditorApp::CreateEngineRendererGraphicsResources()
 {
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
 	{
-		pRenderer->CreateGraphicsResources();
+		pRenderer->Submit();
 	}
 }
 
@@ -475,9 +475,6 @@ bool EditorApp::IsAtmosphericScatteringEnable() const
 void EditorApp::InitShaderPrograms() const
 {
 	ShaderBuilder::BuildShaders(m_pSceneWorld.get());
-
-	std::string nonUberBuildPath = CDENGINE_BUILTIN_SHADER_PATH;
-	ShaderBuilder::BuildNonUberShader(nonUberBuildPath + "shaders");
 
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetPBRMaterialType());
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetAnimationMaterialType());

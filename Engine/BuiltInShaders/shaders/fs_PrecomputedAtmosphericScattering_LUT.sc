@@ -2,7 +2,7 @@ $input v_worldPos
 
 #include "../common/common.sh"
 #include "../common/Camera.sh"
-#include "atm_functions.sh"
+#include "../common/atm_functions.sh"
 
 uniform vec4 u_LightDir;
 uniform vec4 u_HeightOffset;

@@ -141,7 +141,7 @@ void AnimationRenderer::Init()
 	bgfx::setViewName(GetViewID(), "AnimationRenderer");
 }
 
-void AnimationRenderer::CreateGraphicsResources()
+void AnimationRenderer::Submit()
 {
 #ifdef VISUALIZE_BONE_WEIGHTS
 	m_pRenderContext->CreateUniform("u_debugBoneIndex", bgfx::UniformType::Vec4, 1);

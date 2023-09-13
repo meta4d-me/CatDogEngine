@@ -57,21 +57,21 @@ public:
 	void ScreenSpaceSmooth(float screenSpaceX, float screenSpaceY, cd::Matrix4x4 invProjMtx, cd::Matrix4x4 invViewMtx, cd::Vec3f camPos);
 
 private:
-	//mesh
-	uint16_t m_meshWidth = 129U;//uint32_t is too big for width
+	// mesh
+	uint16_t m_meshWidth = 129U; // uint32_t is too big for width
 	uint16_t m_meshDepth = 129U;
 
-	//m_height map input
-	uint16_t m_texWidth = 129U;//uint32_t is too big for width
-	uint16_t m_texDepth = 129U;//
+	// height map input
+	uint16_t m_texWidth = 129U; // uint32_t is too big for width
+	uint16_t m_texDepth = 129U;
 	float m_roughness = 1.55f;
 	float m_minHeight = 0.0f;
 	float m_maxHeight = 30.0f;
 	
-	//for patch wise generating
-	//uint32_t m_PatchSize;
+	// for patch wise generating
+	// uint32_t m_PatchSize;
 
-	//height map output
+	// height map output
 	std::vector<std::byte> m_elevationRawData;
 };
 

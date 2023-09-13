@@ -19,7 +19,9 @@ namespace editor
 class ShaderBuilder
 {
 public:
-	static void BuildNonUberShader(std::string folderPath);
+	static constexpr const char* ShaderExtension = ".sc";
+
+public:
 	static void BuildUberShader(engine::MaterialType* pMaterialType);
 
 	static void BuildShaders(engine::SceneWorld* pSceneWorld);

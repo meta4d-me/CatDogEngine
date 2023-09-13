@@ -14,7 +14,7 @@ BlitRenderTargetPass::~BlitRenderTargetPass()
 {
 }
 
-void BlitRenderTargetPass::CreateGraphicsResources()
+void BlitRenderTargetPass::Submit()
 {
 }
 

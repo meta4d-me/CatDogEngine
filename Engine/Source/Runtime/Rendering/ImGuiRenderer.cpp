@@ -12,7 +12,7 @@ void ImGuiRenderer::Init()
 	bgfx::setViewName(GetViewID(), "ImGuiRenderer");
 }
 
-void ImGuiRenderer::CreateGraphicsResources()
+void ImGuiRenderer::Submit()
 {
 	constexpr StringCrc imguiVertexLayoutName("imgui_vertex_layout");
 	if (0 == GetRenderContext()->GetVertexLayout(imguiVertexLayoutName).m_stride)

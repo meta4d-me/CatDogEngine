@@ -53,7 +53,7 @@ void WorldRenderer::Init()
 	bgfx::setViewName(GetViewID(), "WorldRenderer");
 }
 
-void WorldRenderer::CreateGraphicsResources()
+void WorldRenderer::Submit()
 {
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 

@@ -13,7 +13,7 @@ namespace engine
 		bgfx::setViewName(GetViewID(), "PostProcessRenderer");
 	}
 
-	void PostProcessRenderer::CreateGraphicsResources()
+	void PostProcessRenderer::Submit()
 	{
 		GetRenderContext()->CreateUniform("u_gamma", bgfx::UniformType::Vec4);
 		GetRenderContext()->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
