@@ -12,13 +12,24 @@ namespace engine
 namespace details
 {
 
-void CalculateBoneTranslate(const cd::Bone& bone, const cd::Matrix4x4& changeMatrix, const cd::SceneDatabase* pSceneDatabase, engine::SkinMeshComponent* pSkinMeshComponent)
+void CalculateChangeTranslate(const cd::Bone& bone, const cd::Matrix4x4& changeMatrix, const cd::SceneDatabase* pSceneDatabase, engine::SkinMeshComponent* pSkinMeshComponent)
 {
 	const uint32_t parentBoneID = bone.GetParentID().Data();
 	for (auto& boneChild : bone.GetChildIDs())
 	{
 		pSkinMeshComponent->SetBoneChangeMatrix(boneChild.Data(), changeMatrix);
-		CalculateBoneTranslate(pSceneDatabase->GetBone(boneChild.Data()), changeMatrix, pSceneDatabase, pSkinMeshComponent);
+		CalculateChangeTranslate(pSceneDatabase->GetBone(boneChild.Data()), changeMatrix, pSceneDatabase, pSkinMeshComponent);
+	}
+}
+
+void CalculateTranslate(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase, engine::SkinMeshComponent* pSkinMeshComponent)
+{
+	for (cd::BoneID boneID : bone.GetChildIDs())
+	{
+		const cd::Bone& childBone = pSceneDatabase->GetBone(boneID.Data());
+		cd::Matrix4x4 matrix = pSkinMeshComponent->GetBoneMatrix(boneID.Data()).Inverse() * pSkinMeshComponent->GetBoneChangeMatrix(boneID.Data());
+		pSkinMeshComponent->SetBoneChangeMatrix(childBone.GetID().Data(), matrix);
+		CalculateTranslate(childBone, pSceneDatabase, pSkinMeshComponent);
 	}
 }
 
@@ -52,9 +63,10 @@ void SkeletonRenderer::Render(float delataTime)
 			const uint32_t changeBoneIndex = pSkinMeshComponent->GetChangeBoneIndex();
 			const cd::Bone& bone = pSceneDatabase->GetBone(changeBoneIndex);
 			const cd::Matrix4x4& changeBoneMatrix = pSkinMeshComponent->GetBoneChangeMatrix(changeBoneIndex);
-			details::CalculateBoneTranslate(bone, changeBoneMatrix, pSceneDatabase, pSkinMeshComponent);
-			pSkinMeshComponent->ResetChangeBoneIndex();
+			//details::CalculateChangeTranslate(bone, changeBoneMatrix, pSceneDatabase, pSkinMeshComponent);
+			//pSkinMeshComponent->ResetChangeBoneIndex();
 		}
+		//details::CalculateTranslate(pSceneDatabase->GetBone(0), pSceneDatabase, pSkinMeshComponent);
 		bgfx::setUniform(bgfx::UniformHandle{ pSkinMeshComponent->GetBoneMatrixsUniform() }, pSkinMeshComponent->GetBoneChangeMatrices().data(), static_cast<uint16_t>(pSkinMeshComponent->GetBoneChangeMatrices().size()));
 		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pSkinMeshComponent->GetBoneVBH() });
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pSkinMeshComponent->GetBoneIBH() });

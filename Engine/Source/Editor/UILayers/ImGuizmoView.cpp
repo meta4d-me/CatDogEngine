@@ -74,6 +74,13 @@ void ImGuizmoView::Update()
 				pTransformComponent->GetTransform().SetTranslation(worldMatrix.GetTranslation());
 				pTransformComponent->Dirty();
 			}
+
+			if (pSkinMeshComponent)
+			{
+				pSkinMeshComponent->SetBoneChangeMatrix(selectedBoneID.Data(), deltaMatrix);
+				pSkinMeshComponent->SetBoneMatrix(selectedBoneID.Data(), worldMatrix);
+			}
+			
 		}
 
 		if (ImGuizmo::OPERATION::ROTATE & operation)
@@ -89,11 +96,6 @@ void ImGuizmoView::Update()
 		}
 
 		pTransformComponent->Build();
-		if (pSkinMeshComponent)
-		{
-			//pSkinMeshComponent->SetBoneMatrix(selectedBoneID.Data(), worldMatrix);
-			pSkinMeshComponent->SetBoneChangeMatrix(selectedBoneID.Data(), deltaMatrix);
-		}
 	}
 }
 

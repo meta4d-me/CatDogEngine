@@ -47,12 +47,23 @@ constexpr size_t indexTypeSize = sizeof(uint16_t);
 cd::Vec3f CalculateBoneTranslate(const cd::Bone& bone, cd::Vec3f& translate, const cd::SceneDatabase* pSceneDatabase)
 {
 	const cd::Bone& parentBone = pSceneDatabase->GetBone(bone.GetParentID().Data());
-	translate += parentBone.GetTransform().GetTranslation();
+	translate += parentBone.GetOffset().GetTranslation();
 	if (0U != bone.GetParentID().Data())
 	{
-		CalculateBoneTranslate(parentBone, translate, pSceneDatabase);
+		//CalculateBoneTranslate(parentBone, translate, pSceneDatabase);
 	}
 	return translate;
+}
+
+void CalculateTranslate(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase, engine::SkinMeshComponent& skinmeshComponent)
+{
+	for (cd::BoneID boneID : bone.GetChildIDs())
+	{
+		const cd::Bone& childBone = pSceneDatabase->GetBone(boneID.Data());
+		cd::Matrix4x4 matrix = skinmeshComponent.GetBoneMatrix(boneID.Data()).Inverse() * skinmeshComponent.GetBoneChangeMatrix(boneID.Data());
+		skinmeshComponent.SetBoneChangeMatrix(boneID.Data(), matrix);
+		CalculateTranslate(childBone, pSceneDatabase, skinmeshComponent);
+	}
 }
 
 void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase, engine::SkinMeshComponent& skinmeshComponent, std::byte* currentDataPtr,
@@ -61,12 +72,10 @@ void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase,
 	for (auto& child : bone.GetChildIDs())
 	{
 		const cd::Bone& currBone = pSceneDatabase->GetBone(child.Data());
-		const cd::Bone& parent = pSceneDatabase->GetBone(currBone.GetParentID().Data());
 		cd::Vec3f translate = currBone.GetOffset().GetTranslation();
+		//const cd::Vec3f position = Detail::CalculateBoneTranslate(currBone, translate, pSceneDatabase);
 
-		//const cd::Vec3f position = details::CalculateBoneTranslate(currBone, translate, pSceneDatabase);
-
-		uint16_t parentID = currBone.GetParentID().Data();
+		uint16_t parentID = bone.GetID().Data();
 		uint16_t currBoneID = currBone.GetID().Data();
 		std::memcpy(&currentDataPtr[vertexOffset], translate.Begin(), posDataSize);
 		vertexOffset += posDataSize;
@@ -83,6 +92,9 @@ void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase,
 
 		const cd::Matrix4x4& boneMatrix = currBone.GetOffset();
 		skinmeshComponent.SetBoneMatrix(currBoneID, boneMatrix);
+
+		const cd::Transform& boneTransform = currBone.GetTransform();
+		skinmeshComponent.SetBoneChangeMatrix(currBoneID, boneTransform.GetMatrix());
 
 		TraverseBone(currBone, pSceneDatabase, skinmeshComponent, currentDataPtr, currentIndexPtr, vertexOffset, indexOffset);
 	}
@@ -464,9 +476,12 @@ void ECWorldConsumer::AddSkeleton(engine::Entity entity, const cd::SceneDatabase
 	currentVertexOffset += Detail::indexDataSize;
 
 	const cd::Matrix4x4& boneMatrix = firstBone.GetOffset();
+	const cd::Transform& boneTransform = firstBone.GetTransform();
 	skinmeshComponent.SetBoneMatrix(BoneID, boneMatrix);
+	skinmeshComponent.SetBoneChangeMatrix(BoneID, boneTransform.GetMatrix());
 
 	Detail::TraverseBone(firstBone, pSceneDatabase, skinmeshComponent, vertexBuffer.data(), indexBuffer.data(), currentVertexOffset, currentIndexOffset);
+	//Detail::CalculateTranslate(firstBone, pSceneDatabase, skinmeshComponent);
 	bgfx::VertexLayout vertexLayout;
 	engine::VertexLayoutUtility::CreateVertexLayout(vertexLayout, vertexFormat.GetVertexLayout());
 	uint16_t boneVBH = bgfx::createVertexBuffer(bgfx::makeRef(vertexBuffer.data(), static_cast<uint32_t>(vertexBuffer.size())), vertexLayout).idx;
