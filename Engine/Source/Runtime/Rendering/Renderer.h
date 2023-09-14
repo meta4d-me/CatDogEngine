@@ -8,6 +8,7 @@ namespace engine
 class Camera;
 class RenderContext;
 class RenderTarget;
+class ShaderVariantCollections;
 
 class Renderer
 {
@@ -22,6 +23,9 @@ public:
 
 	static void SetRenderContext(RenderContext* pRenderContext);
 	static RenderContext* GetRenderContext();
+
+	static void SetShaderVariantCollections(ShaderVariantCollections* pCollections);
+	static ShaderVariantCollections* GetShaderVariantCollections();
 
 	virtual void Init() = 0;
 	virtual void Submit() = 0;

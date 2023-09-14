@@ -3,8 +3,7 @@
 #include "ECWorld/SceneWorld.h"
 #include "Log/Log.h"
 #include "Path/Path.h"
-#include "Rendering/RenderContext.h"
-#include "Resources/ResourceLoader.h"
+#include "Rendering/ShaderVariantCollections.h"
 
 namespace editor
 {
@@ -29,9 +28,9 @@ void ShaderBuilder::BuildUberShader(engine::MaterialType* pMaterialType)
 	CD_ENGINE_INFO("Shader variant count of material type {0} : {1}", pMaterialType->GetMaterialName(), shaderSchema.GetFeatureCombines().size());
 }
 
-void ShaderBuilder::BuildShaders(engine::SceneWorld* pSceneWorld)
+void ShaderBuilder::BuildShaders(engine::ShaderVariantCollections* pCollections)
 {
-	const auto& porgrams = pSceneWorld->GetShaderVariantCollectionsComponent(pSceneWorld->GetShaderVariantCollectionEntity())->GetShaderPrograms();
+	const auto& porgrams = pCollections->GetShaderPrograms();
 
 	for (const auto& [programName, pack] : porgrams)
 	{

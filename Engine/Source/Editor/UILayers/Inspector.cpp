@@ -510,28 +510,6 @@ void UpdateComponentWidget<engine::ParticleComponent>(engine::SceneWorld* pScene
 	ImGui::PopStyleVar();
 }
 
-template<>
-void UpdateComponentWidget<engine::ShaderVariantCollectionsComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
-{
-	auto* pShaderVariantCollectionsComponent = pSceneWorld->GetShaderVariantCollectionsComponent(entity);
-	if (!pShaderVariantCollectionsComponent)
-	{
-		return;
-	}
-
-	bool isOpen = ImGui::CollapsingHeader("Shader Variant Collections Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
-	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-	ImGui::Separator();
-
-	if (isOpen)
-	{
-
-	}
-
-	ImGui::Separator();
-	ImGui::PopStyleVar();
-}
-
 }
 
 namespace editor
@@ -571,7 +549,6 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::ParticleComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::ShaderVariantCollectionsComponent>(pSceneWorld, selectedEntity);
 
 #ifdef ENABLE_DDGI
 	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, selectedEntity);

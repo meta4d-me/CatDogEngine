@@ -3,14 +3,14 @@
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/TransformComponent.h"
-#include "RenderContext.h"
+#include "Rendering/RenderContext.h"
+#include "Rendering/ShaderVariantCollections.h"
 
 namespace engine {
 
 void ParticleRenderer::Init()
 {
-	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
-	// pShaderVariantCollectionsComponent->RegisterPragram();
+	// GetShaderVariantCollections()->RegisterPragram();
 
 	bgfx::setViewName(GetViewID(), "ParticleRenderer");
 }

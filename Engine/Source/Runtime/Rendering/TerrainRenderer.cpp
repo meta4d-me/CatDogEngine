@@ -9,7 +9,8 @@
 #include "LightUniforms.h"
 #include "Material/ShaderSchema.h"
 #include "Math/Transform.hpp"
-#include "RenderContext.h"
+#include "Rendering/RenderContext.h"
+#include "Rendering/ShaderVariantCollections.h"
 #include "Scene/Texture.h"
 #include "U_IBL.sh"
 #include "U_Terrain.sh"
@@ -54,8 +55,7 @@ constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MS
 
 void TerrainRenderer::Init()
 {
-	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
-	pShaderVariantCollectionsComponent->RegisterPragram("TerrainRenderer", { "vs_terrain", "fs_terrain" });
+	GetShaderVariantCollections()->RegisterPragram("TerrainRenderer", {"vs_terrain", "fs_terrain"});
 
 	bgfx::setViewName(GetViewID(), "TerrainRenderer");
 }

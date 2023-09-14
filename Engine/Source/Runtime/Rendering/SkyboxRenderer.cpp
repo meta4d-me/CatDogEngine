@@ -3,7 +3,8 @@
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/SkyComponent.h"
-#include "RenderContext.h"
+#include "Rendering/RenderContext.h"
+#include "Rendering/ShaderVariantCollections.h"
 
 namespace engine
 {
@@ -21,8 +22,7 @@ constexpr uint64_t renderState = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | B
 
 void SkyboxRenderer::Init()
 {
-	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
-	pShaderVariantCollectionsComponent->RegisterPragram("SkyboxRenderer", { "vs_skybox", "fs_skybox" });
+	GetShaderVariantCollections()->RegisterPragram("SkyboxRenderer", {"vs_skybox", "fs_skybox"});
 
 	bgfx::setViewName(GetViewID(), "SkyboxRenderer");
 }

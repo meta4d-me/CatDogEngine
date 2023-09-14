@@ -1,6 +1,6 @@
 #include "BlitRenderTargetPass.h"
 
-#include "RenderContext.h"
+#include "Rendering/RenderContext.h"
 
 namespace engine
 {

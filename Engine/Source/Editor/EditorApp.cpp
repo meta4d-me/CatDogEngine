@@ -24,6 +24,7 @@
 #include "Rendering/RenderContext.h"
 #include "Rendering/SkeletonRenderer.h"
 #include "Rendering/SkyboxRenderer.h"
+#include "Rendering/ShaderVariantCollections.h"
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Rendering/ParticleRenderer.h"
@@ -87,6 +88,8 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 
 	// Init graphics backend
 	InitRenderContext(m_initArgs.backend, pSplashWindow->GetNativeHandle());
+	InitShaderVariantCollections();
+
 	pSplashWindow->OnResize.Bind<engine::RenderContext, &engine::RenderContext::OnResize>(m_pRenderContext.get());
 	AddWindow(cd::MoveTemp(pSplashWindow));
 
@@ -247,7 +250,6 @@ void EditorApp::InitECWorld()
 	InitEditorCameraEntity();
 
 	InitSkyEntity();
-	InitShaderVariantCollectionEntity();
 
 #ifdef ENABLE_DDGI
 	m_pSceneWorld->InitDDGISDK();
@@ -325,19 +327,6 @@ void EditorApp::InitSkyEntity()
 	meshComponent.Build();
 }
 
-void EditorApp::InitShaderVariantCollectionEntity()
-{
-	engine::World* pWorld = m_pSceneWorld->GetWorld();
-
-	engine::Entity shaderVariantCollectionEntity = pWorld->CreateEntity();
-	m_pSceneWorld->SetShaderVariantCollectionEntity(shaderVariantCollectionEntity);
-
-	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(shaderVariantCollectionEntity);
-	nameComponent.SetName("ShaderVariantCollection");
-
-	auto& shaderVariantCollectionsComponent = pWorld->CreateComponent<engine::ShaderVariantCollectionsComponent>(shaderVariantCollectionEntity);
-}
-
 #ifdef ENABLE_DDGI
 void EditorApp::InitDDGIEntity()
 {
@@ -361,6 +350,12 @@ void EditorApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
 	m_pRenderContext = std::make_unique<engine::RenderContext>();
 	m_pRenderContext->Init(backend, hwnd);
 	engine::Renderer::SetRenderContext(m_pRenderContext.get());
+}
+
+void EditorApp::InitShaderVariantCollections()
+{
+	m_pShaderVariantCollections = std::make_unique<engine::ShaderVariantCollections>();
+	engine::Renderer::SetShaderVariantCollections(m_pShaderVariantCollections.get());
 }
 
 void EditorApp::InitEditorRenderers()
@@ -474,7 +469,7 @@ bool EditorApp::IsAtmosphericScatteringEnable() const
 
 void EditorApp::InitShaderPrograms() const
 {
-	ShaderBuilder::BuildShaders(m_pSceneWorld.get());
+	ShaderBuilder::BuildShaders(m_pShaderVariantCollections.get());
 
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetPBRMaterialType());
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetAnimationMaterialType());

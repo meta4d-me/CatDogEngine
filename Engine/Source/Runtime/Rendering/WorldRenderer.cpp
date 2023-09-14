@@ -9,7 +9,8 @@
 #include "LightUniforms.h"
 #include "Material/ShaderSchema.h"
 #include "Math/Transform.hpp"
-#include "RenderContext.h"
+#include "Rendering/RenderContext.h"
+#include "Rendering/ShaderVariantCollections.h"
 #include "Scene/Texture.h"
 #include "U_IBL.sh"
 #include "U_AtmophericScattering.sh"
@@ -47,8 +48,7 @@ constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MS
 
 void WorldRenderer::Init()
 {
-	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
-	pShaderVariantCollectionsComponent->RegisterPragram("WorldRenderer", { "vs_PBR", "fs_PBR" });
+	GetShaderVariantCollections()->RegisterPragram("WorldRenderer", {"vs_PBR", "fs_PBR"});
 
 	bgfx::setViewName(GetViewID(), "WorldRenderer");
 }

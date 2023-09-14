@@ -4,7 +4,8 @@
 #include "ECWorld/SkyComponent.h"
 #include "Log/Log.h"
 #include "Math/Box.hpp"
-#include "RenderContext.h"
+#include "Rendering/RenderContext.h"
+#include "Rendering/ShaderVariantCollections.h"
 #include "Scene/Mesh.h"
 #include "Scene/VertexFormat.h"
 #include "U_AtmophericScattering.sh"
@@ -49,15 +50,14 @@ constexpr uint16_t ScatteringOrders                      = 6;
 
 void PBRSkyRenderer::Init()
 {
-	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
-	pShaderVariantCollectionsComponent->RegisterPragram(ProgramAtmosphericScatteringLUT, { "vs_atmSkyBox", "fs_PrecomputedAtmosphericScattering_LUT" });
-	pShaderVariantCollectionsComponent->RegisterPragram(ProgramSingleScatteringRayMarching, { "vs_atmSkyBox", "fs_SingleScattering_RayMarching" });
-	pShaderVariantCollectionsComponent->RegisterPragram(ProgramComputeTransmittance, { "cs_ComputeTransmittance" });
-	pShaderVariantCollectionsComponent->RegisterPragram(ProgramComputeDirectIrradiance, { "cs_ComputeDirectIrradiance" });
-	pShaderVariantCollectionsComponent->RegisterPragram(ProgramComputeSingleScattering, { "cs_ComputeSingleScattering" });
-	pShaderVariantCollectionsComponent->RegisterPragram(ProgramComputeScatteringDensity, { "cs_ComputeScatteringDensity" });
-	pShaderVariantCollectionsComponent->RegisterPragram(ProgramComputeIndirectIrradiance, { "cs_ComputeIndirectIrradiance" });
-	pShaderVariantCollectionsComponent->RegisterPragram(ProgramComputeMultipleScattering, { "cs_ComputeMultipleScattering" });
+	GetShaderVariantCollections()->RegisterPragram(ProgramAtmosphericScatteringLUT, { "vs_atmSkyBox", "fs_PrecomputedAtmosphericScattering_LUT" });
+	GetShaderVariantCollections()->RegisterPragram(ProgramSingleScatteringRayMarching, { "vs_atmSkyBox", "fs_SingleScattering_RayMarching" });
+	GetShaderVariantCollections()->RegisterPragram(ProgramComputeTransmittance, { "cs_ComputeTransmittance" });
+	GetShaderVariantCollections()->RegisterPragram(ProgramComputeDirectIrradiance, { "cs_ComputeDirectIrradiance" });
+	GetShaderVariantCollections()->RegisterPragram(ProgramComputeSingleScattering, { "cs_ComputeSingleScattering" });
+	GetShaderVariantCollections()->RegisterPragram(ProgramComputeScatteringDensity, { "cs_ComputeScatteringDensity" });
+	GetShaderVariantCollections()->RegisterPragram(ProgramComputeIndirectIrradiance, { "cs_ComputeIndirectIrradiance" });
+	GetShaderVariantCollections()->RegisterPragram(ProgramComputeMultipleScattering, { "cs_ComputeMultipleScattering" });
 
 	bgfx::setViewName(GetViewID(), "PBRSkyRenderer");
 }

@@ -9,7 +9,7 @@
 namespace engine
 {
 
-class SceneWorld;
+class ShaderVariantCollections;
 
 }
 
@@ -24,7 +24,7 @@ public:
 public:
 	static void BuildUberShader(engine::MaterialType* pMaterialType);
 
-	static void BuildShaders(engine::SceneWorld* pSceneWorld);
+	static void BuildShaders(engine::ShaderVariantCollections* pCollections);
 
 private:
 	static const ShaderType GetShaderType(const std::string& fileName);

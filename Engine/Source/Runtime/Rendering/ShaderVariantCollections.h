@@ -5,30 +5,20 @@
 #include "Rendering/ShaderProgramPack.h"
 
 #include <map>
-#include <memory>
 #include <string>
 
 namespace engine
 {
 
-class ShaderVariantCollectionsComponent final
+class ShaderVariantCollections final
 {
 public:
-		using ShaderBlob = std::vector<std::byte>;
-
-public:
-	static constexpr StringCrc GetClassName()
-	{
-		constexpr StringCrc className("ShaderVariantCollectionsComponent");
-		return className;
-	}
-
-	ShaderVariantCollectionsComponent() = default;
-	ShaderVariantCollectionsComponent(const ShaderVariantCollectionsComponent&) = default;
-	ShaderVariantCollectionsComponent& operator=(const ShaderVariantCollectionsComponent&) = default;
-	ShaderVariantCollectionsComponent(ShaderVariantCollectionsComponent&&) = default;
-	ShaderVariantCollectionsComponent& operator=(ShaderVariantCollectionsComponent&&) = default;
-	~ShaderVariantCollectionsComponent() = default;
+	ShaderVariantCollections() = default;
+	ShaderVariantCollections(const ShaderVariantCollections&) = default;
+	ShaderVariantCollections& operator=(const ShaderVariantCollections&) = default;
+	ShaderVariantCollections(ShaderVariantCollections&&) = default;
+	ShaderVariantCollections& operator=(ShaderVariantCollections&&) = default;
+	~ShaderVariantCollections() = default;
 
 	void RegisterPragram(std::string programName, ShaderProgramPack pack);
 

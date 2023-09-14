@@ -4,7 +4,8 @@
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
-#include "RenderContext.h"
+#include "Rendering/RenderContext.h"
+#include "Rendering/ShaderVariantCollections.h"
 #include "Scene/Texture.h"
 
 namespace engine
@@ -12,8 +13,7 @@ namespace engine
 
 void AABBRenderer::Init()
 {
-	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
-	pShaderVariantCollectionsComponent->RegisterPragram("AABBProgram", { "vs_AABB", "fs_AABB" });
+	GetShaderVariantCollections()->RegisterPragram("AABBProgram", {"vs_AABB", "fs_AABB"});
 
 	bgfx::setViewName(GetViewID(), "AABBRenderer");
 }

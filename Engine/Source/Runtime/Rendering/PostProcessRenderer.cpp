@@ -1,14 +1,14 @@
 #include "PostProcessRenderer.h"
 
-#include "RenderContext.h"
+#include "Rendering/RenderContext.h"
+#include "Rendering/ShaderVariantCollections.h"
 
 namespace engine
 {
 
 	void PostProcessRenderer::Init()
 	{
-		auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
-		pShaderVariantCollectionsComponent->RegisterPragram("PostProcessProgram", { "vs_fullscreen","fs_PBR_postProcessing" });
+		GetShaderVariantCollections()->RegisterPragram("PostProcessProgram", {"vs_fullscreen","fs_PBR_postProcessing"});
 
 		bgfx::setViewName(GetViewID(), "PostProcessRenderer");
 	}

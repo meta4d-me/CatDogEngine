@@ -18,6 +18,7 @@ class Renderer;
 class AABBRenderer;
 class RenderTarget;
 class SceneWorld;
+class ShaderVariantCollections;
 
 }
 
@@ -50,6 +51,8 @@ public:
 	void RemoveWindow(size_t index);
 
 	void InitRenderContext(engine::GraphicsBackend backend, void* hwnd = nullptr);
+	void InitShaderVariantCollections();
+
 	void InitEditorRenderers();
 	void InitEngineRenderers();
 
@@ -75,7 +78,6 @@ public:
 private:
 	void InitEditorCameraEntity();
 	void InitSkyEntity();
-	void InitShaderVariantCollectionEntity();
 
 #ifdef ENABLE_DDGI
 	void InitDDGIEntity();
@@ -104,6 +106,8 @@ private:
 
 	// Rendering
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;
+	std::unique_ptr<engine::ShaderVariantCollections> m_pShaderVariantCollections;
+
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEditorRenderers;
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEngineRenderers;
 

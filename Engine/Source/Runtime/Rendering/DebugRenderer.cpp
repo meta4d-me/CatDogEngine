@@ -4,7 +4,8 @@
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
-#include "RenderContext.h"
+#include "Rendering/RenderContext.h"
+#include "Rendering/ShaderVariantCollections.h"
 #include "Scene/Texture.h"
 
 namespace engine
@@ -12,8 +13,7 @@ namespace engine
 
 void DebugRenderer::Init()
 {
-	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
-	pShaderVariantCollectionsComponent->RegisterPragram("DebugProgram", { "vs_debug","fs_debug" });
+	GetShaderVariantCollections()->RegisterPragram("DebugProgram", { "vs_debug", "fs_debug" });
 
 	bgfx::setViewName(GetViewID(), "DebugRenderer");
 }

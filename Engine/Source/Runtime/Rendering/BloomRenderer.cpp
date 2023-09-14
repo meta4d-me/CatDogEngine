@@ -1,19 +1,19 @@
 #include "BloomRenderer.h"
 
-#include "RenderContext.h"
+#include "Rendering/RenderContext.h"
+#include "Rendering/ShaderVariantCollections.h"
 
 namespace engine
 {
 	void BloomRenderer::Init()
 	{
-		auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
-		pShaderVariantCollectionsComponent->RegisterPragram("CapTureBrightnessProgram", { "vs_fullscreen", "fs_captureBrightness" });
-		pShaderVariantCollectionsComponent->RegisterPragram("DownSampleProgram", { "vs_fullscreen", "fs_dowmsample" });
-		pShaderVariantCollectionsComponent->RegisterPragram("BlurVerticalProgram", { "vs_fullscreen", "fs_blurvertical" });
-		pShaderVariantCollectionsComponent->RegisterPragram("BlurHorizontalProgram", { "vs_fullscreen", "fs_blurhorizontal" });
-		pShaderVariantCollectionsComponent->RegisterPragram("UpSampleProgram", { "vs_fullscreen", "fs_upsample" });
-		pShaderVariantCollectionsComponent->RegisterPragram("KawaseBlurProgram", { "vs_fullscreen", "fs_kawaseblur" });
-		pShaderVariantCollectionsComponent->RegisterPragram("CombineProgram", { "vs_fullscreen", "fs_bloom" });
+		GetShaderVariantCollections()->RegisterPragram("CapTureBrightnessProgram", { "vs_fullscreen", "fs_captureBrightness" });
+		GetShaderVariantCollections()->RegisterPragram("DownSampleProgram", { "vs_fullscreen", "fs_dowmsample" });
+		GetShaderVariantCollections()->RegisterPragram("BlurVerticalProgram", { "vs_fullscreen", "fs_blurvertical" });
+		GetShaderVariantCollections()->RegisterPragram("BlurHorizontalProgram", { "vs_fullscreen", "fs_blurhorizontal" });
+		GetShaderVariantCollections()->RegisterPragram("UpSampleProgram", { "vs_fullscreen", "fs_upsample" });
+		GetShaderVariantCollections()->RegisterPragram("KawaseBlurProgram", { "vs_fullscreen", "fs_kawaseblur" });
+		GetShaderVariantCollections()->RegisterPragram("CombineProgram", { "vs_fullscreen", "fs_bloom" });
 	
 		bgfx::setViewName(GetViewID(), "BloomRenderer");
 	}

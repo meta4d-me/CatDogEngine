@@ -32,7 +32,6 @@ SceneWorld::SceneWorld()
 	m_pLightComponentStorage = m_pWorld->Register<engine::LightComponent>();
 	m_pMaterialComponentStorage = m_pWorld->Register<engine::MaterialComponent>();
 	m_pNameComponentStorage = m_pWorld->Register<engine::NameComponent>();
-	m_pShaderVariantCollectionsComponentStorage = m_pWorld->Register<engine::ShaderVariantCollectionsComponent>();
 	m_pSkyComponentStorage = m_pWorld->Register<engine::SkyComponent>();
 	m_pStaticMeshComponentStorage = m_pWorld->Register<engine::StaticMeshComponent>();
 	m_pParticleComponentStorage = m_pWorld->Register<engine::ParticleComponent>();
@@ -169,12 +168,6 @@ void SceneWorld::SetSkyEntity(engine::Entity entity)
 {
 	CD_TRACE("Setup Sky entity : {0}", entity);
 	m_skyEntity = entity;
-}
-
-void SceneWorld::SetShaderVariantCollectionEntity(engine::Entity entity)
-{
-	CD_TRACE("Setup Shader Variant Collection entity : {0}", entity);
-	m_shaderVariantCollectionEntity = entity;
 }
 
 void SceneWorld::AddCameraToSceneDatabase(engine::Entity entity)

@@ -3,7 +3,8 @@
 #include "Core/StringCrc.h"
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/TransformComponent.h"
-#include "RenderContext.h"
+#include "Rendering/RenderContext.h"
+#include "Rendering/ShaderVariantCollections.h"
 #include "Rendering/Utility/VertexLayoutUtility.h"
 
 namespace engine
@@ -56,8 +57,7 @@ void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase,
 
 void SkeletonRenderer::Init()
 {
-	auto* pShaderVariantCollectionsComponent = m_pCurrentSceneWorld->GetShaderVariantCollectionsComponent(m_pCurrentSceneWorld->GetShaderVariantCollectionEntity());
-	pShaderVariantCollectionsComponent->RegisterPragram("SkeletonProgram", { "vs_AABB", "fs_AABB" });
+	GetShaderVariantCollections()->RegisterPragram("SkeletonProgram", {"vs_AABB", "fs_AABB"});
 
 	bgfx::setViewName(GetViewID(), "SkeletonRenderer");
 }
