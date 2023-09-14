@@ -221,8 +221,12 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     else if (ImGui::MenuItem("Add Particle Emitter"))
     {
         engine::Entity entity = AddNamedEntity("ParticleEmitter");
-        auto& particleEmitterComponent = pWorld->CreateComponent<engine::ParticleEmitterComponent>(entity);
         // TODO : Some initialization here.
+        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+        transformComponent.SetTransform(cd::Transform::Identity());
+        transformComponent.Build();
+
+        auto& particleEmitterComponent = pWorld->CreateComponent<engine::ParticleEmitterComponent>(entity);
     }
 }
 

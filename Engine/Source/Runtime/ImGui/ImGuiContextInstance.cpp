@@ -92,6 +92,7 @@ std::unordered_map<engine::KeyCode, ImGuiKey> kImguiKeyLookup {
 	{engine::KeyCode::x, ImGuiKey::ImGuiKey_X},
 	{engine::KeyCode::y, ImGuiKey::ImGuiKey_Y},
 	{engine::KeyCode::z, ImGuiKey::ImGuiKey_Z},
+	{engine::KeyCode::del, ImGuiKey::ImGuiKey_Delete},
 };
 
 std::unordered_map<engine::KeyMod, ImGuiKey> kImguiKeyModToImGuiKeyLookup{

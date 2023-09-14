@@ -36,7 +36,6 @@ SceneWorld::SceneWorld()
 	m_pStaticMeshComponentStorage = m_pWorld->Register<engine::StaticMeshComponent>();
 	m_pTerrainComponentStorage = m_pWorld->Register<engine::TerrainComponent>();
 	m_pTransformComponentStorage = m_pWorld->Register<engine::TransformComponent>();
-	m_pParticleComponentStorage = m_pWorld->Register<engine::ParticleComponent>();
 	m_pParticleEmitterComponentStorage = m_pWorld->Register<engine::ParticleEmitterComponent>();
 
 #ifdef ENABLE_DDGI

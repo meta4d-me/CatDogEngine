@@ -491,15 +491,16 @@ void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld
 }
 
 template<>
-void UpdateComponentWidget<engine::ParticleComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+void UpdateComponentWidget<engine::ParticleEmitterComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
 {
-	auto* pParticleComponent = pSceneWorld->GetParticleComponent(entity);
-	if (!pParticleComponent)
+	auto* pParticleEmitterComponent = pSceneWorld->GetParticleEmitterComponent(entity);
+	if (!pParticleEmitterComponent)
 	{
+
 		return;
 	}
 
-	bool isOpen = ImGui::CollapsingHeader("Particle Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	bool isOpen = ImGui::CollapsingHeader("ParticleEmitter Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 	ImGui::Separator();
 
@@ -550,7 +551,7 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::ParticleComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::ParticleEmitterComponent>(pSceneWorld, selectedEntity);
 
 #ifdef ENABLE_DDGI
 	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, selectedEntity);
