@@ -13,7 +13,7 @@
 namespace engine
 {
 
-enum class Uber : uint32_t
+enum class ShaderFeature : uint32_t
 {
 	DEFAULT = 0,
 
@@ -46,7 +46,9 @@ class ShaderSchema
 public:
 	static constexpr uint16_t InvalidProgramHandle = UINT16_MAX;
 	static constexpr StringCrc DefaultUberShaderCrc = StringCrc("");
+
 	using ShaderBlob = std::vector<std::byte>;
+	using ShaderFeatureSet = std::set<ShaderFeature>;
 
 public:
 	ShaderSchema() = default;
@@ -60,55 +62,46 @@ public:
 	const char* GetVertexShaderPath() const { return m_vertexShaderPath.c_str(); }
 	const char* GetFragmentShaderPath() const { return m_fragmentShaderPath.c_str(); }
 
-	void AddUberOption(Uber uberOption);
-	void SetConflictOptions(Uber a, Uber b);
+	void AddFeatureSet(ShaderFeatureSet featureSet);
 
-	// Calling "AddUberOption/SetConflictOptions and Build" after Build will cause unnecessary performance overhead.
+	// Calling "AddFeatureSet/SetConflictOptions and Build" after Build will cause unnecessary performance overhead.
 	void Build();
 	void CleanBuild();
 	void CleanAll();
 
-	void SetCompiledProgram(StringCrc uberOption, uint16_t programHandle);
-	uint16_t GetCompiledProgram(StringCrc uberOption) const;
+	void SetCompiledProgram(StringCrc shaderFeaturesCrc, uint16_t programHandle);
+	uint16_t GetCompiledProgram(StringCrc shaderFeaturesCrc) const;
 
-	StringCrc GetOptionsCrc(const std::unordered_set<Uber>& options) const;
-	bool IsUberOptionsValid(StringCrc uberOption) const;
+	StringCrc GetFeaturesCrc(const ShaderFeatureSet& featureSet) const;
+	bool IsFeaturesValid(StringCrc shaderFeaturesCrc) const;
 
-	std::vector<Uber>& GetUberOptions() { return m_uberOptions; }
-	const std::vector<Uber>& GetUberOptions() const { return m_uberOptions; }
+	std::vector<ShaderFeatureSet>& GetFeatures() { return m_shaderFeatureSets; }
+	const std::vector<ShaderFeatureSet>& GetFeatures() const { return m_shaderFeatureSets; }
 
-	std::vector<std::string>& GetUberCombines() { return m_uberCombines; }
-	const std::vector<std::string>& GetUberCombines() const { return m_uberCombines; }
-
-	std::map<uint32_t, uint16_t>& GetUberPrograms() { return m_compiledProgramHandles; }
-	const std::map<uint32_t, uint16_t>& GetUberPrograms() const { return m_compiledProgramHandles; }
-
-	std::unordered_multimap<std::string, std::string>& GetConflictOptions() { return m_conflictOptions; }
-	const std::unordered_multimap<std::string, std::string>& GetConflictOptions() const { return m_conflictOptions; }
+	std::vector<std::string>& GetFeatureCombines() { return m_featureCombines; }
+	const std::vector<std::string>& GetFeatureCombines() const { return m_featureCombines; }
 
 	// TODO : More generic.
-	void AddUberOptionVSBlob(ShaderBlob shaderBlob);
-	void AddUberOptionFSBlob(StringCrc uberOption, ShaderBlob shaderBlob);
+	void AddUberVSBlob(ShaderBlob shaderBlob);
+	void AddUberFSBlob(StringCrc shaderFeaturesCrc, ShaderBlob shaderBlob);
 	const ShaderBlob& GetVSBlob() const { return *m_pVSBlob.get(); }
-	const ShaderBlob& GetFSBlob(StringCrc uberOption) const;
+	const ShaderBlob& GetFSBlob(StringCrc shaderFeaturesCrc) const;
 
 private:
 	std::string m_vertexShaderPath;
 	std::string m_fragmentShaderPath;
 
-	bool m_isDirty;
-	// Registration order of options. 
-	std::vector<Uber> m_uberOptions;
+	bool m_isDirty = false;
+	// Adding order of shaer features.
+	std::vector<ShaderFeatureSet> m_shaderFeatureSets;
 	// Parameters to compile shaders.
-	std::vector<std::string> m_uberCombines;
-	// Record options that will not be active at the same time to skip permutation.
-	std::unordered_multimap<std::string, std::string> m_conflictOptions;
+	std::vector<std::string> m_featureCombines;
 
-	// Key: StringCrc(option combine), Value: shader handle.
+	// Key: StringCrc(feature combine), Value: shader handle.
 	std::map<uint32_t, uint16_t> m_compiledProgramHandles;
 
 	std::unique_ptr<ShaderBlob> m_pVSBlob;
-	std::map<uint32_t, std::unique_ptr<ShaderBlob>> m_uberOptionToFSBlobs;
+	std::map<uint32_t, std::unique_ptr<ShaderBlob>> m_shaderFeaturesToFSBlobs;
 };
 
 }

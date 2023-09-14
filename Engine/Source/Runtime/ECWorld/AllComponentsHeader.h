@@ -10,6 +10,7 @@
 #include "ECWorld/LightComponent.h"
 #include "ECWorld/MaterialComponent.h"
 #include "ECWorld/NameComponent.h"
+#include "ECWorld/ShaderVariantCollectionsComponent.h"
 #include "ECWorld/SkyComponent.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TerrainComponent.h"

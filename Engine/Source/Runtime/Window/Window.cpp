@@ -222,6 +222,16 @@ void Window::Update()
 	}
 }
 
+const bool Window::GetInputFocus() const
+{
+	return SDL_GetWindowFlags(m_pSDLWindow) & SDL_WINDOW_INPUT_FOCUS;
+}
+
+const bool Window::GetMouseFocus() const
+{
+	return SDL_GetWindowFlags(m_pSDLWindow) & SDL_WINDOW_MOUSE_FOCUS;
+}
+
 void Window::SetTitle(const char* pTitle)
 {
 	SDL_SetWindowTitle(m_pSDLWindow, pTitle);

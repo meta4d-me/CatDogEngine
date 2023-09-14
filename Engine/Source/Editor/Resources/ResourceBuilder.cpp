@@ -150,7 +150,7 @@ bool ResourceBuilder::AddTask(Process process)
 	return true;
 }
 
-bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pUberOptions)
+bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pShaderFeatures)
 {
 	if (s_SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
 	{
@@ -225,10 +225,10 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 		assert("Unknown shader compile profile.");
 	}
 
-	if (pUberOptions && *pUberOptions != '\0')
+	if (pShaderFeatures && *pShaderFeatures != '\0')
 	{
 		commandArguments.push_back("--define");
-		commandArguments.push_back(shaderLanguageDefine + ";" + pUberOptions);
+		commandArguments.push_back(shaderLanguageDefine + ";" + pShaderFeatures);
 	}
 
 	process.SetCommandArguments(cd::MoveTemp(commandArguments));

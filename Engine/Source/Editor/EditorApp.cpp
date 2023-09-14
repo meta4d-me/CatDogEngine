@@ -22,6 +22,7 @@
 #include "Rendering/BloomRenderer.h"
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
+#include "Rendering/SkeletonRenderer.h"
 #include "Rendering/SkyboxRenderer.h"
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
@@ -39,6 +40,7 @@
 #include "UILayers/MainMenu.h"
 #include "UILayers/OutputLog.h"
 #include "UILayers/SceneView.h"
+#include "UILayers/SkeletonView.h"
 #include "UILayers/Splash.h"
 #include "UILayers/TestNodeEditor.h"
 #include "Window/Input.h"
@@ -171,6 +173,7 @@ void EditorApp::InitEditorUILayers()
 	pSceneView->SetAABBRenderer(m_pAABBRenderer);
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
 
+	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<SkeletonView>("SkeletonView"));
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
 
 	auto pAssetBrowser = std::make_unique<AssetBrowser>("AssetBrowser");
@@ -234,25 +237,18 @@ void EditorApp::InitECWorld()
 {
 	m_pSceneWorld = std::make_unique<engine::SceneWorld>();
 
-	if (IsAtmosphericScatteringEnable())
-	{
-		m_pSceneWorld->CreatePBRMaterialType(true);
-	}
-	else
-	{
-		m_pSceneWorld->CreatePBRMaterialType(false);
-	}
-
+	m_pSceneWorld->CreatePBRMaterialType(IsAtmosphericScatteringEnable());
 	m_pSceneWorld->CreateAnimationMaterialType();
 	m_pSceneWorld->CreateTerrainMaterialType();
 	InitEditorCameraEntity();
+
+	InitSkyEntity();
+	InitShaderVariantCollectionEntity();
 
 #ifdef ENABLE_DDGI
 	m_pSceneWorld->InitDDGISDK();
 	InitDDGIEntity();
 #endif
-
-	InitSkyEntity();
 }
 
 void EditorApp::InitEditorCameraEntity()
@@ -292,21 +288,6 @@ void EditorApp::InitEditorCameraEntity()
 	cameraComponent.BuildViewMatrix(cameraTransform);
 }
 
-#ifdef ENABLE_DDGI
-void EditorApp::InitDDGIEntity()
-{
-	engine::World* pWorld = m_pSceneWorld->GetWorld();
-
-	engine::Entity ddgiEntity = pWorld->CreateEntity();
-	m_pSceneWorld->SetDDGIEntity(ddgiEntity);
-
-	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(ddgiEntity);
-	nameComponent.SetName("DDGI");
-
-	pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
-}
-#endif
-
 void EditorApp::InitSkyEntity()
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
@@ -339,6 +320,34 @@ void EditorApp::InitSkyEntity()
 	meshComponent.SetRequiredVertexFormat(&vertexFormat);
 	meshComponent.Build();
 }
+
+void EditorApp::InitShaderVariantCollectionEntity()
+{
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+
+	engine::Entity shaderVariantCollectionEntity = pWorld->CreateEntity();
+	m_pSceneWorld->SetShaderVariantCollectionEntity(shaderVariantCollectionEntity);
+
+	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(shaderVariantCollectionEntity);
+	nameComponent.SetName("ShaderVariantCollection");
+
+	auto& shaderVariantCollectionsComponent = pWorld->CreateComponent<engine::ShaderVariantCollectionsComponent>(shaderVariantCollectionEntity);
+}
+
+#ifdef ENABLE_DDGI
+void EditorApp::InitDDGIEntity()
+{
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+
+	engine::Entity ddgiEntity = pWorld->CreateEntity();
+	m_pSceneWorld->SetDDGIEntity(ddgiEntity);
+
+	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(ddgiEntity);
+	nameComponent.SetName("DDGI");
+
+	pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
+}
+#endif
 
 void EditorApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
 {
@@ -409,6 +418,10 @@ void EditorApp::InitEngineRenderers()
 	auto pParticlerenderer = std::make_unique<engine::ParticleRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pParticlerenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pParticlerenderer));
+
+	auto pSkeletonRenderer = std::make_unique<engine::SkeletonRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pSkeletonRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pSkeletonRenderer));
 
 #ifdef ENABLE_DDGI
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);

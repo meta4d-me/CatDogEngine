@@ -93,14 +93,14 @@ public:
 	const std::string& GetName() const { return m_name; }
 
 	// Uber shader data.
-	void ActiveUberShaderOption(engine::Uber option);
-	void DeactiveUberShaderOption(engine::Uber option);
+	void ActiveShaderFeature(ShaderFeature feature);
+	void DeactiveShaderFeature(ShaderFeature feature);
 	void MatchUberShaderCrc();
 	uint16_t GetShadreProgram() const;
 
-	void SetUberShaderOptions(std::unordered_set<engine::Uber> options) { m_uberShaderOptions = cd::MoveTemp(m_uberShaderOptions); }
-	std::unordered_set<engine::Uber>& GetUberShaderOptions() { return m_uberShaderOptions; }
-	const std::unordered_set<engine::Uber>& GetUberShaderOptions() const { return m_uberShaderOptions; }
+	void SetShaderFeatures(std::set<ShaderFeature> options) { m_shaderFeatures = cd::MoveTemp(m_shaderFeatures); }
+	std::set<ShaderFeature>& GetShaderFeatures() { return m_shaderFeatures; }
+	const std::set<ShaderFeature>& GetShaderFeatures() const { return m_shaderFeatures; }
 
 	std::string GetVertexShaderName() const;
 	std::string GetFragmentShaderName() const;
@@ -152,7 +152,7 @@ private:
 	// Input
 	const cd::Material* m_pMaterialData = nullptr;
 	const engine::MaterialType* m_pMaterialType = nullptr;
-	std::unordered_set<engine::Uber> m_uberShaderOptions;
+	std::set<ShaderFeature> m_shaderFeatures;
 	StringCrc m_uberShaderCrc;
 
 	std::string m_name;

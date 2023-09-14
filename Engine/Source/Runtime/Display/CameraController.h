@@ -55,6 +55,7 @@ public:
 
 	// Double Click entity,camera will focus
 	void CameraFocus(const cd::AABB& aabb);
+	void CameraFocus(const cd::Vec3f& position);
 
 	// Implement the effect of a translation animation.
 	void Moving();
@@ -94,9 +95,9 @@ private:
 	float m_mouseScroll = 0.0f;
 
 	cd::Vec3f m_lookAtPoint = cd::Vec3f::Zero();
-	cd::Vec3f m_lookAt;
-	cd::Vec3f m_up;
-	cd::Vec3f m_eye;
+	cd::Vec3f m_lookAt = cd::Vec3f(0.0f, 1.0f, 0.0f);
+	cd::Vec3f m_up = cd::Vec3f(0.0f, 0.0f, 1.0f);
+	cd::Vec3f m_eye = cd::Vec3f::Zero();
 	cd::Vec3f m_eyeDestination; // This is for focusing animation
 	cd::Vec3f m_lookAtDestination;
 
