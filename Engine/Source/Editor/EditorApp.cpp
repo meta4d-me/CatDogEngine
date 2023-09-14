@@ -578,6 +578,19 @@ bool EditorApp::Update(float deltaTime)
 				pMainCameraComponent->GetViewMatrix().Inverse(), camPos);
 		}
 
+		for (engine::Entity entity : m_pSceneWorld->GetMaterialEntities())
+		{
+			engine::BlendShapeComponent* pBlendShapeComponent = m_pSceneWorld->GetBlendShapeComponent(entity);
+			if (!pBlendShapeComponent)
+			{
+				continue;
+			}
+			if (pBlendShapeComponent->IsDirty()) 
+			{
+				pBlendShapeComponent->Update();
+			}		
+		}
+
 		m_pEngineImGuiContext->SetWindowPosOffset(m_pSceneView->GetWindowPosX(), m_pSceneView->GetWindowPosY());
 		m_pEngineImGuiContext->Update(deltaTime);
 

@@ -67,6 +67,37 @@ void UpdateComponentWidget<engine::StaticMeshComponent>(engine::SceneWorld* pSce
 }
 
 template<>
+void UpdateComponentWidget<engine::BlendShapeComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+{
+	auto* pBlendShapeComponent = pSceneWorld->GetBlendShapeComponent(entity);
+	if (!pBlendShapeComponent)
+	{
+		return;
+	}
+
+	bool isOpen = ImGui::CollapsingHeader("BlendShape Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+	ImGui::Separator();
+
+	if (isOpen)
+	{
+		// Parameters
+		const std::vector<cd::Morph>* pMorphs = pBlendShapeComponent->GetMorphs();
+		std::vector<float>& weights = pBlendShapeComponent->GetWeights();
+		for (uint32_t i = 0; i < pMorphs->size(); i++)
+		{
+			if (ImGuiUtils::ImGuiFloatProperty((*pMorphs)[i].GetName(), weights[i], cd::Unit::None, 0.0f, 1.0f))
+			{
+				pBlendShapeComponent->SetIsDirty(true);
+			}
+		}
+	}
+
+	ImGui::Separator();
+	ImGui::PopStyleVar();
+}
+
+template<>
 void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
 {
 	auto* pMaterialComponent = pSceneWorld->GetMaterialComponent(entity);
@@ -567,6 +598,7 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::NameComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::TransformComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::StaticMeshComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::BlendShapeComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::CameraComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, selectedEntity);
