@@ -489,10 +489,10 @@ void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld
 }
 
 template<>
-void UpdateComponentWidget<engine::ParticleComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+void UpdateComponentWidget<engine::ParticleEmitterComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
 {
-	auto* pParticleComponent = pSceneWorld->GetParticleComponent(entity);
-	if (!pParticleComponent)
+	auto* pParticleEmitterComponent = pSceneWorld->GetParticleEmitterComponent(entity);
+	if (!pParticleEmitterComponent)
 	{
 		return;
 	}
@@ -570,7 +570,6 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::ParticleComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::ShaderVariantCollectionsComponent>(pSceneWorld, selectedEntity);
 
 #ifdef ENABLE_DDGI

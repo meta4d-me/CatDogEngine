@@ -35,7 +35,6 @@ SceneWorld::SceneWorld()
 	m_pShaderVariantCollectionsComponentStorage = m_pWorld->Register<engine::ShaderVariantCollectionsComponent>();
 	m_pSkyComponentStorage = m_pWorld->Register<engine::SkyComponent>();
 	m_pStaticMeshComponentStorage = m_pWorld->Register<engine::StaticMeshComponent>();
-	m_pParticleComponentStorage = m_pWorld->Register<engine::ParticleComponent>();
 	m_pParticleEmitterComponentStorage = m_pWorld->Register<engine::ParticleEmitterComponent>();
 	m_pTerrainComponentStorage = m_pWorld->Register<engine::TerrainComponent>();
 	m_pTransformComponentStorage = m_pWorld->Register<engine::TransformComponent>();

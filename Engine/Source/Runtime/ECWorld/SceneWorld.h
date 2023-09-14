@@ -40,7 +40,6 @@ class SceneWorld
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(ShaderVariantCollections);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Sky);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(StaticMesh);
-	DEFINE_COMPONENT_STORAGE_WITH_APIS(Particle);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(ParticleEmitter);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Terrain);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Transform);
@@ -101,7 +100,6 @@ public:
 		DeleteShaderVariantCollectionsComponent(entity);
 		DeleteSkyComponent(entity);
 		DeleteStaticMeshComponent(entity);
-		DeleteParticleComponent(entity);
 		DeleteParticleEmitterComponent(entity);
 		DeleteTerrainComponent(entity);
 		DeleteTransformComponent(entity);
