@@ -100,12 +100,6 @@ public:
 		DeleteShaderVariantCollectionsComponent(entity);
 		DeleteSkyComponent(entity);
 		DeleteStaticMeshComponent(entity);
-<<<<<<< HEAD
-		DeleteTerrainComponent(entity);
-		DeleteTransformComponent(entity);
-=======
-		DeleteParticleComponent(entity);
->>>>>>> main
 		DeleteParticleEmitterComponent(entity);
 		DeleteTerrainComponent(entity);
 		DeleteTransformComponent(entity);
