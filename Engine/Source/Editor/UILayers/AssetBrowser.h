@@ -72,6 +72,7 @@ struct AssetImportOptions
 	bool ImportMaterial = true;
 	bool ImportMesh = true;
 	bool ImportTexture = true;
+	bool ImportAnimation = false;
 };
 
 struct AssetExportOptions
@@ -129,7 +130,7 @@ private:
 
 	void UpdateAssetFolderTree();
 	void UpdateAssetFileView();
-	bool UpdateOptionDialog(const char* pTitle, bool& active, bool& importMesh, bool& importMaterial, bool& importTexture, bool& importCamera, bool& importLight);
+	bool UpdateOptionDialog(const char* pTitle, bool& active, bool& importMesh, bool& importMaterial, bool& importTexture, bool& importAnimation, bool& importCamera, bool& importLight);
 
 private:
 	AssetImportOptions m_importOptions;

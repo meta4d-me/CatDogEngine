@@ -146,12 +146,10 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 				ImGui::Separator();
 
-				std::string uvOffset = std::string(title) + std::string(" UVOffset");
-				std::string uvScale = std::string(title) + std::string(" UVScale");
 				if (isOpen)
 				{
-					ImGuiUtils::ImGuiVectorProperty(uvOffset.c_str(), pTextureInfo->GetUVOffset());
-					ImGuiUtils::ImGuiVectorProperty(uvScale.c_str(), pTextureInfo->GetUVScale());
+					ImGuiUtils::ImGuiVectorProperty("UVOffset", pTextureInfo->GetUVOffset());
+					ImGuiUtils::ImGuiVectorProperty("UVScale", pTextureInfo->GetUVScale());
 				}
 
 				ImGui::Separator();
@@ -171,19 +169,19 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 			ImGuiUtils::ImGuiStringProperty("Fragment Shader", pMaterialComponent->GetFragmentShaderName());
 			ImGui::Separator();
 
-			std::vector<const char*> activeUberOptions;
-			for (const auto& uber : pMaterialComponent->GetUberShaderOptions())
+			std::vector<const char*> activeShaderFeatures;
+			for (const auto& feature : pMaterialComponent->GetShaderFeatures())
 			{
-				activeUberOptions.emplace_back(nameof::nameof_enum(uber).data());
+				activeShaderFeatures.emplace_back(nameof::nameof_enum(feature).data());
 			}
 
-			if (!activeUberOptions.empty())
+			if (!activeShaderFeatures.empty())
 			{
-				if (ImGui::BeginCombo("##combo", "Active uber options"))
+				if (ImGui::BeginCombo("##combo", "Active shader features"))
 				{
-					for (size_t index = 0; index < activeUberOptions.size(); ++index)
+					for (size_t index = 0; index < activeShaderFeatures.size(); ++index)
 					{
-						ImGui::Selectable(activeUberOptions[index], false);
+						ImGui::Selectable(activeShaderFeatures[index], false);
 					}
 					ImGui::EndCombo();
 				}
@@ -513,6 +511,28 @@ void UpdateComponentWidget<engine::ParticleEmitterComponent>(engine::SceneWorld*
 	ImGui::PopStyleVar();
 }
 
+template<>
+void UpdateComponentWidget<engine::ShaderVariantCollectionsComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+{
+	auto* pShaderVariantCollectionsComponent = pSceneWorld->GetShaderVariantCollectionsComponent(entity);
+	if (!pShaderVariantCollectionsComponent)
+	{
+		return;
+	}
+
+	bool isOpen = ImGui::CollapsingHeader("Shader Variant Collections Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+	ImGui::Separator();
+
+	if (isOpen)
+	{
+
+	}
+
+	ImGui::Separator();
+	ImGui::PopStyleVar();
+}
+
 }
 
 namespace editor
@@ -552,6 +572,7 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::ParticleEmitterComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::ShaderVariantCollectionsComponent>(pSceneWorld, selectedEntity);
 
 #ifdef ENABLE_DDGI
 	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, selectedEntity);

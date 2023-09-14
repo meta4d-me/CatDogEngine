@@ -673,7 +673,7 @@ void AssetBrowser::UpdateAssetFileView()
 	ImGui::SliderFloat(" ", &m_gridSize, 40.0f, 160.0f, " ", ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_Logarithmic);
 }
 
-bool AssetBrowser::UpdateOptionDialog(const char* pTitle, bool& active, bool& importMesh, bool& importMaterial, bool& importTexture, bool& importCamera, bool& importLight)
+bool AssetBrowser::UpdateOptionDialog(const char* pTitle, bool& active, bool& importMesh, bool& importMaterial, bool& importTexture, bool& importAnimation, bool& importCamera, bool& importLight)
 {
 	if (!active)
 	{
@@ -715,6 +715,7 @@ bool AssetBrowser::UpdateOptionDialog(const char* pTitle, bool& active, bool& im
 		ImGui::Separator();
 		if (isOtherOpen)
 		{
+			ImGuiUtils::ImGuiBoolProperty("Animation", importAnimation);
 			ImGuiUtils::ImGuiBoolProperty("Camera", importCamera);
 			ImGuiUtils::ImGuiBoolProperty("Light", importLight);
 		}
@@ -908,26 +909,31 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 	if (0 == inputFileExtension.compare(".cdbin"))
 	{
 		cdtools::CDProducer cdProducer(pFilePath);
-		cdtools::Processor processor(&cdProducer, nullptr, pSceneDatabase);
+		cd::SceneDatabase newSceneDatabase;
+		cdtools::Processor processor(&cdProducer, nullptr, &newSceneDatabase);
 		processor.Run();
+		pSceneDatabase->Merge(cd::MoveTemp(newSceneDatabase));
 	}
 	else
 	{
 #ifdef ENABLE_GENERIC_PRODUCER
 		cdtools::GenericProducer genericProducer(pFilePath);
-		genericProducer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount(), pSceneDatabase->GetMeshCount(),
-		pSceneDatabase->GetMaterialCount(), pSceneDatabase->GetTextureCount(), pSceneDatabase->GetLightCount());
 		genericProducer.ActivateBoundingBoxService();
 		genericProducer.ActivateCleanUnusedService();
 		genericProducer.ActivateTangentsSpaceService();
 		genericProducer.ActivateTriangulateService();
 		genericProducer.ActivateSimpleAnimationService();
-		genericProducer.ActivateFlattenHierarchyService();
+		if (!m_importOptions.ImportAnimation)
+		{
+			genericProducer.ActivateFlattenHierarchyService();
+		}
 
-		cdtools::Processor processor(&genericProducer, nullptr, pSceneDatabase);
+		cd::SceneDatabase newSceneDatabase;
+		cdtools::Processor processor(&genericProducer, nullptr, &newSceneDatabase);
 		processor.SetDumpSceneDatabaseEnable(false);
-		processor.SetFlattenSceneDatabaseEnable(true);
+		//processor.SetFlattenSceneDatabaseEnable(true);
 		processor.Run();
+		pSceneDatabase->Merge(cd::MoveTemp(newSceneDatabase));
 #else
 		assert("Unable to import this file format.");
 #endif
@@ -1146,7 +1152,7 @@ void AssetBrowser::Update()
 		m_importOptions.Active = true;
 	}
 	if (UpdateOptionDialog("Import Options", m_importOptions.Active, m_importOptions.ImportMesh, m_importOptions.ImportMaterial, m_importOptions.ImportTexture,
-		m_importOptions.ImportCamera, m_importOptions.ImportLight))
+		m_importOptions.ImportAnimation, m_importOptions.ImportCamera, m_importOptions.ImportLight))
 	{
 		ImportAssetFile(m_pImportFileBrowser->GetSelected().string().c_str());
 		m_pImportFileBrowser->ClearSelected();
@@ -1159,7 +1165,7 @@ void AssetBrowser::Update()
 	}
 
 	if (UpdateOptionDialog("Export Options", m_exportOptions.Active, m_exportOptions.ExportMesh, m_exportOptions.ExportMaterial, m_exportOptions.ExportTexture,
-		m_exportOptions.ExportCamera, m_exportOptions.ExportLight))
+		m_importOptions.ImportAnimation, m_exportOptions.ExportCamera, m_exportOptions.ExportLight))
 	{
 		ExportAssetFile(m_pExportFileBrowser->GetSelected().string().c_str());
 		m_pExportFileBrowser->ClearSelected();

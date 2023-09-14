@@ -346,6 +346,16 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
                     }
                 }
             }
+            else
+            {
+                if (engine::TransformComponent* pTransform = pSceneWorld->GetTransformComponent(entity))
+                {
+                    if (m_pCameraController)
+                    {
+                        m_pCameraController->CameraFocus(pTransform->GetTransform().GetTranslation());
+                    }
+                }
+            }
         }
     }
 
