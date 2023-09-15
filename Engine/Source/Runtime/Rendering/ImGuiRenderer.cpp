@@ -10,7 +10,7 @@ namespace engine
 
 void ImGuiRenderer::Init()
 {
-	GetShaderVariantCollections()->RegisterPragram("ImGuiProgram", { "vs_imgui", "fs_imgui" });
+	GetShaderVariantCollections()->RegisterNonUberShader("ImGuiProgram", { "vs_imgui", "fs_imgui" });
 
 	bgfx::setViewName(GetViewID(), "ImGuiRenderer");
 }

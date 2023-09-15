@@ -57,7 +57,7 @@ void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase,
 
 void SkeletonRenderer::Init()
 {
-	GetShaderVariantCollections()->RegisterPragram("SkeletonProgram", {"vs_AABB", "fs_AABB"});
+	GetShaderVariantCollections()->RegisterNonUberShader("SkeletonProgram", {"vs_AABB", "fs_AABB"});
 
 	bgfx::setViewName(GetViewID(), "SkeletonRenderer");
 }

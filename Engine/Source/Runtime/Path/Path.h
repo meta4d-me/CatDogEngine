@@ -20,11 +20,6 @@ public:
 
 	static std::optional<std::filesystem::path> GetApplicationDataPath();
 
-	static std::filesystem::path GetEngineBuiltinShaderPath();
-	static std::filesystem::path GetEngineResourcesPath();
-	static std::filesystem::path GetEditorResourcesPath();
-	static std::filesystem::path GetProjectsSharedPath();
-
 	static engine::GraphicsBackend GetGraphicsBackend();
 	static void SetGraphicsBackend(engine::GraphicsBackend backend);
 
@@ -35,6 +30,11 @@ public:
 	static std::string GetTerrainTextureOutputFilePath(const char* pInputFilePath, const char* extension);
 
 private:
+	static std::filesystem::path GetEngineBuiltinShaderPath();
+	static std::filesystem::path GetEngineResourcesPath();
+	static std::filesystem::path GetEditorResourcesPath();
+	static std::filesystem::path GetProjectsSharedPath();
+
 	static const char* GetPlatformPathKey();
 	static std::filesystem::path GetPlatformAppDataPath(const char* pRootPath);
 

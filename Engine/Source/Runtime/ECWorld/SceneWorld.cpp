@@ -49,7 +49,7 @@ void SceneWorld::CreatePBRMaterialType(bool isAtmosphericScatteringEnable)
 	m_pPBRMaterialType = std::make_unique<MaterialType>();
 	m_pPBRMaterialType->SetMaterialName("CD_PBR");
 
-	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("shaders/vs_PBR"), Path::GetBuiltinShaderInputPath("shaders/fs_PBR"));
+	ShaderSchema shaderSchema("WorldProgram", Path::GetBuiltinShaderInputPath("vs_PBR"), Path::GetBuiltinShaderInputPath("fs_PBR"));
 	shaderSchema.AddFeatureSet({ ShaderFeature::ALBEDO_MAP });
 	shaderSchema.AddFeatureSet({ ShaderFeature::NORMAL_MAP });
 	shaderSchema.AddFeatureSet({ ShaderFeature::ORM_MAP });
@@ -86,7 +86,7 @@ void SceneWorld::CreateAnimationMaterialType()
 	m_pAnimationMaterialType = std::make_unique<MaterialType>();
 	m_pAnimationMaterialType->SetMaterialName("CD_Animation");
 
-	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("shaders/vs_animation"), Path::GetBuiltinShaderInputPath("shaders/fs_animation"));
+	ShaderSchema shaderSchema("AnimationProgram", Path::GetBuiltinShaderInputPath("vs_animation"), Path::GetBuiltinShaderInputPath("fs_animation"));
 	m_pAnimationMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat animationVertexFormat;

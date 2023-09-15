@@ -10,8 +10,9 @@
 namespace engine
 {
 
-ShaderSchema::ShaderSchema(std::string vsPath, std::string fsPath)
+ShaderSchema::ShaderSchema(std::string progeamName, std::string vsPath, std::string fsPath)
 {
+	m_programName = cd::MoveTemp(progeamName);
 	m_vertexShaderPath = cd::MoveTemp(vsPath);
 	m_fragmentShaderPath = cd::MoveTemp(fsPath);
 
@@ -181,7 +182,7 @@ void ShaderSchema::AddUberFSBlob(StringCrc shaderFeaturesCrc, ShaderBlob shaderB
 	m_shaderFeaturesToFSBlobs[shaderFeaturesCrc.Value()] = std::make_unique<ShaderBlob>(cd::MoveTemp(shaderBlob));
 }
 
-const ShaderBlob& ShaderSchema::GetFSBlob(StringCrc shaderFeaturesCrc) const
+const ShaderSchema::ShaderBlob& ShaderSchema::GetFSBlob(StringCrc shaderFeaturesCrc) const
 {
 	auto itBlob = m_shaderFeaturesToFSBlobs.find(shaderFeaturesCrc.Value());
 	assert(itBlob != m_shaderFeaturesToFSBlobs.end());

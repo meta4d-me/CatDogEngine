@@ -19,12 +19,8 @@ namespace editor
 class ShaderBuilder
 {
 public:
-	static constexpr const char* ShaderExtension = ".sc";
-
-public:
-	static void BuildUberShader(engine::MaterialType* pMaterialType);
-
-	static void BuildShaders(engine::ShaderVariantCollections* pCollections);
+	static void BuildNonUberShaders(engine::ShaderVariantCollections* pCollections);
+	static void BuildUberShader(engine::ShaderVariantCollections* pCollections, engine::MaterialType* pMaterialType);
 
 private:
 	static const ShaderType GetShaderType(const std::string& fileName);

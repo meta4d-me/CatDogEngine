@@ -55,7 +55,7 @@ constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MS
 
 void TerrainRenderer::Init()
 {
-	GetShaderVariantCollections()->RegisterPragram("TerrainRenderer", {"vs_terrain", "fs_terrain"});
+	GetShaderVariantCollections()->RegisterNonUberShader("TerrainRenderer", {"vs_terrain", "fs_terrain"});
 
 	bgfx::setViewName(GetViewID(), "TerrainRenderer");
 }

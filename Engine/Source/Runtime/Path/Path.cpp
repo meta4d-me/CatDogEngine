@@ -91,7 +91,7 @@ void Path::SetGraphicsBackend(engine::GraphicsBackend backend)
 
 std::string Path::GetBuiltinShaderInputPath(const char* pShaderName)
 {
-    return (GetEngineBuiltinShaderPath() / pShaderName).replace_extension(ShaderInputExtension).string();
+    return (GetEngineBuiltinShaderPath() / "shaders" / pShaderName).replace_extension(ShaderInputExtension).generic_string();
 }
 
 std::filesystem::path Path::GetShaderOutputDirectory()
@@ -101,7 +101,7 @@ std::filesystem::path Path::GetShaderOutputDirectory()
 
 std::string Path::GetShaderOutputPath(const char* pInputFilePath, const std::string& options)
 {
-    std::string outputShaderFileName = std::filesystem::path(pInputFilePath).stem().string();
+    std::string outputShaderFileName = std::filesystem::path(pInputFilePath).stem().generic_string();
 
     if (!options.empty())
     {
@@ -117,17 +117,17 @@ std::string Path::GetShaderOutputPath(const char* pInputFilePath, const std::str
         }
     }
 
-    return (GetShaderOutputDirectory() / cd::MoveTemp(outputShaderFileName)).replace_extension(ShaderOutputExtension).string();
+    return (GetShaderOutputDirectory() / cd::MoveTemp(outputShaderFileName)).replace_extension(ShaderOutputExtension).generic_string();
 }
 
 std::string Path::GetTextureOutputFilePath(const char* pInputFilePath, const char* extension)
 {
-    return ((GetEngineResourcesPath() / "Textures" / std::filesystem::path(pInputFilePath).stem()).replace_extension(extension)).string();
+    return ((GetEngineResourcesPath() / "Textures" / std::filesystem::path(pInputFilePath).stem()).replace_extension(extension)).generic_string();
 }
 
 std::string Path::GetTerrainTextureOutputFilePath(const char* pInputFilePath, const char* extension)
 {
-    return ((GetEngineResourcesPath() / "Textures" / "Terrain" / std::filesystem::path(pInputFilePath).stem()).replace_extension(extension)).string();
+    return ((GetEngineResourcesPath() / "Textures" / "Terrain" / std::filesystem::path(pInputFilePath).stem()).replace_extension(extension)).generic_string();
 }
 
 }

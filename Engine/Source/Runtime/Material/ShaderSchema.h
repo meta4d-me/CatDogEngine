@@ -29,16 +29,18 @@ class ShaderSchema
 public:
 	static constexpr uint16_t InvalidProgramHandle = UINT16_MAX;
 	static constexpr StringCrc DefaultUberShaderCrc = StringCrc("");
+	using ShaderBlob = std::vector<std::byte>;
 
 public:
 	ShaderSchema() = default;
-	explicit ShaderSchema(std::string vsPath, std::string fsPath);
+	explicit ShaderSchema(std::string progeamName, std::string vsPath, std::string fsPath);
 	ShaderSchema(const ShaderSchema&) = delete;
 	ShaderSchema& operator=(const ShaderSchema&) = delete;
 	ShaderSchema(ShaderSchema&&) = default;
 	ShaderSchema& operator=(ShaderSchema&&) = default;
 	~ShaderSchema() = default;
 
+	const char* GetProgramName() const { return m_programName.c_str(); }
 	const char* GetVertexShaderPath() const { return m_vertexShaderPath.c_str(); }
 	const char* GetFragmentShaderPath() const { return m_fragmentShaderPath.c_str(); }
 
@@ -68,6 +70,8 @@ public:
 	const ShaderBlob& GetFSBlob(StringCrc shaderFeaturesCrc) const;
 
 private:
+	std::string m_programName;
+
 	std::string m_vertexShaderPath;
 	std::string m_fragmentShaderPath;
 
@@ -76,7 +80,6 @@ private:
 	std::vector<ShaderFeatureSet> m_shaderFeatureSets;
 	// Parameters to compile shaders.
 	std::vector<std::string> m_featureCombines;
-
 	// Key: StringCrc(feature combine), Value: shader handle.
 	std::map<uint32_t, uint16_t> m_compiledProgramHandles;
 

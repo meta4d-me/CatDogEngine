@@ -469,10 +469,10 @@ bool EditorApp::IsAtmosphericScatteringEnable() const
 
 void EditorApp::InitShaderPrograms() const
 {
-	ShaderBuilder::BuildShaders(m_pShaderVariantCollections.get());
+	ShaderBuilder::BuildNonUberShaders(m_pShaderVariantCollections.get());
 
-	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetPBRMaterialType());
-	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetAnimationMaterialType());
+	ShaderBuilder::BuildUberShader(m_pShaderVariantCollections.get(), m_pSceneWorld->GetPBRMaterialType());
+	ShaderBuilder::BuildUberShader(m_pShaderVariantCollections.get(), m_pSceneWorld->GetAnimationMaterialType());
 #ifdef ENABLE_DDGI
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetDDGIMaterialType());
 #endif

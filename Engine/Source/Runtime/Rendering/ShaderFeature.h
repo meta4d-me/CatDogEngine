@@ -27,6 +27,7 @@ enum class ShaderFeature : uint32_t
 	COUNT,
 };
 
+// These names are used as macro definition symbols in shaders.
 constexpr const char* ShaderFeatureNames[] =
 {
 	"", // Use empty string to represent default shader option in the name so we can reuse non-uber built shader.
@@ -48,6 +49,5 @@ CD_FORCEINLINE constexpr const char* GetFeatureName(ShaderFeature feature)
 }
 
 using ShaderFeatureSet = std::set<ShaderFeature>;
-using ShaderBlob = std::vector<std::byte>;
 
 }

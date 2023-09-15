@@ -8,7 +8,7 @@ namespace engine
 
 	void PostProcessRenderer::Init()
 	{
-		GetShaderVariantCollections()->RegisterPragram("PostProcessProgram", {"vs_fullscreen","fs_PBR_postProcessing"});
+		GetShaderVariantCollections()->RegisterNonUberShader("PostProcessProgram", {"vs_fullscreen","fs_PBR_postProcessing"});
 
 		bgfx::setViewName(GetViewID(), "PostProcessRenderer");
 	}

@@ -136,7 +136,7 @@ void CalculateBoneTransform(std::vector<cd::Matrix4x4>& boneMatrices, const cd::
 
 void AnimationRenderer::Init()
 {
-	GetShaderVariantCollections()->RegisterPragram("AnimationProgram", { "vs_animation", "fs_animation" });
+	GetShaderVariantCollections()->RegisterNonUberShader("AnimationProgram", { "vs_animation", "fs_animation" });
 
 	bgfx::setViewName(GetViewID(), "AnimationRenderer");
 }

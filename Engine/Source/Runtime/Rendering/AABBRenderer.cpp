@@ -13,7 +13,7 @@ namespace engine
 
 void AABBRenderer::Init()
 {
-	GetShaderVariantCollections()->RegisterPragram("AABBProgram", {"vs_AABB", "fs_AABB"});
+	GetShaderVariantCollections()->RegisterNonUberShader("AABBProgram", {"vs_AABB", "fs_AABB"});
 
 	bgfx::setViewName(GetViewID(), "AABBRenderer");
 }

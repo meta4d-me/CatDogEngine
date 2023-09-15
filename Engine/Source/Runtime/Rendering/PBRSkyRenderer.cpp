@@ -50,14 +50,14 @@ constexpr uint16_t ScatteringOrders                      = 6;
 
 void PBRSkyRenderer::Init()
 {
-	GetShaderVariantCollections()->RegisterPragram(ProgramAtmosphericScatteringLUT, { "vs_atmSkyBox", "fs_PrecomputedAtmosphericScattering_LUT" });
-	GetShaderVariantCollections()->RegisterPragram(ProgramSingleScatteringRayMarching, { "vs_atmSkyBox", "fs_SingleScattering_RayMarching" });
-	GetShaderVariantCollections()->RegisterPragram(ProgramComputeTransmittance, { "cs_ComputeTransmittance" });
-	GetShaderVariantCollections()->RegisterPragram(ProgramComputeDirectIrradiance, { "cs_ComputeDirectIrradiance" });
-	GetShaderVariantCollections()->RegisterPragram(ProgramComputeSingleScattering, { "cs_ComputeSingleScattering" });
-	GetShaderVariantCollections()->RegisterPragram(ProgramComputeScatteringDensity, { "cs_ComputeScatteringDensity" });
-	GetShaderVariantCollections()->RegisterPragram(ProgramComputeIndirectIrradiance, { "cs_ComputeIndirectIrradiance" });
-	GetShaderVariantCollections()->RegisterPragram(ProgramComputeMultipleScattering, { "cs_ComputeMultipleScattering" });
+	GetShaderVariantCollections()->RegisterNonUberShader(ProgramAtmosphericScatteringLUT, { "vs_atmSkyBox", "fs_PrecomputedAtmosphericScattering_LUT" });
+	GetShaderVariantCollections()->RegisterNonUberShader(ProgramSingleScatteringRayMarching, { "vs_atmSkyBox", "fs_SingleScattering_RayMarching" });
+	GetShaderVariantCollections()->RegisterNonUberShader(ProgramComputeTransmittance, { "cs_ComputeTransmittance" });
+	GetShaderVariantCollections()->RegisterNonUberShader(ProgramComputeDirectIrradiance, { "cs_ComputeDirectIrradiance" });
+	GetShaderVariantCollections()->RegisterNonUberShader(ProgramComputeSingleScattering, { "cs_ComputeSingleScattering" });
+	GetShaderVariantCollections()->RegisterNonUberShader(ProgramComputeScatteringDensity, { "cs_ComputeScatteringDensity" });
+	GetShaderVariantCollections()->RegisterNonUberShader(ProgramComputeIndirectIrradiance, { "cs_ComputeIndirectIrradiance" });
+	GetShaderVariantCollections()->RegisterNonUberShader(ProgramComputeMultipleScattering, { "cs_ComputeMultipleScattering" });
 
 	bgfx::setViewName(GetViewID(), "PBRSkyRenderer");
 }

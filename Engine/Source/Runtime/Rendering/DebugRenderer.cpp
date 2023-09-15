@@ -13,7 +13,7 @@ namespace engine
 
 void DebugRenderer::Init()
 {
-	GetShaderVariantCollections()->RegisterPragram("DebugProgram", { "vs_debug", "fs_debug" });
+	GetShaderVariantCollections()->RegisterNonUberShader("DebugProgram", { "vs_debug", "fs_debug" });
 
 	bgfx::setViewName(GetViewID(), "DebugRenderer");
 }
