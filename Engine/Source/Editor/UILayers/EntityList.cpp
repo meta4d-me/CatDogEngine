@@ -223,6 +223,10 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         engine::Entity entity = AddNamedEntity("ParticleEmitter");
         auto& particleEmitterComponent = pWorld->CreateComponent<engine::ParticleEmitterComponent>(entity);
         // TODO : Some initialization here.
+     
+        engine::ParticleSystem particles;
+        particles.Init();
+        particleEmitterComponent.SetParticleSystem(particles);
     }
 }
 

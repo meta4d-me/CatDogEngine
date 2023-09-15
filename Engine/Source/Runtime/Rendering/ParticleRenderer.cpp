@@ -25,15 +25,10 @@ void ParticleRenderer::Render(float deltaTime)
 	for (Entity entity : m_pCurrentSceneWorld->GetParticleEmitterEntities())
 	{
 		engine::ParticleEmitterComponent* pEmitterComponent = m_pCurrentSceneWorld->GetParticleEmitterComponent(entity);
+		pEmitterComponent->GetParticleSystem().AllocateParticleIndex();
+		pEmitterComponent->GetParticleSystem().UpdateActive(1 / deltaTime);
 
-		engine::ParticleSystem particles;
-		particles.Init();
-		particles.AllocateParticleIndex();
-		particles.UpdateActive(1/deltaTime);
-
-		pEmitterComponent->SetParticleSystem(particles);
 		pEmitterComponent->Build();
-
 		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pEmitterComponent->GetParticleVBH()  });
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{  pEmitterComponent->GetParticleIBH() });
 

@@ -25,7 +25,7 @@ public:
 	ParticleEmitterComponent& operator=(ParticleEmitterComponent&&) = default;
 	~ParticleEmitterComponent() = default;
 
-	engine::ParticleSystem GetParticleSystem() { return m_particleSystem; }
+	engine::ParticleSystem &GetParticleSystem() { return m_particleSystem; }
 	void SetParticleSystem(engine::ParticleSystem& system) { m_particleSystem = system; }
 
 	uint16_t& GetParticleVBH(){ return m_particleVBH; }
