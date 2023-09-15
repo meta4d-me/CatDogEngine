@@ -43,6 +43,12 @@ public:
 	void Reset();
 	void Build();
 
+#ifdef EDITOR_MODE
+	bool SetEnableDebugDraw(bool enable) { m_enableDebugDraw = enable; }
+	bool& IsDebugDrawEnable() { return m_enableDebugDraw; }
+	bool IsDebugDrawEnable() const { return m_enableDebugDraw; }
+#endif
+
 private:
 	CollisonMeshType m_collisionType = CollisonMeshType::AABB;
 	cd::AABB m_aabb;
@@ -51,6 +57,10 @@ private:
 	std::vector<std::byte> m_aabbIndexBuffer;
 	uint16_t m_aabbVBH = UINT16_MAX;
 	uint16_t m_aabbIBH = UINT16_MAX;
+
+#ifdef EDITOR_MODE
+	bool m_enableDebugDraw = false;
+#endif
 };
 
 }
