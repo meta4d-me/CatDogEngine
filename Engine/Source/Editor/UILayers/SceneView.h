@@ -3,7 +3,7 @@
 #include "ECWorld/Entity.h"
 #include "ImGui/ImGuiBaseLayer.h"
 #include "Rendering/AABBRenderer.h"
-#include "Rendering/DebugRenderer.h"
+#include "Rendering/WhiteModelRenderer.h"
 
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -23,40 +23,23 @@ class RenderTarget;
 namespace editor
 {
 
-enum class DebugModeType
+enum class RenderModeType
 {
-	NoDebug,
-	WhiteModel,
+	Rendered,
+	Solid,
+	Wireframe,
 
 	Count,
 };
 
-constexpr const char* DebugModes[] = {
-	"NoDebug",
-	"WhiteModel",
-	//"WireFrame" 
+constexpr const char* RenderModes[] = {
+	"Rendered",
+	"Solid",
+	"Wireframe",
 };
 
-static_assert(static_cast<int>(DebugModeType::Count) == sizeof(DebugModes) / sizeof(char*),
+static_assert(static_cast<int>(RenderModeType::Count) == sizeof(RenderModes) / sizeof(char*),
 	"Debug mode type and names mismatch.");
-
-enum class AABBModeType
-{
-	NoAABB,
-	AABBSelected,
-	AABBAll,
-
-	Count,
-};
-
-constexpr const char* AABBModes[] = {
-	"NoAABB",
-	"AABBSelected",
-	"AABBAll"
-};
-
-static_assert(static_cast<int>(AABBModeType::Count) == sizeof(AABBModes) / sizeof(char*),
-	"AABB mode type and names mismatch.");
 
 class SceneView : public engine::ImGuiBaseLayer
 {
@@ -72,11 +55,11 @@ public:
 	void PickSceneMesh(float regionWidth, float regionHeight);
 
 	ImGuizmo::OPERATION GetImGuizmoOperation() const { return m_currentOperation; }
-	DebugModeType GetDebugMode() const { return m_debugMode; }
-	AABBModeType GetAABBMode() const { return m_AABBMode; }
+	RenderModeType GetRenderMode() const { return m_renderMode; }
 
 	void SetSceneRenderer(engine::Renderer* pSceneRenderer) { m_pSceneRenderer = pSceneRenderer; }
-	void SetDebugRenderer(engine::Renderer* pDebugRenderer) { m_pDebugRenderer = pDebugRenderer; }
+	void SetWhiteModelRenderer(engine::Renderer* pWhiteModelRenderer) { m_pWhiteModelRenderer = pWhiteModelRenderer; }
+	void SetWireframeRenderer(engine::Renderer* pWireframeRenderer) { m_pWireframeRenderer = pWireframeRenderer; }
 	void SetAABBRenderer(engine::Renderer* pAABBRenderer) { m_pAABBRenderer = pAABBRenderer; }
 	
 	bool IsTerrainEditMode() const { return m_isTerrainEditMode; }
@@ -90,8 +73,7 @@ private:
 	void UpdateSwitchAABBButton();
 	void UpdateSwitchTerrainButton();
 	void UpdateOperationButtons();
-	void UpdateDebugCombo();
-	void UpdateAABBCombo();
+	void UpdateRenderModeCombo();
 
 private:
 	uint16_t m_lastContentWidth = 0;
@@ -102,11 +84,11 @@ private:
 	bool m_is3DMode = true;
 	bool m_isIBLActive = false;
 	bool m_isTerrainEditMode = false;
-	DebugModeType m_debugMode = DebugModeType::NoDebug;
-	AABBModeType m_AABBMode = AABBModeType::NoAABB;
+	RenderModeType m_renderMode = RenderModeType::Rendered;
 
 	engine::Renderer* m_pSceneRenderer = nullptr;
-	engine::Renderer* m_pDebugRenderer = nullptr;
+	engine::Renderer* m_pWhiteModelRenderer = nullptr;
+	engine::Renderer* m_pWireframeRenderer = nullptr;
 	engine::Renderer* m_pAABBRenderer = nullptr;
 
 	engine::RenderTarget* m_pRenderTarget = nullptr;

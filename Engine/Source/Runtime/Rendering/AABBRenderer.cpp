@@ -22,12 +22,12 @@ void AABBRenderer::UpdateView(const float* pViewMatrix, const float* pProjection
 	bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
 }
 
-void AABBRenderer::RenderAll(float deltaTime)
+void AABBRenderer::Render(float deltaTime)
 {
-	for (Entity entity : m_pCurrentSceneWorld->GetStaticMeshEntities())
+	for (Entity entity : m_pCurrentSceneWorld->GetCollisionMeshEntities())
 	{
 		auto* pCollisionMesh = m_pCurrentSceneWorld->GetCollisionMeshComponent(entity);
-		if (!pCollisionMesh)
+		if (!m_enableGlobalAABB && !pCollisionMesh->IsDebugDrawEnable())
 		{
 			continue;
 		}
@@ -47,45 +47,6 @@ void AABBRenderer::RenderAll(float deltaTime)
 
 		constexpr StringCrc AABBAllProgram("AABBProgram");
 		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(AABBAllProgram));
-
-	}
-}
-
-void AABBRenderer::RenderSelected(float deltaTime) 
-{
-	Entity entity = m_pCurrentSceneWorld->GetSelectedEntity();
-	auto* pCollisionMesh = m_pCurrentSceneWorld->GetCollisionMeshComponent(entity);
-	if (!pCollisionMesh)
-	{
-		return;
-	}
-
-	if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
-	{
-		pTransformComponent->Build();
-		bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
-	}
-
-	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pCollisionMesh->GetVertexBuffer() });
-	bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pCollisionMesh->GetIndexBuffer() });
-
-	constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
-		BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_LINES;
-	bgfx::setState(state);
-
-	constexpr StringCrc AABBProgram("AABBProgram");
-	bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(AABBProgram));
-}
-
-void AABBRenderer::Render(float deltaTime)
-{
-	if (m_isRenderSelected) 
-	{
-		RenderSelected(deltaTime);
-	}
-	else
-	{
-		RenderAll(deltaTime);
 	}
 }
 
