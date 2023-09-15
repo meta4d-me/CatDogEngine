@@ -37,8 +37,8 @@ void ImGuizmoView::Update()
 		return;
 	}
 
-	cd::Matrix4x4 worldMatrix = cd::Matrix4x4::Identity();
 	cd::Matrix4x4 deltaMatrix = cd::Matrix4x4::Identity();
+	cd::Matrix4x4 worldMatrix = cd::Matrix4x4::Identity();
 	engine::TransformComponent* pTransformComponent = pSceneWorld->GetTransformComponent(selectedEntity);
 	engine::SkinMeshComponent* pSkinMeshComponent = pSceneWorld->GetSkinMeshComponent(selectedEntity);
 
@@ -56,10 +56,9 @@ void ImGuizmoView::Update()
 		ImGuizmo::Manipulate(pCameraComponent->GetViewMatrix().Begin(), pCameraComponent->GetProjectionMatrix().Begin(),
 			operation, ImGuizmo::LOCAL, worldMatrix.Begin());
 	}
-	if (cd::BoneID::InvalidID != selectedBoneID && pSkinMeshComponent)
+	 if (cd::BoneID::InvalidID != selectedBoneID && pSkinMeshComponent)
 	{
 		uint32_t index = selectedBoneID.Data();
-		auto matrices = pSkinMeshComponent->GetBoneChangeMatrices();
 		cd::Matrix4x4 worldMatrix = pSkinMeshComponent->GetBoneMatrix(index);
 		ImGuizmo::Manipulate(pCameraComponent->GetViewMatrix().Begin(), pCameraComponent->GetProjectionMatrix().Begin(),
 			operation, ImGuizmo::LOCAL, worldMatrix.Begin(), deltaMatrix.Begin());
@@ -78,7 +77,7 @@ void ImGuizmoView::Update()
 			if (pSkinMeshComponent)
 			{
 				pSkinMeshComponent->SetBoneChangeMatrix(selectedBoneID.Data(), deltaMatrix);
-				pSkinMeshComponent->SetBoneMatrix(selectedBoneID.Data(), worldMatrix);
+				pSkinMeshComponent->SetChangeBoneIndex(selectedBoneID.Data());
 			}
 			
 		}
@@ -87,6 +86,12 @@ void ImGuizmoView::Update()
 		{
 			pTransformComponent->GetTransform().SetRotation(cd::Quaternion::FromMatrix(worldMatrix.GetRotation()));
 			pTransformComponent->Dirty();
+			if (pSkinMeshComponent)
+			{
+				pSkinMeshComponent->SetBoneChangeMatrix(selectedBoneID.Data(), deltaMatrix);
+				pSkinMeshComponent->SetBoneMatrix(selectedBoneID.Data(), worldMatrix);
+				pSkinMeshComponent->SetChangeBoneIndex(selectedBoneID.Data());
+			}
 		}
 
 		if (ImGuizmo::OPERATION::SCALE & operation)

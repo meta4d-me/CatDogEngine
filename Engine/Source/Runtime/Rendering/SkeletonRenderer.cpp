@@ -5,6 +5,7 @@
 #include "ECWorld/SkinMeshComponent.h"
 #include "RenderContext.h"
 #include "Rendering/Utility/VertexLayoutUtility.h"
+#include "Window/Input.h"
 
 namespace engine
 {
@@ -12,13 +13,26 @@ namespace engine
 namespace details
 {
 
-void CalculateChangeTranslate(const cd::Bone& bone, const cd::Matrix4x4& changeMatrix, const cd::SceneDatabase* pSceneDatabase, engine::SkinMeshComponent* pSkinMeshComponent)
+void CalculateChangeTranslate(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase, engine::SkinMeshComponent* pSkinMeshComponent, const cd::Matrix4x4& changeBoneMatrix)
 {
-	const uint32_t parentBoneID = bone.GetParentID().Data();
 	for (auto& boneChild : bone.GetChildIDs())
 	{
-		pSkinMeshComponent->SetBoneChangeMatrix(boneChild.Data(), changeMatrix);
-		CalculateChangeTranslate(pSceneDatabase->GetBone(boneChild.Data()), changeMatrix, pSceneDatabase, pSkinMeshComponent);
+		pSkinMeshComponent->SetBoneChangeMatrix(boneChild.Data(), changeBoneMatrix);
+		//pSkinMeshComponent->SetBoneMatrix(boneChild.Data(), changeBoneMatrix);
+		//CD_INFO(pSceneDatabase->GetBone(boneChild.Data()).GetName());
+		//CD_INFO(changeBoneMatrix.GetTranslation());
+		CalculateChangeTranslate(pSceneDatabase->GetBone(boneChild.Data()),pSceneDatabase, pSkinMeshComponent,changeBoneMatrix);
+	}
+}
+
+void CalculateChangeRotation(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase, engine::SkinMeshComponent* pSkinMeshComponent, const cd::Matrix4x4& changeBoneMatrix)
+{
+	for (auto& boneChild : bone.GetChildIDs())
+	{
+		const cd::Matrix4x4& changeRotationMatrix = bone.GetOffset().Inverse() * changeBoneMatrix * bone.GetOffset();
+		pSkinMeshComponent->SetBoneChangeMatrix(boneChild.Data(), changeBoneMatrix);
+		//pSkinMeshComponent->SetBoneMatrix(boneChild.Data(), changeBoneMatrix);
+		CalculateChangeRotation(pSceneDatabase->GetBone(boneChild.Data()), pSceneDatabase, pSkinMeshComponent, changeBoneMatrix);
 	}
 }
 
@@ -58,13 +72,36 @@ void SkeletonRenderer::Render(float delataTime)
 			continue;
 		}
 
-		if (pSkinMeshComponent->GetChangeBoneIndex() != engine::INVALID_ENTITY)
+		if (Input::Get().IsKeyPressed(KeyCode::g))
 		{
-			const uint32_t changeBoneIndex = pSkinMeshComponent->GetChangeBoneIndex();
+			float dx = Input::Get().GetMousePositionOffsetX() * delataTime * 10.0f;
+			float dy = -Input::Get().GetMousePositionOffsetY() * delataTime * 10.0f;
+			cd::Transform transform = cd::Transform::Identity();
+			transform.SetTranslation(cd::Vec3f(dx, dy, 0));
+			const uint32_t changeBoneIndex = m_pCurrentSceneWorld->GetSelectedBoneID().Data();
 			const cd::Bone& bone = pSceneDatabase->GetBone(changeBoneIndex);
-			const cd::Matrix4x4& changeBoneMatrix = pSkinMeshComponent->GetBoneChangeMatrix(changeBoneIndex);
-			//details::CalculateChangeTranslate(bone, changeBoneMatrix, pSceneDatabase, pSkinMeshComponent);
-			//pSkinMeshComponent->ResetChangeBoneIndex();
+			//const cd::Matrix4x4& changeBoneMatrix = pSkinMeshComponent->GetBoneChangeMatrix(changeBoneIndex);
+			const cd::Matrix4x4& changeBoneMatrix = transform.GetMatrix();
+			pSkinMeshComponent->SetBoneChangeMatrix(changeBoneIndex,changeBoneMatrix);
+			details::CalculateChangeTranslate(bone, pSceneDatabase, pSkinMeshComponent,changeBoneMatrix);
+			pSkinMeshComponent->ResetChangeBoneIndex();
+		}
+
+		if (Input::Get().IsKeyPressed(KeyCode::r))
+		{
+			float dx = Input::Get().GetMousePositionOffsetX() * delataTime * 30.0f;
+			float dy = -Input::Get().GetMousePositionOffsetY() * delataTime * 30.0f;
+			cd::Quaternion rotation = cd::Quaternion::FromPitchYawRoll(dy, 0.0f, 0.0f);
+			cd::Transform transform = cd::Transform::Identity();
+			const uint32_t changeBoneIndex = m_pCurrentSceneWorld->GetSelectedBoneID().Data();
+			const cd::Bone& bone = pSceneDatabase->GetBone(changeBoneIndex);
+			const cd::Bone& parent = pSceneDatabase->GetBone(bone.GetParentID().Data());
+			transform.SetRotation(rotation);
+			CD_INFO(transform.GetRotation());
+			const cd::Matrix4x4& changeBoneMatrix = parent.GetOffset().Inverse() * transform.GetMatrix() * parent.GetOffset();
+			pSkinMeshComponent->SetBoneChangeMatrix(changeBoneIndex, changeBoneMatrix);
+			details::CalculateChangeRotation(bone, pSceneDatabase, pSkinMeshComponent, changeBoneMatrix);
+			pSkinMeshComponent->ResetChangeBoneIndex();
 		}
 		//details::CalculateTranslate(pSceneDatabase->GetBone(0), pSceneDatabase, pSkinMeshComponent);
 		bgfx::setUniform(bgfx::UniformHandle{ pSkinMeshComponent->GetBoneMatrixsUniform() }, pSkinMeshComponent->GetBoneChangeMatrices().data(), static_cast<uint16_t>(pSkinMeshComponent->GetBoneChangeMatrices().size()));

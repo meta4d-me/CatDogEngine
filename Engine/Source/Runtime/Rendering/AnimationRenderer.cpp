@@ -122,7 +122,7 @@ void CalculateBoneTransform(std::vector<cd::Matrix4x4>& boneMatrices, const cd::
 	}
 
 	cd::Matrix4x4 globalTransform = parentBoneTransform * boneLocalTransform;
-	boneMatrices[bone.GetID().Data()] = globalInverse * globalTransform * bone.GetOffset();
+	boneMatrices[bone.GetID().Data()] = bone.GetOffset() * globalTransform;
 
 	for (cd::BoneID boneID : bone.GetChildIDs())
 	{

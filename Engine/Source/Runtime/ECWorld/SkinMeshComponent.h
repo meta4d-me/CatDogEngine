@@ -45,9 +45,10 @@ public:
 	const cd::Matrix4x4& GetBoneChangeMatrix(uint32_t index) { return m_changeMatrices[index]; }
 	const std::vector<cd::Matrix4x4>& GetBoneChangeMatrices() const { return m_changeMatrices; }
 	uint32_t GetChangeBoneIndex() const { return m_changeBoneIndex; }
+	void SetChangeBoneIndex(uint32_t index) {m_changeBoneIndex = index;}
 	void ResetChangeBoneIndex() { m_changeBoneIndex = engine::INVALID_ENTITY; }
 
-	void SetBoneMatrix(uint32_t index, const cd::Matrix4x4& changeMatrix) { m_boneMatrices[index] = changeMatrix; }
+	void SetBoneMatrix(uint32_t index, const cd::Matrix4x4& changeMatrix) { m_boneMatrices[index] = changeMatrix * m_boneMatrices[index]; }
 	const cd::Matrix4x4& GetBoneMatrix(uint32_t index) { return m_boneMatrices[index]; }
 
 	void Reset();
