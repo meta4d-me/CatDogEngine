@@ -21,9 +21,6 @@ class ShaderBuilder
 public:
 	static void BuildNonUberShaders(engine::ShaderVariantCollections* pCollections);
 	static void BuildUberShader(engine::ShaderVariantCollections* pCollections, engine::MaterialType* pMaterialType);
-
-private:
-	static const ShaderType GetShaderType(const std::string& fileName);
 };
 
 } // namespace editor

@@ -824,18 +824,18 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		std::filesystem::path inputFilePath(pFilePath);
 		std::string inputFileName = inputFilePath.stem().generic_string();
 
-		ShaderType shaderType;
+		engine::ShaderType shaderType;
 		if (inputFileName.find("vs_") != std::string::npos)
 		{
-			shaderType = ShaderType::Vertex;
+			shaderType = engine::ShaderType::Vertex;
 		}
 		else if (inputFileName.find("fs_") != std::string::npos)
 		{
-			shaderType = ShaderType::Fragment;
+			shaderType = engine::ShaderType::Fragment;
 		}
 		else if (inputFileName.find("cs_") != std::string::npos)
 		{
-			shaderType = ShaderType::Compute;
+			shaderType = engine::ShaderType::Compute;
 		}
 		else
 		{

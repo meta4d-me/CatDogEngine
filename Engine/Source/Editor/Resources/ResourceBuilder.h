@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Process/Process.h"
+#include "Rendering/ShaderType.h"
 #include "Scene/MaterialTextureType.h"
 
 #include <chrono>
@@ -12,14 +13,6 @@
 
 namespace editor
 {
-
-enum class ShaderType
-{
-	None,
-	Compute,
-	Vertex,
-	Fragment
-};
 
 enum class ProcessStatus : uint8_t
 {
@@ -59,7 +52,7 @@ public:
 	bool AddTask(Process process);
 	bool AddIrradianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
 	bool AddRadianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
-	bool AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pShaderFeatures = nullptr);
+	bool AddShaderBuildTask(engine::ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pShaderFeatures = nullptr);
 	bool AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath);
 
 	void Update(bool doPrintLog = true);

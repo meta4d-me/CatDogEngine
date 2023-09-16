@@ -99,13 +99,13 @@ std::filesystem::path Path::GetShaderOutputDirectory()
     return GetProjectsSharedPath() / "BuiltInShaders" / nameof::nameof_enum(s_backend);
 }
 
-std::string Path::GetShaderOutputPath(const char* pInputFilePath, const std::string& options)
+std::string Path::GetShaderOutputPath(const char* pInputFilePath, const std::string& combine)
 {
     std::string outputShaderFileName = std::filesystem::path(pInputFilePath).stem().generic_string();
 
-    if (!options.empty())
+    if (!combine.empty())
     {
-        std::string appendName = "_" + options;
+        std::string appendName = "_" + combine;
         std::replace(appendName.begin(), appendName.end(), ';', '_');
         outputShaderFileName += appendName;
 

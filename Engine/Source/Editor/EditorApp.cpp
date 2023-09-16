@@ -508,8 +508,10 @@ bool EditorApp::Update(float deltaTime)
 	{
 		m_bInitEditor = true;
 
-		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetPBRMaterialType());
-		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetAnimationMaterialType());
+		// engine::ShaderLoader::UploadNonUberShader(m_pRenderContext.get(), m_pShaderVariantCollections.get());
+
+		engine::ShaderLoader::UploadUberShader(m_pRenderContext.get(), m_pShaderVariantCollections.get(), m_pSceneWorld->GetPBRMaterialType());
+		engine::ShaderLoader::UploadUberShader(m_pRenderContext.get(), m_pShaderVariantCollections.get(), m_pSceneWorld->GetAnimationMaterialType());
 #ifdef ENABLE_DDGI
 		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetDDGIMaterialType());
 #endif

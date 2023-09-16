@@ -150,7 +150,7 @@ bool ResourceBuilder::AddTask(Process process)
 	return true;
 }
 
-bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pShaderFeatures)
+bool ResourceBuilder::AddShaderBuildTask(engine::ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pShaderFeatures)
 {
 	if (s_SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
 	{
@@ -183,15 +183,15 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 #endif
 
 	commandArguments.push_back("--type");
-	if (ShaderType::Compute == shaderType)
+	if (engine::ShaderType::Compute == shaderType)
 	{
 		commandArguments.push_back("c");
 	}
-	else if (ShaderType::Fragment == shaderType)
+	else if (engine::ShaderType::Fragment == shaderType)
 	{
 		commandArguments.push_back("f");
 	}
-	else if (ShaderType::Vertex == shaderType)
+	else if (engine::ShaderType::Vertex == shaderType)
 	{
 		commandArguments.push_back("v");
 	}

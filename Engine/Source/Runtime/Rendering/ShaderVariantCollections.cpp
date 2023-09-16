@@ -74,6 +74,16 @@ void ShaderVariantCollections::SetFeatureCombinePrograms(std::map<std::string, s
 	m_featureCombinePrograms = cd::MoveTemp(combines);
 }
 
+void ShaderVariantCollections::SetNonUberShaderProgramHandles(std::map<std::string, uint16_t> handles)
+{
+	m_nonUberShaderProgramHandles = cd::MoveTemp(handles);
+}
+
+void ShaderVariantCollections::SetUberShaderProgramHandles(std::map<std::string, std::map<uint32_t, uint16_t>> handles)
+{
+	m_uberShaderProgramHandles = cd::MoveTemp(handles);
+}
+
 bool ShaderVariantCollections::IsNonUberShaderProgramValid(std::string programName) const
 {
 	return (m_nonUberShaderPrograms.find(cd::MoveTemp(programName)) != m_nonUberShaderPrograms.end());
