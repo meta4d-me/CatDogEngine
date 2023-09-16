@@ -561,6 +561,7 @@ bool EditorApp::Update(float deltaTime)
 
 	if (m_pEngineImGuiContext)
 	{
+		GetMainWindow()->SetMouseVisible(m_pSceneView->IsShowMouse(), m_pSceneView->GetMouseFixedPositionX(), m_pSceneView->GetMouseFixedPositionY());
 		if (m_pViewportCameraController)
 		{
 			m_pViewportCameraController->Update(deltaTime);

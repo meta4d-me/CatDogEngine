@@ -63,6 +63,10 @@ public:
 	void SetAABBRenderer(engine::Renderer* pAABBRenderer) { m_pAABBRenderer = pAABBRenderer; }
 	
 	bool IsTerrainEditMode() const { return m_isTerrainEditMode; }
+	bool IsFirstClick() const { return m_isMouseDownFirstTime; }
+	bool IsShowMouse() { return m_isMouseShow; }
+	uint32_t GetMouseFixedPositionX() const { return m_mouseFixedPositionX; }
+	uint32_t GetMouseFixedPositionY() const { return m_mouseFixedPositionY; }
 
 	void SetCameraController(engine::CameraController* pCameraController) { m_pCameraController = pCameraController; }
 
@@ -84,6 +88,9 @@ private:
 	bool m_is3DMode = true;
 	bool m_isIBLActive = false;
 	bool m_isTerrainEditMode = false;
+	bool m_isMouseShow = true;
+	bool m_isUsingCamera = false;
+	bool m_isLeftClick = false;
 	RenderModeType m_renderMode = RenderModeType::Rendered;
 
 	engine::Renderer* m_pSceneRenderer = nullptr;
@@ -93,6 +100,12 @@ private:
 
 	engine::RenderTarget* m_pRenderTarget = nullptr;
 	bool m_isMouseDownFirstTime = true;
+
+	int32_t m_mouseFixedPositionX = 0;
+	int32_t m_mouseFixedPositionY = 0;
+
+	int32_t m_mouseMovementDuringPressedX;
+	int32_t m_mouseMovementDuringPressedY;
 
 	engine::CameraController* m_pCameraController = nullptr;
 };
