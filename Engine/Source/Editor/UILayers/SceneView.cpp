@@ -354,13 +354,17 @@ void SceneView::Update()
 
 	ImGui::End();
 
-	if (engine::Input::Get().IsMouseLBPressed())
+	if (engine::Input::Get().IsMouseLBPressed() || engine::Input::Get().IsMouseMBPressed() || engine::Input::Get().IsMouseRBPressed())
 	{
 		if (!m_isMouseDownFirstTime)
 		{
 			if (0 != engine::Input::Get().GetMousePositionOffsetX() || 0 != engine::Input::Get().GetMousePositionOffsetY())
 			{
 				m_isUsingCamera = true;
+			}
+			if (engine::Input::Get().IsMouseLBPressed())
+			{
+				m_isLeftClick = true;
 			}
 			return;
 		}
@@ -387,6 +391,7 @@ void SceneView::Update()
 		m_isMouseDownFirstTime = true;
 		m_isMouseShow = true;
 		m_isUsingCamera = false;
+		m_isLeftClick = false;
 	}
 }
 

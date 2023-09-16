@@ -90,6 +90,7 @@ private:
 	bool m_isTerrainEditMode = false;
 	bool m_isMouseShow = true;
 	bool m_isUsingCamera = false;
+	bool m_isLeftClick = false;
 	RenderModeType m_renderMode = RenderModeType::Rendered;
 
 	engine::Renderer* m_pSceneRenderer = nullptr;
