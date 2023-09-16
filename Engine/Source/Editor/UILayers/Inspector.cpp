@@ -88,7 +88,7 @@ void UpdateComponentWidget<engine::BlendShapeComponent>(engine::SceneWorld* pSce
 		{
 			if (ImGuiUtils::ImGuiFloatProperty((*pMorphs)[i].GetName(), weights[i], cd::Unit::None, 0.0f, 1.0f))
 			{
-				pBlendShapeComponent->SetIsDirty(true);
+				pBlendShapeComponent->SetDirty(true);
 			}
 		}
 	}

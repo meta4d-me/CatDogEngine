@@ -78,6 +78,12 @@ void ConvertVertexLayout(const cd::VertexAttributeLayout& vertexAttributeLayout,
 	case cd::VertexAttributeType::BoneWeight:
 		vertexAttribute = bgfx::Attrib::Enum::Weight;
 		break;
+	case cd::VertexAttributeType::SourceVertexIndex:
+		vertexAttribute = bgfx::Attrib::Enum::Indices;
+		break;
+	case cd::VertexAttributeType::MorphWeght:
+		vertexAttribute = bgfx::Attrib::Enum::Weight;
+		break;
 	default:
 		vertexAttribute = bgfx::Attrib::Enum::Count;
 		break;

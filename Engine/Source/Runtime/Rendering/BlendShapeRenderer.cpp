@@ -41,6 +41,9 @@ constexpr const char* lightParams = "u_lightParams";
 constexpr const char* LightDir = "u_LightDir";
 constexpr const char* HeightOffsetAndshadowLength = "u_HeightOffsetAndshadowLength";
 
+constexpr const char* morphCount = "u_morphCount";
+constexpr const char* vertexCount = "u_vertexCount";
+
 constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 
@@ -49,6 +52,10 @@ constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MS
 void BlendShapeRenderer::Init()
 {
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+
+	GetRenderContext()->CreateProgram("BlendShapeWeightsProgram", "cs_blendshape_weights.bin");
+	GetRenderContext()->CreateProgram("BlendShapeWeightPosProgram", "cs_blendshape_weight_pos.bin");
+	GetRenderContext()->CreateProgram("BlendShapeFinalPosProgram", "cs_blendshape_final_pos.bin");
 
 	GetRenderContext()->CreateUniform(lutSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(cubeIrradianceSampler, bgfx::UniformType::Sampler);
@@ -70,6 +77,9 @@ void BlendShapeRenderer::Init()
 
 	GetRenderContext()->CreateUniform(LightDir, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(HeightOffsetAndshadowLength, bgfx::UniformType::Vec4, 1);
+
+	GetRenderContext()->CreateUniform(morphCount, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(vertexCount, bgfx::UniformType::Vec4, 1);
 
 	bgfx::setViewName(GetViewID(), "BlendShapeRenderer");
 }
@@ -104,6 +114,7 @@ void BlendShapeRenderer::Render(float deltaTime)
 			continue;
 		}
 
+		// No blend shape?
 		BlendShapeComponent* pBlendShapeComponent = m_pCurrentSceneWorld->GetBlendShapeComponent(entity);
 		if (!pBlendShapeComponent)
 		{
@@ -122,11 +133,45 @@ void BlendShapeRenderer::Render(float deltaTime)
 			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
 		}
 
-		// Mesh
-		bgfx::setVertexBuffer(0, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetDynamicVertexBuffer()});
-		bgfx::setVertexBuffer(1, bgfx::VertexBufferHandle{pBlendShapeComponent->GetStaticVertexBuffer()});
+		constexpr StringCrc blendShapeWeightsProgram("BlendShapeWeightsProgram");
+		constexpr StringCrc blendShapeWeightPosProgram("BlendShapeWeightPosProgram");
+		constexpr StringCrc blendShapeFinalPosProgram("BlendShapeFinalPosProgram");
+
+		// Compute Blend Shape
+		//if (pBlendShapeComponent->IsDirty())
+
+			constexpr StringCrc morphCountCrc(morphCount);
+			cd::Vec4f activeMorphCount = cd::Vec4f{ static_cast<float>(pBlendShapeComponent->GetActiveMorphCount()),0,0,0 };
+			GetRenderContext()->FillUniform(morphCountCrc, &activeMorphCount, 1);
+			constexpr StringCrc vertexCountCrc(vertexCount);
+			cd::Vec4f vertexCount = cd::Vec4f{ static_cast<float>(pBlendShapeComponent->GetVertexCount()) ,0,0,0 };
+			GetRenderContext()->FillUniform(vertexCountCrc, &vertexCount, 1);
+
+			bgfx::setBuffer(2, bgfx::IndexBufferHandle{pBlendShapeComponent->GetBlendShapeStaticBuffer1()}, bgfx::Access::Read);
+			bgfx::setBuffer(4, bgfx::DynamicIndexBufferHandle{pBlendShapeComponent->GetBlendShapeDynamifcBuffer1()}, bgfx::Access::Read);
+			bgfx::setBuffer(5, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetBlendShapeDynamifcBuffer2()}, bgfx::Access::Read);
+			bgfx::setBuffer(6, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetSourceWeightDynamicBuffer()}, bgfx::Access::ReadWrite);
+			bgfx::dispatch(GetViewID(), GetRenderContext()->GetProgram(blendShapeWeightsProgram),1U,1U,1U);
+			
+			GetRenderContext()->FillUniform(vertexCountCrc, &vertexCount, 1);
+
+			bgfx::setBuffer(1, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetVertexDynamicBuffer()}, bgfx::Access::ReadWrite);
+			bgfx::setBuffer(6, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetSourceWeightDynamicBuffer()}, bgfx::Access::Read);
+			bgfx::dispatch(GetViewID(), GetRenderContext()->GetProgram(blendShapeWeightPosProgram));
+			
+			bgfx::setBuffer(1, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetVertexDynamicBuffer()}, bgfx::Access::ReadWrite);
+			bgfx::setBuffer(2, bgfx::IndexBufferHandle{pBlendShapeComponent->GetBlendShapeStaticBuffer1()}, bgfx::Access::Read);
+			bgfx::setBuffer(3, bgfx::VertexBufferHandle{pBlendShapeComponent->GetBlendShapeStaticBuffer2()}, bgfx::Access::Read);
+			bgfx::setBuffer(4, bgfx::DynamicIndexBufferHandle{pBlendShapeComponent->GetBlendShapeDynamifcBuffer1()}, bgfx::Access::Read);
+			bgfx::setBuffer(5, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetBlendShapeDynamifcBuffer2()}, bgfx::Access::Read);
+			bgfx::dispatch(GetViewID(), GetRenderContext()->GetProgram(blendShapeFinalPosProgram));
+
+			pBlendShapeComponent->SetDirty(false);
+		
+
+		bgfx::setVertexBuffer(0, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetVertexDynamicBuffer()});
+		bgfx::setVertexBuffer(1, bgfx::VertexBufferHandle{pBlendShapeComponent->GetVertexStaticBuffer()});
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
-		//bgfx::setBuffer(1, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetDynamicVertexBuffer()}, bgfx::Access::Read);
 		
 		// Material
 		for (const auto& [textureType, _] : pMaterialComponent->GetTextureResources())
