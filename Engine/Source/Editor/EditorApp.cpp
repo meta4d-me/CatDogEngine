@@ -539,7 +539,6 @@ bool EditorApp::Update(float deltaTime)
 	}
 
 	GetMainWindow()->Update();
-	
 	m_pSceneWorld->Update();
 	m_pEditorImGuiContext->Update(deltaTime);
 
@@ -562,6 +561,7 @@ bool EditorApp::Update(float deltaTime)
 
 	if (m_pEngineImGuiContext)
 	{
+		GetMainWindow()->SetMouseVisible(m_pSceneView->IsShowMouse(), m_pSceneView->GetMouseFixedPositionX(), m_pSceneView->GetMouseFixedPositionY());
 		if (m_pViewportCameraController)
 		{
 			m_pViewportCameraController->Update(deltaTime);
@@ -595,8 +595,6 @@ bool EditorApp::Update(float deltaTime)
 			}
 		}
 	}
-
-	GetMainWindow()->SetMouseVisible(m_pSceneView->IsShowMouse(), m_pSceneView->GetMouseFixedPositionX(), m_pSceneView->GetMouseFixedPositionY());
 
 	m_pRenderContext->EndFrame();
 
