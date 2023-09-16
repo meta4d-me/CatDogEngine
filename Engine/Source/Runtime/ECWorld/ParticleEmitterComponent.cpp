@@ -33,17 +33,15 @@ void engine::ParticleEmitterComponent::Build()
 * indexBuffer
 */
 	size_t indexTypeSize = sizeof(uint16_t);
-	m_particleIndexBuffer.resize(3 * m_particleSystem.GetMaxCount() * indexTypeSize);
+	m_particleIndexBuffer.resize(m_particleSystem.GetMaxCount() * indexTypeSize);
 	currentDataSize = 0U;
 	currentDataPtr = m_particleIndexBuffer.data();
 
 	std::vector<uint16_t> indexes;
 	for (uint16_t i = 0; i < m_particleSystem.GetMaxCount(); i++)
 	{
-		uint16_t vertexIndex = static_cast<uint16_t>(i * 3);
+		uint16_t vertexIndex = static_cast<uint16_t>(i);
 		indexes.push_back(vertexIndex);
-		indexes.push_back(vertexIndex + 1);
-		indexes.push_back(vertexIndex + 2);
 	} 
 
 	for (const auto& index : indexes)

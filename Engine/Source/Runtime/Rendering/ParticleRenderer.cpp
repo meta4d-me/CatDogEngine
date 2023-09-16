@@ -25,15 +25,19 @@ void ParticleRenderer::Render(float deltaTime)
 	for (Entity entity : m_pCurrentSceneWorld->GetParticleEmitterEntities())
 	{
 		engine::ParticleEmitterComponent* pEmitterComponent = m_pCurrentSceneWorld->GetParticleEmitterComponent(entity);
+
+		for (int i = 0; i < pEmitterComponent->GetParticleSystem().GetMaxCount(); ++i)
+		{
 		pEmitterComponent->GetParticleSystem().AllocateParticleIndex();
-		pEmitterComponent->GetParticleSystem().UpdateActive(1 / deltaTime);
+		}
+		pEmitterComponent->GetParticleSystem().UpdateActive(deltaTime);
 
 		pEmitterComponent->Build();
 		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pEmitterComponent->GetParticleVBH()  });
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{  pEmitterComponent->GetParticleIBH() });
 
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
-			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_LINES;
+			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_TRISTRIP;
 		bgfx::setState(state);
 
 		constexpr StringCrc ParticleProgram("ParticleProgram");

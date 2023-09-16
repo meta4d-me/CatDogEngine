@@ -33,10 +33,10 @@ void engine::ParticleSystem::AllocateParticleIndex()
 void engine::ParticleSystem::Reset(int index)
 {
 	m_pos[index] = cd::Vec3f(0.0f, 0.0f, 0.0f);
-	m_velocity[index] = cd::Vec3f(rand() % 41, rand() % 7, rand() % 50);
+	m_velocity[index] = cd::Vec3f(rand()%64, rand() % 4, rand() % 80);
 	m_acceleration[index] = cd::Vec3f(0.0f, 0.0f, 0.0f);
 
-	m_color[index] = cd::Vec3f{rand() %30, rand() %45,0.0f};
+	m_color[index] = cd::Vec3f{1.0f, 0.0f,0.0f};
 
 	m_isActive[index] = false;
 	m_currentTime[index] = 0.0f;

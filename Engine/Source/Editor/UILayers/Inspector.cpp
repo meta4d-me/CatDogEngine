@@ -571,6 +571,7 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::ShaderVariantCollectionsComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::ParticleEmitterComponent>(pSceneWorld, selectedEntity);
 
 #ifdef ENABLE_DDGI
 	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, selectedEntity);
