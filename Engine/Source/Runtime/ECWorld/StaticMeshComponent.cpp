@@ -22,6 +22,11 @@ void StaticMeshComponent::Reset()
 
 	m_indexBuffer.clear();
 	m_indexBufferHandle = UINT16_MAX;
+
+#ifdef EDITOR_MODE
+	m_wireframeIndexBuffer.clear();
+	m_wireframeIndexBufferHandle = UINT16_MAX;
+#endif
 }
 
 void StaticMeshComponent::Build()
@@ -50,13 +55,12 @@ void StaticMeshComponent::Build()
 
 	m_vertexBuffer.resize(vertexCount * vertexFormatStride);
 
-	uint32_t currentDataSize = 0U;
-	auto currentDataPtr = m_vertexBuffer.data();
-
-	auto FillVertexBuffer = [&currentDataPtr, &currentDataSize](const void* pData, uint32_t dataSize)
+	uint32_t vbDataSize = 0U;
+	auto vbDataPtr = m_vertexBuffer.data();
+	auto FillVertexBuffer = [&vbDataPtr, &vbDataSize](const void* pData, uint32_t dataSize)
 	{
-		std::memcpy(&currentDataPtr[currentDataSize], pData, dataSize);
-		currentDataSize += dataSize;
+		std::memcpy(&vbDataPtr[vbDataSize], pData, dataSize);
+		vbDataSize += dataSize;
 	};
 
 	for (uint32_t vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex)
@@ -128,25 +132,18 @@ void StaticMeshComponent::Build()
 		}
 	}
 
-	// Create vertex buffer.
-	bgfx::VertexLayout vertexLayout;
-	VertexLayoutUtility::CreateVertexLayout(vertexLayout, m_pRequiredVertexFormat->GetVertexLayout());
-	const bgfx::Memory* pVertexBufferRef = bgfx::makeRef(m_vertexBuffer.data(), static_cast<uint32_t>(m_vertexBuffer.size()));
-	bgfx::VertexBufferHandle vertexBufferHandle = bgfx::createVertexBuffer(pVertexBufferRef, vertexLayout);
-	assert(bgfx::isValid(vertexBufferHandle));
-	m_vertexBufferHandle = vertexBufferHandle.idx;
-
 	// Fill index buffer data.
 	bool useU16Index = vertexCount <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()) + 1U;
 	uint32_t indexTypeSize = useU16Index ? sizeof(uint16_t) : sizeof(uint32_t);
-	m_indexBuffer.resize(m_pMeshData->GetPolygonCount() * 3 * indexTypeSize);
+	uint32_t indicesCount = m_pMeshData->GetPolygonCount() * 3U;
+	m_indexBuffer.resize(indicesCount* indexTypeSize);
 
-	currentDataSize = 0U;
-	currentDataPtr = m_indexBuffer.data();
-	auto FillIndexBuffer = [&currentDataPtr, &currentDataSize](const void* pData, uint32_t dataSize)
+	uint32_t ibDataSize = 0U;
+	auto ibDataPtr = m_indexBuffer.data();
+	auto FillIndexBuffer = [&ibDataPtr, &ibDataSize](const void* pData, uint32_t dataSize)
 	{
-		std::memcpy(&currentDataPtr[currentDataSize], pData, dataSize);
-		currentDataSize += dataSize;
+		std::memcpy(&ibDataPtr[ibDataSize], pData, dataSize);
+		ibDataSize += dataSize;
 	};
 
 	for (const auto& polygon : m_pMeshData->GetPolygons())
@@ -166,11 +163,40 @@ void StaticMeshComponent::Build()
 		}
 	}
 
+#ifdef EDITOR_MODE
+	uint32_t wireframeIndicesCount = bgfx::topologyConvert(bgfx::TopologyConvert::TriListToLineList, nullptr, 0U,
+		m_indexBuffer.data(), indicesCount, !useU16Index);
+	m_wireframeIndexBuffer.resize(indicesCount * indexTypeSize);
+	bgfx::topologyConvert(bgfx::TopologyConvert::TriListToLineList, m_wireframeIndexBuffer.data(), static_cast<uint32_t>(m_wireframeIndexBuffer.size()),
+		m_indexBuffer.data(), indicesCount, !useU16Index);
+#endif
+}
+
+void StaticMeshComponent::Submit()
+{
+	// Create vertex buffer.
+	bgfx::VertexLayout vertexLayout;
+	VertexLayoutUtility::CreateVertexLayout(vertexLayout, m_pRequiredVertexFormat->GetVertexLayout());
+	const bgfx::Memory* pVertexBufferRef = bgfx::makeRef(m_vertexBuffer.data(), static_cast<uint32_t>(m_vertexBuffer.size()));
+	bgfx::VertexBufferHandle vertexBufferHandle = bgfx::createVertexBuffer(pVertexBufferRef, vertexLayout);
+	assert(bgfx::isValid(vertexBufferHandle));
+	m_vertexBufferHandle = vertexBufferHandle.idx;
+
+	bool useU16Index = m_pMeshData->GetVertexCount() <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()) + 1U;
+	auto SubmitIndexBuffer = [&useU16Index](const std::vector<std::byte>& indexBuffer) -> uint16_t
+	{
+		const bgfx::Memory* pIndexBufferRef = bgfx::makeRef(indexBuffer.data(), static_cast<uint32_t>(indexBuffer.size()));
+		bgfx::IndexBufferHandle indexBufferHandle = bgfx::createIndexBuffer(pIndexBufferRef, useU16Index ? 0U : BGFX_BUFFER_INDEX32);
+		assert(bgfx::isValid(indexBufferHandle));
+		return indexBufferHandle.idx;
+	};
+
 	// Create index buffer.
-	const bgfx::Memory* pIndexBufferRef = bgfx::makeRef(m_indexBuffer.data(), static_cast<uint32_t>(m_indexBuffer.size()));
-	bgfx::IndexBufferHandle indexBufferHandle = bgfx::createIndexBuffer(pIndexBufferRef, useU16Index ? 0U : BGFX_BUFFER_INDEX32);
-	assert(bgfx::isValid(indexBufferHandle));
-	m_indexBufferHandle = indexBufferHandle.idx;
+	m_indexBufferHandle = SubmitIndexBuffer(m_indexBuffer);
+
+#ifdef EDITOR_MODE
+	m_wireframeIndexBufferHandle = SubmitIndexBuffer(m_wireframeIndexBuffer);
+#endif
 }
 
 }

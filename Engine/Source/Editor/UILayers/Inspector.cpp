@@ -14,6 +14,28 @@ void UpdateComponentWidget(engine::SceneWorld* pSceneWorld, engine::Entity entit
 }
 
 template<>
+void UpdateComponentWidget<engine::CollisionMeshComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+{
+	auto* pCollisionMesh = pSceneWorld->GetCollisionMeshComponent(entity);
+	if (!pCollisionMesh)
+	{
+		return;
+	}
+
+	bool isHeaderOpen = ImGui::CollapsingHeader("Collision Mesh Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+	ImGui::Separator();
+
+	if (isHeaderOpen)
+	{
+		ImGuiUtils::ImGuiBoolProperty("Debug Draw", pCollisionMesh->IsDebugDrawEnable());
+	}
+
+	ImGui::Separator();
+	ImGui::PopStyleVar();
+}
+
+template<>
 void UpdateComponentWidget<engine::NameComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
 {
 	auto* pNameComponent = pSceneWorld->GetNameComponent(entity);
@@ -564,12 +586,13 @@ void Inspector::Update()
 
 	details::UpdateComponentWidget<engine::NameComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::TransformComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::StaticMeshComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::CameraComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::StaticMeshComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::CollisionMeshComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::ShaderVariantCollectionsComponent>(pSceneWorld, selectedEntity);
 	details::UpdateComponentWidget<engine::ParticleEmitterComponent>(pSceneWorld, selectedEntity);
 

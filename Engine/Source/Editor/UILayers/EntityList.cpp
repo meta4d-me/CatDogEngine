@@ -51,6 +51,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         staticMeshComponent.SetMeshData(&mesh);
         staticMeshComponent.SetRequiredVertexFormat(&pMaterialType->GetRequiredVertexFormat());
         staticMeshComponent.Build();
+        staticMeshComponent.Submit();
 
         mesh.SetName(pSceneWorld->GetNameComponent(entity)->GetName());
         mesh.SetID(cd::MeshID(pSceneDatabase->GetMeshCount()));
@@ -113,6 +114,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         meshComponent.SetMeshData(&mesh);
         meshComponent.SetRequiredVertexFormat(&pTerrainMaterialType->GetRequiredVertexFormat());//to do : modify vertexFormat
         meshComponent.Build();
+        meshComponent.Submit();
 
         mesh.SetName(pSceneWorld->GetNameComponent(entity)->GetName());
         mesh.SetID(cd::MeshID(pSceneDatabase->GetMeshCount()));
