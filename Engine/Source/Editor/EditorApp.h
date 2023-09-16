@@ -98,7 +98,8 @@ private:
 	std::unique_ptr<engine::SceneWorld> m_pSceneWorld;
 	editor::SceneView* m_pSceneView = nullptr;
 	engine::Renderer* m_pSceneRenderer = nullptr;
-	engine::Renderer* m_pDebugRenderer = nullptr;
+	engine::Renderer* m_pWhiteModelRenderer = nullptr;
+	engine::Renderer* m_pWireframeRenderer = nullptr;
 	engine::Renderer* m_pPBRSkyRenderer = nullptr;
 	engine::Renderer* m_pIBLSkyRenderer = nullptr;
 	engine::Renderer* m_pTerrainRenderer = nullptr;

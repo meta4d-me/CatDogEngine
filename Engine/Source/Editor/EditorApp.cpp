@@ -16,7 +16,8 @@
 #ifdef ENABLE_DDGI
 #include "Rendering/DDGIRenderer.h"
 #endif
-#include "Rendering/DebugRenderer.h"
+#include "Rendering/WhiteModelRenderer.h"
+#include "Rendering/WireframeRenderer.h"
 #include "Rendering/ImGuiRenderer.h"
 #include "Rendering/PBRSkyRenderer.h"
 #include "Rendering/BloomRenderer.h"
@@ -176,7 +177,8 @@ void EditorApp::InitEditorUILayers()
 	m_pSceneView = pSceneView.get();
 	pSceneView->SetCameraController(m_pViewportCameraController.get());
 	pSceneView->SetSceneRenderer(m_pSceneRenderer);
-	pSceneView->SetDebugRenderer(m_pDebugRenderer);
+	pSceneView->SetWhiteModelRenderer(m_pWhiteModelRenderer);
+	pSceneView->SetWireframeRenderer(m_pWireframeRenderer);
 	pSceneView->SetAABBRenderer(m_pAABBRenderer);
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
 
@@ -325,6 +327,7 @@ void EditorApp::InitSkyEntity()
 	meshComponent.SetMeshData(&optMesh.value());
 	meshComponent.SetRequiredVertexFormat(&vertexFormat);
 	meshComponent.Build();
+	meshComponent.Submit();
 }
 
 #ifdef ENABLE_DDGI
@@ -398,35 +401,39 @@ void EditorApp::InitEngineRenderers()
 	pTerrainRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pTerrainRenderer));
 
+	auto pSkeletonRenderer = std::make_unique<engine::SkeletonRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pSkeletonRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pSkeletonRenderer));
+
 	auto pAnimationRenderer = std::make_unique<engine::AnimationRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pAnimationRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pAnimationRenderer));
 
-	auto pDebugRenderer = std::make_unique<engine::DebugRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-	m_pDebugRenderer = pDebugRenderer.get();
-	pDebugRenderer->SetSceneWorld(m_pSceneWorld.get());
-	pDebugRenderer->SetEnable(false);
-	AddEngineRenderer(cd::MoveTemp(pDebugRenderer));
-
-	auto pAABBRenderer = std::make_unique<engine::AABBRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-	m_pAABBRenderer = pAABBRenderer.get();
-	pAABBRenderer->SetSceneWorld(m_pSceneWorld.get());
-	pAABBRenderer->SetEnable(false);
-	AddEngineRenderer(cd::MoveTemp(pAABBRenderer));
+	auto pWhiteModelRenderer = std::make_unique<engine::WhiteModelRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pWhiteModelRenderer = pWhiteModelRenderer.get();
+	pWhiteModelRenderer->SetSceneWorld(m_pSceneWorld.get());
+	pWhiteModelRenderer->SetEnable(false);
+	AddEngineRenderer(cd::MoveTemp(pWhiteModelRenderer));
 
 	auto pParticlerenderer = std::make_unique<engine::ParticleRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pParticlerenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pParticlerenderer));
-
-	auto pSkeletonRenderer = std::make_unique<engine::SkeletonRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-	pSkeletonRenderer->SetSceneWorld(m_pSceneWorld.get());
-	AddEngineRenderer(cd::MoveTemp(pSkeletonRenderer));
 
 #ifdef ENABLE_DDGI
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pDDGIRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pDDGIRenderer));
 #endif
+
+	auto pAABBRenderer = std::make_unique<engine::AABBRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pAABBRenderer = pAABBRenderer.get();
+	pAABBRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pAABBRenderer));
+
+	auto pWireframeRenderer = std::make_unique<engine::WireframeRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pWireframeRenderer = pWireframeRenderer.get();
+	pWireframeRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pWireframeRenderer));
 
 	auto pBlitRTRenderPass = std::make_unique<engine::BlitRenderTargetPass>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	AddEngineRenderer(cd::MoveTemp(pBlitRTRenderPass));

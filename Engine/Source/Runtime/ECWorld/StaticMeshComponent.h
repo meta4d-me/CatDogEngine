@@ -43,9 +43,13 @@ public:
 
 	uint16_t GetVertexBuffer() const { return m_vertexBufferHandle; }
 	uint16_t GetIndexBuffer() const { return m_indexBufferHandle; }
+#ifdef EDITOR_MODE
+	uint16_t GetWireframeIndexBuffer() const { return m_wireframeIndexBufferHandle; }
+#endif
 
 	void Reset();
 	void Build();
+	void Submit();
 
 private:
 	// Input
@@ -57,6 +61,11 @@ private:
 	std::vector<std::byte> m_indexBuffer;
 	uint16_t m_vertexBufferHandle = UINT16_MAX;
 	uint16_t m_indexBufferHandle = UINT16_MAX;
+
+#ifdef EDITOR_MODE
+	std::vector<std::byte> m_wireframeIndexBuffer;
+	uint16_t m_wireframeIndexBufferHandle = UINT16_MAX;
+#endif
 };
 
 }

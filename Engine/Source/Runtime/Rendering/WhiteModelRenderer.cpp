@@ -1,4 +1,4 @@
-#include "DebugRenderer.h"
+#include "WhiteModelRenderer.h"
 
 #include "Core/StringCrc.h"
 #include "ECWorld/SceneWorld.h"
@@ -11,25 +11,25 @@
 namespace engine
 {
 
-void DebugRenderer::Init()
+void WhiteModelRenderer::Init()
 {
 	GetShaderVariantCollections()->RegisterNonUberShader("DebugProgram", { "vs_debug", "fs_debug" });
 
 	bgfx::setViewName(GetViewID(), "DebugRenderer");
 }
 
-void DebugRenderer::Submit()
+void WhiteModelRenderer::Submit()
 {
 	GetRenderContext()->CreateProgram("DebugProgram", "vs_debug.bin", "fs_debug.bin");
 }
 
-void DebugRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
+void WhiteModelRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
 	UpdateViewRenderTarget();
 	bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
 }
 
-void DebugRenderer::Render(float deltaTime)
+void WhiteModelRenderer::Render(float deltaTime)
 {
 	for (Entity entity : m_pCurrentSceneWorld->GetStaticMeshEntities())
 	{
@@ -44,27 +44,22 @@ void DebugRenderer::Render(float deltaTime)
 			continue;
 		}
 
-		StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
-		if (!pMeshComponent)
-		{
-			continue;
-		}
-
 		if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 		{
 			pTransformComponent->Build();
 			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
 		}
 
-		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pMeshComponent->GetVertexBuffer() });
-		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pMeshComponent->GetIndexBuffer() });
+		StaticMeshComponent* pStaticMesh = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
+		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pStaticMesh->GetVertexBuffer() });
+		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pStaticMesh->GetIndexBuffer() });
 
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
 		bgfx::setState(state);
 
-		constexpr StringCrc debugProgram("DebugProgram");
-		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(debugProgram));
+		constexpr StringCrc whiteModelProgram("WhiteModelProgram");
+		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(whiteModelProgram));
 	}
 }
 

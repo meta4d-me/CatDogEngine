@@ -9,7 +9,7 @@ namespace engine
 
 class SceneWorld;
 
-class DebugRenderer final : public Renderer
+class WireframeRenderer final : public Renderer
 {
 public:
 	using Renderer::Renderer;
@@ -20,9 +20,11 @@ public:
 	virtual void Render(float deltaTime) override;
 
 	void SetSceneWorld(SceneWorld* pSceneWorld) { m_pCurrentSceneWorld = pSceneWorld; }
+	void SetEnableGlobalWireframe(bool enable) { m_enableGlobalWireframe = enable; }
 
 private:
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
+	bool m_enableGlobalWireframe = false;
 };
 
 }
