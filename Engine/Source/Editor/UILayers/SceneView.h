@@ -118,8 +118,8 @@ private:
 	engine::RenderTarget* m_pRenderTarget = nullptr;
 	bool m_isMouseDownFirstTime = true;
 
-	int32_t m_mouseFixedPositionX ;
-	int32_t m_mouseFixedPositionY ;
+	int32_t m_mouseFixedPositionX = 0;
+	int32_t m_mouseFixedPositionY = 0;
 
 	int32_t m_mouseMovementDuringPressedX;
 	int32_t m_mouseMovementDuringPressedY;
