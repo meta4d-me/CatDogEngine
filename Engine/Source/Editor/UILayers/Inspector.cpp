@@ -147,12 +147,23 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 
 		// Parameters
 		ImGui::Separator();
-		ImGuiUtils::ColorPickerProperty("AlbedoColor", pMaterialComponent->GetAlbedoColor());
-		ImGuiUtils::ImGuiFloatProperty("MetallicFactor", pMaterialComponent->GetMetallicFactor(), cd::Unit::None, 0.0f, 1.0f);
-		ImGuiUtils::ImGuiFloatProperty("RoughnessFactor", pMaterialComponent->GetRoughnessFactor(), cd::Unit::None, 0.0f, 1.0f);
-		ImGuiUtils::ColorPickerProperty("EmissiveColor", pMaterialComponent->GetEmissiveColor());
-		ImGuiUtils::ImGuiBoolProperty("TwoSided", pMaterialComponent->GetTwoSided());
-		ImGuiUtils::ImGuiStringProperty("BlendMode", nameof::nameof_enum(pMaterialComponent->GetBlendMode()).data());
+		
+		{
+			bool isOpen = ImGui::CollapsingHeader("Render States", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Separator();
+
+			if (isOpen)
+			{
+				// TODO : generic cull mode.
+				ImGuiUtils::ImGuiBoolProperty("TwoSided", pMaterialComponent->GetTwoSided());
+				ImGuiUtils::ImGuiStringProperty("BlendMode", nameof::nameof_enum(pMaterialComponent->GetBlendMode()).data());
+			}
+
+			ImGui::Separator();
+			ImGui::PopStyleVar();
+		}
+
 		if (cd::BlendMode::Mask == pMaterialComponent->GetBlendMode())
 		{
 			ImGuiUtils::ImGuiFloatProperty("AlphaCutOff", pMaterialComponent->GetAlphaCutOff(), cd::Unit::None, 0.0f, 1.0f);
@@ -161,17 +172,46 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		// Textures
 		for (int textureTypeValue = 0; textureTypeValue < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
 		{
-			if (engine::MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)))
+			auto textureType = static_cast<cd::MaterialTextureType>(textureTypeValue);
+			if (engine::MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(textureType))
 			{
-				const char* title = nameof::nameof_enum(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)).data();
-				bool isOpen = ImGui::CollapsingHeader(title, ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+				const char* pTextureType = nameof::nameof_enum(static_cast<cd::MaterialTextureType>(textureTypeValue)).data();
+				bool isOpen = ImGui::CollapsingHeader(pTextureType, ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 				ImGui::Separator();
 
 				if (isOpen)
 				{
-					ImGuiUtils::ImGuiVectorProperty("UVOffset", pTextureInfo->GetUVOffset());
-					ImGuiUtils::ImGuiVectorProperty("UVScale", pTextureInfo->GetUVScale());
+					if (cd::MaterialTextureType::BaseColor == textureType)
+					{
+						ImGuiUtils::ColorPickerProperty("AlbedoColor", pMaterialComponent->GetAlbedoColor());
+					}
+					else if (cd::MaterialTextureType::Metallic == textureType)
+					{
+						ImGuiUtils::ImGuiFloatProperty("MetallicFactor", pMaterialComponent->GetMetallicFactor(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+					}
+					else if (cd::MaterialTextureType::Roughness == textureType)
+					{
+						ImGuiUtils::ImGuiFloatProperty("RoughnessFactor", pMaterialComponent->GetRoughnessFactor(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+					}
+					else if (cd::MaterialTextureType::Emissive == textureType)
+					{
+						float emissiveLength = pMaterialComponent->GetEmissiveColor().x();
+						if (ImGuiUtils::ImGuiFloatProperty("EmissiveLength", emissiveLength, cd::Unit::None, 0.0f, 1.0f, false, 0.01f))
+						{
+							pMaterialComponent->SetEmissiveColor(cd::Vec3f(emissiveLength));
+						}
+					}
+
+					if (pTextureInfo->textureHandle != bgfx::kInvalidHandle)
+					{
+						ImGui::Image(reinterpret_cast<ImTextureID>(pTextureInfo->textureHandle), ImVec2(64, 64));
+					}
+					
+					ImGui::PushID(textureTypeValue);
+					ImGuiUtils::ImGuiVectorProperty("UV Offset", pTextureInfo->GetUVOffset(), cd::Unit::None, cd::Vec2f(0.0f), cd::Vec2f(1.0f), false, 0.01f);
+					ImGuiUtils::ImGuiVectorProperty("UV Scale", pTextureInfo->GetUVScale());
+					ImGui::PopID();
 				}
 
 				ImGui::Separator();
@@ -180,38 +220,39 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		}
 
 		// Shaders
-		const char* title = "Shader";
-		bool isOpen = ImGui::CollapsingHeader(title, ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-		ImGui::Separator();
-
-		if (isOpen)
 		{
-			ImGuiUtils::ImGuiStringProperty("Vertex Shader", pMaterialComponent->GetVertexShaderName());
-			ImGuiUtils::ImGuiStringProperty("Fragment Shader", pMaterialComponent->GetFragmentShaderName());
+			bool isOpen = ImGui::CollapsingHeader("Shader", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 			ImGui::Separator();
 
-			std::vector<const char*> activeShaderFeatures;
-			for (const auto& feature : pMaterialComponent->GetShaderFeatures())
+			if (isOpen)
 			{
-				activeShaderFeatures.emplace_back(nameof::nameof_enum(feature).data());
-			}
+				ImGuiUtils::ImGuiStringProperty("Vertex Shader", pMaterialComponent->GetVertexShaderName());
+				ImGuiUtils::ImGuiStringProperty("Fragment Shader", pMaterialComponent->GetFragmentShaderName());
+				ImGui::Separator();
 
-			if (!activeShaderFeatures.empty())
-			{
-				if (ImGui::BeginCombo("##combo", "Active shader features"))
+				std::vector<const char*> activeShaderFeatures;
+				for (const auto& feature : pMaterialComponent->GetShaderFeatures())
 				{
-					for (size_t index = 0; index < activeShaderFeatures.size(); ++index)
+					activeShaderFeatures.emplace_back(nameof::nameof_enum(feature).data());
+				}
+
+				if (!activeShaderFeatures.empty())
+				{
+					if (ImGui::BeginCombo("##combo", "Active shader features"))
 					{
-						ImGui::Selectable(activeShaderFeatures[index], false);
+						for (size_t index = 0; index < activeShaderFeatures.size(); ++index)
+						{
+							ImGui::Selectable(activeShaderFeatures[index], false);
+						}
+						ImGui::EndCombo();
 					}
-					ImGui::EndCombo();
 				}
 			}
-		}
 
-		ImGui::Separator();
-		ImGui::PopStyleVar();
+			ImGui::Separator();
+			ImGui::PopStyleVar();
+		}
 	}
 
 	ImGui::Separator();
@@ -269,7 +310,7 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 				ImGuiUtils::ImGuiBoolProperty("Open Blur", pCameraComponent->GetIsBlurEnable());
 				if (pCameraComponent->GetIsBlurEnable())
 				{
-					ImGuiUtils::ImGuiIntProperty("BlurIteration", pCameraComponent->GetBlurTimes(), cd::Unit::None, 0, 20, false, 1.0f);
+					ImGuiUtils::ImGuiIntProperty("Blur Iteration", pCameraComponent->GetBlurTimes(), cd::Unit::None, 0, 20, false, 1.0f);
 					ImGuiUtils::ImGuiFloatProperty("Blur Size", pCameraComponent->GetBlurSize(), cd::Unit::None, 0.0f, 3.0f);
 					ImGuiUtils::ImGuiIntProperty("Blur Scaling", pCameraComponent->GetBlurScaling(), cd::Unit::None, 1, 4, false, 1.0f);
 				}
@@ -571,37 +612,42 @@ void Inspector::Init()
 
 void Inspector::Update()
 {
-	auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
-	ImGui::Begin(GetName(), &m_isEnable, flags);
-
 	engine::SceneWorld* pSceneWorld = GetSceneWorld();
-	engine::Entity selectedEntity = pSceneWorld->GetSelectedEntity();
-	if (engine::INVALID_ENTITY == selectedEntity)
+	if (engine::Entity selectedEntity = pSceneWorld->GetSelectedEntity(); selectedEntity != engine::INVALID_ENTITY)
 	{
-		ImGui::End();
+		// Entity will be invalid in two cases : 1.Select nothing 2.The selected entity has been deleted
+		// Here we only want to capture the case 1 not to clear Inspector properties.
+		// For case 2, it still uses a valid entity to update but nothing updated.
+		// It is OK if we don't reuse the entity id intermediately.
+		m_lastSelectedEntity = selectedEntity;
+	}
+
+	if (m_lastSelectedEntity == engine::INVALID_ENTITY)
+	{
 		return;
 	}
 
+	constexpr auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+	ImGui::Begin(GetName(), &m_isEnable, flags);
 	ImGui::BeginChild("Inspector");
 
-	details::UpdateComponentWidget<engine::NameComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::TransformComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::CameraComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::StaticMeshComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::ParticleComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::CollisionMeshComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::ShaderVariantCollectionsComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::NameComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::TransformComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::CameraComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::StaticMeshComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::ParticleComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::CollisionMeshComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::ShaderVariantCollectionsComponent>(pSceneWorld, m_lastSelectedEntity);
 
 #ifdef ENABLE_DDGI
-	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, m_lastSelectedEntity);
 #endif
 
 	ImGui::EndChild();
-
 	ImGui::End();
 }
 

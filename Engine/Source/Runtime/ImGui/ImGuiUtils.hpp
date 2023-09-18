@@ -46,9 +46,7 @@ static bool ImGuiIntProperty(const char* pName, int& value, cd::Unit unit = cd::
 	ImGui::NextColumn();
 	ImGui::PushItemWidth(-1);
 
-	std::string labelName = "##";
-	labelName += pName;
-	if (ImGui::DragInt(labelName.c_str(), &value, speed, minValue, maxValue, "%d"))
+	if (ImGui::DragInt(pName, &value, speed, minValue, maxValue, "%d"))
 	{
 		dirty = true;
 	}
@@ -69,15 +67,12 @@ static bool ImGuiFloatProperty(const char* pName, float& value, cd::Unit unit = 
 	ImGui::NextColumn();
 	ImGui::PushItemWidth(-1);
 
-	//std::string labelName = std::format("##{}", pName);
-	std::string labelName = "##";
-	labelName += pName;
 	//std::string metricName = std::format("%.2f{}", cd::GetUnitName(unit));
 	std::string metricName = "%.2f";
 	metricName += cd::GetUnitName(unit);
 	float delta = maxValue - minValue;
 	float dragSpeed = (speed <= 0.0) ? (cd::Math::IsEqualToZero(delta) ? 1.0f : delta * 0.05f) : speed;
-	if (ImGui::DragFloat(labelName.c_str(), &value, dragSpeed, minValue, maxValue, metricName.c_str()))
+	if (ImGui::DragFloat(pName, &value, dragSpeed, minValue, maxValue, metricName.c_str()))
 	{
 		dirty = true;
 	}
@@ -104,9 +99,6 @@ static bool ImGuiVectorProperty(const char* pName, T& value, cd::Unit unit = cd:
 	ImGui::NextColumn();
 	ImGui::PushItemWidth(-1);
 
-	//std::string labelName = std::format("##{}", pName);
-	std::string labelName = "##";
-	labelName += pName;
 	//std::string metricName = std::format("%.2f{}", cd::GetUnitName(unit));
 	std::string metricName = "%.2f";
 	metricName += cd::GetUnitName(unit);
@@ -114,21 +106,21 @@ static bool ImGuiVectorProperty(const char* pName, T& value, cd::Unit unit = cd:
 	float dragSpeed = (speed <= 0.0) ? (cd::Math::IsEqualToZero(delta) ? 1.0f : delta * 0.05f) : speed;
 	if constexpr (std::is_same<T, cd::Vec2f>())
 	{
-		if (ImGui::DragFloat2(labelName.c_str(), value.Begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
+		if (ImGui::DragFloat2(pName, value.Begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
 		{
 			dirty = true;
 		}
 	}
 	else if constexpr (std::is_same<T, cd::Vec3f>())
 	{
-		if (ImGui::DragFloat3(labelName.c_str(), value.Begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
+		if (ImGui::DragFloat3(pName, value.Begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
 		{
 			dirty = true;
 		}
 	}
 	else if constexpr (std::is_same<T, cd::Vec4f>())
 	{
-		if (ImGui::DragFloat4(labelName.c_str(), value.Begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
+		if (ImGui::DragFloat4(pName, value.Begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
 		{
 			dirty = true;
 		}
