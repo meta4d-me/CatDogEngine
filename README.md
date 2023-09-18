@@ -5,24 +5,34 @@
 [![win64_vs2022_clang](https://github.com/CatDogEngine/CatDogEngine/actions/workflows/win64_vs2022_clang.yml/badge.svg?branch=main)](https://github.com/CatDogEngine/CatDogEngine/actions/workflows/win64_vs2022_clang.yml)
 
 ## Snapshots
-
-![image](https://github.com/CatDogEngine/CatDogEngine/assets/75730859/4f1f0006-76e4-40cf-bd3a-ae70ecf4b6b5)
+![image](https://github.com/CatDogEngine/CatDogEngine/assets/75730859/52ffa26b-6cc7-441a-8441-513ca11b9813)
+![image](https://github.com/CatDogEngine/CatDogEngine/assets/75730859/6a383b35-a1cd-45fd-98bb-a1d14709cc3e)
+![image](https://github.com/CatDogEngine/CatDogEngine/assets/75730859/bdeb4f25-fe78-4aca-92ca-8cd39022e194)
+![image](https://github.com/CatDogEngine/CatDogEngine/assets/75730859/22da0826-baaa-47e2-b1b2-e49954345fbe)
 
 ## Features
 
 * Basic Cross Platform Editor based on ImGui
 * Basic Entity/Component Framework
 * Basic Physically Based Rendering
+* Basic PostEffects
+   * Bloom
+   * Exposure
+   * Gamma Correction
+   * Tone Mapping
 * Basic Scene Graph SDK
 * Standard Atmospheric Scattering
 
 ## Developing Features
 
+* Animation
+  * BlendShape 
+  * Skeletion
 * JobSystem
 * Modern RHI except bgfx
+* Particle System
 * Procedural Generated Terrain
 * RenderGraph
-* Skeleton Animation
 
 ## TODO List
 
@@ -32,7 +42,6 @@
 * Foliage Rendering
 * Memory Management based on multiple allocators
 * Optimized STL specific for GameEngine
-* Particle System
 * Physical Engine
 
 ## ThirdParty

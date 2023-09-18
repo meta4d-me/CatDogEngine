@@ -173,7 +173,14 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		for (int textureTypeValue = 0; textureTypeValue < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
 		{
 			auto textureType = static_cast<cd::MaterialTextureType>(textureTypeValue);
-			if (engine::MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(textureType))
+			bool allowNoTextures = textureType == cd::MaterialTextureType::BaseColor ||
+				textureType == cd::MaterialTextureType::Emissive ||
+				textureType == cd::MaterialTextureType::Metallic ||
+				textureType == cd::MaterialTextureType::Roughness;
+
+			engine::MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(textureType);
+			bool canCreateTextureParameters = pTextureInfo || allowNoTextures;
+			if (canCreateTextureParameters)
 			{
 				const char* pTextureType = nameof::nameof_enum(static_cast<cd::MaterialTextureType>(textureTypeValue)).data();
 				bool isOpen = ImGui::CollapsingHeader(pTextureType, ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
@@ -205,13 +212,16 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 						}
 					}
 
-					if (pTextureInfo->textureHandle != bgfx::kInvalidHandle)
+					if (pTextureInfo)
 					{
-						ImGui::Image(reinterpret_cast<ImTextureID>(pTextureInfo->textureHandle), ImVec2(64, 64));
+						if (pTextureInfo->textureHandle != bgfx::kInvalidHandle)
+						{
+							ImGui::Image(reinterpret_cast<ImTextureID>(pTextureInfo->textureHandle), ImVec2(64, 64));
+						}
+
+						ImGuiUtils::ImGuiVectorProperty("UV Offset", pTextureInfo->GetUVOffset(), cd::Unit::None, cd::Vec2f(0.0f), cd::Vec2f(1.0f), false, 0.01f);
+						ImGuiUtils::ImGuiVectorProperty("UV Scale", pTextureInfo->GetUVScale());
 					}
-					
-					ImGuiUtils::ImGuiVectorProperty("UV Offset", pTextureInfo->GetUVOffset(), cd::Unit::None, cd::Vec2f(0.0f), cd::Vec2f(1.0f), false, 0.01f);
-					ImGuiUtils::ImGuiVectorProperty("UV Scale", pTextureInfo->GetUVScale());
 
 					ImGui::PopID();
 				}
@@ -624,13 +634,15 @@ void Inspector::Update()
 		m_lastSelectedEntity = selectedEntity;
 	}
 
+	constexpr auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+	ImGui::Begin(GetName(), &m_isEnable, flags);
 	if (m_lastSelectedEntity == engine::INVALID_ENTITY)
 	{
+		// Call ImGui::Begin to show the panel though we will do nothing.
+		ImGui::End();
 		return;
 	}
 
-	constexpr auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
-	ImGui::Begin(GetName(), &m_isEnable, flags);
 	ImGui::BeginChild("Inspector");
 
 	details::UpdateComponentWidget<engine::NameComponent>(pSceneWorld, m_lastSelectedEntity);
@@ -650,6 +662,7 @@ void Inspector::Update()
 #endif
 
 	ImGui::EndChild();
+
 	ImGui::End();
 }
 
