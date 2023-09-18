@@ -182,24 +182,26 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 
 				if (isOpen)
 				{
+					ImGui::PushID(textureTypeValue);
+
 					if (cd::MaterialTextureType::BaseColor == textureType)
 					{
 						ImGuiUtils::ColorPickerProperty("AlbedoColor", pMaterialComponent->GetAlbedoColor());
 					}
 					else if (cd::MaterialTextureType::Metallic == textureType)
 					{
-						ImGuiUtils::ImGuiFloatProperty("MetallicFactor", pMaterialComponent->GetMetallicFactor(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+						ImGuiUtils::ImGuiFloatProperty("Metalness", pMaterialComponent->GetMetallicFactor(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
 					}
 					else if (cd::MaterialTextureType::Roughness == textureType)
 					{
-						ImGuiUtils::ImGuiFloatProperty("RoughnessFactor", pMaterialComponent->GetRoughnessFactor(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+						ImGuiUtils::ImGuiFloatProperty("Roughness", pMaterialComponent->GetRoughnessFactor(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
 					}
 					else if (cd::MaterialTextureType::Emissive == textureType)
 					{
-						float emissiveLength = pMaterialComponent->GetEmissiveColor().x();
-						if (ImGuiUtils::ImGuiFloatProperty("EmissiveLength", emissiveLength, cd::Unit::None, 0.0f, 1.0f, false, 0.01f))
+						float emissiveStrength = pMaterialComponent->GetEmissiveColor().x();
+						if (ImGuiUtils::ImGuiFloatProperty("Emissive Strength", emissiveStrength, cd::Unit::None, 0.0f, 1000.0f, false, 0.1f))
 						{
-							pMaterialComponent->SetEmissiveColor(cd::Vec3f(emissiveLength));
+							pMaterialComponent->SetEmissiveColor(cd::Vec3f(emissiveStrength));
 						}
 					}
 
@@ -208,9 +210,9 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 						ImGui::Image(reinterpret_cast<ImTextureID>(pTextureInfo->textureHandle), ImVec2(64, 64));
 					}
 					
-					ImGui::PushID(textureTypeValue);
 					ImGuiUtils::ImGuiVectorProperty("UV Offset", pTextureInfo->GetUVOffset(), cd::Unit::None, cd::Vec2f(0.0f), cd::Vec2f(1.0f), false, 0.01f);
 					ImGuiUtils::ImGuiVectorProperty("UV Scale", pTextureInfo->GetUVScale());
+
 					ImGui::PopID();
 				}
 
@@ -297,23 +299,23 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 				ImGuiUtils::ImGuiBoolProperty("Open Bloom", pCameraComponent->GetIsBloomEnable());
 				if (pCameraComponent->GetIsBloomEnable())
 				{
-					ImGuiUtils::ImGuiIntProperty("DownSampleTimes", pCameraComponent->GetBloomDownSampleTimes(), cd::Unit::None, 4, 8, false, 1.0f);
+					ImGuiUtils::ImGuiIntProperty("DownSample Times", pCameraComponent->GetBloomDownSampleTimes(), cd::Unit::None, 4, 8, false, 1.0f);
 					ImGuiUtils::ImGuiFloatProperty("Bloom Intensity", pCameraComponent->GetBloomIntensity(), cd::Unit::None, 0.0f, 3.0f, false, 0.01f);
 					ImGuiUtils::ImGuiFloatProperty("Luminance Threshold", pCameraComponent->GetLuminanceThreshold(), cd::Unit::None, 0.0f, 3.0f, false, 0.01f);
+
+					if (ImGui::TreeNode("Gaussian Blur"))
+					{
+						ImGuiUtils::ImGuiBoolProperty("Open Blur", pCameraComponent->GetIsBlurEnable());
+						if (pCameraComponent->GetIsBlurEnable())
+						{
+							ImGuiUtils::ImGuiIntProperty("Blur Iteration", pCameraComponent->GetBlurTimes(), cd::Unit::None, 0, 20, false, 1.0f);
+							ImGuiUtils::ImGuiFloatProperty("Blur Size", pCameraComponent->GetBlurSize(), cd::Unit::None, 0.0f, 3.0f);
+							ImGuiUtils::ImGuiIntProperty("Blur Scaling", pCameraComponent->GetBlurScaling(), cd::Unit::None, 1, 4, false, 1.0f);
+						}
+						ImGui::TreePop();
+					}
 				}
 
-				ImGui::TreePop();
-			}
-
-			if (ImGui::TreeNode("Gaussian Blur"))
-			{
-				ImGuiUtils::ImGuiBoolProperty("Open Blur", pCameraComponent->GetIsBlurEnable());
-				if (pCameraComponent->GetIsBlurEnable())
-				{
-					ImGuiUtils::ImGuiIntProperty("Blur Iteration", pCameraComponent->GetBlurTimes(), cd::Unit::None, 0, 20, false, 1.0f);
-					ImGuiUtils::ImGuiFloatProperty("Blur Size", pCameraComponent->GetBlurSize(), cd::Unit::None, 0.0f, 3.0f);
-					ImGuiUtils::ImGuiIntProperty("Blur Scaling", pCameraComponent->GetBlurScaling(), cd::Unit::None, 1, 4, false, 1.0f);
-				}
 				ImGui::TreePop();
 			}
 
