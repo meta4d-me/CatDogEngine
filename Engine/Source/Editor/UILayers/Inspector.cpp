@@ -576,6 +576,10 @@ void Inspector::Update()
 	engine::SceneWorld* pSceneWorld = GetSceneWorld();
 	if (engine::Entity selectedEntity = pSceneWorld->GetSelectedEntity(); selectedEntity != engine::INVALID_ENTITY)
 	{
+		// Entity will be invalid in two cases : 1.Select nothing 2.The selected entity has been deleted
+		// Here we only want to capture the case 1 not to clear Inspector properties.
+		// For case 2, it still uses a valid entity to update but nothing updated.
+		// It is OK if we don't reuse the entity id intermediately.
 		m_lastSelectedEntity = selectedEntity;
 	}
 
@@ -595,9 +599,9 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::StaticMeshComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::ParticleComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::CollisionMeshComponent>(pSceneWorld, m_lastSelectedEntity);
-	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::ShaderVariantCollectionsComponent>(pSceneWorld, m_lastSelectedEntity);
 
 #ifdef ENABLE_DDGI
