@@ -163,15 +163,18 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		{
 			if (engine::MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)))
 			{
-				const char* title = nameof::nameof_enum(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)).data();
-				bool isOpen = ImGui::CollapsingHeader(title, ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+				const char* pTextureType = nameof::nameof_enum(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)).data();
+				bool isOpen = ImGui::CollapsingHeader(pTextureType, ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 				ImGui::Separator();
 
 				if (isOpen)
 				{
-					ImGuiUtils::ImGuiVectorProperty("UVOffset", pTextureInfo->GetUVOffset());
-					ImGuiUtils::ImGuiVectorProperty("UVScale", pTextureInfo->GetUVScale());
+					ImGui::Image(reinterpret_cast<ImTextureID>(pTextureInfo->textureHandle), ImVec2(64, 64));
+					ImGui::PushID(textureTypeValue);
+					ImGuiUtils::ImGuiVectorProperty("UV Offset", pTextureInfo->GetUVOffset());
+					ImGuiUtils::ImGuiVectorProperty("UV Scale", pTextureInfo->GetUVScale());
+					ImGui::PopID();
 				}
 
 				ImGui::Separator();
@@ -180,8 +183,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		}
 
 		// Shaders
-		const char* title = "Shader";
-		bool isOpen = ImGui::CollapsingHeader(title, ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+		bool isOpen = ImGui::CollapsingHeader("Shader", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 		ImGui::Separator();
 
@@ -269,7 +271,7 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 				ImGuiUtils::ImGuiBoolProperty("Open Blur", pCameraComponent->GetIsBlurEnable());
 				if (pCameraComponent->GetIsBlurEnable())
 				{
-					ImGuiUtils::ImGuiIntProperty("BlurIteration", pCameraComponent->GetBlurTimes(), cd::Unit::None, 0, 20, false, 1.0f);
+					ImGuiUtils::ImGuiIntProperty("Blur Iteration", pCameraComponent->GetBlurTimes(), cd::Unit::None, 0, 20, false, 1.0f);
 					ImGuiUtils::ImGuiFloatProperty("Blur Size", pCameraComponent->GetBlurSize(), cd::Unit::None, 0.0f, 3.0f);
 					ImGuiUtils::ImGuiIntProperty("Blur Scaling", pCameraComponent->GetBlurScaling(), cd::Unit::None, 1, 4, false, 1.0f);
 				}
@@ -571,37 +573,38 @@ void Inspector::Init()
 
 void Inspector::Update()
 {
-	auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
-	ImGui::Begin(GetName(), &m_isEnable, flags);
-
 	engine::SceneWorld* pSceneWorld = GetSceneWorld();
-	engine::Entity selectedEntity = pSceneWorld->GetSelectedEntity();
-	if (engine::INVALID_ENTITY == selectedEntity)
+	if (engine::Entity selectedEntity = pSceneWorld->GetSelectedEntity(); selectedEntity != engine::INVALID_ENTITY)
 	{
-		ImGui::End();
+		m_lastSelectedEntity = selectedEntity;
+	}
+
+	if (m_lastSelectedEntity == engine::INVALID_ENTITY)
+	{
 		return;
 	}
 
+	constexpr auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+	ImGui::Begin(GetName(), &m_isEnable, flags);
 	ImGui::BeginChild("Inspector");
 
-	details::UpdateComponentWidget<engine::NameComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::TransformComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::CameraComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::StaticMeshComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::ParticleComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::CollisionMeshComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::ShaderVariantCollectionsComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::NameComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::TransformComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::CameraComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::StaticMeshComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::ParticleComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::CollisionMeshComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::ShaderVariantCollectionsComponent>(pSceneWorld, m_lastSelectedEntity);
 
 #ifdef ENABLE_DDGI
-	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, m_lastSelectedEntity);
 #endif
 
 	ImGui::EndChild();
-
 	ImGui::End();
 }
 
