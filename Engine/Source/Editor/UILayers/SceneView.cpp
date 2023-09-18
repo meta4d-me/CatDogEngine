@@ -244,8 +244,8 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 		return;
 	}
 
-	float screenX = static_cast<float>(m_mouseFixedPositionX - GetWindowPosX());
-	float screenY = static_cast<float>(m_mouseFixedPositionY - GetWindowPosY());
+	float screenX = static_cast<float>(engine::Input::Get().GetMousePositionX() - GetWindowPosX());
+	float screenY = static_cast<float>(engine::Input::Get().GetMousePositionY() - GetWindowPosY());
 	float screenWidth = static_cast<float>(regionWidth);
 	float screenHeight = static_cast<float>(regionHeight);
 	if (screenX < 0.0f || screenX > screenWidth ||
@@ -290,7 +290,6 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 	}
 
 	pSceneWorld->SetSelectedEntity(nearestEntity);
-	
 }
 
 void SceneView::Update()
@@ -308,6 +307,21 @@ void SceneView::Update()
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 	auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 	ImGui::Begin(GetName(), &m_isEnable, flags);
+	if (engine::Input::Get().IsMouseLBPressed())
+	{
+		ImVec2 windowSize = ImGui::GetWindowSize();
+		ImVec2 windowPos = ImGui::GetWindowPos();
+		ImVec2 mousePos = ImGui::GetMousePos();
+		cd::Vec2f rightDown(windowPos.x + windowSize.x, windowPos.y + windowSize.y);
+		if (mousePos.x > windowPos.x && mousePos.x < rightDown.x() && mousePos.y > windowPos.y && mousePos.y < rightDown.y() && !m_isTerrainEditMode)
+		{
+			m_pCameraController->SetIsInViewScene(true);
+		}
+		else
+		{
+			m_pCameraController->SetIsInViewScene(false);
+		}
+	}
 	// Draw top menu buttons which include ImGuizmo operation modes, ViewCamera settings.
 	UpdateToolMenuButtons();
 
@@ -327,9 +341,6 @@ void SceneView::Update()
 			pCameraComponent->SetAspect(static_cast<float>(regionWidth) / static_cast<float>(regionHeight));
 		}
 	}
-	ImVec2 windowPos = ImGui::GetWindowPos();
-	ImVec2 mousePos = ImGui::GetMousePos();
-	cd::Vec2f rightDown(windowPos.x + regionSize.x, windowPos.y + regionSize.y);
 
 	// Check if mouse hover on the area of SceneView so it can control.
 	ImVec2 cursorPosition = ImGui::GetCursorPos();
@@ -354,44 +365,19 @@ void SceneView::Update()
 
 	ImGui::End();
 
-	if (engine::Input::Get().IsMouseLBPressed() || engine::Input::Get().IsMouseMBPressed() || engine::Input::Get().IsMouseRBPressed())
+	if (engine::Input::Get().IsMouseLBPressed())
 	{
 		if (!m_isMouseDownFirstTime)
 		{
-			if (0 != engine::Input::Get().GetMousePositionOffsetX() || 0 != engine::Input::Get().GetMousePositionOffsetY())
-			{
-				m_isUsingCamera = true;
-			}
-			if (engine::Input::Get().IsMouseLBPressed())
-			{
-				m_isLeftClick = true;
-			}
 			return;
 		}
 
 		m_isMouseDownFirstTime = false;
-		if (mousePos.x > windowPos.x && mousePos.x < rightDown.x() && mousePos.y > windowPos.y && mousePos.y < rightDown.y() && !m_isTerrainEditMode)
-		{
-			m_pCameraController->SetIsInViewScene(true);
-			m_isMouseShow = false;
-		}
-		else
-		{
-			m_pCameraController->SetIsInViewScene(false);
-		}
+		PickSceneMesh(regionWidth, regionHeight);
 	}
 	else
 	{
-		m_mouseFixedPositionX = engine::Input::Get().GetMousePositionX();
-		m_mouseFixedPositionY = engine::Input::Get().GetMousePositionY();
-		if (!m_isMouseShow && !m_isUsingCamera)
-		{
-			PickSceneMesh(regionWidth, regionHeight);
-		}
 		m_isMouseDownFirstTime = true;
-		m_isMouseShow = true;
-		m_isUsingCamera = false;
-		m_isLeftClick = false;
 	}
 }
 

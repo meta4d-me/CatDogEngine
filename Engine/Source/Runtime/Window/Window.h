@@ -28,7 +28,7 @@ public:
     
 	uint16_t GetWidth() const { return m_width; }
 	uint16_t GetHeight() const { return m_height; }
-
+    
     const bool GetInputFocus() const;
     const bool GetMouseFocus() const;
 
@@ -43,9 +43,7 @@ public:
 
     bool ShouldClose() const { return m_isClosed; }
     void Close(bool bPushSdlEvent = true);
-
-    void SetMouseVisible(bool isVisible, uint32_t x, uint32_t y);
- 
+     
 public:
     // Window
     Delegate<void(const char*)> OnDropFile;
