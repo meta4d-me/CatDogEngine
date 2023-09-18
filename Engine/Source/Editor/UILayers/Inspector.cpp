@@ -170,9 +170,13 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 
 				if (isOpen)
 				{
-					ImGui::Image(reinterpret_cast<ImTextureID>(pTextureInfo->textureHandle), ImVec2(64, 64));
+					if (pTextureInfo->textureHandle != bgfx::kInvalidHandle)
+					{
+						ImGui::Image(reinterpret_cast<ImTextureID>(pTextureInfo->textureHandle), ImVec2(64, 64));
+					}
+					
 					ImGui::PushID(textureTypeValue);
-					ImGuiUtils::ImGuiVectorProperty("UV Offset", pTextureInfo->GetUVOffset());
+					ImGuiUtils::ImGuiVectorProperty("UV Offset", pTextureInfo->GetUVOffset(), cd::Unit::None, cd::Vec2f(0.0f), cd::Vec2f(1.0f), false, 0.01f);
 					ImGuiUtils::ImGuiVectorProperty("UV Scale", pTextureInfo->GetUVScale());
 					ImGui::PopID();
 				}
