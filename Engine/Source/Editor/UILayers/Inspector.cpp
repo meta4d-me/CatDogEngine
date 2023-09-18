@@ -147,12 +147,23 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 
 		// Parameters
 		ImGui::Separator();
-		ImGuiUtils::ColorPickerProperty("AlbedoColor", pMaterialComponent->GetAlbedoColor());
-		ImGuiUtils::ImGuiFloatProperty("MetallicFactor", pMaterialComponent->GetMetallicFactor(), cd::Unit::None, 0.0f, 1.0f);
-		ImGuiUtils::ImGuiFloatProperty("RoughnessFactor", pMaterialComponent->GetRoughnessFactor(), cd::Unit::None, 0.0f, 1.0f);
-		ImGuiUtils::ColorPickerProperty("EmissiveColor", pMaterialComponent->GetEmissiveColor());
-		ImGuiUtils::ImGuiBoolProperty("TwoSided", pMaterialComponent->GetTwoSided());
-		ImGuiUtils::ImGuiStringProperty("BlendMode", nameof::nameof_enum(pMaterialComponent->GetBlendMode()).data());
+		
+		{
+			bool isOpen = ImGui::CollapsingHeader("Render States", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Separator();
+
+			if (isOpen)
+			{
+				// TODO : generic cull mode.
+				ImGuiUtils::ImGuiBoolProperty("TwoSided", pMaterialComponent->GetTwoSided());
+				ImGuiUtils::ImGuiStringProperty("BlendMode", nameof::nameof_enum(pMaterialComponent->GetBlendMode()).data());
+			}
+
+			ImGui::Separator();
+			ImGui::PopStyleVar();
+		}
+
 		if (cd::BlendMode::Mask == pMaterialComponent->GetBlendMode())
 		{
 			ImGuiUtils::ImGuiFloatProperty("AlphaCutOff", pMaterialComponent->GetAlphaCutOff(), cd::Unit::None, 0.0f, 1.0f);
@@ -161,15 +172,37 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		// Textures
 		for (int textureTypeValue = 0; textureTypeValue < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
 		{
-			if (engine::MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)))
+			auto textureType = static_cast<cd::MaterialTextureType>(textureTypeValue);
+			if (engine::MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(textureType))
 			{
-				const char* pTextureType = nameof::nameof_enum(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)).data();
+				const char* pTextureType = nameof::nameof_enum(static_cast<cd::MaterialTextureType>(textureTypeValue)).data();
 				bool isOpen = ImGui::CollapsingHeader(pTextureType, ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 				ImGui::Separator();
 
 				if (isOpen)
 				{
+					if (cd::MaterialTextureType::BaseColor == textureType)
+					{
+						ImGuiUtils::ColorPickerProperty("AlbedoColor", pMaterialComponent->GetAlbedoColor());
+					}
+					else if (cd::MaterialTextureType::Metallic == textureType)
+					{
+						ImGuiUtils::ImGuiFloatProperty("MetallicFactor", pMaterialComponent->GetMetallicFactor(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+					}
+					else if (cd::MaterialTextureType::Roughness == textureType)
+					{
+						ImGuiUtils::ImGuiFloatProperty("RoughnessFactor", pMaterialComponent->GetRoughnessFactor(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+					}
+					else if (cd::MaterialTextureType::Emissive == textureType)
+					{
+						float emissiveLength = pMaterialComponent->GetEmissiveColor().x();
+						if (ImGuiUtils::ImGuiFloatProperty("EmissiveLength", emissiveLength, cd::Unit::None, 0.0f, 1.0f, false, 0.01f))
+						{
+							pMaterialComponent->SetEmissiveColor(cd::Vec3f(emissiveLength));
+						}
+					}
+
 					if (pTextureInfo->textureHandle != bgfx::kInvalidHandle)
 					{
 						ImGui::Image(reinterpret_cast<ImTextureID>(pTextureInfo->textureHandle), ImVec2(64, 64));
@@ -187,37 +220,39 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		}
 
 		// Shaders
-		bool isOpen = ImGui::CollapsingHeader("Shader", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-		ImGui::Separator();
-
-		if (isOpen)
 		{
-			ImGuiUtils::ImGuiStringProperty("Vertex Shader", pMaterialComponent->GetVertexShaderName());
-			ImGuiUtils::ImGuiStringProperty("Fragment Shader", pMaterialComponent->GetFragmentShaderName());
+			bool isOpen = ImGui::CollapsingHeader("Shader", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 			ImGui::Separator();
 
-			std::vector<const char*> activeShaderFeatures;
-			for (const auto& feature : pMaterialComponent->GetShaderFeatures())
+			if (isOpen)
 			{
-				activeShaderFeatures.emplace_back(nameof::nameof_enum(feature).data());
-			}
+				ImGuiUtils::ImGuiStringProperty("Vertex Shader", pMaterialComponent->GetVertexShaderName());
+				ImGuiUtils::ImGuiStringProperty("Fragment Shader", pMaterialComponent->GetFragmentShaderName());
+				ImGui::Separator();
 
-			if (!activeShaderFeatures.empty())
-			{
-				if (ImGui::BeginCombo("##combo", "Active shader features"))
+				std::vector<const char*> activeShaderFeatures;
+				for (const auto& feature : pMaterialComponent->GetShaderFeatures())
 				{
-					for (size_t index = 0; index < activeShaderFeatures.size(); ++index)
+					activeShaderFeatures.emplace_back(nameof::nameof_enum(feature).data());
+				}
+
+				if (!activeShaderFeatures.empty())
+				{
+					if (ImGui::BeginCombo("##combo", "Active shader features"))
 					{
-						ImGui::Selectable(activeShaderFeatures[index], false);
+						for (size_t index = 0; index < activeShaderFeatures.size(); ++index)
+						{
+							ImGui::Selectable(activeShaderFeatures[index], false);
+						}
+						ImGui::EndCombo();
 					}
-					ImGui::EndCombo();
 				}
 			}
-		}
 
-		ImGui::Separator();
-		ImGui::PopStyleVar();
+			ImGui::Separator();
+			ImGui::PopStyleVar();
+		}
 	}
 
 	ImGui::Separator();
