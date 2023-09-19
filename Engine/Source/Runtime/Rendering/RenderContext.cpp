@@ -704,8 +704,8 @@ void RenderContext::DestoryShader(StringCrc resourceCrc)
 	auto it = m_shaderHandles.find(resourceCrc.Value());
 	if (it != m_shaderHandles.end())
 	{
-		assert(bgfx::isValid(static_cast<bgfx::ShaderHandle>(it->second)));
-		bgfx::destroy(static_cast<bgfx::ShaderHandle>(it->second));
+		assert(bgfx::isValid(bgfx::ShaderHandle{ it->second }));
+		bgfx::destroy(bgfx::ShaderHandle{ it->second });
 		m_shaderHandles.erase(it);
 	}
 }
@@ -715,8 +715,8 @@ void RenderContext::DestoryProgram(StringCrc resourceCrc)
 	auto itNonuber = m_nonUberShaderProgramHandles.find(resourceCrc.Value());
 	if (itNonuber != m_nonUberShaderProgramHandles.end())
 	{
-		assert(bgfx::isValid(static_cast<bgfx::ProgramHandle>(itNonuber->second)));
-		bgfx::destroy(static_cast<bgfx::ProgramHandle>(itNonuber->second));
+		assert(bgfx::isValid(bgfx::ProgramHandle{ itNonuber->second }));
+		bgfx::destroy(bgfx::ProgramHandle{ itNonuber->second });
 		m_nonUberShaderProgramHandles.erase(itNonuber);
 	}
 
@@ -725,8 +725,8 @@ void RenderContext::DestoryProgram(StringCrc resourceCrc)
 	{
 		for (const auto& variant : itUber->second)
 		{
-			assert(bgfx::isValid(static_cast<bgfx::ProgramHandle>(variant.second)));
-			bgfx::destroy(static_cast<bgfx::ProgramHandle>(variant.second));
+			assert(bgfx::isValid(bgfx::ProgramHandle{ variant.second }));
+			bgfx::destroy(bgfx::ProgramHandle{ variant.second });
 		}
 		m_uberShaderProgramHandles.erase(itUber);
 	}
