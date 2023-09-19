@@ -66,6 +66,7 @@ void ShaderBuilder::BuildNonUberShaders(engine::ShaderVariantCollections* pColle
 			engine::ShaderType shaderType = engine::GetShaderType(shader);
 			if (engine::ShaderType::None == shaderType)
 			{
+				CD_WARN("Known shader type of {0} in ShaderBuilder!", shader);
 				continue;
 			}
 

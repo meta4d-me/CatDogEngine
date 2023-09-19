@@ -15,7 +15,7 @@ enum class ShaderType
 	Fragment
 };
 
-CD_FORCEINLINE const ShaderType GetShaderType(const std::string& fileName)
+CD_FORCEINLINE static const ShaderType GetShaderType(const std::string& fileName)
 {
 	if (fileName._Starts_with("vs_") || fileName._Starts_with("VS_"))
 	{

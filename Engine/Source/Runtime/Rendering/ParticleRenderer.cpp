@@ -10,8 +10,6 @@ namespace engine {
 
 void ParticleRenderer::Init()
 {
-	// GetShaderVariantCollections()->RegisterPragram();
-
 	bgfx::setViewName(GetViewID(), "ParticleRenderer");
 }
 

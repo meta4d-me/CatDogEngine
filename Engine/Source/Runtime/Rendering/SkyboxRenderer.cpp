@@ -13,7 +13,7 @@ namespace
 {
 
 constexpr const char* skyboxSampler = "s_texSkybox";
-constexpr const char* skyboxShader = "skyboxShader";
+constexpr const char* skyboxProgram = "skyboxProgram";
 
 constexpr uint16_t sampleFalg = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 constexpr uint64_t renderState = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LEQUAL;
@@ -22,7 +22,7 @@ constexpr uint64_t renderState = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | B
 
 void SkyboxRenderer::Init()
 {
-	GetShaderVariantCollections()->RegisterNonUberShader("SkyboxRenderer", {"vs_skybox", "fs_skybox"});
+	GetRenderContext()->RegisterNonUberShader(skyboxProgram, {"vs_skybox", "fs_skybox"});
 
 	bgfx::setViewName(GetViewID(), "SkyboxRenderer");
 }
@@ -34,7 +34,7 @@ void SkyboxRenderer::Submit()
 	GetRenderContext()->CreateUniform(skyboxSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), sampleFalg);
 
-	GetRenderContext()->CreateProgram(skyboxShader, "vs_skybox.bin", "fs_skybox.bin");
+	GetRenderContext()->UploadShaders(skyboxProgram);
 }
 
 void SkyboxRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -80,14 +80,14 @@ void SkyboxRenderer::Render(float deltaTime)
 	GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), sampleFalg);
 
 	constexpr StringCrc samplerCrc(skyboxSampler);
-	constexpr StringCrc programCrc(skyboxShader);
 
 	bgfx::setTexture(0,
 		GetRenderContext()->GetUniform(samplerCrc),
 		GetRenderContext()->GetTexture(StringCrc(pSkyComponent->GetRadianceTexturePath())));
 
 	bgfx::setState(renderState);
-	bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(programCrc));
+
+	GetRenderContext()->Submit(GetViewID(), skyboxProgram);
 }
 
 bool SkyboxRenderer::IsEnable() const

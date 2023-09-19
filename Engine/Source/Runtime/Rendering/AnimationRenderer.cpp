@@ -136,7 +136,7 @@ void CalculateBoneTransform(std::vector<cd::Matrix4x4>& boneMatrices, const cd::
 
 void AnimationRenderer::Init()
 {
-	GetShaderVariantCollections()->RegisterNonUberShader("AnimationProgram", { "vs_animation", "fs_animation" });
+	GetRenderContext()->RegisterNonUberShader("AnimationProgram", { "vs_animation", "fs_animation" });
 
 	bgfx::setViewName(GetViewID(), "AnimationRenderer");
 }
@@ -147,7 +147,7 @@ void AnimationRenderer::Submit()
 	m_pRenderContext->CreateUniform("u_debugBoneIndex", bgfx::UniformType::Vec4, 1);
 	m_pRenderContext->CreateProgram("AnimationProgram", "vs_visualize_bone_weight.bin", "fs_visualize_bone_weight.bin");
 #else
-	GetRenderContext()->CreateProgram("AnimationProgram", "vs_animation.bin", "fs_animation.bin");
+	GetRenderContext()->UploadShaders("AnimationProgram");
 #endif
 }
 
@@ -217,8 +217,7 @@ void AnimationRenderer::Render(float deltaTime)
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);
 
-		constexpr StringCrc animationProgram("AnimationProgram");
-		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(animationProgram));
+		GetRenderContext()->Submit(GetViewID(), "AnimationProgram");
 	}
 }
 

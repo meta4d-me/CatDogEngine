@@ -7,13 +7,13 @@ namespace engine
 {
 	void BloomRenderer::Init()
 	{
-		GetShaderVariantCollections()->RegisterNonUberShader("CapTureBrightnessProgram", { "vs_fullscreen", "fs_captureBrightness" });
-		GetShaderVariantCollections()->RegisterNonUberShader("DownSampleProgram", { "vs_fullscreen", "fs_dowmsample" });
-		GetShaderVariantCollections()->RegisterNonUberShader("BlurVerticalProgram", { "vs_fullscreen", "fs_blurvertical" });
-		GetShaderVariantCollections()->RegisterNonUberShader("BlurHorizontalProgram", { "vs_fullscreen", "fs_blurhorizontal" });
-		GetShaderVariantCollections()->RegisterNonUberShader("UpSampleProgram", { "vs_fullscreen", "fs_upsample" });
-		GetShaderVariantCollections()->RegisterNonUberShader("KawaseBlurProgram", { "vs_fullscreen", "fs_kawaseblur" });
-		GetShaderVariantCollections()->RegisterNonUberShader("CombineProgram", { "vs_fullscreen", "fs_bloom" });
+		GetRenderContext()->RegisterNonUberShader("CapTureBrightnessProgram", { "vs_fullscreen", "fs_captureBrightness" });
+		GetRenderContext()->RegisterNonUberShader("DownSampleProgram", { "vs_fullscreen", "fs_dowmsample" });
+		GetRenderContext()->RegisterNonUberShader("BlurVerticalProgram", { "vs_fullscreen", "fs_blurvertical" });
+		GetRenderContext()->RegisterNonUberShader("BlurHorizontalProgram", { "vs_fullscreen", "fs_blurhorizontal" });
+		GetRenderContext()->RegisterNonUberShader("UpSampleProgram", { "vs_fullscreen", "fs_upsample" });
+		GetRenderContext()->RegisterNonUberShader("KawaseBlurProgram", { "vs_fullscreen", "fs_kawaseblur" });
+		GetRenderContext()->RegisterNonUberShader("CombineProgram", { "vs_fullscreen", "fs_bloom" });
 	
 		bgfx::setViewName(GetViewID(), "BloomRenderer");
 	}
@@ -55,13 +55,13 @@ namespace engine
 		GetRenderContext()->CreateUniform("u_bloomIntensity", bgfx::UniformType::Vec4);
 		GetRenderContext()->CreateUniform("u_luminanceThreshold", bgfx::UniformType::Vec4);
 
-		GetRenderContext()->CreateProgram("CapTureBrightnessProgram", "vs_fullscreen.bin", "fs_captureBrightness.bin");
-		GetRenderContext()->CreateProgram("DownSampleProgram", "vs_fullscreen.bin", "fs_dowmsample.bin");
-		GetRenderContext()->CreateProgram("BlurVerticalProgram", "vs_fullscreen.bin", "fs_blurvertical.bin");
-		GetRenderContext()->CreateProgram("BlurHorizontalProgram", "vs_fullscreen.bin", "fs_blurhorizontal.bin");
-		GetRenderContext()->CreateProgram("UpSampleProgram", "vs_fullscreen.bin", "fs_upsample.bin");
-		GetRenderContext()->CreateProgram("KawaseBlurProgram", "vs_fullscreen.bin", "fs_kawaseblur.bin");
-		GetRenderContext()->CreateProgram("CombineProgram", "vs_fullscreen.bin", "fs_bloom.bin");
+		GetRenderContext()->UploadShaders("CapTureBrightnessProgram");
+		GetRenderContext()->UploadShaders("DownSampleProgram");
+		GetRenderContext()->UploadShaders("BlurVerticalProgram");
+		GetRenderContext()->UploadShaders("BlurHorizontalProgram");
+		GetRenderContext()->UploadShaders("UpSampleProgram");
+		GetRenderContext()->UploadShaders("KawaseBlurProgram");
+		GetRenderContext()->UploadShaders("CombineProgram");
 	}
 
 	BloomRenderer::~BloomRenderer()
@@ -93,7 +93,6 @@ namespace engine
 		}
 		else
 		{
-			assert(GetRenderContext());
 			tempW = GetRenderContext()->GetBackBufferWidth();
 			tempH = GetRenderContext()->GetBackBufferHeight();
 		}
@@ -163,8 +162,7 @@ namespace engine
 		bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 		Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
-		constexpr StringCrc CaptureBrightnessprogramName("CapTureBrightnessProgram");
-		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(CaptureBrightnessprogramName));
+		GetRenderContext()->Submit(GetViewID(), "CapTureBrightnessProgram");
 
 		// downsample
 		int sampleTimes = int(pCameraComponent->GetBloomDownSampleTimes());
@@ -198,8 +196,7 @@ namespace engine
 			bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 			Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
-			constexpr StringCrc DownSampleprogramName("DownSampleProgram");
-			bgfx::submit(m_startDowmSamplePassID + i, GetRenderContext()->GetProgram(DownSampleprogramName));
+			GetRenderContext()->Submit(m_startDowmSamplePassID + i, "DownSampleProgram");
 		}
 
 		if (pCameraComponent->GetIsBlurEnable() && pCameraComponent->GetBlurTimes() != 0)
@@ -246,8 +243,7 @@ namespace engine
 			bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_BLEND_ADD);
 			Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
-			constexpr StringCrc UpSampleprogramName("UpSampleProgram");
-			bgfx::submit(m_startUpSamplePassID + i, GetRenderContext()->GetProgram(UpSampleprogramName));
+			GetRenderContext()->Submit(m_startUpSamplePassID + i, "UpSampleProgram");
 		}
 
 		// combine 
@@ -264,8 +260,7 @@ namespace engine
 		bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 		Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
-		constexpr StringCrc CombineprogramName("CombineProgram");
-		bgfx::submit(m_CombinePassID, GetRenderContext()->GetProgram(CombineprogramName));
+		GetRenderContext()->Submit(m_CombinePassID, "CombineProgram");
 
 		bgfx::blit(m_blitColorPassID, screenTextureHandle, 0, 0, bgfx::getTexture(m_combineFB));
 	}
@@ -282,8 +277,8 @@ namespace engine
 			m_blurChainFB[ii] = bgfx::createFrameBuffer(width, height, bgfx::TextureFormat::RGBA32F, tsFlags);
 		}
 
-		uint16_t vertical = m_startVerticalBlurPassID;
-		uint16_t horizontal = m_startHorizontalBlurPassID;
+		uint16_t verticalViewID = m_startVerticalBlurPassID;
+		uint16_t horizontalViewID = m_startHorizontalBlurPassID;
 		for (int i = 0; i < iteration; i++)
 		{
 			float pixelSize[4] =
@@ -294,9 +289,9 @@ namespace engine
 				1.0f,
 			};
 
-			bgfx::setViewFrameBuffer(vertical, m_blurChainFB[0]);
-			bgfx::setViewRect(vertical, 0, 0, width, height);
-			bgfx::setViewTransform(vertical, nullptr, ortho.Begin());
+			bgfx::setViewFrameBuffer(verticalViewID, m_blurChainFB[0]);
+			bgfx::setViewRect(verticalViewID, 0, 0, width, height);
+			bgfx::setViewTransform(verticalViewID, nullptr, ortho.Begin());
 
 			constexpr StringCrc textureSizeUniformName("u_textureSize");
 			bgfx::setUniform(GetRenderContext()->GetUniform(textureSizeUniformName), pixelSize);
@@ -307,15 +302,15 @@ namespace engine
 			bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 			Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
-			constexpr StringCrc kawaseBlurprogramName("KawaseBlurProgram");
-			bgfx::submit(vertical, GetRenderContext()->GetProgram(kawaseBlurprogramName));
+			GetRenderContext()->Submit(verticalViewID, "KawaseBlurProgram");
+
 			//constexpr StringCrc BlurHorizontalprogramName("BlurVerticalProgram"); // use Gaussian Blur
 			//bgfx::submit(horizontal, GetRenderContext()->GetProgram(BlurHorizontalprogramName));
 
 			// vertical
-			bgfx::setViewFrameBuffer(horizontal, m_blurChainFB[1]);
-			bgfx::setViewRect(horizontal, 0, 0, width, height);
-			bgfx::setViewTransform(horizontal, nullptr, ortho.Begin());
+			bgfx::setViewFrameBuffer(horizontalViewID, m_blurChainFB[1]);
+			bgfx::setViewRect(horizontalViewID, 0, 0, width, height);
+			bgfx::setViewTransform(horizontalViewID, nullptr, ortho.Begin());
 
 			bgfx::setUniform(GetRenderContext()->GetUniform(textureSizeUniformName), pixelSize);
 
@@ -324,12 +319,13 @@ namespace engine
 			bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 			Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
-			bgfx::submit(horizontal, GetRenderContext()->GetProgram(kawaseBlurprogramName));
+			GetRenderContext()->Submit(horizontalViewID, "KawaseBlurProgram");
+			
 			//constexpr StringCrc BlurVerticalprogramName("BlurVerticalProgram");  // use Gaussian Blur
 			//bgfx::submit(horizontal, GetRenderContext()->GetProgram(BlurVerticalprogramName));
 
-			vertical += 2;
-			horizontal += 2;
+			verticalViewID += 2;
+			horizontalViewID += 2;
 		}
 	}
 }

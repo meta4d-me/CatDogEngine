@@ -32,7 +32,6 @@
 #include "Resources/FileWatcher.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ShaderBuilder.h"
-#include "Resources/ShaderLoader.h"
 #include "Scene/SceneDatabase.h"
 #include "UILayers/AssetBrowser.h"
 #include "UILayers/EntityList.h"
@@ -89,8 +88,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 
 	// Init graphics backend
 	InitRenderContext(m_initArgs.backend, pSplashWindow->GetNativeHandle());
-	InitShaderVariantCollections();
-
+	
 	pSplashWindow->OnResize.Bind<engine::RenderContext, &engine::RenderContext::OnResize>(m_pRenderContext.get());
 	AddWindow(cd::MoveTemp(pSplashWindow));
 
@@ -349,16 +347,13 @@ void EditorApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
 {
 	CD_INFO("Init graphics backend : {}", nameof::nameof_enum(backend));
 
+	m_pShaderVariantCollections = std::make_unique<engine::ShaderVariantCollections>();
+
 	engine::Path::SetGraphicsBackend(backend);
 	m_pRenderContext = std::make_unique<engine::RenderContext>();
 	m_pRenderContext->Init(backend, hwnd);
+	m_pRenderContext->SetShaderVariantCollections(m_pShaderVariantCollections.get());
 	engine::Renderer::SetRenderContext(m_pRenderContext.get());
-}
-
-void EditorApp::InitShaderVariantCollections()
-{
-	m_pShaderVariantCollections = std::make_unique<engine::ShaderVariantCollections>();
-	engine::Renderer::SetShaderVariantCollections(m_pShaderVariantCollections.get());
 }
 
 void EditorApp::InitEditorRenderers()
@@ -476,7 +471,7 @@ bool EditorApp::IsAtmosphericScatteringEnable() const
 
 void EditorApp::InitShaderPrograms() const
 {
-	ShaderBuilder::BuildNonUberShaders(m_pShaderVariantCollections.get());
+	ShaderBuilder::BuildNonUberShaders(m_pRenderContext->GetShaderVariantCollections());
 
 	ShaderBuilder::BuildUberShader(m_pShaderVariantCollections.get(), m_pSceneWorld->GetPBRMaterialType());
 	ShaderBuilder::BuildUberShader(m_pShaderVariantCollections.get(), m_pSceneWorld->GetAnimationMaterialType());
@@ -514,14 +509,6 @@ bool EditorApp::Update(float deltaTime)
 	if (!m_bInitEditor && ResourceBuilder::Get().IsIdle())
 	{
 		m_bInitEditor = true;
-
-		// engine::ShaderLoader::UploadNonUberShader(m_pRenderContext.get(), m_pShaderVariantCollections.get());
-
-		engine::ShaderLoader::UploadUberShader(m_pRenderContext.get(), m_pShaderVariantCollections.get(), m_pSceneWorld->GetPBRMaterialType());
-		engine::ShaderLoader::UploadUberShader(m_pRenderContext.get(), m_pShaderVariantCollections.get(), m_pSceneWorld->GetAnimationMaterialType());
-#ifdef ENABLE_DDGI
-		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetDDGIMaterialType());
-#endif
 
 		EngineRendererSubmit();
 

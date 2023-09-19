@@ -10,7 +10,7 @@ namespace engine
 
 void ImGuiRenderer::Init()
 {
-	GetShaderVariantCollections()->RegisterNonUberShader("ImGuiProgram", { "vs_imgui", "fs_imgui" });
+	GetRenderContext()->RegisterNonUberShader("ImGuiProgram", { "vs_imgui", "fs_imgui" });
 
 	bgfx::setViewName(GetViewID(), "ImGuiRenderer");
 }
@@ -29,9 +29,8 @@ void ImGuiRenderer::Submit()
 		GetRenderContext()->SetVertexLayout(imguiVertexLayoutName, std::move(imguiVertexLayout));
 	}
 
-	// SVC is not used here, as we don't have a need to lazy/hot load the imgui shader at runtime.
 	GetRenderContext()->CreateUniform("s_tex", bgfx::UniformType::Sampler);
-	GetRenderContext()->CreateProgram("ImGuiProgram", "vs_imgui.bin", "fs_imgui.bin");
+	GetRenderContext()->UploadShaders("ImGuiProgram");
 }
 
 ImGuiRenderer::~ImGuiRenderer()
@@ -177,7 +176,8 @@ void ImGuiRenderer::Render(float deltaTime)
 					pEncoder->setIndexBuffer(&indexBuffer, cmd->IdxOffset, cmd->ElemCount);
 
 					constexpr StringCrc imguiProgram("ImGuiProgram");
-					pEncoder->submit(GetViewID(), GetRenderContext()->GetProgram(imguiProgram));
+
+					pEncoder->submit(GetViewID(), GetRenderContext()->GetNonUberShaderProgramHandle(imguiProgram));
 				}
 			}
 		}

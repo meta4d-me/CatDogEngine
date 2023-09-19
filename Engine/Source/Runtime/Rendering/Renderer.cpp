@@ -27,18 +27,6 @@ RenderContext* Renderer::GetRenderContext()
 	return m_pRenderContext;
 }
 
-static ShaderVariantCollections* m_pShaderVariantCollections = nullptr;
-
-void Renderer::SetShaderVariantCollections(ShaderVariantCollections* pCollections)
-{
-	m_pShaderVariantCollections = pCollections;
-}
-
-ShaderVariantCollections* Renderer::GetShaderVariantCollections()
-{
-	return m_pShaderVariantCollections;
-}
-
 void Renderer::UpdateViewRenderTarget()
 {
 	if (m_pRenderTarget)

@@ -8,7 +8,7 @@ namespace engine
 
 	void PostProcessRenderer::Init()
 	{
-		GetShaderVariantCollections()->RegisterNonUberShader("PostProcessProgram", {"vs_fullscreen","fs_PBR_postProcessing"});
+		GetRenderContext()->RegisterNonUberShader("PostProcessProgram", {"vs_fullscreen","fs_PBR_postProcessing"});
 
 		bgfx::setViewName(GetViewID(), "PostProcessRenderer");
 	}
@@ -18,7 +18,7 @@ namespace engine
 		GetRenderContext()->CreateUniform("u_gamma", bgfx::UniformType::Vec4);
 		GetRenderContext()->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
 
-		GetRenderContext()->CreateProgram("PostProcessProgram", "vs_fullscreen.bin", "fs_PBR_postProcessing.bin");
+		GetRenderContext()->UploadShaders("PostProcessProgram");
 	}
 
 	PostProcessRenderer::~PostProcessRenderer()
@@ -77,8 +77,7 @@ namespace engine
 		bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 		Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
-		constexpr StringCrc programName("PostProcessProgram");
-		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(programName));
+		GetRenderContext()->Submit(GetViewID(), "PostProcessProgram");
 	}
 
 }

@@ -50,14 +50,14 @@ constexpr uint16_t ScatteringOrders                      = 6;
 
 void PBRSkyRenderer::Init()
 {
-	GetShaderVariantCollections()->RegisterNonUberShader(ProgramAtmosphericScatteringLUT, { "vs_atmSkyBox", "fs_PrecomputedAtmosphericScattering_LUT" });
-	GetShaderVariantCollections()->RegisterNonUberShader(ProgramSingleScatteringRayMarching, { "vs_atmSkyBox", "fs_SingleScattering_RayMarching" });
-	GetShaderVariantCollections()->RegisterNonUberShader(ProgramComputeTransmittance, { "cs_ComputeTransmittance" });
-	GetShaderVariantCollections()->RegisterNonUberShader(ProgramComputeDirectIrradiance, { "cs_ComputeDirectIrradiance" });
-	GetShaderVariantCollections()->RegisterNonUberShader(ProgramComputeSingleScattering, { "cs_ComputeSingleScattering" });
-	GetShaderVariantCollections()->RegisterNonUberShader(ProgramComputeScatteringDensity, { "cs_ComputeScatteringDensity" });
-	GetShaderVariantCollections()->RegisterNonUberShader(ProgramComputeIndirectIrradiance, { "cs_ComputeIndirectIrradiance" });
-	GetShaderVariantCollections()->RegisterNonUberShader(ProgramComputeMultipleScattering, { "cs_ComputeMultipleScattering" });
+	GetRenderContext()->RegisterNonUberShader(ProgramAtmosphericScatteringLUT, { "vs_atmSkyBox", "fs_PrecomputedAtmosphericScattering_LUT" });
+	GetRenderContext()->RegisterNonUberShader(ProgramSingleScatteringRayMarching, { "vs_atmSkyBox", "fs_SingleScattering_RayMarching" });
+	GetRenderContext()->RegisterNonUberShader(ProgramComputeTransmittance, { "cs_ComputeTransmittance" });
+	GetRenderContext()->RegisterNonUberShader(ProgramComputeDirectIrradiance, { "cs_ComputeDirectIrradiance" });
+	GetRenderContext()->RegisterNonUberShader(ProgramComputeSingleScattering, { "cs_ComputeSingleScattering" });
+	GetRenderContext()->RegisterNonUberShader(ProgramComputeScatteringDensity, { "cs_ComputeScatteringDensity" });
+	GetRenderContext()->RegisterNonUberShader(ProgramComputeIndirectIrradiance, { "cs_ComputeIndirectIrradiance" });
+	GetRenderContext()->RegisterNonUberShader(ProgramComputeMultipleScattering, { "cs_ComputeMultipleScattering" });
 
 	bgfx::setViewName(GetViewID(), "PBRSkyRenderer");
 }
@@ -157,8 +157,7 @@ void PBRSkyRenderer::Render(float deltaTime)
 	GetRenderContext()->FillUniform(HeightOffsetCrc, &(tmpHeightOffset.x()), 1);
 
 	bgfx::setState(StateRendering);
-	constexpr StringCrc ProgramAtmosphericScatteringLUTCrc(ProgramAtmosphericScatteringLUT);
-	bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(ProgramAtmosphericScatteringLUTCrc));
+	GetRenderContext()->Submit(GetViewID(), ProgramAtmosphericScatteringLUT);
 }
 
 bool PBRSkyRenderer::IsEnable() const
@@ -168,6 +167,8 @@ bool PBRSkyRenderer::IsEnable() const
 
 void PBRSkyRenderer::Precompute() const
 {
+	// TODO : Warp bgfx::dispatch to Render Context.
+
 	constexpr StringCrc NumScatteringOrdersCrc(NumScatteringOrders);
 
 	constexpr StringCrc ProgramComputeTransmittanceCrc(ProgramComputeTransmittance);
@@ -191,20 +192,20 @@ void PBRSkyRenderer::Precompute() const
 
 	// Compute Transmittance.
 	bgfx::setImage(0, GetRenderContext()->GetTexture(TextureTransmittanceCrc), 0, bgfx::Access::Write, bgfx::TextureFormat::RGBA32F);
-	bgfx::dispatch(viewId, GetRenderContext()->GetProgram(ProgramComputeTransmittanceCrc), TRANSMITTANCE_TEXTURE_WIDTH / 8U, TRANSMITTANCE_TEXTURE_HEIGHT / 8U, 1U);
+	GetRenderContext()->Dispatch(viewId, ProgramComputeTransmittance, TRANSMITTANCE_TEXTURE_WIDTH / 8U, TRANSMITTANCE_TEXTURE_HEIGHT / 8U, 1U);
 
 	// Compute direct Irradiance.
 	bgfx::setImage(ATM_TRANSMITTANCE_SLOT, GetRenderContext()->GetTexture(TextureTransmittanceCrc), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
 	bgfx::setImage(0, GetRenderContext()->GetTexture(TextureDeltaIrradianceCrc), 0, bgfx::Access::Write, bgfx::TextureFormat::RGBA32F);
 	bgfx::setImage(1, GetRenderContext()->GetTexture(TextureIrradianceCrc), 0, bgfx::Access::Write, bgfx::TextureFormat::RGBA32F);
-	bgfx::dispatch(viewId, GetRenderContext()->GetProgram(ProgramComputeDirectIrradianceCrc), IRRADIANCE_TEXTURE_WIDTH / 8U, IRRADIANCE_TEXTURE_HEIGHT / 8U, 1U);
+	GetRenderContext()->Dispatch(viewId, ProgramComputeDirectIrradiance, IRRADIANCE_TEXTURE_WIDTH / 8U, IRRADIANCE_TEXTURE_HEIGHT / 8U, 1U);
 
 	// Compute single Scattering.
 	bgfx::setImage(ATM_TRANSMITTANCE_SLOT, GetRenderContext()->GetTexture(TextureTransmittanceCrc), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
 	bgfx::setImage(0, GetRenderContext()->GetTexture(TextureDeltaRayleighScatteringCrc), 0, bgfx::Access::Write, bgfx::TextureFormat::RGBA32F);
 	bgfx::setImage(1, GetRenderContext()->GetTexture(TextureDeltaMieScatteringCrc), 0, bgfx::Access::Write, bgfx::TextureFormat::RGBA32F);
 	bgfx::setImage(2, GetRenderContext()->GetTexture(TextureScatteringCrc), 0, bgfx::Access::Write, bgfx::TextureFormat::RGBA32F);
-	bgfx::dispatch(viewId, GetRenderContext()->GetProgram(ProgramComputeSingleScatteringCrc), SCATTERING_TEXTURE_WIDTH / 8U, SCATTERING_TEXTURE_HEIGHT / 8U, SCATTERING_TEXTURE_DEPTH / 8U);
+	GetRenderContext()->Dispatch(viewId, ProgramComputeSingleScattering, SCATTERING_TEXTURE_WIDTH / 8U, SCATTERING_TEXTURE_HEIGHT / 8U, SCATTERING_TEXTURE_DEPTH / 8U);
 
 	// Compute multiple Scattering.
 	cd::Vec4f tmpOrder;
@@ -220,7 +221,7 @@ void PBRSkyRenderer::Precompute() const
 		bgfx::setImage(ATM_MULTIPLE_SCATTERING_SLOT, GetRenderContext()->GetTexture(TextureDeltaMultipleScatteringCrc), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
 		bgfx::setImage(ATM_IRRADIANCE_SLOT, GetRenderContext()->GetTexture(TextureDeltaIrradianceCrc), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
 		bgfx::setImage(0, GetRenderContext()->GetTexture(TextureDeltaScatteringDensityCrc), 0, bgfx::Access::Write, bgfx::TextureFormat::RGBA32F);
-		bgfx::dispatch(viewId, GetRenderContext()->GetProgram(ProgramComputeScatteringDensityCrc), SCATTERING_TEXTURE_WIDTH / 8U, SCATTERING_TEXTURE_HEIGHT / 8U, SCATTERING_TEXTURE_DEPTH / 8U);
+		GetRenderContext()->Dispatch(viewId, ProgramComputeScatteringDensity, SCATTERING_TEXTURE_WIDTH / 8U, SCATTERING_TEXTURE_HEIGHT / 8U, SCATTERING_TEXTURE_DEPTH / 8U);
 
 		// 2. Compute indirect Irradiance.
 		tmpOrder.x() = static_cast<float>(order - 1);
@@ -231,14 +232,14 @@ void PBRSkyRenderer::Precompute() const
 		bgfx::setImage(ATM_MULTIPLE_SCATTERING_SLOT, GetRenderContext()->GetTexture(TextureDeltaMultipleScatteringCrc), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
 		bgfx::setImage(0, GetRenderContext()->GetTexture(TextureDeltaIrradianceCrc), 0, bgfx::Access::Write, bgfx::TextureFormat::RGBA32F);
 		bgfx::setImage(1, GetRenderContext()->GetTexture(TextureIrradianceCrc), 0, bgfx::Access::Write, bgfx::TextureFormat::RGBA32F);
-		bgfx::dispatch(viewId, GetRenderContext()->GetProgram(ProgramComputeIndirectIrradianceCrc), IRRADIANCE_TEXTURE_WIDTH / 8U, IRRADIANCE_TEXTURE_HEIGHT / 8U, 1U);
+		GetRenderContext()->Dispatch(viewId, ProgramComputeIndirectIrradiance, IRRADIANCE_TEXTURE_WIDTH / 8U, IRRADIANCE_TEXTURE_HEIGHT / 8U, 1U);
 
 		// 3. Compute multiple Scattering.
 		bgfx::setImage(ATM_TRANSMITTANCE_SLOT, GetRenderContext()->GetTexture(TextureTransmittanceCrc), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
 		bgfx::setImage(ATM_SCATTERING_DENSITY, GetRenderContext()->GetTexture(TextureDeltaScatteringDensityCrc), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
 		bgfx::setImage(0, GetRenderContext()->GetTexture(TextureDeltaMultipleScatteringCrc), 0, bgfx::Access::Write, bgfx::TextureFormat::RGBA32F);
 		bgfx::setImage(1, GetRenderContext()->GetTexture(TextureScatteringCrc), 0, bgfx::Access::Write, bgfx::TextureFormat::RGBA32F);
-		bgfx::dispatch(viewId, GetRenderContext()->GetProgram(ProgramComputeMultipleScatteringCrc), SCATTERING_TEXTURE_WIDTH / 8U, SCATTERING_TEXTURE_HEIGHT / 8U, SCATTERING_TEXTURE_DEPTH / 8U);
+		GetRenderContext()->Dispatch(viewId, ProgramComputeMultipleScattering, SCATTERING_TEXTURE_WIDTH / 8U, SCATTERING_TEXTURE_HEIGHT / 8U, SCATTERING_TEXTURE_DEPTH / 8U);
 	}
 
 	CD_ENGINE_TRACE("All compute shaders for precomputing atmospheric scattering texture dispatched.");
@@ -249,11 +250,11 @@ void PBRSkyRenderer::Precompute() const
 	skyComponent->SetATMIrradianceCrc(TextureIrradianceCrc);
 	skyComponent->SetATMScatteringCrc(TextureScatteringCrc);
 
-	GetRenderContext()->Destory(TextureDeltaIrradianceCrc);
-	GetRenderContext()->Destory(TextureDeltaRayleighScatteringCrc);
-	GetRenderContext()->Destory(TextureDeltaMieScatteringCrc);
-	GetRenderContext()->Destory(TextureDeltaScatteringDensityCrc);
-	GetRenderContext()->Destory(TextureDeltaMultipleScatteringCrc);
+	GetRenderContext()->DestoryTexture(TextureDeltaIrradianceCrc);
+	GetRenderContext()->DestoryTexture(TextureDeltaRayleighScatteringCrc);
+	GetRenderContext()->DestoryTexture(TextureDeltaMieScatteringCrc);
+	GetRenderContext()->DestoryTexture(TextureDeltaScatteringDensityCrc);
+	GetRenderContext()->DestoryTexture(TextureDeltaMultipleScatteringCrc);
 }
 
 }

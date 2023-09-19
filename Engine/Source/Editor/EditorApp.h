@@ -51,7 +51,6 @@ public:
 	void RemoveWindow(size_t index);
 
 	void InitRenderContext(engine::GraphicsBackend backend, void* hwnd = nullptr);
-	void InitShaderVariantCollections();
 
 	void InitEditorRenderers();
 	void InitEngineRenderers();

@@ -13,14 +13,14 @@ namespace engine
 
 void WireframeRenderer::Init()
 {
-	GetShaderVariantCollections()->RegisterNonUberShader("WireframeLineProgram", { "vs_wireframe_line", "fs_wireframe_line" });
+	GetRenderContext()->RegisterNonUberShader("WireframeLineProgram", { "vs_wireframe_line", "fs_wireframe_line" });
 
 	bgfx::setViewName(GetViewID(), "WireframeRenderer");
 }
 
 void WireframeRenderer::Submit()
 {
-	GetRenderContext()->CreateProgram("WireframeLineProgram", "vs_wireframe_line.bin", "fs_wireframe_line.bin");
+	GetRenderContext()->UploadShaders("WireframeLineProgram");
 }
 
 void WireframeRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -63,8 +63,7 @@ void WireframeRenderer::Render(float deltaTime)
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_LINES;
 		bgfx::setState(state);
 
-		constexpr StringCrc whiteModelProgram("WireframeLineProgram");
-		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(whiteModelProgram));
+		GetRenderContext()->Submit(GetViewID(), "WireframeLineProgram");
 	}
 }
 

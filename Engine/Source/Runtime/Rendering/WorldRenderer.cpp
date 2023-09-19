@@ -48,7 +48,7 @@ constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MS
 
 void WorldRenderer::Init()
 {
-	GetShaderVariantCollections()->RegisterUberShader("WorldProgram", { "vs_PBR", "fs_PBR" });
+	GetRenderContext()->RegisterUberShader("WorldProgram", { "vs_PBR", "fs_PBR" });
 
 	bgfx::setViewName(GetViewID(), "WorldRenderer");
 }
@@ -77,6 +77,8 @@ void WorldRenderer::Submit()
 
 	GetRenderContext()->CreateUniform(LightDir, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(HeightOffsetAndshadowLength, bgfx::UniformType::Vec4, 1);
+
+	GetRenderContext()->UploadShaders("WorldProgram");
 }
 
 void WorldRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

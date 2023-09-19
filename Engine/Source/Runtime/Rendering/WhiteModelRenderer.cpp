@@ -13,14 +13,14 @@ namespace engine
 
 void WhiteModelRenderer::Init()
 {
-	GetShaderVariantCollections()->RegisterNonUberShader("DebugProgram", { "vs_debug", "fs_debug" });
+	GetRenderContext()->RegisterNonUberShader("DebugProgram", { "vs_debug", "fs_debug" });
 
 	bgfx::setViewName(GetViewID(), "DebugRenderer");
 }
 
 void WhiteModelRenderer::Submit()
 {
-	GetRenderContext()->CreateProgram("DebugProgram", "vs_debug.bin", "fs_debug.bin");
+	GetRenderContext()->UploadShaders("DebugProgram");
 }
 
 void WhiteModelRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -58,8 +58,7 @@ void WhiteModelRenderer::Render(float deltaTime)
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
 		bgfx::setState(state);
 
-		constexpr StringCrc whiteModelProgram("WhiteModelProgram");
-		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(whiteModelProgram));
+		GetRenderContext()->Submit(GetViewID(), "WhiteModelProgram");
 	}
 }
 

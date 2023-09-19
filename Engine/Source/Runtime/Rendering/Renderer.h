@@ -24,9 +24,6 @@ public:
 	static void SetRenderContext(RenderContext* pRenderContext);
 	static RenderContext* GetRenderContext();
 
-	static void SetShaderVariantCollections(ShaderVariantCollections* pCollections);
-	static ShaderVariantCollections* GetShaderVariantCollections();
-
 	virtual void Init() = 0;
 	virtual void Submit() = 0;
 	virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) = 0;

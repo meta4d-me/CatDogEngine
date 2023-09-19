@@ -55,7 +55,7 @@ constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MS
 
 void TerrainRenderer::Init()
 {
-	GetShaderVariantCollections()->RegisterNonUberShader("TerrainRenderer", {"vs_terrain", "fs_terrain"});
+	GetRenderContext()->RegisterNonUberShader("TerrainProgram", {"vs_terrain", "fs_terrain"});
 
 	bgfx::setViewName(GetViewID(), "TerrainRenderer");
 }
@@ -90,7 +90,7 @@ void TerrainRenderer::Submit()
 
 	GetRenderContext()->CreateTexture(elevationTexture, 129U, 129U, 1, bgfx::TextureFormat::Enum::R32F, samplerFlags, nullptr, 0);
 
-	GetRenderContext()->CreateProgram("TerrainProgram", "vs_terrain.bin", "fs_terrain.bin");
+	GetRenderContext()->UploadShaders("TerrainProgram");
 }
 
 void TerrainRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -217,8 +217,7 @@ void TerrainRenderer::Render(float deltaTime)
 
 		bgfx::setState(state);
 
-		constexpr StringCrc terrainProgram("TerrainProgram");
-		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(terrainProgram));
+		GetRenderContext()->Submit(GetViewID(), "TerrainProgram");
 	}
 }
 

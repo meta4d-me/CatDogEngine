@@ -13,14 +13,14 @@ namespace engine
 
 void AABBRenderer::Init()
 {
-	GetShaderVariantCollections()->RegisterNonUberShader("AABBProgram", {"vs_AABB", "fs_AABB"});
+	GetRenderContext()->RegisterNonUberShader("AABBProgram", { "vs_AABB", "fs_AABB" });
 
 	bgfx::setViewName(GetViewID(), "AABBRenderer");
 }
 
 void AABBRenderer::Submit()
 {
-	GetRenderContext()->CreateProgram("AABBProgram", "vs_AABB.bin", "fs_AABB.bin");
+	GetRenderContext()->UploadShaders("AABBProgram");
 }
 
 void AABBRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -52,8 +52,7 @@ void AABBRenderer::Render(float deltaTime)
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_LINES;
 		bgfx::setState(state);
 
-		constexpr StringCrc AABBAllProgram("AABBProgram");
-		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(AABBAllProgram));
+		GetRenderContext()->Submit(GetViewID(), "AABBProgram");
 	}
 }
 

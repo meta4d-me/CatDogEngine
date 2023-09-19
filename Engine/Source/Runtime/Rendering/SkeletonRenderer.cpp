@@ -57,14 +57,14 @@ void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase,
 
 void SkeletonRenderer::Init()
 {
-	GetShaderVariantCollections()->RegisterNonUberShader("SkeletonProgram", {"vs_AABB", "fs_AABB"});
+	GetRenderContext()->RegisterNonUberShader("SkeletonProgram", {"vs_AABB", "fs_AABB"});
 
 	bgfx::setViewName(GetViewID(), "SkeletonRenderer");
 }
 
 void SkeletonRenderer::Submit()
 {
-	GetRenderContext()->CreateProgram("SkeletonProgram", "vs_AABB.bin", "fs_AABB.bin");
+	GetRenderContext()->UploadShaders("SkeletonProgram");
 }
 
 void SkeletonRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -134,8 +134,8 @@ void SkeletonRenderer::Render(float delataTime)
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_LINES;
 
 		bgfx::setState(state);
-		constexpr StringCrc SkeletonProgram("SkeletonProgram");
-		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(SkeletonProgram));
+
+		GetRenderContext()->Submit(GetViewID(), "SkeletonProgram");
 	}
 	
 }
