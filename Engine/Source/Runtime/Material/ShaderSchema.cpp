@@ -132,11 +132,11 @@ uint16_t ShaderSchema::GetCompiledProgram(StringCrc shaderFeaturesCrc) const
 	return programHandle;
 }
 
-StringCrc ShaderSchema::GetFeaturesCrc(const ShaderFeatureSet& featureSet) const
+std::string ShaderSchema::GetFeaturesCombine(const ShaderFeatureSet& featureSet) const
 {
 	if (m_shaderFeatureSets.empty() || featureSet.empty())
 	{
-		return DefaultUberShaderCrc;
+		return "";
 	}
 
 	std::stringstream ss;
@@ -153,7 +153,17 @@ StringCrc ShaderSchema::GetFeaturesCrc(const ShaderFeatureSet& featureSet) const
 		}
 
 	}
-	return StringCrc(ss.str());
+	return ss.str();
+}
+
+StringCrc ShaderSchema::GetFeaturesCombineCrc(const ShaderFeatureSet& featureSet) const
+{
+	if (m_shaderFeatureSets.empty() || featureSet.empty())
+	{
+		return DefaultUberShaderCrc;
+	}
+
+	return StringCrc(GetFeaturesCombine(featureSet));
 }
 
 bool ShaderSchema::IsFeaturesValid(StringCrc shaderFeaturesCrc) const

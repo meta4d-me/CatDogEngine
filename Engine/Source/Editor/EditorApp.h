@@ -82,6 +82,8 @@ private:
 	void InitDDGIEntity();
 #endif
 
+	void LazyCompileAndLoadShaders();
+
 	bool m_bInitEditor = false;
 	engine::EngineInitArgs m_initArgs;
 

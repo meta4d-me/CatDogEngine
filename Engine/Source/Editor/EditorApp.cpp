@@ -343,6 +343,29 @@ void EditorApp::InitDDGIEntity()
 }
 #endif
 
+void EditorApp::LazyCompileAndLoadShaders()
+{
+	bool doCompile = false;
+
+	for (auto& info : m_pRenderContext->GetShaderVariantCompileTasks())
+	{
+		ShaderBuilder::BuildUberShader(m_pRenderContext.get(), info);
+		doCompile = true;
+	}
+
+	if (doCompile)
+	{
+		ResourceBuilder::Get().Update(true);
+
+		for (auto& info : m_pRenderContext->GetShaderVariantCompileTasks())
+		{
+			m_pRenderContext->UploadShader(info.m_programName, info.m_featuresCombine);
+		}
+
+		m_pRenderContext->ClearShaderVariantCompileTasks();
+	}
+}
+
 void EditorApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
 {
 	CD_INFO("Init graphics backend : {}", nameof::nameof_enum(backend));
@@ -474,10 +497,10 @@ bool EditorApp::IsAtmosphericScatteringEnable() const
 void EditorApp::InitShaderPrograms() const
 {
 	ShaderBuilder::BuildNonUberShaders(m_pRenderContext.get());
+	ShaderBuilder::BuildUberShaders(m_pRenderContext.get(), m_pSceneWorld->GetPBRMaterialType());
 
-	ShaderBuilder::BuildUberShader(m_pRenderContext.get(), m_pSceneWorld->GetPBRMaterialType());
 #ifdef ENABLE_DDGI
-	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetDDGIMaterialType());
+	ShaderBuilder::BuildUberShaders(m_pSceneWorld->GetDDGIMaterialType());
 #endif
 }
 
@@ -597,6 +620,8 @@ bool EditorApp::Update(float deltaTime)
 	}
 
 	m_pRenderContext->EndFrame();
+
+	LazyCompileAndLoadShaders();
 
 	engine::Input::Get().FlushInputs();
 

@@ -41,7 +41,8 @@ public:
 	std::set<std::string>& GetFeatureCombines(const std::string& programName) { return m_programFeatureCombines[programName]; }
 	const std::set<std::string>& GetFeatureCombines(const std::string& programName) const { return m_programFeatureCombines.at(programName); }
 
-	bool IsUber(const std::string& programName);
+	inline bool IsNonUberShaderProgramValid(std::string programName) const;
+	inline bool IsUberShaderProgramValid(std::string programName) const;
 
 	// -------------------------------------------------------------------------------- // 
 
@@ -58,9 +59,6 @@ public:
 	const std::map<std::string, std::set<std::string>>& GetFeatureCombinePrograms() const { return m_programFeatureCombines; }
 
 private:
-	inline bool IsNonUberShaderProgramValid(std::string programName) const;
-	inline bool IsUberShaderProgramValid(std::string programName) const;
-
 	// Key : Program name, Value : Non-uber shader names
 	std::map<std::string, std::set<std::string>> m_nonUberShaderPrograms;
 

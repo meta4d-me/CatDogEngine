@@ -231,11 +231,11 @@ void MainMenu::BuildMenu()
 		// }
 		// if (ImGui::MenuItem(CD_TEXT("TEXT_REBUILD_PBR_SHADERS")))
 		// {
-		// 	ShaderBuilder::BuildUberShader(pSceneWorld->GetPBRMaterialType());
+		// 	ShaderBuilder::BuildUberShaders(pSceneWorld->GetPBRMaterialType());
 		// }
 		// if (ImGui::MenuItem(CD_TEXT("TEXT_REBUILD_ANIMATION_SHADERS")))
 		// {
-		// 	ShaderBuilder::BuildUberShader(pSceneWorld->GetAnimationMaterialType());
+		// 	ShaderBuilder::BuildUberShaders(pSceneWorld->GetAnimationMaterialType());
 		// }
 		// ResourceBuilder::Get().Update();
 

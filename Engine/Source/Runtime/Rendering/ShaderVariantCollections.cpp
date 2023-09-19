@@ -78,14 +78,15 @@ void ShaderVariantCollections::SetFeatureCombines(const std::string& programName
 	m_programFeatureCombines[programName] = cd::MoveTemp(combine);
 }
 
-bool ShaderVariantCollections::IsUber(const std::string& programName)
+bool ShaderVariantCollections::IsNonUberShaderProgramValid(std::string programName) const
 {
-	if (IsUberShaderProgramValid(programName) && !IsNonUberShaderProgramValid(programName))
-	{
-		return true;
-	}
+	return (m_nonUberShaderPrograms.find(cd::MoveTemp(programName)) != m_nonUberShaderPrograms.end());
+}
 
-	return false;
+bool ShaderVariantCollections::IsUberShaderProgramValid(std::string programName) const
+{
+	return (m_uberShaderPrograms.find(cd::MoveTemp(programName)) != m_uberShaderPrograms.end() &&
+		m_programFeatureCombines.find(cd::MoveTemp(programName)) != m_programFeatureCombines.end());
 }
 
 void ShaderVariantCollections::SetNonUberShaderPrograms(std::map<std::string, std::set<std::string>> shaders)
@@ -101,17 +102,6 @@ void ShaderVariantCollections::SetUberShaderPrograms(std::map<std::string, std::
 void ShaderVariantCollections::SetFeatureCombinePrograms(std::map<std::string, std::set<std::string>> combines)
 {
 	m_programFeatureCombines = cd::MoveTemp(combines);
-}
-
-bool ShaderVariantCollections::IsNonUberShaderProgramValid(std::string programName) const
-{
-	return (m_nonUberShaderPrograms.find(cd::MoveTemp(programName)) != m_nonUberShaderPrograms.end());
-}
-
-bool ShaderVariantCollections::IsUberShaderProgramValid(std::string programName) const
-{
-	return (m_uberShaderPrograms.find(cd::MoveTemp(programName)) != m_uberShaderPrograms.end() && 
-		m_programFeatureCombines.find(cd::MoveTemp(programName)) != m_programFeatureCombines.end());
 }
 
 }

@@ -4,6 +4,7 @@
 #include "Graphics/GraphicsBackend.h"
 #include "Math/Matrix.hpp"
 #include "Rendering/ShaderVariantCollections.h"
+#include "Rendering/ShaderVariantCompileInfo.h"
 #include "RenderTarget.h"
 #include "Scene/VertexAttribute.h"
 #include "Scene/VertexFormat.h"
@@ -44,7 +45,7 @@ public:
 	void OnResize(uint16_t width, uint16_t height);
 	void BeginFrame();
 	void Submit(uint16_t viewID, const std::string& programName);
-	void Submit(uint16_t viewID, const std::string& programName, const StringCrc featureCombineCrc);
+	void Submit(uint16_t viewID, const std::string& programName, const std::string& featuresCombine);
 	void Dispatch(uint16_t viewID, const std::string& programName, uint32_t numX, uint32_t numY, uint32_t numZ);
 	void EndFrame();
 	void Shutdown();
@@ -66,7 +67,14 @@ public:
 	void RegisterNonUberShader(std::string programName, std::initializer_list<std::string> names);
 	void RegisterUberShader(std::string programName, std::initializer_list<std::string> names, std::initializer_list<std::string> combines = {});
 
-	void UploadShaders(std::string programName);
+	void UploadShaders(const std::string& programName);
+	void UploadShader(const std::string& programName, const std::string& combine = "");
+
+	void AddShaderVariantCompileTask(ShaderVariantCompileInfo info);
+	void ClearShaderVariantCompileTasks();
+	void SetShaderVariantCompileTasks(std::vector<ShaderVariantCompileInfo> tasks);
+	std::vector<ShaderVariantCompileInfo>& GetShaderVariantCompileTasks() { return m_shaderVariantCompileTasks; }
+	const std::vector<ShaderVariantCompileInfo>& GetShaderVariantCompileTasks() const { return m_shaderVariantCompileTasks; }
 
 	/////////////////////////////////////////////////////////////////////
 	// Shader blob apis
@@ -121,6 +129,9 @@ public:
 
 private:
 	uint8_t m_currentViewCount = 0;
+	uint16_t m_backBufferWidth;
+	uint16_t m_backBufferHeight;
+
 	std::unordered_map<size_t, std::unique_ptr<RenderTarget>> m_renderTargetCaches;
 	std::unordered_map<size_t, bgfx::VertexLayout> m_vertexLayoutCaches;
 	std::unordered_map<size_t, bgfx::TextureHandle> m_textureHandleCaches;
@@ -138,8 +149,7 @@ private:
 	// Key : StringCrc(Shader name), Value : Shader binary data
 	std::map<uint32_t, std::unique_ptr<ShaderBlob>> m_shaderBlobs;
 
-	uint16_t m_backBufferWidth;
-	uint16_t m_backBufferHeight;
+	std::vector<ShaderVariantCompileInfo> m_shaderVariantCompileTasks;
 };
 
 }

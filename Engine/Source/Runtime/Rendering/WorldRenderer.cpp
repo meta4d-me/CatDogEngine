@@ -140,7 +140,7 @@ void WorldRenderer::Render(float deltaTime)
 					GetRenderContext()->FillUniform(albedoUVOffsetAndScaleCrc, &uvOffsetAndScaleData, 1);
 				}
 
-				bgfx::setTexture(pTextureInfo->slot, bgfx::UniformHandle{pTextureInfo->samplerHandle}, bgfx::TextureHandle{pTextureInfo->textureHandle});
+				bgfx::setTexture(pTextureInfo->slot, bgfx::UniformHandle{ pTextureInfo->samplerHandle }, bgfx::TextureHandle{ pTextureInfo->textureHandle });
 			}
 		}
 
@@ -227,7 +227,7 @@ void WorldRenderer::Render(float deltaTime)
 
 		bgfx::setState(state);
 
-		bgfx::submit(GetViewID(), bgfx::ProgramHandle{ pMaterialComponent->GetShadreProgram() });
+		GetRenderContext()->Submit(GetViewID(), "WorldProgram", pMaterialComponent->GetShaderFeaturesCombine());
 	}
 }
 

@@ -102,6 +102,9 @@ public:
 	std::set<ShaderFeature>& GetShaderFeatures() { return m_shaderFeatures; }
 	const std::set<ShaderFeature>& GetShaderFeatures() const { return m_shaderFeatures; }
 
+	const StringCrc GetFeaturesCombineCrc() const;
+	std::string GetShaderFeaturesCombine() const;
+
 	std::string GetVertexShaderName() const;
 	std::string GetFragmentShaderName() const;
 
@@ -152,8 +155,6 @@ private:
 	// Input
 	const cd::Material* m_pMaterialData = nullptr;
 	const engine::MaterialType* m_pMaterialType = nullptr;
-	std::set<ShaderFeature> m_shaderFeatures;
-	StringCrc m_uberShaderCrc;
 
 	std::string m_name;
 	cd::Vec3f m_albedoColor;
@@ -163,6 +164,9 @@ private:
 	bool m_twoSided;
 	cd::BlendMode m_blendMode;
 	float m_alphaCutOff;
+
+	std::set<ShaderFeature> m_shaderFeatures;
+	StringCrc m_uberShaderCrc;
 
 	SkyType m_skyType;
 	std::vector<TextureBlob> m_cacheTextureBlobs;

@@ -150,7 +150,7 @@ void MaterialComponent::DeactiveShaderFeature(engine::ShaderFeature feature)
 
 void MaterialComponent::MatchUberShaderCrc()
 {
-	m_uberShaderCrc = m_pMaterialType->GetShaderSchema().GetFeaturesCrc(m_shaderFeatures);
+	m_uberShaderCrc = m_pMaterialType->GetShaderSchema().GetFeaturesCombineCrc(m_shaderFeatures);
 }
 
 uint16_t MaterialComponent::GetShadreProgram() const
@@ -174,6 +174,16 @@ void MaterialComponent::Reset()
 	m_alphaCutOff = 1.0f;
 	m_textureResources.clear();
 	m_skyType = SkyType::None;
+}
+
+const StringCrc MaterialComponent::GetFeaturesCombineCrc() const
+{
+	return m_pMaterialType->GetShaderSchema().GetFeaturesCombineCrc(m_shaderFeatures);
+}
+
+std::string MaterialComponent::GetShaderFeaturesCombine() const
+{
+	return m_pMaterialType->GetShaderSchema().GetFeaturesCombine(m_shaderFeatures);
 }
 
 std::string MaterialComponent::GetVertexShaderName() const
@@ -281,7 +291,7 @@ void MaterialComponent::SetSkyType(SkyType crtType)
 		m_shaderFeatures.insert(skyTypeToShaderFeature.at(crtType));
 	}
 
-	m_uberShaderCrc = m_pMaterialType->GetShaderSchema().GetFeaturesCrc(m_shaderFeatures);
+	m_uberShaderCrc = m_pMaterialType->GetShaderSchema().GetFeaturesCombineCrc(m_shaderFeatures);
 	m_skyType = crtType;
 }
 

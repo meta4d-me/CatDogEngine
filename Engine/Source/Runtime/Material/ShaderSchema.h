@@ -54,7 +54,8 @@ public:
 	void SetCompiledProgram(StringCrc shaderFeaturesCrc, uint16_t programHandle);
 	uint16_t GetCompiledProgram(StringCrc shaderFeaturesCrc) const;
 
-	StringCrc GetFeaturesCrc(const ShaderFeatureSet& featureSet) const;
+	std::string GetFeaturesCombine(const ShaderFeatureSet& featureSet) const;
+	StringCrc GetFeaturesCombineCrc(const ShaderFeatureSet& featureSet) const;
 	bool IsFeaturesValid(StringCrc shaderFeaturesCrc) const;
 
 	std::vector<ShaderFeatureSet>& GetFeatures() { return m_shaderFeatureSets; }
