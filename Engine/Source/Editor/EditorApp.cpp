@@ -433,6 +433,11 @@ void EditorApp::InitEngineRenderers()
 	auto pBlitRTRenderPass = std::make_unique<engine::BlitRenderTargetPass>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	AddEngineRenderer(cd::MoveTemp(pBlitRTRenderPass));
 
+	auto pBloomRenderer = std::make_unique<engine::BloomRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pBloomRenderer->SetSceneWorld(m_pSceneWorld.get());
+	pBloomRenderer->SetEnable(false);
+	AddEngineRenderer(cd::MoveTemp(pBloomRenderer));
+
 	// We can debug vertex/material/texture information by just output that to screen as fragmentColor.
 	// But postprocess will bring unnecessary confusion. 
 	auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
