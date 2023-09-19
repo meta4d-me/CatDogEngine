@@ -13,14 +13,14 @@ namespace engine
 
 void WhiteModelRenderer::Init()
 {
-	GetRenderContext()->RegisterNonUberShader("DebugProgram", { "vs_debug", "fs_debug" });
+	GetRenderContext()->RegisterNonUberShader("WhiteModelProgram", { "vs_whiteModel", "fs_whiteModel" });
 
-	bgfx::setViewName(GetViewID(), "DebugRenderer");
+	bgfx::setViewName(GetViewID(), "WhiteModelRenderer");
 }
 
 void WhiteModelRenderer::Submit()
 {
-	GetRenderContext()->UploadShaders("DebugProgram");
+	GetRenderContext()->UploadShaders("WhiteModelProgram");
 }
 
 void WhiteModelRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

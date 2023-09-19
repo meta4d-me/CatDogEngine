@@ -3,6 +3,7 @@
 #include "Core/StringCrc.h"
 #include "Graphics/GraphicsBackend.h"
 #include "Math/Matrix.hpp"
+#include "Rendering/ShaderVariantCollections.h"
 #include "RenderTarget.h"
 #include "Scene/VertexAttribute.h"
 #include "Scene/VertexFormat.h"
@@ -20,7 +21,6 @@ namespace engine
 
 class Camera;
 class Renderer;
-class ShaderVariantCollections;
 
 static constexpr uint8_t MaxViewCount = 255;
 static constexpr uint8_t MaxRenderTargetCount = 255;
@@ -60,8 +60,8 @@ public:
 	/////////////////////////////////////////////////////////////////////
 	// Shader variant collections apis
 	/////////////////////////////////////////////////////////////////////
-	void SetShaderVariantCollections(ShaderVariantCollections* pShaderVariantCollections) { m_pShaderVariantCollections = pShaderVariantCollections; }
-	ShaderVariantCollections* GetShaderVariantCollections() { return m_pShaderVariantCollections; }
+	ShaderVariantCollections& GetShaderVariantCollections() { return m_shaderVariantCollections; }
+	const ShaderVariantCollections& GetShaderVariantCollections() const { return m_shaderVariantCollections; }
 
 	void RegisterNonUberShader(std::string programName, std::initializer_list<std::string> names);
 	void RegisterUberShader(std::string programName, std::initializer_list<std::string> names, std::initializer_list<std::string> combines = {});
@@ -71,7 +71,6 @@ public:
 	/////////////////////////////////////////////////////////////////////
 	// Shader blob apis
 	/////////////////////////////////////////////////////////////////////
-
 	const RenderContext::ShaderBlob& AddShaderBlob(StringCrc shaderNameCrc, ShaderBlob blob);
 	const ShaderBlob& GetShaderBlob(StringCrc shaderNameCrc) const;
 
@@ -127,7 +126,7 @@ private:
 	std::unordered_map<size_t, bgfx::TextureHandle> m_textureHandleCaches;
 	std::unordered_map<size_t, bgfx::UniformHandle> m_uniformHandleCaches;
 
-	ShaderVariantCollections* m_pShaderVariantCollections = nullptr;
+	ShaderVariantCollections m_shaderVariantCollections;
 
 	// Key : StringCrc(Program name), Value : Non-uber hader shader program handle
 	std::map<uint32_t, uint16_t> m_nonUberShaderProgramHandles;

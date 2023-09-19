@@ -347,12 +347,9 @@ void EditorApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
 {
 	CD_INFO("Init graphics backend : {}", nameof::nameof_enum(backend));
 
-	m_pShaderVariantCollections = std::make_unique<engine::ShaderVariantCollections>();
-
 	engine::Path::SetGraphicsBackend(backend);
 	m_pRenderContext = std::make_unique<engine::RenderContext>();
 	m_pRenderContext->Init(backend, hwnd);
-	m_pRenderContext->SetShaderVariantCollections(m_pShaderVariantCollections.get());
 	engine::Renderer::SetRenderContext(m_pRenderContext.get());
 }
 
@@ -476,10 +473,9 @@ bool EditorApp::IsAtmosphericScatteringEnable() const
 
 void EditorApp::InitShaderPrograms() const
 {
-	ShaderBuilder::BuildNonUberShaders(m_pRenderContext->GetShaderVariantCollections());
+	ShaderBuilder::BuildNonUberShaders(m_pRenderContext.get());
 
-	ShaderBuilder::BuildUberShader(m_pShaderVariantCollections.get(), m_pSceneWorld->GetPBRMaterialType());
-	ShaderBuilder::BuildUberShader(m_pShaderVariantCollections.get(), m_pSceneWorld->GetAnimationMaterialType());
+	ShaderBuilder::BuildUberShader(m_pRenderContext.get(), m_pSceneWorld->GetPBRMaterialType());
 #ifdef ENABLE_DDGI
 	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetDDGIMaterialType());
 #endif

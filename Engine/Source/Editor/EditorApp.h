@@ -106,7 +106,6 @@ private:
 
 	// Rendering
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;
-	std::unique_ptr<engine::ShaderVariantCollections> m_pShaderVariantCollections;
 
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEditorRenderers;
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEngineRenderers;

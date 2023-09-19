@@ -9,7 +9,7 @@
 namespace engine
 {
 
-class ShaderVariantCollections;
+class RenderContext;
 
 }
 
@@ -19,8 +19,8 @@ namespace editor
 class ShaderBuilder
 {
 public:
-	static void BuildNonUberShaders(engine::ShaderVariantCollections* pCollections);
-	static void BuildUberShader(engine::ShaderVariantCollections* pCollections, engine::MaterialType* pMaterialType);
+	static void BuildNonUberShaders(engine::RenderContext* pRenderContext);
+	static void BuildUberShader(engine::RenderContext* pRenderContext, engine::MaterialType* pMaterialType);
 };
 
 } // namespace editor

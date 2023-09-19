@@ -4,7 +4,6 @@
 #include "Path/Path.h"
 #include "Renderer.h"
 #include "Rendering/ShaderType.h"
-#include "Rendering/ShaderVariantCollections.h"
 #include "Rendering/Utility/VertexLayoutUtility.h"
 #include "Resources/ResourceLoader.h"
 
@@ -191,36 +190,37 @@ uint16_t RenderContext::CreateView()
 
 void RenderContext::RegisterNonUberShader(std::string programName, std::initializer_list<std::string> names)
 {
-	m_pShaderVariantCollections->RegisterNonUberShader(cd::MoveTemp(programName), cd::MoveTemp(names));
+	m_shaderVariantCollections.RegisterNonUberShader(cd::MoveTemp(programName), cd::MoveTemp(names));
 }
 
 void RenderContext::RegisterUberShader(std::string programName, std::initializer_list<std::string> names, std::initializer_list<std::string> combines)
 {
-	m_pShaderVariantCollections->RegisterUberShader(cd::MoveTemp(programName), cd::MoveTemp(names), cd::MoveTemp(combines));
+	m_shaderVariantCollections.RegisterUberShader(cd::MoveTemp(programName), cd::MoveTemp(names), cd::MoveTemp(combines));
 }
 
 void RenderContext::UploadShaders(std::string programName)
 {
-	const StringCrc programNameCrc = StringCrc(programName);
-	// Why warning me Don't use std::move on constant variables.
-	const auto [vsName, fsName, csName] = IdentifyShaderTypes(m_pShaderVariantCollections->GetNonUberShaders(programName));
-
-	if (m_pShaderVariantCollections->IsUber(programName))
+	if (m_shaderVariantCollections.IsUber(programName))
 	{
+		// Why warning me Don't use std::move on constant variables.
+		const auto [vsName, fsName, csName] = IdentifyShaderTypes(m_shaderVariantCollections.GetUberShaders(programName));
+
 		if (!vsName.empty() && !fsName.empty() && csName.empty())
 		{
-			for (const auto& combine : m_pShaderVariantCollections->GetFeatureCombines(programName))
+			for (const auto& combine : m_shaderVariantCollections.GetFeatureCombines(programName))
 			{
 				CreateProgram(programName.c_str(), vsName.data(), fsName.data(), combine.c_str());
 			}
 		}
 		else
 		{
-			CD_ENGINE_WARN("Unknown program type of {0}!", programName);
+			CD_ENGINE_WARN("Unknown uber shader program type of {0}!", programName);
 		}
 	}
 	else
 	{
+		const auto [vsName, fsName, csName] = IdentifyShaderTypes(m_shaderVariantCollections.GetNonUberShaders(programName));
+
 		if (!vsName.empty() && !fsName.empty() && csName.empty())
 		{
 			CreateProgram(programName.c_str(), vsName.data(), fsName.data());
@@ -231,7 +231,7 @@ void RenderContext::UploadShaders(std::string programName)
 		}
 		else
 		{
-			CD_ENGINE_WARN("Unknown program type of {0}!", programName);
+			CD_ENGINE_WARN("Unknown non-uber shader program type of {0}!", programName);
 		}
 	}
 }
