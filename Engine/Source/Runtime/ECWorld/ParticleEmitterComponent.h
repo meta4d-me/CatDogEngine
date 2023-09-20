@@ -26,18 +26,20 @@ public:
 	~ParticleEmitterComponent() = default;
 
 	engine::ParticleSystem &GetParticleSystem() { return m_particleSystem; }
-	void SetParticleSystem(engine::ParticleSystem& system) { m_particleSystem = system; }
 
 	uint16_t& GetParticleVBH(){ return m_particleVBH; }
-	void setParticleVBH(uint16_t vbh) { m_particleVBH = vbh; }
-
 	uint16_t& GetParticleIBH() { return m_particleIBH; }
-	void SetParticleIBH(uint16_t ibh) { m_particleIBH = ibh; }
 
 	std::vector<std::byte> &GetVertexBuffer() { return m_particleVertexBuffer; }
 	std::vector<std::byte> &GetIndexBuffer() { return m_particleIndexBuffer; }
 
 	void Build();
+
+	void UpdateBuffer();
+
+	void PaddingVertexBuffer();
+
+	void PaddingIndexBuffer();
 
 private:
 	ParticleSystem			m_particleSystem;

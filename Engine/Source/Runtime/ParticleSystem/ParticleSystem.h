@@ -36,6 +36,9 @@ public:
 	cd::Vec3f& GetColor(int index) { return m_color[index]; }
 	void SetColor(cd::Vec3f color) { m_color[m_particleIndex] = color; }
 
+	float& GetTexture_u(int index) { return m_texture_u[index]; }
+	float& GetTexture_v(int index) { return m_texture_v[index]; }
+
 	void  Active(int index) { m_isActive[index] = true; }
 	bool IsActive(int index) { return m_isActive[index]; }
 
@@ -53,15 +56,18 @@ public:
 	void Init();
 
 private:
+	int m_currentParticleCount = 0;
 	int m_particleIndex = -1;
 	int m_particleMaxCount = 300;
 	int m_currentActiveCount = 0;
-	
+
 	std::vector<int> m_FreeParticleIndex;
 	std::vector<cd::Vec3f> m_pos;
 	std::vector<cd::Vec3f> m_velocity;
 	std::vector<cd::Vec3f> m_acceleration;
 	std::vector<cd::Vec3f> m_color;
+	std::vector<float> m_texture_u;
+	std::vector<float> m_texture_v;
 
 	std::vector<bool>	m_isActive;
 	std::vector<float> m_currentTime;

@@ -228,10 +228,9 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
         transformComponent.SetTransform(cd::Transform::Identity());
         transformComponent.Build();
-        engine::ParticleSystem particles;
-        particles.Init();
-        particleEmitterComponent.SetParticleSystem(particles);
 
+        particleEmitterComponent.GetParticleSystem().Init();
+        particleEmitterComponent.Build();
     }
 }
 

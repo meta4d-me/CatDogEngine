@@ -1,6 +1,11 @@
 #pragma once
 
 #include "Renderer.h"
+#include "ECWorld/CameraComponent.h"
+#include "ECWorld/SceneWorld.h"
+#include "ECWorld/TransformComponent.h"
+#include "RenderContext.h"
+#include "Rendering/Utility/VertexLayoutUtility.h"
 
 namespace engine
 {
@@ -20,6 +25,7 @@ public:
 
 private:
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
+	bgfx::TextureHandle m_particleTextureHandle;
 };
 
 }

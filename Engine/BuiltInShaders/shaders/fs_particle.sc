@@ -1,8 +1,13 @@
-$input v_color0
+$input v_color0, v_texcoord0
 #include "../common/common.sh"
 
+SAMPLER2D(s_texColor, 0);
 
 void main()
 {
-	gl_FragColor = float4(v_color0.rgb,1.0f);
+	vec4 rgba = texture2D(s_texColor, v_texcoord0.xy);
+
+	rgba.xyz = rgba.xyz * v_color0.xyz;
+	rgba.w   = 1.0f;
+	gl_FragColor = rgba;
 }
