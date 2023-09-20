@@ -18,9 +18,14 @@ void WhiteModelRenderer::Init()
 	bgfx::setViewName(GetViewID(), "WhiteModelRenderer");
 }
 
-void WhiteModelRenderer::Submit()
+void WhiteModelRenderer::PreSubmit()
 {
 	GetRenderContext()->UploadShaders("WhiteModelProgram");
+}
+
+bool WhiteModelRenderer::CheckResources()
+{
+	return true;
 }
 
 void WhiteModelRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

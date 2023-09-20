@@ -25,7 +25,9 @@ public:
 	static RenderContext* GetRenderContext();
 
 	virtual void Init() = 0;
-	virtual void Submit() = 0;
+	virtual void PreSubmit() = 0;
+	// Retuen false skips this renderer at current frame.
+	virtual bool CheckResources();	
 	virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) = 0;
 	virtual void Render(float deltaTime) = 0;
 

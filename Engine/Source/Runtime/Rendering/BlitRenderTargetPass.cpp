@@ -14,8 +14,13 @@ BlitRenderTargetPass::~BlitRenderTargetPass()
 {
 }
 
-void BlitRenderTargetPass::Submit()
+void BlitRenderTargetPass::PreSubmit()
 {
+}
+
+bool BlitRenderTargetPass::CheckResources()
+{
+	return true;
 }
 
 void BlitRenderTargetPass::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

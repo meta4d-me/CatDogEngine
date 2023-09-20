@@ -473,7 +473,7 @@ void EditorApp::EditorRendererSubmit()
 {
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEditorRenderers)
 	{
-		pRenderer->Submit();
+		pRenderer->PreSubmit();
 	}
 }
 
@@ -481,7 +481,7 @@ void EditorApp::EngineRendererSubmit()
 {
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
 	{
-		pRenderer->Submit();
+		pRenderer->PreSubmit();
 	}
 }
 
@@ -609,7 +609,7 @@ bool EditorApp::Update(float deltaTime)
 
 		for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
 		{
-			if (pRenderer->IsEnable())
+			if (pRenderer->IsEnable() && pRenderer->CheckResources())
 			{
 				const float* pViewMatrix = pMainCameraComponent->GetViewMatrix().Begin();
 				const float* pProjectionMatrix = pMainCameraComponent->GetProjectionMatrix().Begin();

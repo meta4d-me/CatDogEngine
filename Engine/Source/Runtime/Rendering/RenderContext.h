@@ -44,8 +44,10 @@ public:
 	void Init(GraphicsBackend backend, void* hwnd = nullptr);
 	void OnResize(uint16_t width, uint16_t height);
 	void BeginFrame();
+	bool CheckShaderProgram(const std::string& programName);
+	bool CheckShaderProgram(const std::string& programName, const std::string& featuresCombine);
 	void Submit(uint16_t viewID, const std::string& programName);
-	void Submit(uint16_t viewID, const std::string& programName, const std::string& featuresCombine);
+	void Submit(uint16_t viewID, const std::string& programName, StringCrc featuresCombineCrc);
 	void Dispatch(uint16_t viewID, const std::string& programName, uint32_t numX, uint32_t numY, uint32_t numZ);
 	void EndFrame();
 	void Shutdown();

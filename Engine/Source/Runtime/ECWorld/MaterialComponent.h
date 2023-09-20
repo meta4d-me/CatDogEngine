@@ -103,7 +103,7 @@ public:
 	const std::set<ShaderFeature>& GetShaderFeatures() const { return m_shaderFeatures; }
 
 	const StringCrc GetFeaturesCombineCrc() const;
-	std::string GetShaderFeaturesCombine() const;
+	std::string GetFeaturesCombine() const;
 
 	std::string GetVertexShaderName() const;
 	std::string GetFragmentShaderName() const;

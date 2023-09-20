@@ -153,27 +153,43 @@ void RenderContext::BeginFrame()
 {
 }
 
+bool RenderContext::CheckShaderProgram(const std::string& programName)
+{
+	bgfx::ProgramHandle handle = GetNonUberShaderProgramHandle(StringCrc(programName));
+	if (!bgfx::isValid(handle))
+	{
+		// TODO : AddShaderCompileTask
+		return false;
+	}
+	return true;
+}
+
+bool RenderContext::CheckShaderProgram(const std::string& programName, const std::string& featuresCombine)
+{
+	StringCrc featuresCombineCrc = StringCrc(featuresCombine);
+
+	bgfx::ProgramHandle handle = GetUberShaderProgramHandle(StringCrc(programName), featuresCombineCrc);
+	if (!bgfx::isValid(handle))
+	{
+		AddShaderVariantCompileTask({ programName, featuresCombine });
+		m_shaderVariantCollections.AddFeatureCombine(programName, featuresCombine);
+		return false;
+	}
+	return true;
+}
+
 void RenderContext::Submit(uint16_t viewID, const std::string& programName)
 {
 	bgfx::submit(viewID, GetNonUberShaderProgramHandle(StringCrc(programName)));
 }
 
-void RenderContext::Submit(uint16_t viewID, const std::string& programName, const std::string& featuresCombine)
+void RenderContext::Submit(uint16_t viewID, const std::string& programName, StringCrc featuresCombineCrc)
 {
-	const StringCrc featuresCombineCrc = StringCrc(featuresCombine);
-
 	if (m_shaderVariantCollections.IsUberShaderProgramValid(programName))
 	{
 		bgfx::ProgramHandle handle = GetUberShaderProgramHandle(StringCrc(programName), featuresCombineCrc);
-		if (bgfx::isValid(handle))
-		{
-			bgfx::submit(viewID, handle);
-		}
-		else
-		{
-			AddShaderVariantCompileTask({ programName, featuresCombine });
-			m_shaderVariantCollections.AddFeatureCombine(programName, featuresCombine);
-		}
+		assert(bgfx::isValid(handle));
+		bgfx::submit(viewID, handle);
 	}
 	else
 	{
@@ -290,8 +306,12 @@ void RenderContext::UploadShader(const std::string& programName, const std::stri
 
 void RenderContext::AddShaderVariantCompileTask(ShaderVariantCompileInfo info)
 {
-	CD_ENGINE_INFO("Runtime shader compile task added : [{0}, {1}]", info.m_programName, info.m_featuresCombine);
-	m_shaderVariantCompileTasks.emplace_back(cd::MoveTemp(info));
+	const auto& it = std::find(m_shaderVariantCompileTasks.begin(), m_shaderVariantCompileTasks.end(), info);
+	if (it == m_shaderVariantCompileTasks.end())
+	{
+		CD_ENGINE_INFO("Runtime shader compile task added for {0} with shader features : {1}", info.m_programName, info.m_featuresCombine);
+		m_shaderVariantCompileTasks.emplace_back(cd::MoveTemp(info));
+	}
 }
 
 void RenderContext::ClearShaderVariantCompileTasks()
@@ -319,9 +339,10 @@ const RenderContext::ShaderBlob& RenderContext::GetShaderBlob(StringCrc shaderNa
 
 bgfx::ProgramHandle RenderContext::GetNonUberShaderProgramHandle(const StringCrc programName) const
 {
-	if (m_nonUberShaderProgramHandles.find(programName.Value()) != m_nonUberShaderProgramHandles.end())
+	const auto& it = m_nonUberShaderProgramHandles.find(programName.Value());
+	if (it != m_nonUberShaderProgramHandles.end())
 	{
-		return { m_nonUberShaderProgramHandles.at(programName.Value()) };
+		return { it->second };
 	}
 
 	return { bgfx::kInvalidHandle };
@@ -329,13 +350,15 @@ bgfx::ProgramHandle RenderContext::GetNonUberShaderProgramHandle(const StringCrc
 
 bgfx::ProgramHandle RenderContext::GetUberShaderProgramHandle(const StringCrc programName, const StringCrc featureCombineCrc) const
 {
-	if (m_uberShaderProgramHandles.find(programName.Value()) == m_uberShaderProgramHandles.end())
+	const auto& itProgram = m_uberShaderProgramHandles.find(programName.Value());
+	if (itProgram == m_uberShaderProgramHandles.end())
 	{
 		return { bgfx::kInvalidHandle };
 	}
 
-	const auto& featureCombineProgramHandleMap = m_uberShaderProgramHandles.at(programName.Value());
-	if (featureCombineProgramHandleMap.find(featureCombineCrc.Value()) == featureCombineProgramHandleMap.end())
+	const auto& featureCombineProgramHandleMap = itProgram->second;
+	const auto& itHandle = featureCombineProgramHandleMap.find(featureCombineCrc.Value());
+	if (itHandle == featureCombineProgramHandleMap.end())
 	{
 		return { bgfx::kInvalidHandle };
 	}

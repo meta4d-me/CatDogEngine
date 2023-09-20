@@ -181,7 +181,7 @@ const StringCrc MaterialComponent::GetFeaturesCombineCrc() const
 	return m_pMaterialType->GetShaderSchema().GetFeaturesCombineCrc(m_shaderFeatures);
 }
 
-std::string MaterialComponent::GetShaderFeaturesCombine() const
+std::string MaterialComponent::GetFeaturesCombine() const
 {
 	return m_pMaterialType->GetShaderSchema().GetFeaturesCombine(m_shaderFeatures);
 }

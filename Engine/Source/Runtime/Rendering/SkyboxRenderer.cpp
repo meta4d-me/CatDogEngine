@@ -22,12 +22,13 @@ constexpr uint64_t renderState = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | B
 
 void SkyboxRenderer::Init()
 {
+	// TODO : Use uber shader to switch non-sky and IBL case in SkyboxRenderer.
 	GetRenderContext()->RegisterNonUberShader(skyboxProgram, {"vs_skybox", "fs_skybox"});
 
 	bgfx::setViewName(GetViewID(), "SkyboxRenderer");
 }
 
-void SkyboxRenderer::Submit()
+void SkyboxRenderer::PreSubmit()
 {
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
@@ -35,6 +36,11 @@ void SkyboxRenderer::Submit()
 	GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), sampleFalg);
 
 	GetRenderContext()->UploadShaders(skyboxProgram);
+}
+
+bool SkyboxRenderer::CheckResources()
+{
+	return true;
 }
 
 void SkyboxRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

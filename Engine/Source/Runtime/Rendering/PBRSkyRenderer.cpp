@@ -62,7 +62,7 @@ void PBRSkyRenderer::Init()
 	bgfx::setViewName(GetViewID(), "PBRSkyRenderer");
 }
 
-void PBRSkyRenderer::Submit()
+void PBRSkyRenderer::PreSubmit()
 {
 	GetRenderContext()->CreateTexture(TextureTransmittance, TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT, 1,
 		bgfx::TextureFormat::RGBA32F, FlagTexture2D);
@@ -95,6 +95,11 @@ void PBRSkyRenderer::Submit()
 	GetRenderContext()->CreateProgram(ProgramComputeScatteringDensity, "cs_ComputeScatteringDensity.bin");
 	GetRenderContext()->CreateProgram(ProgramComputeIndirectIrradiance, "cs_ComputeIndirectIrradiance.bin");
 	GetRenderContext()->CreateProgram(ProgramComputeMultipleScattering, "cs_ComputeMultipleScattering.bin");
+}
+
+bool PBRSkyRenderer::CheckResources()
+{
+	return true;
 }
 
 void PBRSkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

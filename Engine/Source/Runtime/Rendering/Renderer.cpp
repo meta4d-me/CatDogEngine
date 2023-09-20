@@ -27,6 +27,11 @@ RenderContext* Renderer::GetRenderContext()
 	return m_pRenderContext;
 }
 
+bool Renderer::CheckResources()
+{
+	return true;
+}
+
 void Renderer::UpdateViewRenderTarget()
 {
 	if (m_pRenderTarget)

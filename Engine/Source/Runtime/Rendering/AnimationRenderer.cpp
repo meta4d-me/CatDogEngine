@@ -141,7 +141,7 @@ void AnimationRenderer::Init()
 	bgfx::setViewName(GetViewID(), "AnimationRenderer");
 }
 
-void AnimationRenderer::Submit()
+void AnimationRenderer::PreSubmit()
 {
 #ifdef VISUALIZE_BONE_WEIGHTS
 	m_pRenderContext->CreateUniform("u_debugBoneIndex", bgfx::UniformType::Vec4, 1);
@@ -149,6 +149,11 @@ void AnimationRenderer::Submit()
 #else
 	GetRenderContext()->UploadShaders("AnimationProgram");
 #endif
+}
+
+bool AnimationRenderer::CheckResources()
+{
+	return true;
 }
 
 void AnimationRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

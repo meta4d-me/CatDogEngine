@@ -10,10 +10,10 @@ namespace engine
 	{
 	public:
 		using Renderer::Renderer;
-		virtual ~PostProcessRenderer();
 
 		virtual void Init() override;
-		virtual void Submit() override;
+		virtual void PreSubmit() override;
+		virtual bool CheckResources() override;
 		virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) override;
 		virtual void Render(float deltaTime) override;
 

@@ -62,9 +62,14 @@ void SkeletonRenderer::Init()
 	bgfx::setViewName(GetViewID(), "SkeletonRenderer");
 }
 
-void SkeletonRenderer::Submit()
+void SkeletonRenderer::PreSubmit()
 {
 	GetRenderContext()->UploadShaders("SkeletonProgram");
+}
+
+bool SkeletonRenderer::CheckResources()
+{
+	return true;
 }
 
 void SkeletonRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
