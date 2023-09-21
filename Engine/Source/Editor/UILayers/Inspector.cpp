@@ -93,7 +93,7 @@ void UpdateComponentWidget<engine::StaticMeshComponent>(engine::SceneWorld* pSce
 	}
 
 	ImGuiUtils::ImGuiStringProperty("Vertex Count", std::to_string(pStaticMeshComponent->GetVertexCount()));
-	ImGuiUtils::ImGuiStringProperty("Triangle Count", std::to_string(static_cast<uint32_t>(pStaticMeshComponent->GetIndexCount() / 3)));
+	ImGuiUtils::ImGuiStringProperty("Triangle Count", std::to_string(static_cast<uint32_t>(pStaticMeshComponent->GetPolygonCount())));
 
 	if (!pStaticMeshComponent->IsProgressiveMeshValid())
 	{
@@ -104,7 +104,7 @@ void UpdateComponentWidget<engine::StaticMeshComponent>(engine::SceneWorld* pSce
 	}
 	else
 	{
-		ImGuiUtils::ImGuiFloatProperty("LOD Percent", pStaticMeshComponent->GetProgressiveMeshReductionPercent(), cd::Unit::None, 0.05f, 1.0f, false, 0.01f);
+		ImGuiUtils::ImGuiFloatProperty("LOD Percent", pStaticMeshComponent->GetProgressiveMeshReductionPercent(), cd::Unit::None, 0.001f, 1.0f, false, 0.001f);
 	}
 }
 
