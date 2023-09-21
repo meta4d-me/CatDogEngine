@@ -22,7 +22,7 @@ constexpr uint64_t renderState = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | B
 
 void SkyboxRenderer::Init()
 {
-	GetRenderContext()->RegisterNonUberShader(skyboxProgram, {"vs_skybox", "fs_skybox"});
+	GetRenderContext()->RegisterShaderProgram(skyboxProgram, {"vs_skybox", "fs_skybox"});
 
 	bgfx::setViewName(GetViewID(), "SkyboxRenderer");
 }
@@ -34,7 +34,7 @@ void SkyboxRenderer::Warmup()
 	GetRenderContext()->CreateUniform(skyboxSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), sampleFalg);
 
-	GetRenderContext()->UploadNonUberShader(skyboxProgram);
+	GetRenderContext()->UploadShaderProgram(skyboxProgram);
 }
 
 bool SkyboxRenderer::CheckResources()

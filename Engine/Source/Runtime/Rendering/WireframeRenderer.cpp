@@ -13,14 +13,14 @@ namespace engine
 
 void WireframeRenderer::Init()
 {
-	GetRenderContext()->RegisterNonUberShader("WireframeLineProgram", { "vs_wireframe_line", "fs_wireframe_line" });
+	GetRenderContext()->RegisterShaderProgram("WireframeLineProgram", { "vs_wireframe_line", "fs_wireframe_line" });
 
 	bgfx::setViewName(GetViewID(), "WireframeRenderer");
 }
 
 void WireframeRenderer::Warmup()
 {
-	GetRenderContext()->UploadNonUberShader("WireframeLineProgram");
+	GetRenderContext()->UploadShaderProgram("WireframeLineProgram");
 }
 
 void WireframeRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

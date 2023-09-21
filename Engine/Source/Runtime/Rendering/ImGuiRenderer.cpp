@@ -10,7 +10,7 @@ namespace engine
 
 void ImGuiRenderer::Init()
 {
-	GetRenderContext()->RegisterNonUberShader("ImGuiProgram", { "vs_imgui", "fs_imgui" });
+	GetRenderContext()->RegisterShaderProgram("ImGuiProgram", { "vs_imgui", "fs_imgui" });
 
 	bgfx::setViewName(GetViewID(), "ImGuiRenderer");
 }
@@ -30,7 +30,7 @@ void ImGuiRenderer::Warmup()
 	}
 
 	GetRenderContext()->CreateUniform("s_tex", bgfx::UniformType::Sampler);
-	GetRenderContext()->UploadNonUberShader("ImGuiProgram");
+	GetRenderContext()->UploadShaderProgram("ImGuiProgram");
 }
 
 void ImGuiRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -171,9 +171,7 @@ void ImGuiRenderer::Render(float deltaTime)
 					pEncoder->setVertexBuffer(0, &vertexBuffer, cmd->VtxOffset, numVertices);
 					pEncoder->setIndexBuffer(&indexBuffer, cmd->IdxOffset, cmd->ElemCount);
 
-					constexpr StringCrc imguiProgram("ImGuiProgram");
-
-					pEncoder->submit(GetViewID(), GetRenderContext()->GetNonUberShaderProgramHandle(imguiProgram));
+					pEncoder->submit(GetViewID(), GetRenderContext()->GetShaderProgramHandle("ImGuiProgram"));
 				}
 			}
 		}

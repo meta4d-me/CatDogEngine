@@ -7,96 +7,58 @@
 namespace engine
 {
 
-void ShaderVariantCollections::RegisterNonUberShader(std::string programName, std::initializer_list<std::string> names)
+void ShaderVariantCollections::RegisterShaderProgram(const std::string& programName, std::initializer_list<std::string> names)
 {
-	if (IsNonUberShaderProgramValid(programName))
+	if (IsProgramValid(programName) || HasFeatureCombine(programName))
 	{
-		CD_ENGINE_WARN("Non uber shader program {0} already exists!", programName);
+		CD_ENGINE_WARN("Shader program {0} already exists!", programName);
 		return;
 	}
-
-	if (IsUberShaderProgramValid(programName))
-	{
-		CD_ENGINE_WARN("Uber shader program {0} already exists!", programName);
-		return;
-	}
-
-	m_nonUberShaderPrograms[cd::MoveTemp(programName)] = cd::MoveTemp(names);
+	
+	m_shaderPrograms[programName] = cd::MoveTemp(names);
 }
 
-void ShaderVariantCollections::RegisterUberShader(std::string programName, std::initializer_list<std::string> names, std::initializer_list<std::string> combines)
+void ShaderVariantCollections::AddFeatureCombine(const std::string& programName, std::string combine)
 {
-	if (IsNonUberShaderProgramValid(programName))
-	{
-		CD_ENGINE_WARN("Non uber shader program {0} already exists!", programName);
-		return;
-	}
+	assert(IsProgramValid(programName) && "Shader program does not exist!");
 
-	if (IsUberShaderProgramValid(programName))
-	{
-		CD_ENGINE_WARN("Uber shader program {0} already exists!", programName);
-		return;
-	}
-
-	m_uberShaderPrograms[cd::MoveTemp(programName)] = cd::MoveTemp(names);
-	m_programFeatureCombines[cd::MoveTemp(programName)] = cd::MoveTemp(combines);
+	m_programFeatureCombines[programName].insert(cd::MoveTemp(combine));
 }
 
-void ShaderVariantCollections::AddFeatureCombine(std::string programName, std::string combine)
+void ShaderVariantCollections::DeleteFeatureCombine(const std::string& programName, std::string combine)
 {
-	assert(IsUberShaderProgramValid(programName) && "Uber shader does not exist!");
+	assert(HasFeatureCombine(programName) && "Feature combine does not exist!");
 
-	m_programFeatureCombines[cd::MoveTemp(programName)].insert(cd::MoveTemp(combine));
+	m_programFeatureCombines[programName].erase(cd::MoveTemp(combine));
 }
 
-void ShaderVariantCollections::DeleteFeatureCombine(std::string programName, std::string combine)
+void ShaderVariantCollections::SetShaders(const std::string& programName, std::set<std::string> shaders)
 {
-	assert(IsUberShaderProgramValid(programName) && "Uber shader does not exist!");
+	assert(IsProgramValid(programName) && "Shader program does not exist!");
 
-	m_programFeatureCombines[cd::MoveTemp(programName)].erase(cd::MoveTemp(combine));
-}
-
-void ShaderVariantCollections::SetNonUberShaders(const std::string& programName, std::set<std::string> shaders)
-{
-	assert(IsNonUberShaderProgramValid(programName) && "Non uber shader does not exist!");
-
-	m_nonUberShaderPrograms[programName] = cd::MoveTemp(shaders);
-}
-
-void ShaderVariantCollections::SetUberShaders(const std::string& programName, std::set<std::string> shaders)
-{
-	assert(IsUberShaderProgramValid(programName) && "Uber shader does not exist!");
-
-	m_uberShaderPrograms[programName] = cd::MoveTemp(shaders);
+	m_shaderPrograms[programName] = cd::MoveTemp(shaders);
 }
 
 void ShaderVariantCollections::SetFeatureCombines(const std::string& programName, std::set<std::string> combine)
 {
-	assert(m_nonUberShaderPrograms.find(programName) == m_nonUberShaderPrograms.end() &&
-		"A programme cannot be both uber and non-uber shder at the same time.");
+	assert(IsProgramValid(programName) && "Shader program does not exist!");
 
 	m_programFeatureCombines[programName] = cd::MoveTemp(combine);
 }
 
-bool ShaderVariantCollections::IsNonUberShaderProgramValid(const std::string& programName) const
+bool ShaderVariantCollections::IsProgramValid(const std::string& programName) const
 {
-	return (m_nonUberShaderPrograms.find(programName) != m_nonUberShaderPrograms.end());
+	return (m_shaderPrograms.find(programName) != m_shaderPrograms.end());
 }
 
-bool ShaderVariantCollections::IsUberShaderProgramValid(const std::string& programName) const
+bool ShaderVariantCollections::HasFeatureCombine(const std::string& programName) const
 {
-	return (m_uberShaderPrograms.find(programName) != m_uberShaderPrograms.end() &&
-		m_programFeatureCombines.find(programName) != m_programFeatureCombines.end());
+	return (m_programFeatureCombines.find(programName) != m_programFeatureCombines.end());
 }
 
-void ShaderVariantCollections::SetNonUberShaderPrograms(std::map<std::string, std::set<std::string>> shaders)
+void ShaderVariantCollections::SetShaderPrograms(std::map<std::string, std::set<std::string>> shaders)
 {
-	m_nonUberShaderPrograms = cd::MoveTemp(shaders);
-}
-
-void ShaderVariantCollections::SetUberShaderPrograms(std::map<std::string, std::set<std::string>> shaders)
-{
-	m_uberShaderPrograms = cd::MoveTemp(shaders);
+	m_shaderPrograms = cd::MoveTemp(shaders);
 }
 
 void ShaderVariantCollections::SetFeatureCombinePrograms(std::map<std::string, std::set<std::string>> combines)

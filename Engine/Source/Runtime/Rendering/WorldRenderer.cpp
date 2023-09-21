@@ -48,7 +48,7 @@ constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MS
 
 void WorldRenderer::Init()
 {
-	GetRenderContext()->RegisterUberShader("WorldProgram", { "vs_PBR", "fs_PBR" });
+	GetRenderContext()->RegisterShaderProgram("WorldProgram", { "vs_PBR", "fs_PBR" });
 
 	bgfx::setViewName(GetViewID(), "WorldRenderer");
 }
@@ -85,7 +85,7 @@ bool WorldRenderer::CheckResources()
 	for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
 	{
 		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
-		if (!GetRenderContext()->CheckUbeShaderProgram("WorldProgram", pMaterialComponent->GetFeaturesCombine()))
+		if (!GetRenderContext()->CheckShaderProgram("WorldProgram", pMaterialComponent->GetFeaturesCombine()))
 		{
 			valid = false;
 		}
@@ -239,7 +239,7 @@ void WorldRenderer::Render(float deltaTime)
 
 		bgfx::setState(state);
 
-		GetRenderContext()->Submit(GetViewID(), "WorldProgram", pMaterialComponent->GetFeaturesCombineCrc());
+		GetRenderContext()->Submit(GetViewID(), "WorldProgram", pMaterialComponent->GetFeaturesCombine());
 	}
 }
 

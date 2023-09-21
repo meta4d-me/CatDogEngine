@@ -8,13 +8,13 @@ namespace engine
 
 void BloomRenderer::Init()
 {
-	GetRenderContext()->RegisterNonUberShader("CapTureBrightnessProgram", { "vs_fullscreen", "fs_captureBrightness" });
-	GetRenderContext()->RegisterNonUberShader("DownSampleProgram", { "vs_fullscreen", "fs_dowmsample" });
-	GetRenderContext()->RegisterNonUberShader("BlurVerticalProgram", { "vs_fullscreen", "fs_blurvertical" });
-	GetRenderContext()->RegisterNonUberShader("BlurHorizontalProgram", { "vs_fullscreen", "fs_blurhorizontal" });
-	GetRenderContext()->RegisterNonUberShader("UpSampleProgram", { "vs_fullscreen", "fs_upsample" });
-	GetRenderContext()->RegisterNonUberShader("KawaseBlurProgram", { "vs_fullscreen", "fs_kawaseblur" });
-	GetRenderContext()->RegisterNonUberShader("CombineProgram", { "vs_fullscreen", "fs_bloom" });
+	GetRenderContext()->RegisterShaderProgram("CapTureBrightnessProgram", { "vs_fullscreen", "fs_captureBrightness" });
+	GetRenderContext()->RegisterShaderProgram("DownSampleProgram", { "vs_fullscreen", "fs_dowmsample" });
+	GetRenderContext()->RegisterShaderProgram("BlurVerticalProgram", { "vs_fullscreen", "fs_blurvertical" });
+	GetRenderContext()->RegisterShaderProgram("BlurHorizontalProgram", { "vs_fullscreen", "fs_blurhorizontal" });
+	GetRenderContext()->RegisterShaderProgram("UpSampleProgram", { "vs_fullscreen", "fs_upsample" });
+	GetRenderContext()->RegisterShaderProgram("KawaseBlurProgram", { "vs_fullscreen", "fs_kawaseblur" });
+	GetRenderContext()->RegisterShaderProgram("CombineProgram", { "vs_fullscreen", "fs_bloom" });
 
 	bgfx::setViewName(GetViewID(), "BloomRenderer");
 }
@@ -56,13 +56,13 @@ void BloomRenderer::Warmup()
 	GetRenderContext()->CreateUniform("u_bloomIntensity", bgfx::UniformType::Vec4);
 	GetRenderContext()->CreateUniform("u_luminanceThreshold", bgfx::UniformType::Vec4);
 
-	GetRenderContext()->UploadNonUberShader("CapTureBrightnessProgram");
-	GetRenderContext()->UploadNonUberShader("DownSampleProgram");
-	GetRenderContext()->UploadNonUberShader("BlurVerticalProgram");
-	GetRenderContext()->UploadNonUberShader("BlurHorizontalProgram");
-	GetRenderContext()->UploadNonUberShader("UpSampleProgram");
-	GetRenderContext()->UploadNonUberShader("KawaseBlurProgram");
-	GetRenderContext()->UploadNonUberShader("CombineProgram");
+	GetRenderContext()->UploadShaderProgram("CapTureBrightnessProgram");
+	GetRenderContext()->UploadShaderProgram("DownSampleProgram");
+	GetRenderContext()->UploadShaderProgram("BlurVerticalProgram");
+	GetRenderContext()->UploadShaderProgram("BlurHorizontalProgram");
+	GetRenderContext()->UploadShaderProgram("UpSampleProgram");
+	GetRenderContext()->UploadShaderProgram("KawaseBlurProgram");
+	GetRenderContext()->UploadShaderProgram("CombineProgram");
 }
 
 void BloomRenderer::SetEnable(bool value)

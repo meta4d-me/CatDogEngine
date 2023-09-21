@@ -55,7 +55,7 @@ constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MS
 
 void TerrainRenderer::Init()
 {
-	GetRenderContext()->RegisterNonUberShader("TerrainProgram", {"vs_terrain", "fs_terrain"});
+	GetRenderContext()->RegisterShaderProgram("TerrainProgram", {"vs_terrain", "fs_terrain"});
 
 	bgfx::setViewName(GetViewID(), "TerrainRenderer");
 }
@@ -90,7 +90,7 @@ void TerrainRenderer::Warmup()
 
 	GetRenderContext()->CreateTexture(elevationTexture, 129U, 129U, 1, bgfx::TextureFormat::Enum::R32F, samplerFlags, nullptr, 0);
 
-	GetRenderContext()->UploadNonUberShader("TerrainProgram");
+	GetRenderContext()->UploadShaderProgram("TerrainProgram");
 }
 
 void TerrainRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

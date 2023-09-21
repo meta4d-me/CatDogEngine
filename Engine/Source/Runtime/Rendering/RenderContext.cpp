@@ -120,24 +120,16 @@ void RenderContext::Init(GraphicsBackend backend, void* hwnd)
 
 void RenderContext::Shutdown()
 {
-	for (auto it : m_nonUberShaderProgramHandles)
+	for (auto it : m_shaderHandles)
 	{
 		bgfx::destroy(bgfx::ProgramHandle{ it.second });
 	}
 
-	for (auto program : m_uberShaderProgramHandles)
-	{
-		for (auto variant : program.second)
-		{
-			bgfx::destroy(bgfx::ProgramHandle{ variant.second });
-		}
-	}
-
-	for(auto it : m_shaderHandles)
+	for (auto it : m_shaderProgramHandles)
 	{
 		bgfx::destroy(bgfx::ProgramHandle{ it.second });
 	}
-
+	
 	for (auto it : m_textureHandleCaches)
 	{
 		bgfx::destroy(it.second);
@@ -153,37 +145,18 @@ void RenderContext::BeginFrame()
 {
 }
 
-void RenderContext::Submit(uint16_t viewID, const std::string& programName)
+void RenderContext::Submit(uint16_t viewID, const std::string& programName, const std::string& featureCombine)
 {
-	if (m_shaderVariantCollections.IsNonUberShaderProgramValid(programName))
-	{
-		bgfx::ProgramHandle handle = GetNonUberShaderProgramHandle(StringCrc(programName));
-		assert(bgfx::isValid(handle));
-		bgfx::submit(viewID, handle);
-	}
-	else
-	{
-		CD_ENGINE_WARN("Unregistered non-uber program {0}!", programName);
-	}
-}
-
-void RenderContext::Submit(uint16_t viewID, const std::string& programName, StringCrc featuresCombineCrc)
-{
-	if (m_shaderVariantCollections.IsUberShaderProgramValid(programName))
-	{
-		bgfx::ProgramHandle handle = GetUberShaderProgramHandle(StringCrc(programName), featuresCombineCrc);
-		assert(bgfx::isValid(handle));
-		bgfx::submit(viewID, handle);
-	}
-	else
-	{
-		CD_ENGINE_WARN("Unregistered uber program {0}!", programName);
-	}
+	assert(m_shaderVariantCollections.IsProgramValid(programName));
+	assert(bgfx::isValid(GetShaderProgramHandle(programName, featureCombine)));
+	bgfx::submit(viewID, GetShaderProgramHandle(programName, featureCombine));
 }
 
 void RenderContext::Dispatch(uint16_t viewID, const std::string& programName, uint32_t numX, uint32_t numY, uint32_t numZ)
 {
-	bgfx::dispatch(viewID, GetNonUberShaderProgramHandle(StringCrc(programName)), numX, numY, numZ);
+	assert(m_shaderVariantCollections.IsProgramValid(programName));
+	assert(bgfx::isValid(GetShaderProgramHandle(programName)));
+	bgfx::dispatch(viewID, GetShaderProgramHandle(programName), numX, numY, numZ);
 }
 
 void RenderContext::EndFrame()
@@ -206,39 +179,25 @@ uint16_t RenderContext::CreateView()
 	return m_currentViewCount++;
 }
 
-void RenderContext::RegisterNonUberShader(std::string programName, std::initializer_list<std::string> names)
+void RenderContext::RegisterShaderProgram(std::string programName, std::initializer_list<std::string> names)
 {
-	m_shaderVariantCollections.RegisterNonUberShader(cd::MoveTemp(programName), cd::MoveTemp(names));
+	m_shaderVariantCollections.RegisterShaderProgram(programName, cd::MoveTemp(names));
 }
 
-void RenderContext::RegisterUberShader(std::string programName, std::initializer_list<std::string> names, std::initializer_list<std::string> combines)
+void RenderContext::AddShaderFeature(std::string programName, std::string combine)
 {
-	m_shaderVariantCollections.RegisterUberShader(cd::MoveTemp(programName), cd::MoveTemp(names), cd::MoveTemp(combines));
+	m_shaderVariantCollections.AddFeatureCombine(programName, cd::MoveTemp(combine));
 }
 
-bool RenderContext::CheckNonUbeShaderProgram(const std::string& programName)
+bool RenderContext::CheckShaderProgram(const std::string& programName, const std::string& featuresCombine)
 {
-	assert(m_shaderVariantCollections.IsNonUberShaderProgramValid(programName));
-	bgfx::ProgramHandle handle = GetNonUberShaderProgramHandle(StringCrc(programName));
+	assert(m_shaderVariantCollections.IsProgramValid(programName));
 
-	if (!bgfx::isValid(handle))
+	if (!bgfx::isValid(GetShaderProgramHandle(programName, featuresCombine)))
 	{
 		// Here only represents that we do not hold the shader GPU handle, whether the shader is compiled or not is unknown.
 		// The Combile Task is still added to the queue, and ResourceBuilder ensures that,
 		// there is no duplication of compilation behavior.
-		AddShaderCompileTask(ShaderCompileInfo(programName));
-		return false;
-	}
-	return true;
-}
-
-bool RenderContext::CheckUbeShaderProgram(const std::string& programName, const std::string& featuresCombine)
-{
-	assert(m_shaderVariantCollections.IsUberShaderProgramValid(programName));
-	bgfx::ProgramHandle handle = GetUberShaderProgramHandle(StringCrc(programName), StringCrc(featuresCombine));
-
-	if (!bgfx::isValid(handle))
-	{
 		AddShaderCompileTask(ShaderCompileInfo(programName, featuresCombine));
 		if (!featuresCombine.empty())
 		{
@@ -249,39 +208,38 @@ bool RenderContext::CheckUbeShaderProgram(const std::string& programName, const 
 	return true;
 }
 
-void RenderContext::UploadNonUberShader(const std::string& programName)
+void RenderContext::UploadShaderProgram(const std::string& programName, const std::string& combine)
 {
-	assert(m_shaderVariantCollections.IsNonUberShaderProgramValid(programName));
+	assert(m_shaderVariantCollections.IsProgramValid(programName));
+	
+	auto [vsName, fsName, csName] = IdentifyShaderTypes(m_shaderVariantCollections.GetShaders(programName));
 
-	auto [vsName, fsName, csName] = IdentifyShaderTypes(m_shaderVariantCollections.GetNonUberShaders(programName));
-
-	if (!vsName.empty() && !fsName.empty() && csName.empty())
+	// TODO : CreateProgram
+	if (combine.empty())
 	{
-		CreateProgram(programName.c_str(), vsName.data(), fsName.data());
-	}
-	else if (!csName.empty())
-	{
-		CreateProgram(programName.c_str(), csName.data());
+		if (!vsName.empty() && !fsName.empty() && csName.empty())
+		{
+			CreateProgram(programName.c_str(), vsName.data(), fsName.data());
+		}
+		else if (!csName.empty())
+		{
+			CreateProgram(programName.c_str(), csName.data());
+		}
+		else
+		{
+			CD_ENGINE_WARN("Unknown non-uber shader program type of {0}!", programName);
+		}
 	}
 	else
 	{
-		CD_ENGINE_WARN("Unknown non-uber shader program type of {0}!", programName);
-	}
-}
-
-void RenderContext::UploadUberShader(const std::string& programName, const std::string& combine)
-{
-	assert(m_shaderVariantCollections.IsUberShaderProgramValid(programName));
-
-	auto [vsName, fsName, csName] = IdentifyShaderTypes(m_shaderVariantCollections.GetUberShaders(programName));
-
-	if (!vsName.empty() && !fsName.empty() && csName.empty())
-	{
-		CreateProgram(programName.c_str(), vsName.data(), fsName.data(), combine.c_str());
-	}
-	else
-	{
-		CD_ENGINE_WARN("Unknown uber shader program type of {0}!", programName);
+		if (!vsName.empty() && !fsName.empty() && csName.empty())
+		{
+			CreateProgram(programName.c_str(), vsName.data(), fsName.data(), combine.c_str());
+		}
+		else
+		{
+			CD_ENGINE_WARN("Unknown uber shader program type of {0}!", programName);
+		}
 	}
 }
 
@@ -318,33 +276,20 @@ const RenderContext::ShaderBlob& RenderContext::GetShaderBlob(StringCrc shaderNa
 	return *m_shaderBlobs.at(shaderNameCrc.Value()).get();
 }
 
-bgfx::ProgramHandle RenderContext::GetNonUberShaderProgramHandle(const StringCrc programName) const
+void RenderContext::SetShaderProgramHandle(const std::string& programName, bgfx::ProgramHandle handle, const std::string& featureCombine)
 {
-	const auto& it = m_nonUberShaderProgramHandles.find(programName.Value());
-	if (it != m_nonUberShaderProgramHandles.end())
+	m_shaderProgramHandles[StringCrc(programName + featureCombine).Value()] = handle.idx;
+}
+
+bgfx::ProgramHandle RenderContext::GetShaderProgramHandle(const std::string& programName, const std::string& featureCombine) const
+{
+	const auto& it = m_shaderProgramHandles.find(StringCrc(programName + featureCombine).Value());
+	if (it != m_shaderProgramHandles.end())
 	{
 		return { it->second };
 	}
 
 	return { bgfx::kInvalidHandle };
-}
-
-bgfx::ProgramHandle RenderContext::GetUberShaderProgramHandle(const StringCrc programName, const StringCrc featureCombineCrc) const
-{
-	const auto& itProgram = m_uberShaderProgramHandles.find(programName.Value());
-	if (itProgram == m_uberShaderProgramHandles.end())
-	{
-		return { bgfx::kInvalidHandle };
-	}
-
-	const auto& featureCombineProgramHandleMap = itProgram->second;
-	const auto& itHandle = featureCombineProgramHandleMap.find(featureCombineCrc.Value());
-	if (itHandle == featureCombineProgramHandleMap.end())
-	{
-		return { bgfx::kInvalidHandle };
-	}
-
-	return { itHandle->second };
 }
 
 RenderTarget* RenderContext::CreateRenderTarget(StringCrc resourceCrc, uint16_t width, uint16_t height, std::vector<AttachmentDescriptor> attachmentDescs)
@@ -393,81 +338,47 @@ bgfx::ShaderHandle RenderContext::CreateShader(const char* pShaderName)
 	return shaderHandle;
 }
 
-bgfx::ProgramHandle RenderContext::CreateProgram(const char* pName, const char* pCSName)
+bgfx::ProgramHandle RenderContext::CreateProgram(const std::string& programName, const std::string& csName)
 {
-	return CreateProgram(pName, CreateShader(pCSName));
-}
-
-bgfx::ProgramHandle RenderContext::CreateProgram(const char* pName, const char* pVSName, const char* pFSName)
-{
-	return CreateProgram(pName, CreateShader(pVSName), CreateShader(pFSName));
-}
-
-bgfx::ProgramHandle RenderContext::CreateProgram(const char* pName, const char* pVSName, const char* pFSName, const char* pFeatureCombine)
-{
-	// Uber shader program
-
-	StringCrc programNameCrc(pName);
-	StringCrc featureCombineCrc(pFeatureCombine);
-
-	auto itProgram = m_uberShaderProgramHandles.find(programNameCrc.Value());
-	if (itProgram != m_uberShaderProgramHandles.end())
+	StringCrc programNameCrc(programName);
+	auto itProgram = m_shaderProgramHandles.find(programNameCrc.Value());
+	if (itProgram != m_shaderProgramHandles.end())
 	{
-		const auto& variantHandleMap = (*itProgram).second;
-		auto itHandle = variantHandleMap.find(featureCombineCrc.Value());
-		if (itHandle != variantHandleMap.end())
-		{
-			return { variantHandleMap.at(featureCombineCrc.Value()) };
-		}
+		return { itProgram->second };
 	}
 
-	std::string outputFSFilePath = engine::Path::GetShaderOutputPath(pFSName, pFeatureCombine);
-	bgfx::ShaderHandle vsHandle = CreateShader(pVSName);
-	bgfx::ShaderHandle fsHandle = CreateShader(outputFSFilePath.c_str());
-	bgfx::ProgramHandle programHandle = bgfx::createProgram(vsHandle, fsHandle);
-
+	bgfx::ProgramHandle programHandle = bgfx::createProgram(CreateShader(csName.c_str()));
 	if (bgfx::isValid(programHandle))
 	{
-		m_uberShaderProgramHandles[programNameCrc.Value()][featureCombineCrc.Value()] = programHandle.idx;
+		m_shaderProgramHandles[programNameCrc.Value()] = programHandle.idx;
 	}
 
 	return programHandle;
 }
 
-bgfx::ProgramHandle RenderContext::CreateProgram(const char* pName, bgfx::ShaderHandle csh)
+bgfx::ProgramHandle RenderContext::CreateProgram(const std::string& programName, const std::string& vsName, const std::string& fsName, const std::string& featureCombine)
 {
-	StringCrc programNameCrc(pName);
-	auto itProgram = m_nonUberShaderProgramHandles.find(programNameCrc.Value());
-	if (itProgram != m_nonUberShaderProgramHandles.end())
+	StringCrc fullProgramNameCrc = StringCrc(programName + featureCombine);
+
+	const auto& it = m_shaderProgramHandles.find(fullProgramNameCrc.Value());
+	if (it != m_shaderProgramHandles.end())
 	{
-		return { itProgram->second };
+		return { it->second };
 	}
 
-	bgfx::ProgramHandle program = bgfx::createProgram(csh);
-	if (bgfx::isValid(program))
+	std::string inputVSFilePath = engine::Path::GetBuiltinShaderInputPath(vsName.c_str());
+	std::string outputFSFilePath = engine::Path::GetShaderOutputPath(fsName.c_str(), featureCombine);
+
+	bgfx::ShaderHandle vsHandle = CreateShader(inputVSFilePath.c_str());
+	bgfx::ShaderHandle fsHandle = CreateShader(outputFSFilePath.c_str());
+	bgfx::ProgramHandle programHandle = bgfx::createProgram(vsHandle, fsHandle);
+
+	if (bgfx::isValid(programHandle))
 	{
-		m_nonUberShaderProgramHandles[programNameCrc.Value()] = program.idx;
+		m_shaderProgramHandles[fullProgramNameCrc.Value()] = programHandle.idx;
 	}
 
-	return program;
-}
-
-bgfx::ProgramHandle RenderContext::CreateProgram(const char* pName, bgfx::ShaderHandle vsh, bgfx::ShaderHandle fsh)
-{
-	StringCrc programNameCrc(pName);
-	auto itProgram = m_nonUberShaderProgramHandles.find(programNameCrc.Value());
-	if (itProgram != m_nonUberShaderProgramHandles.end())
-	{
-		return { itProgram->second };
-	}
-
-	bgfx::ProgramHandle program = bgfx::createProgram(vsh, fsh);
-	if(bgfx::isValid(program))
-	{
-		m_nonUberShaderProgramHandles[programNameCrc.Value()] = program.idx;
-	}
-
-	return program;
+	return programHandle;
 }
 
 bgfx::TextureHandle RenderContext::CreateTexture(const char* pFilePath, uint64_t flags)
@@ -749,6 +660,7 @@ void RenderContext::DestoryRenderTarget(StringCrc resourceCrc)
 	m_renderTargetCaches.erase(resourceCrc.Value());
 }
 
+// TODO : template
 void RenderContext::DestoryTexture(StringCrc resourceCrc)
 {
 	auto it = m_textureHandleCaches.find(resourceCrc.Value());
@@ -784,23 +696,12 @@ void RenderContext::DestoryShader(StringCrc resourceCrc)
 
 void RenderContext::DestoryProgram(StringCrc resourceCrc)
 {
-	auto itNonuber = m_nonUberShaderProgramHandles.find(resourceCrc.Value());
-	if (itNonuber != m_nonUberShaderProgramHandles.end())
+	auto it = m_shaderProgramHandles.find(resourceCrc.Value());
+	if (it != m_shaderProgramHandles.end())
 	{
-		assert(bgfx::isValid(bgfx::ProgramHandle{ itNonuber->second }));
-		bgfx::destroy(bgfx::ProgramHandle{ itNonuber->second });
-		m_nonUberShaderProgramHandles.erase(itNonuber);
-	}
-
-	auto itUber = m_uberShaderProgramHandles.find(resourceCrc.Value());
-	if (itUber != m_uberShaderProgramHandles.end())
-	{
-		for (const auto& variant : itUber->second)
-		{
-			assert(bgfx::isValid(bgfx::ProgramHandle{ variant.second }));
-			bgfx::destroy(bgfx::ProgramHandle{ variant.second });
-		}
-		m_uberShaderProgramHandles.erase(itUber);
+		assert(bgfx::isValid(bgfx::ProgramHandle{ it->second }));
+		bgfx::destroy(bgfx::ProgramHandle{ it->second });
+		m_shaderProgramHandles.erase(it);
 	}
 }
 

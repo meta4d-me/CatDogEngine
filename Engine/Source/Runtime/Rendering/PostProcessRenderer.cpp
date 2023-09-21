@@ -8,7 +8,7 @@ namespace engine
 
 void PostProcessRenderer::Init()
 {
-	GetRenderContext()->RegisterNonUberShader("PostProcessProgram", { "vs_fullscreen","fs_PBR_postProcessing" });
+	GetRenderContext()->RegisterShaderProgram("PostProcessProgram", { "vs_fullscreen","fs_PBR_postProcessing" });
 
 	bgfx::setViewName(GetViewID(), "PostProcessRenderer");
 }
@@ -18,7 +18,7 @@ void PostProcessRenderer::Warmup()
 	GetRenderContext()->CreateUniform("u_gamma", bgfx::UniformType::Vec4);
 	GetRenderContext()->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
 
-	GetRenderContext()->UploadNonUberShader("PostProcessProgram");
+	GetRenderContext()->UploadShaderProgram("PostProcessProgram");
 }
 
 void PostProcessRenderer::SetEnable(bool value)

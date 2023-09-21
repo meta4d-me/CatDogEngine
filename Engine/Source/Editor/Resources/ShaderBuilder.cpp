@@ -11,14 +11,15 @@ namespace editor
 void ShaderBuilder::PreBuildUberShaders(engine::RenderContext* pRenderContext, engine::MaterialType* pMaterialType)
 {
 	const std::string& programName = pMaterialType->GetShaderSchema().GetProgramName();
-	const std::set<std::string>& shaders = pRenderContext->GetShaderVariantCollections().GetUberShaders(programName);
-	const std::set<std::string>& combines = pRenderContext->GetShaderVariantCollections().GetFeatureCombines(programName);
-	CD_ENGINE_INFO("Precompile program {0} variant count : {1}", programName, combines.size());
 
-	if (combines.size() <= 0)
+	if (!pRenderContext->GetShaderVariantCollections().HasFeatureCombine(programName))
 	{
 		return;
 	}
+
+	const std::set<std::string>& combines = pRenderContext->GetShaderVariantCollections().GetFeatureCombines(programName);
+	const std::set<std::string>& shaders = pRenderContext->GetShaderVariantCollections().GetShaders(programName);
+	CD_ENGINE_INFO("Precompile program {0} variant count : {1}", programName, combines.size());
 
 	for (const std::string& shader : shaders)
 	{
@@ -48,7 +49,7 @@ void ShaderBuilder::PreBuildUberShaders(engine::RenderContext* pRenderContext, e
 
 void ShaderBuilder::PreBuildNonUberShaders(engine::RenderContext* pRenderContext)
 {
-	for (const auto& shaders : pRenderContext->GetShaderVariantCollections().GetNonUberShaderPrograms())
+	for (const auto& shaders : pRenderContext->GetShaderVariantCollections().GetShaderPrograms())
 	{
 		for (const auto& shader : shaders.second)
 		{
@@ -68,16 +69,7 @@ void ShaderBuilder::PreBuildNonUberShaders(engine::RenderContext* pRenderContext
 
 void ShaderBuilder::BuildShader(engine::RenderContext* pRenderContext, const engine::ShaderCompileInfo& info)
 {
-	std::set<std::string> shaders;
-
-	if (info.m_featuresCombine.empty())
-	{
-		shaders = pRenderContext->GetShaderVariantCollections().GetNonUberShaders(info.m_programName);
-	}
-	else
-	{
-		shaders = pRenderContext->GetShaderVariantCollections().GetUberShaders(info.m_programName);
-	}
+	const std::set<std::string>& shaders = pRenderContext->GetShaderVariantCollections().GetShaders(info.m_programName);
 
 	for (const auto& shader : shaders)
 	{

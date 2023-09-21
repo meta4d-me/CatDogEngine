@@ -359,7 +359,7 @@ void EditorApp::LazyCompileAndLoadShaders()
 
 		for (auto& info : m_pRenderContext->GetShaderCompileTasks())
 		{
-			m_pRenderContext->UploadUberShader(info.m_programName, info.m_featuresCombine);
+			m_pRenderContext->UploadShaderProgram(info.m_programName, info.m_featuresCombine);
 		}
 
 		m_pRenderContext->ClearShaderCompileTasks();

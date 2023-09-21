@@ -50,14 +50,14 @@ constexpr uint16_t ScatteringOrders                      = 6;
 
 void PBRSkyRenderer::Init()
 {
-	GetRenderContext()->RegisterNonUberShader(ProgramAtmosphericScatteringLUT, { "vs_atmSkyBox", "fs_PrecomputedAtmosphericScattering_LUT" });
-	GetRenderContext()->RegisterNonUberShader(ProgramSingleScatteringRayMarching, { "vs_atmSkyBox", "fs_SingleScattering_RayMarching" });
-	GetRenderContext()->RegisterNonUberShader(ProgramComputeTransmittance, { "cs_ComputeTransmittance" });
-	GetRenderContext()->RegisterNonUberShader(ProgramComputeDirectIrradiance, { "cs_ComputeDirectIrradiance" });
-	GetRenderContext()->RegisterNonUberShader(ProgramComputeSingleScattering, { "cs_ComputeSingleScattering" });
-	GetRenderContext()->RegisterNonUberShader(ProgramComputeScatteringDensity, { "cs_ComputeScatteringDensity" });
-	GetRenderContext()->RegisterNonUberShader(ProgramComputeIndirectIrradiance, { "cs_ComputeIndirectIrradiance" });
-	GetRenderContext()->RegisterNonUberShader(ProgramComputeMultipleScattering, { "cs_ComputeMultipleScattering" });
+	GetRenderContext()->RegisterShaderProgram(ProgramAtmosphericScatteringLUT, { "vs_atmSkyBox", "fs_PrecomputedAtmosphericScattering_LUT" });
+	GetRenderContext()->RegisterShaderProgram(ProgramSingleScatteringRayMarching, { "vs_atmSkyBox", "fs_SingleScattering_RayMarching" });
+	GetRenderContext()->RegisterShaderProgram(ProgramComputeTransmittance, { "cs_ComputeTransmittance" });
+	GetRenderContext()->RegisterShaderProgram(ProgramComputeDirectIrradiance, { "cs_ComputeDirectIrradiance" });
+	GetRenderContext()->RegisterShaderProgram(ProgramComputeSingleScattering, { "cs_ComputeSingleScattering" });
+	GetRenderContext()->RegisterShaderProgram(ProgramComputeScatteringDensity, { "cs_ComputeScatteringDensity" });
+	GetRenderContext()->RegisterShaderProgram(ProgramComputeIndirectIrradiance, { "cs_ComputeIndirectIrradiance" });
+	GetRenderContext()->RegisterShaderProgram(ProgramComputeMultipleScattering, { "cs_ComputeMultipleScattering" });
 
 	bgfx::setViewName(GetViewID(), "PBRSkyRenderer");
 }
@@ -86,15 +86,15 @@ void PBRSkyRenderer::Warmup()
 	GetRenderContext()->CreateUniform(HeightOffset, bgfx::UniformType::Enum::Vec4, 1);
 	GetRenderContext()->CreateUniform(NumScatteringOrders, bgfx::UniformType::Enum::Vec4, 1);
 
-	GetRenderContext()->UploadNonUberShader(ProgramAtmosphericScatteringLUT);
-	GetRenderContext()->UploadNonUberShader(ProgramSingleScatteringRayMarching);
+	GetRenderContext()->UploadShaderProgram(ProgramAtmosphericScatteringLUT);
+	GetRenderContext()->UploadShaderProgram(ProgramSingleScatteringRayMarching);
 
-	GetRenderContext()->UploadNonUberShader(ProgramComputeTransmittance);
-	GetRenderContext()->UploadNonUberShader(ProgramComputeDirectIrradiance);
-	GetRenderContext()->UploadNonUberShader(ProgramComputeSingleScattering);
-	GetRenderContext()->UploadNonUberShader(ProgramComputeScatteringDensity);
-	GetRenderContext()->UploadNonUberShader(ProgramComputeIndirectIrradiance);
-	GetRenderContext()->UploadNonUberShader(ProgramComputeMultipleScattering);
+	GetRenderContext()->UploadShaderProgram(ProgramComputeTransmittance);
+	GetRenderContext()->UploadShaderProgram(ProgramComputeDirectIrradiance);
+	GetRenderContext()->UploadShaderProgram(ProgramComputeSingleScattering);
+	GetRenderContext()->UploadShaderProgram(ProgramComputeScatteringDensity);
+	GetRenderContext()->UploadShaderProgram(ProgramComputeIndirectIrradiance);
+	GetRenderContext()->UploadShaderProgram(ProgramComputeMultipleScattering);
 }
 
 void PBRSkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

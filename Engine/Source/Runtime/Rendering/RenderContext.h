@@ -44,8 +44,7 @@ public:
 	void Init(GraphicsBackend backend, void* hwnd = nullptr);
 	void OnResize(uint16_t width, uint16_t height);
 	void BeginFrame();
-	void Submit(uint16_t viewID, const std::string& programName);
-	void Submit(uint16_t viewID, const std::string& programName, StringCrc featuresCombineCrc);
+	void Submit(uint16_t viewID, const std::string& programName, const std::string& featureCombine = "");
 	void Dispatch(uint16_t viewID, const std::string& programName, uint32_t numX, uint32_t numY, uint32_t numZ);
 	void EndFrame();
 	void Shutdown();
@@ -64,13 +63,11 @@ public:
 	ShaderVariantCollections& GetShaderVariantCollections() { return m_shaderVariantCollections; }
 	const ShaderVariantCollections& GetShaderVariantCollections() const { return m_shaderVariantCollections; }
 
-	void RegisterNonUberShader(std::string programName, std::initializer_list<std::string> names);
-	void RegisterUberShader(std::string programName, std::initializer_list<std::string> names, std::initializer_list<std::string> combines = {});
-	
-	bool CheckNonUbeShaderProgram(const std::string& programName);
-	bool CheckUbeShaderProgram(const std::string& programName, const std::string& featuresCombine);
-	void UploadNonUberShader(const std::string& programName);
-	void UploadUberShader(const std::string& programName, const std::string& combine);
+	void RegisterShaderProgram(std::string programName, std::initializer_list<std::string> names);
+	void AddShaderFeature(std::string programName, std::string combine);
+
+	bool CheckShaderProgram(const std::string& programName, const std::string& featuresCombine = "");
+	void UploadShaderProgram(const std::string& programName, const std::string& combine = "");
 
 	void AddShaderCompileTask(ShaderCompileInfo info);
 	void ClearShaderCompileTasks();
@@ -87,22 +84,17 @@ public:
 	/////////////////////////////////////////////////////////////////////
 	// Resource related apis
 	/////////////////////////////////////////////////////////////////////
-	void SetNonUberShaderProgramHandle(const StringCrc programNameCrc, bgfx::ProgramHandle handle) { m_nonUberShaderProgramHandles[programNameCrc.Value()] = handle.idx; }
-	bgfx::ProgramHandle GetNonUberShaderProgramHandle(const StringCrc programName) const;
 
-	void SetUberShaderProgramHandle(const StringCrc programName, const StringCrc featureCombineCrc, bgfx::ProgramHandle handle) { m_uberShaderProgramHandles[programName.Value()][featureCombineCrc.Value()] = handle.idx; }
-	bgfx::ProgramHandle GetUberShaderProgramHandle(const StringCrc programName, const StringCrc featureCombineCrc) const;
+	void SetShaderProgramHandle(const std::string& programName, bgfx::ProgramHandle handle, const std::string& featureCombine = "");
+	bgfx::ProgramHandle GetShaderProgramHandle(const std::string& programName, const std::string& featureCombine = "") const;
 
 	RenderTarget* CreateRenderTarget(StringCrc resourceCrc, uint16_t width, uint16_t height, std::vector<AttachmentDescriptor> attachmentDescs);
 	RenderTarget* CreateRenderTarget(StringCrc resourceCrc, uint16_t width, uint16_t height, void* pWindowHandle);
 	RenderTarget* CreateRenderTarget(StringCrc resourceCrc, std::unique_ptr<RenderTarget> pRenderTarget);
 
 	bgfx::ShaderHandle CreateShader(const char* filePath);
-	bgfx::ProgramHandle CreateProgram(const char* pName, const char* pCSName);
-	bgfx::ProgramHandle CreateProgram(const char* pName, const char* pVSName, const char* pFSName);
-	bgfx::ProgramHandle CreateProgram(const char* pName, const char* pVSName, const char* pFSName, const char* pFeatureCombine);
-	bgfx::ProgramHandle CreateProgram(const char* pName, bgfx::ShaderHandle csh);
-	bgfx::ProgramHandle CreateProgram(const char* pName, bgfx::ShaderHandle vsh, bgfx::ShaderHandle fsh);
+	bgfx::ProgramHandle CreateProgram(const std::string& programName, const std::string& csName);
+	bgfx::ProgramHandle CreateProgram(const std::string& programName, const std::string& vsName, const std::string& fsName, const std::string& featureCombine = "");
 
 	bgfx::TextureHandle CreateTexture(const char* filePath, uint64_t flags = 0UL);
 	bgfx::TextureHandle CreateTexture(const char* pName, uint16_t width, uint16_t height, uint16_t depth, bgfx::TextureFormat::Enum format, uint64_t flags = 0UL, const void* data = nullptr, uint32_t size = 0);
@@ -141,10 +133,8 @@ private:
 
 	ShaderVariantCollections m_shaderVariantCollections;
 
-	// Key : StringCrc(Program name), Value : Non-uber hader shader program handle
-	std::map<uint32_t, uint16_t> m_nonUberShaderProgramHandles;
-	// Key : StringCrc(Program name), Value : { Key : StringCrc(Feature combine), Value : Uber hader shader program handle }
-	std::map<uint32_t, std::map<uint32_t, uint16_t>> m_uberShaderProgramHandles;
+	// Key : StringCrc(Program name), Value : Shader program handle
+	std::map<uint32_t, uint16_t> m_shaderProgramHandles;
 
 	// Key : StringCrc(Shader name), Value : Shader handle
 	std::map<uint32_t, uint16_t> m_shaderHandles;

@@ -13,14 +13,14 @@ namespace engine
 
 void AABBRenderer::Init()
 {
-	GetRenderContext()->RegisterNonUberShader("AABBProgram", { "vs_AABB", "fs_AABB" });
+	GetRenderContext()->RegisterShaderProgram("AABBProgram", { "vs_AABB", "fs_AABB" });
 
 	bgfx::setViewName(GetViewID(), "AABBRenderer");
 }
 
 void AABBRenderer::Warmup()
 {
-	GetRenderContext()->UploadNonUberShader("AABBProgram");
+	GetRenderContext()->UploadShaderProgram("AABBProgram");
 }
 
 void AABBRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
