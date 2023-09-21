@@ -141,19 +141,14 @@ void AnimationRenderer::Init()
 	bgfx::setViewName(GetViewID(), "AnimationRenderer");
 }
 
-void AnimationRenderer::PreSubmit()
+void AnimationRenderer::Warmup()
 {
 #ifdef VISUALIZE_BONE_WEIGHTS
 	m_pRenderContext->CreateUniform("u_debugBoneIndex", bgfx::UniformType::Vec4, 1);
-	m_pRenderContext->CreateProgram("AnimationProgram", "vs_visualize_bone_weight.bin", "fs_visualize_bone_weight.bin");
+	m_pRenderContext->CreateProgram("AnimationProgram", "vs_visualize_bone_weight", "fs_visualize_bone_weight");
 #else
-	GetRenderContext()->UploadShaders("AnimationProgram");
+	GetRenderContext()->UploadNonUberShader("AnimationProgram");
 #endif
-}
-
-bool AnimationRenderer::CheckResources()
-{
-	return true;
 }
 
 void AnimationRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

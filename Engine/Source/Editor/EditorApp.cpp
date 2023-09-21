@@ -93,7 +93,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	AddWindow(cd::MoveTemp(pSplashWindow));
 
 	InitEditorRenderers();
-	EditorRendererSubmit();
+	EditorRenderersWarmup();
 	InitEditorImGuiContext(m_initArgs.language);
 
 	InitECWorld();
@@ -347,9 +347,9 @@ void EditorApp::LazyCompileAndLoadShaders()
 {
 	bool doCompile = false;
 
-	for (auto& info : m_pRenderContext->GetShaderVariantCompileTasks())
+	for (const auto& info : m_pRenderContext->GetShaderCompileTasks())
 	{
-		ShaderBuilder::BuildUberShader(m_pRenderContext.get(), info);
+		ShaderBuilder::BuildShader(m_pRenderContext.get(), info);
 		doCompile = true;
 	}
 
@@ -357,12 +357,12 @@ void EditorApp::LazyCompileAndLoadShaders()
 	{
 		ResourceBuilder::Get().Update(true);
 
-		for (auto& info : m_pRenderContext->GetShaderVariantCompileTasks())
+		for (auto& info : m_pRenderContext->GetShaderCompileTasks())
 		{
-			m_pRenderContext->UploadShader(info.m_programName, info.m_featuresCombine);
+			m_pRenderContext->UploadUberShader(info.m_programName, info.m_featuresCombine);
 		}
 
-		m_pRenderContext->ClearShaderVariantCompileTasks();
+		m_pRenderContext->ClearShaderCompileTasks();
 	}
 }
 
@@ -469,19 +469,19 @@ void EditorApp::InitEngineRenderers()
 	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget));
 }
 
-void EditorApp::EditorRendererSubmit()
+void EditorApp::EditorRenderersWarmup()
 {
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEditorRenderers)
 	{
-		pRenderer->PreSubmit();
+		pRenderer->Warmup();
 	}
 }
 
-void EditorApp::EngineRendererSubmit()
+void EditorApp::EngineRenderersWarmup()
 {
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
 	{
-		pRenderer->PreSubmit();
+		pRenderer->Warmup();
 	}
 }
 
@@ -496,11 +496,11 @@ bool EditorApp::IsAtmosphericScatteringEnable() const
 
 void EditorApp::InitShaderPrograms() const
 {
-	ShaderBuilder::BuildNonUberShaders(m_pRenderContext.get());
-	ShaderBuilder::BuildUberShaders(m_pRenderContext.get(), m_pSceneWorld->GetPBRMaterialType());
+	ShaderBuilder::PreBuildNonUberShaders(m_pRenderContext.get());
+	ShaderBuilder::PreBuildUberShaders(m_pRenderContext.get(), m_pSceneWorld->GetPBRMaterialType());
 
 #ifdef ENABLE_DDGI
-	ShaderBuilder::BuildUberShaders(m_pSceneWorld->GetDDGIMaterialType());
+	ShaderBuilder::PreBuildUberShaders(m_pSceneWorld->GetDDGIMaterialType());
 #endif
 }
 
@@ -534,7 +534,7 @@ bool EditorApp::Update(float deltaTime)
 	{
 		m_bInitEditor = true;
 
-		EngineRendererSubmit();
+		EngineRenderersWarmup();
 
 		// Phase 2 - Project Manager
 		//		* TODO : Show project selector

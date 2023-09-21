@@ -55,8 +55,8 @@ public:
 	void InitEditorRenderers();
 	void InitEngineRenderers();
 
-	void EditorRendererSubmit();
-	void EngineRendererSubmit();
+	void EditorRenderersWarmup();
+	void EngineRenderersWarmup();
 
 	void InitShaderPrograms() const;
 	void AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer);

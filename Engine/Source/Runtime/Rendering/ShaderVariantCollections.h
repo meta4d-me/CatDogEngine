@@ -41,8 +41,8 @@ public:
 	std::set<std::string>& GetFeatureCombines(const std::string& programName) { return m_programFeatureCombines[programName]; }
 	const std::set<std::string>& GetFeatureCombines(const std::string& programName) const { return m_programFeatureCombines.at(programName); }
 
-	bool IsNonUberShaderProgramValid(std::string programName) const;
-	bool IsUberShaderProgramValid(std::string programName) const;
+	bool IsNonUberShaderProgramValid(const std::string& programName) const;
+	bool IsUberShaderProgramValid(const std::string& programName) const;
 
 	// -------------------------------------------------------------------------------- // 
 

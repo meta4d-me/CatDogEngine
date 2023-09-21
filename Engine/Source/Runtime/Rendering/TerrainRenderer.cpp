@@ -60,7 +60,7 @@ void TerrainRenderer::Init()
 	bgfx::setViewName(GetViewID(), "TerrainRenderer");
 }
 
-void TerrainRenderer::PreSubmit()
+void TerrainRenderer::Warmup()
 {
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
@@ -90,12 +90,7 @@ void TerrainRenderer::PreSubmit()
 
 	GetRenderContext()->CreateTexture(elevationTexture, 129U, 129U, 1, bgfx::TextureFormat::Enum::R32F, samplerFlags, nullptr, 0);
 
-	GetRenderContext()->UploadShaders("TerrainProgram");
-}
-
-bool TerrainRenderer::CheckResources()
-{
-	return true;
+	GetRenderContext()->UploadNonUberShader("TerrainProgram");
 }
 
 void TerrainRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -184,11 +179,11 @@ void TerrainRenderer::Render(float deltaTime)
 			bgfx::setTexture(BRDF_LUT_SLOT, GetRenderContext()->GetUniform(lutsamplerCrc), GetRenderContext()->GetTexture(luttextureCrc));
 		}
 
-		// PreSubmit uniform values : camera settings
+		// Submit uniform values : camera settings
 		constexpr StringCrc cameraPosCrc(cameraPos);
 		GetRenderContext()->FillUniform(cameraPosCrc, &cameraTransform.GetTranslation().x(), 1);
 
-		// PreSubmit uniform values : material settings
+		// Submit  uniform values : material settings
 		constexpr StringCrc albedoColorCrc(albedoColor);
 		GetRenderContext()->FillUniform(albedoColorCrc, pMaterialComponent->GetAlbedoColor().Begin(), 1);
 
@@ -199,7 +194,7 @@ void TerrainRenderer::Render(float deltaTime)
 		constexpr StringCrc emissiveColorCrc(emissiveColor);
 		GetRenderContext()->FillUniform(emissiveColorCrc, pMaterialComponent->GetEmissiveColor().Begin(), 1);
 
-		// PreSubmit uniform values : light settings
+		// Submit  uniform values : light settings
 		auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();
 		size_t lightEntityCount = lightEntities.size();
 		constexpr engine::StringCrc lightCountAndStrideCrc(lightCountAndStride);

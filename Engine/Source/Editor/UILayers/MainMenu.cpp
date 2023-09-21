@@ -222,23 +222,6 @@ void MainMenu::BuildMenu()
 {
 	if (ImGui::BeginMenu(CD_TEXT("TEXT_BUILD")))
 	{
-		// engine::SceneWorld* pSceneWorld = GetSceneWorld();
-		// 
-		// if (ImGui::MenuItem(CD_TEXT("TEXT_REBUILD_NONUBER_SHADERS")))
-		// {
-		// 	std::string nonUberPath = CDENGINE_BUILTIN_SHADER_PATH;
-		// 	ShaderBuilder::BuildNonUberShader(nonUberPath + "shaders");
-		// }
-		// if (ImGui::MenuItem(CD_TEXT("TEXT_REBUILD_PBR_SHADERS")))
-		// {
-		// 	ShaderBuilder::BuildUberShaders(pSceneWorld->GetPBRMaterialType());
-		// }
-		// if (ImGui::MenuItem(CD_TEXT("TEXT_REBUILD_ANIMATION_SHADERS")))
-		// {
-		// 	ShaderBuilder::BuildUberShaders(pSceneWorld->GetAnimationMaterialType());
-		// }
-		// ResourceBuilder::Get().Update();
-
 		ImGui::EndMenu();
 	}
 }

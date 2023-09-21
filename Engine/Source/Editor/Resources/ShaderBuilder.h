@@ -2,7 +2,7 @@
 
 #include "Material/MaterialType.h"
 #include "Resources/ResourceBuilder.h"
-#include "Rendering/ShaderVariantCompileInfo.h"
+#include "Rendering/ShaderCompileInfo.h"
 
 #include <map>
 #include <string>
@@ -20,11 +20,11 @@ namespace editor
 class ShaderBuilder
 {
 public:
-	static void BuildNonUberShaders(engine::RenderContext* pRenderContext);
-	static void BuildUberShaders(engine::RenderContext* pRenderContext, engine::MaterialType* pMaterialType);
+	static void PreBuildNonUberShaders(engine::RenderContext* pRenderContext);
+	static void PreBuildUberShaders(engine::RenderContext* pRenderContext, engine::MaterialType* pMaterialType);
 
-	// Compile specified uber shader program variant.
-	static void BuildUberShader(engine::RenderContext* pRenderContext, engine::ShaderVariantCompileInfo info);
+	// Compile specified shader program/program variant.
+	static void BuildShader(engine::RenderContext* pRenderContext, const engine::ShaderCompileInfo& info);
 };
 
 } // namespace editor

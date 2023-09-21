@@ -18,14 +18,9 @@ void WireframeRenderer::Init()
 	bgfx::setViewName(GetViewID(), "WireframeRenderer");
 }
 
-void WireframeRenderer::PreSubmit()
+void WireframeRenderer::Warmup()
 {
-	GetRenderContext()->UploadShaders("WireframeLineProgram");
-}
-
-bool WireframeRenderer::CheckResources()
-{
-	return true;
+	GetRenderContext()->UploadNonUberShader("WireframeLineProgram");
 }
 
 void WireframeRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

@@ -18,14 +18,9 @@ void AABBRenderer::Init()
 	bgfx::setViewName(GetViewID(), "AABBRenderer");
 }
 
-void AABBRenderer::PreSubmit()
+void AABBRenderer::Warmup()
 {
-	GetRenderContext()->UploadShaders("AABBProgram");
-}
-
-bool AABBRenderer::CheckResources()
-{
-	return true;
+	GetRenderContext()->UploadNonUberShader("AABBProgram");
 }
 
 void AABBRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

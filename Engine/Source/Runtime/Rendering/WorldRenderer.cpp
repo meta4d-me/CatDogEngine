@@ -53,7 +53,7 @@ void WorldRenderer::Init()
 	bgfx::setViewName(GetViewID(), "WorldRenderer");
 }
 
-void WorldRenderer::PreSubmit()
+void WorldRenderer::Warmup()
 {
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
@@ -77,8 +77,6 @@ void WorldRenderer::PreSubmit()
 
 	GetRenderContext()->CreateUniform(LightDir, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(HeightOffsetAndshadowLength, bgfx::UniformType::Vec4, 1);
-
-	GetRenderContext()->UploadShaders("WorldProgram");
 }
 
 bool WorldRenderer::CheckResources()
@@ -87,7 +85,7 @@ bool WorldRenderer::CheckResources()
 	for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
 	{
 		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
-		if (!GetRenderContext()->CheckShaderProgram("WorldProgram", pMaterialComponent->GetFeaturesCombine()))
+		if (!GetRenderContext()->CheckUbeShaderProgram("WorldProgram", pMaterialComponent->GetFeaturesCombine()))
 		{
 			valid = false;
 		}
@@ -197,11 +195,11 @@ void WorldRenderer::Render(float deltaTime)
 			GetRenderContext()->FillUniform(HeightOffsetAndshadowLengthCrc, &(tmpHeightOffsetAndshadowLength.x()), 1);
 		}
 
-		// PreSubmit uniform values : camera settings
+		// Submit uniform values : camera settings
 		constexpr StringCrc cameraPosCrc(cameraPos);
 		GetRenderContext()->FillUniform(cameraPosCrc, &cameraTransform.GetTranslation().x(), 1);
 
-		// PreSubmit uniform values : material settings
+		// Submit uniform values : material settings
 		constexpr StringCrc albedoColorCrc(albedoColor);
 		GetRenderContext()->FillUniform(albedoColorCrc, pMaterialComponent->GetAlbedoColor().Begin(), 1);
 
@@ -212,7 +210,7 @@ void WorldRenderer::Render(float deltaTime)
 		constexpr StringCrc emissiveColorCrc(emissiveColor);
 		GetRenderContext()->FillUniform(emissiveColorCrc, pMaterialComponent->GetEmissiveColor().Begin(), 1);
 
-		// PreSubmit uniform values : light settings
+		// Submit uniform values : light settings
 		auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();
 		size_t lightEntityCount = lightEntities.size();
 		constexpr engine::StringCrc lightCountAndStrideCrc(lightCountAndStride);

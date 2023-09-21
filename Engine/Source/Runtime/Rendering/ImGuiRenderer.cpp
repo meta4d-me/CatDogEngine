@@ -15,7 +15,7 @@ void ImGuiRenderer::Init()
 	bgfx::setViewName(GetViewID(), "ImGuiRenderer");
 }
 
-void ImGuiRenderer::PreSubmit()
+void ImGuiRenderer::Warmup()
 {
 	constexpr StringCrc imguiVertexLayoutName("imgui_vertex_layout");
 	if (0 == GetRenderContext()->GetVertexLayout(imguiVertexLayoutName).m_stride)
@@ -30,12 +30,7 @@ void ImGuiRenderer::PreSubmit()
 	}
 
 	GetRenderContext()->CreateUniform("s_tex", bgfx::UniformType::Sampler);
-	GetRenderContext()->UploadShaders("ImGuiProgram");
-}
-
-bool ImGuiRenderer::CheckResources()
-{
-	return true;
+	GetRenderContext()->UploadNonUberShader("ImGuiProgram");
 }
 
 void ImGuiRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

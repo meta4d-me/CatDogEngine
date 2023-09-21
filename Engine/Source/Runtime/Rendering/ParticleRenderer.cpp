@@ -13,14 +13,9 @@ void ParticleRenderer::Init()
 	bgfx::setViewName(GetViewID(), "ParticleRenderer");
 }
 
-void ParticleRenderer::PreSubmit()
+void ParticleRenderer::Warmup()
 {
 
-}
-
-bool ParticleRenderer::CheckResources()
-{
-	return true;
 }
 
 void ParticleRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

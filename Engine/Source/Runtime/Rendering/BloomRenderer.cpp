@@ -19,7 +19,7 @@ void BloomRenderer::Init()
 	bgfx::setViewName(GetViewID(), "BloomRenderer");
 }
 
-void BloomRenderer::PreSubmit()
+void BloomRenderer::Warmup()
 {
 	for (int i = 0; i < TEX_CHAIN_LEN; i++)
 	{
@@ -56,18 +56,13 @@ void BloomRenderer::PreSubmit()
 	GetRenderContext()->CreateUniform("u_bloomIntensity", bgfx::UniformType::Vec4);
 	GetRenderContext()->CreateUniform("u_luminanceThreshold", bgfx::UniformType::Vec4);
 
-	GetRenderContext()->UploadShaders("CapTureBrightnessProgram");
-	GetRenderContext()->UploadShaders("DownSampleProgram");
-	GetRenderContext()->UploadShaders("BlurVerticalProgram");
-	GetRenderContext()->UploadShaders("BlurHorizontalProgram");
-	GetRenderContext()->UploadShaders("UpSampleProgram");
-	GetRenderContext()->UploadShaders("KawaseBlurProgram");
-	GetRenderContext()->UploadShaders("CombineProgram");
-}
-
-bool BloomRenderer::CheckResources()
-{
-	return true;
+	GetRenderContext()->UploadNonUberShader("CapTureBrightnessProgram");
+	GetRenderContext()->UploadNonUberShader("DownSampleProgram");
+	GetRenderContext()->UploadNonUberShader("BlurVerticalProgram");
+	GetRenderContext()->UploadNonUberShader("BlurHorizontalProgram");
+	GetRenderContext()->UploadNonUberShader("UpSampleProgram");
+	GetRenderContext()->UploadNonUberShader("KawaseBlurProgram");
+	GetRenderContext()->UploadNonUberShader("CombineProgram");
 }
 
 void BloomRenderer::SetEnable(bool value)

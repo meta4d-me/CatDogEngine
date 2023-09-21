@@ -8,14 +8,13 @@
 namespace editor
 {
 
-void ShaderBuilder::BuildUberShaders(engine::RenderContext* pRenderContext, engine::MaterialType* pMaterialType)
+void ShaderBuilder::PreBuildUberShaders(engine::RenderContext* pRenderContext, engine::MaterialType* pMaterialType)
 {
 	const std::string& programName = pMaterialType->GetShaderSchema().GetProgramName();
 	const std::set<std::string>& shaders = pRenderContext->GetShaderVariantCollections().GetUberShaders(programName);
 	const std::set<std::string>& combines = pRenderContext->GetShaderVariantCollections().GetFeatureCombines(programName);
 	CD_ENGINE_INFO("Precompile program {0} variant count : {1}", programName, combines.size());
 
-	// CompileUberShader(shaders, combines);
 	if (combines.size() <= 0)
 	{
 		return;
@@ -47,7 +46,7 @@ void ShaderBuilder::BuildUberShaders(engine::RenderContext* pRenderContext, engi
 	}
 }
 
-void ShaderBuilder::BuildNonUberShaders(engine::RenderContext* pRenderContext)
+void ShaderBuilder::PreBuildNonUberShaders(engine::RenderContext* pRenderContext)
 {
 	for (const auto& shaders : pRenderContext->GetShaderVariantCollections().GetNonUberShaderPrograms())
 	{
@@ -67,30 +66,36 @@ void ShaderBuilder::BuildNonUberShaders(engine::RenderContext* pRenderContext)
 	}
 }
 
-void ShaderBuilder::BuildUberShader(engine::RenderContext* pRenderContext, engine::ShaderVariantCompileInfo info)
+void ShaderBuilder::BuildShader(engine::RenderContext* pRenderContext, const engine::ShaderCompileInfo& info)
 {
-	std::string programName = cd::MoveTemp(info.m_programName);
-	std::string combine = cd::MoveTemp(info.m_featuresCombine);
-	const std::set<std::string>& shaders = pRenderContext->GetShaderVariantCollections().GetUberShaders(programName);
+	std::set<std::string> shaders;
 
-	for (const std::string& shader : shaders)
+	if (info.m_featuresCombine.empty())
+	{
+		shaders = pRenderContext->GetShaderVariantCollections().GetNonUberShaders(info.m_programName);
+	}
+	else
+	{
+		shaders = pRenderContext->GetShaderVariantCollections().GetUberShaders(info.m_programName);
+	}
+
+	for (const auto& shader : shaders)
 	{
 		engine::ShaderType shaderType = engine::GetShaderType(shader);
-		if (engine::ShaderType::Vertex == shaderType)
+		if (engine::ShaderType::Vertex == shaderType || engine::ShaderType::Compute == shaderType)
 		{
 			std::string inputVSFilePath = engine::Path::GetBuiltinShaderInputPath(shader.c_str());
 			std::string outputVSFilePath = engine::Path::GetShaderOutputPath(shader.c_str());
-			ResourceBuilder::Get().AddShaderBuildTask(engine::ShaderType::Vertex, inputVSFilePath.c_str(), outputVSFilePath.c_str());
+			ResourceBuilder::Get().AddShaderBuildTask(shaderType, inputVSFilePath.c_str(), outputVSFilePath.c_str());
 		}
 		else if (engine::ShaderType::Fragment == shaderType)
 		{
 			std::string inputFSFilePath = engine::Path::GetBuiltinShaderInputPath(shader.c_str());
-			std::string outputFSFilePath = engine::Path::GetShaderOutputPath(shader.c_str(), combine);
-			ResourceBuilder::Get().AddShaderBuildTask(engine::ShaderType::Fragment, inputFSFilePath.c_str(), outputFSFilePath.c_str(), combine.c_str());
+			std::string outputFSFilePath = engine::Path::GetShaderOutputPath(shader.c_str(), info.m_featuresCombine);
+			ResourceBuilder::Get().AddShaderBuildTask(engine::ShaderType::Fragment, inputFSFilePath.c_str(), outputFSFilePath.c_str(), info.m_featuresCombine.c_str());
 		}
 		else
 		{
-			// No shader feature support for Vertex and Compute shader.
 			continue;
 		}
 	}

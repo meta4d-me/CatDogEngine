@@ -153,34 +153,18 @@ void RenderContext::BeginFrame()
 {
 }
 
-bool RenderContext::CheckShaderProgram(const std::string& programName)
-{
-	bgfx::ProgramHandle handle = GetNonUberShaderProgramHandle(StringCrc(programName));
-	if (!bgfx::isValid(handle))
-	{
-		// TODO : AddShaderCompileTask
-		return false;
-	}
-	return true;
-}
-
-bool RenderContext::CheckShaderProgram(const std::string& programName, const std::string& featuresCombine)
-{
-	StringCrc featuresCombineCrc = StringCrc(featuresCombine);
-
-	bgfx::ProgramHandle handle = GetUberShaderProgramHandle(StringCrc(programName), featuresCombineCrc);
-	if (!bgfx::isValid(handle))
-	{
-		AddShaderVariantCompileTask({ programName, featuresCombine });
-		m_shaderVariantCollections.AddFeatureCombine(programName, featuresCombine);
-		return false;
-	}
-	return true;
-}
-
 void RenderContext::Submit(uint16_t viewID, const std::string& programName)
 {
-	bgfx::submit(viewID, GetNonUberShaderProgramHandle(StringCrc(programName)));
+	if (m_shaderVariantCollections.IsNonUberShaderProgramValid(programName))
+	{
+		bgfx::ProgramHandle handle = GetNonUberShaderProgramHandle(StringCrc(programName));
+		assert(bgfx::isValid(handle));
+		bgfx::submit(viewID, handle);
+	}
+	else
+	{
+		CD_ENGINE_WARN("Unregistered non-uber program {0}!", programName);
+	}
 }
 
 void RenderContext::Submit(uint16_t viewID, const std::string& programName, StringCrc featuresCombineCrc)
@@ -232,96 +216,93 @@ void RenderContext::RegisterUberShader(std::string programName, std::initializer
 	m_shaderVariantCollections.RegisterUberShader(cd::MoveTemp(programName), cd::MoveTemp(names), cd::MoveTemp(combines));
 }
 
-void RenderContext::UploadShaders(const std::string& programName)
+bool RenderContext::CheckNonUbeShaderProgram(const std::string& programName)
 {
-	if (m_shaderVariantCollections.IsUberShaderProgramValid(programName))
-	{
-		// Why warning me Don't use std::move on constant variables.
-		const auto [vsName, fsName, csName] = IdentifyShaderTypes(m_shaderVariantCollections.GetUberShaders(programName));
+	assert(m_shaderVariantCollections.IsNonUberShaderProgramValid(programName));
+	bgfx::ProgramHandle handle = GetNonUberShaderProgramHandle(StringCrc(programName));
 
-		if (!vsName.empty() && !fsName.empty() && csName.empty())
+	if (!bgfx::isValid(handle))
+	{
+		// Here only represents that we do not hold the shader GPU handle, whether the shader is compiled or not is unknown.
+		// The Combile Task is still added to the queue, and ResourceBuilder ensures that,
+		// there is no duplication of compilation behavior.
+		AddShaderCompileTask(ShaderCompileInfo(programName));
+		return false;
+	}
+	return true;
+}
+
+bool RenderContext::CheckUbeShaderProgram(const std::string& programName, const std::string& featuresCombine)
+{
+	assert(m_shaderVariantCollections.IsUberShaderProgramValid(programName));
+	bgfx::ProgramHandle handle = GetUberShaderProgramHandle(StringCrc(programName), StringCrc(featuresCombine));
+
+	if (!bgfx::isValid(handle))
+	{
+		AddShaderCompileTask(ShaderCompileInfo(programName, featuresCombine));
+		if (!featuresCombine.empty())
 		{
-			for (const auto& combine : m_shaderVariantCollections.GetFeatureCombines(programName))
-			{
-				CreateProgram(programName.c_str(), vsName.data(), fsName.data(), combine.c_str());
-			}
+			m_shaderVariantCollections.AddFeatureCombine(programName, featuresCombine);
 		}
-		else
-		{
-			CD_ENGINE_WARN("Unknown uber shader program type of {0}!", programName);
-		}
+		return false;
+	}
+	return true;
+}
+
+void RenderContext::UploadNonUberShader(const std::string& programName)
+{
+	assert(m_shaderVariantCollections.IsNonUberShaderProgramValid(programName));
+
+	auto [vsName, fsName, csName] = IdentifyShaderTypes(m_shaderVariantCollections.GetNonUberShaders(programName));
+
+	if (!vsName.empty() && !fsName.empty() && csName.empty())
+	{
+		CreateProgram(programName.c_str(), vsName.data(), fsName.data());
+	}
+	else if (!csName.empty())
+	{
+		CreateProgram(programName.c_str(), csName.data());
 	}
 	else
 	{
-		const auto [vsName, fsName, csName] = IdentifyShaderTypes(m_shaderVariantCollections.GetNonUberShaders(programName));
-
-		if (!vsName.empty() && !fsName.empty() && csName.empty())
-		{
-			CreateProgram(programName.c_str(), vsName.data(), fsName.data());
-		}
-		else if (!csName.empty())
-		{
-			CreateProgram(programName.c_str(), csName.data());
-		}
-		else
-		{
-			CD_ENGINE_WARN("Unknown non-uber shader program type of {0}!", programName);
-		}
+		CD_ENGINE_WARN("Unknown non-uber shader program type of {0}!", programName);
 	}
 }
 
-void RenderContext::UploadShader(const std::string& programName, const std::string& combine)
+void RenderContext::UploadUberShader(const std::string& programName, const std::string& combine)
 {
-	if (combine.empty())
-	{
-		const auto [vsName, fsName, csName] = IdentifyShaderTypes(m_shaderVariantCollections.GetNonUberShaders(programName));
+	assert(m_shaderVariantCollections.IsUberShaderProgramValid(programName));
 
-		if (!vsName.empty() && !fsName.empty() && csName.empty())
-		{
-			CreateProgram(programName.c_str(), vsName.data(), fsName.data());
-		}
-		else if (!csName.empty())
-		{
-			CreateProgram(programName.c_str(), csName.data());
-		}
-		else
-		{
-			CD_ENGINE_WARN("Unknown non-uber shader program type of {0}!", programName);
-		}
+	auto [vsName, fsName, csName] = IdentifyShaderTypes(m_shaderVariantCollections.GetUberShaders(programName));
+
+	if (!vsName.empty() && !fsName.empty() && csName.empty())
+	{
+		CreateProgram(programName.c_str(), vsName.data(), fsName.data(), combine.c_str());
 	}
 	else
 	{
-		const auto [vsName, fsName, csName] = IdentifyShaderTypes(m_shaderVariantCollections.GetUberShaders(programName));
-
-		if (!vsName.empty() && !fsName.empty() && csName.empty())
-		{
-			CreateProgram(programName.c_str(), vsName.data(), fsName.data(), combine.c_str());
-		}
-		else
-		{
-			CD_ENGINE_WARN("Unknown uber shader program type of {0}!", programName);
-		}
+		CD_ENGINE_WARN("Unknown uber shader program type of {0}!", programName);
 	}
 }
 
-void RenderContext::AddShaderVariantCompileTask(ShaderVariantCompileInfo info)
+void RenderContext::AddShaderCompileTask(ShaderCompileInfo info)
 {
-	const auto& it = std::find(m_shaderVariantCompileTasks.begin(), m_shaderVariantCompileTasks.end(), info);
-	if (it == m_shaderVariantCompileTasks.end())
+	const auto& it = std::find(m_shaderCompileTasks.begin(), m_shaderCompileTasks.end(), info);
+	if (it == m_shaderCompileTasks.end())
 	{
-		CD_ENGINE_INFO("Runtime shader compile task added for {0} with shader features : {1}", info.m_programName, info.m_featuresCombine);
-		m_shaderVariantCompileTasks.emplace_back(cd::MoveTemp(info));
+		CD_ENGINE_INFO("Runtime shader compile task added for {0} with shader features : [ {1} ]", info.m_programName, info.m_featuresCombine);
+		m_shaderCompileTasks.emplace_back(cd::MoveTemp(info));
 	}
 }
 
-void RenderContext::ClearShaderVariantCompileTasks()
+void RenderContext::ClearShaderCompileTasks()
 {
-	m_shaderVariantCompileTasks.clear();
+	m_shaderCompileTasks.clear();
 }
 
-void RenderContext::SetShaderVariantCompileTasks(std::vector<ShaderVariantCompileInfo> tasks)
+void RenderContext::SetShaderCompileTasks(std::vector<ShaderCompileInfo> tasks)
 {
-	m_shaderVariantCompileTasks = cd::MoveTemp(tasks);
+	m_shaderCompileTasks = cd::MoveTemp(tasks);
 }
 
 const RenderContext::ShaderBlob& RenderContext::AddShaderBlob(StringCrc shaderNameCrc, ShaderBlob blob)
@@ -363,7 +344,7 @@ bgfx::ProgramHandle RenderContext::GetUberShaderProgramHandle(const StringCrc pr
 		return { bgfx::kInvalidHandle };
 	}
 
-	return { featureCombineProgramHandleMap.at(featureCombineCrc.Value()) };
+	return { itHandle->second };
 }
 
 RenderTarget* RenderContext::CreateRenderTarget(StringCrc resourceCrc, uint16_t width, uint16_t height, std::vector<AttachmentDescriptor> attachmentDescs)

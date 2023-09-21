@@ -62,7 +62,7 @@ void PBRSkyRenderer::Init()
 	bgfx::setViewName(GetViewID(), "PBRSkyRenderer");
 }
 
-void PBRSkyRenderer::PreSubmit()
+void PBRSkyRenderer::Warmup()
 {
 	GetRenderContext()->CreateTexture(TextureTransmittance, TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT, 1,
 		bgfx::TextureFormat::RGBA32F, FlagTexture2D);
@@ -86,20 +86,15 @@ void PBRSkyRenderer::PreSubmit()
 	GetRenderContext()->CreateUniform(HeightOffset, bgfx::UniformType::Enum::Vec4, 1);
 	GetRenderContext()->CreateUniform(NumScatteringOrders, bgfx::UniformType::Enum::Vec4, 1);
 
-	GetRenderContext()->CreateProgram(ProgramAtmosphericScatteringLUT, "vs_atmSkyBox.bin", "fs_PrecomputedAtmosphericScattering_LUT.bin");
-	GetRenderContext()->CreateProgram(ProgramSingleScatteringRayMarching, "vs_atmSkyBox.bin", "fs_SingleScattering_RayMarching.bin");
+	GetRenderContext()->UploadNonUberShader(ProgramAtmosphericScatteringLUT);
+	GetRenderContext()->UploadNonUberShader(ProgramSingleScatteringRayMarching);
 
-	GetRenderContext()->CreateProgram(ProgramComputeTransmittance, "cs_ComputeTransmittance.bin");
-	GetRenderContext()->CreateProgram(ProgramComputeDirectIrradiance, "cs_ComputeDirectIrradiance.bin");
-	GetRenderContext()->CreateProgram(ProgramComputeSingleScattering, "cs_ComputeSingleScattering.bin");
-	GetRenderContext()->CreateProgram(ProgramComputeScatteringDensity, "cs_ComputeScatteringDensity.bin");
-	GetRenderContext()->CreateProgram(ProgramComputeIndirectIrradiance, "cs_ComputeIndirectIrradiance.bin");
-	GetRenderContext()->CreateProgram(ProgramComputeMultipleScattering, "cs_ComputeMultipleScattering.bin");
-}
-
-bool PBRSkyRenderer::CheckResources()
-{
-	return true;
+	GetRenderContext()->UploadNonUberShader(ProgramComputeTransmittance);
+	GetRenderContext()->UploadNonUberShader(ProgramComputeDirectIrradiance);
+	GetRenderContext()->UploadNonUberShader(ProgramComputeSingleScattering);
+	GetRenderContext()->UploadNonUberShader(ProgramComputeScatteringDensity);
+	GetRenderContext()->UploadNonUberShader(ProgramComputeIndirectIrradiance);
+	GetRenderContext()->UploadNonUberShader(ProgramComputeMultipleScattering);
 }
 
 void PBRSkyRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
