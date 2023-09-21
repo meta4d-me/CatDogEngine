@@ -41,11 +41,12 @@ public:
 	void SetMeshData(const cd::Mesh* pMeshData) { m_pMeshData = pMeshData; }
 	void SetRequiredVertexFormat(const cd::VertexFormat* pVertexFormat) { m_pRequiredVertexFormat = pVertexFormat; }
 
-	uint16_t GetVertexBuffer() const { return m_vertexBufferHandle; }
-	uint16_t GetIndexBuffer() const { return m_indexBufferHandle; }
-#ifdef EDITOR_MODE
-	uint16_t GetWireframeIndexBuffer() const { return m_wireframeIndexBufferHandle; }
-#endif
+	uint32_t GetStartVertex() const;
+	uint32_t GetVertexCount() const;
+	uint16_t GetVertexBuffer() const;
+	uint32_t GetStartIndex() const;
+	uint32_t GetIndexCount() const;
+	uint16_t GetIndexBuffer() const;
 
 	void Reset();
 	void Build();
@@ -63,8 +64,36 @@ private:
 	uint16_t m_indexBufferHandle = UINT16_MAX;
 
 #ifdef EDITOR_MODE
+public:
+	uint16_t GetWireframeIndexBuffer() const { return m_wireframeIndexBufferHandle; }
+
+	bool IsProgressiveMeshValid() const { return m_progressiveMeshIndexBufferHandle != UINT16_MAX; }
+	uint16_t GetProgressiveMeshIndexBuffer() const { return m_progressiveMeshIndexBufferHandle; }
+	void BuildProgressiveMeshData();
+	float GetProgressiveMeshLODPercent() const { return m_progressiveMeshLODPercent; }
+	float& GetProgressiveMeshLODPercent() { return m_progressiveMeshLODPercent; }
+	void UpdateProgressiveMeshData();
+
+private:
+	void BuildWireframeData();
+
+private:
 	std::vector<std::byte> m_wireframeIndexBuffer;
 	uint16_t m_wireframeIndexBufferHandle = UINT16_MAX;
+
+	std::vector<std::byte> m_progressiveMeshVertexBuffer;
+	uint16_t m_progressiveMeshVertexBufferHandle = UINT16_MAX;
+
+	std::vector<std::byte> m_progressiveMeshIndexBuffer;
+	uint16_t m_progressiveMeshIndexBufferHandle = UINT16_MAX;
+
+	uint32_t m_totalVertexCount = UINT32_MAX;
+	uint32_t m_currentVertexCount = UINT32_MAX;
+	uint32_t m_totalPolygonCount = UINT32_MAX;
+	uint32_t m_currentPolygonCount = UINT32_MAX;
+	float m_progressiveMeshLODPercent = 1.0f;
+	std::vector<uint32_t> m_permutation;
+	std::vector<uint32_t> m_map;
 #endif
 };
 

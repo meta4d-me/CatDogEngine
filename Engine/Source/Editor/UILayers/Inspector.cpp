@@ -86,6 +86,23 @@ void UpdateComponentWidget<engine::TransformComponent>(engine::SceneWorld* pScen
 template<>
 void UpdateComponentWidget<engine::StaticMeshComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
 {
+	auto* pStaticMeshComponent = pSceneWorld->GetStaticMeshComponent(entity);
+	if (!pStaticMeshComponent)
+	{
+		return;
+	}
+
+	if (!pStaticMeshComponent->IsProgressiveMeshValid())
+	{
+		if (ImGui::Button(reinterpret_cast<const char*>("Build ProgressiveMesh")))
+		{
+			pStaticMeshComponent->BuildProgressiveMeshData();
+		}
+	}
+	else
+	{
+		ImGuiUtils::ImGuiFloatProperty("LOD Percent", pStaticMeshComponent->GetProgressiveMeshLODPercent(), cd::Unit::None, 0.05f, 1.0f, false, 0.01f);
+	}
 }
 
 template<>
