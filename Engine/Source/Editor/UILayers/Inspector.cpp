@@ -92,20 +92,30 @@ void UpdateComponentWidget<engine::StaticMeshComponent>(engine::SceneWorld* pSce
 		return;
 	}
 
-	ImGuiUtils::ImGuiStringProperty("Vertex Count", std::to_string(pStaticMeshComponent->GetVertexCount()));
-	ImGuiUtils::ImGuiStringProperty("Triangle Count", std::to_string(static_cast<uint32_t>(pStaticMeshComponent->GetPolygonCount())));
+	bool isOpen = ImGui::CollapsingHeader("StaticMesh Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+	ImGui::Separator();
 
-	if (!pStaticMeshComponent->IsProgressiveMeshValid())
+	if (isOpen)
 	{
-		if (ImGui::Button(reinterpret_cast<const char*>("Build ProgressiveMesh")))
+		ImGuiUtils::ImGuiStringProperty("Vertex Count", std::to_string(pStaticMeshComponent->GetVertexCount()));
+		ImGuiUtils::ImGuiStringProperty("Triangle Count", std::to_string(static_cast<uint32_t>(pStaticMeshComponent->GetPolygonCount())));
+
+		if (!pStaticMeshComponent->IsProgressiveMeshValid())
 		{
-			pStaticMeshComponent->BuildProgressiveMeshData();
+			if (ImGui::Button(reinterpret_cast<const char*>("Build ProgressiveMesh")))
+			{
+				pStaticMeshComponent->BuildProgressiveMeshData();
+			}
+		}
+		else
+		{
+			ImGuiUtils::ImGuiFloatProperty("LOD Percent", pStaticMeshComponent->GetProgressiveMeshReductionPercent(), cd::Unit::None, 0.001f, 1.0f, false, 0.001f);
 		}
 	}
-	else
-	{
-		ImGuiUtils::ImGuiFloatProperty("LOD Percent", pStaticMeshComponent->GetProgressiveMeshReductionPercent(), cd::Unit::None, 0.001f, 1.0f, false, 0.001f);
-	}
+
+	ImGui::Separator();
+	ImGui::PopStyleVar();
 }
 
 template<>
