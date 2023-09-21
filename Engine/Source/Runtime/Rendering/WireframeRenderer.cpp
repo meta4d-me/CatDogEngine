@@ -48,9 +48,17 @@ void WireframeRenderer::Render(float deltaTime)
 			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
 		}
 
-		StaticMeshComponent* pStaticMesh = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
-		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pStaticMesh->GetVertexBuffer() });
-		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pStaticMesh->GetWireframeIndexBuffer() });
+		StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
+		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()}, pMeshComponent->GetStartVertex(), pMeshComponent->GetVertexCount());
+		if (pMeshComponent->IsProgressiveMeshValid())
+		{
+			pMeshComponent->UpdateProgressiveMeshData();
+			bgfx::setIndexBuffer(bgfx::DynamicIndexBufferHandle{pMeshComponent->GetIndexBuffer()}, pMeshComponent->GetStartIndex(), pMeshComponent->GetIndexCount());
+		}
+		else
+		{
+			bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()}, pMeshComponent->GetStartIndex(), pMeshComponent->GetIndexCount());
+		}
 
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LEQUAL |
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_LINES;
