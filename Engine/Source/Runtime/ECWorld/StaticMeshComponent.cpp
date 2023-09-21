@@ -110,7 +110,7 @@ void StaticMeshComponent::Reset()
 	m_currentVertexCount = UINT32_MAX;
 	m_totalPolygonCount = UINT32_MAX;
 	m_currentPolygonCount = UINT32_MAX;
-	m_progressiveMeshLODPercent = 1.0f;
+	m_progressiveMeshReductionPercent = 1.0f;
 
 	m_progressiveMeshVertexBuffer.clear();
 	m_progressiveMeshVertexBufferHandle = UINT16_MAX;
@@ -362,7 +362,8 @@ void StaticMeshComponent::BuildProgressiveMeshData()
 
 void StaticMeshComponent::UpdateProgressiveMeshData()
 {
-	uint32_t lodVertexCount = static_cast<uint32_t>(m_progressiveMeshLODPercent * m_totalVertexCount);
+	assert(m_progressiveMeshReductionPercent >= 0.0f && m_progressiveMeshReductionPercent <= 1.0f);
+	uint32_t lodVertexCount = static_cast<uint32_t>(m_progressiveMeshReductionPercent * m_totalVertexCount);
 	if (lodVertexCount == m_currentVertexCount)
 	{
 		return;
