@@ -23,10 +23,12 @@ void ParticleRenderer::Render(float deltaTime)
 	for (Entity entity : m_pCurrentSceneWorld->GetParticleEmitterEntities())
 	{
 		engine::ParticleEmitterComponent* pEmitterComponent = m_pCurrentSceneWorld->GetParticleEmitterComponent(entity);
+		const cd::Transform& cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(entity)->GetTransform();
 
 		for (int i = 0; i < pEmitterComponent->GetParticleSystem().GetMaxCount(); ++i)
 		{
 			pEmitterComponent->GetParticleSystem().AllocateParticleIndex();
+			pEmitterComponent->GetParticleSystem().SetPos(cameraTransform.GetTranslation());
 		}
 
 		pEmitterComponent->GetParticleSystem().UpdateActive(deltaTime);
