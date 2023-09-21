@@ -91,14 +91,7 @@ void CameraController::Update(float deltaTime)
 	Moving();
 	bool isAnyMouseButtonPressed = engine::Input::Get().IsMouseLBPressed() || engine::Input::Get().IsMouseMBPressed() || engine::Input::Get().IsMouseRBPressed();
 	bool isAnyDirectionMouseMoved = 0 != engine::Input::Get().GetMousePositionOffsetX() || 0 != engine::Input::Get().GetMousePositionOffsetY();
-	if (isAnyMouseButtonPressed && isAnyDirectionMouseMoved)
-	{
-		m_isViewMoved = true;
-	}
-	else
-	{
-		m_isViewMoved = false;
-	}
+	m_isMouseMovedInView = isAnyMouseButtonPressed && isAnyDirectionMouseMoved;
 
 	if (Input::Get().IsKeyPressed(KeyCode::z))
 	{
@@ -107,7 +100,6 @@ void CameraController::Update(float deltaTime)
 
 		if (Input::Get().IsMouseLBPressed() && !m_isMoving)
 		{
-
 			m_isTracking = true;
 			ElevationChanging(m_verticalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
 			AzimuthChanging(-m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
