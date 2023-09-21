@@ -59,29 +59,29 @@ void engine::ParticleSystem::Update(float deltaTime, int index)
 
 	if (index % 4 == 0)
 	{
-		m_pos[index].x() = m_pos[index].x() + m_velocity[index].x() * deltaTime + 0.5f * m_acceleration[index].x() * deltaTime * deltaTime;
-		m_pos[index].y() = m_pos[index].y() + m_velocity[index].y() * deltaTime + 0.5f * m_acceleration[index].y() * deltaTime * deltaTime;
+		m_pos[index].x() = m_pos[index].x() + m_velocity[index].x() * 0.15f + 0.5f * m_acceleration[index].x() * 0.15f * 0.15f;
+		m_pos[index].y() = m_pos[index].y() + m_velocity[index].y() * 0.15f + 0.5f * m_acceleration[index].y() * 0.15f * 0.15f;
 		m_texture_u[index] = 0.0f;
 		m_texture_v[index] = 0.0f;
 	}
 	else if (index % 4 == 1)
 	{
-		m_pos[index].x() = m_pos[index-1].x()+ 1 + m_velocity[index].x() * deltaTime + 0.5f * m_acceleration[index].x() * deltaTime * deltaTime;
-		m_pos[index].y() = m_pos[index-1].y() + m_velocity[index].y() * deltaTime + 0.5f * m_acceleration[index].y() * deltaTime * deltaTime;
+		m_pos[index].x() = m_pos[index-1].x()+ 1 + m_velocity[index].x() * 0.15f + 0.5f * m_acceleration[index].x() * 0.15f * 0.15f;
+		m_pos[index].y() = m_pos[index-1].y() + m_velocity[index].y() * 0.15f + 0.5f * m_acceleration[index].y() * 0.15f * 0.15f;
 		m_texture_u[index] = 1.0f;
 		m_texture_v[index] = 0.0f;
 	}
 	else if (index % 4 == 2)
 	{
-		m_pos[index].x() = m_pos[index-2].x() + 1+ m_velocity[index].x() * deltaTime + 0.5f * m_acceleration[index].x() * deltaTime * deltaTime;
-		m_pos[index].y() = m_pos[index-2].y() + 1 + m_velocity[index].y() * deltaTime + 0.5f * m_acceleration[index].y() * deltaTime * deltaTime;
+		m_pos[index].x() = m_pos[index-2].x() + 1+ m_velocity[index].x() * 0.15f + 0.5f * m_acceleration[index].x() * 0.15f * 0.15f;
+		m_pos[index].y() = m_pos[index-2].y() + 1 + m_velocity[index].y() * 0.15f + 0.5f * m_acceleration[index].y() * 0.15f * 0.15f;
 		m_texture_u[index] = 1.0f;
 		m_texture_v[index] = 1.0f;
 	}
 	else if (index % 4 == 3)
 	{
-		m_pos[index].x() = m_pos[index-3].x() + m_velocity[index].x() * deltaTime + 0.5f * m_acceleration[index].x() * deltaTime * deltaTime;
-		m_pos[index].y() = m_pos[index-3].y() + 1 +  m_velocity[index].y() * deltaTime + 0.5f * m_acceleration[index].y() * deltaTime * deltaTime;
+		m_pos[index].x() = m_pos[index-3].x() + m_velocity[index].x() * 0.15f + 0.5f * m_acceleration[index].x() * 0.15f * 0.15f;
+		m_pos[index].y() = m_pos[index-3].y() + 1 +  m_velocity[index].y() * 0.15f + 0.5f * m_acceleration[index].y() * 0.15f * 0.15f;
 		m_texture_u[index] = 0.0f;
 		m_texture_v[index] = 1.0f;
 	}

@@ -63,7 +63,7 @@ void engine::ParticleEmitterComponent::PaddingIndexBuffer()
 * indexBuffer
 */
 	size_t indexTypeSize = sizeof(uint16_t);
-	m_particleIndexBuffer.resize(m_particleSystem.GetMaxCount()/4*6 * indexTypeSize);
+	m_particleIndexBuffer.resize(m_particleSystem.GetMaxCount()/4*7 * indexTypeSize);
 	uint32_t currentDataSize = 0U;
 	auto currentDataPtr = m_particleIndexBuffer.data();
 
@@ -77,6 +77,7 @@ void engine::ParticleEmitterComponent::PaddingIndexBuffer()
 		indexes.push_back(vertexIndex);
 		indexes.push_back(vertexIndex+2);
 		indexes.push_back(vertexIndex+3);
+		indexes.push_back(static_cast<uint16_t>(65535));
 	}
 
 	for (const auto& index : indexes)
