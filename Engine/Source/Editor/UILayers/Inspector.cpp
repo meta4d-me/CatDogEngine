@@ -14,6 +14,28 @@ void UpdateComponentWidget(engine::SceneWorld* pSceneWorld, engine::Entity entit
 }
 
 template<>
+void UpdateComponentWidget<engine::CollisionMeshComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+{
+	auto* pCollisionMesh = pSceneWorld->GetCollisionMeshComponent(entity);
+	if (!pCollisionMesh)
+	{
+		return;
+	}
+
+	bool isHeaderOpen = ImGui::CollapsingHeader("Collision Mesh Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+	ImGui::Separator();
+
+	if (isHeaderOpen)
+	{
+		ImGuiUtils::ImGuiBoolProperty("Debug Draw", pCollisionMesh->IsDebugDrawEnable());
+	}
+
+	ImGui::Separator();
+	ImGui::PopStyleVar();
+}
+
+template<>
 void UpdateComponentWidget<engine::NameComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
 {
 	auto* pNameComponent = pSceneWorld->GetNameComponent(entity);
@@ -156,12 +178,23 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 
 		// Parameters
 		ImGui::Separator();
-		ImGuiUtils::ColorPickerProperty("AlbedoColor", pMaterialComponent->GetAlbedoColor());
-		ImGuiUtils::ImGuiFloatProperty("MetallicFactor", pMaterialComponent->GetMetallicFactor(), cd::Unit::None, 0.0f, 1.0f);
-		ImGuiUtils::ImGuiFloatProperty("RoughnessFactor", pMaterialComponent->GetRoughnessFactor(), cd::Unit::None, 0.0f, 1.0f);
-		ImGuiUtils::ColorPickerProperty("EmissiveColor", pMaterialComponent->GetEmissiveColor());
-		ImGuiUtils::ImGuiBoolProperty("TwoSided", pMaterialComponent->GetTwoSided());
-		ImGuiUtils::ImGuiStringProperty("BlendMode", nameof::nameof_enum(pMaterialComponent->GetBlendMode()).data());
+		
+		{
+			bool isOpen = ImGui::CollapsingHeader("Render States", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Separator();
+
+			if (isOpen)
+			{
+				// TODO : generic cull mode.
+				ImGuiUtils::ImGuiBoolProperty("TwoSided", pMaterialComponent->GetTwoSided());
+				ImGuiUtils::ImGuiStringProperty("BlendMode", nameof::nameof_enum(pMaterialComponent->GetBlendMode()).data());
+			}
+
+			ImGui::Separator();
+			ImGui::PopStyleVar();
+		}
+
 		if (cd::BlendMode::Mask == pMaterialComponent->GetBlendMode())
 		{
 			ImGuiUtils::ImGuiFloatProperty("AlphaCutOff", pMaterialComponent->GetAlphaCutOff(), cd::Unit::None, 0.0f, 1.0f);
@@ -170,19 +203,58 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		// Textures
 		for (int textureTypeValue = 0; textureTypeValue < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
 		{
-			if (engine::MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)))
+			auto textureType = static_cast<cd::MaterialTextureType>(textureTypeValue);
+			bool allowNoTextures = textureType == cd::MaterialTextureType::BaseColor ||
+				textureType == cd::MaterialTextureType::Emissive ||
+				textureType == cd::MaterialTextureType::Metallic ||
+				textureType == cd::MaterialTextureType::Roughness;
+
+			engine::MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(textureType);
+			bool canCreateTextureParameters = pTextureInfo || allowNoTextures;
+			if (canCreateTextureParameters)
 			{
-				const char* title = nameof::nameof_enum(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)).data();
-				bool isOpen = ImGui::CollapsingHeader(title, ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+				const char* pTextureType = nameof::nameof_enum(static_cast<cd::MaterialTextureType>(textureTypeValue)).data();
+				bool isOpen = ImGui::CollapsingHeader(pTextureType, ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 				ImGui::Separator();
 
-				std::string uvOffset = std::string(title) + std::string(" UVOffset");
-				std::string uvScale = std::string(title) + std::string(" UVScale");
 				if (isOpen)
 				{
-					ImGuiUtils::ImGuiVectorProperty(uvOffset.c_str(), pTextureInfo->GetUVOffset());
-					ImGuiUtils::ImGuiVectorProperty(uvScale.c_str(), pTextureInfo->GetUVScale());
+					ImGui::PushID(textureTypeValue);
+
+					if (cd::MaterialTextureType::BaseColor == textureType)
+					{
+						ImGuiUtils::ColorPickerProperty("AlbedoColor", pMaterialComponent->GetAlbedoColor());
+					}
+					else if (cd::MaterialTextureType::Metallic == textureType)
+					{
+						ImGuiUtils::ImGuiFloatProperty("Metalness", pMaterialComponent->GetMetallicFactor(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+					}
+					else if (cd::MaterialTextureType::Roughness == textureType)
+					{
+						ImGuiUtils::ImGuiFloatProperty("Roughness", pMaterialComponent->GetRoughnessFactor(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+					}
+					else if (cd::MaterialTextureType::Emissive == textureType)
+					{
+						float emissiveStrength = pMaterialComponent->GetEmissiveColor().x();
+						if (ImGuiUtils::ImGuiFloatProperty("Emissive Strength", emissiveStrength, cd::Unit::None, 0.0f, 1000.0f, false, 0.1f))
+						{
+							pMaterialComponent->SetEmissiveColor(cd::Vec3f(emissiveStrength));
+						}
+					}
+
+					if (pTextureInfo)
+					{
+						if (pTextureInfo->textureHandle != bgfx::kInvalidHandle)
+						{
+							ImGui::Image(reinterpret_cast<ImTextureID>(pTextureInfo->textureHandle), ImVec2(64, 64));
+						}
+
+						ImGuiUtils::ImGuiVectorProperty("UV Offset", pTextureInfo->GetUVOffset(), cd::Unit::None, cd::Vec2f(0.0f), cd::Vec2f(1.0f), false, 0.01f);
+						ImGuiUtils::ImGuiVectorProperty("UV Scale", pTextureInfo->GetUVScale());
+					}
+
+					ImGui::PopID();
 				}
 
 				ImGui::Separator();
@@ -191,38 +263,39 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		}
 
 		// Shaders
-		const char* title = "Shader";
-		bool isOpen = ImGui::CollapsingHeader(title, ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-		ImGui::Separator();
-
-		if (isOpen)
 		{
-			ImGuiUtils::ImGuiStringProperty("Vertex Shader", pMaterialComponent->GetVertexShaderName());
-			ImGuiUtils::ImGuiStringProperty("Fragment Shader", pMaterialComponent->GetFragmentShaderName());
+			bool isOpen = ImGui::CollapsingHeader("Shader", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 			ImGui::Separator();
 
-			std::vector<const char*> activeShaderFeatures;
-			for (const auto& feature : pMaterialComponent->GetShaderFeatures())
+			if (isOpen)
 			{
-				activeShaderFeatures.emplace_back(nameof::nameof_enum(feature).data());
-			}
+				ImGuiUtils::ImGuiStringProperty("Vertex Shader", pMaterialComponent->GetVertexShaderName());
+				ImGuiUtils::ImGuiStringProperty("Fragment Shader", pMaterialComponent->GetFragmentShaderName());
+				ImGui::Separator();
 
-			if (!activeShaderFeatures.empty())
-			{
-				if (ImGui::BeginCombo("##combo", "Active shader features"))
+				std::vector<const char*> activeShaderFeatures;
+				for (const auto& feature : pMaterialComponent->GetShaderFeatures())
 				{
-					for (size_t index = 0; index < activeShaderFeatures.size(); ++index)
+					activeShaderFeatures.emplace_back(nameof::nameof_enum(feature).data());
+				}
+
+				if (!activeShaderFeatures.empty())
+				{
+					if (ImGui::BeginCombo("##combo", "Active shader features"))
 					{
-						ImGui::Selectable(activeShaderFeatures[index], false);
+						for (size_t index = 0; index < activeShaderFeatures.size(); ++index)
+						{
+							ImGui::Selectable(activeShaderFeatures[index], false);
+						}
+						ImGui::EndCombo();
 					}
-					ImGui::EndCombo();
 				}
 			}
-		}
 
-		ImGui::Separator();
-		ImGui::PopStyleVar();
+			ImGui::Separator();
+			ImGui::PopStyleVar();
+		}
 	}
 
 	ImGui::Separator();
@@ -267,23 +340,23 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 				ImGuiUtils::ImGuiBoolProperty("Open Bloom", pCameraComponent->GetIsBloomEnable());
 				if (pCameraComponent->GetIsBloomEnable())
 				{
-					ImGuiUtils::ImGuiIntProperty("DownSampleTimes", pCameraComponent->GetBloomDownSampleTimes(), cd::Unit::None, 4, 8, false, 1.0f);
+					ImGuiUtils::ImGuiIntProperty("DownSample Times", pCameraComponent->GetBloomDownSampleTimes(), cd::Unit::None, 4, 8, false, 1.0f);
 					ImGuiUtils::ImGuiFloatProperty("Bloom Intensity", pCameraComponent->GetBloomIntensity(), cd::Unit::None, 0.0f, 3.0f, false, 0.01f);
 					ImGuiUtils::ImGuiFloatProperty("Luminance Threshold", pCameraComponent->GetLuminanceThreshold(), cd::Unit::None, 0.0f, 3.0f, false, 0.01f);
+
+					if (ImGui::TreeNode("Gaussian Blur"))
+					{
+						ImGuiUtils::ImGuiBoolProperty("Open Blur", pCameraComponent->GetIsBlurEnable());
+						if (pCameraComponent->GetIsBlurEnable())
+						{
+							ImGuiUtils::ImGuiIntProperty("Blur Iteration", pCameraComponent->GetBlurTimes(), cd::Unit::None, 0, 20, false, 1.0f);
+							ImGuiUtils::ImGuiFloatProperty("Blur Size", pCameraComponent->GetBlurSize(), cd::Unit::None, 0.0f, 3.0f);
+							ImGuiUtils::ImGuiIntProperty("Blur Scaling", pCameraComponent->GetBlurScaling(), cd::Unit::None, 1, 4, false, 1.0f);
+						}
+						ImGui::TreePop();
+					}
 				}
 
-				ImGui::TreePop();
-			}
-
-			if (ImGui::TreeNode("Gaussian Blur"))
-			{
-				ImGuiUtils::ImGuiBoolProperty("Open Blur", pCameraComponent->GetIsBlurEnable());
-				if (pCameraComponent->GetIsBlurEnable())
-				{
-					ImGuiUtils::ImGuiIntProperty("BlurIteration", pCameraComponent->GetBlurTimes(), cd::Unit::None, 0, 20, false, 1.0f);
-					ImGuiUtils::ImGuiFloatProperty("Blur Size", pCameraComponent->GetBlurSize(), cd::Unit::None, 0.0f, 3.0f);
-					ImGuiUtils::ImGuiIntProperty("Blur Scaling", pCameraComponent->GetBlurScaling(), cd::Unit::None, 1, 4, false, 1.0f);
-				}
 				ImGui::TreePop();
 			}
 
@@ -582,33 +655,42 @@ void Inspector::Init()
 
 void Inspector::Update()
 {
-	auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
-	ImGui::Begin(GetName(), &m_isEnable, flags);
-
 	engine::SceneWorld* pSceneWorld = GetSceneWorld();
-	engine::Entity selectedEntity = pSceneWorld->GetSelectedEntity();
-	if (engine::INVALID_ENTITY == selectedEntity)
+	if (engine::Entity selectedEntity = pSceneWorld->GetSelectedEntity(); selectedEntity != engine::INVALID_ENTITY)
 	{
+		// Entity will be invalid in two cases : 1.Select nothing 2.The selected entity has been deleted
+		// Here we only want to capture the case 1 not to clear Inspector properties.
+		// For case 2, it still uses a valid entity to update but nothing updated.
+		// It is OK if we don't reuse the entity id intermediately.
+		m_lastSelectedEntity = selectedEntity;
+	}
+
+	constexpr auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+	ImGui::Begin(GetName(), &m_isEnable, flags);
+	if (m_lastSelectedEntity == engine::INVALID_ENTITY)
+	{
+		// Call ImGui::Begin to show the panel though we will do nothing.
 		ImGui::End();
 		return;
 	}
 
 	ImGui::BeginChild("Inspector");
 
-	details::UpdateComponentWidget<engine::NameComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::TransformComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::StaticMeshComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::BlendShapeComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::CameraComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::ParticleComponent>(pSceneWorld, selectedEntity);
-	details::UpdateComponentWidget<engine::ShaderVariantCollectionsComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::NameComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::TransformComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::CameraComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::StaticMeshComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::ParticleComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::CollisionMeshComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::BlendShapeComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::ShaderVariantCollectionsComponent>(pSceneWorld, m_lastSelectedEntity);
 
 #ifdef ENABLE_DDGI
-	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, selectedEntity);
+	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, m_lastSelectedEntity);
 #endif
 
 	ImGui::EndChild();

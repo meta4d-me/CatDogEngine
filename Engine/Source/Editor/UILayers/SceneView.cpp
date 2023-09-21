@@ -10,6 +10,8 @@
 #include "Log/Log.h"
 #include "Material/ShaderSchema.h"
 #include "Math/Ray.hpp"
+#include "Rendering/AABBRenderer.h"
+#include "Rendering/WireframeRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/Renderer.h"
 #include "Rendering/RenderTarget.h"
@@ -104,44 +106,16 @@ void SceneView::UpdateOperationButtons()
 	}
 }
 
-void SceneView::UpdateAABBCombo()
-{
-	ImGui::SetNextItemWidth(150);
-	if(ImGui::Combo("##AABBCombo", reinterpret_cast<int*>(&m_AABBMode), AABBModes, IM_ARRAYSIZE(AABBModes)))
-	{
-		if (AABBModeType::NoAABB == m_AABBMode)
-		{
-			m_pAABBRenderer->SetEnable(false);
-		}
-		else if (AABBModeType::AABBSelected == m_AABBMode)
-		{
-			m_pAABBRenderer->SetEnable(true);
-			static_cast<engine::AABBRenderer*>(m_pAABBRenderer)->SetIsRenderSelected(true);
-		}
-		else if (AABBModeType::AABBAll == m_AABBMode)
-		{
-			m_pAABBRenderer->SetEnable(true);
-			static_cast<engine::AABBRenderer*>(m_pAABBRenderer)->SetIsRenderSelected(false);
-		}
-	}
-	ImGui::PushItemWidth(150);
-}
-
-void SceneView::UpdateDebugCombo()
+void SceneView::UpdateRenderModeCombo()
 {
 	ImGui::SetNextItemWidth(130);
-	if (ImGui::Combo("##DebugCombo", reinterpret_cast<int*>(&m_debugMode), DebugModes, IM_ARRAYSIZE(DebugModes)))
+	if (ImGui::Combo("##DebugCombo", reinterpret_cast<int*>(&m_renderMode), RenderModes, IM_ARRAYSIZE(RenderModes)))
 	{
-		if (DebugModeType::NoDebug == m_debugMode)
-		{
-			m_pSceneRenderer->SetEnable(true);
-			m_pDebugRenderer->SetEnable(false);
-		}
-		else if (DebugModeType::WhiteModel == m_debugMode)
-		{
-			m_pSceneRenderer->SetEnable(false);
-			m_pDebugRenderer->SetEnable(true);
-		}
+		m_pSceneRenderer->SetEnable(RenderModeType::Rendered == m_renderMode);
+		m_pWhiteModelRenderer->SetEnable(RenderModeType::Solid == m_renderMode);
+
+		auto* pWireframeRenderer = static_cast<engine::WireframeRenderer*>(m_pWireframeRenderer);
+		pWireframeRenderer->SetEnableGlobalWireframe(RenderModeType::Wireframe == m_renderMode);
 	}
 	ImGui::PushItemWidth(130);
 }
@@ -193,7 +167,8 @@ void SceneView::UpdateSwitchAABBButton()
 
 	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CUBE " AABB")))
 	{
-		GetRenderContext();
+		auto* pAABBRenderer = static_cast<engine::AABBRenderer*>(m_pAABBRenderer);
+		pAABBRenderer->SetEnableGlobalAABB(!pAABBRenderer->IsGlobalAABBEnable());
 	}
 
 	if (isAABBActive)
@@ -251,10 +226,10 @@ void SceneView::UpdateToolMenuButtons()
 	//ImGui::SameLine();
 
 	ImGui::SameLine();
-	UpdateAABBCombo();
+	UpdateRenderModeCombo();
 
 	ImGui::SameLine();
-	UpdateDebugCombo();
+	UpdateSwitchAABBButton();
 
 	ImGui::SameLine();
 	UpdateSwitchTerrainButton();

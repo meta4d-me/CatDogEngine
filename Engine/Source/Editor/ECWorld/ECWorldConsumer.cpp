@@ -249,6 +249,7 @@ void ECWorldConsumer::AddStaticMesh(engine::Entity entity, const cd::Mesh& mesh,
 	staticMeshComponent.SetMeshData(&mesh);
 	staticMeshComponent.SetRequiredVertexFormat(&vertexFormat);
 	staticMeshComponent.Build();
+	staticMeshComponent.Submit();
 }
 
 void ECWorldConsumer::AddSkinMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat)
