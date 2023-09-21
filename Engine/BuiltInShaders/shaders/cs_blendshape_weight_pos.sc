@@ -1,7 +1,7 @@
 #include "../common/bgfx_compute.sh"
 
-BUFFER_RO(staticPosBuffer, vec4, 1);
-BUFFER_RW(dynamicPosWeightBuffer, vec4, 6);
+BUFFER_RO(morphAffectedVB, vec4, 1);
+BUFFER_RW(finalMorphAffectedVB, vec4, 6);
 
 uniform vec4 u_vertexCount;
 
@@ -10,11 +10,11 @@ void main()
 {
     for(uint i = 0; i <u_vertexCount.x;i++)
     {
-        dynamicPosWeightBuffer[i]=vec4(
-            dynamicPosWeightBuffer[i].w*staticPosBuffer[i].x,
-            dynamicPosWeightBuffer[i].w*staticPosBuffer[i].y,
-            dynamicPosWeightBuffer[i].w*staticPosBuffer[i].z,
-            dynamicPosWeightBuffer[i].w
+        finalMorphAffectedVB[i]=vec4(
+            finalMorphAffectedVB[i].w*morphAffectedVB[i].x,
+            finalMorphAffectedVB[i].w*morphAffectedVB[i].y,
+            finalMorphAffectedVB[i].w*morphAffectedVB[i].z,
+            finalMorphAffectedVB[i].w
         );
     }
 }

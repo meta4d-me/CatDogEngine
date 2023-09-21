@@ -51,14 +51,13 @@ public:
 	//void SetMorphAt() and record the changed one
 	//std::vector<cd::Morph> GetMorphs() { return m_morphs; };
 
-	uint16_t GetVertexDynamicBuffer() const { return m_vertexDynamicBufferHandle;}
-	uint16_t GetVertexStaticBuffer1() const { return m_vertexStaticBufferHandle1; }
-	uint16_t GetVertexStaticBuffer2() const { return m_vertexStaticBufferHandle2; }
-	uint16_t GetBlendShapeStaticBuffer1() const { return m_blendShapeStaticBufferHandle1; }
-	uint16_t GetBlendShapeStaticBuffer2() const { return m_blendShapeStaticBufferHandle2; }
-	uint16_t GetBlendShapeDynamifcBuffer1() const { return m_blendShapeDynamicBufferHandle1; }
-	uint16_t GetBlendShapeDynamifcBuffer2() const { return m_blendShapeDynamicBufferHandle2; }
-	uint16_t GetSourceWeightDynamicBuffer() const { return m_sourceWeightDynamicBufferHandle; }
+	uint16_t GetFinalMorphAffectedVB() const { return m_finalMorphAffectedVBHandle;}
+	uint16_t GetMorphAffectedVB() const { return m_morphAffectedVBHandle; }
+	uint16_t GetNonMorphAffectedVB() const { return m_nonMorphAffectedVBHandle; }
+	uint16_t GetAllMorphVertexIDIB() const { return m_allMorphVertexIDIBHandle; }
+	uint16_t GetAllMorphVertexPosVB() const { return m_allMorphVertexPosVBHandle; }
+	uint16_t GetActiveMorphOffestLengthIB() const { return m_activeMorphOffestLengthIBHandle; }
+	uint16_t GetActiveMorphWeightVB() const { return m_activeMorphWeightVBHandle; }
 
 	void Reset();
 	void Build();
@@ -71,25 +70,26 @@ private:
 	const cd::Mesh* m_pMesh;
 	bool m_isDirty;
 	
-	//output
 	uint32_t m_vertexCount = 0U;
 	uint32_t m_activeMorphCount = 0U;
-	std::vector<std::byte>	m_vertexDynamicBuffer;								// Dynamic Vertex Buffer
-	uint16_t						m_vertexDynamicBufferHandle = UINT16_MAX;
-	std::vector<std::byte>	m_vertexStaticBuffer1;									// Vertex Buffer
-	uint16_t						m_vertexStaticBufferHandle1 = UINT16_MAX;
-	std::vector<std::byte>	m_vertexStaticBuffer2;										// Vertex Buffer
-	uint16_t						m_vertexStaticBufferHandle2 = UINT16_MAX;
-	std::vector<std::byte>	m_blendShapeStaticBuffer1;								// Index Buffer
-	uint16_t						m_blendShapeStaticBufferHandle1 = UINT16_MAX;
-	std::vector<std::byte>	m_blendShapeStaticBuffer2;								// Vertex Buffer
-	uint16_t						m_blendShapeStaticBufferHandle2 = UINT16_MAX;
-	std::vector<std::byte>	m_blendShapeDynamicBuffer1;						//	Dynamic Index Buffer
-	uint16_t						m_blendShapeDynamicBufferHandle1 = UINT16_MAX;
-	std::vector<std::byte>	m_blendShapeDynamicBuffer2;						//	Dynamic Vertex Buffer
-	uint16_t						m_blendShapeDynamicBufferHandle2 = UINT16_MAX;
-	std::vector<std::byte>	m_sourceWeightDynamicBuffer;						//	Dynamic vertex Buffer
-	uint16_t						m_sourceWeightDynamicBufferHandle = UINT16_MAX;
+	uint32_t m_morphVertexCountSum = 0U;
+
+	std::vector<std::byte>	m_morphAffectedVB;								
+	uint16_t						m_morphAffectedVBHandle = UINT16_MAX;					// Vertex Buffer | Compute Input
+	std::vector<std::byte>	m_nonMorphAffectedVB;
+	uint16_t						m_nonMorphAffectedVBHandle = UINT16_MAX;			// Vertex Buffer | Vertex Input
+	uint16_t						m_finalMorphAffectedVBHandle = UINT16_MAX;			// Dynamic Vertex Buffer | Compute Output | Vertex Input
+
+	std::vector<std::byte>	m_allMorphVertexIDIB;												// Index Buffer | Compute Input
+	uint16_t						m_allMorphVertexIDIBHandle = UINT16_MAX;
+	std::vector<std::byte>	m_allMorphVertexPosVB;											// Vertex Buffer | Compute Input
+	uint16_t						m_allMorphVertexPosVBHandle = UINT16_MAX;
+	std::vector<std::byte>	m_activeMorphOffestLengthIB;							
+	uint16_t						m_activeMorphOffestLengthIBHandle = UINT16_MAX;	//	Dynamic Index Buffer	| Compute Input
+	std::vector<std::byte>	m_activeMorphWeightVB;									
+	uint16_t						m_activeMorphWeightVBHandle = UINT16_MAX;			//	Dynamic Vertex Buffer | Compute Input
+
+
 };
 
 }

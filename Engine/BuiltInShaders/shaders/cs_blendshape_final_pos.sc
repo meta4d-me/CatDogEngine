@@ -1,10 +1,10 @@
 #include "../common/bgfx_compute.sh"
 
-BUFFER_RW(dynamicPosBuffer, vec4, 6);
-BUFFER_RO(staticBuffer1, uint, 2);
-BUFFER_RO(staticBuffer2, vec4, 3);
-BUFFER_RO(dynamicBuffer1, uint, 4);
-BUFFER_RO(dynamicBuffer2, vec4, 5);
+BUFFER_RW(finalMorphAffectedVB, vec4, 6);
+BUFFER_RO(allMorphVertexIDIB, uint, 2);
+BUFFER_RO(allMorphVertexPosVB, vec4, 3);
+BUFFER_RO(activeMorphOffestLengthIB, uint, 4);
+BUFFER_RO(activeMorphWeightVB, vec4, 5);
 
 uniform vec4 u_morphCount;
 uniform vec4 u_vertexCount;
@@ -14,20 +14,20 @@ void main()
 {
     for(int i = 0; i <u_morphCount.x;i++)
     {
-        uint offset = dynamicBuffer1[i*2];
-        uint length = dynamicBuffer1[i*2+1];
-        float weight = dynamicBuffer2[i].x;
+        uint offset = activeMorphOffestLengthIB[i*2];
+        uint length = activeMorphOffestLengthIB[i*2+1];
+        float weight = activeMorphWeightVB[i].x;
         for(uint j = 0; j < length; j++)
         {
-            uint id = staticBuffer1[offset+j];
-            float x = staticBuffer2[offset+j].x;
-            float y = staticBuffer2[offset+j].y;
-            float z = staticBuffer2[offset+j].z;
-            dynamicPosBuffer[id] = vec4(
-                dynamicPosBuffer[id].x +weight*x,
-                dynamicPosBuffer[id].y +weight*y,
-                dynamicPosBuffer[id].z +weight*z,
-                dynamicPosBuffer[id].w
+            uint id = allMorphVertexIDIB[offset+j];
+            float x = allMorphVertexPosVB[offset+j].x;
+            float y = allMorphVertexPosVB[offset+j].y;
+            float z = allMorphVertexPosVB[offset+j].z;
+            finalMorphAffectedVB[id] = vec4(
+                finalMorphAffectedVB[id].x +weight*x,
+                finalMorphAffectedVB[id].y +weight*y,
+                finalMorphAffectedVB[id].z +weight*z,
+                finalMorphAffectedVB[id].w
             );
         }
     }
