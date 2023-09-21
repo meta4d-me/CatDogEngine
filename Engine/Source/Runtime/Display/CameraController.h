@@ -54,8 +54,6 @@ public:
 	void ElevationChanging(float amount);
 
 	// Double Click entity,camera will focus
-	void CameraFocus(const cd::AABB& aabb);
-	void CameraFocus(const cd::Vec3f& position);
 	void CameraFocus();
 	// Implement the effect of a translation animation.
 	void Moving();
