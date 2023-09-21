@@ -404,7 +404,6 @@ void CameraController::Moving()
 
 		SynchronizeTrackingCamera();
 		ControllerToCamera();
-
 	}
 }
 
