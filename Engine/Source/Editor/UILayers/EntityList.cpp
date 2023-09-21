@@ -42,20 +42,23 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
 
     auto CreateShapeComponents = [&pSceneWorld, &pWorld, &pSceneDatabase](engine::Entity entity, cd::Mesh&& mesh, engine::MaterialType* pMaterialType)
     {
+        mesh.SetName(pSceneWorld->GetNameComponent(entity)->GetName());
+        mesh.SetID(cd::MeshID(pSceneDatabase->GetMeshCount()));
+
+        uint32_t currentMeshCount = pSceneDatabase->GetMeshCount();
+        pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
+        const cd::Mesh& newAddedShape = pSceneDatabase->GetMesh(currentMeshCount);
+
         auto& collisionMeshComponent = pWorld->CreateComponent<engine::CollisionMeshComponent>(entity);
         collisionMeshComponent.SetType(engine::CollisonMeshType::AABB);
-        collisionMeshComponent.SetAABB(mesh.GetAABB());
+        collisionMeshComponent.SetAABB(newAddedShape.GetAABB());
         collisionMeshComponent.Build();
 
         auto& staticMeshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
-        staticMeshComponent.SetMeshData(&mesh);
+        staticMeshComponent.SetMeshData(&newAddedShape);
         staticMeshComponent.SetRequiredVertexFormat(&pMaterialType->GetRequiredVertexFormat());
         staticMeshComponent.Build();
         staticMeshComponent.Submit();
-
-        mesh.SetName(pSceneWorld->GetNameComponent(entity)->GetName());
-        mesh.SetID(cd::MeshID(pSceneDatabase->GetMeshCount()));
-        pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
 
         auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
         materialComponent.Init();
