@@ -48,7 +48,8 @@ constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MS
 
 void WorldRenderer::Init()
 {
-	GetRenderContext()->RegisterShaderProgram("WorldProgram", { "vs_PBR", "fs_PBR" });
+	constexpr StringCrc programCrc = StringCrc("WorldProgram");
+	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_PBR", "fs_PBR" });
 
 	bgfx::setViewName(GetViewID(), "WorldRenderer");
 }

@@ -11,14 +11,15 @@ namespace editor
 void ShaderBuilder::PreBuildUberShaders(engine::RenderContext* pRenderContext, engine::MaterialType* pMaterialType)
 {
 	const std::string& programName = pMaterialType->GetShaderSchema().GetProgramName();
+	engine::StringCrc programNameCrc = engine::StringCrc(programName);
 
-	if (!pRenderContext->GetShaderVariantCollections().HasFeatureCombine(programName))
+	if (!pRenderContext->GetShaderVariantCollections().HasFeatureCombine(programNameCrc))
 	{
 		return;
 	}
 
-	const std::set<std::string>& combines = pRenderContext->GetShaderVariantCollections().GetFeatureCombines(programName);
-	const std::set<std::string>& shaders = pRenderContext->GetShaderVariantCollections().GetShaders(programName);
+	const std::set<std::string>& combines = pRenderContext->GetShaderVariantCollections().GetFeatureCombines(programNameCrc);
+	const std::set<std::string>& shaders = pRenderContext->GetShaderVariantCollections().GetShaders(programNameCrc);
 	CD_ENGINE_INFO("Precompile program {0} variant count : {1}", programName, combines.size());
 
 	for (const std::string& shader : shaders)
@@ -69,7 +70,7 @@ void ShaderBuilder::PreBuildNonUberShaders(engine::RenderContext* pRenderContext
 
 void ShaderBuilder::BuildShader(engine::RenderContext* pRenderContext, const engine::ShaderCompileInfo& info)
 {
-	const std::set<std::string>& shaders = pRenderContext->GetShaderVariantCollections().GetShaders(info.m_programName);
+	const std::set<std::string>& shaders = pRenderContext->GetShaderVariantCollections().GetShaders(engine::StringCrc(info.m_programName));
 
 	for (const auto& shader : shaders)
 	{

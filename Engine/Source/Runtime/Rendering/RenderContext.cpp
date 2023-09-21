@@ -147,14 +147,12 @@ void RenderContext::BeginFrame()
 
 void RenderContext::Submit(uint16_t viewID, const std::string& programName, const std::string& featureCombine)
 {
-	assert(m_shaderVariantCollections.IsProgramValid(programName));
 	assert(bgfx::isValid(GetShaderProgramHandle(programName, featureCombine)));
 	bgfx::submit(viewID, GetShaderProgramHandle(programName, featureCombine));
 }
 
 void RenderContext::Dispatch(uint16_t viewID, const std::string& programName, uint32_t numX, uint32_t numY, uint32_t numZ)
 {
-	assert(m_shaderVariantCollections.IsProgramValid(programName));
 	assert(bgfx::isValid(GetShaderProgramHandle(programName)));
 	bgfx::dispatch(viewID, GetShaderProgramHandle(programName), numX, numY, numZ);
 }
@@ -179,19 +177,19 @@ uint16_t RenderContext::CreateView()
 	return m_currentViewCount++;
 }
 
-void RenderContext::RegisterShaderProgram(std::string programName, std::initializer_list<std::string> names)
+void RenderContext::RegisterShaderProgram(StringCrc programNameCrc, std::initializer_list<std::string> names)
 {
-	m_shaderVariantCollections.RegisterShaderProgram(programName, cd::MoveTemp(names));
+	m_shaderVariantCollections.RegisterShaderProgram(programNameCrc, cd::MoveTemp(names));
 }
 
-void RenderContext::AddShaderFeature(std::string programName, std::string combine)
+void RenderContext::AddShaderFeature(StringCrc programNameCrc, std::string combine)
 {
-	m_shaderVariantCollections.AddFeatureCombine(programName, cd::MoveTemp(combine));
+	m_shaderVariantCollections.AddFeatureCombine(programNameCrc, cd::MoveTemp(combine));
 }
 
 bool RenderContext::CheckShaderProgram(const std::string& programName, const std::string& featuresCombine)
 {
-	assert(m_shaderVariantCollections.IsProgramValid(programName));
+	assert(m_shaderVariantCollections.IsProgramValid(StringCrc(programName)));
 
 	if (!bgfx::isValid(GetShaderProgramHandle(programName, featuresCombine)))
 	{
@@ -201,7 +199,7 @@ bool RenderContext::CheckShaderProgram(const std::string& programName, const std
 		AddShaderCompileTask(ShaderCompileInfo(programName, featuresCombine));
 		if (!featuresCombine.empty())
 		{
-			m_shaderVariantCollections.AddFeatureCombine(programName, featuresCombine);
+			m_shaderVariantCollections.AddFeatureCombine(StringCrc(programName), featuresCombine);
 		}
 		return false;
 	}
@@ -210,20 +208,19 @@ bool RenderContext::CheckShaderProgram(const std::string& programName, const std
 
 void RenderContext::UploadShaderProgram(const std::string& programName, const std::string& combine)
 {
-	assert(m_shaderVariantCollections.IsProgramValid(programName));
+	assert(m_shaderVariantCollections.IsProgramValid(StringCrc(programName)));
 	
-	auto [vsName, fsName, csName] = IdentifyShaderTypes(m_shaderVariantCollections.GetShaders(programName));
+	auto [vsName, fsName, csName] = IdentifyShaderTypes(m_shaderVariantCollections.GetShaders(StringCrc(programName)));
 
-	// TODO : CreateProgram
 	if (combine.empty())
 	{
 		if (!vsName.empty() && !fsName.empty() && csName.empty())
 		{
-			CreateProgram(programName.c_str(), vsName.data(), fsName.data());
+			CreateProgram(programName, vsName.data(), fsName.data());
 		}
 		else if (!csName.empty())
 		{
-			CreateProgram(programName.c_str(), csName.data());
+			CreateProgram(programName, csName.data());
 		}
 		else
 		{
@@ -234,7 +231,7 @@ void RenderContext::UploadShaderProgram(const std::string& programName, const st
 	{
 		if (!vsName.empty() && !fsName.empty() && csName.empty())
 		{
-			CreateProgram(programName.c_str(), vsName.data(), fsName.data(), combine.c_str());
+			CreateProgram(programName, vsName.data(), fsName.data(), combine);
 		}
 		else
 		{
@@ -248,7 +245,7 @@ void RenderContext::AddShaderCompileTask(ShaderCompileInfo info)
 	const auto& it = std::find(m_shaderCompileTasks.begin(), m_shaderCompileTasks.end(), info);
 	if (it == m_shaderCompileTasks.end())
 	{
-		CD_ENGINE_INFO("Runtime shader compile task added for {0} with shader features : [ {1} ]", info.m_programName, info.m_featuresCombine);
+		CD_ENGINE_INFO("Runtime shader compile task added for {0} with shader features : [{1}]", info.m_programName, info.m_featuresCombine);
 		m_shaderCompileTasks.emplace_back(cd::MoveTemp(info));
 	}
 }

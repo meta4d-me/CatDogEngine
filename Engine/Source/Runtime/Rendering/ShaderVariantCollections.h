@@ -23,39 +23,35 @@ public:
 	ShaderVariantCollections& operator=(ShaderVariantCollections&&) = default;
 	~ShaderVariantCollections() = default;
 
-	void RegisterShaderProgram(const std::string& programName, std::initializer_list<std::string> names);
+	void RegisterShaderProgram(StringCrc programNameCrc, std::initializer_list<std::string> names);
 
-	void AddFeatureCombine(const std::string& programName, std::string combine);
-	void DeleteFeatureCombine(const std::string& programName, std::string combine);
+	void AddFeatureCombine(StringCrc programNameCrc, std::string combine);
+	void DeleteFeatureCombine(StringCrc programNameCrc, std::string combine);
 
-	void SetShaders(const std::string& programName, std::set<std::string> shaders);
-	std::set<std::string>& GetShaders(const std::string& programName) { return m_shaderPrograms[programName]; }
-	const std::set<std::string>& GetShaders(const std::string& programName) const { return m_shaderPrograms.at(programName); }
+	void SetShaders(StringCrc programNameCrc, std::set<std::string> shaders);
+	std::set<std::string>& GetShaders(StringCrc programNameCrc) { return m_shaderPrograms[programNameCrc.Value()]; }
+	const std::set<std::string>& GetShaders(StringCrc programNameCrc) const { return m_shaderPrograms.at(programNameCrc.Value()); }
 
-	void SetFeatureCombines(const std::string& programName, std::set<std::string> combine);
-	std::set<std::string>& GetFeatureCombines(const std::string& programName) { return m_programFeatureCombines[programName]; }
-	const std::set<std::string>& GetFeatureCombines(const std::string& programName) const { return m_programFeatureCombines.at(programName); }
+	void SetFeatureCombines(StringCrc programNameCrc, std::set<std::string> combine);
+	std::set<std::string>& GetFeatureCombines(StringCrc programNameCrc) { return m_programFeatureCombines[programNameCrc.Value()]; }
+	const std::set<std::string>& GetFeatureCombines(StringCrc programNameCrc) const { return m_programFeatureCombines.at(programNameCrc.Value()); }
 
-	bool IsProgramValid(const std::string& programName) const;
-	bool HasFeatureCombine(const std::string& programName) const;
+	bool IsProgramValid(StringCrc programNameCrc) const;
+	bool HasFeatureCombine(StringCrc programNameCrc) const;
 
-	// -------------------------------------------------------------------------------- // 
+	void SetShaderPrograms(std::map<uint32_t, std::set<std::string>> shaders);
+	std::map<uint32_t, std::set<std::string>>& GetShaderPrograms() { return m_shaderPrograms; }
+	const std::map<uint32_t, std::set<std::string>>& GetShaderPrograms() const { return m_shaderPrograms; }
 
-	void SetShaderPrograms(std::map<std::string, std::set<std::string>> shaders);
-	std::map<std::string, std::set<std::string>>& GetShaderPrograms() { return m_shaderPrograms; }
-	const std::map<std::string, std::set<std::string>>& GetShaderPrograms() const { return m_shaderPrograms; }
-
-	void SetFeatureCombinePrograms(std::map<std::string, std::set<std::string>> combines);
-	std::map<std::string, std::set<std::string>>& GetFeatureCombinePrograms() { return m_programFeatureCombines; }
-	const std::map<std::string, std::set<std::string>>& GetFeatureCombinePrograms() const { return m_programFeatureCombines; }
+	void SetFeatureCombinePrograms(std::map<uint32_t, std::set<std::string>> combines);
+	std::map<uint32_t, std::set<std::string>>& GetFeatureCombinePrograms() { return m_programFeatureCombines; }
+	const std::map<uint32_t, std::set<std::string>>& GetFeatureCombinePrograms() const { return m_programFeatureCombines; }
 
 private:
 	// Key : Program name, Value : Shader names
-	std::map<std::string, std::set<std::string>> m_shaderPrograms;
+	std::map<uint32_t, std::set<std::string>> m_shaderPrograms;
 	// Key : Program name, Value : Feature combine used as a parameter for compiling shaders
-	std::map<std::string, std::set<std::string>> m_programFeatureCombines;
-
-	// TODO : StringCrc
+	std::map<uint32_t, std::set<std::string>> m_programFeatureCombines;
 };
 
 }

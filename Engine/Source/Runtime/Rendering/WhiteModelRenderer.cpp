@@ -13,7 +13,8 @@ namespace engine
 
 void WhiteModelRenderer::Init()
 {
-	GetRenderContext()->RegisterShaderProgram("WhiteModelProgram", { "vs_whiteModel", "fs_whiteModel" });
+	constexpr StringCrc programCrc = StringCrc("WhiteModelProgram");
+	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_whiteModel", "fs_whiteModel" });
 
 	bgfx::setViewName(GetViewID(), "WhiteModelRenderer");
 }

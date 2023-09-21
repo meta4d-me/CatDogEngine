@@ -1,5 +1,6 @@
 #include "ImGuiRenderer.h"
 
+#include "Core/StringCrc.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/ShaderVariantCollections.h"
 
@@ -10,7 +11,8 @@ namespace engine
 
 void ImGuiRenderer::Init()
 {
-	GetRenderContext()->RegisterShaderProgram("ImGuiProgram", { "vs_imgui", "fs_imgui" });
+	constexpr StringCrc programCrc = StringCrc("ImGuiProgram");
+	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_imgui", "fs_imgui" });
 
 	bgfx::setViewName(GetViewID(), "ImGuiRenderer");
 }

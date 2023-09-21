@@ -63,8 +63,8 @@ public:
 	ShaderVariantCollections& GetShaderVariantCollections() { return m_shaderVariantCollections; }
 	const ShaderVariantCollections& GetShaderVariantCollections() const { return m_shaderVariantCollections; }
 
-	void RegisterShaderProgram(std::string programName, std::initializer_list<std::string> names);
-	void AddShaderFeature(std::string programName, std::string combine);
+	void RegisterShaderProgram(StringCrc programNameCrc, std::initializer_list<std::string> names);
+	void AddShaderFeature(StringCrc programNameCrc, std::string combine);
 
 	bool CheckShaderProgram(const std::string& programName, const std::string& featuresCombine = "");
 	void UploadShaderProgram(const std::string& programName, const std::string& combine = "");

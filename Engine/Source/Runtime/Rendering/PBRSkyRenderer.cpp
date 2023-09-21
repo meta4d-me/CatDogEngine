@@ -50,14 +50,23 @@ constexpr uint16_t ScatteringOrders                      = 6;
 
 void PBRSkyRenderer::Init()
 {
-	GetRenderContext()->RegisterShaderProgram(ProgramAtmosphericScatteringLUT, { "vs_atmSkyBox", "fs_PrecomputedAtmosphericScattering_LUT" });
-	GetRenderContext()->RegisterShaderProgram(ProgramSingleScatteringRayMarching, { "vs_atmSkyBox", "fs_SingleScattering_RayMarching" });
-	GetRenderContext()->RegisterShaderProgram(ProgramComputeTransmittance, { "cs_ComputeTransmittance" });
-	GetRenderContext()->RegisterShaderProgram(ProgramComputeDirectIrradiance, { "cs_ComputeDirectIrradiance" });
-	GetRenderContext()->RegisterShaderProgram(ProgramComputeSingleScattering, { "cs_ComputeSingleScattering" });
-	GetRenderContext()->RegisterShaderProgram(ProgramComputeScatteringDensity, { "cs_ComputeScatteringDensity" });
-	GetRenderContext()->RegisterShaderProgram(ProgramComputeIndirectIrradiance, { "cs_ComputeIndirectIrradiance" });
-	GetRenderContext()->RegisterShaderProgram(ProgramComputeMultipleScattering, { "cs_ComputeMultipleScattering" });
+	constexpr StringCrc ProgramAtmosphericScatteringLUTCrc = StringCrc(ProgramAtmosphericScatteringLUT);
+	constexpr StringCrc ProgramSingleScatteringRayMarchingCrc = StringCrc(ProgramSingleScatteringRayMarching);
+	constexpr StringCrc ProgramComputeTransmittanceCrc = StringCrc(ProgramComputeTransmittance);
+	constexpr StringCrc ProgramComputeDirectIrradianceCrc = StringCrc(ProgramComputeDirectIrradiance);
+	constexpr StringCrc ProgramComputeSingleScatteringCrc = StringCrc(ProgramComputeSingleScattering);
+	constexpr StringCrc ProgramComputeScatteringDensityCrc = StringCrc(ProgramComputeScatteringDensity);
+	constexpr StringCrc ProgramComputeIndirectIrradianceCrc = StringCrc(ProgramComputeIndirectIrradiance);
+	constexpr StringCrc ProgramComputeMultipleScatteringCrc = StringCrc(ProgramComputeMultipleScattering);
+
+	GetRenderContext()->RegisterShaderProgram(ProgramAtmosphericScatteringLUTCrc, { "vs_atmSkyBox", "fs_PrecomputedAtmosphericScattering_LUT" });
+	GetRenderContext()->RegisterShaderProgram(ProgramSingleScatteringRayMarchingCrc, { "vs_atmSkyBox", "fs_SingleScattering_RayMarching" });
+	GetRenderContext()->RegisterShaderProgram(ProgramComputeTransmittanceCrc, { "cs_ComputeTransmittance" });
+	GetRenderContext()->RegisterShaderProgram(ProgramComputeDirectIrradianceCrc, { "cs_ComputeDirectIrradiance" });
+	GetRenderContext()->RegisterShaderProgram(ProgramComputeSingleScatteringCrc, { "cs_ComputeSingleScattering" });
+	GetRenderContext()->RegisterShaderProgram(ProgramComputeScatteringDensityCrc, { "cs_ComputeScatteringDensity" });
+	GetRenderContext()->RegisterShaderProgram(ProgramComputeIndirectIrradianceCrc, { "cs_ComputeIndirectIrradiance" });
+	GetRenderContext()->RegisterShaderProgram(ProgramComputeMultipleScatteringCrc, { "cs_ComputeMultipleScattering" });
 
 	bgfx::setViewName(GetViewID(), "PBRSkyRenderer");
 }

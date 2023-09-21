@@ -8,13 +8,21 @@ namespace engine
 
 void BloomRenderer::Init()
 {
-	GetRenderContext()->RegisterShaderProgram("CapTureBrightnessProgram", { "vs_fullscreen", "fs_captureBrightness" });
-	GetRenderContext()->RegisterShaderProgram("DownSampleProgram", { "vs_fullscreen", "fs_dowmsample" });
-	GetRenderContext()->RegisterShaderProgram("BlurVerticalProgram", { "vs_fullscreen", "fs_blurvertical" });
-	GetRenderContext()->RegisterShaderProgram("BlurHorizontalProgram", { "vs_fullscreen", "fs_blurhorizontal" });
-	GetRenderContext()->RegisterShaderProgram("UpSampleProgram", { "vs_fullscreen", "fs_upsample" });
-	GetRenderContext()->RegisterShaderProgram("KawaseBlurProgram", { "vs_fullscreen", "fs_kawaseblur" });
-	GetRenderContext()->RegisterShaderProgram("CombineProgram", { "vs_fullscreen", "fs_bloom" });
+	constexpr StringCrc CapTureBrightnessProgramCrc = StringCrc("CapTureBrightnessProgram");
+	constexpr StringCrc DownSampleProgramCrc = StringCrc("DownSampleProgram");
+	constexpr StringCrc BlurVerticalProgramCrc = StringCrc("BlurVerticalProgram");
+	constexpr StringCrc BlurHorizontalProgramCrc = StringCrc("BlurHorizontalProgram");
+	constexpr StringCrc UpSampleProgramCrc = StringCrc("UpSampleProgram");
+	constexpr StringCrc KawaseBlurProgramCrc = StringCrc("KawaseBlurProgram");
+	constexpr StringCrc CombineProgramCrc = StringCrc("CombineProgram");
+
+	GetRenderContext()->RegisterShaderProgram(CapTureBrightnessProgramCrc, { "vs_fullscreen", "fs_captureBrightness" });
+	GetRenderContext()->RegisterShaderProgram(DownSampleProgramCrc, { "vs_fullscreen", "fs_dowmsample" });
+	GetRenderContext()->RegisterShaderProgram(BlurVerticalProgramCrc, { "vs_fullscreen", "fs_blurvertical" });
+	GetRenderContext()->RegisterShaderProgram(BlurHorizontalProgramCrc, { "vs_fullscreen", "fs_blurhorizontal" });
+	GetRenderContext()->RegisterShaderProgram(UpSampleProgramCrc, { "vs_fullscreen", "fs_upsample" });
+	GetRenderContext()->RegisterShaderProgram(KawaseBlurProgramCrc, { "vs_fullscreen", "fs_kawaseblur" });
+	GetRenderContext()->RegisterShaderProgram(CombineProgramCrc, { "vs_fullscreen", "fs_bloom" });
 
 	bgfx::setViewName(GetViewID(), "BloomRenderer");
 }
