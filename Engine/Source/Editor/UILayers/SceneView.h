@@ -105,9 +105,6 @@ private:
 	int32_t m_mouseFixedPositionX = 0;
 	int32_t m_mouseFixedPositionY = 0;
 
-	int32_t m_mouseMovementDuringPressedX;
-	int32_t m_mouseMovementDuringPressedY;
-
 	engine::CameraController* m_pCameraController = nullptr;
 };
 

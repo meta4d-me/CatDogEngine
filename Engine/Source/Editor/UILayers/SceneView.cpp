@@ -354,12 +354,13 @@ void SceneView::Update()
 	ImGui::PopStyleVar();
 
 	ImGui::End();
+	bool isAnyMouseButtonPressed = engine::Input::Get().IsMouseLBPressed() || engine::Input::Get().IsMouseMBPressed() || engine::Input::Get().IsMouseRBPressed();
 
-	if ((engine::Input::Get().IsMouseLBPressed() || engine::Input::Get().IsMouseMBPressed() || engine::Input::Get().IsMouseRBPressed()) && !ImGuizmo::IsUsing())
+	if (isAnyMouseButtonPressed && !ImGuizmo::IsUsing())
 	{
 		if (!m_isMouseDownFirstTime)
 		{
-			if (0 != engine::Input::Get().GetMousePositionOffsetX() || 0 != engine::Input::Get().GetMousePositionOffsetY())
+			if (m_pCameraController->GetViewIsMoved())
 			{
 				m_isUsingCamera = true;
 			}
@@ -393,6 +394,11 @@ void SceneView::Update()
 		m_isMouseShow = true;
 		m_isUsingCamera = false;
 		m_isLeftClick = false;
+	}
+
+	if (ImGui::IsMouseDoubleClicked(0) && engine::INVALID_ENTITY != pSceneWorld->GetSelectedEntity())
+	{
+		m_pCameraController->CameraFocus();
 	}
 }
 

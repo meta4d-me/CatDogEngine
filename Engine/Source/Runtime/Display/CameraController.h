@@ -56,7 +56,7 @@ public:
 	// Double Click entity,camera will focus
 	void CameraFocus(const cd::AABB& aabb);
 	void CameraFocus(const cd::Vec3f& position);
-
+	void CameraFocus();
 	// Implement the effect of a translation animation.
 	void Moving();
 
@@ -73,6 +73,8 @@ public:
 
 	// TODO : generic solution to process mouse / key input events for UI panels in different areas.
 	void SetIsInViewScene(bool isIn) { m_isInViewScene = isIn; }
+
+	bool GetViewIsMoved() { return m_isViewMoved; }
 	
 private:
 	engine::CameraComponent* GetMainCameraComponent() const;
@@ -104,6 +106,7 @@ private:
 	bool m_isTracking = false;
 	bool m_isMoving = false;
 	bool m_isInViewScene = false;
+	bool m_isViewMoved = false;
 };
 
 }

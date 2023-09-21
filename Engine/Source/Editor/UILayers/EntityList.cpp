@@ -332,28 +332,10 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
         pSceneWorld->SetSelectedEntity(entity);
         if (ImGui::IsMouseDoubleClicked(0))
         {
-            if (auto* pCollisionMesh = pSceneWorld->GetCollisionMeshComponent(entity))
+            if (m_pCameraController)
             {
-                cd::AABB meshAABB = pCollisionMesh->GetAABB();
-                if (engine::TransformComponent* pTransform = pSceneWorld->GetTransformComponent(entity))
-                {
-                    meshAABB = meshAABB.Transform(pTransform->GetWorldMatrix());
-                    if (m_pCameraController)
-                    {
-                        m_pCameraController->CameraFocus(meshAABB);
-                    }
-                }
-            }
-            else
-            {
-                if (engine::TransformComponent* pTransform = pSceneWorld->GetTransformComponent(entity))
-                {
-                    if (m_pCameraController)
-                    {
-                        m_pCameraController->CameraFocus(pTransform->GetTransform().GetTranslation());
-                    }
-                }
-            }
+                m_pCameraController->CameraFocus();
+            }   
         }
     }
 
