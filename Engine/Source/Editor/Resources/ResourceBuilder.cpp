@@ -13,14 +13,9 @@ namespace editor
 ResourceBuilder::ResourceBuilder()
 {
 	std::string modifyCachePath = GetModifyCacheFilePath();
-	if (std::filesystem::exists(modifyCachePath))
+	if (std::filesystem::exists(cd::MoveTemp(modifyCachePath)))
 	{
 		ReadModifyCacheFile();
-	}
-	else
-	{
-		CD_INFO("Modify time cache {0} does not exist.", modifyCachePath);
-		CD_WARN("Everything will be compiled at the begining.");
 	}
 }
 
@@ -68,6 +63,7 @@ void ResourceBuilder::WriteModifyCacheFile()
 
 	if (!std::filesystem::exists(modifyCachePath))
 	{
+		CD_INFO("Creating modify cache file at : {0}", modifyCachePath);
 		std::filesystem::create_directories(std::filesystem::path(modifyCachePath).parent_path());
 	}
 
@@ -83,7 +79,7 @@ void ResourceBuilder::WriteModifyCacheFile()
 	UpdateModifyTimeCache();
 
 	outFile.clear();
-	for (const auto& [filePath, timeStamp] : m_modifyTimeCache)
+	for (auto& [filePath, timeStamp] : m_modifyTimeCache)
 	{
 		outFile << filePath << "=" << timeStamp << std::endl;
 	}
@@ -105,6 +101,16 @@ std::string ResourceBuilder::GetModifyCacheFilePath()
 
 ProcessStatus ResourceBuilder::CheckFileStatus(const char* pInputFilePath, const char* pOutputFilePath)
 {
+	// Use output file path as map key to store time cache.
+	// 
+	// For normal resources, the input and output files are one-to-one,
+	// so the output file path is sufficient to represent the input file.
+	// 
+	// And for uber shader, a single source file can generate multiple output files,
+	// so the input file path is no longer sufficient to represent the modified state of a particular variant.
+	
+	const char* key = pOutputFilePath;
+
 	if (!std::filesystem::exists(pInputFilePath))
 	{
 		CD_ERROR("Input file path {0} does not exist!", pInputFilePath);
@@ -113,17 +119,17 @@ ProcessStatus ResourceBuilder::CheckFileStatus(const char* pInputFilePath, const
 
 	auto crtTimeStamp = engine::Clock::FileTimePointToTimeStamp(std::filesystem::last_write_time(pInputFilePath));
 
-	if (m_modifyTimeCache.find(pInputFilePath) == m_modifyTimeCache.end())
+	if (m_modifyTimeCache.find(key) == m_modifyTimeCache.end())
 	{
 		CD_INFO("New input file {0} detected.", pInputFilePath);
-		m_newModifyTimeCache[pInputFilePath] = crtTimeStamp;
+		m_newModifyTimeCache[key] = crtTimeStamp;
 		return ProcessStatus::InputAdded;
 	}
 
-	if (m_modifyTimeCache[pInputFilePath] != crtTimeStamp)
+	if (m_modifyTimeCache[key] != crtTimeStamp)
 	{
 		CD_INFO("Input file path {0} has been modified.", pInputFilePath);
-		m_newModifyTimeCache[pInputFilePath] = crtTimeStamp;
+		m_newModifyTimeCache[key] = crtTimeStamp;
 		return ProcessStatus::InputModified;
 	}
 
@@ -225,7 +231,7 @@ bool ResourceBuilder::AddShaderBuildTask(engine::ShaderType shaderType, const ch
 		assert("Unknown shader compile profile.");
 	}
 
-	if (pShaderFeatures && *pShaderFeatures != '\0')
+	if (std::strlen(pShaderFeatures) != 0 && std::strlen(pShaderFeatures))
 	{
 		commandArguments.push_back("--define");
 		commandArguments.push_back(shaderLanguageDefine + ";" + pShaderFeatures);
@@ -340,7 +346,7 @@ void ResourceBuilder::UpdateModifyTimeCache()
 {
 	for (auto& [filePath, fileTime] : m_newModifyTimeCache)
 	{
-		m_modifyTimeCache[filePath] = cd::MoveTemp(fileTime);
+		m_modifyTimeCache[cd::MoveTemp(filePath)] = cd::MoveTemp(fileTime);
 	}
 
 	m_newModifyTimeCache.clear();

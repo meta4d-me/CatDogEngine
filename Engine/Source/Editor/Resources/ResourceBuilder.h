@@ -52,7 +52,7 @@ public:
 	bool AddTask(Process process);
 	bool AddIrradianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
 	bool AddRadianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
-	bool AddShaderBuildTask(engine::ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pShaderFeatures = nullptr);
+	bool AddShaderBuildTask(engine::ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pShaderFeatures = "");
 	bool AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath);
 
 	void Update(bool doPrintLog = true);
