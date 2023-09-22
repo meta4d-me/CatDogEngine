@@ -34,7 +34,7 @@ void ShaderSchema::AddFeatureSet(ShaderFeatureSet featureSet)
 	}
 
 	m_isDirty = true;
-	m_shaderFeatureSets.emplace_back(cd::MoveTemp(featureSet));
+	m_shaderFeatureSets.insert(cd::MoveTemp(featureSet));
 }
 
 void ShaderSchema::Build()
@@ -53,9 +53,9 @@ void ShaderSchema::Build()
 		for (const auto& feature : featureSet)
 		{
 			std::string newFeatureName = GetFeatureName(feature);
-			std::vector<std::string> newFeatureCombines = { newFeatureName };
+			std::set<std::string> newFeatureCombines = { newFeatureName };
 
-			for (const auto& combine : m_featureCombines)
+			for (const auto& combine : m_allFeatureCombines)
 			{
 				// Skip combination which has features in same set.
 				bool skip = false;
@@ -73,27 +73,20 @@ void ShaderSchema::Build()
 				}
 				if (!skip)
 				{
-					newFeatureCombines.emplace_back(combine + newFeatureName);
+					newFeatureCombines.insert(combine + newFeatureName);
 				}
 			}
-			m_featureCombines.insert(m_featureCombines.end(), newFeatureCombines.begin(), newFeatureCombines.end());
-			for (const auto& combine : newFeatureCombines)
-			{
-				assert(!IsFeaturesValid(StringCrc(combine)));
-				m_compiledProgramHandles[StringCrc(combine).Value()] = InvalidProgramHandle;
-			}
+			m_allFeatureCombines.insert(newFeatureCombines.begin(), newFeatureCombines.end());
 		}
 	}
 
-	// ShaderSchema also handle non-uber case.
-	m_featureCombines.emplace_back("");
-	m_compiledProgramHandles[DefaultUberShaderCrc.Value()] = InvalidProgramHandle;
+	// Should ShaderSchema handle uber shader without shader feature?
+	m_allFeatureCombines.insert("");
 }
 
 void ShaderSchema::CleanBuild()
 {
-	m_featureCombines.clear();
-	m_compiledProgramHandles.clear();
+	m_allFeatureCombines.clear();
 	m_isDirty = true;
 }
 
@@ -103,33 +96,6 @@ void ShaderSchema::CleanAll()
 	m_isDirty = false;
 
 	m_shaderFeatureSets.clear();
-}
-
-void ShaderSchema::SetCompiledProgram(StringCrc shaderFeaturesCrc, uint16_t programHandle)
-{
-	assert(IsFeaturesValid(shaderFeaturesCrc));
-	m_compiledProgramHandles[shaderFeaturesCrc.Value()] = programHandle;
-}
-
-uint16_t ShaderSchema::GetCompiledProgram(StringCrc shaderFeaturesCrc) const
-{
-	auto itProgram = m_compiledProgramHandles.find(shaderFeaturesCrc.Value());
-
-	if (itProgram == m_compiledProgramHandles.end())
-	{
-		CD_ENGINE_ERROR("Unregistered shader features!");
-		return InvalidProgramHandle;
-	}
-
-	uint16_t programHandle = itProgram->second;
-
-	if (programHandle == InvalidProgramHandle)
-	{
-		CD_ENGINE_ERROR("Uncompiled shader features");
-		return InvalidProgramHandle;
-	}
-
-	return programHandle;
 }
 
 std::string ShaderSchema::GetFeaturesCombine(const ShaderFeatureSet& featureSet) const
@@ -164,39 +130,6 @@ StringCrc ShaderSchema::GetFeaturesCombineCrc(const ShaderFeatureSet& featureSet
 	}
 
 	return StringCrc(GetFeaturesCombine(featureSet));
-}
-
-bool ShaderSchema::IsFeaturesValid(StringCrc shaderFeaturesCrc) const
-{
-	return m_compiledProgramHandles.find(shaderFeaturesCrc.Value()) != m_compiledProgramHandles.end();
-}
-
-void ShaderSchema::AddUberVSBlob(ShaderBlob shaderBlob)
-{
-	if (m_pVSBlob)
-	{
-		// TODO : process vertex uber shaders.
-		return;
-	}
-
-	m_pVSBlob = std::make_unique<ShaderBlob>(cd::MoveTemp(shaderBlob));
-}
-
-void ShaderSchema::AddUberFSBlob(StringCrc shaderFeaturesCrc, ShaderBlob shaderBlob)
-{
-	if (m_shaderFeaturesToFSBlobs.find(shaderFeaturesCrc.Value()) != m_shaderFeaturesToFSBlobs.end())
-	{
-		return;
-	}
-
-	m_shaderFeaturesToFSBlobs[shaderFeaturesCrc.Value()] = std::make_unique<ShaderBlob>(cd::MoveTemp(shaderBlob));
-}
-
-const ShaderSchema::ShaderBlob& ShaderSchema::GetFSBlob(StringCrc shaderFeaturesCrc) const
-{
-	auto itBlob = m_shaderFeaturesToFSBlobs.find(shaderFeaturesCrc.Value());
-	assert(itBlob != m_shaderFeaturesToFSBlobs.end());
-	return *(itBlob->second.get());
 }
 
 }

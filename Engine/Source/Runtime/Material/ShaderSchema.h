@@ -46,46 +46,29 @@ public:
 
 	void AddFeatureSet(ShaderFeatureSet featureSet);
 
-	// Calling "AddFeatureSet/SetConflictOptions and Build" after Build will cause unnecessary performance overhead.
 	void Build();
 	void CleanBuild();
 	void CleanAll();
 
-	void SetCompiledProgram(StringCrc shaderFeaturesCrc, uint16_t programHandle);
-	uint16_t GetCompiledProgram(StringCrc shaderFeaturesCrc) const;
-
 	std::string GetFeaturesCombine(const ShaderFeatureSet& featureSet) const;
 	StringCrc GetFeaturesCombineCrc(const ShaderFeatureSet& featureSet) const;
-	bool IsFeaturesValid(StringCrc shaderFeaturesCrc) const;
 
-	std::vector<ShaderFeatureSet>& GetFeatures() { return m_shaderFeatureSets; }
-	const std::vector<ShaderFeatureSet>& GetFeatures() const { return m_shaderFeatureSets; }
+	std::set<ShaderFeatureSet>& GetFeatures() { return m_shaderFeatureSets; }
+	const std::set<ShaderFeatureSet>& GetFeatures() const { return m_shaderFeatureSets; }
 
-	std::vector<std::string>& GetFeatureCombines() { return m_featureCombines; }
-	const std::vector<std::string>& GetFeatureCombines() const { return m_featureCombines; }
-
-	// TODO : More generic.
-	void AddUberVSBlob(ShaderBlob shaderBlob);
-	void AddUberFSBlob(StringCrc shaderFeaturesCrc, ShaderBlob shaderBlob);
-	const ShaderBlob& GetVSBlob() const { return *m_pVSBlob.get(); }
-	const ShaderBlob& GetFSBlob(StringCrc shaderFeaturesCrc) const;
+	std::set<std::string>& GetAllFeatureCombines() { return m_allFeatureCombines; }
+	const std::set<std::string>& GetAllFeatureCombines() const { return m_allFeatureCombines; }
 
 private:
 	std::string m_programName;
-
 	std::string m_vertexShaderPath;
 	std::string m_fragmentShaderPath;
 
 	bool m_isDirty = false;
-	// Adding order of shader features.
-	std::vector<ShaderFeatureSet> m_shaderFeatureSets;
-	// Parameters to compile shaders.
-	std::vector<std::string> m_featureCombines;
-	// Key: StringCrc(feature combine), Value: shader handle.
-	std::map<uint32_t, uint16_t> m_compiledProgramHandles;
-
-	std::unique_ptr<ShaderBlob> m_pVSBlob;
-	std::map<uint32_t, std::unique_ptr<ShaderBlob>> m_shaderFeaturesToFSBlobs;
+	// Registration order of shader features.
+	std::set<ShaderFeatureSet> m_shaderFeatureSets;
+	// All permutations matching the registered shader features.
+	std::set<std::string> m_allFeatureCombines;
 };
 
 }

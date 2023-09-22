@@ -148,22 +148,11 @@ void MaterialComponent::DeactiveShaderFeature(engine::ShaderFeature feature)
 	m_shaderFeatures.erase(feature);
 }
 
-void MaterialComponent::MatchUberShaderCrc()
-{
-	m_uberShaderCrc = m_pMaterialType->GetShaderSchema().GetFeaturesCombineCrc(m_shaderFeatures);
-}
-
-uint16_t MaterialComponent::GetShadreProgram() const
-{
-	return m_pMaterialType->GetShaderSchema().GetCompiledProgram(m_uberShaderCrc);
-}
-
 void MaterialComponent::Reset()
 {
 	m_pMaterialData = nullptr;
 	m_pMaterialType = nullptr;
 	m_shaderFeatures.clear();
-	m_uberShaderCrc = ShaderSchema::DefaultUberShaderCrc;
 	m_name.clear();
 	m_albedoColor = cd::Vec3f::One();
 	m_emissiveColor = cd::Vec3f::One();
@@ -291,7 +280,6 @@ void MaterialComponent::SetSkyType(SkyType crtType)
 		m_shaderFeatures.insert(skyTypeToShaderFeature.at(crtType));
 	}
 
-	m_uberShaderCrc = m_pMaterialType->GetShaderSchema().GetFeaturesCombineCrc(m_shaderFeatures);
 	m_skyType = crtType;
 }
 

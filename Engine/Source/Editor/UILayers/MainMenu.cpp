@@ -222,6 +222,13 @@ void MainMenu::BuildMenu()
 {
 	if (ImGui::BeginMenu(CD_TEXT("TEXT_BUILD")))
 	{
+		engine::SceneWorld* pSceneWorld = GetSceneWorld();
+
+		if (ImGui::MenuItem(CD_TEXT("TEXT_BUILD_PBR_VARIANT")))
+		{
+			ShaderBuilder::CompileUberShaderAllVariant(GetRenderContext(), pSceneWorld->GetPBRMaterialType());
+		}
+
 		ImGui::EndMenu();
 	}
 }
