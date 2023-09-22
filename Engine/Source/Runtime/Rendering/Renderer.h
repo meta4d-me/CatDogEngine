@@ -26,7 +26,7 @@ public:
 
 	virtual void Init() = 0;
 	// All registered shaders are compiled in the App::Init stage,
-	// only need to write the logic of creating the GPU resources here.
+	// simply create the GPU resource here.
 	virtual void Warmup() = 0;
 	// Retuen false skips this renderer at current frame.
 	// If your shader for the renderer doesn't change anything at runtime,

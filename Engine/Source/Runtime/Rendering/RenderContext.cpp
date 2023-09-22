@@ -206,13 +206,13 @@ bool RenderContext::CheckShaderProgram(const std::string& programName, const std
 	return true;
 }
 
-void RenderContext::UploadShaderProgram(const std::string& programName, const std::string& combine)
+void RenderContext::UploadShaderProgram(const std::string& programName, const std::string& featuresCombine)
 {
 	assert(m_shaderVariantCollections.IsProgramValid(StringCrc(programName)));
 	
 	auto [vsName, fsName, csName] = IdentifyShaderTypes(m_shaderVariantCollections.GetShaders(StringCrc(programName)));
 
-	if (combine.empty())
+	if (featuresCombine.empty())
 	{
 		if (!vsName.empty() && !fsName.empty() && csName.empty())
 		{
@@ -231,7 +231,7 @@ void RenderContext::UploadShaderProgram(const std::string& programName, const st
 	{
 		if (!vsName.empty() && !fsName.empty() && csName.empty())
 		{
-			CreateProgram(programName, vsName.data(), fsName.data(), combine);
+			CreateProgram(programName, vsName.data(), fsName.data(), featuresCombine);
 		}
 		else
 		{
@@ -661,7 +661,6 @@ void RenderContext::DestoryRenderTarget(StringCrc resourceCrc)
 	m_renderTargetCaches.erase(resourceCrc.Value());
 }
 
-// TODO : template
 void RenderContext::DestoryTexture(StringCrc resourceCrc)
 {
 	auto it = m_textureHandleCaches.find(resourceCrc.Value());

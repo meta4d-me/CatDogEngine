@@ -42,7 +42,7 @@ namespace engine
 		uint16_t m_startHorizontalBlurPassID;
 		uint16_t m_startUpSamplePassID;
 		uint16_t m_blitColorPassID;
-		uint16_t m_CombinePassID;
+		uint16_t m_combinePassID;
 	};
 
 }

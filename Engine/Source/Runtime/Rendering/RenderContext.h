@@ -58,7 +58,7 @@ public:
 	uint16_t GetCurrentViewCount() const { return m_currentViewCount; }
 
 	/////////////////////////////////////////////////////////////////////
-	// Shader variant collections apis
+	// Shader collections apis
 	/////////////////////////////////////////////////////////////////////
 	ShaderCollections& GetShaderVariantCollections() { return m_shaderVariantCollections; }
 	const ShaderCollections& GetShaderVariantCollections() const { return m_shaderVariantCollections; }
@@ -67,7 +67,7 @@ public:
 	void AddShaderFeature(StringCrc programNameCrc, std::string combine);
 
 	bool CheckShaderProgram(const std::string& programName, const std::string& featuresCombine = "");
-	void UploadShaderProgram(const std::string& programName, const std::string& combine = "");
+	void UploadShaderProgram(const std::string& programName, const std::string& featuresCombine = "");
 
 	void AddShaderCompileTask(ShaderCompileInfo info);
 	void ClearShaderCompileTasks();

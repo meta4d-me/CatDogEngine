@@ -175,8 +175,6 @@ bool PBRSkyRenderer::IsEnable() const
 
 void PBRSkyRenderer::Precompute() const
 {
-	// TODO : Warp bgfx::dispatch to Render Context.
-
 	constexpr StringCrc NumScatteringOrdersCrc(NumScatteringOrders);
 
 	constexpr StringCrc ProgramComputeTransmittanceCrc(ProgramComputeTransmittance);

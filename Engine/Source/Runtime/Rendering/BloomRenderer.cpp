@@ -53,7 +53,7 @@ void BloomRenderer::Warmup()
 	{
 		GetRenderContext()->CreateView();
 	}
-	m_CombinePassID = GetRenderContext()->CreateView();
+	m_combinePassID = GetRenderContext()->CreateView();
 	m_blitColorPassID = GetRenderContext()->CreateView();
 
 	GetRenderContext()->CreateUniform("s_texture", bgfx::UniformType::Sampler);
@@ -251,9 +251,9 @@ void BloomRenderer::Render(float deltaTime)
 	}
 
 	// combine 
-	bgfx::setViewFrameBuffer(m_CombinePassID, m_combineFB);
-	bgfx::setViewRect(m_CombinePassID, 0, 0, m_width, m_height);
-	bgfx::setViewTransform(m_CombinePassID, nullptr, orthoMatrix.Begin());
+	bgfx::setViewFrameBuffer(m_combinePassID, m_combineFB);
+	bgfx::setViewRect(m_combinePassID, 0, 0, m_width, m_height);
+	bgfx::setViewTransform(m_combinePassID, nullptr, orthoMatrix.Begin());
 
 	constexpr StringCrc lightColorSampler("s_lightingColor");
 	bgfx::setTexture(0, GetRenderContext()->GetUniform(lightColorSampler), screenTextureHandle);
@@ -264,7 +264,7 @@ void BloomRenderer::Render(float deltaTime)
 	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 	Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
-	GetRenderContext()->Submit(m_CombinePassID, "CombineProgram");
+	GetRenderContext()->Submit(m_combinePassID, "CombineProgram");
 
 	bgfx::blit(m_blitColorPassID, screenTextureHandle, 0, 0, bgfx::getTexture(m_combineFB));
 }
