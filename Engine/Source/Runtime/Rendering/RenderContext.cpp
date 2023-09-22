@@ -262,7 +262,11 @@ void RenderContext::SetShaderCompileTasks(std::vector<ShaderCompileInfo> tasks)
 
 const RenderContext::ShaderBlob& RenderContext::AddShaderBlob(StringCrc shaderNameCrc, ShaderBlob blob)
 {
-	assert(m_shaderBlobs.find(shaderNameCrc.Value()) == m_shaderBlobs.end() && "Shader blob already exists!");
+	const auto& it = m_shaderBlobs.find(shaderNameCrc.Value());
+	if (it != m_shaderBlobs.end())
+	{
+		return *(it->second);
+	}
 	m_shaderBlobs[shaderNameCrc.Value()] = std::make_unique<ShaderBlob>(cd::MoveTemp(blob));
 	return *m_shaderBlobs.at(shaderNameCrc.Value());
 }
