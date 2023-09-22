@@ -116,11 +116,11 @@ void TestVector()
 	// Test NaN validation
 	{
 		cd::TVector<double, 3> vec1(0.0, std::nan(""), 0.0);
-		assert(vec1.Contains(cd::Math::FLOAT_NAN) == true);
+		assert(vec1.ContainsNan() == true);
 		assert(vec1.IsValid() == false);
 
 		cd::TVector<float, 2> vec2(0.0f, 1.0f);
-		assert(vec2.Contains(cd::Math::FLOAT_NAN) == false);
+		assert(vec2.ContainsNan() == false);
 	}
 
 	// Test zero validation

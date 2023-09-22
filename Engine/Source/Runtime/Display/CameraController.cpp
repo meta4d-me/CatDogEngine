@@ -89,6 +89,10 @@ void CameraController::ControllerToCamera()
 void CameraController::Update(float deltaTime)
 {
 	Moving();
+	bool isAnyMouseButtonPressed = engine::Input::Get().IsMouseLBPressed() || engine::Input::Get().IsMouseMBPressed() || engine::Input::Get().IsMouseRBPressed();
+	bool isAnyDirectionMouseMoved = 0 != engine::Input::Get().GetMousePositionOffsetX() || 0 != engine::Input::Get().GetMousePositionOffsetY();
+	m_isMouseMovedInView = isAnyMouseButtonPressed && isAnyDirectionMouseMoved;
+
 	if (Input::Get().IsKeyPressed(KeyCode::z))
 	{
 		// TODO : Only need to happen once in the first time press z.
@@ -352,23 +356,29 @@ void CameraController::SynchronizeTrackingCamera()
 	}
 }
 
-void CameraController::CameraFocus(const cd::AABB& aabb)
+void CameraController::CameraFocus()
 {
-	if (aabb.IsEmpty())
+	Entity selectedEntity = m_pSceneWorld->GetSelectedEntity();
+	if (selectedEntity == INVALID_ENTITY)
 	{
 		return;
 	}
-
-	m_isMoving = true;
-	m_distanceFromLookAt = (aabb.Max() - aabb.Center()).Length() * 3.0f;
-	m_eyeDestination = aabb.Center() - m_lookAt * m_distanceFromLookAt;
-	m_movementSpeed = aabb.Size().Length() * 1.5f;
-}
-
-void CameraController::CameraFocus(const cd::Vec3f& position)
-{
-	m_isMoving = true;
-	m_eyeDestination = position - m_lookAt * m_distanceFromLookAt;
+	if (TransformComponent* pTransform = m_pSceneWorld->GetTransformComponent(selectedEntity))
+	{
+		m_isMoving = true;
+		if (CollisionMeshComponent* pCollisionMesh = m_pSceneWorld->GetCollisionMeshComponent(selectedEntity))
+		{
+			cd::AABB meshAABB = pCollisionMesh->GetAABB();
+			meshAABB = meshAABB.Transform(pTransform->GetWorldMatrix());
+			m_distanceFromLookAt = (meshAABB.Max() - meshAABB.Center()).Length() * 3.0f;
+			m_eyeDestination = meshAABB.Center() - m_lookAt * m_distanceFromLookAt;
+			m_movementSpeed = meshAABB.Size().Length() * 1.5f;
+		}
+		else
+		{
+			m_eyeDestination = pTransform->GetTransform().GetTranslation() - m_lookAt * m_distanceFromLookAt;
+		}
+	}
 }
 
 void CameraController::Moving()
@@ -386,7 +396,6 @@ void CameraController::Moving()
 
 		SynchronizeTrackingCamera();
 		ControllerToCamera();
-
 	}
 }
 

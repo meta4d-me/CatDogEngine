@@ -86,6 +86,36 @@ void UpdateComponentWidget<engine::TransformComponent>(engine::SceneWorld* pScen
 template<>
 void UpdateComponentWidget<engine::StaticMeshComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
 {
+	auto* pStaticMeshComponent = pSceneWorld->GetStaticMeshComponent(entity);
+	if (!pStaticMeshComponent)
+	{
+		return;
+	}
+
+	bool isOpen = ImGui::CollapsingHeader("StaticMesh Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+	ImGui::Separator();
+
+	if (isOpen)
+	{
+		ImGuiUtils::ImGuiStringProperty("Vertex Count", std::to_string(pStaticMeshComponent->GetVertexCount()));
+		ImGuiUtils::ImGuiStringProperty("Triangle Count", std::to_string(static_cast<uint32_t>(pStaticMeshComponent->GetPolygonCount())));
+
+		if (!pStaticMeshComponent->IsProgressiveMeshValid())
+		{
+			if (ImGui::Button(reinterpret_cast<const char*>("Build ProgressiveMesh")))
+			{
+				pStaticMeshComponent->BuildProgressiveMeshData();
+			}
+		}
+		else
+		{
+			ImGuiUtils::ImGuiFloatProperty("LOD Percent", pStaticMeshComponent->GetProgressiveMeshReductionPercent(), cd::Unit::None, 0.001f, 1.0f, false, 0.001f);
+		}
+	}
+
+	ImGui::Separator();
+	ImGui::PopStyleVar();
 }
 
 template<>
