@@ -126,20 +126,20 @@ private:
 	uint16_t m_backBufferWidth;
 	uint16_t m_backBufferHeight;
 
-	std::unordered_map<size_t, std::unique_ptr<RenderTarget>> m_renderTargetCaches;
-	std::unordered_map<size_t, bgfx::VertexLayout> m_vertexLayoutCaches;
-	std::unordered_map<size_t, bgfx::TextureHandle> m_textureHandleCaches;
-	std::unordered_map<size_t, bgfx::UniformHandle> m_uniformHandleCaches;
+	std::unordered_map<uint32_t, std::unique_ptr<RenderTarget>> m_renderTargetCaches;
+	std::unordered_map<uint32_t, bgfx::VertexLayout> m_vertexLayoutCaches;
+	std::unordered_map<uint32_t, uint16_t> m_textureHandleCaches;
+	std::unordered_map<uint32_t, uint16_t> m_uniformHandleCaches;
 
 	ShaderCollections m_shaderVariantCollections;
 
 	// Key : StringCrc(Program name), Value : Shader program handle
-	std::map<uint32_t, uint16_t> m_shaderProgramHandles;
+	std::unordered_map<uint32_t, uint16_t> m_shaderProgramHandles;
 
 	// Key : StringCrc(Shader name), Value : Shader handle
-	std::map<uint32_t, uint16_t> m_shaderHandles;
+	std::unordered_map<uint32_t, uint16_t> m_shaderHandles;
 	// Key : StringCrc(Shader name), Value : Shader binary data
-	std::map<uint32_t, std::unique_ptr<ShaderBlob>> m_shaderBlobs;
+	std::unordered_map<uint32_t, std::unique_ptr<ShaderBlob>> m_shaderBlobs;
 
 	std::vector<ShaderCompileInfo> m_shaderCompileTasks;
 };
