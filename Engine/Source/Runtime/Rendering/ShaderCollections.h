@@ -10,18 +10,18 @@
 namespace engine
 {
 
-class ShaderVariantCollections final
+class ShaderCollections final
 {
 public:
 	static constexpr uint16_t InvalidProgramHandle = UINT16_MAX;
 
 public:
-	ShaderVariantCollections() = default;
-	ShaderVariantCollections(const ShaderVariantCollections&) = default;
-	ShaderVariantCollections& operator=(const ShaderVariantCollections&) = default;
-	ShaderVariantCollections(ShaderVariantCollections&&) = default;
-	ShaderVariantCollections& operator=(ShaderVariantCollections&&) = default;
-	~ShaderVariantCollections() = default;
+	ShaderCollections() = default;
+	ShaderCollections(const ShaderCollections&) = default;
+	ShaderCollections& operator=(const ShaderCollections&) = default;
+	ShaderCollections(ShaderCollections&&) = default;
+	ShaderCollections& operator=(ShaderCollections&&) = default;
+	~ShaderCollections() = default;
 
 	void RegisterShaderProgram(StringCrc programNameCrc, std::initializer_list<std::string> names);
 

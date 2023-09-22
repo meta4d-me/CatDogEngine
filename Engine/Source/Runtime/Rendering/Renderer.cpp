@@ -2,7 +2,6 @@
 
 #include "Rendering/RenderContext.h"
 #include "Rendering/RenderTarget.h"
-#include "Rendering/ShaderVariantCollections.h"
 
 #include <bgfx/bgfx.h>
 

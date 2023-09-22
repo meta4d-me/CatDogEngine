@@ -2,7 +2,6 @@
 
 #include "Core/StringCrc.h"
 #include "Rendering/RenderContext.h"
-#include "Rendering/ShaderVariantCollections.h"
 
 #include <imgui/imgui.h>
 

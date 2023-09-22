@@ -10,7 +10,6 @@
 #include "Material/ShaderSchema.h"
 #include "Math/Transform.hpp"
 #include "Rendering/RenderContext.h"
-#include "Rendering/ShaderVariantCollections.h"
 #include "Scene/Texture.h"
 #include "U_IBL.sh"
 #include "U_Terrain.sh"

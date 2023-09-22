@@ -5,7 +5,6 @@
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
 #include "Rendering/RenderContext.h"
-#include "Rendering/ShaderVariantCollections.h"
 #include "Scene/Texture.h"
 
 namespace engine

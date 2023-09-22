@@ -5,7 +5,6 @@
 #include "Log/Log.h"
 #include "Math/Box.hpp"
 #include "Rendering/RenderContext.h"
-#include "Rendering/ShaderVariantCollections.h"
 #include "Scene/Mesh.h"
 #include "Scene/VertexFormat.h"
 #include "U_AtmophericScattering.sh"

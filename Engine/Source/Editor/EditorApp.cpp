@@ -25,7 +25,7 @@
 #include "Rendering/RenderContext.h"
 #include "Rendering/SkeletonRenderer.h"
 #include "Rendering/SkyboxRenderer.h"
-#include "Rendering/ShaderVariantCollections.h"
+#include "Rendering/ShaderCollections.h"
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Rendering/ParticleRenderer.h"

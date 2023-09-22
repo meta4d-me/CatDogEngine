@@ -1,7 +1,6 @@
 #include "BloomRenderer.h"
 
 #include "Rendering/RenderContext.h"
-#include "Rendering/ShaderVariantCollections.h"
 
 namespace engine
 {

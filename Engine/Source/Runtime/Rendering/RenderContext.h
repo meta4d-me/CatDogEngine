@@ -3,7 +3,7 @@
 #include "Core/StringCrc.h"
 #include "Graphics/GraphicsBackend.h"
 #include "Math/Matrix.hpp"
-#include "Rendering/ShaderVariantCollections.h"
+#include "Rendering/ShaderCollections.h"
 #include "Rendering/ShaderCompileInfo.h"
 #include "RenderTarget.h"
 #include "Scene/VertexAttribute.h"
@@ -60,8 +60,8 @@ public:
 	/////////////////////////////////////////////////////////////////////
 	// Shader variant collections apis
 	/////////////////////////////////////////////////////////////////////
-	ShaderVariantCollections& GetShaderVariantCollections() { return m_shaderVariantCollections; }
-	const ShaderVariantCollections& GetShaderVariantCollections() const { return m_shaderVariantCollections; }
+	ShaderCollections& GetShaderVariantCollections() { return m_shaderVariantCollections; }
+	const ShaderCollections& GetShaderVariantCollections() const { return m_shaderVariantCollections; }
 
 	void RegisterShaderProgram(StringCrc programNameCrc, std::initializer_list<std::string> names);
 	void AddShaderFeature(StringCrc programNameCrc, std::string combine);
@@ -131,7 +131,7 @@ private:
 	std::unordered_map<size_t, bgfx::TextureHandle> m_textureHandleCaches;
 	std::unordered_map<size_t, bgfx::UniformHandle> m_uniformHandleCaches;
 
-	ShaderVariantCollections m_shaderVariantCollections;
+	ShaderCollections m_shaderVariantCollections;
 
 	// Key : StringCrc(Program name), Value : Shader program handle
 	std::map<uint32_t, uint16_t> m_shaderProgramHandles;

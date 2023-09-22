@@ -4,7 +4,6 @@
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/TransformComponent.h"
 #include "Rendering/RenderContext.h"
-#include "Rendering/ShaderVariantCollections.h"
 
 namespace engine {
 

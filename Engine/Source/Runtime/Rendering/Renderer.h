@@ -8,7 +8,7 @@ namespace engine
 class Camera;
 class RenderContext;
 class RenderTarget;
-class ShaderVariantCollections;
+class ShaderCollections;
 
 class Renderer
 {

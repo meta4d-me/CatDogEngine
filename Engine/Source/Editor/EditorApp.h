@@ -18,7 +18,7 @@ class Renderer;
 class AABBRenderer;
 class RenderTarget;
 class SceneWorld;
-class ShaderVariantCollections;
+class ShaderCollections;
 
 }
 
