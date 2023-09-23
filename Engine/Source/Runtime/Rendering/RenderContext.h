@@ -60,8 +60,8 @@ public:
 	/////////////////////////////////////////////////////////////////////
 	// Shader collections apis
 	/////////////////////////////////////////////////////////////////////
-	ShaderCollections& GetShaderVariantCollections() { return m_shaderVariantCollections; }
-	const ShaderCollections& GetShaderVariantCollections() const { return m_shaderVariantCollections; }
+	ShaderCollections& GetShaderVariantCollections() { return m_shaderCollections; }
+	const ShaderCollections& GetShaderVariantCollections() const { return m_shaderCollections; }
 
 	void RegisterShaderProgram(StringCrc programNameCrc, std::initializer_list<std::string> names);
 	void AddShaderFeature(StringCrc programNameCrc, std::string combine);
@@ -131,7 +131,7 @@ private:
 	std::unordered_map<uint32_t, uint16_t> m_textureHandleCaches;
 	std::unordered_map<uint32_t, uint16_t> m_uniformHandleCaches;
 
-	ShaderCollections m_shaderVariantCollections;
+	ShaderCollections m_shaderCollections;
 
 	// Key : StringCrc(Program name), Value : Shader program handle
 	std::unordered_map<uint32_t, uint16_t> m_shaderProgramHandles;

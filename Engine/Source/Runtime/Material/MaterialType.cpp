@@ -11,12 +11,6 @@ void MaterialType::AddOptionalTextureType(cd::MaterialTextureType textureType, u
 	m_textureTypeSlots[textureType] = slot;
 }
 
-void MaterialType::AddRequiredTextureType(cd::MaterialTextureType textureType, uint8_t slot)
-{
-	m_requiredTextureTypes.insert(textureType);
-	m_textureTypeSlots[textureType] = slot;
-}
-
 std::optional<uint8_t> MaterialType::GetTextureSlot(cd::MaterialTextureType textureType) const
 {
 	auto itTexture = m_textureTypeSlots.find(textureType);

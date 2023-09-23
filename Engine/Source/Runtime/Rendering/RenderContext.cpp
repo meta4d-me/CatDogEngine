@@ -179,17 +179,17 @@ uint16_t RenderContext::CreateView()
 
 void RenderContext::RegisterShaderProgram(StringCrc programNameCrc, std::initializer_list<std::string> names)
 {
-	m_shaderVariantCollections.RegisterShaderProgram(programNameCrc, cd::MoveTemp(names));
+	m_shaderCollections.RegisterShaderProgram(programNameCrc, cd::MoveTemp(names));
 }
 
 void RenderContext::AddShaderFeature(StringCrc programNameCrc, std::string combine)
 {
-	m_shaderVariantCollections.AddFeatureCombine(programNameCrc, cd::MoveTemp(combine));
+	m_shaderCollections.AddFeatureCombine(programNameCrc, cd::MoveTemp(combine));
 }
 
 bool RenderContext::CheckShaderProgram(const std::string& programName, const std::string& featuresCombine)
 {
-	assert(m_shaderVariantCollections.IsProgramValid(StringCrc(programName)));
+	assert(m_shaderCollections.IsProgramValid(StringCrc(programName)));
 
 	if (!bgfx::isValid(GetShaderProgramHandle(programName, featuresCombine)))
 	{
@@ -199,7 +199,7 @@ bool RenderContext::CheckShaderProgram(const std::string& programName, const std
 		AddShaderCompileTask(ShaderCompileInfo(programName, featuresCombine));
 		if (!featuresCombine.empty())
 		{
-			m_shaderVariantCollections.AddFeatureCombine(StringCrc(programName), featuresCombine);
+			m_shaderCollections.AddFeatureCombine(StringCrc(programName), featuresCombine);
 		}
 		return false;
 	}
@@ -208,9 +208,9 @@ bool RenderContext::CheckShaderProgram(const std::string& programName, const std
 
 void RenderContext::UploadShaderProgram(const std::string& programName, const std::string& featuresCombine)
 {
-	assert(m_shaderVariantCollections.IsProgramValid(StringCrc(programName)));
+	assert(m_shaderCollections.IsProgramValid(StringCrc(programName)));
 	
-	auto [vsName, fsName, csName] = IdentifyShaderTypes(m_shaderVariantCollections.GetShaders(StringCrc(programName)));
+	auto [vsName, fsName, csName] = IdentifyShaderTypes(m_shaderCollections.GetShaders(StringCrc(programName)));
 
 	if (featuresCombine.empty())
 	{

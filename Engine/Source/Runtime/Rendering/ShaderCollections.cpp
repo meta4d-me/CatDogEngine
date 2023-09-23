@@ -11,7 +11,6 @@ void ShaderCollections::RegisterShaderProgram(StringCrc programNameCrc, std::ini
 {
 	if (IsProgramValid(programNameCrc) || HasFeatureCombine(programNameCrc))
 	{
-		CD_ENGINE_WARN("Shader program already exists!");
 		return;
 	}
 	
