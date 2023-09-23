@@ -226,7 +226,7 @@ void MainMenu::BuildMenu()
 
 		if (ImGui::MenuItem(CD_TEXT("TEXT_BUILD_PBR_VARIANT")))
 		{
-			ShaderBuilder::CompileUberShaderAllVariant(GetRenderContext(), pSceneWorld->GetPBRMaterialType());
+			ShaderBuilder::CompileUberShaderAllVariants(GetRenderContext(), pSceneWorld->GetPBRMaterialType());
 		}
 
 		ImGui::EndMenu();

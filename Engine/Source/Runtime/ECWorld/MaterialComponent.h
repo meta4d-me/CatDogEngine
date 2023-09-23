@@ -93,7 +93,7 @@ public:
 	const std::string& GetName() const { return m_name; }
 
 	// Uber shader data.
-	void ActiveShaderFeature(ShaderFeature feature);
+	void ActivateShaderFeature(ShaderFeature feature);
 	void DeactiveShaderFeature(ShaderFeature feature);
 
 	void SetShaderFeatures(std::set<ShaderFeature> options) { m_shaderFeatures = cd::MoveTemp(m_shaderFeatures); }

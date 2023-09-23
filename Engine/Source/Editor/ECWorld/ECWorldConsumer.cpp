@@ -300,7 +300,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 
 				if (Detail::IsMaterialTextureTypeValid(optionalTextureType))
 				{
-					materialComponent.ActiveShaderFeature(Detail::materialTextureTypeToShaderFeature.at(optionalTextureType));
+					materialComponent.ActivateShaderFeature(Detail::materialTextureTypeToShaderFeature.at(optionalTextureType));
 				}
 
 				uint8_t textureSlot = optTextureSlot.value();

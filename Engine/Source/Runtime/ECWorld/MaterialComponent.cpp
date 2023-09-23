@@ -138,7 +138,7 @@ const MaterialComponent::TextureInfo* MaterialComponent::GetTextureInfo(cd::Mate
 	return &itTextureInfo->second;
 }
 
-void MaterialComponent::ActiveShaderFeature(engine::ShaderFeature feature)
+void MaterialComponent::ActivateShaderFeature(engine::ShaderFeature feature)
 {
 	m_shaderFeatures.insert(feature);
 }

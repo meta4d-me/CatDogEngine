@@ -11,7 +11,7 @@ namespace editor
 namespace
 {
 
-void CompileShaderVariant(const std::set<std::string>& shaders, const std::set<std::string>& combines)
+void CompileShaderVariants(const std::set<std::string>& shaders, const std::set<std::string>& combines)
 {
 	for (const std::string& shader : shaders)
 	{
@@ -75,10 +75,10 @@ void ShaderBuilder::CompileRegisteredUberShader(engine::RenderContext* pRenderCo
 	const std::set<std::string>& combines = pRenderContext->GetShaderVariantCollections().GetFeatureCombines(programNameCrc);
 	CD_ENGINE_INFO("Compiling program {0} variant count : {1}", programName, combines.size());
 
-	CompileShaderVariant(shaders, combines);
+	CompileShaderVariants(shaders, combines);
 }
 
-void ShaderBuilder::CompileUberShaderAllVariant(engine::RenderContext* pRenderContext, engine::MaterialType* pMaterialType)
+void ShaderBuilder::CompileUberShaderAllVariants(engine::RenderContext* pRenderContext, engine::MaterialType* pMaterialType)
 {
 	const std::string& programName = pMaterialType->GetShaderSchema().GetProgramName();
 
@@ -86,7 +86,7 @@ void ShaderBuilder::CompileUberShaderAllVariant(engine::RenderContext* pRenderCo
 	const std::set<std::string>& combines = pMaterialType->GetShaderSchema().GetAllFeatureCombines();
 	CD_ENGINE_INFO("Compiling program {0} variant count : {1}", programName, combines.size());
 
-	CompileShaderVariant(shaders, combines);
+	CompileShaderVariants(shaders, combines);
 
 	ResourceBuilder::Get().Update();
 }
