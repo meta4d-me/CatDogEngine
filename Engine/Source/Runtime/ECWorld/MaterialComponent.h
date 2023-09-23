@@ -95,6 +95,7 @@ public:
 	// Uber shader data.
 	void ActivateShaderFeature(ShaderFeature feature);
 	void DeactiveShaderFeature(ShaderFeature feature);
+	bool isShaderFeatureConflict(ShaderFeature feature);
 
 	void SetShaderFeatures(std::set<ShaderFeature> options) { m_shaderFeatures = cd::MoveTemp(m_shaderFeatures); }
 	std::set<ShaderFeature>& GetShaderFeatures() { return m_shaderFeatures; }

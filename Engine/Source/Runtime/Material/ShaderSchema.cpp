@@ -98,6 +98,21 @@ void ShaderSchema::CleanAll()
 	m_shaderFeatureSets.clear();
 }
 
+const std::optional<ShaderFeatureSet> ShaderSchema::GetConflictFeatureSet(ShaderFeature feature) const
+{
+	const auto& asd = m_shaderFeatureSets;
+
+	for (const auto& shaderFeatureSet : m_shaderFeatureSets)
+	{
+		if (shaderFeatureSet.find(feature) != shaderFeatureSet.end())
+		{
+			return shaderFeatureSet;
+		}
+	}
+
+	return std::nullopt;
+}
+
 std::string ShaderSchema::GetFeaturesCombine(const ShaderFeatureSet& featureSet) const
 {
 	if (m_shaderFeatureSets.empty() || featureSet.empty())

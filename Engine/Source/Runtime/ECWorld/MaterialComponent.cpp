@@ -140,12 +140,32 @@ const MaterialComponent::TextureInfo* MaterialComponent::GetTextureInfo(cd::Mate
 
 void MaterialComponent::ActivateShaderFeature(engine::ShaderFeature feature)
 {
-	m_shaderFeatures.insert(feature);
+	if (!isShaderFeatureConflict(feature))
+	{
+		m_shaderFeatures.insert(feature);
+	}
 }
 
 void MaterialComponent::DeactiveShaderFeature(engine::ShaderFeature feature)
 {
 	m_shaderFeatures.erase(feature);
+}
+
+bool MaterialComponent::isShaderFeatureConflict(ShaderFeature feature)
+{
+	const auto& optConflict = m_pMaterialType->GetShaderSchema().GetConflictFeatureSet(feature);
+
+	assert(optConflict.has_value());
+
+	for (const auto& activeFeature : m_shaderFeatures)
+	{
+		if (optConflict.value().find(activeFeature) != optConflict.value().end())
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void MaterialComponent::Reset()

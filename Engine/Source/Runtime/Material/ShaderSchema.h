@@ -5,6 +5,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -49,6 +50,8 @@ public:
 	void Build();
 	void CleanBuild();
 	void CleanAll();
+
+	const std::optional<ShaderFeatureSet> GetConflictFeatureSet(ShaderFeature feature) const;
 
 	std::string GetFeaturesCombine(const ShaderFeatureSet& featureSet) const;
 	StringCrc GetFeaturesCombineCrc(const ShaderFeatureSet& featureSet) const;
