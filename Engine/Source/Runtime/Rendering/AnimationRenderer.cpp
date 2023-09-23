@@ -8,7 +8,7 @@
 #include "Scene/Texture.h"
 
 #include <cmath>
-//#include <format>
+#define VISUALIZE_BONE_WEIGHTS
 
 namespace engine
 {
@@ -136,8 +136,8 @@ void CalculateBoneTransform(std::vector<cd::Matrix4x4>& boneMatrices, const cd::
 void AnimationRenderer::Init()
 {
 #ifdef VISUALIZE_BONE_WEIGHTS
-	m_pRenderContext->CreateUniform("u_debugBoneIndex", bgfx::UniformType::Vec4, 1);
-	m_pRenderContext->CreateProgram("AnimationProgram", "vs_visualize_bone_weight.bin", "fs_visualize_bone_weight.bin");
+	GetRenderContext()->CreateUniform("u_debugBoneIndex", bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateProgram("AnimationProgram", "vs_visualize_bone_weight.bin", "fs_visualize_bone_weight.bin");
 #else
 	GetRenderContext()->CreateProgram("AnimationProgram", "vs_animation.bin", "fs_animation.bin");
 #endif
@@ -156,20 +156,11 @@ void AnimationRenderer::Render(float deltaTime)
 #ifdef VISUALIZE_BONE_WEIGHTS
 	constexpr float changeTime = 0.2f;
 	static float passedTime = 0.0f;
-	static float selectedBoneIndex[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	passedTime += deltaTime;
-	if (passedTime > changeTime)
-	{
-		selectedBoneIndex[0] = selectedBoneIndex[0] + 1.0f;
-		if (selectedBoneIndex[0] > 100.0f)
-		{
-			selectedBoneIndex[0] = 0.0f;
-		}
-		passedTime -= changeTime;
-	}
+	float boneIndex = static_cast<float>(m_pCurrentSceneWorld->GetSelectedBoneID().Data());
+	float selectedBoneIndex[4] = { boneIndex, 0.0f, 0.0f, 0.0f };
 
 	constexpr StringCrc boneIndexUniform("u_debugBoneIndex");
-	bgfx::setUniform(m_pRenderContext->GetUniform(boneIndexUniform), selectedBoneIndex, 1);
+	bgfx::setUniform(GetRenderContext()->GetUniform(boneIndexUniform), selectedBoneIndex, 1);
 #endif
 
 	static float animationRunningTime = 0.0f;

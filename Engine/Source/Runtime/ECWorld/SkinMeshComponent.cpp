@@ -29,7 +29,7 @@ void SkinMeshComponent::SetBoneMatricesSize(uint32_t boneCount)
 
 void SkinMeshComponent::SetBoneChangeMatrix(uint32_t index, const cd::Matrix4x4& boneChangeMatrix)
 {
-	m_changeMatrices[index] = m_changeMatrices[index] * boneChangeMatrix;
+	m_changeMatrices[index] = boneChangeMatrix;
 	m_changeBoneIndex = index;
 }
 
