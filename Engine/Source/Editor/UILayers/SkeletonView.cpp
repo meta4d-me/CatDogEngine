@@ -40,7 +40,7 @@ void SkeletonView::DrawBone(engine::SceneWorld* pSceneWorld, const cd::Bone& Bon
                 {
                     const cd::Vec3f& position = pSkinMeshComponent->GetBoneMatrix(pSceneWorld->GetSelectedBoneID().Data()).GetTranslation();
                     cd::Vec4f vec4Position =pSkinMeshComponent->GetBoneChangeMatrix(pSceneWorld->GetSelectedBoneID().Data()) * (cd::Vec4f(position.x(),position.y(),position.z(),1.0f));
-                    m_pCameraController->CameraFocus(cd::Vec3f(vec4Position.x(),vec4Position.y(),vec4Position.z()));
+                    m_pCameraController->CameraFocus();
                 }
             }
         }
