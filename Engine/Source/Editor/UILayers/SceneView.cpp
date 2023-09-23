@@ -10,6 +10,8 @@
 #include "Log/Log.h"
 #include "Material/ShaderSchema.h"
 #include "Math/Ray.hpp"
+#include "Rendering/AABBRenderer.h"
+#include "Rendering/WireframeRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/Renderer.h"
 #include "Rendering/RenderTarget.h"
@@ -104,44 +106,16 @@ void SceneView::UpdateOperationButtons()
 	}
 }
 
-void SceneView::UpdateAABBCombo()
-{
-	ImGui::SetNextItemWidth(150);
-	if(ImGui::Combo("##AABBCombo", reinterpret_cast<int*>(&m_AABBMode), AABBModes, IM_ARRAYSIZE(AABBModes)))
-	{
-		if (AABBModeType::NoAABB == m_AABBMode)
-		{
-			m_pAABBRenderer->SetEnable(false);
-		}
-		else if (AABBModeType::AABBSelected == m_AABBMode)
-		{
-			m_pAABBRenderer->SetEnable(true);
-			static_cast<engine::AABBRenderer*>(m_pAABBRenderer)->SetIsRenderSelected(true);
-		}
-		else if (AABBModeType::AABBAll == m_AABBMode)
-		{
-			m_pAABBRenderer->SetEnable(true);
-			static_cast<engine::AABBRenderer*>(m_pAABBRenderer)->SetIsRenderSelected(false);
-		}
-	}
-	ImGui::PushItemWidth(150);
-}
-
-void SceneView::UpdateDebugCombo()
+void SceneView::UpdateRenderModeCombo()
 {
 	ImGui::SetNextItemWidth(130);
-	if (ImGui::Combo("##DebugCombo", reinterpret_cast<int*>(&m_debugMode), DebugModes, IM_ARRAYSIZE(DebugModes)))
+	if (ImGui::Combo("##DebugCombo", reinterpret_cast<int*>(&m_renderMode), RenderModes, IM_ARRAYSIZE(RenderModes)))
 	{
-		if (DebugModeType::NoDebug == m_debugMode)
-		{
-			m_pSceneRenderer->SetEnable(true);
-			m_pDebugRenderer->SetEnable(false);
-		}
-		else if (DebugModeType::WhiteModel == m_debugMode)
-		{
-			m_pSceneRenderer->SetEnable(false);
-			m_pDebugRenderer->SetEnable(true);
-		}
+		m_pSceneRenderer->SetEnable(RenderModeType::Rendered == m_renderMode);
+		m_pWhiteModelRenderer->SetEnable(RenderModeType::Solid == m_renderMode);
+
+		auto* pWireframeRenderer = static_cast<engine::WireframeRenderer*>(m_pWireframeRenderer);
+		pWireframeRenderer->SetEnableGlobalWireframe(RenderModeType::Wireframe == m_renderMode);
 	}
 	ImGui::PushItemWidth(130);
 }
@@ -193,7 +167,8 @@ void SceneView::UpdateSwitchAABBButton()
 
 	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CUBE " AABB")))
 	{
-		GetRenderContext();
+		auto* pAABBRenderer = static_cast<engine::AABBRenderer*>(m_pAABBRenderer);
+		pAABBRenderer->SetEnableGlobalAABB(!pAABBRenderer->IsGlobalAABBEnable());
 	}
 
 	if (isAABBActive)
@@ -251,10 +226,10 @@ void SceneView::UpdateToolMenuButtons()
 	//ImGui::SameLine();
 
 	ImGui::SameLine();
-	UpdateAABBCombo();
+	UpdateRenderModeCombo();
 
 	ImGui::SameLine();
-	UpdateDebugCombo();
+	UpdateSwitchAABBButton();
 
 	ImGui::SameLine();
 	UpdateSwitchTerrainButton();
@@ -269,8 +244,8 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 		return;
 	}
 
-	float screenX = static_cast<float>(engine::Input::Get().GetMousePositionX() - GetWindowPosX());
-	float screenY = static_cast<float>(engine::Input::Get().GetMousePositionY() - GetWindowPosY());
+	float screenX = static_cast<float>(m_mouseFixedPositionX - GetWindowPosX());
+	float screenY = static_cast<float>(m_mouseFixedPositionY - GetWindowPosY());
 	float screenWidth = static_cast<float>(regionWidth);
 	float screenHeight = static_cast<float>(regionHeight);
 	if (screenX < 0.0f || screenX > screenWidth ||
@@ -332,21 +307,7 @@ void SceneView::Update()
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 	auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 	ImGui::Begin(GetName(), &m_isEnable, flags);
-	if (engine::Input::Get().IsMouseLBPressed())
-	{
-		ImVec2 windowSize = ImGui::GetWindowSize();
-		ImVec2 windowPos = ImGui::GetWindowPos();
-		ImVec2 mousePos = ImGui::GetMousePos();
-		cd::Vec2f rightDown(windowPos.x + windowSize.x, windowPos.y + windowSize.y);
-		if (mousePos.x > windowPos.x && mousePos.x < rightDown.x() && mousePos.y > windowPos.y && mousePos.y < rightDown.y() && !m_isTerrainEditMode)
-		{
-			m_pCameraController->SetIsInViewScene(true);
-		}
-		else
-		{
-			m_pCameraController->SetIsInViewScene(false);
-		}
-	}
+
 	// Draw top menu buttons which include ImGuizmo operation modes, ViewCamera settings.
 	UpdateToolMenuButtons();
 
@@ -366,6 +327,10 @@ void SceneView::Update()
 			pCameraComponent->SetAspect(static_cast<float>(regionWidth) / static_cast<float>(regionHeight));
 		}
 	}
+
+	ImVec2 windowPos = ImGui::GetWindowPos();
+	ImVec2 mousePos = ImGui::GetMousePos();
+	cd::Vec2f rightDown(windowPos.x + regionSize.x, windowPos.y + regionSize.y);
 
 	// Check if mouse hover on the area of SceneView so it can control.
 	ImVec2 cursorPosition = ImGui::GetCursorPos();
@@ -389,20 +354,51 @@ void SceneView::Update()
 	ImGui::PopStyleVar();
 
 	ImGui::End();
+	bool isAnyMouseButtonPressed = engine::Input::Get().IsMouseLBPressed() || engine::Input::Get().IsMouseMBPressed() || engine::Input::Get().IsMouseRBPressed();
 
-	if (engine::Input::Get().IsMouseLBPressed())
+	if (isAnyMouseButtonPressed && !ImGuizmo::IsUsing())
 	{
 		if (!m_isMouseDownFirstTime)
 		{
+			if (m_pCameraController->GetViewIsMoved())
+			{
+				m_isUsingCamera = true;
+			}
+			if (engine::Input::Get().IsMouseLBPressed())
+			{
+				m_isLeftClick = true;
+			}
 			return;
 		}
 
 		m_isMouseDownFirstTime = false;
-		PickSceneMesh(regionWidth, regionHeight);
+		if (mousePos.x > windowPos.x && mousePos.x < rightDown.x() && mousePos.y > windowPos.y && mousePos.y < rightDown.y() && !m_isTerrainEditMode)
+		{
+			m_pCameraController->SetIsInViewScene(true);
+			m_isMouseShow = false;
+		}
+		else
+		{
+			m_pCameraController->SetIsInViewScene(false);
+		}
 	}
 	else
 	{
+		m_mouseFixedPositionX = engine::Input::Get().GetMousePositionX();
+		m_mouseFixedPositionY = engine::Input::Get().GetMousePositionY();
+		if (!m_isMouseShow && !m_isUsingCamera)
+		{
+			PickSceneMesh(regionWidth, regionHeight);
+		}
 		m_isMouseDownFirstTime = true;
+		m_isMouseShow = true;
+		m_isUsingCamera = false;
+		m_isLeftClick = false;
+	}
+
+	if (ImGui::IsMouseDoubleClicked(0) && engine::INVALID_ENTITY != pSceneWorld->GetSelectedEntity())
+	{
+		m_pCameraController->CameraFocus();
 	}
 }
 

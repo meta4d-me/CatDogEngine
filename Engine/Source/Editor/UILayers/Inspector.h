@@ -12,6 +12,9 @@ public:
 
 	virtual void Init() override;
 	virtual void Update() override;
+
+private:
+	engine::Entity m_lastSelectedEntity = engine::INVALID_ENTITY;
 };
 
 }

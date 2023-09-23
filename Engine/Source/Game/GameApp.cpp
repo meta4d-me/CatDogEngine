@@ -13,7 +13,7 @@
 #ifdef ENABLE_DDGI
 #include "Rendering/DDGIRenderer.h"
 #endif
-#include "Rendering/DebugRenderer.h"
+#include "Rendering/WhiteModelRenderer.h"
 #include "Rendering/ImGuiRenderer.h"
 #include "Rendering/PBRSkyRenderer.h"
 #include "Rendering/PostProcessRenderer.h"
@@ -250,12 +250,6 @@ void GameApp::InitEngineRenderers()
 	auto pAnimationRenderer = std::make_unique<engine::AnimationRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pAnimationRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pAnimationRenderer));
-
-	auto pDebugRenderer = std::make_unique<engine::DebugRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-	m_pDebugRenderer = pDebugRenderer.get();
-	pDebugRenderer->SetSceneWorld(m_pSceneWorld.get());
-	pDebugRenderer->SetEnable(false);
-	AddEngineRenderer(cd::MoveTemp(pDebugRenderer));
 
 #ifdef ENABLE_DDGI
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
