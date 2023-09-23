@@ -187,7 +187,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 			{
 				// TODO : generic cull mode.
 				ImGuiUtils::ImGuiBoolProperty("TwoSided", pMaterialComponent->GetTwoSided());
-				ImGuiUtils::ImGuiStringProperty("BlendMode", nameof::nameof_enum(pMaterialComponent->GetBlendMode()).data());
+				ImGuiUtils::ImGuiEnumProperty("BlendMode", pMaterialComponent->GetBlendMode());
 			}
 
 			ImGui::Separator();
@@ -559,25 +559,11 @@ void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld
 
 		if (!skyTypes.empty())
 		{
-			static const char* crtItem = nameof::nameof_enum(engine::SkyType::SkyBox).data();
-			if (ImGui::BeginCombo("##combo", crtItem))
+			auto currentSkyType = pSkyComponent->GetSkyType();
+			if (ImGuiUtils::ImGuiEnumProperty("SkyType", currentSkyType))
 			{
-				for (size_t index = 0; index < skyTypes.size(); ++index)
-				{
-					bool isSelected = (crtItem == skyTypes[index]);
-					if (ImGui::Selectable(skyTypes[index], isSelected))
-					{
-						crtItem = skyTypes[index];
-						pSkyComponent->SetSkyType(static_cast<engine::SkyType>(index));
-					}
-					if (isSelected)
-					{
-						ImGui::SetItemDefaultFocus();
-					}
-				}
-				ImGui::EndCombo();
+				pSkyComponent->SetSkyType(currentSkyType);
 			}
-
 		}
 
 		if (pSkyComponent->GetAtmophericScatteringEnable())
