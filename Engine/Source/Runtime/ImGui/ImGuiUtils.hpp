@@ -7,6 +7,7 @@
 #include "Math/UnitSystem.hpp"
 
 #include <imgui/imgui.h>
+
 namespace ImGuiUtils
 {
 
@@ -27,7 +28,7 @@ static bool ImGuiEnumProperty(const char* pName, EnumType& value)
 
 	if (ImGui::BeginCombo("##combo", nameof::nameof_enum(value).data()))
 	{
-		auto enumCount = nameof::detail::count_v<std::decay_t<EnumType>>;
+		auto enumCount = nameof::enum_count<EnumType>();
 		for (uint32_t enumIndex = 0U; enumIndex < enumCount; ++enumIndex)
 		{
 			EnumType enumValue = static_cast<EnumType>(enumIndex);

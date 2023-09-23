@@ -200,7 +200,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		}
 
 		// Textures
-		for (int textureTypeValue = 0; textureTypeValue < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
+		for (int textureTypeValue = 0; textureTypeValue < nameof::enum_count<cd::MaterialTextureType>(); ++textureTypeValue)
 		{
 			auto textureType = static_cast<cd::MaterialTextureType>(textureTypeValue);
 			bool allowNoTextures = textureType == cd::MaterialTextureType::BaseColor ||
@@ -386,7 +386,7 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 	if (isOpen)
 	{
 		cd::LightType lightType = pLightComponent->GetType();
-		std::string lightTypeName = cd::GetLightTypeName(lightType);
+		std::string lightTypeName(nameof::nameof_enum(lightType));
 
 		ImGuiUtils::ImGuiStringProperty("Type", lightTypeName);
 		ImGuiUtils::ColorPickerProperty("Color", pLightComponent->GetColor());

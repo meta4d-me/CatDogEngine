@@ -9,8 +9,7 @@ enum class ThemeColor
 	Classic,
 	Dark,
 	Grey,
-	Light,
-	Count
+	Light
 };
 
 }
