@@ -39,29 +39,7 @@ enum class IOAssetType
 	Terrain,
 	Light,
 	Unknown,
-
-	Count,
 };
-
-constexpr const char *IOAssetTypeName[] =
-{
-	"CubeMap",
-	"DDGIModel",
-	"Model",
-	"Shader",
-	"SceneDatabase",
-	"Terrain",
-	"Light",
-	"Unknown",
-};
-
-static_assert(static_cast<int>(IOAssetType::Count) == sizeof(IOAssetTypeName) / sizeof(char*),
-	"IO asset type and names mismatch.");
-
-CD_FORCEINLINE const char* GetIOAssetTypeName(IOAssetType type)
-{
-	return IOAssetTypeName[static_cast<size_t>(type)];
-}
 
 struct AssetImportOptions
 {
