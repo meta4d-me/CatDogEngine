@@ -2,6 +2,7 @@
 
 #include "ECWorld/World.h"
 #include "Log/Log.h"
+#include "ProgressiveMesh/ProgressiveMesh.h"
 #include "Rendering/Utility/VertexLayoutUtility.h"
 #include "Scene/VertexFormat.h"
 
@@ -305,7 +306,8 @@ void StaticMeshComponent::BuildProgressiveMeshData()
 
 	assert(m_pMeshData && m_pRequiredVertexFormat);
 
-	auto permutationMapPair = m_pMeshData->BuildProgressiveMesh();
+	auto progressiveMesh = cd::ProgressiveMesh::FromIndexedMesh(*m_pMeshData);
+	auto permutationMapPair = progressiveMesh.BuildCollapseOperations();
 	m_permutation = cd::MoveTemp(permutationMapPair.first);
 	m_map = cd::MoveTemp(permutationMapPair.second);
 
