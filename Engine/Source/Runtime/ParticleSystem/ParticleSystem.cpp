@@ -59,8 +59,8 @@ void engine::ParticleSystem::Update(float deltaTime, int index)
 
 	if (index % 4 == 0)
 	{
-		m_pos[index].x() = m_pos[index].x() + m_velocity[index].x() * 0.15f + 0.5f * m_acceleration[index].x() * 0.15f * 0.15f;
-		m_pos[index].y() = m_pos[index].y() + m_velocity[index].y() * 0.15f + 0.5f * m_acceleration[index].y() * 0.15f * 0.15f;
+		m_pos[index].x() = m_pos[index].x();
+		m_pos[index].y() = m_pos[index].y();
 		m_texture_u[index] = 1.0f;
 		m_texture_v[index] = 1.0f;
 	}
