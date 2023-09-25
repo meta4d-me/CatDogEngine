@@ -281,7 +281,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 
 				if (!activeShaderFeatures.empty())
 				{
-					if (ImGui::BeginCombo("##combo", "Active shader features"))
+					if (ImGui::BeginCombo("##shaderFeatureCombo", "Active shader features"))
 					{
 						for (size_t index = 0; index < activeShaderFeatures.size(); ++index)
 						{
@@ -547,22 +547,28 @@ void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld
 
 	if (isOpen)
 	{
-		std::vector<const char*> skyTypes;
-		for (size_t type = 0; type < static_cast<size_t>(engine::SkyType::Count); ++type)
+		auto currentSkyType = pSkyComponent->GetSkyType();
+		if (ImGuiUtils::ImGuiEnumProperty("SkyType", currentSkyType))
 		{
-			if (!pSkyComponent->GetAtmophericScatteringEnable() && engine::SkyType::AtmosphericScattering == static_cast<engine::SkyType>(type))
-			{
-				continue;
-			}
-			skyTypes.emplace_back(nameof::nameof_enum(static_cast<engine::SkyType>(type)).data());
-		}
+			pSkyComponent->SetSkyType(currentSkyType);
 
-		if (!skyTypes.empty())
-		{
-			auto currentSkyType = pSkyComponent->GetSkyType();
-			if (ImGuiUtils::ImGuiEnumProperty("SkyType", currentSkyType))
+			for (engine::Entity entity : pSceneWorld->GetMaterialEntities())
 			{
-				pSkyComponent->SetSkyType(currentSkyType);
+				engine::MaterialComponent* pMaterialComponent = pSceneWorld->GetMaterialComponent(entity);
+				if (!pMaterialComponent)
+				{
+					continue;
+				}
+
+				if (engine::SkyType::None == currentSkyType)
+				{
+					pMaterialComponent->DeactiveShaderFeature(engine::GetSkyTypeShaderFeature(engine::SkyType::AtmosphericScattering));
+					pMaterialComponent->DeactiveShaderFeature(engine::GetSkyTypeShaderFeature(engine::SkyType::SkyBox));
+				}
+				else
+				{
+					pMaterialComponent->ActivateShaderFeature(engine::GetSkyTypeShaderFeature(currentSkyType));
+				}
 			}
 		}
 

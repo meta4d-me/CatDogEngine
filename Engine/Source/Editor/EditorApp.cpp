@@ -356,14 +356,6 @@ void EditorApp::UpdateMaterials()
 			continue;
 		}
 
-		if (engine::SkyType::None == crtSkyType)
-		{
-			pMaterialComponent->DeactiveShaderFeature(engine::GetSkyTypeShaderFeature(engine::SkyType::AtmosphericScattering));
-			pMaterialComponent->DeactiveShaderFeature(engine::GetSkyTypeShaderFeature(engine::SkyType::SkyBox));
-		}
-
-		pMaterialComponent->ActivateShaderFeature(engine::GetSkyTypeShaderFeature(crtSkyType));
-
 		m_pRenderContext->CheckShaderProgram(pMaterialComponent->GetProgramName(), pMaterialComponent->GetFeaturesCombine());
 	}
 }

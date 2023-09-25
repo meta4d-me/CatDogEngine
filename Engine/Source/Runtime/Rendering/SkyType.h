@@ -13,7 +13,6 @@ enum class SkyType
 	None,
 	SkyBox,
 	AtmosphericScattering,
-	Count,
 };
 
 static const std::map<engine::SkyType, engine::ShaderFeature> SkyTypeToShaderFeature
