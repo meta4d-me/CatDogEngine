@@ -313,4 +313,18 @@ void Window::SetWindowIcon(const char* pFilePath) const
 	stbi_image_free(pImageData);
 }
 
+void Window::SetMouseVisible(bool isVisible, uint32_t x, uint32_t y)
+{
+	SDL_ShowCursor(isVisible);
+	if (!isVisible)
+	{
+		SDL_SetRelativeMouseMode(SDL_TRUE);
+		SDL_WarpMouseInWindow(m_pSDLWindow, x, y);
+	}
+	else
+	{
+		SDL_SetRelativeMouseMode(SDL_FALSE);
+	}
+}
+
 }

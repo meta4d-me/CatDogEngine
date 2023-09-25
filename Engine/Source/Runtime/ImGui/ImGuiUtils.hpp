@@ -7,12 +7,51 @@
 #include "Math/UnitSystem.hpp"
 
 #include <imgui/imgui.h>
+
 namespace ImGuiUtils
 {
 
 static bool ImGuiBoolProperty(const char* pName, bool& value)
 {
 	return ImGui::Checkbox(pName, &value);
+}
+
+template<typename EnumType>
+static bool ImGuiEnumProperty(const char* pName, EnumType& value)
+{
+	bool dirty = false;
+
+	ImGui::Columns(2);
+	ImGui::TextUnformatted(pName);
+	ImGui::NextColumn();
+	ImGui::PushItemWidth(-1);
+
+	if (ImGui::BeginCombo("##combo", nameof::nameof_enum(value).data()))
+	{
+		auto enumCount = nameof::enum_count<EnumType>();
+		for (uint32_t enumIndex = 0U; enumIndex < enumCount; ++enumIndex)
+		{
+			EnumType enumValue = static_cast<EnumType>(enumIndex);
+			bool isSelected = enumValue == value;
+			if (ImGui::Selectable(nameof::nameof_enum(enumValue).data(), isSelected))
+			{
+				value = enumValue;
+				dirty = true;
+			}
+
+			if (isSelected)
+			{
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
+
+	ImGui::PopItemWidth();
+	ImGui::NextColumn();
+	ImGui::Columns(1);
+
+	return dirty;
 }
 
 static bool ImGuiStringProperty(const char* pName, const char* pValue)

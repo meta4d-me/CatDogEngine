@@ -86,6 +86,36 @@ void UpdateComponentWidget<engine::TransformComponent>(engine::SceneWorld* pScen
 template<>
 void UpdateComponentWidget<engine::StaticMeshComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
 {
+	auto* pStaticMeshComponent = pSceneWorld->GetStaticMeshComponent(entity);
+	if (!pStaticMeshComponent)
+	{
+		return;
+	}
+
+	bool isOpen = ImGui::CollapsingHeader("StaticMesh Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+	ImGui::Separator();
+
+	if (isOpen)
+	{
+		ImGuiUtils::ImGuiStringProperty("Vertex Count", std::to_string(pStaticMeshComponent->GetVertexCount()));
+		ImGuiUtils::ImGuiStringProperty("Triangle Count", std::to_string(static_cast<uint32_t>(pStaticMeshComponent->GetPolygonCount())));
+
+		if (!pStaticMeshComponent->IsProgressiveMeshValid())
+		{
+			if (ImGui::Button(reinterpret_cast<const char*>("Build ProgressiveMesh")))
+			{
+				pStaticMeshComponent->BuildProgressiveMeshData();
+			}
+		}
+		else
+		{
+			ImGuiUtils::ImGuiFloatProperty("LOD Percent", pStaticMeshComponent->GetProgressiveMeshReductionPercent(), cd::Unit::None, 0.001f, 1.0f, false, 0.001f);
+		}
+	}
+
+	ImGui::Separator();
+	ImGui::PopStyleVar();
 }
 
 template<>
@@ -157,7 +187,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 			{
 				// TODO : generic cull mode.
 				ImGuiUtils::ImGuiBoolProperty("TwoSided", pMaterialComponent->GetTwoSided());
-				ImGuiUtils::ImGuiStringProperty("BlendMode", nameof::nameof_enum(pMaterialComponent->GetBlendMode()).data());
+				ImGuiUtils::ImGuiEnumProperty("BlendMode", pMaterialComponent->GetBlendMode());
 			}
 
 			ImGui::Separator();
@@ -170,7 +200,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		}
 
 		// Textures
-		for (int textureTypeValue = 0; textureTypeValue < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
+		for (int textureTypeValue = 0; textureTypeValue < nameof::enum_count<cd::MaterialTextureType>(); ++textureTypeValue)
 		{
 			auto textureType = static_cast<cd::MaterialTextureType>(textureTypeValue);
 			bool allowNoTextures = textureType == cd::MaterialTextureType::BaseColor ||
@@ -356,7 +386,7 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 	if (isOpen)
 	{
 		cd::LightType lightType = pLightComponent->GetType();
-		std::string lightTypeName = cd::GetLightTypeName(lightType);
+		std::string lightTypeName(nameof::nameof_enum(lightType));
 
 		ImGuiUtils::ImGuiStringProperty("Type", lightTypeName);
 		ImGuiUtils::ColorPickerProperty("Color", pLightComponent->GetColor());
@@ -529,25 +559,11 @@ void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld
 
 		if (!skyTypes.empty())
 		{
-			static const char* crtItem = nameof::nameof_enum(engine::SkyType::SkyBox).data();
-			if (ImGui::BeginCombo("##combo", crtItem))
+			auto currentSkyType = pSkyComponent->GetSkyType();
+			if (ImGuiUtils::ImGuiEnumProperty("SkyType", currentSkyType))
 			{
-				for (size_t index = 0; index < skyTypes.size(); ++index)
-				{
-					bool isSelected = (crtItem == skyTypes[index]);
-					if (ImGui::Selectable(skyTypes[index], isSelected))
-					{
-						crtItem = skyTypes[index];
-						pSkyComponent->SetSkyType(static_cast<engine::SkyType>(index));
-					}
-					if (isSelected)
-					{
-						ImGui::SetItemDefaultFocus();
-					}
-				}
-				ImGui::EndCombo();
+				pSkyComponent->SetSkyType(currentSkyType);
 			}
-
 		}
 
 		if (pSkyComponent->GetAtmophericScatteringEnable())

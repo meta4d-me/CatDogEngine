@@ -2,6 +2,7 @@
 
 #include "ECWorld/World.h"
 #include "Log/Log.h"
+#include "ProgressiveMesh/ProgressiveMesh.h"
 #include "Rendering/Utility/VertexLayoutUtility.h"
 #include "Scene/VertexFormat.h"
 
@@ -9,13 +10,96 @@
 
 #include <optional>
 
+namespace
+{
+
+enum class IndexBufferType
+{
+	Static,
+	Dynamic
+};
+
+template<IndexBufferType IBT = IndexBufferType::Static>
+uint16_t SubmitIndexBuffer(const std::vector<std::byte>& indexBuffer, bool useU16Index = false)
+{
+	const bgfx::Memory* pIndexBufferRef = bgfx::makeRef(indexBuffer.data(), static_cast<uint32_t>(indexBuffer.size()));
+	if constexpr (IndexBufferType::Static == IBT)
+	{
+		bgfx::IndexBufferHandle indexBufferHandle = bgfx::createIndexBuffer(pIndexBufferRef, useU16Index ? 0U : BGFX_BUFFER_INDEX32);
+		assert(bgfx::isValid(indexBufferHandle));
+		return indexBufferHandle.idx;
+	}
+	else if constexpr (IndexBufferType::Dynamic == IBT)
+	{
+		bgfx::DynamicIndexBufferHandle indexBufferHandle = bgfx::createDynamicIndexBuffer(pIndexBufferRef, useU16Index ? 0U : BGFX_BUFFER_INDEX32);
+		assert(bgfx::isValid(indexBufferHandle));
+		return indexBufferHandle.idx;
+	}
+	else
+	{
+		static_assert("Unsupported IndexBufferType.");
+	}
+};
+
+}
+
 namespace engine
 {
+
+uint32_t StaticMeshComponent::GetStartVertex() const
+{
+	return 0U;
+}
+
+uint32_t StaticMeshComponent::GetVertexCount() const
+{
+	return m_currentVertexCount;
+}
+
+uint16_t StaticMeshComponent::GetVertexBuffer() const
+{
+#ifdef EDITOR_MODE
+	return IsProgressiveMeshValid() ? m_progressiveMeshVertexBufferHandle : m_vertexBufferHandle;
+#else
+	return m_vertexBufferHandle;
+#endif
+}
+
+uint32_t StaticMeshComponent::GetStartIndex() const
+{
+	return 0U;
+}
+
+uint32_t StaticMeshComponent::GetPolygonCount() const
+{
+	return m_currentPolygonCount;
+}
+
+uint32_t StaticMeshComponent::GetIndexCount() const
+{
+#ifdef EDITOR_MODE
+	return IsProgressiveMeshValid() ? GetPolygonCount() * 3U : UINT32_MAX;
+#else
+	return UINT32_MAX;
+#endif
+}
+
+uint16_t StaticMeshComponent::GetIndexBuffer() const
+{
+#ifdef EDITOR_MODE
+	return IsProgressiveMeshValid() ? m_progressiveMeshIndexBufferHandle : m_indexBufferHandle;
+#else
+	return m_indexBufferHandle;
+#endif
+}
 
 void StaticMeshComponent::Reset()
 {
 	m_pMeshData = nullptr;
 	m_pRequiredVertexFormat = nullptr;
+
+	m_currentVertexCount = UINT32_MAX;
+	m_currentPolygonCount = UINT32_MAX;
 
 	m_vertexBuffer.clear();
 	m_vertexBufferHandle = UINT16_MAX;
@@ -26,6 +110,16 @@ void StaticMeshComponent::Reset()
 #ifdef EDITOR_MODE
 	m_wireframeIndexBuffer.clear();
 	m_wireframeIndexBufferHandle = UINT16_MAX;
+
+	m_originVertexCount = UINT32_MAX;
+	m_originPolygonCount = UINT32_MAX;
+	m_progressiveMeshReductionPercent = 1.0f;
+
+	m_progressiveMeshVertexBuffer.clear();
+	m_progressiveMeshVertexBufferHandle = UINT16_MAX;
+
+	m_progressiveMeshIndexBuffer.clear();
+	m_progressiveMeshIndexBufferHandle = UINT16_MAX;
 #endif
 }
 
@@ -39,6 +133,9 @@ void StaticMeshComponent::Build()
 		return;
 	}
 
+	m_currentVertexCount = m_pMeshData->GetVertexCount();
+	m_currentPolygonCount = m_pMeshData->GetPolygonCount();
+
 	const bool containsPosition = m_pRequiredVertexFormat->Contains(cd::VertexAttributeType::Position);
 	const bool containsNormal = m_pRequiredVertexFormat->Contains(cd::VertexAttributeType::Normal);
 	const bool containsTangent = m_pRequiredVertexFormat->Contains(cd::VertexAttributeType::Tangent);
@@ -50,10 +147,8 @@ void StaticMeshComponent::Build()
 	const bool containsBoneIndex = m_pRequiredVertexFormat->Contains(cd::VertexAttributeType::BoneIndex);
 	const bool containsBoneWeight = m_pRequiredVertexFormat->Contains(cd::VertexAttributeType::BoneWeight);
 
-	const uint32_t vertexCount = m_pMeshData->GetVertexCount();
 	const uint32_t vertexFormatStride = m_pRequiredVertexFormat->GetStride();
-
-	m_vertexBuffer.resize(vertexCount * vertexFormatStride);
+	m_vertexBuffer.resize(m_currentVertexCount * vertexFormatStride);
 
 	uint32_t vbDataSize = 0U;
 	auto vbDataPtr = m_vertexBuffer.data();
@@ -63,7 +158,7 @@ void StaticMeshComponent::Build()
 		vbDataSize += dataSize;
 	};
 
-	for (uint32_t vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex)
+	for (uint32_t vertexIndex = 0; vertexIndex < m_currentVertexCount; ++vertexIndex)
 	{
 		if (containsPosition)
 		{
@@ -133,9 +228,9 @@ void StaticMeshComponent::Build()
 	}
 
 	// Fill index buffer data.
-	bool useU16Index = vertexCount <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()) + 1U;
-	uint32_t indexTypeSize = useU16Index ? sizeof(uint16_t) : sizeof(uint32_t);
-	uint32_t indicesCount = m_pMeshData->GetPolygonCount() * 3U;
+	const bool useU16Index = m_currentVertexCount <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()) + 1U;
+	const uint32_t indexTypeSize = useU16Index ? sizeof(uint16_t) : sizeof(uint32_t);
+	const uint32_t indicesCount = m_currentPolygonCount * 3U;
 	m_indexBuffer.resize(indicesCount* indexTypeSize);
 
 	uint32_t ibDataSize = 0U;
@@ -164,11 +259,7 @@ void StaticMeshComponent::Build()
 	}
 
 #ifdef EDITOR_MODE
-	uint32_t wireframeIndicesCount = bgfx::topologyConvert(bgfx::TopologyConvert::TriListToLineList, nullptr, 0U,
-		m_indexBuffer.data(), indicesCount, !useU16Index);
-	m_wireframeIndexBuffer.resize(indicesCount * indexTypeSize);
-	bgfx::topologyConvert(bgfx::TopologyConvert::TriListToLineList, m_wireframeIndexBuffer.data(), static_cast<uint32_t>(m_wireframeIndexBuffer.size()),
-		m_indexBuffer.data(), indicesCount, !useU16Index);
+	BuildWireframeData();
 #endif
 }
 
@@ -182,21 +273,182 @@ void StaticMeshComponent::Submit()
 	assert(bgfx::isValid(vertexBufferHandle));
 	m_vertexBufferHandle = vertexBufferHandle.idx;
 
-	bool useU16Index = m_pMeshData->GetVertexCount() <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()) + 1U;
-	auto SubmitIndexBuffer = [&useU16Index](const std::vector<std::byte>& indexBuffer) -> uint16_t
-	{
-		const bgfx::Memory* pIndexBufferRef = bgfx::makeRef(indexBuffer.data(), static_cast<uint32_t>(indexBuffer.size()));
-		bgfx::IndexBufferHandle indexBufferHandle = bgfx::createIndexBuffer(pIndexBufferRef, useU16Index ? 0U : BGFX_BUFFER_INDEX32);
-		assert(bgfx::isValid(indexBufferHandle));
-		return indexBufferHandle.idx;
-	};
-
 	// Create index buffer.
-	m_indexBufferHandle = SubmitIndexBuffer(m_indexBuffer);
+	const bool useU16Index = m_currentVertexCount <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()) + 1U;
+	m_indexBufferHandle = SubmitIndexBuffer(m_indexBuffer, useU16Index);
 
 #ifdef EDITOR_MODE
-	m_wireframeIndexBufferHandle = SubmitIndexBuffer(m_wireframeIndexBuffer);
+	m_wireframeIndexBufferHandle = SubmitIndexBuffer(m_wireframeIndexBuffer, useU16Index);
 #endif
 }
+
+#ifdef EDITOR_MODE
+
+void StaticMeshComponent::BuildWireframeData()
+{
+	const uint32_t indicesCount = m_currentPolygonCount * 3U;
+	const bool useU16Index = m_currentVertexCount <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()) + 1U;
+	const uint32_t indexTypeSize = useU16Index ? sizeof(uint16_t) : sizeof(uint32_t);
+
+	uint32_t wireframeIndicesCount = bgfx::topologyConvert(bgfx::TopologyConvert::TriListToLineList, nullptr, 0U,
+		m_indexBuffer.data(), indicesCount, !useU16Index);
+	m_wireframeIndexBuffer.resize(wireframeIndicesCount * indexTypeSize);
+	bgfx::topologyConvert(bgfx::TopologyConvert::TriListToLineList, m_wireframeIndexBuffer.data(), static_cast<uint32_t>(m_wireframeIndexBuffer.size()),
+		m_indexBuffer.data(), indicesCount, !useU16Index);
+}
+
+void StaticMeshComponent::BuildProgressiveMeshData()
+{
+	if (IsProgressiveMeshValid())
+	{
+		return;
+	}
+
+	assert(m_pMeshData && m_pRequiredVertexFormat);
+
+	auto progressiveMesh = cd::ProgressiveMesh::FromIndexedMesh(*m_pMeshData);
+	auto permutationMapPair = progressiveMesh.BuildCollapseOperations();
+	m_permutation = cd::MoveTemp(permutationMapPair.first);
+	m_map = cd::MoveTemp(permutationMapPair.second);
+
+	m_originVertexCount = m_currentVertexCount;
+	m_originPolygonCount = m_currentPolygonCount;
+
+	// Copy and modify buffer.
+	assert(!m_vertexBuffer.empty());
+	uint32_t vertexStride = m_pRequiredVertexFormat->GetStride();
+	assert(vertexStride * m_currentVertexCount == m_vertexBuffer.size());
+
+	// Create a vertex buffer sorted by collape order.
+	m_progressiveMeshVertexBuffer.resize(m_vertexBuffer.size());
+	for (uint32_t vertexIndex = 0U; vertexIndex < m_currentVertexCount; ++vertexIndex)
+	{
+		uint32_t newVertexIndex = m_permutation[vertexIndex];
+		assert(newVertexIndex < m_currentVertexCount);
+		std::memcpy(m_progressiveMeshVertexBuffer.data() + newVertexIndex * vertexStride, m_vertexBuffer.data() + vertexIndex * vertexStride, vertexStride);
+	}
+
+	// After sorting vertex buffer, modify index buffer accordingly.
+	const bool useU16Index = m_originVertexCount <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()) + 1U;
+	const uint32_t indexTypeSize = useU16Index ? sizeof(uint16_t) : sizeof(uint32_t);
+	m_progressiveMeshIndexBuffer.resize(m_indexBuffer.size());
+
+	if (useU16Index)
+	{
+		using IndexType = uint16_t;
+		for (uint32_t indexIndex = 0U; indexIndex < m_currentPolygonCount * 3U; ++indexIndex)
+		{
+			auto* pIndexData = reinterpret_cast<IndexType*>(m_indexBuffer.data() + indexIndex * indexTypeSize);
+			IndexType index = *pIndexData;
+			assert(m_permutation[index] < m_currentVertexCount);
+			IndexType newIndex = static_cast<IndexType>(m_permutation[index]);
+			std::memcpy(m_progressiveMeshIndexBuffer.data() + indexIndex * indexTypeSize, &newIndex, indexTypeSize);
+		}
+	}
+	else
+	{
+		using IndexType = uint32_t;
+		for (uint32_t indexIndex = 0U; indexIndex < m_currentPolygonCount * 3U; ++indexIndex)
+		{
+			auto* pIndexData = reinterpret_cast<IndexType*>(m_indexBuffer.data() + indexIndex * indexTypeSize);
+			IndexType index = *pIndexData;
+			assert(m_permutation[index] < m_currentVertexCount);
+			IndexType newIndex = m_permutation[index];
+			std::memcpy(m_progressiveMeshIndexBuffer.data() + indexIndex * indexTypeSize, &newIndex, indexTypeSize);
+		}
+	}
+
+	// Submit
+	bgfx::VertexLayout vertexLayout;
+	VertexLayoutUtility::CreateVertexLayout(vertexLayout, m_pRequiredVertexFormat->GetVertexLayout());
+	const bgfx::Memory* pVertexBufferRef = bgfx::makeRef(m_progressiveMeshVertexBuffer.data(), static_cast<uint32_t>(m_progressiveMeshVertexBuffer.size()));
+	bgfx::VertexBufferHandle vertexBufferHandle = bgfx::createVertexBuffer(pVertexBufferRef, vertexLayout);
+	assert(bgfx::isValid(vertexBufferHandle));
+	m_progressiveMeshVertexBufferHandle = vertexBufferHandle.idx;
+
+	m_progressiveMeshIndexBufferHandle = SubmitIndexBuffer<IndexBufferType::Dynamic>(m_progressiveMeshIndexBuffer, useU16Index);
+}
+
+void StaticMeshComponent::UpdateProgressiveMeshData()
+{
+	assert(m_progressiveMeshReductionPercent >= 0.0f && m_progressiveMeshReductionPercent <= 1.0f);
+	uint32_t lodVertexCount = static_cast<uint32_t>(m_progressiveMeshReductionPercent * m_originVertexCount);
+	if (lodVertexCount == m_currentVertexCount)
+	{
+		return;
+	}
+
+	// update vertex used count
+	m_currentVertexCount = lodVertexCount;
+
+	// update index buffer
+	uint32_t polygonCount = 0;
+	const bool useU16Index = m_originVertexCount <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()) + 1U;
+	const uint32_t indexTypeSize = useU16Index ? sizeof(uint16_t) : sizeof(uint32_t);
+	if (useU16Index)
+	{
+		using IndexType = uint16_t;
+		auto* pIndexBuffer = reinterpret_cast<IndexType*>(m_progressiveMeshIndexBuffer.data());
+		for (uint32_t polygonIndex = 0U; polygonIndex < m_originPolygonCount; ++polygonIndex)
+		{
+			uint16_t polygon[3];
+
+			uint32_t startIndex = polygonIndex * 3;
+			for (uint32_t ii = 0U; ii < 3U; ++ii)
+			{
+				IndexType index = pIndexBuffer[startIndex + ii];
+				while (index > lodVertexCount)
+				{
+					index = m_map[index];
+				}
+
+				polygon[ii] = index;
+			}
+
+			if (polygon[0] != polygon[1] &&
+				polygon[0] != polygon[2] &&
+				polygon[1] != polygon[2])
+			{
+				std::memcpy(pIndexBuffer + startIndex, polygon, 3 * indexTypeSize);
+				++polygonCount;
+			}
+		}
+	}
+	else
+	{
+		// TODO : Remove duplicated codes.
+		using IndexType = uint32_t;
+		auto* pIndexBuffer = reinterpret_cast<IndexType*>(m_progressiveMeshIndexBuffer.data());
+		for (uint32_t polygonIndex = 0U; polygonIndex < m_originPolygonCount; ++polygonIndex)
+		{
+			uint16_t polygon[3];
+
+			uint32_t startIndex = polygonIndex * 3;
+			for (uint32_t ii = 0U; ii < 3U; ++ii)
+			{
+				IndexType index = pIndexBuffer[startIndex + ii];
+				while (index > lodVertexCount)
+				{
+					index = m_map[index];
+				}
+
+				polygon[ii] = index;
+			}
+
+			if (polygon[0] != polygon[1] &&
+				polygon[0] != polygon[2] &&
+				polygon[1] != polygon[2])
+			{
+				std::memcpy(pIndexBuffer + startIndex, polygon, 3 * indexTypeSize);
+				++polygonCount;
+			}
+		}
+	}
+
+	m_currentPolygonCount = polygonCount;
+	bgfx::update(bgfx::DynamicIndexBufferHandle{ m_progressiveMeshIndexBufferHandle }, 0U, bgfx::makeRef(m_progressiveMeshIndexBuffer.data(), static_cast<uint32_t>(m_progressiveMeshIndexBuffer.size())));
+}
+
+#endif
 
 }

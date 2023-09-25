@@ -42,20 +42,23 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
 
     auto CreateShapeComponents = [&pSceneWorld, &pWorld, &pSceneDatabase](engine::Entity entity, cd::Mesh&& mesh, engine::MaterialType* pMaterialType)
     {
+        mesh.SetName(pSceneWorld->GetNameComponent(entity)->GetName());
+        mesh.SetID(cd::MeshID(pSceneDatabase->GetMeshCount()));
+
+        uint32_t currentMeshCount = pSceneDatabase->GetMeshCount();
+        pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
+        const cd::Mesh& newAddedShape = pSceneDatabase->GetMesh(currentMeshCount);
+
         auto& collisionMeshComponent = pWorld->CreateComponent<engine::CollisionMeshComponent>(entity);
         collisionMeshComponent.SetType(engine::CollisonMeshType::AABB);
-        collisionMeshComponent.SetAABB(mesh.GetAABB());
+        collisionMeshComponent.SetAABB(newAddedShape.GetAABB());
         collisionMeshComponent.Build();
 
         auto& staticMeshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
-        staticMeshComponent.SetMeshData(&mesh);
+        staticMeshComponent.SetMeshData(&newAddedShape);
         staticMeshComponent.SetRequiredVertexFormat(&pMaterialType->GetRequiredVertexFormat());
         staticMeshComponent.Build();
         staticMeshComponent.Submit();
-
-        mesh.SetName(pSceneWorld->GetNameComponent(entity)->GetName());
-        mesh.SetID(cd::MeshID(pSceneDatabase->GetMeshCount()));
-        pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
 
         auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
         materialComponent.Init();
@@ -332,28 +335,10 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
         pSceneWorld->SetSelectedEntity(entity);
         if (ImGui::IsMouseDoubleClicked(0))
         {
-            if (auto* pCollisionMesh = pSceneWorld->GetCollisionMeshComponent(entity))
+            if (m_pCameraController)
             {
-                cd::AABB meshAABB = pCollisionMesh->GetAABB();
-                if (engine::TransformComponent* pTransform = pSceneWorld->GetTransformComponent(entity))
-                {
-                    meshAABB = meshAABB.Transform(pTransform->GetWorldMatrix());
-                    if (m_pCameraController)
-                    {
-                        m_pCameraController->CameraFocus(meshAABB);
-                    }
-                }
-            }
-            else
-            {
-                if (engine::TransformComponent* pTransform = pSceneWorld->GetTransformComponent(entity))
-                {
-                    if (m_pCameraController)
-                    {
-                        m_pCameraController->CameraFocus(pTransform->GetTransform().GetTranslation());
-                    }
-                }
-            }
+                m_pCameraController->CameraFocus();
+            }   
         }
     }
 
