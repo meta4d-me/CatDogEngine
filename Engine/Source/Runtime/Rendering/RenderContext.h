@@ -3,7 +3,6 @@
 #include "Core/StringCrc.h"
 #include "Graphics/GraphicsBackend.h"
 #include "Math/Matrix.hpp"
-#include "Rendering/ShaderCollections.h"
 #include "Rendering/ShaderCompileInfo.h"
 #include "RenderTarget.h"
 #include "Scene/VertexAttribute.h"
@@ -22,6 +21,7 @@ namespace engine
 
 class Camera;
 class Renderer;
+class ShaderCollections;
 
 static constexpr uint8_t MaxViewCount = 255;
 static constexpr uint8_t MaxRenderTargetCount = 255;
@@ -60,8 +60,8 @@ public:
 	/////////////////////////////////////////////////////////////////////
 	// Shader collections apis
 	/////////////////////////////////////////////////////////////////////
-	ShaderCollections& GetShaderVariantCollections() { return m_shaderCollections; }
-	const ShaderCollections& GetShaderVariantCollections() const { return m_shaderCollections; }
+	void SetShaderCollections(ShaderCollections* pShaderCollections) { m_pShaderCollections = pShaderCollections; }
+	const ShaderCollections* GetShaderCollections() const { return m_pShaderCollections; }
 
 	void RegisterShaderProgram(StringCrc programNameCrc, std::initializer_list<std::string> names);
 	void AddShaderFeature(StringCrc programNameCrc, std::string combine);
@@ -131,7 +131,7 @@ private:
 	std::unordered_map<uint32_t, uint16_t> m_textureHandleCaches;
 	std::unordered_map<uint32_t, uint16_t> m_uniformHandleCaches;
 
-	ShaderCollections m_shaderCollections;
+	ShaderCollections* m_pShaderCollections = nullptr;
 
 	// Key : StringCrc(Program name), Value : Shader program handle
 	std::unordered_map<uint32_t, uint16_t> m_shaderProgramHandles;

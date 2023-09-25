@@ -37,12 +37,6 @@ void SkyboxRenderer::Warmup()
 	GetRenderContext()->UploadShaderProgram(skyboxProgram);
 }
 
-bool SkyboxRenderer::CheckResources()
-{
-	// TODO : Use uber shader to switch non-sky and IBL case in SkyboxRenderer.
-	return true;
-}
-
 void SkyboxRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
 	if (!IsEnable())

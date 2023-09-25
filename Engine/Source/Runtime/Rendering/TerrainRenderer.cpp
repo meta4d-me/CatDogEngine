@@ -155,7 +155,6 @@ void TerrainRenderer::Render(float deltaTime)
 		// Sky
 		SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 		SkyType crtSkyType = pSkyComponent->GetSkyType();
-		pMaterialComponent->SetSkyType(crtSkyType);
 
 		if (crtSkyType == SkyType::SkyBox)
 		{

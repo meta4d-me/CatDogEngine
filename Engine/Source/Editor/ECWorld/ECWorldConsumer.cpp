@@ -229,6 +229,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	materialComponent.Init();
 	materialComponent.SetMaterialType(pMaterialType);
 	materialComponent.SetMaterialData(pMaterial);
+	materialComponent.ActivateShaderFeature(engine::GetSkyTypeShaderFeature(m_pSceneWorld->GetSkyComponent(m_pSceneWorld->GetSkyEntity())->GetSkyType()));
 
 	cd::Vec3f albedoColor(1.0f);
 	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
@@ -310,7 +311,6 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	// TODO : create material component before ResourceBuilder done.
 	// Assign a special color for loading resource status.
 	materialComponent.SetAlbedoColor(cd::MoveTemp(albedoColor));
-	materialComponent.SetSkyType(m_pSceneWorld->GetSkyComponent(m_pSceneWorld->GetSkyEntity())->GetSkyType());
 
 	// Textures.
 	for (const auto& [outputTextureFilePath, pTextureData] : outputTexturePathToData)

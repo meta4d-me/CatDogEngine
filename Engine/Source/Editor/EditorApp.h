@@ -82,6 +82,7 @@ private:
 	void InitDDGIEntity();
 #endif
 
+	void UpdateMaterials();
 	void LazyCompileAndLoadShaders();
 
 	bool m_bInitEditor = false;
@@ -108,6 +109,7 @@ private:
 
 	// Rendering
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;
+	std::unique_ptr<engine::ShaderCollections> m_pShaderCollections;
 
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEditorRenderers;
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEngineRenderers;

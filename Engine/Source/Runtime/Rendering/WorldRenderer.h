@@ -14,7 +14,6 @@ public:
 
 	virtual void Init() override;
 	virtual void Warmup() override;
-	virtual bool CheckResources() override;
 	virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) override;
 	virtual void Render(float deltaTime) override;
 

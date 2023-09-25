@@ -3,20 +3,12 @@
 #include "Base/Template.h"
 #include "Core/StringCrc.h"
 #include "Math/Vector.hpp"
+#include "Rendering/SkyType.h"
 
 #include <string>
 
 namespace engine
 {
-
-enum class SkyType
-{
-	None = 0,
-	SkyBox,
-	AtmosphericScattering,
-
-	Count,
-};
 
 class SkyComponent final
 {

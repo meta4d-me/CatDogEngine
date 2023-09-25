@@ -79,20 +79,6 @@ void WorldRenderer::Warmup()
 	GetRenderContext()->CreateUniform(HeightOffsetAndshadowLength, bgfx::UniformType::Vec4, 1);
 }
 
-bool WorldRenderer::CheckResources()
-{
-	bool valid = true;
-	for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
-	{
-		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
-		if (!GetRenderContext()->CheckShaderProgram("WorldProgram", pMaterialComponent->GetFeaturesCombine()))
-		{
-			valid = false;
-		}
-	}
-	return valid;
-}
-
 void WorldRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
 	UpdateViewRenderTarget();
@@ -168,8 +154,6 @@ void WorldRenderer::Render(float deltaTime)
 
 		// Sky
 		SkyType crtSkyType = pSkyComponent->GetSkyType();
-		pMaterialComponent->SetSkyType(crtSkyType);
-
 		if (SkyType::SkyBox == crtSkyType)
 		{
 			// Create a new TextureHandle each frame if the skybox texture path has been updated,

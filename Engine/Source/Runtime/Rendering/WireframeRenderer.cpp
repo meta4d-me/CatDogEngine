@@ -7,6 +7,8 @@
 #include "Rendering/RenderContext.h"
 #include "Scene/Texture.h"
 
+#undef EDITOR_MODE
+
 namespace engine
 {
 

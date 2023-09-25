@@ -3,6 +3,7 @@
 #include "Log/Log.h"
 #include "Path/Path.h"
 #include "Renderer.h"
+#include "Rendering/ShaderCollections.h"
 #include "Rendering/ShaderType.h"
 #include "Rendering/Utility/VertexLayoutUtility.h"
 #include "Resources/ResourceLoader.h"
@@ -179,17 +180,17 @@ uint16_t RenderContext::CreateView()
 
 void RenderContext::RegisterShaderProgram(StringCrc programNameCrc, std::initializer_list<std::string> names)
 {
-	m_shaderCollections.RegisterShaderProgram(programNameCrc, cd::MoveTemp(names));
+	m_pShaderCollections->RegisterShaderProgram(programNameCrc, cd::MoveTemp(names));
 }
 
 void RenderContext::AddShaderFeature(StringCrc programNameCrc, std::string combine)
 {
-	m_shaderCollections.AddFeatureCombine(programNameCrc, cd::MoveTemp(combine));
+	m_pShaderCollections->AddFeatureCombine(programNameCrc, cd::MoveTemp(combine));
 }
 
 bool RenderContext::CheckShaderProgram(const std::string& programName, const std::string& featuresCombine)
 {
-	assert(m_shaderCollections.IsProgramValid(StringCrc(programName)));
+	assert(m_pShaderCollections->IsProgramValid(StringCrc(programName)));
 
 	if (!bgfx::isValid(GetShaderProgramHandle(programName, featuresCombine)))
 	{
@@ -199,7 +200,7 @@ bool RenderContext::CheckShaderProgram(const std::string& programName, const std
 		AddShaderCompileTask(ShaderCompileInfo(programName, featuresCombine));
 		if (!featuresCombine.empty())
 		{
-			m_shaderCollections.AddFeatureCombine(StringCrc(programName), featuresCombine);
+			m_pShaderCollections->AddFeatureCombine(StringCrc(programName), featuresCombine);
 		}
 		return false;
 	}
@@ -208,9 +209,9 @@ bool RenderContext::CheckShaderProgram(const std::string& programName, const std
 
 void RenderContext::UploadShaderProgram(const std::string& programName, const std::string& featuresCombine)
 {
-	assert(m_shaderCollections.IsProgramValid(StringCrc(programName)));
+	assert(m_pShaderCollections->IsProgramValid(StringCrc(programName)));
 	
-	auto [vsName, fsName, csName] = IdentifyShaderTypes(m_shaderCollections.GetShaders(StringCrc(programName)));
+	auto [vsName, fsName, csName] = IdentifyShaderTypes(m_pShaderCollections->GetShaders(StringCrc(programName)));
 
 	if (featuresCombine.empty())
 	{
@@ -245,7 +246,7 @@ void RenderContext::AddShaderCompileTask(ShaderCompileInfo info)
 	const auto& it = std::find(m_shaderCompileTasks.begin(), m_shaderCompileTasks.end(), info);
 	if (it == m_shaderCompileTasks.end())
 	{
-		CD_ENGINE_INFO("Runtime shader compile task added for {0} with shader features : [{1}]", info.m_programName, info.m_featuresCombine);
+		CD_ENGINE_INFO("Shader compile task added for {0} with shader features : [{1}]", info.m_programName, info.m_featuresCombine);
 		m_shaderCompileTasks.emplace_back(cd::MoveTemp(info));
 	}
 }

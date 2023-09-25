@@ -25,13 +25,8 @@ public:
 	static RenderContext* GetRenderContext();
 
 	virtual void Init() = 0;
-	// All registered shaders are compiled in the App::Init stage,
-	// simply create the GPU resource here.
+	// All registered shaders are compiled in the App::Init stage, simply create the GPU resource here.
 	virtual void Warmup() = 0;
-	// Retuen false skips this renderer at current frame.
-	// If your shader for the renderer doesn't change anything at runtime,
-	// moving the logic for creating GPU resources from CheckResources to Warmup is more recommended practice.
-	virtual bool CheckResources();
 	virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) = 0;
 	virtual void Render(float deltaTime) = 0;
 

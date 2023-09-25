@@ -343,6 +343,31 @@ void EditorApp::InitDDGIEntity()
 }
 #endif
 
+void EditorApp::UpdateMaterials()
+{
+	// static engine::SkyType s_lastSkyType = engine::SkyType::SkyBox;
+	engine::SkyType crtSkyType = m_pSceneWorld->GetSkyComponent(m_pSceneWorld->GetSkyEntity())->GetSkyType();
+
+	for (engine::Entity entity : m_pSceneWorld->GetMaterialEntities())
+	{
+		engine::MaterialComponent* pMaterialComponent = m_pSceneWorld->GetMaterialComponent(entity);
+		if (!pMaterialComponent)
+		{
+			continue;
+		}
+
+		if (engine::SkyType::None == crtSkyType)
+		{
+			pMaterialComponent->DeactiveShaderFeature(engine::GetSkyTypeShaderFeature(engine::SkyType::AtmosphericScattering));
+			pMaterialComponent->DeactiveShaderFeature(engine::GetSkyTypeShaderFeature(engine::SkyType::SkyBox));
+		}
+
+		pMaterialComponent->ActivateShaderFeature(engine::GetSkyTypeShaderFeature(crtSkyType));
+
+		m_pRenderContext->CheckShaderProgram(pMaterialComponent->GetProgramName(), pMaterialComponent->GetFeaturesCombine());
+	}
+}
+
 void EditorApp::LazyCompileAndLoadShaders()
 {
 	bool doCompile = false;
@@ -374,6 +399,9 @@ void EditorApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
 	m_pRenderContext = std::make_unique<engine::RenderContext>();
 	m_pRenderContext->Init(backend, hwnd);
 	engine::Renderer::SetRenderContext(m_pRenderContext.get());
+
+	m_pShaderCollections = std::make_unique<engine::ShaderCollections>();
+	m_pRenderContext->SetShaderCollections(m_pShaderCollections.get());
 }
 
 void EditorApp::InitEditorRenderers()
@@ -563,8 +591,8 @@ bool EditorApp::Update(float deltaTime)
 	}
 
 	GetMainWindow()->Update();
-	m_pSceneWorld->Update();
 	m_pEditorImGuiContext->Update(deltaTime);
+	m_pSceneWorld->Update();
 
 	engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
 	engine::TerrainComponent* pTerrainComponent = m_pSceneWorld->GetTerrainComponent(m_pSceneWorld->GetSelectedEntity());
@@ -608,9 +636,12 @@ bool EditorApp::Update(float deltaTime)
 		m_pEngineImGuiContext->SetWindowPosOffset(m_pSceneView->GetWindowPosX(), m_pSceneView->GetWindowPosY());
 		m_pEngineImGuiContext->Update(deltaTime);
 
+		UpdateMaterials();
+		LazyCompileAndLoadShaders();
+
 		for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
 		{
-			if (pRenderer->IsEnable() && pRenderer->CheckResources())
+			if (pRenderer->IsEnable())
 			{
 				const float* pViewMatrix = pMainCameraComponent->GetViewMatrix().Begin();
 				const float* pProjectionMatrix = pMainCameraComponent->GetProjectionMatrix().Begin();
@@ -621,8 +652,6 @@ bool EditorApp::Update(float deltaTime)
 	}
 
 	m_pRenderContext->EndFrame();
-
-	LazyCompileAndLoadShaders();
 
 	engine::Input::Get().FlushInputs();
 

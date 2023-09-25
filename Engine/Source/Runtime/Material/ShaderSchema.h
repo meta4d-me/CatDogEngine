@@ -41,9 +41,9 @@ public:
 	ShaderSchema& operator=(ShaderSchema&&) = default;
 	~ShaderSchema() = default;
 
-	const char* GetProgramName() const { return m_programName.c_str(); }
-	const char* GetVertexShaderPath() const { return m_vertexShaderPath.c_str(); }
-	const char* GetFragmentShaderPath() const { return m_fragmentShaderPath.c_str(); }
+	const std::string& GetProgramName() const { return m_programName; }
+	const std::string& GetVertexShaderPath() const { return m_vertexShaderPath; }
+	const std::string& GetFragmentShaderPath() const { return m_fragmentShaderPath; }
 
 	void AddFeatureSet(ShaderFeatureSet featureSet);
 
