@@ -6,7 +6,7 @@ void engine::ParticleEmitterComponent::Build()
 {
 	cd::VertexFormat	 vertexFormat;
 	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
-	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Color, cd::AttributeValueType::Float, 3);
+	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Color, cd::AttributeValueType::Float, 4);
 	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::AttributeValueType::Float, 2);
 	bgfx::VertexLayout vertexLayout;
 	VertexLayoutUtility::CreateVertexLayout(vertexLayout, vertexFormat.GetVertexLayout());
@@ -34,7 +34,7 @@ void engine::ParticleEmitterComponent::PaddingVertexBuffer()
 
 	size_t vertexCount = m_particleSystem.GetMaxCount();
 
-	size_t vertexBufferSize = vertexCount * (sizeof(cd::Vec3f) + sizeof(cd::Vec3f)+sizeof(float)*2);
+	size_t vertexBufferSize = vertexCount * (sizeof(cd::Vec3f) + sizeof(cd::Vec4f)+sizeof(float)*2);
 
 	m_particleVertexBuffer.resize(vertexBufferSize);
 
@@ -46,8 +46,8 @@ void engine::ParticleEmitterComponent::PaddingVertexBuffer()
 		std::memcpy(&currentDataPtr[currentDataSize], &m_particleSystem.GetPos(i), sizeof(cd::Vec3f));
 		currentDataSize += sizeof(cd::Vec3f);
 
-		std::memcpy(&currentDataPtr[currentDataSize], &m_particleSystem.GetColor(i), sizeof(cd::Vec3f));
-		currentDataSize += sizeof(cd::Vec3f);
+		std::memcpy(&currentDataPtr[currentDataSize], &m_particleSystem.GetColor(i), sizeof(cd::Vec4f));
+		currentDataSize += sizeof(cd::Vec4f);
 		
 		std::memcpy(&currentDataPtr[currentDataSize], &m_particleSystem.GetTexture_u(i), sizeof(float));
 		currentDataSize += sizeof(float);

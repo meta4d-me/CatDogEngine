@@ -40,8 +40,8 @@ void engine::ParticleSystem::Reset(int index)
 	m_pos[index] = cd::Vec3f(0.0f, 0.0f, 0.0f);
 	m_velocity[index] = cd::Vec3f(rand()%3, rand()%3, 0.0f);
 	m_acceleration[index] = cd::Vec3f(0.0f, 0.0f, 0.0f);
-
-	m_color[index] = cd::Vec3f{1.0f, 1.0f,1.0f};
+	
+	m_color[index] = cd::Vec4f{1.0f, 1.0f,1.0f,1.0f};
 
 	m_isActive[index] = false;
 	m_currentTime[index] = 0.0f;
@@ -92,25 +92,23 @@ void engine::ParticleSystem::Update(float deltaTime, int index)
 	}
 }
 
-void engine::ParticleSystem::UpdateActive(float deltaTime)
+bool engine::ParticleSystem::UpdateActive(float deltaTime,int i)
 {
-	for (int i = 0; i < m_particleMaxCount; ++i)
+	if (!m_isActive[i])
 	{
-		if (!m_isActive[i])
-		{
-			continue;
-		}
-
-		Update(deltaTime, i);
-		if (!m_isActive[i])
-		{
-			m_FreeParticleIndex.push_back(i);
-		}
-		else
-		{
-			++m_currentActiveCount;
-		}
+		return false;
 	}
+
+	Update(deltaTime, i);
+	if (!m_isActive[i])
+	{
+		m_FreeParticleIndex.push_back(i);
+	}
+	else
+	{
+		++m_currentActiveCount;
+	}
+	return true;
 }
 
 void engine::ParticleSystem::Init()

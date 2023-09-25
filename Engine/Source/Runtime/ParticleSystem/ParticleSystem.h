@@ -4,6 +4,7 @@
 #include "Core/StringCrc.h"
 #include "Math/Vector.hpp"
 #include <vector>
+#include "ECWorld/TransformComponent.h"
 
 namespace engine
 {
@@ -27,14 +28,20 @@ public:
 	cd::Vec3f& GetPos(int index) { return m_pos[index]; }
 	void SetPos(cd::Vec3f pos) { m_pos[m_particleIndex] = pos; }
 
-	cd::Vec3f& GetVelocity(int index) { return m_velocity[index]; }
+	cd::Vec3f& GetVelocity() { return m_velocity[m_particleIndex]; }
 	void SetVelocity(cd::Vec3f velocity) { m_velocity[m_particleIndex] = velocity; }
+
+	//cd::Quaternion& GetEmiterDirection( ) { return m_emiterDirection[m_particleIndex]; }
+	//void SetEmiterDirection(cd::Quaternion direction) { m_emiterDirection[m_particleIndex] = direction; }
 
 	cd::Vec3f& GetAcceleration(int index) { return m_acceleration[index]; }
 	void SetAcceleration(cd::Vec3f acceleration) { m_acceleration[m_particleIndex] = acceleration; }
 
-	cd::Vec3f& GetColor(int index) { return m_color[index]; }
-	void SetColor(cd::Vec3f color) { m_color[m_particleIndex] = color; }
+	cd::Vec4f& GetColor(int index) { return m_color[index]; }
+	void SetColor(cd::Vec4f color) { m_color[m_particleIndex] = color; }
+
+	cd::Vec3f& GetFront( ) { return m_front; }
+	void SetFront(cd::Vec3f front) { m_front = front; }
 
 	float& GetTexture_u(int index) { return m_texture_u[index]; }
 	float& GetTexture_v(int index) { return m_texture_v[index]; }
@@ -51,7 +58,7 @@ public:
 
 	void Update(float deltaTime, int index);
 
-	void UpdateActive(float deltaTime);
+	bool UpdateActive(float deltaTime, int i);
 
 	void Init();
 
@@ -64,14 +71,17 @@ private:
 	std::vector<int> m_FreeParticleIndex;
 	std::vector<cd::Vec3f> m_pos;
 	std::vector<cd::Vec3f> m_velocity;
+	//std::vector<cd::Quaternion> m_emiterDirection;
 	std::vector<cd::Vec3f> m_acceleration;
-	std::vector<cd::Vec3f> m_color;
+	std::vector<cd::Vec4f> m_color;
 	std::vector<float> m_texture_u;
 	std::vector<float> m_texture_v;
 
 	std::vector<bool>	m_isActive;
 	std::vector<float> m_currentTime;
 	std::vector<float> m_lifeTime;
+
+	cd::Vec3f m_front = cd::Vec3f(0.0f, 0.0f, 1.0f);
 };
 
 }

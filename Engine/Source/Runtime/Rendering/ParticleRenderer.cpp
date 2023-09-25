@@ -4,8 +4,8 @@ namespace engine {
 
 void ParticleRenderer::Init()
 {
-	engine::StringCrc particleTexture("Textures/splash_texture.png");
-	m_particleTextureHandle = GetRenderContext()->GetTexture(particleTexture);
+	constexpr const char* particleTexture = "Textures/Particle.png";
+	m_particleTextureHandle = GetRenderContext()->CreateTexture(particleTexture);
 
 	GetRenderContext()->CreateUniform("s_texColor", bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateProgram("ParticleProgram", "vs_particle.bin", "fs_particle.bin");
@@ -23,17 +23,33 @@ void ParticleRenderer::Render(float deltaTime)
 	for (Entity entity : m_pCurrentSceneWorld->GetParticleEmitterEntities())
 	{
 		engine::ParticleEmitterComponent* pEmitterComponent = m_pCurrentSceneWorld->GetParticleEmitterComponent(entity);
-		const cd::Transform& cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(entity)->GetTransform();
+		const cd::Transform& particleTransform = m_pCurrentSceneWorld->GetTransformComponent(entity)->GetTransform();
+
+		//float newAngle = particleTransform.GetRotation().Pitch();
+		//auto a = cd::Math::DegreeToRadian(newAngle);
+		//auto b = cd::Quaternion::RotateZ(a);
+		//pEmitterComponent->GetParticleSystem().SetFront(b*pEmitterComponent->GetParticleSystem().GetFront());
+		//cd::Quaternion rotationQuat = cd::Quaternion::FromAxisAngle(cd::Vec3f(0.0f,0.0f,0.0f), particleTransform.GetRotation().Pitch());
 
 		for (int i = 0; i < pEmitterComponent->GetParticleSystem().GetMaxCount(); ++i)
 		{
 			pEmitterComponent->GetParticleSystem().AllocateParticleIndex();
-			pEmitterComponent->GetParticleSystem().SetPos(cameraTransform.GetTranslation());
+			pEmitterComponent->GetParticleSystem().SetPos(particleTransform.GetTranslation());
 		}
 
-		pEmitterComponent->GetParticleSystem().UpdateActive(deltaTime);
+		for (int i = 0; i < pEmitterComponent->GetParticleSystem().GetMaxCount(); ++i)
+		{
+			if (pEmitterComponent->GetParticleSystem().UpdateActive(deltaTime, i))
+			{
+				//pEmitterComponent->GetParticleSystem().SetPos(rotationQuat * pEmitterComponent->GetParticleSystem().GetPos(i));
+				m_bufferChange = true; 
+			}
+		}
 
-		pEmitterComponent->UpdateBuffer();
+		if (m_bufferChange)
+		{
+			pEmitterComponent->UpdateBuffer();
+		}
 
 		constexpr StringCrc ParticleSampler("s_texColor");
 		bgfx::setTexture(0, GetRenderContext()->GetUniform(ParticleSampler), m_particleTextureHandle);
