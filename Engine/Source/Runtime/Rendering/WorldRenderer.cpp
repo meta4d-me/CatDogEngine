@@ -116,8 +116,7 @@ void WorldRenderer::Render(float deltaTime)
 		}
 
 		// Mesh
-		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()});
-		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
+		UpdateStaticMeshComponent(pMeshComponent);
 
 		// Material
 		for (const auto& [textureType, _] : pMaterialComponent->GetTextureResources())
