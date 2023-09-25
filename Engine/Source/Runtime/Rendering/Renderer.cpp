@@ -1,5 +1,6 @@
 #include "Renderer.h"
 
+#include "ECWorld/StaticMeshComponent.h"
 #include "RenderContext.h"
 #include "RenderTarget.h"
 
@@ -136,6 +137,24 @@ void Renderer::ScreenSpaceQuad(const RenderTarget* pRenderTarget, bool _originBo
 
 		bgfx::setVertexBuffer(0, &vb);
 	}
+}
+
+void Renderer::UpdateStaticMeshComponent(StaticMeshComponent* pMeshComponent)
+{
+	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()}, pMeshComponent->GetStartVertex(), pMeshComponent->GetVertexCount());
+#ifdef EDITOR_MODE
+	if (pMeshComponent->IsProgressiveMeshValid())
+	{
+		pMeshComponent->UpdateProgressiveMeshData();
+		bgfx::setIndexBuffer(bgfx::DynamicIndexBufferHandle{pMeshComponent->GetIndexBuffer()}, pMeshComponent->GetStartIndex(), pMeshComponent->GetIndexCount());
+	}
+	else
+	{
+		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()}, pMeshComponent->GetStartIndex(), pMeshComponent->GetIndexCount());
+	}
+#else
+	bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()}, pMeshComponent->GetStartIndex(), pMeshComponent->GetIndexCount());
+#endif
 }
 
 }
