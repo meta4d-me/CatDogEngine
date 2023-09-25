@@ -132,6 +132,12 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 		}
 	};
 
+	if (0U != pSceneDatabase->GetBoneCount())
+	{
+		engine::Entity skeletonEntity = m_pSceneWorld->GetWorld()->CreateEntity();
+		AddSkeleton(skeletonEntity, pSceneDatabase);
+	}
+
 	// There are multiple kinds of cases in the SceneDatabase:
 	// 1. No nodes but have meshes in the SceneDatabase.
 	// 2. Only a root node with multiple meshes.
@@ -178,6 +184,7 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 		engine::Entity lightEntity = m_pSceneWorld->GetWorld()->CreateEntity();
 		AddLight(lightEntity, light);
 	}
+
 }
 
 void ECWorldConsumer::AddCamera(engine::Entity entity, const cd::Camera& camera)
@@ -423,6 +430,8 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 void ECWorldConsumer::AddSkeleton(engine::Entity entity, const cd::SceneDatabase* pSceneDatabase)
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
+	engine::NameComponent& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
+	nameComponent.SetName("Skeleton");
 	engine::SkinMeshComponent& skinmeshComponent = pWorld->CreateComponent<engine::SkinMeshComponent>(entity);
 	const uint32_t boneCount = pSceneDatabase->GetBoneCount();
 	if (0 == boneCount)

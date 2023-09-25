@@ -111,7 +111,7 @@ void SkeletonRenderer::UpdateView(const float* pViewMatrix, const float* pProjec
 void SkeletonRenderer::Render(float delataTime)
 {
 	const cd::SceneDatabase* pSceneDatabase = m_pCurrentSceneWorld->GetSceneDatabase();
-	for (Entity entity : m_pCurrentSceneWorld->GetAnimationEntities())
+	for (Entity entity : m_pCurrentSceneWorld->GetSkinMeshEntities())
 	{
 		auto pSkinMeshComponent = m_pCurrentSceneWorld->GetSkinMeshComponent(entity);
 		if (!pSkinMeshComponent)

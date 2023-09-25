@@ -80,8 +80,8 @@ void SkeletonView::Update()
         ImGui::End();
         return;
     }
-    engine::AnimationComponent* pAnimationConponent = pSceneWorld->GetAnimationComponent(selectedEntity);
-    if (pAnimationConponent)
+    engine::SkinMeshComponent* pSkinMeshComponent = pSceneWorld->GetSkinMeshComponent(selectedEntity);
+    if (pSkinMeshComponent)
     {
         DrawSkeleton(pSceneWorld);
     }
