@@ -348,7 +348,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 			//m_pImportFileBrowser->SetTypeFilters({ ".dds", "*.exr", "*.hdr", "*.ktx", ".tga" });
 			m_pImportFileBrowser->Open();
 
-			CD_INFO("Import asset type: {}", GetIOAssetTypeName(m_importOptions.AssetType));
+			CD_INFO("Import asset type: {}", nameof::nameof_enum(m_importOptions.AssetType));
 		}
 
 		else if (ImGui::Selectable("Shader"))
@@ -358,7 +358,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 			//m_pImportFileBrowser->SetTypeFilters({ ".sc" }); // ".hlsl"
 			m_pImportFileBrowser->Open();
 
-			CD_INFO("Import asset type: {}", GetIOAssetTypeName(m_importOptions.AssetType));
+			CD_INFO("Import asset type: {}", nameof::nameof_enum(m_importOptions.AssetType));
 		}
 		else if (ImGui::Selectable("Model"))
 		{
@@ -367,7 +367,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 			//m_pImportFileBrowser->SetTypeFilters({ ".fbx", ".gltf" }); // ".obj", ".dae", ".ogex"
 			m_pImportFileBrowser->Open();
 
-			CD_INFO("Import asset type: {}", GetIOAssetTypeName(m_importOptions.AssetType));
+			CD_INFO("Import asset type: {}", nameof::nameof_enum(m_importOptions.AssetType));
 		}
 
 #ifdef ENABLE_DDGI
@@ -402,7 +402,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 			m_pExportFileBrowser->SetTitle("ExportAssets - SceneDatabase");
 			m_pExportFileBrowser->Open();
 
-			CD_INFO("Export asset type: {}", GetIOAssetTypeName(m_exportOptions.AssetType));
+			CD_INFO("Export asset type: {}", nameof::nameof_enum(m_exportOptions.AssetType));
 		}
 
 		ImGui::EndPopup();
@@ -875,7 +875,7 @@ void AssetBrowser::ProcessSceneDatabase(cd::SceneDatabase* pSceneDatabase, bool 
 		pSceneDatabase->GetTextures().clear();
 		for (auto& material : pSceneDatabase->GetMaterials())
 		{
-			for (int textureTypeIndex = 0; textureTypeIndex < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeIndex)
+			for (int textureTypeIndex = 0; textureTypeIndex < nameof::enum_count<cd::MaterialTextureType>(); ++textureTypeIndex)
 			{
 				material.RemoveTexture(static_cast<cd::MaterialTextureType>(textureTypeIndex));
 			}

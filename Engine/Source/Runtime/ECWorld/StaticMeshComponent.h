@@ -85,10 +85,9 @@ private:
 	uint16_t m_wireframeIndexBufferHandle = UINT16_MAX;
 
 	std::vector<std::byte> m_progressiveMeshVertexBuffer;
-	uint16_t m_progressiveMeshVertexBufferHandle = UINT16_MAX;
-
 	std::vector<std::byte> m_progressiveMeshIndexBuffer;
 	uint16_t m_progressiveMeshIndexBufferHandle = UINT16_MAX;
+	uint16_t m_progressiveMeshVertexBufferHandle = UINT16_MAX;
 
 	uint32_t m_originVertexCount = UINT32_MAX;
 	uint32_t m_originPolygonCount = UINT32_MAX;

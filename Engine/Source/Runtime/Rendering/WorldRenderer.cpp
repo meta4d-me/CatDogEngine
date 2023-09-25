@@ -122,18 +122,7 @@ void WorldRenderer::Render(float deltaTime)
 		}
 
 		// Mesh
-		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()}, pMeshComponent->GetStartVertex(), pMeshComponent->GetVertexCount());
-		
-		// TODO : wrap to hide details
-		if (pMeshComponent->IsProgressiveMeshValid())
-		{
-			pMeshComponent->UpdateProgressiveMeshData();
-			bgfx::setIndexBuffer(bgfx::DynamicIndexBufferHandle{pMeshComponent->GetIndexBuffer()}, pMeshComponent->GetStartIndex(), pMeshComponent->GetIndexCount());
-		}
-		else
-		{
-			bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()}, pMeshComponent->GetStartIndex(), pMeshComponent->GetIndexCount());
-		}
+		UpdateStaticMeshComponent(pMeshComponent);
 
 		// Material
 		for (const auto& [textureType, _] : pMaterialComponent->GetTextureResources())

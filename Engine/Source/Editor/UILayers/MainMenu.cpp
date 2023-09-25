@@ -84,11 +84,9 @@ void MainMenu::EditMenu()
 
 		if (ImGui::BeginMenu(CD_TEXT("TEXT_STYLE")))
 		{
-			// It is not convenient in C++ to loop enum except define an extra array to wrap them.
-			// C++ 20/23 ranges may look better but still needs std::iota inside its implementation.
-			for (engine::ThemeColor theme = engine::ThemeColor::Black; theme < engine::ThemeColor::Count;
-				theme = static_cast<engine::ThemeColor>(static_cast<int>(theme) + 1))
+			for (uint32_t index = 0U; index < nameof::enum_count<engine::ThemeColor>(); ++index)
 			{
+				engine::ThemeColor theme = static_cast<engine::ThemeColor>(index);
 				engine::ImGuiContextInstance* pImGuiContextInstance = GetImGuiContextInstance();
 				if (ImGui::MenuItem(nameof::nameof_enum(theme).data(), "", pImGuiContextInstance->GetImGuiThemeColor() == theme))
 				{
@@ -101,9 +99,9 @@ void MainMenu::EditMenu()
 
 		if (ImGui::BeginMenu(CD_TEXT("TEXT_LANGUAGE")))
 		{
-			for (engine::Language language = engine::Language::ChineseSimplied; language < engine::Language::Count;
-				 language = static_cast<engine::Language>(static_cast<int>(language) + 1))
+			for (uint32_t index = 0U; index < nameof::enum_count<engine::Language>(); ++index)
 			{
+				engine::Language language = static_cast<engine::Language>(index);
 				engine::ImGuiContextInstance* pImGuiContextInstance = GetImGuiContextInstance();
 				if (ImGui::MenuItem(nameof::nameof_enum(language).data(), "", pImGuiContextInstance->GetImGuiLanguage() == language))
 				{

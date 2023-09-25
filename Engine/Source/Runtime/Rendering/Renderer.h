@@ -9,6 +9,7 @@ class Camera;
 class RenderContext;
 class RenderTarget;
 class ShaderCollections;
+class StaticMeshComponent;
 
 class Renderer
 {
@@ -38,6 +39,8 @@ public:
 
 	virtual void SetEnable(bool value) { m_isEnable = value; }
 	virtual bool IsEnable() const { return m_isEnable; }
+
+	void UpdateStaticMeshComponent(StaticMeshComponent* pMeshComponent);
 
 public:
 	static void ScreenSpaceQuad(const RenderTarget* pRenderTarget, bool _originBottomLeft = false, float _width = 1.0f, float _height = 1.0f);

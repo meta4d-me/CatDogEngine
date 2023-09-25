@@ -2,6 +2,7 @@
 
 #include "ECWorld/World.h"
 #include "Log/Log.h"
+#include "ProgressiveMesh/ProgressiveMesh.h"
 #include "Rendering/Utility/VertexLayoutUtility.h"
 #include "Scene/VertexFormat.h"
 
@@ -291,7 +292,7 @@ void StaticMeshComponent::BuildWireframeData()
 
 	uint32_t wireframeIndicesCount = bgfx::topologyConvert(bgfx::TopologyConvert::TriListToLineList, nullptr, 0U,
 		m_indexBuffer.data(), indicesCount, !useU16Index);
-	m_wireframeIndexBuffer.resize(indicesCount * indexTypeSize);
+	m_wireframeIndexBuffer.resize(wireframeIndicesCount * indexTypeSize);
 	bgfx::topologyConvert(bgfx::TopologyConvert::TriListToLineList, m_wireframeIndexBuffer.data(), static_cast<uint32_t>(m_wireframeIndexBuffer.size()),
 		m_indexBuffer.data(), indicesCount, !useU16Index);
 }
@@ -305,23 +306,26 @@ void StaticMeshComponent::BuildProgressiveMeshData()
 
 	assert(m_pMeshData && m_pRequiredVertexFormat);
 
-	auto permutationMapPair = m_pMeshData->BuildProgressiveMesh();
+	auto progressiveMesh = cd::ProgressiveMesh::FromIndexedMesh(*m_pMeshData);
+	auto permutationMapPair = progressiveMesh.BuildCollapseOperations();
 	m_permutation = cd::MoveTemp(permutationMapPair.first);
 	m_map = cd::MoveTemp(permutationMapPair.second);
 
 	m_originVertexCount = m_currentVertexCount;
 	m_originPolygonCount = m_currentPolygonCount;
-	m_progressiveMeshIndexBuffer.resize(m_currentPolygonCount * 3U);
 
 	// Copy and modify buffer.
 	assert(!m_vertexBuffer.empty());
 	uint32_t vertexStride = m_pRequiredVertexFormat->GetStride();
+	assert(vertexStride * m_currentVertexCount == m_vertexBuffer.size());
 
 	// Create a vertex buffer sorted by collape order.
 	m_progressiveMeshVertexBuffer.resize(m_vertexBuffer.size());
 	for (uint32_t vertexIndex = 0U; vertexIndex < m_currentVertexCount; ++vertexIndex)
 	{
-		std::memcpy(m_progressiveMeshVertexBuffer.data() + m_permutation[vertexIndex] * vertexStride, m_vertexBuffer.data() + vertexIndex * vertexStride, vertexStride);
+		uint32_t newVertexIndex = m_permutation[vertexIndex];
+		assert(newVertexIndex < m_currentVertexCount);
+		std::memcpy(m_progressiveMeshVertexBuffer.data() + newVertexIndex * vertexStride, m_vertexBuffer.data() + vertexIndex * vertexStride, vertexStride);
 	}
 
 	// After sorting vertex buffer, modify index buffer accordingly.
@@ -331,20 +335,26 @@ void StaticMeshComponent::BuildProgressiveMeshData()
 
 	if (useU16Index)
 	{
+		using IndexType = uint16_t;
 		for (uint32_t indexIndex = 0U; indexIndex < m_currentPolygonCount * 3U; ++indexIndex)
 		{
-			auto* pIndexData = reinterpret_cast<uint16_t*>(m_indexBuffer.data() + indexIndex * indexTypeSize);
-			uint16_t index = *pIndexData;
-			std::memcpy(m_progressiveMeshIndexBuffer.data() + indexIndex * indexTypeSize, &m_permutation[index], indexTypeSize);
+			auto* pIndexData = reinterpret_cast<IndexType*>(m_indexBuffer.data() + indexIndex * indexTypeSize);
+			IndexType index = *pIndexData;
+			assert(m_permutation[index] < m_currentVertexCount);
+			IndexType newIndex = static_cast<IndexType>(m_permutation[index]);
+			std::memcpy(m_progressiveMeshIndexBuffer.data() + indexIndex * indexTypeSize, &newIndex, indexTypeSize);
 		}
 	}
 	else
 	{
+		using IndexType = uint32_t;
 		for (uint32_t indexIndex = 0U; indexIndex < m_currentPolygonCount * 3U; ++indexIndex)
 		{
-			auto* pIndexData = reinterpret_cast<uint32_t*>(m_indexBuffer.data() + indexIndex * indexTypeSize);
-			uint32_t index = *pIndexData;
-			std::memcpy(m_progressiveMeshIndexBuffer.data() + indexIndex * indexTypeSize, &m_permutation[index], indexTypeSize);
+			auto* pIndexData = reinterpret_cast<IndexType*>(m_indexBuffer.data() + indexIndex * indexTypeSize);
+			IndexType index = *pIndexData;
+			assert(m_permutation[index] < m_currentVertexCount);
+			IndexType newIndex = m_permutation[index];
+			std::memcpy(m_progressiveMeshIndexBuffer.data() + indexIndex * indexTypeSize, &newIndex, indexTypeSize);
 		}
 	}
 
