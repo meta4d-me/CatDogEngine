@@ -81,7 +81,7 @@ void ConvertVertexLayout(const cd::VertexAttributeLayout& vertexAttributeLayout,
 	case cd::VertexAttributeType::SourceVertexIndex:
 		vertexAttribute = bgfx::Attrib::Enum::Indices;
 		break;
-	case cd::VertexAttributeType::MorphWeght:
+	case cd::VertexAttributeType::MorphWeight:
 		vertexAttribute = bgfx::Attrib::Enum::Weight;
 		break;
 	default:
