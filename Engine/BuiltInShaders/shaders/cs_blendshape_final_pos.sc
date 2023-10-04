@@ -9,7 +9,7 @@ BUFFER_RO(activeMorphWeightVB, vec4, 5);
 uniform vec4 u_morphCount;
 uniform vec4 u_vertexCount;
 
-NUM_THREADS(64u, 1u, 1u)
+NUM_THREADS(1u, 1u, 1u)
 void main()
 {
     for(int i = 0; i <u_morphCount.x;i++)
@@ -31,4 +31,27 @@ void main()
             );
         }
     }
+    /*
+    uint threadId = gl_GlobalInvocationID.x;
+    if(threadId < u_morphCount.x){
+        uint offset = activeMorphOffestLengthIB[threadId*2];
+        uint length = activeMorphOffestLengthIB[threadId*2+1];
+        float weight = activeMorphWeightVB[threadId].x;
+        for(uint j = 0; j < length; j++)
+        {
+            uint id = allMorphVertexIDIB[offset+j];
+            float x = allMorphVertexPosVB[offset+j].x;
+            float y = allMorphVertexPosVB[offset+j].y;
+            float z = allMorphVertexPosVB[offset+j].z;
+            vec4 fma= finalMorphAffectedVB[id];
+            finalMorphAffectedVB[id] = vec4(
+                fma.x +weight*x,
+                fma.y +weight*y,
+                fma.z +weight*z,
+                fma.w
+            );
+        }   
+    }
+    */
+     
 }

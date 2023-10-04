@@ -5,7 +5,7 @@ BUFFER_RW(finalMorphAffectedVB, vec4, 6);
 
 uniform vec4 u_vertexCount;
 
-NUM_THREADS(64u, 1u, 1u)
+NUM_THREADS(1u, 1u, 1u)
 void main()
 {
     for(uint i = 0; i <u_vertexCount.x;i++)

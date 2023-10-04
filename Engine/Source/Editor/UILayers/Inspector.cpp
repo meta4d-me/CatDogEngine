@@ -108,9 +108,10 @@ void UpdateComponentWidget<engine::BlendShapeComponent>(engine::SceneWorld* pSce
 		std::vector<float>& weights = pBlendShapeComponent->GetWeights();
 		for (uint32_t i = 0; i < pMorphs->size(); i++)
 		{
-			if (ImGuiUtils::ImGuiFloatProperty((*pMorphs)[i].GetName(), weights[i], cd::Unit::None, 0.0f, 1.0f))
+			float weightI = weights[i];
+			if (ImGuiUtils::ImGuiFloatProperty((*pMorphs)[i].GetName(), weights[i], cd::Unit::None, 0.0f, 1.0f))//, false, 0.1f
 			{
-				pBlendShapeComponent->SetDirty(true);
+				pBlendShapeComponent->Set2Update(i, weightI);
 			}
 		}
 	}

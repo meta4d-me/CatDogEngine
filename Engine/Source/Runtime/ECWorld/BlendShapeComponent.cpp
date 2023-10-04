@@ -24,6 +24,7 @@ void BlendShapeComponent::Build()
 	m_vertexCount = meshVertexCount;
 	const uint32_t morphCount = static_cast<uint32_t>(m_pMorphs->size());
 	m_weights.resize(m_pMorphs->size(), 0.2f);
+	m_is2Update = morphCount;
 
 	uint32_t positionSize = cd::Point::Size * sizeof(cd::Point::ValueType);
 	uint32_t normalSize = cd::Direction::Size * sizeof(cd::Direction::ValueType);
@@ -177,59 +178,56 @@ void BlendShapeComponent::Build()
 	bgfx::VertexBufferHandle allMorphVertexPosVBHandle = bgfx::createVertexBuffer(pAllMorphVertexPosVBRef, allMorphVertexPosVL, BGFX_BUFFER_COMPUTE_READ);
 	assert(bgfx::isValid(allMorphVertexPosVBHandle));
 	m_allMorphVertexPosVBHandle = allMorphVertexPosVBHandle.idx;
-	
+
+	bgfx::DynamicIndexBufferHandle changedMorphIndexIBHandle = bgfx::createDynamicIndexBuffer(1, BGFX_BUFFER_COMPUTE_READ | BGFX_BUFFER_INDEX32);
+	assert(bgfx::isValid(changedMorphIndexIBHandle));
+	m_changedMorphIndexIBHandle = changedMorphIndexIBHandle.idx;
+
 	SetDirty(true);
 }
 
 void BlendShapeComponent::Update()
 {
-	const uint32_t meshVertexCount = m_pMesh->GetVertexCount();
+
+
+}
+
+void BlendShapeComponent::UpdateChanged()
+{
 	const uint32_t morphCount = static_cast<uint32_t>(m_pMorphs->size());
-	m_vertexCount = meshVertexCount;
-	float placeholder = 0.0f;
+	float placeholder[3] = { 0.0f , 0.0f, 0.0f };
 	uint32_t placeholderSize = sizeof(placeholder);
 
-	//m_activeMorphOffestLengthIB.resize(morphCount * sizeof(uint32_t) * 2);
+	std::fill(m_activeMorphOffestLengthIB.begin(), m_activeMorphOffestLengthIB.end(), std::byte{0});
+	std::fill(m_activeMorphWeightVB.begin(), m_activeMorphWeightVB.end(), std::byte{0});
+
 	auto activeMorphOffestLengthIBDataPtr = m_activeMorphOffestLengthIB.data();
 	uint32_t activeMorphOffestLengthIBDataSize = 0U;
-
-	//m_activeMorphWeightVB.resize(morphCount * (activeMorphWeightVFStride + 3 * placeholderSize));
 	auto activeMorphWeightVBDataPtr = m_activeMorphWeightVB.data();
 	uint32_t activeMorphWeightVBDataSize = 0U;
 
-	uint32_t offset = 0U;
-	m_morphVertexCountSum = 0U;
-	for (uint32_t morphIndex = 0; morphIndex < morphCount; ++morphIndex)
-	{
-		uint32_t vertexCount = (*m_pMorphs)[morphIndex].GetVertexCount();
-		uint32_t length = vertexCount;
-		m_morphVertexCountSum += vertexCount;
-		if (m_weights[morphIndex] > 0)
-		{
-			m_activeMorphCount++;
-			std::memcpy(&activeMorphOffestLengthIBDataPtr[activeMorphOffestLengthIBDataSize], &offset, sizeof(offset));
-			activeMorphOffestLengthIBDataSize += sizeof(offset);
-			std::memcpy(&activeMorphOffestLengthIBDataPtr[activeMorphOffestLengthIBDataSize], &length, sizeof(length));
-			activeMorphOffestLengthIBDataSize += sizeof(length);
+	uint32_t offsetAndLength[2] = { 0U, 0U };
 
-			std::memcpy(&activeMorphWeightVBDataPtr[activeMorphWeightVBDataSize], &m_weights[morphIndex], sizeof(float));
-			activeMorphWeightVBDataSize += sizeof(float);
-			std::memcpy(&activeMorphWeightVBDataPtr[activeMorphWeightVBDataSize], &placeholder, placeholderSize);
-			activeMorphWeightVBDataSize += placeholderSize;
-			std::memcpy(&activeMorphWeightVBDataPtr[activeMorphWeightVBDataSize], &placeholder, placeholderSize);
-			activeMorphWeightVBDataSize += placeholderSize;
-			std::memcpy(&activeMorphWeightVBDataPtr[activeMorphWeightVBDataSize], &placeholder, placeholderSize);
-			activeMorphWeightVBDataSize += placeholderSize;
-		}
-		offset += length;
+	for (uint32_t morphIndex = 0; morphIndex < m_is2Update; ++morphIndex)
+	{
+		offsetAndLength[0] += (*m_pMorphs)[morphIndex].GetVertexCount();
 	}
+	offsetAndLength[1] = (*m_pMorphs)[m_is2Update].GetVertexCount();
+
+	std::memcpy(&activeMorphOffestLengthIBDataPtr[activeMorphOffestLengthIBDataSize], &offsetAndLength, sizeof(offsetAndLength));
+	activeMorphOffestLengthIBDataSize += sizeof(offsetAndLength);
+	std::memcpy(&activeMorphWeightVBDataPtr[activeMorphWeightVBDataSize], &m_weights[m_is2Update], sizeof(float));
+	activeMorphWeightVBDataSize += sizeof(float) + placeholderSize;
 
 	const bgfx::Memory* pblendShapeDynamicBuffer1Ref = bgfx::makeRef(m_activeMorphOffestLengthIB.data(), static_cast<uint32_t>(m_activeMorphOffestLengthIB.size()));
-	bgfx::update(bgfx::DynamicIndexBufferHandle{m_activeMorphOffestLengthIBHandle},0, pblendShapeDynamicBuffer1Ref);
+	bgfx::update(bgfx::DynamicIndexBufferHandle{m_activeMorphOffestLengthIBHandle}, 0, pblendShapeDynamicBuffer1Ref);
 
 	const bgfx::Memory* pblendShapeDynamicBuffer2Ref = bgfx::makeRef(m_activeMorphWeightVB.data(), static_cast<uint32_t>(m_activeMorphWeightVB.size()));
 	bgfx::update(bgfx::DynamicVertexBufferHandle{m_activeMorphWeightVBHandle}, 0, pblendShapeDynamicBuffer2Ref);
 
+	const bgfx::Memory* pChangedMorphIndexIBRef = bgfx::makeRef(&m_is2Update, static_cast<uint32_t>(sizeof(m_is2Update)));
+	bgfx::update(bgfx::DynamicIndexBufferHandle{m_changedMorphIndexIBHandle}, 0, pChangedMorphIndexIBRef);
 }
+
 
 }
