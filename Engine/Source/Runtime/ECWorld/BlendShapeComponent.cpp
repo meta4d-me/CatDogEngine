@@ -81,7 +81,7 @@ void BlendShapeComponent::Build()
 	//2. Final Morph Affected
 	cd::VertexFormat finalMorphAffectedVF;
 	finalMorphAffectedVF.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
-	finalMorphAffectedVF.AddAttributeLayout(cd::VertexAttributeType::MorphWeight, cd::AttributeValueType::Float, 1U);
+	finalMorphAffectedVF.AddAttributeLayout(cd::VertexAttributeType::BoneWeight, cd::AttributeValueType::Float, 1U);
 	
 	bgfx::VertexLayout finalMorphAffectedVL;
 	VertexLayoutUtility::CreateVertexLayout(finalMorphAffectedVL, finalMorphAffectedVF.GetVertexLayout());
@@ -95,7 +95,7 @@ void BlendShapeComponent::Build()
 	uint32_t activeMorphOffestLengthIBDataSize = 0U;
 
 	cd::VertexFormat activeMorphWeightVF;
-	activeMorphWeightVF.AddAttributeLayout(cd::VertexAttributeType::MorphWeight, cd::AttributeValueType::Float, 1U);
+	activeMorphWeightVF.AddAttributeLayout(cd::VertexAttributeType::BoneWeight, cd::AttributeValueType::Float, 1U);
 	const uint32_t activeMorphWeightVFStride = activeMorphWeightVF.GetStride();
 	m_activeMorphWeightVB.resize(morphCount * (activeMorphWeightVFStride + 3 * placeholderSize));
 	auto activeMorphWeightVBDataPtr = m_activeMorphWeightVB.data();
