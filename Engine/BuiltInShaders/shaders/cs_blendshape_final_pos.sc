@@ -3,7 +3,7 @@
 BUFFER_RW(finalMorphAffectedVB, vec4, 6);
 BUFFER_RO(allMorphVertexIDIB, uint, 2);
 BUFFER_RO(allMorphVertexPosVB, vec4, 3);
-BUFFER_RO(activeMorphOffestLengthIB, uint, 4);
+BUFFER_RO(activeMorphOffsetLengthIB, uint, 4);
 BUFFER_RO(activeMorphWeightVB, vec4, 5);
 
 uniform vec4 u_morphCount;
