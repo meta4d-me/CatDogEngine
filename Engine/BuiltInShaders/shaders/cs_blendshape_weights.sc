@@ -30,7 +30,7 @@ void main()
         }
     }
     */
-    for(uint i = 0; i <u_vertexCount.x;i++)
+    for(uint i = 0; i < u_vertexCount.x; i++)
     {
         finalMorphAffectedVB[i] =vec4(0,0,0,1.0f);
     }
