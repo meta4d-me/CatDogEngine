@@ -42,7 +42,7 @@ void main()
         for(uint j = 0; j < length; j++)
         {
             uint id = allMorphVertexIDIB[offset+j];
-            float wgt = finalMorphAffectedVB[id].w - weight;
+            float finalWeight = finalMorphAffectedVB[id].w - weight;
             finalMorphAffectedVB[id] = vec4(0,0,0,wgt);
         }
     }
