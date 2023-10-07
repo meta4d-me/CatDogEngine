@@ -220,6 +220,14 @@ project("Engine")
 		"MultiProcessorCompile", -- compiler uses multiple thread
 	}
 
+	filter { "action:vs*" }
+		disablewarnings {
+			-- MSVC : "needs to have dll-interface to be used by clients of class".
+			-- This warning is not accurate indeed.
+			"4251"
+		}
+	filter {}
+
 	if ShouldTreatWaringAsError then
 		flags {
 			"FatalWarnings", -- treat warnings as errors
