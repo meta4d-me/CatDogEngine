@@ -73,9 +73,15 @@ public:
 	bool IsProgressiveMeshValid() const { return m_progressiveMeshIndexBufferHandle != UINT16_MAX; }
 	uint16_t GetProgressiveMeshIndexBuffer() const { return m_progressiveMeshIndexBufferHandle; }
 	void BuildProgressiveMeshData();
+
 	float GetProgressiveMeshReductionPercent() const { return m_progressiveMeshReductionPercent; }
 	float& GetProgressiveMeshReductionPercent() { return m_progressiveMeshReductionPercent; }
+
+	uint32_t GetOriginVertexCount() { return m_originVertexCount; }
+	uint32_t& GetProgressiveMeshTargetVertexCount() { return m_progressiveMeshTargetVertexCount; }
+
 	void UpdateProgressiveMeshData();
+	void UpdateProgressiveMeshData(uint32_t vertexCount);
 
 private:
 	void BuildWireframeData();
@@ -92,6 +98,7 @@ private:
 	uint32_t m_originVertexCount = UINT32_MAX;
 	uint32_t m_originPolygonCount = UINT32_MAX;
 
+	uint32_t m_progressiveMeshTargetVertexCount = UINT32_MAX;
 	float m_progressiveMeshReductionPercent = 1.0f;
 	std::vector<uint32_t> m_permutation;
 	std::vector<uint32_t> m_map;
