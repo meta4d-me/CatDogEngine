@@ -112,20 +112,7 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 			AddMaterial(meshEntity, nullptr, pMaterialType, pSceneDatabase);
 		}
 	};
-	/*
-	auto GetMorphsByMeshID = [](cd::MeshID meshID, const std::vector<cd::Morph>& morphs) -> std::vector<cd::Morph>
-	{
-		std::vector<cd::Morph> MorphsByMeshID;
-		for (const auto& morph : morphs)
-		{
-			if (meshID == morph.GetSourceMeshID())
-			{
-				MorphsByMeshID.emplace_back(morph);
-			}
-		}
-		return MorphsByMeshID;
-	};
-	*/
+
 	// There are multiple kinds of cases in the SceneDatabase:
 	// 1. No nodes but have meshes in the SceneDatabase.
 	// 2. Only a root node with multiple meshes.
@@ -141,7 +128,6 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 		
 		if(pSceneDatabase->GetMorphCount())
 		{
-			//const std::vector<cd::Morph>& morphsByMeshID = GetMorphsByMeshID(mesh.GetID(), pSceneDatabase->GetMorphs());
 			ParseMeshWithMorphs(mesh.GetID(), cd::Transform::Identity(), pSceneDatabase->GetMorphs());
 			parsedMeshIDs.insert(mesh.GetID().Data());
 		}

@@ -1,4 +1,5 @@
 #include "../common/bgfx_compute.sh"
+#include "../UniformDefines/U_BlendShape.sh"
 
 BUFFER_RO(allMorphVertexIDIB, uint, 2);
 BUFFER_RO(activeMorphOffestLengthIB, uint, 4);

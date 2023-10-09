@@ -14,6 +14,7 @@
 #include "Scene/Texture.h"
 #include "U_IBL.sh"
 #include "U_AtmophericScattering.sh"
+#include "U_BlendShape.sh"
 
 namespace engine
 {
@@ -60,7 +61,6 @@ void BlendShapeRenderer::Init()
 	GetRenderContext()->CreateProgram("BlendShapeFinalPosProgram", "cs_blendshape_final_pos.bin");
 	GetRenderContext()->CreateProgram("BlendShapeUpdatePosProgram", "cs_blendshape_update_pos.bin");
 	
-
 	GetRenderContext()->CreateUniform(lutSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(cubeIrradianceSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(cubeRadianceSampler, bgfx::UniformType::Sampler);
@@ -154,7 +154,7 @@ void BlendShapeRenderer::Render(float deltaTime)
 			cd::Vec4f morphCount = cd::Vec4f{ static_cast<float>(pBlendShapeComponent->GetActiveMorphCount()),0,0,0 };
 			GetRenderContext()->FillUniform(morphCountCrc, &morphCount, 1);
 			constexpr StringCrc vertexCountCrc(vertexCount);
-			cd::Vec4f vertexCountVec = cd::Vec4f{ static_cast<float>(pBlendShapeComponent->GetVertexCount()) ,0,0,0 };
+			cd::Vec4f vertexCountVec = cd::Vec4f{ static_cast<float>(pBlendShapeComponent->GetMeshVertexCount()) ,0,0,0 };
 			GetRenderContext()->FillUniform(vertexCountCrc, &vertexCountVec, 1);
 			bgfx::dispatch(GetViewID(), GetRenderContext()->GetProgram(blendShapeWeightsProgram),1U,1U,1U);
 			
@@ -171,7 +171,7 @@ void BlendShapeRenderer::Render(float deltaTime)
 			bgfx::dispatch(GetViewID(), GetRenderContext()->GetProgram(blendShapeFinalPosProgram));
 			pBlendShapeComponent->SetDirty(false);
 		}
-		if(pBlendShapeComponent->Is2Update()) 
+		if(pBlendShapeComponent->NeedUpdate()) 
 		{
 			pBlendShapeComponent->UpdateChanged();
 			bgfx::setBuffer(1, bgfx::VertexBufferHandle{pBlendShapeComponent->GetMorphAffectedVB()}, bgfx::Access::Read);
@@ -185,7 +185,7 @@ void BlendShapeRenderer::Render(float deltaTime)
 			cd::Vec4f changedWeightData = cd::Vec4f{ static_cast<float>(pBlendShapeComponent->GetUpdatedWeight()),0,0,0 };
 			GetRenderContext()->FillUniform(changedWeightCrc, &changedWeightData, 1);
 			bgfx::dispatch(GetViewID(), GetRenderContext()->GetProgram(blendShapeUpdatePosProgram));
-			pBlendShapeComponent->Set2UpdateFalse();
+			pBlendShapeComponent->SetNeedUpdateFalse();
 		}
 
 		bgfx::setVertexBuffer(0, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetFinalMorphAffectedVB()});

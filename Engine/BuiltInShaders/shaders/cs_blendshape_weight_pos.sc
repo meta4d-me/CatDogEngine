@@ -1,4 +1,5 @@
 #include "../common/bgfx_compute.sh"
+#include "../UniformDefines/U_BlendShape.sh"
 
 BUFFER_RO(morphAffectedVB, vec4, 1);
 BUFFER_RW(finalMorphAffectedVB, vec4, 6);
