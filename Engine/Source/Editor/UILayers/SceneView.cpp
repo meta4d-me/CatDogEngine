@@ -237,17 +237,15 @@ void SceneView::UpdateToolMenuButtons()
 	ImGui::PopStyleColor();
 }
 
-void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
+void SceneView::PickSceneMesh(float screenWidth, float screenHeight)
 {
 	if (m_currentOperation != SelectOperation)
 	{
 		return;
 	}
 
-	float screenX = static_cast<float>(m_mouseFixedPositionX - GetWindowPosX());
-	float screenY = static_cast<float>(m_mouseFixedPositionY - GetWindowPosY());
-	float screenWidth = static_cast<float>(regionWidth);
-	float screenHeight = static_cast<float>(regionHeight);
+	float screenX = m_mouseFixedPositionX - GetWindowPosX();
+	float screenY = m_mouseFixedPositionY - GetWindowPosY();
 	if (screenX < 0.0f || screenX > screenWidth ||
 		screenY < 0.0f || screenY > screenHeight)
 	{

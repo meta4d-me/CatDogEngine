@@ -38,7 +38,7 @@ public:
     void SetBordedLess(bool flag);
     void SetSize(uint16_t width, uint16_t height);
     void SetWindowIcon(const char* pFilePath) const;
-    void SetMouseVisible(bool isVisible, uint32_t x, uint32_t y);
+    void SetMouseVisible(bool isVisible, float x, float y);
 
     void Update();
 
