@@ -1,5 +1,6 @@
 ﻿#include "MainMenu.h"
 
+#include "Display/CameraController.h"
 #include "ECWorld/SceneWorld.h"
 #include "EditorApp.h"
 #include "ImGui/ImGuiContextInstance.h"
@@ -83,13 +84,11 @@ void MainMenu::EditMenu()
 
 		if (ImGui::BeginMenu(CD_TEXT("TEXT_STYLE")))
 		{
-			// It is not convenient in C++ to loop enum except define an extra array to wrap them.
-			// C++ 20/23 ranges may look better but still needs std::iota inside its implementation.
-			for (engine::ThemeColor theme = engine::ThemeColor::Black; theme < engine::ThemeColor::Count;
-				theme = static_cast<engine::ThemeColor>(static_cast<int>(theme) + 1))
+			for (uint32_t index = 0U; index < nameof::enum_count<engine::ThemeColor>(); ++index)
 			{
+				engine::ThemeColor theme = static_cast<engine::ThemeColor>(index);
 				engine::ImGuiContextInstance* pImGuiContextInstance = GetImGuiContextInstance();
-				if (ImGui::MenuItem(GetThemeColorName(theme), "", pImGuiContextInstance->GetImGuiThemeColor() == theme))
+				if (ImGui::MenuItem(nameof::nameof_enum(theme).data(), "", pImGuiContextInstance->GetImGuiThemeColor() == theme))
 				{
 					pImGuiContextInstance->SetImGuiThemeColor(theme);
 				}
@@ -100,11 +99,11 @@ void MainMenu::EditMenu()
 
 		if (ImGui::BeginMenu(CD_TEXT("TEXT_LANGUAGE")))
 		{
-			for (engine::Language language = engine::Language::ChineseSimplied; language < engine::Language::Count;
-				 language = static_cast<engine::Language>(static_cast<int>(language) + 1))
+			for (uint32_t index = 0U; index < nameof::enum_count<engine::Language>(); ++index)
 			{
+				engine::Language language = static_cast<engine::Language>(index);
 				engine::ImGuiContextInstance* pImGuiContextInstance = GetImGuiContextInstance();
-				if (ImGui::MenuItem(GetLanguageName(language), "", pImGuiContextInstance->GetImGuiLanguage() == language))
+				if (ImGui::MenuItem(nameof::nameof_enum(language).data(), "", pImGuiContextInstance->GetImGuiLanguage() == language))
 				{
 					pImGuiContextInstance->SetImGuiLanguage(language);
 				}
@@ -118,7 +117,7 @@ void MainMenu::EditMenu()
 
 void MainMenu::ViewMenu()
 {
-	auto FrameEntities = [](engine::SceneWorld* pSceneWorld, const std::vector<engine::Entity>& entities)
+	auto FrameEntities = [](engine::SceneWorld* pSceneWorld, const std::vector<engine::Entity>& entities, engine::CameraController* pCameraController)
 	{
 		if (entities.empty())
 		{
@@ -128,9 +127,14 @@ void MainMenu::ViewMenu()
 		std::optional<cd::AABB> optAABB;
 		for (auto entity : entities)
 		{
-			if (engine::StaticMeshComponent* pStaticMesh = pSceneWorld->GetStaticMeshComponent(entity))
+			if (pSceneWorld->GetSkyComponent(entity))
 			{
-				cd::AABB meshAABB = pStaticMesh->GetAABB();
+				continue;
+			}
+
+			if (auto* pCollisionMesh = pSceneWorld->GetCollisionMeshComponent(entity))
+			{
+				cd::AABB meshAABB = pCollisionMesh->GetAABB();
 				if (engine::TransformComponent* pTransform = pSceneWorld->GetTransformComponent(entity))
 				{
 					meshAABB = meshAABB.Transform(pTransform->GetWorldMatrix());
@@ -147,8 +151,25 @@ void MainMenu::ViewMenu()
 			}
 		}
 
-		engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
-		pCameraComponent->FrameAll(optAABB.value());
+		if (optAABB.value().IsEmpty())
+		{
+			return;
+		}
+
+		engine::Entity mainCamera = pSceneWorld->GetMainCameraEntity();
+		if (engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(mainCamera))
+		{
+			auto* pTransformComponent = pSceneWorld->GetTransformComponent(mainCamera);
+			pCameraComponent->FrameAll(optAABB.value(), pTransformComponent->GetTransform());
+			
+			pTransformComponent->Dirty();
+			pTransformComponent->Build();
+			pCameraComponent->ViewDirty();
+			pCameraComponent->BuildViewMatrix(pTransformComponent->GetTransform());
+
+			// TODO : add event queue to get mouse down and up events.
+			pCameraController->CameraToController();
+		}
 	};
 
 	if (ImGui::BeginMenu("View"))
@@ -158,7 +179,7 @@ void MainMenu::ViewMenu()
 			engine::SceneWorld* pSceneWorld = GetSceneWorld();
 			if (size_t meshCount = pSceneWorld->GetStaticMeshEntities().size(); meshCount > 0)
 			{
-				FrameEntities(pSceneWorld, pSceneWorld->GetStaticMeshEntities());
+				FrameEntities(pSceneWorld, pSceneWorld->GetStaticMeshEntities(), m_pCameraController);
 			}
 		}
 
@@ -167,7 +188,7 @@ void MainMenu::ViewMenu()
 			engine::SceneWorld* pSceneWorld = GetSceneWorld();
 			if (engine::Entity selectedEntity = pSceneWorld->GetSelectedEntity(); selectedEntity != engine::INVALID_ENTITY)
 			{
-				FrameEntities(pSceneWorld, { selectedEntity });
+				FrameEntities(pSceneWorld, { selectedEntity }, m_pCameraController);
 			}
 		}
 

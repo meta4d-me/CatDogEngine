@@ -5,11 +5,13 @@ $input v_worldPos
 #include "atm_functions.sh"
 
 uniform vec4 u_LightDir;
+uniform vec4 u_HeightOffset;
 
 void main()
 {
-	vec3 cameraPos = GetCamera().position;
-	vec3 rayStart = cameraPos + vec3(0.0, ATMOSPHERE.bottom_radius , 0.0);
+	// Tramsform unit from cm to km.
+	vec3 cameraPos = GetCamera().position / vec3_splat(100.0 * 100.0);
+	vec3 rayStart = cameraPos + vec3(0.0, ATMOSPHERE.bottom_radius + u_HeightOffset.x , 0.0);
 	vec3 rayDir = normalize(v_worldPos.xyz);
 	vec3 sunDir = -normalize(u_LightDir.xyz);
 	

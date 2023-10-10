@@ -10,6 +10,8 @@
 #include "Log/Log.h"
 #include "Material/ShaderSchema.h"
 #include "Math/Ray.hpp"
+#include "Rendering/AABBRenderer.h"
+#include "Rendering/WireframeRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/Renderer.h"
 #include "Rendering/RenderTarget.h"
@@ -104,6 +106,20 @@ void SceneView::UpdateOperationButtons()
 	}
 }
 
+void SceneView::UpdateRenderModeCombo()
+{
+	ImGui::SetNextItemWidth(130);
+	if (ImGui::Combo("##DebugCombo", reinterpret_cast<int*>(&m_renderMode), RenderModes, IM_ARRAYSIZE(RenderModes)))
+	{
+		m_pSceneRenderer->SetEnable(RenderModeType::Rendered == m_renderMode);
+		m_pWhiteModelRenderer->SetEnable(RenderModeType::Solid == m_renderMode);
+
+		auto* pWireframeRenderer = static_cast<engine::WireframeRenderer*>(m_pWireframeRenderer);
+		pWireframeRenderer->SetEnableGlobalWireframe(RenderModeType::Wireframe == m_renderMode);
+	}
+	ImGui::PushItemWidth(130);
+}
+
 void SceneView::Update2DAnd3DButtons()
 {
 	bool is3DMode = m_is3DMode;
@@ -151,10 +167,30 @@ void SceneView::UpdateSwitchAABBButton()
 
 	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CUBE " AABB")))
 	{
-		GetRenderContext();
+		auto* pAABBRenderer = static_cast<engine::AABBRenderer*>(m_pAABBRenderer);
+		pAABBRenderer->SetEnableGlobalAABB(!pAABBRenderer->IsGlobalAABBEnable());
 	}
 
 	if (isAABBActive)
+	{
+		ImGui::PopStyleColor();
+	}
+}
+
+void SceneView::UpdateSwitchTerrainButton()
+{
+	bool isTerrainActive = m_isTerrainEditMode;
+	if (isTerrainActive)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+	}
+
+	if (ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_CUBE "Smooth Terrain ")))
+	{
+		m_isTerrainEditMode = !m_isTerrainEditMode;
+	}
+
+	if (isTerrainActive)
 	{
 		ImGui::PopStyleColor();
 	}
@@ -190,7 +226,13 @@ void SceneView::UpdateToolMenuButtons()
 	//ImGui::SameLine();
 
 	ImGui::SameLine();
+	UpdateRenderModeCombo();
+
+	ImGui::SameLine();
 	UpdateSwitchAABBButton();
+
+	ImGui::SameLine();
+	UpdateSwitchTerrainButton();
 
 	ImGui::PopStyleColor();
 }
@@ -202,8 +244,8 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 		return;
 	}
 
-	float screenX = static_cast<float>(engine::Input::Get().GetMousePositionX() - GetWindowPosX());
-	float screenY = static_cast<float>(engine::Input::Get().GetMousePositionY() - GetWindowPosY());
+	float screenX = static_cast<float>(m_mouseFixedPositionX - GetWindowPosX());
+	float screenY = static_cast<float>(m_mouseFixedPositionY - GetWindowPosY());
 	float screenWidth = static_cast<float>(regionWidth);
 	float screenHeight = static_cast<float>(regionHeight);
 	if (screenX < 0.0f || screenX > screenWidth ||
@@ -219,7 +261,7 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 
 	float minRayTime = FLT_MAX;
 	engine::Entity nearestEntity = engine::INVALID_ENTITY;
-	for (engine::Entity entity : pSceneWorld->GetStaticMeshEntities())
+	for (engine::Entity entity : pSceneWorld->GetCollisionMeshEntities())
 	{
 		engine::TransformComponent* pTransformComponent = pSceneWorld->GetTransformComponent(entity);
 		if (!pTransformComponent)
@@ -227,13 +269,13 @@ void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 			continue;
 		}
 
-		engine::StaticMeshComponent* pMeshComponent = pSceneWorld->GetStaticMeshComponent(entity);
-		if (!pMeshComponent)
+		auto* pCollisionMesh = pSceneWorld->GetCollisionMeshComponent(entity);
+		if (!pCollisionMesh)
 		{
 			continue;
 		}
 
-		cd::AABB collisonMeshAABB = pMeshComponent->GetAABB();
+		cd::AABB collisonMeshAABB = pCollisionMesh->GetAABB();
 		collisonMeshAABB = collisonMeshAABB.Transform(pTransformComponent->GetWorldMatrix());
 
 		float rayTime;
@@ -254,6 +296,7 @@ void SceneView::Update()
 {
 	engine::SceneWorld* pSceneWorld = GetSceneWorld();
 	engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
+	engine::TerrainComponent* pTerrainComponent = pSceneWorld->GetTerrainComponent(pSceneWorld->GetSelectedEntity());
 
 	if (nullptr == m_pRenderTarget)
 	{
@@ -285,6 +328,10 @@ void SceneView::Update()
 		}
 	}
 
+	ImVec2 windowPos = ImGui::GetWindowPos();
+	ImVec2 mousePos = ImGui::GetMousePos();
+	cd::Vec2f rightDown(windowPos.x + regionSize.x, windowPos.y + regionSize.y);
+
 	// Check if mouse hover on the area of SceneView so it can control.
 	ImVec2 cursorPosition = ImGui::GetCursorPos();
 	ImVec2 sceneViewPosition = ImGui::GetWindowPos() + cursorPosition;
@@ -307,20 +354,51 @@ void SceneView::Update()
 	ImGui::PopStyleVar();
 
 	ImGui::End();
+	bool isAnyMouseButtonPressed = engine::Input::Get().IsMouseLBPressed() || engine::Input::Get().IsMouseMBPressed() || engine::Input::Get().IsMouseRBPressed();
 
-	if (engine::Input::Get().IsMouseLBPressed())
+	if (isAnyMouseButtonPressed && !ImGuizmo::IsUsing())
 	{
 		if (!m_isMouseDownFirstTime)
 		{
+			if (m_pCameraController->GetViewIsMoved())
+			{
+				m_isUsingCamera = true;
+			}
+			if (engine::Input::Get().IsMouseLBPressed())
+			{
+				m_isLeftClick = true;
+			}
 			return;
 		}
 
 		m_isMouseDownFirstTime = false;
-		PickSceneMesh(regionWidth, regionHeight);
+		if (mousePos.x > windowPos.x && mousePos.x < rightDown.x() && mousePos.y > windowPos.y && mousePos.y < rightDown.y() && !m_isTerrainEditMode)
+		{
+			m_pCameraController->SetIsInViewScene(true);
+			m_isMouseShow = false;
+		}
+		else
+		{
+			m_pCameraController->SetIsInViewScene(false);
+		}
 	}
 	else
 	{
+		m_mouseFixedPositionX = engine::Input::Get().GetMousePositionX();
+		m_mouseFixedPositionY = engine::Input::Get().GetMousePositionY();
+		if (!m_isMouseShow && !m_isUsingCamera)
+		{
+			PickSceneMesh(regionWidth, regionHeight);
+		}
 		m_isMouseDownFirstTime = true;
+		m_isMouseShow = true;
+		m_isUsingCamera = false;
+		m_isLeftClick = false;
+	}
+
+	if (ImGui::IsMouseDoubleClicked(0) && engine::INVALID_ENTITY != pSceneWorld->GetSelectedEntity())
+	{
+		m_pCameraController->CameraFocus();
 	}
 }
 

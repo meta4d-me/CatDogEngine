@@ -10,7 +10,7 @@
 #include "Rendering/DDGIDefinition.h"
 #include "Scene/Texture.h"
 #include "U_DDGI.sh"
-#include "U_Environment.sh"
+#include "U_IBL.sh"
 
 namespace engine
 {
@@ -60,7 +60,7 @@ DDGITextureInfo GetDDGITextureInfo(DDGITextureType type, DDGIComponent* pDDGICom
 	cd::Vec3f probeCount = pDDGIComponent->GetProbeCount();
 	cd::Vec2f textureSize = cd::Vec2f(0.0f, 0.0f);
 
-	info.m_pName = GetDDGITextureTypeName(type);
+	info.m_pName = nameof::nameof_enum(type).data();
 
 	switch (type)
 	{
@@ -145,6 +145,14 @@ void DDGIRenderer::Init()
 	// Warning : The coordinate system is different between CD and HWs Engine.
 	//   CD: Left-hand, +Y Up
 	//   HW: Right-hand, +Z Up
+
+	// Old wooden room settings.
+	// m_pDDGIComponent->SetVolumeOrigin(cd::Vec3f(0.0f, 0.0f, 0.0f));
+	// m_pDDGIComponent->SetProbeSpacing(cd::Vec3f(2.0f, 2.0f, 2.0f));
+	// m_pDDGIComponent->SetProbeCount(cd::Vec3f(4.0f, 2.0f, 5.0f));
+	// m_pDDGIComponent->SetAmbientMultiplier(1.0);
+	// m_pDDGIComponent->SetNormalBias(0.0f);
+	// m_pDDGIComponent->SetViewBias(0.0f);
 
 	m_pDDGIComponent->SetVolumeOrigin(cd::Vec3f(1.3f, 5.343f, 0.0f));
 	m_pDDGIComponent->SetProbeSpacing(cd::Vec3f(2.0f, 1.0f, 2.0f));
@@ -271,9 +279,9 @@ void DDGIRenderer::Render(float deltaTime)
 		// UpdateDDGITexture(DDGITextureType::Classification, m_pDDGIComponent, GetRenderContext());
 
 		bgfx::setTexture(DIS_MAP_SLOT, GetRenderContext()->GetUniform(StringCrc(distanceSampler)),
-			GetRenderContext()->GetTexture(StringCrc(GetDDGITextureTypeName(DDGITextureType::Distance))));
+			GetRenderContext()->GetTexture(StringCrc(nameof::nameof_enum(DDGITextureType::Distance))));
 		bgfx::setTexture(IRR_MAP_SLOT, GetRenderContext()->GetUniform(StringCrc(irradianceSampler)),
-			GetRenderContext()->GetTexture(StringCrc(GetDDGITextureTypeName(DDGITextureType::Irradiance))));
+			GetRenderContext()->GetTexture(StringCrc(nameof::nameof_enum(DDGITextureType::Irradiance))));
 		// bgfx::setTexture(REL_MAP_SLOT, GetRenderContext()->GetUniform(StringCrc(relocationSampler)),
 		// 	GetRenderContext()->GetTexture(StringCrc(GetDDGITextureTypeName(DDGITextureType::Relocation))));
 		// bgfx::setTexture(CLA_MAP_SLOT, GetRenderContext()->GetUniform(StringCrc(classificationSampler)),

@@ -62,7 +62,9 @@ public:
 
 private:
 	void InitEditorCameraEntity();
+#ifdef ENABLE_DDGI
 	void InitDDGIEntity();
+#endif
 	void InitSkyEntity();
 
 	bool m_bInitEditor = false;
@@ -86,7 +88,7 @@ private:
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEngineRenderers;
 
 	// Controllers for processing input events.
-	std::shared_ptr<engine::CameraController> m_pCameraController;
+	std::unique_ptr<engine::CameraController> m_pCameraController;
 };
 
 }

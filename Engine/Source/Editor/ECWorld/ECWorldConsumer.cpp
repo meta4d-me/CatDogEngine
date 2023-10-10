@@ -1,14 +1,7 @@
 #include "ECWorldConsumer.h"
 
-#include "ECWorld/ComponentsStorage.hpp"
-#include "ECWorld/DDGIComponent.h"
-#include "ECWorld/HierarchyComponent.h"
-#include "ECWorld/MaterialComponent.h"
-#include "ECWorld/NameComponent.h"
+#include "ECWorld/AllComponentsHeader.h"
 #include "ECWorld/SceneWorld.h"
-#include "ECWorld/SkyComponent.h"
-#include "ECWorld/StaticMeshComponent.h"
-#include "ECWorld/TransformComponent.h"
 #include "Log/Log.h"
 #include "Material/MaterialType.h"
 #include "Math/Transform.hpp"
@@ -29,19 +22,19 @@ namespace editor
 namespace Detail
 {
 
-const std::unordered_map<cd::MaterialTextureType, engine::Uber> materialTextureTypeToUber
+const std::unordered_map<cd::MaterialTextureType, engine::ShaderFeature> materialTextureTypeToShaderFeature
 {
-	{ cd::MaterialTextureType::BaseColor, engine::Uber::ALBEDO_MAP },
-	{ cd::MaterialTextureType::Normal, engine::Uber::NORMAL_MAP },
-	{ cd::MaterialTextureType::Occlusion, engine::Uber::ORM_MAP },
-	{ cd::MaterialTextureType::Roughness, engine::Uber::ORM_MAP },
-	{ cd::MaterialTextureType::Metallic, engine::Uber::ORM_MAP },
-	{ cd::MaterialTextureType::Emissive, engine::Uber::EMISSIVE_MAP },
+	{ cd::MaterialTextureType::BaseColor, engine::ShaderFeature::ALBEDO_MAP },
+	{ cd::MaterialTextureType::Normal, engine::ShaderFeature::NORMAL_MAP },
+	{ cd::MaterialTextureType::Occlusion, engine::ShaderFeature::ORM_MAP },
+	{ cd::MaterialTextureType::Roughness, engine::ShaderFeature::ORM_MAP },
+	{ cd::MaterialTextureType::Metallic, engine::ShaderFeature::ORM_MAP },
+	{ cd::MaterialTextureType::Emissive, engine::ShaderFeature::EMISSIVE_MAP },
 };
 
 CD_FORCEINLINE bool IsMaterialTextureTypeValid(cd::MaterialTextureType type)
 {
-	return materialTextureTypeToUber.find(type) != materialTextureTypeToUber.end();
+	return materialTextureTypeToShaderFeature.find(type) != materialTextureTypeToShaderFeature.end();
 }
 
 } // namespace Detail
@@ -71,43 +64,24 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 
 		const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
 
-		if(m_meshAssetType == MeshAssetType::Standard)
+		// TODO : Or the user doesn't want to import animation data.
+		const bool isStaticMesh = 0U == mesh.GetVertexInfluenceCount();
+		if(isStaticMesh)
 		{
-			// TODO : Or the user doesn't want to import animation data.
-			const bool isStaticMesh = 0U == mesh.GetVertexInfluenceCount();
-			if(isStaticMesh)
-			{
-				engine::MaterialType* pMaterialType = m_pSceneWorld->GetPBRMaterialType();
-				AddStaticMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
-
-				cd::MaterialID meshMaterialID = mesh.GetMaterialID();
-				AddMaterial(meshEntity, meshMaterialID.IsValid() ? &pSceneDatabase->GetMaterial(meshMaterialID.Data()) : nullptr, pMaterialType, pSceneDatabase);
-			}
-			else
-			{
-				engine::MaterialType* pMaterialType = m_pSceneWorld->GetAnimationMaterialType();
-				AddSkinMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
-
-				// TODO : Use a standalone .cdanim file to play animation.
-				// Currently, we assume that imported SkinMesh will play animation automatically for testing.
-				AddAnimation(meshEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
-				AddMaterial(meshEntity, nullptr, pMaterialType, pSceneDatabase);
-			}
-		}
-		else if(m_meshAssetType == MeshAssetType::DDGI)
-		{
-			engine::MaterialType *pMaterialType = m_pSceneWorld->GetDDGIMaterialType();
-			AddStaticMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
+			AddStaticMesh(meshEntity, mesh, m_pDefaultMaterialType->GetRequiredVertexFormat());
 
 			cd::MaterialID meshMaterialID = mesh.GetMaterialID();
-			if(meshMaterialID.IsValid())
-			{
-				AddMaterial(meshEntity, &pSceneDatabase->GetMaterial(meshMaterialID.Data()), pMaterialType, pSceneDatabase);
-			}
+			AddMaterial(meshEntity, meshMaterialID.IsValid() ? &pSceneDatabase->GetMaterial(meshMaterialID.Data()) : nullptr, m_pDefaultMaterialType, pSceneDatabase);
 		}
 		else
 		{
-			CD_ERROR("Unknown MeshAssetType!");
+			engine::MaterialType* pMaterialType = m_pSceneWorld->GetAnimationMaterialType();
+			AddSkinMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
+
+			// TODO : Use a standalone .cdanim file to play animation.
+			// Currently, we assume that imported SkinMesh will play animation automatically for testing.
+			AddAnimation(meshEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
+			AddMaterial(meshEntity, nullptr, pMaterialType, pSceneDatabase);
 		}
 	};
 
@@ -178,10 +152,10 @@ void ECWorldConsumer::AddCamera(engine::Entity entity, const cd::Camera& camera)
 void ECWorldConsumer::AddLight(engine::Entity entity, const cd::Light& light)
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
-	engine::NameComponent& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
+	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
 	nameComponent.SetName(light.GetName());
 
-	engine::LightComponent& lightComponent = pWorld->CreateComponent<engine::LightComponent>(entity);
+	auto& lightComponent = pWorld->CreateComponent<engine::LightComponent>(entity);
 	lightComponent.SetType(light.GetType());
 	lightComponent.SetIntensity(light.GetIntensity());
 	lightComponent.SetRadius(light.GetRadius());
@@ -195,7 +169,7 @@ void ECWorldConsumer::AddLight(engine::Entity entity, const cd::Light& light)
 	lightComponent.SetDirection(light.GetDirection());
 	lightComponent.SetUp(light.GetUp());
 
-	engine::TransformComponent& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
 	transformComponent.SetTransform(cd::Transform::Identity());
 	transformComponent.Build();
 }
@@ -203,7 +177,7 @@ void ECWorldConsumer::AddLight(engine::Entity entity, const cd::Light& light)
 void ECWorldConsumer::AddTransform(engine::Entity entity, const cd::Transform& transform)
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
-	engine::TransformComponent& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
 	transformComponent.SetTransform(transform);
 	transformComponent.Build();
 }
@@ -213,13 +187,19 @@ void ECWorldConsumer::AddStaticMesh(engine::Entity entity, const cd::Mesh& mesh,
 	assert(mesh.GetVertexCount() > 0 && mesh.GetPolygonCount() > 0);
 
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
-	engine::NameComponent& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
+	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
 	nameComponent.SetName(mesh.GetName());
 
-	engine::StaticMeshComponent& staticMeshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
+	auto& collisionMeshComponent = pWorld->CreateComponent<engine::CollisionMeshComponent>(entity);
+	collisionMeshComponent.SetType(engine::CollisonMeshType::AABB);
+	collisionMeshComponent.SetAABB(mesh.GetAABB());
+	collisionMeshComponent.Build();
+
+	auto& staticMeshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
 	staticMeshComponent.SetMeshData(&mesh);
 	staticMeshComponent.SetRequiredVertexFormat(&vertexFormat);
 	staticMeshComponent.Build();
+	staticMeshComponent.Submit();
 }
 
 void ECWorldConsumer::AddSkinMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat)
@@ -256,7 +236,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 			{
 				missRequiredTextures = true;
 				CD_ENGINE_ERROR("Material {0} massing required texture {1}!", pMaterial->GetName(),
-					GetMaterialPropertyGroupName(requiredTextureType));
+					nameof::nameof_enum(requiredTextureType));
 				break;
 			}
 
@@ -264,7 +244,8 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 			if (!optTextureSlot.has_value())
 			{
 				unknownTextureSlot = true;
-				CD_ENGINE_ERROR("Material {0} unknown texture slot of textuere type {1}!", pMaterial->GetName(), GetMaterialPropertyGroupName(requiredTextureType));
+				CD_ENGINE_ERROR("Material {0} unknown texture slot of textuere type {1}!", pMaterial->GetName(),
+					nameof::nameof_enum(requiredTextureType));
 				break;
 			}
 
@@ -305,20 +286,21 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 				if (!textureID.IsValid())
 				{
 					// TODO : Its ok to have a material factor instead of texture, remove factor case warning.
-					CD_WARN("Material {0} does not have optional texture type {1}!", pMaterial->GetName(), GetMaterialPropertyGroupName(optionalTextureType));
+					CD_WARN("Material {0} does not have optional texture type {1}!", pMaterial->GetName(),
+						nameof::nameof_enum(optionalTextureType));
 					continue;
 				}
 
 				std::optional<uint8_t> optTextureSlot = pMaterialType->GetTextureSlot(optionalTextureType);
 				if (!optTextureSlot.has_value())
 				{
-					CD_ERROR("Unknow texture {0} slot!", GetMaterialPropertyGroupName(optionalTextureType));
+					CD_ERROR("Unknow texture {0} slot!", nameof::nameof_enum(optionalTextureType));
 					break;
 				}
 
 				if (Detail::IsMaterialTextureTypeValid(optionalTextureType))
 				{
-					materialComponent.ActiveUberShaderOption(Detail::materialTextureTypeToUber.at(optionalTextureType));
+					materialComponent.ActiveShaderFeature(Detail::materialTextureTypeToShaderFeature.at(optionalTextureType));
 				}
 
 				uint8_t textureSlot = optTextureSlot.value();

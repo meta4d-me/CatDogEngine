@@ -10,8 +10,10 @@
 #include "Math/MeshGenerator.h"
 #include "Path/Path.h"
 #include "Rendering/AnimationRenderer.h"
+#ifdef ENABLE_DDGI
 #include "Rendering/DDGIRenderer.h"
-#include "Rendering/DebugRenderer.h"
+#endif
+#include "Rendering/WhiteModelRenderer.h"
 #include "Rendering/ImGuiRenderer.h"
 #include "Rendering/PBRSkyRenderer.h"
 #include "Rendering/PostProcessRenderer.h"
@@ -22,11 +24,6 @@
 #include "Scene/SceneDatabase.h"
 #include "Window/Input.h"
 #include "Window/Window.h"
-
-#ifdef ENABLE_TERRAIN_PRODUCER
-#include "UILayers/TerrainEditor.h"
-#include "Rendering/TerrainRenderer.h"
-#endif
 
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -127,8 +124,9 @@ void GameApp::InitECWorld()
 
 	InitEditorCameraEntity();
 
-	m_pSceneWorld->InitDDGISDK();
+#ifdef ENABLE_DDGI
 	InitDDGIEntity();
+#endif
 
 	InitSkyEntity();
 }
@@ -163,6 +161,7 @@ void GameApp::InitEditorCameraEntity()
 	cameraComponent.BuildViewMatrix(cameraTransform);
 }
 
+#ifdef ENABLE_DDGI
 void GameApp::InitDDGIEntity()
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
@@ -175,6 +174,7 @@ void GameApp::InitDDGIEntity()
 
 	pWorld->CreateComponent<engine::DDGIComponent>(ddgiEntity);
 }
+#endif
 
 void GameApp::InitSkyEntity()
 {
@@ -195,7 +195,6 @@ void GameApp::InitSkyEntity()
 	cd::Box skyBox(cd::Point(-1.0f), cd::Point(1.0f));
 	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(skyBox, vertexFormat, false);
 	assert(optMesh.has_value());
-
 
 	auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(skyEntity);
 	meshComponent.SetMeshData(&optMesh.value());
@@ -243,12 +242,6 @@ void GameApp::InitEngineRenderers()
 		AddEngineRenderer(cd::MoveTemp(pPBRSkyRenderer));
 	}
 
-#ifdef ENABLE_TERRAIN_PRODUCER
-	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-	pTerrainRenderer->SetSceneWorld(m_pSceneWorld.get());
-	AddEngineRenderer(cd::MoveTemp(pTerrainRenderer));
-#endif
-
 	auto pSceneRenderer = std::make_unique<engine::WorldRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pSceneRenderer = pSceneRenderer.get();
 	pSceneRenderer->SetSceneWorld(m_pSceneWorld.get());
@@ -258,15 +251,11 @@ void GameApp::InitEngineRenderers()
 	pAnimationRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pAnimationRenderer));
 
-	auto pDebugRenderer = std::make_unique<engine::DebugRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-	m_pDebugRenderer = pDebugRenderer.get();
-	pDebugRenderer->SetSceneWorld(m_pSceneWorld.get());
-	pDebugRenderer->SetEnable(false);
-	AddEngineRenderer(cd::MoveTemp(pDebugRenderer));
-
+#ifdef ENABLE_DDGI
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pDDGIRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pDDGIRenderer));
+#endif
 
 	// We can debug vertex/material/texture information by just output that to screen as fragmentColor.
 	// But postprocess will bring unnecessary confusion. 
@@ -289,7 +278,7 @@ bool GameApp::IsAtmosphericScatteringEnable() const
 void GameApp::InitController()
 {
 	// Controller for Input events.
-	m_pCameraController = std::make_shared<engine::CameraController>(
+	m_pCameraController = std::make_unique<engine::CameraController>(
 		m_pSceneWorld.get(),
 		12.0f /* horizontal sensitivity */,
 		12.0f /* vertical sensitivity */,
@@ -312,9 +301,9 @@ bool GameApp::Update(float deltaTime)
 		m_bInitEditor = true;
 		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetPBRMaterialType());
 		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetAnimationMaterialType());
-		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetTerrainMaterialType());
+#ifdef ENABLE_DDGI
 		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetDDGIMaterialType());
-
+#endif
 		// Phase 2 - Project Manager
 		//		* TODO : Show project selector
 		//GetMainWindow()->SetTitle("Project Manager");

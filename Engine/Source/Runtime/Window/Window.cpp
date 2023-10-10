@@ -213,6 +213,16 @@ void Window::Update()
 	}
 }
 
+const bool Window::GetInputFocus() const
+{
+	return SDL_GetWindowFlags(m_pSDLWindow) & SDL_WINDOW_INPUT_FOCUS;
+}
+
+const bool Window::GetMouseFocus() const
+{
+	return SDL_GetWindowFlags(m_pSDLWindow) & SDL_WINDOW_MOUSE_FOCUS;
+}
+
 void Window::SetTitle(const char* pTitle)
 {
 	SDL_SetWindowTitle(m_pSDLWindow, pTitle);
@@ -291,6 +301,20 @@ void Window::SetWindowIcon(const char* pFilePath) const
 	//SDL_SetWindowIcon(m_pSDLWindow, pSDLSurface);
 	//SDL_FreeSurface(pSDLSurface);
 	//stbi_image_free(pImageData);
+}
+
+void Window::SetMouseVisible(bool isVisible, uint32_t x, uint32_t y)
+{
+	SDL_ShowCursor(isVisible);
+	if (!isVisible)
+	{
+		SDL_SetRelativeMouseMode(SDL_TRUE);
+		SDL_WarpMouseInWindow(m_pSDLWindow, x, y);
+	}
+	else
+	{
+		SDL_SetRelativeMouseMode(SDL_FALSE);
+	}
 }
 
 }

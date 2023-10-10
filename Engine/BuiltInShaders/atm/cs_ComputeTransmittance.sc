@@ -3,7 +3,7 @@
 #define COMPUTE
 #include "atm_functions.sh"
 
-IMAGE2D_WR(s_transmittance, rgba32f, 8);
+IMAGE2D_WR(s_transmittance, rgba32f, 0);
 
 NUM_THREADS(8, 8, 1)
 void main()

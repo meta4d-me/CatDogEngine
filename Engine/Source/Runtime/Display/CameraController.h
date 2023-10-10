@@ -54,8 +54,7 @@ public:
 	void ElevationChanging(float amount);
 
 	// Double Click entity,camera will focus
-	void CameraFocus(const cd::AABB& aabb);
-
+	void CameraFocus();
 	// Implement the effect of a translation animation.
 	void Moving();
 
@@ -69,6 +68,11 @@ public:
 	void SynchronizeTrackingCamera();
 
 	void MoveToPosition(cd::Point position, cd::Vec3f lookAt);
+
+	// TODO : generic solution to process mouse / key input events for UI panels in different areas.
+	void SetIsInViewScene(bool isIn) { m_isInViewScene = isIn; }
+
+	bool GetViewIsMoved() { return m_isMouseMovedInView; }
 	
 private:
 	engine::CameraComponent* GetMainCameraComponent() const;
@@ -91,14 +95,16 @@ private:
 	float m_mouseScroll = 0.0f;
 
 	cd::Vec3f m_lookAtPoint = cd::Vec3f::Zero();
-	cd::Vec3f m_lookAt;
-	cd::Vec3f m_up;
-	cd::Vec3f m_eye;
+	cd::Vec3f m_lookAt = cd::Vec3f(0.0f, 1.0f, 0.0f);
+	cd::Vec3f m_up = cd::Vec3f(0.0f, 0.0f, 1.0f);
+	cd::Vec3f m_eye = cd::Vec3f::Zero();
 	cd::Vec3f m_eyeDestination; // This is for focusing animation
 	cd::Vec3f m_lookAtDestination;
 
 	bool m_isTracking = false;
 	bool m_isMoving = false;
+	bool m_isInViewScene = false;
+	bool m_isMouseMovedInView = false;
 };
 
 }

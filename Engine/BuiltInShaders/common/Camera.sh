@@ -1,6 +1,8 @@
-// @brief Returns Camera object.
-// 
-// Camera GetCamera();
+//-------------------------------//
+// @brief Returns Camera object. //
+//                               //
+// Camera GetCamera();           //
+//-------------------------------//
 
 struct Camera
 {

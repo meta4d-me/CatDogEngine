@@ -16,6 +16,44 @@ static bool ImGuiBoolProperty(const char* pName, bool& value)
 	return ImGui::Checkbox(pName, &value);
 }
 
+template<typename EnumType>
+static bool ImGuiEnumProperty(const char* pName, EnumType& value)
+{
+	bool dirty = false;
+
+	ImGui::Columns(2);
+	ImGui::TextUnformatted(pName);
+	ImGui::NextColumn();
+	ImGui::PushItemWidth(-1);
+
+	if (ImGui::BeginCombo("##combo", nameof::nameof_enum(value).data()))
+	{
+		auto enumCount = nameof::enum_count<EnumType>();
+		for (uint32_t enumIndex = 0U; enumIndex < enumCount; ++enumIndex)
+		{
+			EnumType enumValue = static_cast<EnumType>(enumIndex);
+			bool isSelected = enumValue == value;
+			if (ImGui::Selectable(nameof::nameof_enum(enumValue).data(), isSelected))
+			{
+				value = enumValue;
+				dirty = true;
+			}
+
+			if (isSelected)
+			{
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
+
+	ImGui::PopItemWidth();
+	ImGui::NextColumn();
+	ImGui::Columns(1);
+
+	return dirty;
+}
+
 static bool ImGuiStringProperty(const char* pName, const char* pValue)
 {
 	ImGui::Columns(2);
@@ -38,6 +76,27 @@ static bool ImGuiStringProperty(const char* pName, const std::string& value)
 	return ImGuiStringProperty(pName, value.c_str());
 }
 
+static bool ImGuiIntProperty(const char* pName, int& value, cd::Unit unit = cd::Unit::None, int minValue = {}, int maxValue = {}, bool isNormalized = false, float speed = -1.0f)
+{
+	bool dirty = false;
+
+	ImGui::Columns(2);
+	ImGui::TextUnformatted(pName);
+	ImGui::NextColumn();
+	ImGui::PushItemWidth(-1);
+
+	if (ImGui::DragInt(pName, &value, speed, minValue, maxValue, "%d"))
+	{
+		dirty = true;
+	}
+
+	ImGui::PopItemWidth();
+	ImGui::NextColumn();
+	ImGui::Columns(1);
+
+	return dirty;
+}
+
 static bool ImGuiFloatProperty(const char* pName, float& value, cd::Unit unit = cd::Unit::None, float minValue = {}, float maxValue = {}, bool isNormalized = false, float speed = -1.0f)
 {
 	bool dirty = false;
@@ -47,15 +106,12 @@ static bool ImGuiFloatProperty(const char* pName, float& value, cd::Unit unit = 
 	ImGui::NextColumn();
 	ImGui::PushItemWidth(-1);
 
-	//std::string labelName = std::format("##{}", pName);
-	std::string labelName = "##";
-	labelName += pName;
 	//std::string metricName = std::format("%.2f{}", cd::GetUnitName(unit));
 	std::string metricName = "%.2f";
 	metricName += cd::GetUnitName(unit);
 	float delta = maxValue - minValue;
 	float dragSpeed = (speed <= 0.0) ? (cd::Math::IsEqualToZero(delta) ? 1.0f : delta * 0.05f) : speed;
-	if (ImGui::DragFloat(labelName.c_str(), &value, dragSpeed, minValue, maxValue, metricName.c_str()))
+	if (ImGui::DragFloat(pName, &value, dragSpeed, minValue, maxValue, metricName.c_str()))
 	{
 		dirty = true;
 	}
@@ -82,9 +138,6 @@ static bool ImGuiVectorProperty(const char* pName, T& value, cd::Unit unit = cd:
 	ImGui::NextColumn();
 	ImGui::PushItemWidth(-1);
 
-	//std::string labelName = std::format("##{}", pName);
-	std::string labelName = "##";
-	labelName += pName;
 	//std::string metricName = std::format("%.2f{}", cd::GetUnitName(unit));
 	std::string metricName = "%.2f";
 	metricName += cd::GetUnitName(unit);
@@ -92,21 +145,21 @@ static bool ImGuiVectorProperty(const char* pName, T& value, cd::Unit unit = cd:
 	float dragSpeed = (speed <= 0.0) ? (cd::Math::IsEqualToZero(delta) ? 1.0f : delta * 0.05f) : speed;
 	if constexpr (std::is_same<T, cd::Vec2f>())
 	{
-		if (ImGui::DragFloat2(labelName.c_str(), value.Begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
+		if (ImGui::DragFloat2(pName, value.Begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
 		{
 			dirty = true;
 		}
 	}
 	else if constexpr (std::is_same<T, cd::Vec3f>())
 	{
-		if (ImGui::DragFloat3(labelName.c_str(), value.Begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
+		if (ImGui::DragFloat3(pName, value.Begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
 		{
 			dirty = true;
 		}
 	}
 	else if constexpr (std::is_same<T, cd::Vec4f>())
 	{
-		if (ImGui::DragFloat4(labelName.c_str(), value.Begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
+		if (ImGui::DragFloat4(pName, value.Begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
 		{
 			dirty = true;
 		}
@@ -208,6 +261,43 @@ static bool ImGuiTransformProperty(const char* pName, cd::Transform& value)
 	ImGui::Columns(1);
 
 	return dirty;
+}
+
+static void ColorPickerProperty(const char* Name, cd::Vec3f& veccolor)
+{
+	static std::map<const char*, bool> showMap;
+	if (!showMap.count(Name))
+	{
+		showMap[Name] = false;
+	}
+	ImGui::TextUnformatted(Name);
+	ImGui::SameLine();
+	ImGui::NextColumn();
+	ImGui::PushID(Name);
+	if (ImGui::Button("..."))
+	{
+		showMap[Name] = true;
+	}
+	ImGui::PopID();
+	ImGui::PushItemWidth(-1);
+	ImGui::SameLine();
+	ImGui::NextColumn();
+	ImGui::DragFloat3("", veccolor.Begin(), 0, 0.0f, 1.0f);
+	ImGui::PopItemWidth();
+	if (showMap[Name])
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		ImVec2 mainWindowSize = io.DisplaySize;
+		float offsetX = 400;
+		float offsetY = 400;
+		ImVec2 windowPos(mainWindowSize.x - offsetX, mainWindowSize.y - offsetY);
+
+		ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+		ImGui::Begin(Name, &showMap[Name], ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
+		ImGui::ColorPicker3("Color Picker", veccolor.Begin());
+		ImGui::End();
+	}
+	ImGui::Separator();
 }
 
 }

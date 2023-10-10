@@ -15,6 +15,7 @@ class ImGuiContextInstance;
 class Window;
 class RenderContext;
 class Renderer;
+class AABBRenderer;
 class RenderTarget;
 class SceneWorld;
 
@@ -26,6 +27,7 @@ namespace editor
 {
 
 class EditorImGuiViewport;
+class FileWatcher;
 class SceneView;
 
 class EditorApp final : public engine::IApplication
@@ -62,14 +64,18 @@ public:
 	void RegisterImGuiUserData(engine::ImGuiContextInstance* pImGuiContext);
 
 	void InitECWorld();
-	void InitController();
+	void InitEditorController();
 
 	bool IsAtmosphericScatteringEnable() const;
 
 private:
 	void InitEditorCameraEntity();
-	void InitDDGIEntity();
 	void InitSkyEntity();
+	void InitShaderVariantCollectionEntity();
+
+#ifdef ENABLE_DDGI
+	void InitDDGIEntity();
+#endif
 
 	bool m_bInitEditor = false;
 	engine::EngineInitArgs m_initArgs;
@@ -86,9 +92,12 @@ private:
 	std::unique_ptr<engine::SceneWorld> m_pSceneWorld;
 	editor::SceneView* m_pSceneView = nullptr;
 	engine::Renderer* m_pSceneRenderer = nullptr;
-	engine::Renderer* m_pDebugRenderer = nullptr;
+	engine::Renderer* m_pWhiteModelRenderer = nullptr;
+	engine::Renderer* m_pWireframeRenderer = nullptr;
 	engine::Renderer* m_pPBRSkyRenderer = nullptr;
 	engine::Renderer* m_pIBLSkyRenderer = nullptr;
+	engine::Renderer* m_pTerrainRenderer = nullptr;
+	engine::Renderer* m_pAABBRenderer = nullptr;
 
 	// Rendering
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;
@@ -96,7 +105,9 @@ private:
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEngineRenderers;
 
 	// Controllers for processing input events.
-	std::shared_ptr<engine::CameraController> m_pCameraController;
+	std::unique_ptr<engine::CameraController> m_pViewportCameraController;
+
+	std::unique_ptr<FileWatcher> m_pFileWatcher;
 };
 
 }

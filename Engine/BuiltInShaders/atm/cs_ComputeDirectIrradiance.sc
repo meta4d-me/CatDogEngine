@@ -3,8 +3,8 @@
 #define COMPUTE
 #include "atm_functions.sh"
 
-IMAGE2D_WR(s_delta_irradiance, rgba32f, 8);
-IMAGE2D_WR(s_irradiance, rgba32f, 9);
+IMAGE2D_WR(s_delta_irradiance, rgba32f, 0);
+IMAGE2D_WR(s_irradiance, rgba32f, 1);
 
 NUM_THREADS(8, 8, 1)
 void main()

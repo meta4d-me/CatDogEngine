@@ -2,6 +2,8 @@
 
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/SceneWorld.h"
+#include "ImGui/imgui.h"
+#include "ImGuizmo/ImGuizmo.h"
 #include "Math/Quaternion.hpp"
 #include "Window/Input.h"
 
@@ -87,6 +89,10 @@ void CameraController::ControllerToCamera()
 void CameraController::Update(float deltaTime)
 {
 	Moving();
+	bool isAnyMouseButtonPressed = engine::Input::Get().IsMouseLBPressed() || engine::Input::Get().IsMouseMBPressed() || engine::Input::Get().IsMouseRBPressed();
+	bool isAnyDirectionMouseMoved = 0 != engine::Input::Get().GetMousePositionOffsetX() || 0 != engine::Input::Get().GetMousePositionOffsetY();
+	m_isMouseMovedInView = isAnyMouseButtonPressed && isAnyDirectionMouseMoved;
+
 	if (Input::Get().IsKeyPressed(KeyCode::z))
 	{
 		// TODO : Only need to happen once in the first time press z.
@@ -129,31 +135,29 @@ void CameraController::Update(float deltaTime)
 		{
 			if (Input::Get().GetMouseScrollOffsetY())
 			{
-				m_mouseScroll += Input::Get().GetMouseScrollOffsetY() / 10;
-				m_mouseScroll = std::clamp(m_mouseScroll, -5.0f, 2.5f);
-				float speedRate = std::pow(2.0f, m_mouseScroll);
-				m_movementSpeed = speedRate * m_initialMovemenSpeed;
+				float speedRate = std::pow(2.0f, Input::Get().GetMouseScrollOffsetY() / 10.0f);
+				m_movementSpeed = speedRate * m_movementSpeed;
 			}
 
-			if (Input::Get().IsKeyPressed(KeyCode::w))
+			if (Input::Get().IsKeyPressed(KeyCode::w) && !m_isMoving)
 			{
 				m_isTracking = false;
 				MoveForward(m_movementSpeed * deltaTime);
 			}
 
-			if (Input::Get().IsKeyPressed(KeyCode::a))
+			if (Input::Get().IsKeyPressed(KeyCode::a) && !m_isMoving)
 			{
 				m_isTracking = false;
 				MoveLeft(m_movementSpeed * deltaTime);
 			}
 
-			if (Input::Get().IsKeyPressed(KeyCode::s))
+			if (Input::Get().IsKeyPressed(KeyCode::s) && !m_isMoving)
 			{
 				m_isTracking = false;
 				MoveBackward(m_movementSpeed * deltaTime);
 			}
 
-			if (Input::Get().IsKeyPressed(KeyCode::d))
+			if (Input::Get().IsKeyPressed(KeyCode::d) && !m_isMoving)
 			{
 				m_isTracking = false;
 				MoveRight(m_movementSpeed * deltaTime);
@@ -165,21 +169,21 @@ void CameraController::Update(float deltaTime)
 				MoveDown(m_movementSpeed * deltaTime);
 			}
 
-			if (Input::Get().IsKeyPressed(KeyCode::q))
+			if (Input::Get().IsKeyPressed(KeyCode::q) && !m_isMoving)
 			{
 				m_isTracking = false;
 				MoveUp(m_movementSpeed * deltaTime);
 			}
 		}
 
-		// TODO : Currently, editor will not capture focus imgui layer.
-		//if (Input::Get().IsMouseLBPressed() && !m_isMoving)
-		//{
-		//	m_isTracking = false;
-		//	Yaw(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
-		//}
+		
+		if (Input::Get().IsMouseRBPressed() && !m_isMoving)
+		{
+			m_isTracking = false;
+			Yaw(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
+		}
 
-		if (Input::Get().IsMouseRBPressed())
+		if (Input::Get().IsMouseLBPressed() && m_isInViewScene && !ImGuizmo::IsUsing())
 		{
 			m_isTracking = false;
 			PitchLocal(m_verticalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
@@ -352,37 +356,46 @@ void CameraController::SynchronizeTrackingCamera()
 	}
 }
 
-void CameraController::CameraFocus(const cd::AABB& aabb)
+void CameraController::CameraFocus()
 {
-	if (aabb.IsEmpty())
+	Entity selectedEntity = m_pSceneWorld->GetSelectedEntity();
+	if (selectedEntity == INVALID_ENTITY)
 	{
 		return;
 	}
-
-	m_isMoving = true;
-	m_distanceFromLookAt = (aabb.Max() - aabb.Center()).Length() * 3.0f;
-	m_eyeDestination = aabb.Center() - m_lookAt * m_distanceFromLookAt;
-	m_movementSpeed = aabb.Size().Length() * 1.5f;
+	if (TransformComponent* pTransform = m_pSceneWorld->GetTransformComponent(selectedEntity))
+	{
+		m_isMoving = true;
+		if (CollisionMeshComponent* pCollisionMesh = m_pSceneWorld->GetCollisionMeshComponent(selectedEntity))
+		{
+			cd::AABB meshAABB = pCollisionMesh->GetAABB();
+			meshAABB = meshAABB.Transform(pTransform->GetWorldMatrix());
+			m_distanceFromLookAt = (meshAABB.Max() - meshAABB.Center()).Length() * 3.0f;
+			m_eyeDestination = meshAABB.Center() - m_lookAt * m_distanceFromLookAt;
+			m_movementSpeed = meshAABB.Size().Length() * 1.5f;
+		}
+		else
+		{
+			m_eyeDestination = pTransform->GetTransform().GetTranslation() - m_lookAt * m_distanceFromLookAt;
+		}
+	}
 }
 
 void CameraController::Moving()
 {
 	if (m_isMoving)
 	{
+		if (cd::Math::IsSmallThan((m_eye - m_eyeDestination).Length(), 0.01f))
+		{
+			m_isMoving = false;
+			return;
+		}
 		cd::Direction eyeMove = (m_eye - m_eyeDestination).Normalize();
-		cd::Direction lookAtRotation = m_lookAtDestination - m_lookAt;
-		float stepRotation = lookAtRotation.Length() / 5.0f;
 		float stepDistance = (m_eye - m_eyeDestination).Length() / 5.0f;
 		m_eye = m_eye - eyeMove * stepDistance;
-		m_lookAt = m_lookAt + lookAtRotation.Normalize() * stepRotation;
 
 		SynchronizeTrackingCamera();
 		ControllerToCamera();
-
-		if (cd::Math::IsSmallThan((m_eye - m_eyeDestination).Length(), 0.1f))
-		{
-			m_isMoving = false;
-		}
 	}
 }
 

@@ -1,5 +1,6 @@
 #include "EntityList.h"
 
+#include "Display/CameraController.h"
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/World.h"
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
@@ -28,6 +29,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     engine::World* pWorld = pSceneWorld->GetWorld();
     cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
     engine::MaterialType* pPBRMaterialType = pSceneWorld->GetPBRMaterialType();
+    engine::MaterialType* pTerrainMaterialType = pSceneWorld->GetTerrainMaterialType();
 
     auto AddNamedEntity = [&pWorld](std::string defaultName) -> engine::Entity
     {
@@ -40,14 +42,23 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
 
     auto CreateShapeComponents = [&pSceneWorld, &pWorld, &pSceneDatabase](engine::Entity entity, cd::Mesh&& mesh, engine::MaterialType* pMaterialType)
     {
-        auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
-        meshComponent.SetMeshData(&mesh);
-        meshComponent.SetRequiredVertexFormat(&pMaterialType->GetRequiredVertexFormat());
-        meshComponent.Build();
-
         mesh.SetName(pSceneWorld->GetNameComponent(entity)->GetName());
         mesh.SetID(cd::MeshID(pSceneDatabase->GetMeshCount()));
+
+        uint32_t currentMeshCount = pSceneDatabase->GetMeshCount();
         pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
+        const cd::Mesh& newAddedShape = pSceneDatabase->GetMesh(currentMeshCount);
+
+        auto& collisionMeshComponent = pWorld->CreateComponent<engine::CollisionMeshComponent>(entity);
+        collisionMeshComponent.SetType(engine::CollisonMeshType::AABB);
+        collisionMeshComponent.SetAABB(newAddedShape.GetAABB());
+        collisionMeshComponent.Build();
+
+        auto& staticMeshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
+        staticMeshComponent.SetMeshData(&newAddedShape);
+        staticMeshComponent.SetRequiredVertexFormat(&pMaterialType->GetRequiredVertexFormat());
+        staticMeshComponent.Build();
+        staticMeshComponent.Submit();
 
         auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
         materialComponent.Init();
@@ -90,6 +101,39 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Sphere(cd::Point(0.0f), 10.0f), 100U, 100U, pPBRMaterialType->GetRequiredVertexFormat());
         assert(optMesh.has_value());
         CreateShapeComponents(entity, cd::MoveTemp(optMesh.value()), pPBRMaterialType);
+    }
+    else if (ImGui::MenuItem("Add Terrain Mesh"))
+    {
+        engine::Entity entity = AddNamedEntity("Terrain");
+
+        auto& terrainComponent = pWorld->CreateComponent<engine::TerrainComponent>(entity);
+        terrainComponent.InitElevationRawData();
+
+        std::optional<cd::Mesh> optMesh = engine::GenerateTerrainMesh(terrainComponent.GetMeshWidth(), terrainComponent.GetMeshDepth(), pTerrainMaterialType->GetRequiredVertexFormat());
+        assert(optMesh.has_value());
+        cd::Mesh& mesh = optMesh.value();
+
+        auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
+        meshComponent.SetMeshData(&mesh);
+        meshComponent.SetRequiredVertexFormat(&pTerrainMaterialType->GetRequiredVertexFormat());//to do : modify vertexFormat
+        meshComponent.Build();
+        meshComponent.Submit();
+
+        mesh.SetName(pSceneWorld->GetNameComponent(entity)->GetName());
+        mesh.SetID(cd::MeshID(pSceneDatabase->GetMeshCount()));
+        pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
+
+        auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
+        materialComponent.Init();
+        materialComponent.SetMaterialType(pTerrainMaterialType);
+        materialComponent.SetAlbedoColor(cd::Vec3f(0.2f));
+        materialComponent.SetSkyType(pSceneWorld->GetSkyComponent(pSceneWorld->GetSkyEntity())->GetSkyType());
+        materialComponent.SetTwoSided(true);
+        materialComponent.Build();
+
+        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+        transformComponent.SetTransform(cd::Transform::Identity());
+        transformComponent.Build();
     }
 
     // ---------------------------------------- Add Camera ---------------------------------------- //
@@ -175,6 +219,15 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
         lightComponent.SetRange(1024.0f);
         lightComponent.SetWidth(10.0f);
+    }
+    
+    // ---------------------------------------- Add Particle Emitter ---------------------------------------- //
+
+    else if (ImGui::MenuItem("Add Particle Emitter"))
+    {
+        engine::Entity entity = AddNamedEntity("ParticleEmitter");
+        auto& particleEmitterComponent = pWorld->CreateComponent<engine::ParticleEmitterComponent>(entity);
+        // TODO : Some initialization here.
     }
 }
 
@@ -282,24 +335,12 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
         pSceneWorld->SetSelectedEntity(entity);
         if (ImGui::IsMouseDoubleClicked(0))
         {
-            if (engine::StaticMeshComponent* pStaticMesh = pSceneWorld->GetStaticMeshComponent(entity))
+            if (m_pCameraController)
             {
-                cd::AABB meshAABB = pStaticMesh->GetAABB();
-                if (engine::TransformComponent* pTransform = pSceneWorld->GetTransformComponent(entity))
-                {
-                    meshAABB = meshAABB.Transform(pTransform->GetWorldMatrix());
-                    if (m_pCameraController)
-                    {
-                        m_pCameraController->CameraFocus(meshAABB);
-                    }
-                }
-
-      
-            }
+                m_pCameraController->CameraFocus();
+            }   
         }
     }
-
-    
 
     //if (m_editingEntityName)
     //{

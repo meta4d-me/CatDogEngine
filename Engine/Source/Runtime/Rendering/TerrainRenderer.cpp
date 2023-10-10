@@ -1,269 +1,217 @@
 #include "TerrainRenderer.h"
 
-#include "Core/StringCrc.h"
-#include "Framework/Processor.h"
-#include "Log/Log.h"
+#include "ECWorld/CameraComponent.h"
+#include "ECWorld/MaterialComponent.h"
+#include "ECWorld/SceneWorld.h"
+#include "ECWorld/SkyComponent.h"
+#include "ECWorld/StaticMeshComponent.h"
+#include "ECWorld/TransformComponent.h"
+#include "LightUniforms.h"
+#include "Material/ShaderSchema.h"
 #include "Math/Transform.hpp"
-#include "Path/Path.h"
-#include "Producers/CDProducer/CDProducer.h"
 #include "RenderContext.h"
 #include "Scene/Texture.h"
-
-#include <bgfx/bgfx.h>
-#include <bimg/decode.h>
-#include <bx/allocator.h>
-
-#include <fstream>
-#include <optional>
-
-using namespace cd;
-
-namespace
-{
-constexpr const char* kUniformSectorOrigin = "u_SectorOrigin";
-//constexpr engine::StringCrc kUniformSectorOriginCrc(kUniformSectorOrigin);
-constexpr const char* kUniformSectorDimension = "u_SectorDimension";
-//constexpr engine::StringCrc kUniformSectorDimensionCrc(kUniformSectorDimension);
-
-bx::AllocatorI* GetResourceAllocator()
-{
-	static bx::DefaultAllocator s_allocator;
-	return &s_allocator;
-}
-
-std::vector<std::byte> LoadFile(const char* pFilePath)
-{
-	std::vector<std::byte> fileData;
-
-	std::ifstream fin(pFilePath, std::ios::in | std::ios::binary);
-	if (!fin.is_open())
-	{
-		return fileData;
-	}
-
-	fin.seekg(0L, std::ios::end);
-	size_t fileSize = fin.tellg();
-	fin.seekg(0L, std::ios::beg);
-	fileData.resize(fileSize);
-	fin.read(reinterpret_cast<char*>(fileData.data()), fileSize);
-	fin.close();
-
-	return fileData;
-}
-
-}
+#include "U_IBL.sh"
+#include "U_Terrain.sh"
 
 namespace engine
 {
 
+namespace
+{
+
+constexpr const char* snowSampler = "s_texSnow";
+constexpr const char* rockSampler = "s_texRock";
+constexpr const char* grassSampler = "s_texGrass";
+constexpr const char* elevationSampler = "s_texElevation";
+
+constexpr const char* snowTexture = "Textures/terrain/snow_baseColor.dds";
+constexpr const char* rockTexture = "Textures/terrain/rock_baseColor.dds";
+constexpr const char* grassTexture = "Textures/terrain/grass_baseColor.dds";
+constexpr const char* elevationTexture = "Terrain";
+
+constexpr const char* lutSampler = "s_texLUT";
+constexpr const char* cubeIrradianceSampler = "s_texCubeIrr";
+constexpr const char* cubeRadianceSampler = "s_texCubeRad";
+
+constexpr const char* lutTexture = "Textures/lut/ibl_brdf_lut.dds";
+
+constexpr const char* cameraPos = "u_cameraPos";
+
+constexpr const char* albedoColor = "u_albedoColor";
+constexpr const char* metallicRoughnessFactor = "u_metallicRoughnessFactor";
+constexpr const char* albedoUVOffsetAndScale = "u_albedoUVOffsetAndScale";
+constexpr const char* alphaCutOff = "u_alphaCutOff";
+constexpr const char* emissiveColor = "u_emissiveColor";
+
+constexpr const char* lightCountAndStride = "u_lightCountAndStride";
+constexpr const char* lightParams = "u_lightParams";
+
+constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
+constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
+
+}
+
 void TerrainRenderer::Init()
 {
+	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+	
+	GetRenderContext()->CreateProgram("TerrainProgram", "vs_terrain.bin", "fs_terrain.bin");
+	GetRenderContext()->CreateUniform(snowSampler, bgfx::UniformType::Sampler);
+	GetRenderContext()->CreateUniform(rockSampler, bgfx::UniformType::Sampler);
+	GetRenderContext()->CreateUniform(grassSampler, bgfx::UniformType::Sampler);
+	GetRenderContext()->CreateUniform(elevationSampler, bgfx::UniformType::Sampler);
+
+	GetRenderContext()->CreateTexture(snowTexture);
+	GetRenderContext()->CreateTexture(rockTexture);
+	GetRenderContext()->CreateTexture(grassTexture);
+	GetRenderContext()->CreateTexture(elevationTexture);
+
+	GetRenderContext()->CreateTexture(lutTexture);
+	GetRenderContext()->CreateTexture(pSkyComponent->GetIrradianceTexturePath().c_str(), samplerFlags);
+	GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), samplerFlags);
+
+	GetRenderContext()->CreateUniform(cameraPos, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(albedoColor, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(emissiveColor, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(metallicRoughnessFactor, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(albedoUVOffsetAndScale, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(alphaCutOff, bgfx::UniformType::Vec4, 1);
+
+	GetRenderContext()->CreateUniform(lightCountAndStride, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(lightParams, bgfx::UniformType::Vec4, LightUniform::VEC4_COUNT);
+
+	GetRenderContext()->CreateTexture(elevationTexture, 129U, 129U, 1, bgfx::TextureFormat::Enum::R32F, samplerFlags, nullptr, 0);
+
 	bgfx::setViewName(GetViewID(), "TerrainRenderer");
-	m_updateUniforms = true;
-
-	m_dirtTexture = CreateTerrainTexture("terrain/dirty_baseColor", 0);
-	// TEMP CODE TODO move this to terrain editor
-	m_redChannelTexture = CreateTerrainTexture("terrain/dirty_baseColor", 3);
-	m_greenChannelTexture = CreateTerrainTexture("terrain/rockyGrass_baseColor", 4);
-	m_blueChannelTexture = CreateTerrainTexture("terrain/gravel_baseColor", 5);
-	m_alphaChannelTexture = CreateTerrainTexture("terrain/snowyRock_baseColor", 6);
-
-	u_terrainOrigin = GetRenderContext()->CreateUniform(kUniformSectorOrigin, bgfx::UniformType::Enum::Vec4, 1);
-	u_terrainDimension = GetRenderContext()->CreateUniform(kUniformSectorDimension, bgfx::UniformType::Vec4, 1);
 }
 
 void TerrainRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
 	UpdateViewRenderTarget();
 	bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
-
-	UpdateUniforms();
 }
 
 void TerrainRenderer::Render(float deltaTime)
 {
-	for (const Entity& entity : m_pCurrentSceneWorld->GetMaterialEntities())
-	{
-		if (!IsTerrainMesh(entity))
+	// TODO : Remove it. If every renderer need to submit camera related uniform, it should be done not inside Renderer class.
+	const cd::Transform& cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetTransform();
+	for (Entity entity : m_pCurrentSceneWorld->GetTerrainEntities())
+	{		
+		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
+		if (!pMaterialComponent ||
+			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetTerrainMaterialType())
+		{
+			// TODO : improve this condition. As we want to skip some feature-specified entities to render.
+			// For example, terrain/particle/...
+			continue;
+		}
+
+		// No mesh attached?
+		StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
+		if (!pMeshComponent)
 		{
 			continue;
 		}
 
-		if (m_entityToRenderInfo.find(entity) == m_entityToRenderInfo.cend())
+		// Transform
+		if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 		{
-			m_updateUniforms = true;
-			UpdateUniforms();
+			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
 		}
 
-		// Check cull dist
-		const Entity& cameraEntity = m_pCurrentSceneWorld->GetMainCameraEntity();
-		const cd::Transform cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(cameraEntity)->GetTransform();
-		const float dx = cameraTransform.GetTranslation().x() - m_entityToRenderInfo[entity].m_origin[0];
-		const float dy = cameraTransform.GetTranslation().y() - m_entityToRenderInfo[entity].m_origin[1];
-		const float dz = cameraTransform.GetTranslation().z() - m_entityToRenderInfo[entity].m_origin[2];
-		if (m_cullDistanceSquared <= (dx * dx + dy * dy + dz * dz)) {
-			// skip
-			continue;
-		}
-
-		const MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
-		const StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
-
+		// Mesh
 		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()});
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
 
-		bgfx::setTexture(m_dirtTexture.slot, bgfx::UniformHandle{m_dirtTexture.samplerHandle}, bgfx::TextureHandle{m_dirtTexture.textureHandle});
-		if (m_redChannelTexture.textureHandle != bgfx::kInvalidHandle && m_redChannelTexture.samplerHandle != bgfx::kInvalidHandle)
+		// Material
+		bgfx::setTexture(TERRAIN_TOP_ALBEDO_MAP_SLOT,
+			GetRenderContext()->GetUniform(StringCrc(snowSampler)),
+			GetRenderContext()->GetTexture(StringCrc(snowTexture)));
+
+		bgfx::setTexture(TERRAIN_MEDIUM_ALBEDO_MAP_SLOT,
+			GetRenderContext()->GetUniform(StringCrc(rockSampler)),
+			GetRenderContext()->GetTexture(StringCrc(rockTexture)));
+
+		bgfx::setTexture(TERRAIN_BOTTOM_ALBEDO_MAP_SLOT,
+			GetRenderContext()->GetUniform(StringCrc(grassSampler)),
+			GetRenderContext()->GetTexture(StringCrc(grassTexture)));
+
+		TerrainComponent* pTerrainComponent = m_pCurrentSceneWorld->GetTerrainComponent(entity);
+		GetRenderContext()->UpdateTexture(elevationTexture, 0, 0, 0, 0, 0, pTerrainComponent->GetTexWidth(), pTerrainComponent->GetTexDepth(),
+			1, pTerrainComponent->GetElevationRawData(), pTerrainComponent->GetElevationRawDataSize());
+
+		bgfx::setTexture(TERRAIN_ELEVATION_MAP_SLOT,
+			GetRenderContext()->GetUniform(StringCrc(elevationSampler)),
+			GetRenderContext()->GetTexture(StringCrc(elevationTexture)));
+
+		// Sky
+		SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+		SkyType crtSkyType = pSkyComponent->GetSkyType();
+		pMaterialComponent->SetSkyType(crtSkyType);
+
+		if (crtSkyType == SkyType::SkyBox)
 		{
-			bgfx::setTexture(m_redChannelTexture.slot, bgfx::UniformHandle{m_redChannelTexture.samplerHandle}, bgfx::TextureHandle{m_redChannelTexture.textureHandle});
-		}
-		if (m_greenChannelTexture.textureHandle != bgfx::kInvalidHandle && m_greenChannelTexture.samplerHandle != bgfx::kInvalidHandle)
-		{
-			bgfx::setTexture(m_greenChannelTexture.slot, bgfx::UniformHandle{m_greenChannelTexture.samplerHandle}, bgfx::TextureHandle{m_greenChannelTexture.textureHandle});
-		}
-		if (m_blueChannelTexture.textureHandle != bgfx::kInvalidHandle && m_blueChannelTexture.samplerHandle != bgfx::kInvalidHandle)
-		{
-			bgfx::setTexture(m_blueChannelTexture.slot, bgfx::UniformHandle{m_blueChannelTexture.samplerHandle}, bgfx::TextureHandle{m_blueChannelTexture.textureHandle});
-		}
-		if (m_alphaChannelTexture.textureHandle != bgfx::kInvalidHandle && m_alphaChannelTexture.samplerHandle != bgfx::kInvalidHandle)
-		{
-			bgfx::setTexture(m_alphaChannelTexture.slot, bgfx::UniformHandle{m_alphaChannelTexture.samplerHandle}, bgfx::TextureHandle{m_alphaChannelTexture.textureHandle});
+			// Create a new TextureHandle each frame if the skybox texture path has been updated,
+			// otherwise RenderContext::CreateTexture will automatically skip it.
+
+			constexpr StringCrc irrSamplerCrc(cubeIrradianceSampler);
+			GetRenderContext()->CreateTexture(pSkyComponent->GetIrradianceTexturePath().c_str(), samplerFlags);
+			bgfx::setTexture(IBL_IRRADIANCE_SLOT,
+				GetRenderContext()->GetUniform(irrSamplerCrc),
+				GetRenderContext()->GetTexture(StringCrc(pSkyComponent->GetIrradianceTexturePath())));
+
+			constexpr StringCrc radSamplerCrc(cubeRadianceSampler);
+			GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), samplerFlags);
+			bgfx::setTexture(IBL_RADIANCE_SLOT,
+				GetRenderContext()->GetUniform(radSamplerCrc),
+				GetRenderContext()->GetTexture(StringCrc(pSkyComponent->GetRadianceTexturePath())));
+
+			constexpr StringCrc lutsamplerCrc(lutSampler);
+			constexpr StringCrc luttextureCrc(lutTexture);
+			bgfx::setTexture(BRDF_LUT_SLOT, GetRenderContext()->GetUniform(lutsamplerCrc), GetRenderContext()->GetTexture(luttextureCrc));
 		}
 
-		for (const auto& [textureType, textureInfo] : pMaterialComponent->GetTextureResources())
+		// Submit uniform values : camera settings
+		constexpr StringCrc cameraPosCrc(cameraPos);
+		GetRenderContext()->FillUniform(cameraPosCrc, &cameraTransform.GetTranslation().x(), 1);
+
+		// Submit uniform values : material settings
+		constexpr StringCrc albedoColorCrc(albedoColor);
+		GetRenderContext()->FillUniform(albedoColorCrc, pMaterialComponent->GetAlbedoColor().Begin(), 1);
+
+		constexpr StringCrc mrFactorCrc(metallicRoughnessFactor);
+		cd::Vec4f metallicRoughnessFactorData(pMaterialComponent->GetMetallicFactor(), pMaterialComponent->GetRoughnessFactor(), 1.0f, 1.0f);
+		GetRenderContext()->FillUniform(mrFactorCrc, metallicRoughnessFactorData.Begin(), 1);
+
+		constexpr StringCrc emissiveColorCrc(emissiveColor);
+		GetRenderContext()->FillUniform(emissiveColorCrc, pMaterialComponent->GetEmissiveColor().Begin(), 1);
+
+		// Submit uniform values : light settings
+		auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();
+		size_t lightEntityCount = lightEntities.size();
+		constexpr engine::StringCrc lightCountAndStrideCrc(lightCountAndStride);
+		static cd::Vec4f lightInfoData(0, LightUniform::LIGHT_STRIDE, 0.0f, 0.0f);
+		lightInfoData.x() = static_cast<float>(lightEntityCount);
+		GetRenderContext()->FillUniform(lightCountAndStrideCrc, lightInfoData.Begin(), 1);
+		if (lightEntityCount > 0)
 		{
-			// TODO optimize by using textureInfo instead of GetTextureInfo
-			if (const MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(textureType))
-			{
-				bgfx::setTexture(pTextureInfo->slot, bgfx::UniformHandle{pTextureInfo->samplerHandle}, bgfx::TextureHandle{pTextureInfo->textureHandle});
-			}
+			// Light component storage has continus memory address and layout.
+			float* pLightDataBegin = reinterpret_cast<float*>(m_pCurrentSceneWorld->GetLightComponent(lightEntities[0]));
+			constexpr engine::StringCrc lightParamsCrc(lightParams);
+			GetRenderContext()->FillUniform(lightParamsCrc, pLightDataBegin, static_cast<uint16_t>(lightEntityCount * LightUniform::LIGHT_STRIDE));
 		}
 
-		const TerrainRenderInfo& meshRenderInfo = m_entityToRenderInfo[entity];
-		bgfx::setUniform(u_terrainOrigin, static_cast<const void*>(meshRenderInfo.m_origin));
-		bgfx::setUniform(u_terrainDimension, static_cast<const void*>(meshRenderInfo.m_dimension));
+		uint64_t state = defaultRenderingState;
+		if (!pMaterialComponent->GetTwoSided())
+		{
+			state |= BGFX_STATE_CULL_CCW;
+		}
 
-		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);
 
-		bgfx::submit(GetViewID(), bgfx::ProgramHandle{pMaterialComponent->GetShadreProgram()});
-	}
-}
-
-void TerrainRenderer::SetAndLoadAlphaMapTexture(const cdtools::AlphaMapChannel channel, const std::string& textureName)
-{
-	switch (channel)
-	{
-	case cdtools::AlphaMapChannel::Red:
-		m_redChannelTexture = CreateTerrainTexture(textureName.c_str(), 3);
-		break;
-	case cdtools::AlphaMapChannel::Green:
-		m_greenChannelTexture = CreateTerrainTexture(textureName.c_str(), 4);
-		break;
-	case cdtools::AlphaMapChannel::Blue:
-		m_blueChannelTexture = CreateTerrainTexture(textureName.c_str(), 5);
-		break;
-	case cdtools::AlphaMapChannel::Alpha:
-		m_alphaChannelTexture = CreateTerrainTexture(textureName.c_str(), 6);
-		break;
-	default:
-		assert(false);
-	}
-}
-
-TerrainRenderer::TerrainTexture TerrainRenderer::CreateTerrainTexture(const char* textureFileName, uint8_t slot) 
-{
-	TerrainTexture outTexture;
-	outTexture.slot = slot;
-	outTexture.samplerHandle = bgfx::kInvalidHandle;
-	outTexture.textureHandle = bgfx::kInvalidHandle;
-	outTexture.format = cd::TextureFormat::Count;
-
-	const std::string textureFilePath = engine::Path::GetTerrainTextureOutputFilePath(textureFileName, ".dds");
-	// Load the texture file
-	std::vector<std::byte> textureFileBlob = LoadFile(textureFilePath.c_str());
-	assert(!textureFileBlob.empty());
-	// Decode the texture
-	bimg::ImageContainer* pImageContainer = bimg::imageParse(GetResourceAllocator(), textureFileBlob.data(), static_cast<uint32_t>(textureFileBlob.size()));
-	const bgfx::Memory* pMemory = bgfx::makeRef(pImageContainer->m_data, pImageContainer->m_size);
-	outTexture.format = static_cast<cd::TextureFormat>(pImageContainer->m_format);
-	const uint64_t textureFlag = (BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_TEXTURE_SRGB);
-	outTexture.textureHandle = bgfx::createTexture2D(
-		pImageContainer->m_width, 
-		pImageContainer->m_height, 
-		pImageContainer->m_numMips, 
-		pImageContainer->m_numLayers, 
-		static_cast<bgfx::TextureFormat::Enum>(pImageContainer->m_format),
-		textureFlag, 
-		pMemory
-	).idx;
-
-	std::string samplerUniformName = "s_terrainTextureSampler";
-	samplerUniformName += std::to_string(slot);
-	outTexture.samplerHandle = bgfx::createUniform(samplerUniformName.c_str(), bgfx::UniformType::Sampler).idx;
-	assert(outTexture.textureHandle != bgfx::kInvalidHandle);
-	assert(outTexture.samplerHandle != bgfx::kInvalidHandle);
-	
-	return outTexture;
-}
-
-bool TerrainRenderer::IsTerrainMesh(Entity entity) const
-{
-	const MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
-	if (!pMaterialComponent ||
-		pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetTerrainMaterialType())
-	{
-		return false;
-	}
-	const StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
-	if (!pMeshComponent)
-	{
-		CD_ENGINE_WARN("Entity: %u has terrain material but is missing mesh component!", entity);
-		return false;
-	}
-	return true;
-}
-
-void TerrainRenderer::UpdateUniforms()
-{
-	if (m_updateUniforms)
-	{
-		for (const Entity& entity : m_pCurrentSceneWorld->GetMaterialEntities())
-		{
-			if (!IsTerrainMesh(entity))
-			{
-				continue;
-			}
-			if (m_entityToRenderInfo.find(entity) == m_entityToRenderInfo.cend())
-			{
-				m_entityToRenderInfo[entity] = TerrainRenderInfo();
-			}
-			TerrainRenderInfo& renderInfo = m_entityToRenderInfo[entity];
-			const StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
-			const Mesh* terrainMesh = pMeshComponent->GetMeshData();
-			if (!terrainMesh)
-			{
-				CD_ENGINE_WARN("Entity: %u has null mesh data!", entity);
-				continue;
-			}
-			// Convention is determined by TerrainProducer that the origin is always the first vertex
-			const std::vector<Point>& vertices = terrainMesh->GetVertexPositions();
-			const Point& origin = vertices[0];
-			renderInfo.m_origin[0] = origin.x();
-			renderInfo.m_origin[1] = origin.y();
-			renderInfo.m_origin[2] = origin.z();
-			renderInfo.m_origin[3] = 0.0f;
-
-			const MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
-			const MaterialComponent::TextureInfo* pElevationTexture = pMaterialComponent->GetTextureInfo(MaterialTextureType::Elevation);
-			assert(pElevationTexture);
-			renderInfo.m_dimension[0] = static_cast<float>(pElevationTexture->width);
-			renderInfo.m_dimension[1] = static_cast<float>(pElevationTexture->height);
-			renderInfo.m_dimension[2] = 0.0f;
-			renderInfo.m_dimension[3] = 0.0f;
-		}
-
-		m_updateUniforms = false;
+		constexpr StringCrc terrainProgram("TerrainProgram");
+		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(terrainProgram));
 	}
 }
 

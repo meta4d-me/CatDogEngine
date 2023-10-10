@@ -348,7 +348,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 			//m_pImportFileBrowser->SetTypeFilters({ ".dds", "*.exr", "*.hdr", "*.ktx", ".tga" });
 			m_pImportFileBrowser->Open();
 
-			CD_INFO("Import asset type: {}", GetDDGITextureTypeName(m_importOptions.AssetType));
+			CD_INFO("Import asset type: {}", nameof::nameof_enum(m_importOptions.AssetType));
 		}
 
 		else if (ImGui::Selectable("Shader"))
@@ -358,7 +358,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 			//m_pImportFileBrowser->SetTypeFilters({ ".sc" }); // ".hlsl"
 			m_pImportFileBrowser->Open();
 
-			CD_INFO("Import asset type: {}", GetDDGITextureTypeName(m_importOptions.AssetType));
+			CD_INFO("Import asset type: {}", nameof::nameof_enum(m_importOptions.AssetType));
 		}
 		else if (ImGui::Selectable("Model"))
 		{
@@ -367,23 +367,26 @@ void AssetBrowser::UpdateAssetFolderTree()
 			//m_pImportFileBrowser->SetTypeFilters({ ".fbx", ".gltf" }); // ".obj", ".dae", ".ogex"
 			m_pImportFileBrowser->Open();
 
-			CD_INFO("Import asset type: {}", GetDDGITextureTypeName(m_importOptions.AssetType));
+			CD_INFO("Import asset type: {}", nameof::nameof_enum(m_importOptions.AssetType));
 		}
+
+#ifdef ENABLE_DDGI
 		else if (ImGui::Selectable("DDGI Model"))
 		{
 			m_importOptions.AssetType = IOAssetType::DDGIModel;
 			m_pImportFileBrowser->SetTitle("ImportAssets - DDGI Model");
 			m_pImportFileBrowser->Open();
 
-			CD_INFO("Import asset type: {}", GetDDGITextureTypeName(m_importOptions.AssetType));
+			CD_INFO("Import asset type: {}", GetIOAssetTypeName(m_importOptions.AssetType));
 		}
 		else if (ImGui::Selectable("Light from json"))
 		{
 			m_importOptions.AssetType = IOAssetType::Light;
 			m_pImportFileBrowser->SetTitle("ImportAssets - Light");
 			m_pImportFileBrowser->Open();
-			CD_INFO("Import asset type: {}", GetDDGITextureTypeName(m_importOptions.AssetType));
+			CD_INFO("Import asset type: {}", GetIOAssetTypeName(m_importOptions.AssetType));
 		}
+#endif
 
 		ImGui::EndPopup();
 	}
@@ -399,7 +402,7 @@ void AssetBrowser::UpdateAssetFolderTree()
 			m_pExportFileBrowser->SetTitle("ExportAssets - SceneDatabase");
 			m_pExportFileBrowser->Open();
 
-			CD_INFO("Export asset type: {}", GetDDGITextureTypeName(m_exportOptions.AssetType));
+			CD_INFO("Export asset type: {}", nameof::nameof_enum(m_exportOptions.AssetType));
 		}
 
 		ImGui::EndPopup();
@@ -670,7 +673,7 @@ void AssetBrowser::UpdateAssetFileView()
 	ImGui::SliderFloat(" ", &m_gridSize, 40.0f, 160.0f, " ", ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_Logarithmic);
 }
 
-bool AssetBrowser::UpdateOptionDialog(const char* pTitle, bool& active, bool& importMesh, bool& importMaterial, bool& importTexture, bool& importCamera, bool& importLight)
+bool AssetBrowser::UpdateOptionDialog(const char* pTitle, bool& active, bool& importMesh, bool& importMaterial, bool& importTexture, bool& importAnimation, bool& importCamera, bool& importLight)
 {
 	if (!active)
 	{
@@ -712,6 +715,7 @@ bool AssetBrowser::UpdateOptionDialog(const char* pTitle, bool& active, bool& im
 		ImGui::Separator();
 		if (isOtherOpen)
 		{
+			ImGuiUtils::ImGuiBoolProperty("Animation", importAnimation);
 			ImGuiUtils::ImGuiBoolProperty("Camera", importCamera);
 			ImGuiUtils::ImGuiBoolProperty("Light", importLight);
 		}
@@ -871,7 +875,7 @@ void AssetBrowser::ProcessSceneDatabase(cd::SceneDatabase* pSceneDatabase, bool 
 		pSceneDatabase->GetTextures().clear();
 		for (auto& material : pSceneDatabase->GetMaterials())
 		{
-			for (int textureTypeIndex = 0; textureTypeIndex < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeIndex)
+			for (int textureTypeIndex = 0; textureTypeIndex < nameof::enum_count<cd::MaterialTextureType>(); ++textureTypeIndex)
 			{
 				material.RemoveTexture(static_cast<cd::MaterialTextureType>(textureTypeIndex));
 			}
@@ -905,26 +909,31 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 	if (0 == inputFileExtension.compare(".cdbin"))
 	{
 		cdtools::CDProducer cdProducer(pFilePath);
-		cdtools::Processor processor(&cdProducer, nullptr, pSceneDatabase);
+		cd::SceneDatabase newSceneDatabase;
+		cdtools::Processor processor(&cdProducer, nullptr, &newSceneDatabase);
 		processor.Run();
+		pSceneDatabase->Merge(cd::MoveTemp(newSceneDatabase));
 	}
 	else
 	{
 #ifdef ENABLE_GENERIC_PRODUCER
 		cdtools::GenericProducer genericProducer(pFilePath);
-		genericProducer.SetSceneDatabaseIDs(pSceneDatabase->GetNodeCount(), pSceneDatabase->GetMeshCount(),
-		pSceneDatabase->GetMaterialCount(), pSceneDatabase->GetTextureCount(), pSceneDatabase->GetLightCount());
 		genericProducer.ActivateBoundingBoxService();
 		genericProducer.ActivateCleanUnusedService();
 		genericProducer.ActivateTangentsSpaceService();
 		genericProducer.ActivateTriangulateService();
 		genericProducer.ActivateSimpleAnimationService();
-		genericProducer.ActivateFlattenHierarchyService();
+		if (!m_importOptions.ImportAnimation)
+		{
+			genericProducer.ActivateFlattenHierarchyService();
+		}
 
-		cdtools::Processor processor(&genericProducer, nullptr, pSceneDatabase);
+		cd::SceneDatabase newSceneDatabase;
+		cdtools::Processor processor(&genericProducer, nullptr, &newSceneDatabase);
 		processor.SetDumpSceneDatabaseEnable(false);
-		processor.SetFlattenSceneDatabaseEnable(true);
+		//processor.SetFlattenSceneDatabaseEnable(true);
 		processor.Run();
+		pSceneDatabase->Merge(cd::MoveTemp(newSceneDatabase));
 #else
 		assert("Unable to import this file format.");
 #endif
@@ -937,11 +946,14 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 	// Step 3 : Convert cd::SceneDatabase to entities and components
 	{
 		ECWorldConsumer ecConsumer(pSceneWorld, pCurrentRenderContext);
+		ecConsumer.SetDefaultMaterialType(pSceneWorld->GetPBRMaterialType());
 		ecConsumer.SetSceneDatabaseIDs(oldNodeCount, oldMeshCount);
+#ifdef ENABLE_DDGI
 		if (m_importOptions.AssetType == IOAssetType::DDGIModel)
 		{
-			ecConsumer.ActivateDDGIService();
+			ecConsumer.SetDefaultMaterialType(pSceneWorld->GetDDGIMaterialType());
 		}
+#endif
 		cdtools::Processor processor(nullptr, &ecConsumer, pSceneDatabase);
 		processor.SetDumpSceneDatabaseEnable(true);
 		processor.Run();
@@ -955,31 +967,6 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 		processor.SetDumpSceneDatabaseEnable(false);
 		processor.Run();
 	}
-
-#if 0
-	// Temporary : Edit texture file path.
-	{
-	
-		cdtools::CDConsumer cdConsumer("C:/Users/22470/Desktop/subo/new/subo.cdbin2");
-		cdConsumer.SetExportMode(cdtools::ExportMode::PureBinary);
-
-		auto &textures = pSceneDatabase->GetTextures();
-		for (auto &tx : textures)
-		{
-			std::filesystem::path texturePath = tx.GetPath();
-			texturePath.replace_extension("dds");
-			std::string newName = texturePath.filename().string();
-			tx.SetPath(newName.c_str());
-
-			CD_FATAL("newName : {}", newName);
-		}
-
-		cdtools::Processor processor(nullptr, &cdConsumer, pSceneDatabase);
-		processor.SetDumpSceneDatabaseEnable(false);
-		processor.Run();
-	}
-#endif
-
 }
 
 void AssetBrowser::ImportJson(const char* pFilePath)
@@ -1165,7 +1152,7 @@ void AssetBrowser::Update()
 		m_importOptions.Active = true;
 	}
 	if (UpdateOptionDialog("Import Options", m_importOptions.Active, m_importOptions.ImportMesh, m_importOptions.ImportMaterial, m_importOptions.ImportTexture,
-		m_importOptions.ImportCamera, m_importOptions.ImportLight))
+		m_importOptions.ImportAnimation, m_importOptions.ImportCamera, m_importOptions.ImportLight))
 	{
 		ImportAssetFile(m_pImportFileBrowser->GetSelected().string().c_str());
 		m_pImportFileBrowser->ClearSelected();
@@ -1178,7 +1165,7 @@ void AssetBrowser::Update()
 	}
 
 	if (UpdateOptionDialog("Export Options", m_exportOptions.Active, m_exportOptions.ExportMesh, m_exportOptions.ExportMaterial, m_exportOptions.ExportTexture,
-		m_exportOptions.ExportCamera, m_exportOptions.ExportLight))
+		m_importOptions.ImportAnimation, m_exportOptions.ExportCamera, m_exportOptions.ExportLight))
 	{
 		ExportAssetFile(m_pExportFileBrowser->GetSelected().string().c_str());
 		m_pExportFileBrowser->ClearSelected();

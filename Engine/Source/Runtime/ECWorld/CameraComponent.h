@@ -2,9 +2,8 @@
 
 #include "Core/StringCrc.h"
 #include "Math/Box.hpp"
-#include "Math/Matrix.hpp"
 #include "Math/Ray.hpp"
-#include "TransformComponent.h"
+#include "Math/Transform.hpp"
 
 namespace cd
 {
@@ -33,7 +32,6 @@ public:
 	CameraComponent& operator=(CameraComponent&&) = default;
 	~CameraComponent() = default;
 
-	void FrameAll(const cd::AABB& aabb);
 	cd::Ray EmitRay(float screenX, float screenY, float width, float height) const;
 
 	void SetAspect(float aspect) { m_aspect = aspect; m_isProjectionDirty = true; }
@@ -63,7 +61,7 @@ public:
 	static void SetLookAt(const cd::Vec3f& lookAt, cd::Transform& transform);
 	static void SetUp(const cd::Vec3f& up, cd::Transform& transform);
 	static void SetCross(const cd::Vec3f& cross, cd::Transform& transform);
-
+	static void FrameAll(const cd::AABB& aabb, cd::Transform& transform);
 
 	const cd::Matrix4x4& GetViewMatrix() const { return m_viewMatrix; }
 	void BuildViewMatrix(const cd::Transform& tranform);
@@ -82,13 +80,45 @@ public:
 	bool DoConstrainAspectRatio() const { return m_doConstainAspectRatio; }
 	void SetConstrainAspectRatio(bool use) { m_doConstainAspectRatio = use; }
 
-	bool& GetIsPostProcessEnable() { return m_enablePostProcess; }
-	bool IsPostProcessEnable() { return m_enablePostProcess; }
-	void SetPostProcessEnable(bool use) { m_enablePostProcess = use; }
+	bool& GetIsToneMapping() { return m_enableToneMapping; }
+	bool GetIsToneMappingEnable() { return m_enableToneMapping; }
+	void SetToneMappingEnable(bool use) { m_enableToneMapping = use; }
 
 	float& GetGammaCorrection() { return m_gammaCorrection; }
 	const float& GetGammaCorrection() const { return m_gammaCorrection; }
 	void SetGammaCorrection(float gamma) { m_gammaCorrection = gamma; }
+
+	bool& GetIsBloomEnable() { return m_enableBloom; }
+	const float& GetIsBloomEnable() const { return m_enableBloom; }
+	void SetBloomEnable(bool bloom) { m_enableBloom = bloom; }
+
+	bool& GetIsBlurEnable() { return m_enableBlur; }
+	const float& GetIsBlurEnable() const { return m_enableBlur; }
+	void SetBlurEnable(bool blur) { m_enableBloom = blur; }
+
+	int& GetBloomDownSampleTimes() { return m_blomDownSampleTimes; }
+	const int& GetBloomDownSampleTimes() const { return m_blomDownSampleTimes; }
+	void SetBloomDownSampleTImes(int downsampletimes) { m_blomDownSampleTimes = downsampletimes; }
+
+	float& GetBloomIntensity() { return m_bloomIntensity; }
+	const float& GetBloomIntensity() const { return m_bloomIntensity; }
+	void SetBloomIntensity(float intensity) { m_bloomIntensity = intensity; }
+
+	float& GetLuminanceThreshold() { return m_luminanceThreshold; }
+	const float& GetLuminanceThreshold() const { return m_luminanceThreshold; }
+	void SetLuminanceThreshold(float luminancethreshold) { m_luminanceThreshold = luminancethreshold; }
+
+	int& GetBlurTimes() { return m_blurTimes; }
+	const int& GetBlurTimes() const { return m_blurTimes; }
+	void SetBlurTimes(int blurtimes) { m_blurTimes = blurtimes; }
+
+	float& GetBlurSize() { return m_blurSize; }
+	const float& GetBlurSize() const { return m_blurSize; }
+	void SetBlurSize(float blursize) { m_blurSize = blursize; }
+
+	int& GetBlurScaling() { return m_blurScaling; }
+	const int& GetBlurScaling() const { return m_blurScaling; }
+	void SetBlurScaling(int blurscaling) { m_blurScaling = blurscaling; }
 #endif
 
 private:
@@ -109,7 +139,15 @@ private:
 
 #ifdef EDITOR_MODE
 	bool m_doConstainAspectRatio;
-	bool m_enablePostProcess;
+	bool m_enableToneMapping;
+	bool m_enableBloom;
+	bool m_enableBlur;
+	int m_blomDownSampleTimes;
+	float m_bloomIntensity;
+	float m_luminanceThreshold;
+	int m_blurTimes;
+	float m_blurSize;
+	int m_blurScaling;
 	float m_gammaCorrection;
 #endif
 };

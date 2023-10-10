@@ -19,7 +19,7 @@ void TransformComponent::Build()
 	}
 }
 #ifdef EDITOR_MODE
-bool TransformComponent::m_doUseUniformScale = false;
+bool TransformComponent::m_doUseUniformScale = true;
 #endif
 
 }

@@ -39,29 +39,7 @@ enum class IOAssetType
 	Terrain,
 	Light,
 	Unknown,
-
-	Count,
 };
-
-constexpr const char *IOAssetTypeName[] =
-{
-	"CubeMap",
-	"DDGIModel",
-	"Model",
-	"Shader",
-	"SceneDatabase",
-	"Terrain",
-	"Light",
-	"Unknown",
-};
-
-static_assert(static_cast<int>(IOAssetType::Count) == sizeof(IOAssetTypeName) / sizeof(char *),
-	"IO asset type and names mismatch.");
-
-CD_FORCEINLINE const char *GetDDGITextureTypeName(IOAssetType type)
-{
-	return IOAssetTypeName[static_cast<size_t>(type)];
-}
 
 struct AssetImportOptions
 {
@@ -72,6 +50,7 @@ struct AssetImportOptions
 	bool ImportMaterial = true;
 	bool ImportMesh = true;
 	bool ImportTexture = true;
+	bool ImportAnimation = false;
 };
 
 struct AssetExportOptions
@@ -129,7 +108,7 @@ private:
 
 	void UpdateAssetFolderTree();
 	void UpdateAssetFileView();
-	bool UpdateOptionDialog(const char* pTitle, bool& active, bool& importMesh, bool& importMaterial, bool& importTexture, bool& importCamera, bool& importLight);
+	bool UpdateOptionDialog(const char* pTitle, bool& active, bool& importMesh, bool& importMaterial, bool& importTexture, bool& importAnimation, bool& importCamera, bool& importLight);
 
 private:
 	AssetImportOptions m_importOptions;

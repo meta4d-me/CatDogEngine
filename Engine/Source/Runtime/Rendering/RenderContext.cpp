@@ -37,6 +37,7 @@ void DestoryImpl(engine::StringCrc resourceCrc, T& caches)
 	auto itResource = caches.find(resourceCrc.Value());
 	if(itResource != caches.end())
 	{
+		assert(bgfx::isValid(itResource->second));
 		bgfx::destroy(itResource->second);
 		caches.erase(itResource);
 	}
@@ -135,7 +136,7 @@ void RenderContext::EndFrame()
 
 void RenderContext::OnResize(uint16_t width, uint16_t height)
 {
-	bgfx::reset(width, height, BGFX_RESET_MSAA_X16 | BGFX_RESET_VSYNC);
+	bgfx::reset(width, height, BGFX_RESET_VSYNC);
 	m_backBufferWidth = width;
 	m_backBufferHeight = height;
 }
@@ -372,10 +373,10 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pName, uint16_t wid
 	return texture;
 }
 
-bgfx::TextureHandle RenderContext::UpdateTexture(const char *pName, uint16_t layer, uint8_t mip, uint16_t x, uint16_t y, uint16_t z, uint16_t width, uint16_t height, uint16_t depth, const void *data, uint32_t size)
+bgfx::TextureHandle RenderContext::UpdateTexture(const char* pName, uint16_t layer, uint8_t mip, uint16_t x, uint16_t y, uint16_t z, uint16_t width, uint16_t height, uint16_t depth, const void* data, uint32_t size)
 {
 	bgfx::TextureHandle handle = BGFX_INVALID_HANDLE;
-	const bgfx::Memory *mem = nullptr;
+	const bgfx::Memory* mem = nullptr;
 
 	StringCrc textureName(pName);
 	auto itTextureCache = m_textureHandleCaches.find(textureName.Value());

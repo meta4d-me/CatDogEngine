@@ -150,7 +150,7 @@ bool ResourceBuilder::AddTask(Process process)
 	return true;
 }
 
-bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pUberOptions)
+bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pShaderFeatures)
 {
 	if (s_SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
 	{
@@ -167,7 +167,7 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 	shaderSourceFolderPath += "/varying.def.sc";
 
 	std::vector<std::string> commandArguments{ "-f", pInputFilePath, "--varyingdef", shaderSourceFolderPath.string().c_str(),
-		"-o", pOutputFilePath, "--platform", "windows", "-O", "3"};
+		"-o", pOutputFilePath, "-O", "3"};
 	
 	commandArguments.push_back("--platform");
 #if CD_PLATFORM_OSX
@@ -182,19 +182,17 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 	static_assert("CD_PLATFORM macro not defined!");
 #endif
 
+	commandArguments.push_back("--type");
 	if (ShaderType::Compute == shaderType)
 	{
-		commandArguments.push_back("--type");
 		commandArguments.push_back("c");
 	}
 	else if (ShaderType::Fragment == shaderType)
 	{
-		commandArguments.push_back("--type");
 		commandArguments.push_back("f");
 	}
 	else if (ShaderType::Vertex == shaderType)
 	{
-		commandArguments.push_back("--type");
 		commandArguments.push_back("v");
 	}
 
@@ -204,18 +202,7 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 	{
 	case engine::GraphicsBackend::Direct3D11:
 	case engine::GraphicsBackend::Direct3D12:
-		if (ShaderType::Compute == shaderType)
-		{
-			commandArguments.push_back("cs_5_0");
-		}
-		else if (ShaderType::Fragment == shaderType)
-		{
-			commandArguments.push_back("ps_5_0");
-		}
-		else if (ShaderType::Vertex == shaderType)
-		{
-			commandArguments.push_back("vs_5_0");
-		}
+		commandArguments.push_back("s_5_0");
 		shaderLanguageDefine = "BGFX_SHADER_LANGUAGE_HLSL";
 		break;
 	case engine::GraphicsBackend::OpenGL:
@@ -238,15 +225,13 @@ bool ResourceBuilder::AddShaderBuildTask(ShaderType shaderType, const char* pInp
 		assert("Unknown shader compile profile.");
 	}
 
-	if (pUberOptions && *pUberOptions != '\0')
+	if (pShaderFeatures && *pShaderFeatures != '\0')
 	{
 		commandArguments.push_back("--define");
-		commandArguments.push_back(shaderLanguageDefine + ";" + pUberOptions);
+		commandArguments.push_back(shaderLanguageDefine + ";" + pShaderFeatures);
 	}
 
 	process.SetCommandArguments(cd::MoveTemp(commandArguments));
-
-	process.SetWaitUntilFinished(true);
 	AddTask(cd::MoveTemp(process));
 
 	return true;
@@ -269,7 +254,6 @@ bool ResourceBuilder::AddIrradianceCubeMapBuildTask(const char* pInputFilePath, 
 		"--outputNum", "1", "--output0", cd::MoveTemp(pathWithoutExtension), "--output0params", "dds,rgba16f,cubemap"};
 
 	process.SetCommandArguments(cd::MoveTemp(irradianceCommandArguments));
-	process.SetWaitUntilFinished(true);
 	AddTask(cd::MoveTemp(process));
 
 	return true;
@@ -292,7 +276,6 @@ bool ResourceBuilder::AddRadianceCubeMapBuildTask(const char* pInputFilePath, co
 		"--outputNum", "1", "--output0", cd::MoveTemp(pathWithoutExtension), "--output0params", "dds,rgba16f,cubemap"};
 
 	process.SetCommandArguments(cd::MoveTemp(radianceCommandArguments));
-	process.SetWaitUntilFinished(true);
 	AddTask(cd::MoveTemp(process));
 
 	return true;
@@ -320,13 +303,12 @@ bool ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, c
 		commandArguments.push_back("--linear");
 	}
 	process.SetCommandArguments(cd::MoveTemp(commandArguments));
-	process.SetWaitUntilFinished(true);
 	AddTask(cd::MoveTemp(process));
 
 	return true;
 }
 
-void ResourceBuilder::Update()
+void ResourceBuilder::Update(bool doPrintLog)
 {
 	if (m_buildTasks.empty())
 	{
@@ -337,6 +319,8 @@ void ResourceBuilder::Update()
 	while (!m_buildTasks.empty())
 	{
 		Process& process = m_buildTasks.front();
+		process.SetWaitUntilFinished(m_buildTasks.size() == 1);
+		process.SetPrintChildProcessLog(doPrintLog);
 		process.Run();
 		m_buildTasks.pop();
 	}

@@ -9,25 +9,7 @@ enum class ThemeColor
 	Classic,
 	Dark,
 	Grey,
-	Light,
-	Count
+	Light
 };
-
-static constexpr const char* ThemeColorNames[] =
-{
-	"Black",
-	"Classic",
-	"Dark",
-	"Grey",
-	"Light",
-};
-
-// Sanity check for enum and name mapping.
-static_assert(static_cast<int>(ThemeColor::Count) == sizeof(ThemeColorNames) / sizeof(char*));
-
-static constexpr const char* GetThemeColorName(ThemeColor theme)
-{
-	return ThemeColorNames[static_cast<int>(theme)];
-}
 
 }

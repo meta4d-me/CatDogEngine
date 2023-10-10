@@ -5,7 +5,7 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 #include "../common/Material.sh"
 #include "../common/Camera.sh"
 
-#include "../common/Light.sh"
+#include "../common/LightSource.sh"
 #include "../common/Envirnoment.sh"
 
 uniform vec4 u_emissiveColor;
@@ -15,8 +15,8 @@ vec3 GetDirectional(Material material, vec3 worldPos, vec3 viewDir) {
 	return CalculateLights(material, worldPos, viewDir, diffuseBRDF);
 }
 
-vec3 GetEnvironment(Material material, vec3 normal, vec3 viewDir) {
-	return GetIBL(material, normal, viewDir);
+vec3 GetEnvironment(Material material, vec3 worldPos, vec3 viewDir, vec3 normal) {
+	return GetIBL(material, normal, viewDir) + GetATM(material, worldPos);
 }
 
 void main()
@@ -33,13 +33,14 @@ void main()
 	vec3 dirColor = GetDirectional(material, v_worldPos, viewDir);
 	
 	// Environment Light
-	vec3 envColor = GetEnvironment(material, v_normal, viewDir);
+	vec3 envColor = GetEnvironment(material, v_worldPos, viewDir, v_normal);
 	
 	// Emissive
 	vec3 emiColor = material.emissive * u_emissiveColor.xyz;
 	
 	// Fragment Color
-	gl_FragColor = vec4(dirColor + envColor + emiColor, 1.0);
+	gl_FragData[0] = vec4(dirColor + envColor + emiColor, 1.0);
+	gl_FragData[1] = vec4(emiColor, 1.0);
 	
 	// Post-processing will be used in the last pass.
 }

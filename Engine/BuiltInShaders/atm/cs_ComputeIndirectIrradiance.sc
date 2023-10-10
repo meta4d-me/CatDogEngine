@@ -3,16 +3,16 @@
 #define COMPUTE
 #include "atm_functions.sh"
 
-uniform vec4 u_num_scattering_orders[1];
+uniform vec4 u_numScatteringOrders;
 
-IMAGE2D_WR(s_delta_irradiance, rgba32f, 8);
-IMAGE2D_WR(s_irradiance, rgba32f, 9);
+IMAGE2D_WR(s_delta_irradiance, rgba32f, 0);
+IMAGE2D_WR(s_irradiance, rgba32f, 1);
 
 NUM_THREADS(8, 8, 1)
 void main()
 {
 	ivec2 uv = ivec2(gl_GlobalInvocationID.xy);
-	int scatteringOrder = u_num_scattering_orders[0].x;
+	int scatteringOrder = u_numScatteringOrders.x;
 	
 	vec3 deltaIrradiance = ComputeIndirectIrradianceTexture(ATMOSPHERE, uv, scatteringOrder);
 	

@@ -11,6 +11,8 @@ project("Editor")
 		path.join(EditorSourcePath, "**.*"),
 		path.join(ThirdPartySourcePath, "imguizmo/*.h"),
 		path.join(ThirdPartySourcePath, "imguizmo/*.cpp"),
+		path.join(ThirdPartySourcePath, "imgui-node-editor/*.h"),
+		path.join(ThirdPartySourcePath, "imgui-node-editor/*.cpp"),
 	}
 	
 	vpaths {
@@ -21,6 +23,10 @@ project("Editor")
 			path.join(ThirdPartySourcePath, "imguizmo/*.h"),
 			path.join(ThirdPartySourcePath, "imguizmo/*.cpp"),
 		},
+		["imgui-node-editor"] = {
+			path.join(ThirdPartySourcePath, "imgui-node-editor/*.h"),
+			path.join(ThirdPartySourcePath, "imgui-node-editor/*.cpp"),
+		}
 	}
 
 	defines {
@@ -48,6 +54,7 @@ project("Editor")
 		path.join(ThirdPartySourcePath, "bx/include/compat/msvc"),
 		path.join(ThirdPartySourcePath, "imgui"),
 		path.join(ThirdPartySourcePath, "imguizmo"),
+		path.join(ThirdPartySourcePath, "imgui-node-editor"),
 		ThirdPartySourcePath,
 	}
 
@@ -76,7 +83,28 @@ project("Editor")
 			"ENABLE_SUBPROCESS"
 		}
 	end
-
+	
+	if ENABLE_DDGI then
+		includedirs {
+			path.join(DDGI_SDK_PATH, "include"),
+		}
+		libdirs {
+			path.join(DDGI_SDK_PATH, "lib"),
+		}
+		links {
+			"ddgi_sdk", "mright_sdk", "DDGIProbeDecoderBin"
+		}
+		defines {
+			"ENABLE_DDGI",
+			"DDGI_SDK_PATH=\""..DDGI_SDK_PATH.."\"",
+		}
+	else
+		excludes {
+			path.join(RuntimeSourcePath, "ECWorld/DDGIComponent.*"),
+			path.join(RuntimeSourcePath, "Rendering/DDGIRenderer.*"),
+		}
+	end
+	
 	-- use /MT /MTd, not /MD /MDd
 	staticruntime "on"
 	filter { "configurations:Debug" }
@@ -103,16 +131,10 @@ project("Editor")
 	if not USE_CLANG_TOOLSET then
 		links {
 			"GenericProducer",
-			"TerrainProducer",
 		}
 
 		defines {
 			"ENABLE_GENERIC_PRODUCER",
-			"ENABLE_TERRAIN_PRODUCER",
-		}
-	else
-		excludes {
-			path.join(EditorSourcePath, "UILayers/TerrainEditor.*")
 		}
 	end
 

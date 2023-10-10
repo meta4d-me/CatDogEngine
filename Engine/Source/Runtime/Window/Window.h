@@ -28,6 +28,9 @@ public:
     
 	uint16_t GetWidth() const { return m_width; }
 	uint16_t GetHeight() const { return m_height; }
+    
+    const bool GetInputFocus() const;
+    const bool GetMouseFocus() const;
 
     void SetTitle(const char* pTitle);
     void SetFullScreen(bool flag);
@@ -35,6 +38,7 @@ public:
     void SetBordedLess(bool flag);
     void SetSize(uint16_t width, uint16_t height);
     void SetWindowIcon(const char* pFilePath) const;
+    void SetMouseVisible(bool isVisible, uint32_t x, uint32_t y);
 
     void Update();
 
