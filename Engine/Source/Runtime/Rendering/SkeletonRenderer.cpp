@@ -13,33 +13,99 @@ namespace engine
 namespace details
 {
 
-void CalculateChangeTranslate(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase, engine::SkinMeshComponent* pSkinMeshComponent, const cd::Matrix4x4& changeBoneMatrix)
+void CalculateTransform(std::vector<cd::Matrix4x4>& boneMatrices, const cd::SceneDatabase* pSceneDatabase,
+	float animationTime, const cd::Bone& bone, const cd::Matrix4x4& parentBoneTransform)
 {
-	for (auto& boneChild : bone.GetChildIDs())
+	auto CalculateInterpolatedTranslation = [&animationTime](const cd::Track* pTrack) -> cd::Vec3f
 	{
-		pSkinMeshComponent->SetBoneChangeMatrix(boneChild.Data(), changeBoneMatrix);
-		CalculateChangeTranslate(pSceneDatabase->GetBone(boneChild.Data()),pSceneDatabase, pSkinMeshComponent,changeBoneMatrix);
-	}
-}
+		if (1U == pTrack->GetTranslationKeyCount())
+		{
+			const auto& firstKey = pTrack->GetTranslationKeys()[0];
+			return firstKey.GetValue();
+		}
 
-void CalculateChangeRotation(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase, engine::SkinMeshComponent* pSkinMeshComponent, const cd::Matrix4x4& changeBoneMatrix)
-{
-	for (auto& boneChild : bone.GetChildIDs())
+		for (uint32_t keyIndex = 0U; keyIndex < pTrack->GetTranslationKeyCount() - 1; ++keyIndex)
+		{
+			const auto& nextKey = pTrack->GetTranslationKeys()[keyIndex + 1];
+			if (animationTime < nextKey.GetTime())
+			{
+				const auto& currentKey = pTrack->GetTranslationKeys()[keyIndex];
+				float keyFrameDeltaTime = nextKey.GetTime() - currentKey.GetTime();
+				float keyFrameRate = (animationTime - currentKey.GetTime()) / keyFrameDeltaTime;
+				assert(keyFrameRate >= 0.0f && keyFrameRate <= 1.0f);
+
+				return cd::Vec3f::Lerp(currentKey.GetValue(), nextKey.GetValue(), keyFrameRate);
+			}
+		}
+
+		return cd::Vec3f::Zero();
+	};
+
+	auto CalculateInterpolatedRotation = [&animationTime](const cd::Track* pTrack) -> cd::Quaternion
 	{
-		const cd::Matrix4x4& changeRotationMatrix = bone.GetOffset().Inverse() * changeBoneMatrix * bone.GetOffset();
-		pSkinMeshComponent->SetBoneChangeMatrix(boneChild.Data(), changeBoneMatrix);
-		CalculateChangeRotation(pSceneDatabase->GetBone(boneChild.Data()), pSceneDatabase, pSkinMeshComponent, changeBoneMatrix);
-	}
-}
+		if (1U == pTrack->GetRotationKeyCount())
+		{
+			const auto& firstKey = pTrack->GetRotationKeys()[0];
+			return firstKey.GetValue();
+		}
 
-void CalculateTranslate(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase, engine::SkinMeshComponent* pSkinMeshComponent)
-{
+		for (uint32_t keyIndex = 0U; keyIndex < pTrack->GetRotationKeyCount() - 1; ++keyIndex)
+		{
+			const auto& nextKey = pTrack->GetRotationKeys()[keyIndex + 1];
+			if (animationTime < nextKey.GetTime())
+			{
+				const auto& currentKey = pTrack->GetRotationKeys()[keyIndex];
+				float keyFrameDeltaTime = nextKey.GetTime() - currentKey.GetTime();
+				float keyFrameRate = (animationTime - currentKey.GetTime()) / keyFrameDeltaTime;
+				assert(keyFrameRate >= 0.0f && keyFrameRate <= 1.0f);
+
+				return cd::Quaternion::Lerp(currentKey.GetValue(), nextKey.GetValue(), keyFrameRate).Normalize();
+			}
+		}
+
+		return cd::Quaternion::Identity();
+	};
+
+	auto CalculateInterpolatedScale = [&animationTime](const cd::Track* pTrack) -> cd::Vec3f
+	{
+		if (1U == pTrack->GetScaleKeyCount())
+		{
+			const auto& firstKey = pTrack->GetScaleKeys()[0];
+			return firstKey.GetValue();
+		}
+
+		for (uint32_t keyIndex = 0U; keyIndex < pTrack->GetScaleKeyCount() - 1; ++keyIndex)
+		{
+			const auto& nextKey = pTrack->GetScaleKeys()[keyIndex + 1];
+			if (animationTime < nextKey.GetTime())
+			{
+				const auto& currentKey = pTrack->GetScaleKeys()[keyIndex];
+				float keyFrameDeltaTime = nextKey.GetTime() - currentKey.GetTime();
+				float keyFrameRate = (animationTime - currentKey.GetTime()) / keyFrameDeltaTime;
+				assert(keyFrameRate >= 0.0f && keyFrameRate <= 1.0f);
+
+				return cd::Vec3f::Lerp(currentKey.GetValue(), nextKey.GetValue(), keyFrameRate);
+			}
+		}
+
+		return cd::Vec3f::One();
+	};
+
+	cd::Matrix4x4 boneLocalTransform = bone.GetTransform().GetMatrix();
+	if (const cd::Track* pTrack = pSceneDatabase->GetTrackByName(bone.GetName()))
+	{
+		boneLocalTransform = cd::Transform(CalculateInterpolatedTranslation(pTrack),
+			CalculateInterpolatedRotation(pTrack),
+			CalculateInterpolatedScale(pTrack)).GetMatrix();
+	}
+
+	cd::Matrix4x4 globalTransform = parentBoneTransform * boneLocalTransform;
+	boneMatrices[bone.GetID().Data()] = boneLocalTransform;
+
 	for (cd::BoneID boneID : bone.GetChildIDs())
 	{
 		const cd::Bone& childBone = pSceneDatabase->GetBone(boneID.Data());
-		cd::Matrix4x4 matrix = pSkinMeshComponent->GetBoneMatrix(boneID.Data()).Inverse() * pSkinMeshComponent->GetBoneChangeMatrix(boneID.Data());
-		pSkinMeshComponent->SetBoneChangeMatrix(childBone.GetID().Data(), matrix);
-		CalculateTranslate(childBone, pSceneDatabase, pSkinMeshComponent);
+		CalculateTransform(boneMatrices, pSceneDatabase, animationTime, childBone, globalTransform);
 	}
 }
 
@@ -94,6 +160,26 @@ void CalculateBoneDeltaTransform(const cd::Bone& bone,uint32_t& time, const cd::
 
 }
 
+float CustomFMod(float dividend, float divisor)
+{
+	if (divisor == 0.0f)
+	{
+		return 0.0f;
+	}
+
+	int quotient = static_cast<int>(dividend / divisor);
+	float result = dividend - static_cast<float>(quotient) * divisor;
+
+	if (result == 0.0f && dividend != 0.0f)
+	{
+		result = 0.0f;
+	}
+	if ((dividend < 0 && divisor > 0) || (dividend > 0 && divisor < 0))
+	{
+		result = -result;
+	}
+	return result;
+}
 }
 
 void SkeletonRenderer::Init()
@@ -110,6 +196,8 @@ void SkeletonRenderer::UpdateView(const float* pViewMatrix, const float* pProjec
 
 void SkeletonRenderer::Render(float delataTime)
 {
+	static float animationRunningTime = 0.0f;
+	animationRunningTime += delataTime / 20.0f;
 	const cd::SceneDatabase* pSceneDatabase = m_pCurrentSceneWorld->GetSceneDatabase();
 	for (Entity entity : m_pCurrentSceneWorld->GetSkinMeshEntities())
 	{
@@ -119,45 +207,27 @@ void SkeletonRenderer::Render(float delataTime)
 			continue;
 		}
 
-		if (Input::Get().IsKeyPressed(KeyCode::g))
+		AnimationComponent* pAnimationComponent = m_pCurrentSceneWorld->GetAnimationComponent(entity);
+		if (!pAnimationComponent)
 		{
-			float dx = Input::Get().GetMousePositionOffsetX() * delataTime * 10.0f;
-			float dy = -Input::Get().GetMousePositionOffsetY() * delataTime * 10.0f;
-			cd::Transform transform = cd::Transform::Identity();
-			transform.SetTranslation(cd::Vec3f(dx, dy, 0));
-			const uint32_t changeBoneIndex = m_pCurrentSceneWorld->GetSelectedBoneID().Data();
-			const cd::Bone& bone = pSceneDatabase->GetBone(changeBoneIndex);
-			//const cd::Matrix4x4& changeBoneMatrix = pSkinMeshComponent->GetBoneChangeMatrix(changeBoneIndex);
-			const cd::Matrix4x4& changeBoneMatrix = transform.GetMatrix();
-			pSkinMeshComponent->SetBoneChangeMatrix(changeBoneIndex,changeBoneMatrix);
-			details::CalculateChangeTranslate(bone, pSceneDatabase, pSkinMeshComponent,changeBoneMatrix);
-			pSkinMeshComponent->ResetChangeBoneIndex();
+			continue;
 		}
+		const cd::Animation* pAnimation = pAnimationComponent->GetAnimationData();
+		float ticksPerSecond = pAnimation->GetTicksPerSecnod();
+		assert(ticksPerSecond > 1.0f);
+		float animationTime = details::CustomFMod(animationRunningTime * ticksPerSecond, pAnimation->GetDuration());
 
-		if (Input::Get().IsKeyPressed(KeyCode::r))
+		static std::vector<cd::Matrix4x4> boneMatrices;
+		boneMatrices.clear();
+		for (uint16_t boneIndex = 0; boneIndex < 128; ++boneIndex)
 		{
-			float dx = Input::Get().GetMousePositionOffsetX() * delataTime * 30.0f;
-			float dy = -Input::Get().GetMousePositionOffsetY() * delataTime * 30.0f;
-			cd::Quaternion rotation = cd::Quaternion::FromPitchYawRoll(dy, 0.0f, 0.0f);
-			cd::Transform transform = cd::Transform::Identity();
-			const uint32_t changeBoneIndex = m_pCurrentSceneWorld->GetSelectedBoneID().Data();
-			const cd::Bone& bone = pSceneDatabase->GetBone(changeBoneIndex);
-			const cd::Bone& parent = pSceneDatabase->GetBone(bone.GetParentID().Data());
-			transform.SetRotation(rotation);
-			CD_INFO(transform.GetRotation());
-			const cd::Matrix4x4& changeBoneMatrix = parent.GetOffset().Inverse() * transform.GetMatrix() * parent.GetOffset();
-			pSkinMeshComponent->SetBoneChangeMatrix(changeBoneIndex, changeBoneMatrix);
-			details::CalculateChangeRotation(bone, pSceneDatabase, pSkinMeshComponent, changeBoneMatrix);
-			pSkinMeshComponent->ResetChangeBoneIndex();
+			boneMatrices.push_back(cd::Matrix4x4::Identity());
 		}
-		//details::CalculateTranslate(pSceneDatabase->GetBone(0), pSceneDatabase, pSkinMeshComponent);
-		cd::Matrix4x4 dd = cd::Matrix4x4::Identity();
-		//details::CalculateBoneDeltaTransform(pSceneDatabase->GetBone(0), m_time, pSceneDatabase, pSkinMeshComponent, dd);
-		//details::CalculateBoneDeltaTransform(pSceneDatabase->GetBone(1), m_time, pSceneDatabase, pSkinMeshComponent, dd);
-		//details::CalculateBoneDeltaTransform(pSceneDatabase->GetBone(2), m_time, pSceneDatabase, pSkinMeshComponent, dd);
+		const cd::Bone& rootBone = pSceneDatabase->GetBone(0);
+		details::CalculateTransform(boneMatrices, pSceneDatabase, animationTime, rootBone,
+			cd::Matrix4x4::Identity());
 
-		m_time++;
-		bgfx::setUniform(bgfx::UniformHandle{ pSkinMeshComponent->GetBoneMatrixsUniform() }, pSkinMeshComponent->GetBoneChangeMatrices().data(), static_cast<uint16_t>(pSkinMeshComponent->GetBoneChangeMatrices().size()));
+		bgfx::setUniform(bgfx::UniformHandle{ pSkinMeshComponent->GetBoneMatrixsUniform() }, boneMatrices.data(), static_cast<uint16_t>(boneMatrices.size()));
 		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pSkinMeshComponent->GetBoneVBH() });
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pSkinMeshComponent->GetBoneIBH() });
 

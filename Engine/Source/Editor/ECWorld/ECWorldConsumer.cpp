@@ -50,11 +50,11 @@ void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase,
 	for (auto& child : bone.GetChildIDs())
 	{
 		const cd::Bone& currBone = pSceneDatabase->GetBone(child.Data());
-		cd::Vec3f translate = currBone.GetOffset().Inverse().GetTranslation();
+		cd::Vec4f position4f(0.0f, 0.0f, 0.0f, 1.0f);
+		cd::Vec4f translate = currBone.GetOffset().Inverse() * position4f;
 		//const cd::Vec3f position = Detail::CalculateBoneTranslate(currBone, translate, pSceneDatabase);
-		cd::Matrix4x4 localTransform = currBone.GetTransform().GetMatrix() * bone.GetOffset();
+		cd::Matrix4x4 localTransform = currBone.GetTransform().GetMatrix();
 		cd::Matrix4x4 parentWorldMatrix = bone.GetOffset().Inverse();
-		cd::Vec4f position4f(parentWorldMatrix.GetTranslation().x(), parentWorldMatrix.GetTranslation().y(), parentWorldMatrix.GetTranslation().z(), 1.0f);
 		cd::Vec4f globalTransform = localTransform * position4f;
 
 		uint16_t parentID = bone.GetID().Data();
@@ -74,7 +74,7 @@ void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase,
 		indexOffset += static_cast<uint32_t>(indexTypeSize);
 
 		const cd::Matrix4x4& boneMatrix = currBone.GetOffset();
-		skinmeshComponent.SetBoneMatrix(currBoneID, boneMatrix.Inverse());
+		skinmeshComponent.SetBoneChangeMatrix(currBoneID, localTransform);
 
 		const cd::Transform& boneTransform = currBone.GetTransform();
 		//skinmeshComponent.SetBoneChangeMatrix(currBoneID, boneTransform.GetMatrix());
@@ -128,7 +128,7 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 			// Currently, we assume that imported SkinMesh will play animation automatically for testing.
 			AddAnimation(meshEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
 			AddMaterial(meshEntity, nullptr, pMaterialType, pSceneDatabase);
-			AddSkeleton(meshEntity, pSceneDatabase);
+			
 		}
 	};
 
@@ -136,6 +136,7 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 	{
 		engine::Entity skeletonEntity = m_pSceneWorld->GetWorld()->CreateEntity();
 		AddSkeleton(skeletonEntity, pSceneDatabase);
+		AddAnimation(skeletonEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
 	}
 
 	// There are multiple kinds of cases in the SceneDatabase:
@@ -470,7 +471,7 @@ void ECWorldConsumer::AddSkeleton(engine::Entity entity, const cd::SceneDatabase
 
 	const cd::Matrix4x4& boneMatrix = firstBone.GetOffset();
 	const cd::Transform& boneTransform = firstBone.GetTransform();
-	skinmeshComponent.SetBoneMatrix(BoneID, boneMatrix.Inverse());
+	skinmeshComponent.SetBoneChangeMatrix(BoneID, boneMatrix.Inverse());
 
 	Detail::TraverseBone(firstBone, pSceneDatabase, skinmeshComponent, vertexBuffer.data(), indexBuffer.data(), currentVertexOffset, currentIndexOffset);
 	bgfx::VertexLayout vertexLayout;

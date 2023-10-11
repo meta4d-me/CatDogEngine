@@ -20,7 +20,6 @@ public:
 
 private:
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
-	uint32_t m_time = 0;
 };
 
 }
