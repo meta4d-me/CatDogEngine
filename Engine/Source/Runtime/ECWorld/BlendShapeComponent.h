@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <map>
 
 namespace cd
 {
@@ -50,11 +51,9 @@ public:
 	bool IsDirty() { return m_isDirty; }
 	void SetDirty(bool isDirty) { m_isDirty = isDirty; }
 	
-	bool NeedUpdate() { return !(m_needUpdate == m_morphCount); }
-	void SetNeedUpdateFalse() { m_needUpdate = m_morphCount; }
-	void SetNeedUpdate(uint32_t index, float weight) { m_needUpdate = index; m_updatedWeight = weight; }
-	uint32_t GetNeedUpdate() { return m_needUpdate; }
-	float GetUpdatedWeight() { return m_updatedWeight; }
+	bool NeedUpdate() { return 0U != m_needUpdates.size(); }
+	void AddNeedUpdate(uint32_t index, float weight) { m_needUpdates[index] = weight; }
+	void ClearNeedUpdate() { m_needUpdates.clear(); }
 
 	uint16_t GetFinalMorphAffectedVB() const { return m_finalMorphAffectedVBHandle; }
 	uint16_t GetMorphAffectedVB() const { return m_morphAffectedVBHandle; }
@@ -80,8 +79,10 @@ private:
 	uint32_t m_morphVertexCountSum = 0U;
 
 	bool m_isDirty;
-	uint32_t m_needUpdate;
-	float m_updatedWeight = 0.0f;
+	std::map<uint32_t, float> m_needUpdates;
+	//uint32_t m_needUpdate;
+	
+	//float m_updatedWeight = 0.0f;
 	
 	std::vector<std::byte>	m_morphAffectedVB;								
 	uint16_t						m_morphAffectedVBHandle = UINT16_MAX;							// Vertex Buffer | Compute Input
@@ -92,6 +93,7 @@ private:
 	uint16_t						m_allMorphVertexIDPosIBHandle = UINT16_MAX;					// Index Buffer | Compute Input
 	std::vector<std::byte>	m_activeMorphOffestLengthWeightIB;							
 	uint16_t						m_activeMorphOffestLengthWeightIBHandle = UINT16_MAX;	//	Dynamic Index Buffer	| Compute Input
+	std::vector<std::byte>	m_changedMorphIndexIB;
 	uint16_t						m_changedMorphIndexIBHandle = UINT16_MAX;					//	Dynamic Index Buffer	| Compute Input
 };
 

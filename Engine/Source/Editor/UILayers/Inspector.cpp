@@ -112,7 +112,7 @@ void UpdateComponentWidget<engine::BlendShapeComponent>(engine::SceneWorld* pSce
 			float weightI = weights[i];
 			if (ImGuiUtils::ImGuiFloatProperty(pMorphsData[i].GetName(), weights[i], cd::Unit::None, 0.0f, 1.0f))//, false, 0.1f
 			{
-				pBlendShapeComponent->SetNeedUpdate(i, weightI);
+				pBlendShapeComponent->AddNeedUpdate(i, weightI);
 			}
 		}
 	}
