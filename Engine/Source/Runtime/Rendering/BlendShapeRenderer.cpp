@@ -42,8 +42,7 @@ constexpr const char* lightParams = "u_lightParams";
 constexpr const char* LightDir = "u_LightDir";
 constexpr const char* HeightOffsetAndshadowLength = "u_HeightOffsetAndshadowLength";
 
-constexpr const char* morphCount = "u_morphCount";
-constexpr const char* vertexCount = "u_vertexCount";
+constexpr const char* morphCountVertexCount = "u_morphCount_vertexCount";
 constexpr const char* changedIndex = "u_changedIndex";
 constexpr const char* changedWeight = "u_changedWeight";
 
@@ -82,8 +81,7 @@ void BlendShapeRenderer::Init()
 	GetRenderContext()->CreateUniform(LightDir, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(HeightOffsetAndshadowLength, bgfx::UniformType::Vec4, 1);
 
-	GetRenderContext()->CreateUniform(morphCount, bgfx::UniformType::Vec4, 1);
-	GetRenderContext()->CreateUniform(vertexCount, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(morphCountVertexCount, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(changedWeight, bgfx::UniformType::Vec4, 1);
 
 	bgfx::setViewName(GetViewID(), "BlendShapeRenderer");
@@ -146,41 +144,34 @@ void BlendShapeRenderer::Render(float deltaTime)
 		// Compute Blend Shape
 		if (pBlendShapeComponent->IsDirty())
 		{
-			bgfx::setBuffer(2, bgfx::IndexBufferHandle{pBlendShapeComponent->GetAllMorphVertexIDIB()}, bgfx::Access::Read);
-			bgfx::setBuffer(4, bgfx::DynamicIndexBufferHandle{pBlendShapeComponent->GetActiveMorphOffestLengthIB()}, bgfx::Access::Read);
-			bgfx::setBuffer(5, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetActiveMorphWeightVB()}, bgfx::Access::Read);
-			bgfx::setBuffer(6, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetFinalMorphAffectedVB()}, bgfx::Access::ReadWrite);
-			constexpr StringCrc morphCountCrc(morphCount);
-			cd::Vec4f morphCount = cd::Vec4f{ static_cast<float>(pBlendShapeComponent->GetActiveMorphCount()),0,0,0 };
-			GetRenderContext()->FillUniform(morphCountCrc, &morphCount, 1);
-			constexpr StringCrc vertexCountCrc(vertexCount);
-			cd::Vec4f vertexCountVec = cd::Vec4f{ static_cast<float>(pBlendShapeComponent->GetMeshVertexCount()) ,0,0,0 };
-			GetRenderContext()->FillUniform(vertexCountCrc, &vertexCountVec, 1);
+			bgfx::setBuffer(BS_ALL_MORPH_VERTEX_ID_STAGE, bgfx::IndexBufferHandle{pBlendShapeComponent->GetAllMorphVertexIDIB()}, bgfx::Access::Read);
+			bgfx::setBuffer(BS_ACTIVE_MORPH_DATA_STAGE, bgfx::DynamicIndexBufferHandle{pBlendShapeComponent->GetActiveMorphOffestLengthWeightIB()}, bgfx::Access::Read);
+			bgfx::setBuffer(BS_FINAL_MORPH_AFFECTED_STAGE, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetFinalMorphAffectedVB()}, bgfx::Access::ReadWrite);
+			constexpr StringCrc morphCountVertexCountCrc(morphCountVertexCount);
+			cd::Vec4f morphCount = cd::Vec4f{ static_cast<float>(pBlendShapeComponent->GetActiveMorphCount()),static_cast<float>(pBlendShapeComponent->GetMeshVertexCount()),0,0};
+			GetRenderContext()->FillUniform(morphCountVertexCountCrc, &morphCount, 1);
 			bgfx::dispatch(GetViewID(), GetRenderContext()->GetProgram(blendShapeWeightsProgram),1U,1U,1U);
 			
-			bgfx::setBuffer(1, bgfx::VertexBufferHandle{pBlendShapeComponent->GetMorphAffectedVB()}, bgfx::Access::Read);
-			bgfx::setBuffer(6, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetFinalMorphAffectedVB()}, bgfx::Access::ReadWrite);
-			GetRenderContext()->FillUniform(vertexCountCrc, &vertexCountVec, 1);
+			bgfx::setBuffer(BS_MORPH_AFFECTED_STAGE, bgfx::VertexBufferHandle{pBlendShapeComponent->GetMorphAffectedVB()}, bgfx::Access::Read);
+			bgfx::setBuffer(BS_FINAL_MORPH_AFFECTED_STAGE, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetFinalMorphAffectedVB()}, bgfx::Access::ReadWrite);
+			GetRenderContext()->FillUniform(morphCountVertexCountCrc, &morphCount, 1);
 			bgfx::dispatch(GetViewID(), GetRenderContext()->GetProgram(blendShapeWeightPosProgram),1U, 1U, 1U);
 			
-			bgfx::setBuffer(6, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetFinalMorphAffectedVB()}, bgfx::Access::ReadWrite);
-			bgfx::setBuffer(2, bgfx::IndexBufferHandle{pBlendShapeComponent->GetAllMorphVertexIDIB()}, bgfx::Access::Read);
-			bgfx::setBuffer(3, bgfx::VertexBufferHandle{pBlendShapeComponent->GetAllMorphVertexPosVB()}, bgfx::Access::Read);
-			bgfx::setBuffer(4, bgfx::DynamicIndexBufferHandle{pBlendShapeComponent->GetActiveMorphOffestLengthIB()}, bgfx::Access::Read);
-			bgfx::setBuffer(5, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetActiveMorphWeightVB()}, bgfx::Access::Read);
+			bgfx::setBuffer(BS_FINAL_MORPH_AFFECTED_STAGE, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetFinalMorphAffectedVB()}, bgfx::Access::ReadWrite);
+			bgfx::setBuffer(BS_ALL_MORPH_VERTEX_ID_STAGE, bgfx::IndexBufferHandle{pBlendShapeComponent->GetAllMorphVertexIDIB()}, bgfx::Access::Read);
+			bgfx::setBuffer(BS_ACTIVE_MORPH_DATA_STAGE, bgfx::DynamicIndexBufferHandle{pBlendShapeComponent->GetActiveMorphOffestLengthWeightIB()}, bgfx::Access::Read);
+			GetRenderContext()->FillUniform(morphCountVertexCountCrc, &morphCount, 1);
 			bgfx::dispatch(GetViewID(), GetRenderContext()->GetProgram(blendShapeFinalPosProgram));
 			pBlendShapeComponent->SetDirty(false);
 		}
 		if(pBlendShapeComponent->NeedUpdate()) 
 		{
 			pBlendShapeComponent->UpdateChanged();
-			bgfx::setBuffer(1, bgfx::VertexBufferHandle{pBlendShapeComponent->GetMorphAffectedVB()}, bgfx::Access::Read);
-			bgfx::setBuffer(2, bgfx::IndexBufferHandle{pBlendShapeComponent->GetAllMorphVertexIDIB()}, bgfx::Access::Read);
-			bgfx::setBuffer(3, bgfx::VertexBufferHandle{pBlendShapeComponent->GetAllMorphVertexPosVB()}, bgfx::Access::Read);
-			bgfx::setBuffer(4, bgfx::DynamicIndexBufferHandle{pBlendShapeComponent->GetActiveMorphOffestLengthIB()}, bgfx::Access::Read);
-			bgfx::setBuffer(5, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetActiveMorphWeightVB()}, bgfx::Access::Read);
-			bgfx::setBuffer(6, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetFinalMorphAffectedVB()}, bgfx::Access::ReadWrite);
-			bgfx::setBuffer(7, bgfx::DynamicIndexBufferHandle{pBlendShapeComponent->GetChangedMorphIndexIB()}, bgfx::Access::Read);
+			bgfx::setBuffer(BS_MORPH_AFFECTED_STAGE, bgfx::VertexBufferHandle{pBlendShapeComponent->GetMorphAffectedVB()}, bgfx::Access::Read);
+			bgfx::setBuffer(BS_ALL_MORPH_VERTEX_ID_STAGE, bgfx::IndexBufferHandle{pBlendShapeComponent->GetAllMorphVertexIDIB()}, bgfx::Access::Read);
+			bgfx::setBuffer(BS_ACTIVE_MORPH_DATA_STAGE, bgfx::DynamicIndexBufferHandle{pBlendShapeComponent->GetActiveMorphOffestLengthWeightIB()}, bgfx::Access::Read);
+			bgfx::setBuffer(BS_FINAL_MORPH_AFFECTED_STAGE, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetFinalMorphAffectedVB()}, bgfx::Access::ReadWrite);
+			bgfx::setBuffer(BS_CHANGED_MORPH_INDEX_STAGE, bgfx::DynamicIndexBufferHandle{pBlendShapeComponent->GetChangedMorphIndexIB()}, bgfx::Access::Read);
 			constexpr StringCrc changedWeightCrc(changedWeight);
 			cd::Vec4f changedWeightData = cd::Vec4f{ static_cast<float>(pBlendShapeComponent->GetUpdatedWeight()),0,0,0 };
 			GetRenderContext()->FillUniform(changedWeightCrc, &changedWeightData, 1);
