@@ -25,11 +25,11 @@ void ParticleRenderer::Render(float deltaTime)
 		engine::ParticleEmitterComponent* pEmitterComponent = m_pCurrentSceneWorld->GetParticleEmitterComponent(entity);
 		const cd::Transform& particleTransform = m_pCurrentSceneWorld->GetTransformComponent(entity)->GetTransform();
 
-		//float newAngle = particleTransform.GetRotation().Pitch();
-		//auto a = cd::Math::DegreeToRadian(newAngle);
-		//auto b = cd::Quaternion::RotateZ(a);
-		//pEmitterComponent->GetParticleSystem().SetFront(b*pEmitterComponent->GetParticleSystem().GetFront());
-		//cd::Quaternion rotationQuat = cd::Quaternion::FromAxisAngle(cd::Vec3f(0.0f,0.0f,0.0f), particleTransform.GetRotation().Pitch());
+		float newAngle = particleTransform.GetRotation().Pitch();
+		auto a = cd::Math::DegreeToRadian(newAngle);
+		auto b = cd::Quaternion::RotateZ(a);
+		pEmitterComponent->GetParticleSystem().SetFront(b*pEmitterComponent->GetParticleSystem().GetFront());
+		cd::Quaternion rotationQuat = cd::Quaternion::FromAxisAngle(pEmitterComponent->GetParticleSystem().GetFront(), particleTransform.GetRotation().Pitch());
 
 		for (int i = 0; i < pEmitterComponent->GetParticleSystem().GetMaxCount(); ++i)
 		{

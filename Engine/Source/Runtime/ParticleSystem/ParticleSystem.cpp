@@ -1,4 +1,5 @@
 #include "ParticleSystem.h"
+#include <fstream>
 
 void engine::ParticleSystem::AllocateParticleIndex()
 {
@@ -54,6 +55,7 @@ void engine::ParticleSystem::Update(float deltaTime, int index)
 	if (m_currentTime[index] >= m_lifeTime[index])
 	{
 		m_isActive[index] = false;
+		m_currentTime[index] = 0.0f;
 		return;
 	}
 
