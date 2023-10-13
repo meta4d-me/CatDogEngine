@@ -10,7 +10,7 @@ uniform vec4 u_morphCount_vertexCount;
 NUM_THREADS(1u, 1u, 1u)
 void main()
 {
-    for(int i = 0; i <u_morphCount_vertexCount.x;i++)
+    for(int i = 0; i < u_morphCount_vertexCount.x; i++)
     {
         uint offset = activeMorphOffestLengthIB[i*3];
         uint length = activeMorphOffestLengthIB[i*3+1];

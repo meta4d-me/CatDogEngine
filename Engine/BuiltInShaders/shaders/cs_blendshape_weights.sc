@@ -10,11 +10,11 @@ uniform vec4 u_morphCount_vertexCount;
 NUM_THREADS(1u, 1u, 1u)
 void main()
 {
-    for(uint i = 0; i <u_morphCount_vertexCount.y;i++)
+    for(uint i = 0; i < u_morphCount_vertexCount.y; i++)
     {
         finalMorphAffectedVB[i] =vec4(0,0,0,1.0f);
     }
-    for(uint i = 0; i <u_morphCount_vertexCount.x;i++)
+    for(uint i = 0; i < u_morphCount_vertexCount.x; i++)
     {
         uint offset = activeMorphOffestLengthIB[i*3];
         uint length = activeMorphOffestLengthIB[i*3+1];
@@ -22,8 +22,8 @@ void main()
         for(uint j = 0; j < length; j++)
         {
             uint id = allMorphVertexIDIB[(offset+j)*4];
-            float wgt = finalMorphAffectedVB[id].w - weight;
-            finalMorphAffectedVB[id] = vec4(0,0,0,wgt);
+            float finalWeight = finalMorphAffectedVB[id].w - weight;
+            finalMorphAffectedVB[id] = vec4(0,0,0,finalWeight);
         }
     }
     
