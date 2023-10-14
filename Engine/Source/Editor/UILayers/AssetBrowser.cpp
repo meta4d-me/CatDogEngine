@@ -1109,47 +1109,6 @@ void AssetBrowser::ImportJson(const char* pFilePath)
 
 void AssetBrowser::ImportParticleEffect(const char* pFilePath)
 {
-	std::ifstream file(pFilePath, std::ios::binary);
-	if (!file.is_open())
-	{
-		CD_ERROR("Faild to open ParticleFile");
-	}
-
-	file.seekg(0, std::ios::end);
-	std::streampos fileSize = file.tellg();
-	file.seekg(0, std::ios::beg);
-
-	std::vector<char> allData(fileSize);
-	if (!file.read(allData.data(), fileSize))
-	{
-		CD_ERROR("Failed to read ParticleFile");
-	}
-
-	if (allData.size() < 24) return;
-
-	if (allData[0] != 'E' ||
-		allData[1] != 'F' ||
-		allData[2] != 'K' ||
-		allData[3] != 'E')
-	{
-		return;
-	}
-
-	int32_t version;
-	std::memcpy(&version, allData.data() + 4, sizeof(int32_t));
-	std::vector<uint8_t> chunkData;
-	chunkData.assign(allData.begin() + 8, allData.end());
-
-	Chunk chunk;
-	chunk.Load(chunkData);
-
-	for (const auto& block : chunk.Blocks)
-	{
-		if (block.Chunk == "EDIT")
-		{
-			break;
-		}
-	}
 
 }
 
