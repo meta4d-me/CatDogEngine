@@ -12,6 +12,7 @@
 #include "Path/Path.h"
 #include "Rendering/AABBRenderer.h"
 #include "Rendering/AnimationRenderer.h"
+#include "Rendering/BlendShapeRenderer.h"
 #include "Rendering/BlitRenderTargetPass.h"
 #ifdef ENABLE_DDGI
 #include "Rendering/DDGIRenderer.h"
@@ -396,6 +397,10 @@ void EditorApp::InitEngineRenderers()
 	m_pSceneRenderer = pSceneRenderer.get();
 	pSceneRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pSceneRenderer));
+
+	auto pBlendShapeRenderer = std::make_unique<engine::BlendShapeRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pBlendShapeRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pBlendShapeRenderer));
 
 	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pTerrainRenderer = pTerrainRenderer.get();
