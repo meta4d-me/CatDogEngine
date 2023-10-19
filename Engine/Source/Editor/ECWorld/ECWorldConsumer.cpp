@@ -51,12 +51,10 @@ void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase,
 	{
 		const cd::Bone& currBone = pSceneDatabase->GetBone(child.Data());
 		cd::Vec4f position4f(0.0f, 0.0f, 0.0f, 1.0f);
-		cd::Vec4f translate = currBone.GetOffset().Inverse() * position4f;
-		//const cd::Vec3f position = Detail::CalculateBoneTranslate(currBone, translate, pSceneDatabase);
-		cd::Matrix4x4 localTransform = currBone.GetTransform().GetMatrix();
-		cd::Matrix4x4 parentWorldMatrix = bone.GetOffset().Inverse();
+		cd::Vec4f translate = currBone.GetTransform().GetMatrix() * position4f;
+		cd::Matrix4x4 localTransform = currBone.GetOffset().Inverse();
 		cd::Vec4f globalTransform = localTransform * position4f;
-
+		cd::Vec3f position = cd::Vec3f(globalTransform.x(), globalTransform.y(), -globalTransform.z());
 		uint16_t parentID = bone.GetID().Data();
 		uint16_t currBoneID = currBone.GetID().Data();
 		std::memcpy(&currentDataPtr[vertexOffset], globalTransform.Begin(), posDataSize);
@@ -126,18 +124,19 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 
 			// TODO : Use a standalone .cdanim file to play animation.
 			// Currently, we assume that imported SkinMesh will play animation automatically for testing.
+			AddSkeleton(meshEntity, pSceneDatabase);
 			AddAnimation(meshEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
 			AddMaterial(meshEntity, nullptr, pMaterialType, pSceneDatabase);
 			
 		}
 	};
 
-	if (0U != pSceneDatabase->GetBoneCount())
-	{
-		engine::Entity skeletonEntity = m_pSceneWorld->GetWorld()->CreateEntity();
-		AddSkeleton(skeletonEntity, pSceneDatabase);
-		AddAnimation(skeletonEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
-	}
+	//if (0U != pSceneDatabase->GetBoneCount())
+	//{
+	//	engine::Entity skeletonEntity = m_pSceneWorld->GetWorld()->CreateEntity();
+	//	AddSkeleton(skeletonEntity, pSceneDatabase);
+	//	AddAnimation(skeletonEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
+	//}
 
 	// There are multiple kinds of cases in the SceneDatabase:
 	// 1. No nodes but have meshes in the SceneDatabase.
@@ -273,6 +272,9 @@ void ECWorldConsumer::AddAnimation(engine::Entity entity, const cd::Animation& a
 
 	bgfx::UniformHandle boneMatricesUniform = bgfx::createUniform("u_boneMatrices", bgfx::UniformType::Mat4, 128);
 	animationComponent.SetBoneMatricesUniform(boneMatricesUniform.idx);
+
+	bgfx::UniformHandle vertexMatricesUniform = bgfx::createUniform("u_vertexMatrices", bgfx::UniformType::Mat4, 128);
+	animationComponent.SetVertexMatricesUniform(vertexMatricesUniform.idx);
 }
 
 void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMaterial, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase)
@@ -431,8 +433,6 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 void ECWorldConsumer::AddSkeleton(engine::Entity entity, const cd::SceneDatabase* pSceneDatabase)
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
-	engine::NameComponent& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
-	nameComponent.SetName("Skeleton");
 	engine::SkinMeshComponent& skinmeshComponent = pWorld->CreateComponent<engine::SkinMeshComponent>(entity);
 	const uint32_t boneCount = pSceneDatabase->GetBoneCount();
 	if (0 == boneCount)
@@ -460,7 +460,7 @@ void ECWorldConsumer::AddSkeleton(engine::Entity entity, const cd::SceneDatabase
 	uint32_t currentVertexOffset = 0U;
 	uint32_t currentIndexOffset = 0U;
 	std::byte* pCurrentVertexBuffer = vertexBuffer.data();
-	const cd::Point& position = firstBone.GetTransform().GetTranslation();
+	const cd::Point& position = firstBone.GetOffset().Inverse().GetTranslation();
 	uint16_t BoneID = firstBone.GetID().Data();
 	std::memcpy(&pCurrentVertexBuffer[currentVertexOffset], position.Begin(), Detail::posDataSize);
 	currentVertexOffset += Detail::posDataSize;

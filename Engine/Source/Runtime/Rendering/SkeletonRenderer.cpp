@@ -14,7 +14,7 @@ namespace details
 {
 
 void CalculateTransform(std::vector<cd::Matrix4x4>& boneMatrices, const cd::SceneDatabase* pSceneDatabase,
-	float animationTime, const cd::Bone& bone, const cd::Matrix4x4& parentBoneTransform)
+	float animationTime, const cd::Bone& bone)
 {
 	auto CalculateInterpolatedTranslation = [&animationTime](const cd::Track* pTrack) -> cd::Vec3f
 	{
@@ -91,21 +91,20 @@ void CalculateTransform(std::vector<cd::Matrix4x4>& boneMatrices, const cd::Scen
 		return cd::Vec3f::One();
 	};
 
-	cd::Matrix4x4 boneLocalTransform = bone.GetTransform().GetMatrix();
+	cd::Matrix4x4 boneLocalTransform = cd::Matrix4x4::Identity();
 	if (const cd::Track* pTrack = pSceneDatabase->GetTrackByName(bone.GetName()))
 	{
 		boneLocalTransform = cd::Transform(CalculateInterpolatedTranslation(pTrack),
 			CalculateInterpolatedRotation(pTrack),
-			CalculateInterpolatedScale(pTrack)).GetMatrix();
+			CalculateInterpolatedScale(pTrack)).GetMatrix() * bone.GetOffset();
 	}
 
-	cd::Matrix4x4 globalTransform = parentBoneTransform * boneLocalTransform;
 	boneMatrices[bone.GetID().Data()] = boneLocalTransform;
 
 	for (cd::BoneID boneID : bone.GetChildIDs())
 	{
 		const cd::Bone& childBone = pSceneDatabase->GetBone(boneID.Data());
-		CalculateTransform(boneMatrices, pSceneDatabase, animationTime, childBone, globalTransform);
+		CalculateTransform(boneMatrices, pSceneDatabase, animationTime, childBone);
 	}
 }
 
@@ -199,7 +198,7 @@ void SkeletonRenderer::Render(float delataTime)
 	static float animationRunningTime = 0.0f;
 	animationRunningTime += delataTime / 20.0f;
 	const cd::SceneDatabase* pSceneDatabase = m_pCurrentSceneWorld->GetSceneDatabase();
-	for (Entity entity : m_pCurrentSceneWorld->GetSkinMeshEntities())
+	for (Entity entity : m_pCurrentSceneWorld->GetAnimationEntities())
 	{
 		auto pSkinMeshComponent = m_pCurrentSceneWorld->GetSkinMeshComponent(entity);
 		if (!pSkinMeshComponent)
@@ -224,14 +223,13 @@ void SkeletonRenderer::Render(float delataTime)
 			boneMatrices.push_back(cd::Matrix4x4::Identity());
 		}
 		const cd::Bone& rootBone = pSceneDatabase->GetBone(0);
-		details::CalculateTransform(boneMatrices, pSceneDatabase, animationTime, rootBone,
-			cd::Matrix4x4::Identity());
+		details::CalculateTransform(boneMatrices, pSceneDatabase, animationTime, rootBone);
 
 		bgfx::setUniform(bgfx::UniformHandle{ pSkinMeshComponent->GetBoneMatrixsUniform() }, boneMatrices.data(), static_cast<uint16_t>(boneMatrices.size()));
 		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pSkinMeshComponent->GetBoneVBH() });
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pSkinMeshComponent->GetBoneIBH() });
 
-		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
+		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA |
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_LINES;
 
 		bgfx::setState(state);

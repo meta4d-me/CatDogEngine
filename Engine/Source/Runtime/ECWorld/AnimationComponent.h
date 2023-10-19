@@ -49,9 +49,8 @@ public:
 	void SetBoneMatricesUniform(uint16_t uniform) { m_boneMatricesUniform = uniform; }
 	uint16_t GetBoneMatrixsUniform() const { return m_boneMatricesUniform; }
 
-	void SetBoneMatrices(std::vector<cd::Matrix4x4> boneMatrices) { m_boneMatrices = cd::MoveTemp(boneMatrices); }
-	std::vector<cd::Matrix4x4>& GetBoneMatrices() { return m_boneMatrices; }
-	const std::vector<cd::Matrix4x4>& GetBoneMatrices() const { return m_boneMatrices; }
+	void SetVertexMatricesUniform(uint16_t uniform) { m_vertexMatricesUniform = uniform; }
+	uint16_t GetVertexMatrixsUniform() const { return m_vertexMatricesUniform; }
 
 private:
 	const cd::Animation* m_pAnimation = nullptr;
@@ -60,6 +59,7 @@ private:
 	float m_duration;
 	float m_ticksPerSecond;
 	uint16_t m_boneMatricesUniform;
+	uint16_t m_vertexMatricesUniform;
 	std::vector<cd::Matrix4x4> m_boneMatrices;
 };
 
