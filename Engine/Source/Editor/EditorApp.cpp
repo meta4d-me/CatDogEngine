@@ -7,6 +7,7 @@
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/Localization.h"
 #include "ImGui/UILayers/DebugPanel.h"
+#include "ImGui/UILayers/Profiler.h"
 #include "Log/Log.h"
 #include "Math/MeshGenerator.h"
 #include "Path/Path.h"
@@ -177,6 +178,7 @@ void EditorApp::InitEditorUILayers()
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
 
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<SkeletonView>("SkeletonView"));
+	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<engine::Profiler>("Profiler"));
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
 
 	auto pAssetBrowser = std::make_unique<AssetBrowser>("AssetBrowser");
@@ -205,10 +207,8 @@ void EditorApp::InitEngineImGuiContext(engine::Language language)
 
 void EditorApp::InitEngineUILayers()
 {
-	//auto pEntityList = std::make_unique<engine::DebugPanel>("DebugPanel");
-	//pEntityList->SetCameraController(m_pCameraController);
-	//m_pEngineImGuiContext->AddDynamicLayer(cd::MoveTemp(pEntityList));
-
+	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<engine::DebugPanel>("DebugPanel"));
+	
 	auto pImGuizmoView = std::make_unique<editor::ImGuizmoView>("ImGuizmoView");
 	pImGuizmoView->SetSceneView(m_pSceneView);
 	m_pEngineImGuiContext->AddDynamicLayer(cd::MoveTemp(pImGuizmoView));
