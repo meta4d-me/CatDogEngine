@@ -13,8 +13,7 @@ enum class Language
 	Japanese,
 	Korean,
 	Thai,
-	Vitnam,
-	Count,
+	Vitnam
 };
 
 }
