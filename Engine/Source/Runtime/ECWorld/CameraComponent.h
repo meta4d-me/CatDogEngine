@@ -10,6 +10,27 @@ namespace cd
 
 class Camera;
 
+enum class ToneMappingMode : int
+{
+	None,
+	Exponential,
+	Reinhard,
+	Reinhard_Luminance,
+	Hable_Uncharted2,
+	Duiker,
+	ACES,
+	ACES_Luminance
+};
+
+#include "U_ToneMapping.sh"
+static_assert(static_cast<int>(ToneMappingMode::None) == TONEMAP_NONE);
+static_assert(static_cast<int>(ToneMappingMode::Exponential) == TONEMAP_EXPONENTIAL);
+static_assert(static_cast<int>(ToneMappingMode::Reinhard) == TONEMAP_REINHARD);
+static_assert(static_cast<int>(ToneMappingMode::Reinhard_Luminance) == TONEMAP_REINHARD_LUM);
+static_assert(static_cast<int>(ToneMappingMode::Duiker) == TONEMAP_DUIKER);
+static_assert(static_cast<int>(ToneMappingMode::ACES) == TONEMAP_ACES);
+static_assert(static_cast<int>(ToneMappingMode::ACES_Luminance) == TONEMAP_ACES_LUM);
+
 }
 
 namespace engine
@@ -80,44 +101,50 @@ public:
 	bool DoConstrainAspectRatio() const { return m_doConstainAspectRatio; }
 	void SetConstrainAspectRatio(bool use) { m_doConstainAspectRatio = use; }
 
-	bool& GetIsToneMapping() { return m_enableToneMapping; }
-	bool GetIsToneMappingEnable() { return m_enableToneMapping; }
-	void SetToneMappingEnable(bool use) { m_enableToneMapping = use; }
+	// Post Processing
+	float& GetExposure() { return m_exposure; }
+	float GetExposure() const { return m_exposure; }
+	void SetExposure(float exposure) { m_exposure = exposure; }
 
 	float& GetGammaCorrection() { return m_gammaCorrection; }
-	const float& GetGammaCorrection() const { return m_gammaCorrection; }
+	float GetGammaCorrection() const { return m_gammaCorrection; }
 	void SetGammaCorrection(float gamma) { m_gammaCorrection = gamma; }
 
+	cd::ToneMappingMode& GetToneMappingMode() { return m_toneMappingMode; }
+	cd::ToneMappingMode GetToneMappingMode() const { return m_toneMappingMode; }
+	void SetToneMappingMode(cd::ToneMappingMode mode) { m_toneMappingMode = mode; }
+
+	// Bloom
 	bool& GetIsBloomEnable() { return m_enableBloom; }
-	const float& GetIsBloomEnable() const { return m_enableBloom; }
+	float GetIsBloomEnable() const { return m_enableBloom; }
 	void SetBloomEnable(bool bloom) { m_enableBloom = bloom; }
 
 	bool& GetIsBlurEnable() { return m_enableBlur; }
-	const float& GetIsBlurEnable() const { return m_enableBlur; }
+	float GetIsBlurEnable() const { return m_enableBlur; }
 	void SetBlurEnable(bool blur) { m_enableBloom = blur; }
 
 	int& GetBloomDownSampleTimes() { return m_blomDownSampleTimes; }
-	const int& GetBloomDownSampleTimes() const { return m_blomDownSampleTimes; }
+	int GetBloomDownSampleTimes() const { return m_blomDownSampleTimes; }
 	void SetBloomDownSampleTImes(int downsampletimes) { m_blomDownSampleTimes = downsampletimes; }
 
 	float& GetBloomIntensity() { return m_bloomIntensity; }
-	const float& GetBloomIntensity() const { return m_bloomIntensity; }
+	float GetBloomIntensity() const { return m_bloomIntensity; }
 	void SetBloomIntensity(float intensity) { m_bloomIntensity = intensity; }
 
 	float& GetLuminanceThreshold() { return m_luminanceThreshold; }
-	const float& GetLuminanceThreshold() const { return m_luminanceThreshold; }
+	float GetLuminanceThreshold() const { return m_luminanceThreshold; }
 	void SetLuminanceThreshold(float luminancethreshold) { m_luminanceThreshold = luminancethreshold; }
 
 	int& GetBlurTimes() { return m_blurTimes; }
-	const int& GetBlurTimes() const { return m_blurTimes; }
+	int GetBlurTimes() const { return m_blurTimes; }
 	void SetBlurTimes(int blurtimes) { m_blurTimes = blurtimes; }
 
 	float& GetBlurSize() { return m_blurSize; }
-	const float& GetBlurSize() const { return m_blurSize; }
+	float GetBlurSize() const { return m_blurSize; }
 	void SetBlurSize(float blursize) { m_blurSize = blursize; }
 
 	int& GetBlurScaling() { return m_blurScaling; }
-	const int& GetBlurScaling() const { return m_blurScaling; }
+	int GetBlurScaling() const { return m_blurScaling; }
 	void SetBlurScaling(int blurscaling) { m_blurScaling = blurscaling; }
 #endif
 
@@ -129,6 +156,11 @@ private:
 	float m_farPlane;
 	cd::NDCDepth m_ndcDepth;
 
+	// PostProcessing parameters - pack vec4 as a uniform. Keep order!
+	float m_exposure;
+	float m_gammaCorrection;
+	cd::ToneMappingMode m_toneMappingMode;
+
 	// Status
 	mutable bool m_isViewDirty;
 	mutable bool m_isProjectionDirty;
@@ -139,7 +171,6 @@ private:
 
 #ifdef EDITOR_MODE
 	bool m_doConstainAspectRatio;
-	bool m_enableToneMapping;
 	bool m_enableBloom;
 	bool m_enableBlur;
 	int m_blomDownSampleTimes;
@@ -148,7 +179,6 @@ private:
 	int m_blurTimes;
 	float m_blurSize;
 	int m_blurScaling;
-	float m_gammaCorrection;
 #endif
 };
 

@@ -278,7 +278,9 @@ void EditorApp::InitEditorCameraEntity()
 	cameraComponent.SetNearPlane(0.1f);
 	cameraComponent.SetFarPlane(2000.0f);
 	cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
+	cameraComponent.SetExposure(1.0f);
 	cameraComponent.SetGammaCorrection(0.45f);
+	cameraComponent.SetToneMappingMode(cd::ToneMappingMode::ACES);
 	cameraComponent.SetBloomDownSampleTImes(4);
 	cameraComponent.SetBloomIntensity(1.0f);
 	cameraComponent.SetLuminanceThreshold(1.0f);
@@ -453,7 +455,6 @@ void EditorApp::InitEngineRenderers()
 	// But postprocess will bring unnecessary confusion. 
 	auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pPostProcessRenderer->SetSceneWorld(m_pSceneWorld.get());
-	pPostProcessRenderer->SetEnable(true);
 	AddEngineRenderer(cd::MoveTemp(pPostProcessRenderer));
 
 	// Note that if you don't want to use ImGuiRenderer for engine, you should also disable EngineImGuiContext.
