@@ -627,6 +627,27 @@ void UpdateComponentWidget<engine::ShaderVariantCollectionsComponent>(engine::Sc
 	ImGui::PopStyleVar();
 }
 
+template<>
+void UpdateComponentWidget<engine::AnimationComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+{
+	auto* pAnimationComponent = pSceneWorld->GetAnimationComponent(entity);
+	if (!pAnimationComponent)
+	{
+		return;
+	}
+
+	bool isOpen = ImGui::CollapsingHeader("Animation Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+	ImGui::Separator();
+
+	if (isOpen)
+	{
+		ImGui::Separator();
+		ImGuiUtils::ImGuiBoolProperty("play", pAnimationComponent->GetIsPlaying());
+	}
+	ImGui::Separator();
+	ImGui::PopStyleVar();
+}
 }
 
 namespace editor
@@ -676,6 +697,7 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::ParticleComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::CollisionMeshComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::ShaderVariantCollectionsComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::AnimationComponent>(pSceneWorld, m_lastSelectedEntity);
 
 #ifdef ENABLE_DDGI
 	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, m_lastSelectedEntity);

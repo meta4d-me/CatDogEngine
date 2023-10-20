@@ -255,7 +255,6 @@ void AnimationRenderer::Render(float deltaTime)
 #endif
 
 	static float animationRunningTime = 0.0f;
-	animationRunningTime += deltaTime / 20.0f;
 
 	const cd::SceneDatabase* pSceneDatabase = m_pCurrentSceneWorld->GetSceneDatabase();
 	for (Entity entity : m_pCurrentSceneWorld->GetAnimationEntities())
@@ -271,11 +270,14 @@ void AnimationRenderer::Render(float deltaTime)
 
 		AnimationComponent* pAnimationComponent = m_pCurrentSceneWorld->GetAnimationComponent(entity);
 
+		if (pAnimationComponent->GetIsPlaying())
+		{
+			animationRunningTime += deltaTime;
+		}
 		const cd::Animation* pAnimation = pAnimationComponent->GetAnimationData();
 		float ticksPerSecond = pAnimation->GetTicksPerSecnod();
 		assert(ticksPerSecond > 1.0f);
-		float animationTime = details::CustomFModf(animationRunningTime * ticksPerSecond, pAnimation->GetDuration());
-
+		float animationTime = details::CustomFModf(animationRunningTime, pAnimation->GetDuration());
 		static std::vector<cd::Matrix4x4> boneMatrices;
 		boneMatrices.clear();
 		for (uint16_t boneIndex = 0; boneIndex < 128; ++boneIndex)
@@ -301,6 +303,8 @@ void AnimationRenderer::Render(float deltaTime)
 
 		constexpr StringCrc animationProgram("AnimationProgram");
 		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(animationProgram));
+
+		pAnimationComponent->SetAnimationPlayTime(animationTime);
 	}
 }
 

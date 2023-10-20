@@ -196,7 +196,7 @@ void SkeletonRenderer::UpdateView(const float* pViewMatrix, const float* pProjec
 void SkeletonRenderer::Render(float delataTime)
 {
 	static float animationRunningTime = 0.0f;
-	animationRunningTime += delataTime / 20.0f;
+	animationRunningTime += delataTime;
 	const cd::SceneDatabase* pSceneDatabase = m_pCurrentSceneWorld->GetSceneDatabase();
 	for (Entity entity : m_pCurrentSceneWorld->GetAnimationEntities())
 	{
@@ -214,7 +214,7 @@ void SkeletonRenderer::Render(float delataTime)
 		const cd::Animation* pAnimation = pAnimationComponent->GetAnimationData();
 		float ticksPerSecond = pAnimation->GetTicksPerSecnod();
 		assert(ticksPerSecond > 1.0f);
-		float animationTime = details::CustomFMod(animationRunningTime * ticksPerSecond, pAnimation->GetDuration());
+		float animationTime = details::CustomFMod(animationRunningTime, pAnimation->GetDuration());
 
 		static std::vector<cd::Matrix4x4> boneMatrices;
 		boneMatrices.clear();

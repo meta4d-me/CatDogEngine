@@ -52,10 +52,18 @@ public:
 	void SetVertexMatricesUniform(uint16_t uniform) { m_vertexMatricesUniform = uniform; }
 	uint16_t GetVertexMatrixsUniform() const { return m_vertexMatricesUniform; }
 
+	void SetAnimationPlayTime(float time) { m_animationPlayTime = time; }
+	float& GetAnimationPlayTime() { return m_animationPlayTime; }
+
+	bool& GetIsPlaying() { return m_playAnimation; }
+
 private:
 	const cd::Animation* m_pAnimation = nullptr;
 	const cd::Track* m_pTrack = nullptr;
+
+	bool m_playAnimation = false;
 	
+	float m_animationPlayTime;
 	float m_duration;
 	float m_ticksPerSecond;
 	uint16_t m_boneMatricesUniform;
