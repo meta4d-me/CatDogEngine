@@ -50,7 +50,7 @@ public:
 private:
 	// Key : StringCrc(Program name), Value : Shader names
 	std::map<uint32_t, std::set<std::string>> m_shaderPrograms;
-	// Key : StringCrc(Program name), Value : Feature combine used as a parameter for compiling shaders
+	// Key : StringCrc(Program name), Value : Feature combines used as a parameter for compiling shaders
 	std::map<uint32_t, std::set<std::string>> m_programFeatureCombines;
 };
 

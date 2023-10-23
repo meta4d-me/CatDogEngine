@@ -113,6 +113,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	});
 	resourceThread.detach();
 
+	// TODO : Shader hot compile and load.
 	m_pFileWatcher = std::make_unique<FileWatcher>(CDENGINE_BUILTIN_SHADER_PATH);
 	m_pFileWatcher->EnableWatchSubTree();
 }
@@ -348,9 +349,6 @@ void EditorApp::InitDDGIEntity()
 
 void EditorApp::UpdateMaterials()
 {
-	// static engine::SkyType s_lastSkyType = engine::SkyType::SkyBox;
-	engine::SkyType crtSkyType = m_pSceneWorld->GetSkyComponent(m_pSceneWorld->GetSkyEntity())->GetSkyType();
-
 	for (engine::Entity entity : m_pSceneWorld->GetMaterialEntities())
 	{
 		engine::MaterialComponent* pMaterialComponent = m_pSceneWorld->GetMaterialComponent(entity);
@@ -367,9 +365,9 @@ void EditorApp::LazyCompileAndLoadShaders()
 {
 	bool doCompile = false;
 
-	for (const auto& info : m_pRenderContext->GetShaderCompileTasks())
+	for (const auto& task : m_pRenderContext->GetShaderCompileTasks())
 	{
-		ShaderBuilder::BuildShader(m_pRenderContext.get(), info);
+		ShaderBuilder::BuildShader(m_pRenderContext.get(), task);
 		doCompile = true;
 	}
 
@@ -616,7 +614,7 @@ bool EditorApp::Update(float deltaTime)
 		{
 			m_pViewportCameraController->Update(deltaTime);
 		}
-		//Do Screen Space Smoothing
+		// Do Screen Space Smoothing
 		if (pTerrainComponent && m_pSceneView->IsTerrainEditMode() && engine::Input::Get().IsMouseLBPressed())
 		{
 			float screenSpaceX = 2.0f * static_cast<float>(engine::Input::Get().GetMousePositionX() - m_pSceneView->GetWindowPosX()) /

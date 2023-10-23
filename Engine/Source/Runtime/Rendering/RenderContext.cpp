@@ -194,14 +194,12 @@ bool RenderContext::CheckShaderProgram(const std::string& programName, const std
 
 	if (!bgfx::isValid(GetShaderProgramHandle(programName, featuresCombine)))
 	{
-		// Here only represents that we do not hold the shader GPU handle, whether the shader is compiled or not is unknown.
-		// The Combile Task is still added to the queue, and ResourceBuilder ensures that,
+		// Its only represents that we do not hold the shader program GPU handle, 
+		// whether the shader is compiled or not is unknown.
+		// The Combile Task will still be added to the queue and ResourceBuilder ensures that
 		// there is no duplication of compilation behavior.
 		AddShaderCompileTask(ShaderCompileInfo(programName, featuresCombine));
-		if (!featuresCombine.empty())
-		{
-			m_pShaderCollections->AddFeatureCombine(StringCrc(programName), featuresCombine);
-		}
+		m_pShaderCollections->AddFeatureCombine(StringCrc(programName), featuresCombine);
 		return false;
 	}
 	return true;
@@ -215,6 +213,7 @@ void RenderContext::UploadShaderProgram(const std::string& programName, const st
 
 	if (featuresCombine.empty())
 	{
+		// Non-uber shader case.
 		if (!vsName.empty() && !fsName.empty() && csName.empty())
 		{
 			CreateProgram(programName, vsName.data(), fsName.data());
@@ -230,6 +229,7 @@ void RenderContext::UploadShaderProgram(const std::string& programName, const st
 	}
 	else
 	{
+		// Uber shader case.
 		if (!vsName.empty() && !fsName.empty() && csName.empty())
 		{
 			CreateProgram(programName, vsName.data(), fsName.data(), featuresCombine);

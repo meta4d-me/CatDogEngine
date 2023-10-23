@@ -298,7 +298,7 @@ void BlendShapeRenderer::Render(float deltaTime)
 
 		bgfx::setState(state);
 
-		GetRenderContext()->Submit(viewId, pMaterialComponent->GetFeaturesCombine());
+		GetRenderContext()->Submit(viewId, "WorldProgram", pMaterialComponent->GetFeaturesCombine());
 	}
 }
 
