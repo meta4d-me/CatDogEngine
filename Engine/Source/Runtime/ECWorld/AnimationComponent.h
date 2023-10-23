@@ -49,9 +49,6 @@ public:
 	void SetBoneMatricesUniform(uint16_t uniform) { m_boneMatricesUniform = uniform; }
 	uint16_t GetBoneMatrixsUniform() const { return m_boneMatricesUniform; }
 
-	void SetVertexMatricesUniform(uint16_t uniform) { m_vertexMatricesUniform = uniform; }
-	uint16_t GetVertexMatrixsUniform() const { return m_vertexMatricesUniform; }
-
 	void SetAnimationPlayTime(float time) { m_animationPlayTime = time; }
 	float& GetAnimationPlayTime() { return m_animationPlayTime; }
 

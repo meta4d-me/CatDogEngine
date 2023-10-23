@@ -3,14 +3,14 @@ $output v_worldPos
 
 #include "../common/common.sh"
 
-uniform mat4 u_vertexMatrices[128];
+uniform mat4 u_boneMatrices[128];
 
 void main()
 {
-	mat4 boneTransform = u_vertexMatrices[a_indices[0]] * a_weight[0];
-	boneTransform += u_vertexMatrices[a_indices[1]] * a_weight[1];
-	boneTransform += u_vertexMatrices[a_indices[2]] * a_weight[2];
-	boneTransform += u_vertexMatrices[a_indices[3]] * a_weight[3];
+	mat4 boneTransform = u_boneMatrices[a_indices[0]] * a_weight[0];
+	boneTransform += u_boneMatrices[a_indices[1]] * a_weight[1];
+	boneTransform += u_boneMatrices[a_indices[2]] * a_weight[2];
+	boneTransform += u_boneMatrices[a_indices[3]] * a_weight[3];
 	
 	vec4 localPosition = mul(boneTransform, vec4(a_position, 1.0));
 	gl_Position = mul(u_modelViewProj, localPosition);

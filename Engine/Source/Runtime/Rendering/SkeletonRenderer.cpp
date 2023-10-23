@@ -193,12 +193,11 @@ void SkeletonRenderer::UpdateView(const float* pViewMatrix, const float* pProjec
 	bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
 }
 
-void SkeletonRenderer::Render(float delataTime)
+void SkeletonRenderer::Render(float deltaTime)
 {
 	static float animationRunningTime = 0.0f;
-	animationRunningTime += delataTime;
 	const cd::SceneDatabase* pSceneDatabase = m_pCurrentSceneWorld->GetSceneDatabase();
-	for (Entity entity : m_pCurrentSceneWorld->GetAnimationEntities())
+	for (Entity entity : m_pCurrentSceneWorld->GetSkinMeshEntities())
 	{
 		auto pSkinMeshComponent = m_pCurrentSceneWorld->GetSkinMeshComponent(entity);
 		if (!pSkinMeshComponent)
@@ -207,9 +206,10 @@ void SkeletonRenderer::Render(float delataTime)
 		}
 
 		AnimationComponent* pAnimationComponent = m_pCurrentSceneWorld->GetAnimationComponent(entity);
-		if (!pAnimationComponent)
+
+		if (pAnimationComponent && pAnimationComponent->GetIsPlaying())
 		{
-			continue;
+			animationRunningTime += deltaTime;
 		}
 		const cd::Animation* pAnimation = pAnimationComponent->GetAnimationData();
 		float ticksPerSecond = pAnimation->GetTicksPerSecnod();
@@ -235,6 +235,7 @@ void SkeletonRenderer::Render(float delataTime)
 		bgfx::setState(state);
 		constexpr StringCrc SkeletonProgram("SkeletonProgram");
 		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(SkeletonProgram));
+
 	}
 	
 }

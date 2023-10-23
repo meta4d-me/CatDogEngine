@@ -274,16 +274,6 @@ void AnimationRenderer::Render(float deltaTime)
 		{
 			animationRunningTime += deltaTime;
 		}
-		const cd::Animation* pAnimation = pAnimationComponent->GetAnimationData();
-		float ticksPerSecond = pAnimation->GetTicksPerSecnod();
-		assert(ticksPerSecond > 1.0f);
-		float animationTime = details::CustomFModf(animationRunningTime, pAnimation->GetDuration());
-		static std::vector<cd::Matrix4x4> boneMatrices;
-		boneMatrices.clear();
-		for (uint16_t boneIndex = 0; boneIndex < 128; ++boneIndex)
-		{
-			boneMatrices.push_back(cd::Matrix4x4::Identity());
-		}
 
 		static std::vector<cd::Matrix4x4> vertexMatrices;
 		vertexMatrices.clear();
@@ -293,8 +283,6 @@ void AnimationRenderer::Render(float deltaTime)
 		}
 
 		const cd::Bone& rootBone = pSceneDatabase->GetBone(0);
-		details::CalculateVertexTransform(vertexMatrices, pSceneDatabase, animationTime, rootBone);
-		bgfx::setUniform(bgfx::UniformHandle{pAnimationComponent->GetVertexMatrixsUniform()}, vertexMatrices.data(), static_cast<uint16_t>(vertexMatrices.size()));
 		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()});
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
 
@@ -303,8 +291,6 @@ void AnimationRenderer::Render(float deltaTime)
 
 		constexpr StringCrc animationProgram("AnimationProgram");
 		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(animationProgram));
-
-		pAnimationComponent->SetAnimationPlayTime(animationTime);
 	}
 }
 

@@ -124,10 +124,9 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 
 			// TODO : Use a standalone .cdanim file to play animation.
 			// Currently, we assume that imported SkinMesh will play animation automatically for testing.
-			AddSkeleton(meshEntity, pSceneDatabase);
-			AddAnimation(meshEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
 			AddMaterial(meshEntity, nullptr, pMaterialType, pSceneDatabase);
-			
+			AddAnimation(meshEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
+			AddSkeleton(meshEntity, pSceneDatabase);		
 		}
 	};
 
@@ -272,9 +271,6 @@ void ECWorldConsumer::AddAnimation(engine::Entity entity, const cd::Animation& a
 
 	bgfx::UniformHandle boneMatricesUniform = bgfx::createUniform("u_boneMatrices", bgfx::UniformType::Mat4, 128);
 	animationComponent.SetBoneMatricesUniform(boneMatricesUniform.idx);
-
-	bgfx::UniformHandle vertexMatricesUniform = bgfx::createUniform("u_vertexMatrices", bgfx::UniformType::Mat4, 128);
-	animationComponent.SetVertexMatricesUniform(vertexMatricesUniform.idx);
 }
 
 void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMaterial, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase)
