@@ -5,17 +5,27 @@
 namespace engine
 {
 
+namespace
+{
+
+constexpr const char *PostProcessProgram = "PostProcessProgram";
+constexpr StringCrc PostProcessProgramCrc = StringCrc(PostProcessProgram);
+
+}
+
 void PostProcessRenderer::Init()
 {
-	GetRenderContext()->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
-	GetRenderContext()->CreateUniform("u_postProcessingParams", bgfx::UniformType::Vec4);
-	GetRenderContext()->CreateProgram("PostProcessProgram", "vs_fullscreen.bin", "fs_PBR_postProcessing.bin");
+	GetRenderContext()->RegisterShaderProgram(PostProcessProgramCrc, { "vs_fullscreen", "fs_PBR_postProcessing" });
 
 	bgfx::setViewName(GetViewID(), "PostProcessRenderer");
 }
 
-PostProcessRenderer::~PostProcessRenderer()
+void PostProcessRenderer::Warmup()
 {
+	GetRenderContext()->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
+	GetRenderContext()->CreateUniform("u_postProcessingParams", bgfx::UniformType::Vec4);
+
+	GetRenderContext()->UploadShaderProgram(PostProcessProgram);
 }
 
 void PostProcessRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -60,8 +70,7 @@ void PostProcessRenderer::Render(float deltaTime)
 	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 	Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
-	constexpr StringCrc programName("PostProcessProgram");
-	bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(programName));
+	GetRenderContext()->Submit(GetViewID(), PostProcessProgram);
 }
 
 }
