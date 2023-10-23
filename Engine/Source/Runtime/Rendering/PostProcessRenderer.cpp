@@ -7,32 +7,15 @@ namespace engine
 
 void PostProcessRenderer::Init()
 {
-	constexpr StringCrc programCrc = StringCrc("PostProcessProgram");
-	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_fullscreen","fs_PBR_postProcessing" });
+	GetRenderContext()->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
+	GetRenderContext()->CreateUniform("u_postProcessingParams", bgfx::UniformType::Vec4);
+	GetRenderContext()->CreateProgram("PostProcessProgram", "vs_fullscreen.bin", "fs_PBR_postProcessing.bin");
 
 	bgfx::setViewName(GetViewID(), "PostProcessRenderer");
 }
 
-void PostProcessRenderer::Warmup()
+PostProcessRenderer::~PostProcessRenderer()
 {
-	GetRenderContext()->CreateUniform("u_gamma", bgfx::UniformType::Vec4);
-	GetRenderContext()->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
-
-	GetRenderContext()->UploadShaderProgram("PostProcessProgram");
-}
-
-void PostProcessRenderer::SetEnable(bool value)
-{
-	Entity entity = m_pCurrentSceneWorld->GetMainCameraEntity();
-	CameraComponent* pCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(entity);
-	pCameraComponent->SetToneMappingEnable(value);
-}
-
-bool PostProcessRenderer::IsEnable() const
-{
-	Entity entity = m_pCurrentSceneWorld->GetMainCameraEntity();
-	CameraComponent* pCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(entity);
-	return pCameraComponent->GetIsToneMappingEnable();
 }
 
 void PostProcessRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -64,8 +47,12 @@ void PostProcessRenderer::Render(float deltaTime)
 	Entity entity = m_pCurrentSceneWorld->GetMainCameraEntity();
 	CameraComponent* pCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(entity);
 
-	constexpr StringCrc gammaUniformName("u_gamma");
-	bgfx::setUniform(GetRenderContext()->GetUniform(gammaUniformName), &pCameraComponent->GetGammaCorrection());
+	constexpr StringCrc paramUniformName("u_postProcessingParams");
+	static cd::Vec4f postProcessingParams;
+	postProcessingParams[0] = pCameraComponent->GetExposure();
+	postProcessingParams[1] = static_cast<float>(pCameraComponent->GetToneMappingMode());
+	postProcessingParams[2] = pCameraComponent->GetGammaCorrection();
+	bgfx::setUniform(GetRenderContext()->GetUniform(paramUniformName), &postProcessingParams);
 
 	constexpr StringCrc lightingResultSampler("s_lightingColor");
 	bgfx::setTexture(0, GetRenderContext()->GetUniform(lightingResultSampler), screenTextureHandle);
@@ -73,7 +60,8 @@ void PostProcessRenderer::Render(float deltaTime)
 	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 	Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
-	GetRenderContext()->Submit(GetViewID(), "PostProcessProgram");
+	constexpr StringCrc programName("PostProcessProgram");
+	bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(programName));
 }
 
 }

@@ -3,17 +3,14 @@
 namespace engine
 {
 
-class DebugPanel : public engine::ImGuiBaseLayer
+class Profiler : public engine::ImGuiBaseLayer
 {
 public:
 	using ImGuiBaseLayer::ImGuiBaseLayer;
-	virtual ~DebugPanel();
+	virtual ~Profiler();
 
 	virtual void Init() override;
 	virtual void Update() override;
-
-private:
-	void ShowProfiler();
 };
 
 }

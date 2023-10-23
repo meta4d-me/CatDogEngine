@@ -106,11 +106,48 @@ void UpdateComponentWidget<engine::StaticMeshComponent>(engine::SceneWorld* pSce
 			if (ImGui::Button(reinterpret_cast<const char*>("Build ProgressiveMesh")))
 			{
 				pStaticMeshComponent->BuildProgressiveMeshData();
+
 			}
 		}
 		else
 		{
-			ImGuiUtils::ImGuiFloatProperty("LOD Percent", pStaticMeshComponent->GetProgressiveMeshReductionPercent(), cd::Unit::None, 0.001f, 1.0f, false, 0.001f);
+			ImGuiUtils::ImGuiFloatProperty("LOD Percent", pStaticMeshComponent->GetProgressiveMeshReductionPercent(),
+				cd::Unit::None, 0.001f, 1.0f, false, 0.001f);
+			ImGuiUtils::ImGuiIntProperty("Target VertexCount", reinterpret_cast<int&>(pStaticMeshComponent->GetProgressiveMeshTargetVertexCount()),
+				cd::Unit::None, 0, static_cast<int>(pStaticMeshComponent->GetOriginVertexCount()), false, 1);
+		}
+	}
+
+	ImGui::Separator();
+	ImGui::PopStyleVar();
+}
+
+template<>
+void UpdateComponentWidget<engine::BlendShapeComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+{
+	auto* pBlendShapeComponent = pSceneWorld->GetBlendShapeComponent(entity);
+	if (!pBlendShapeComponent)
+	{
+		return;
+	}
+
+	bool isOpen = ImGui::CollapsingHeader("BlendShape Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+	ImGui::Separator();
+
+	if (isOpen)
+	{
+		// Parameters
+		const cd::Morph* pMorphsData = pBlendShapeComponent->GetMorphsData();
+		uint32_t morphCount = pBlendShapeComponent->GetMorphCount();
+		std::vector<float>& weights = pBlendShapeComponent->GetWeights();
+		for (uint32_t i = 0; i < morphCount; i++)
+		{
+			float weightI = weights[i];
+			if (ImGuiUtils::ImGuiFloatProperty(pMorphsData[i].GetName(), weights[i], cd::Unit::None, 0.0f, 1.0f))//, false, 0.1f
+			{
+				pBlendShapeComponent->AddNeedUpdate(i, weightI);
+			}
 		}
 	}
 
@@ -329,41 +366,34 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 
 		ImGuiUtils::ImGuiBoolProperty("Constrain Aspect Ratio", pCameraComponent->GetDoConstrainAspectRatio());
 
-		if (ImGui::TreeNode("Post Processing"))
+		ImGuiUtils::ImGuiFloatProperty("Exposure", pCameraComponent->GetExposure(), cd::Unit::None, 0.0f, 30.0f, false, 0.01f);
+		ImGuiUtils::ImGuiEnumProperty("Tone Mapping Mode", pCameraComponent->GetToneMappingMode());
+		ImGuiUtils::ImGuiFloatProperty("Gamma Correction", pCameraComponent->GetGammaCorrection(), cd::Unit::None, 0.0f, 1.0f);
+		if (ImGui::TreeNode("Bloom"))
 		{
-
-			ImGuiUtils::ImGuiBoolProperty("Tone Mapping", pCameraComponent->GetIsToneMapping());
-			ImGuiUtils::ImGuiFloatProperty("Gamma Correction", pCameraComponent->GetGammaCorrection(), cd::Unit::None, 0.0f, 1.0f);
-			if (ImGui::TreeNode("Bloom"))
+			ImGuiUtils::ImGuiBoolProperty("Open Bloom", pCameraComponent->GetIsBloomEnable());
+			if (pCameraComponent->GetIsBloomEnable())
 			{
-				ImGuiUtils::ImGuiBoolProperty("Open Bloom", pCameraComponent->GetIsBloomEnable());
-				if (pCameraComponent->GetIsBloomEnable())
+				ImGuiUtils::ImGuiIntProperty("DownSample Times", pCameraComponent->GetBloomDownSampleTimes(), cd::Unit::None, 4, 8, false, 1.0f);
+				ImGuiUtils::ImGuiFloatProperty("Bloom Intensity", pCameraComponent->GetBloomIntensity(), cd::Unit::None, 0.0f, 3.0f, false, 0.01f);
+				ImGuiUtils::ImGuiFloatProperty("Luminance Threshold", pCameraComponent->GetLuminanceThreshold(), cd::Unit::None, 0.0f, 3.0f, false, 0.01f);
+
+				if (ImGui::TreeNode("Gaussian Blur"))
 				{
-					ImGuiUtils::ImGuiIntProperty("DownSample Times", pCameraComponent->GetBloomDownSampleTimes(), cd::Unit::None, 4, 8, false, 1.0f);
-					ImGuiUtils::ImGuiFloatProperty("Bloom Intensity", pCameraComponent->GetBloomIntensity(), cd::Unit::None, 0.0f, 3.0f, false, 0.01f);
-					ImGuiUtils::ImGuiFloatProperty("Luminance Threshold", pCameraComponent->GetLuminanceThreshold(), cd::Unit::None, 0.0f, 3.0f, false, 0.01f);
-
-					if (ImGui::TreeNode("Gaussian Blur"))
+					ImGuiUtils::ImGuiBoolProperty("Open Blur", pCameraComponent->GetIsBlurEnable());
+					if (pCameraComponent->GetIsBlurEnable())
 					{
-						ImGuiUtils::ImGuiBoolProperty("Open Blur", pCameraComponent->GetIsBlurEnable());
-						if (pCameraComponent->GetIsBlurEnable())
-						{
-							ImGuiUtils::ImGuiIntProperty("Blur Iteration", pCameraComponent->GetBlurTimes(), cd::Unit::None, 0, 20, false, 1.0f);
-							ImGuiUtils::ImGuiFloatProperty("Blur Size", pCameraComponent->GetBlurSize(), cd::Unit::None, 0.0f, 3.0f);
-							ImGuiUtils::ImGuiIntProperty("Blur Scaling", pCameraComponent->GetBlurScaling(), cd::Unit::None, 1, 4, false, 1.0f);
-						}
-						ImGui::TreePop();
+						ImGuiUtils::ImGuiIntProperty("Blur Iteration", pCameraComponent->GetBlurTimes(), cd::Unit::None, 0, 20, false, 1.0f);
+						ImGuiUtils::ImGuiFloatProperty("Blur Size", pCameraComponent->GetBlurSize(), cd::Unit::None, 0.0f, 3.0f);
+						ImGuiUtils::ImGuiIntProperty("Blur Scaling", pCameraComponent->GetBlurScaling(), cd::Unit::None, 1, 4, false, 1.0f);
 					}
+					ImGui::TreePop();
 				}
-
-				ImGui::TreePop();
 			}
-
 			ImGui::TreePop();
 		}
 
 		ImGui::EndChild();
-
 	}
 
 	ImGui::Separator();
@@ -655,6 +685,7 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::ParticleComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::CollisionMeshComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::BlendShapeComponent>(pSceneWorld, m_lastSelectedEntity);
 
 #ifdef ENABLE_DDGI
 	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, m_lastSelectedEntity);

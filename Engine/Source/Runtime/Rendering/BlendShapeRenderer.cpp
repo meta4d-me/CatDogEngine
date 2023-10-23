@@ -1,5 +1,6 @@
-#include "WorldRenderer.h"
+#include "BlendShapeRenderer.h"
 
+#include "ECWorld/BlendShapeComponent.h"
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/MaterialComponent.h"
 #include "ECWorld/SceneWorld.h"
@@ -9,10 +10,11 @@
 #include "LightUniforms.h"
 #include "Material/ShaderSchema.h"
 #include "Math/Transform.hpp"
-#include "Rendering/RenderContext.h"
+#include "RenderContext.h"
 #include "Scene/Texture.h"
 #include "U_IBL.sh"
 #include "U_AtmophericScattering.sh"
+#include "U_BlendShape.sh"
 
 namespace engine
 {
@@ -20,43 +22,44 @@ namespace engine
 namespace
 {
 
-constexpr const char* lutSampler                  = "s_texLUT";
-constexpr const char* cubeIrradianceSampler       = "s_texCubeIrr";
-constexpr const char* cubeRadianceSampler         = "s_texCubeRad";
-											      
-constexpr const char* lutTexture                  = "Textures/lut/ibl_brdf_lut.dds";
-											      
-constexpr const char* cameraPos                   = "u_cameraPos";
-constexpr const char* albedoColor                 = "u_albedoColor";
-constexpr const char* emissiveColor               = "u_emissiveColor";
-constexpr const char* metallicRoughnessFactor     = "u_metallicRoughnessFactor";
-											      
-constexpr const char* albedoUVOffsetAndScale      = "u_albedoUVOffsetAndScale";
-constexpr const char* alphaCutOff                 = "u_alphaCutOff";
-											      
-constexpr const char* lightCountAndStride         = "u_lightCountAndStride";
-constexpr const char* lightParams                 = "u_lightParams";
-											      
-constexpr const char* LightDir                    = "u_LightDir";
+constexpr const char* lutSampler = "s_texLUT";
+constexpr const char* cubeIrradianceSampler = "s_texCubeIrr";
+constexpr const char* cubeRadianceSampler = "s_texCubeRad";
+
+constexpr const char* lutTexture = "Textures/lut/ibl_brdf_lut.dds";
+
+constexpr const char* cameraPos = "u_cameraPos";
+constexpr const char* albedoColor = "u_albedoColor";
+constexpr const char* emissiveColor = "u_emissiveColor";
+constexpr const char* metallicRoughnessFactor = "u_metallicRoughnessFactor";
+
+constexpr const char* albedoUVOffsetAndScale = "u_albedoUVOffsetAndScale";
+constexpr const char* alphaCutOff = "u_alphaCutOff";
+
+constexpr const char* lightCountAndStride = "u_lightCountAndStride";
+constexpr const char* lightParams = "u_lightParams";
+
+constexpr const char* LightDir = "u_LightDir";
 constexpr const char* HeightOffsetAndshadowLength = "u_HeightOffsetAndshadowLength";
+
+constexpr const char* morphCountVertexCount = "u_morphCount_vertexCount";
+constexpr const char* changedIndex = "u_changedIndex";
+constexpr const char* changedWeight = "u_changedWeight";
 
 constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 
 }
 
-void WorldRenderer::Init()
-{
-	constexpr StringCrc programCrc = StringCrc("WorldProgram");
-	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_PBR", "fs_PBR" });
-
-	bgfx::setViewName(GetViewID(), "WorldRenderer");
-}
-
-void WorldRenderer::Warmup()
+void BlendShapeRenderer::Init()
 {
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
+	GetRenderContext()->CreateProgram("BlendShapeWeightsProgram", "cs_blendshape_weights.bin");
+	GetRenderContext()->CreateProgram("BlendShapeWeightPosProgram", "cs_blendshape_weight_pos.bin");
+	GetRenderContext()->CreateProgram("BlendShapeFinalPosProgram", "cs_blendshape_final_pos.bin");
+	GetRenderContext()->CreateProgram("BlendShapeUpdatePosProgram", "cs_blendshape_update_pos.bin");
+	
 	GetRenderContext()->CreateUniform(lutSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(cubeIrradianceSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(cubeRadianceSampler, bgfx::UniformType::Sampler);
@@ -77,15 +80,20 @@ void WorldRenderer::Warmup()
 
 	GetRenderContext()->CreateUniform(LightDir, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(HeightOffsetAndshadowLength, bgfx::UniformType::Vec4, 1);
+
+	GetRenderContext()->CreateUniform(morphCountVertexCount, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(changedWeight, bgfx::UniformType::Vec4, 1);
+
+	bgfx::setViewName(GetViewID(), "BlendShapeRenderer");
 }
 
-void WorldRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
+void BlendShapeRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
 	UpdateViewRenderTarget();
 	bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
 }
 
-void WorldRenderer::Render(float deltaTime)
+void BlendShapeRenderer::Render(float deltaTime)
 {
 	// TODO : Remove it. If every renderer need to submit camera related uniform, it should be done not inside Renderer class.
 	const cd::Transform& cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetTransform();
@@ -109,14 +117,15 @@ void WorldRenderer::Render(float deltaTime)
 			continue;
 		}
 
+		// No blend shape?
 		BlendShapeComponent* pBlendShapeComponent = m_pCurrentSceneWorld->GetBlendShapeComponent(entity);
-		if (pBlendShapeComponent)
+		if (!pBlendShapeComponent)
 		{
 			continue;
 		}
 
 		// SkinMesh
-		if(m_pCurrentSceneWorld->GetAnimationComponent(entity))
+		if (m_pCurrentSceneWorld->GetAnimationComponent(entity))
 		{
 			continue;
 		}
@@ -127,9 +136,53 @@ void WorldRenderer::Render(float deltaTime)
 			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
 		}
 
-		// Mesh
-		UpdateStaticMeshComponent(pMeshComponent);
+		constexpr StringCrc blendShapeWeightsProgram("BlendShapeWeightsProgram");
+		constexpr StringCrc blendShapeWeightPosProgram("BlendShapeWeightPosProgram");
+		constexpr StringCrc blendShapeFinalPosProgram("BlendShapeFinalPosProgram");
+		constexpr StringCrc blendShapeUpdatePosProgram("BlendShapeUpdatePosProgram");
 
+		// Compute Blend Shape
+		if (pBlendShapeComponent->IsDirty())
+		{
+			bgfx::setBuffer(BS_ALL_MORPH_VERTEX_ID_STAGE, bgfx::IndexBufferHandle{pBlendShapeComponent->GetAllMorphVertexIDIB()}, bgfx::Access::Read);
+			bgfx::setBuffer(BS_ACTIVE_MORPH_DATA_STAGE, bgfx::DynamicIndexBufferHandle{pBlendShapeComponent->GetActiveMorphOffestLengthWeightIB()}, bgfx::Access::Read);
+			bgfx::setBuffer(BS_FINAL_MORPH_AFFECTED_STAGE, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetFinalMorphAffectedVB()}, bgfx::Access::ReadWrite);
+			constexpr StringCrc morphCountVertexCountCrc(morphCountVertexCount);
+			cd::Vec4f morphCount = cd::Vec4f{ static_cast<float>(pBlendShapeComponent->GetActiveMorphCount()),static_cast<float>(pBlendShapeComponent->GetMeshVertexCount()),0,0};
+			GetRenderContext()->FillUniform(morphCountVertexCountCrc, &morphCount, 1);
+			bgfx::dispatch(GetViewID(), GetRenderContext()->GetProgram(blendShapeWeightsProgram),1U,1U,1U);
+			
+			bgfx::setBuffer(BS_MORPH_AFFECTED_STAGE, bgfx::VertexBufferHandle{pBlendShapeComponent->GetMorphAffectedVB()}, bgfx::Access::Read);
+			bgfx::setBuffer(BS_FINAL_MORPH_AFFECTED_STAGE, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetFinalMorphAffectedVB()}, bgfx::Access::ReadWrite);
+			GetRenderContext()->FillUniform(morphCountVertexCountCrc, &morphCount, 1);
+			bgfx::dispatch(GetViewID(), GetRenderContext()->GetProgram(blendShapeWeightPosProgram),1U, 1U, 1U);
+			
+			bgfx::setBuffer(BS_FINAL_MORPH_AFFECTED_STAGE, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetFinalMorphAffectedVB()}, bgfx::Access::ReadWrite);
+			bgfx::setBuffer(BS_ALL_MORPH_VERTEX_ID_STAGE, bgfx::IndexBufferHandle{pBlendShapeComponent->GetAllMorphVertexIDIB()}, bgfx::Access::Read);
+			bgfx::setBuffer(BS_ACTIVE_MORPH_DATA_STAGE, bgfx::DynamicIndexBufferHandle{pBlendShapeComponent->GetActiveMorphOffestLengthWeightIB()}, bgfx::Access::Read);
+			GetRenderContext()->FillUniform(morphCountVertexCountCrc, &morphCount, 1);
+			bgfx::dispatch(GetViewID(), GetRenderContext()->GetProgram(blendShapeFinalPosProgram));
+			pBlendShapeComponent->SetDirty(false);
+		}
+		if(pBlendShapeComponent->NeedUpdate()) 
+		{
+			pBlendShapeComponent->UpdateChanged();
+			bgfx::setBuffer(BS_MORPH_AFFECTED_STAGE, bgfx::VertexBufferHandle{pBlendShapeComponent->GetMorphAffectedVB()}, bgfx::Access::Read);
+			bgfx::setBuffer(BS_ALL_MORPH_VERTEX_ID_STAGE, bgfx::IndexBufferHandle{pBlendShapeComponent->GetAllMorphVertexIDIB()}, bgfx::Access::Read);
+			bgfx::setBuffer(BS_ACTIVE_MORPH_DATA_STAGE, bgfx::DynamicIndexBufferHandle{pBlendShapeComponent->GetActiveMorphOffestLengthWeightIB()}, bgfx::Access::Read);
+			bgfx::setBuffer(BS_FINAL_MORPH_AFFECTED_STAGE, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetFinalMorphAffectedVB()}, bgfx::Access::ReadWrite);
+			bgfx::setBuffer(BS_CHANGED_MORPH_INDEX_STAGE, bgfx::DynamicIndexBufferHandle{pBlendShapeComponent->GetChangedMorphIndexIB()}, bgfx::Access::Read);
+			//constexpr StringCrc changedWeightCrc(changedWeight);
+			//cd::Vec4f changedWeightData = cd::Vec4f{ static_cast<float>(pBlendShapeComponent->GetUpdatedWeight()),0,0,0 };
+			//GetRenderContext()->FillUniform(changedWeightCrc, &changedWeightData, 1);
+			bgfx::dispatch(GetViewID(), GetRenderContext()->GetProgram(blendShapeUpdatePosProgram));
+			pBlendShapeComponent->ClearNeedUpdate();
+		}
+
+		bgfx::setVertexBuffer(0, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetFinalMorphAffectedVB()});
+		bgfx::setVertexBuffer(1, bgfx::VertexBufferHandle{pBlendShapeComponent->GetNonMorphAffectedVB()});
+		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
+		
 		// Material
 		for (const auto& [textureType, _] : pMaterialComponent->GetTextureResources())
 		{
@@ -143,12 +196,14 @@ void WorldRenderer::Render(float deltaTime)
 					GetRenderContext()->FillUniform(albedoUVOffsetAndScaleCrc, &uvOffsetAndScaleData, 1);
 				}
 
-				bgfx::setTexture(pTextureInfo->slot, bgfx::UniformHandle{ pTextureInfo->samplerHandle }, bgfx::TextureHandle{ pTextureInfo->textureHandle });
+				bgfx::setTexture(pTextureInfo->slot, bgfx::UniformHandle{ pTextureInfo->samplerHandle }, bgfx::TextureHandle{pTextureInfo->textureHandle});
 			}
 		}
 
 		// Sky
 		SkyType crtSkyType = pSkyComponent->GetSkyType();
+		pMaterialComponent->SetSkyType(crtSkyType);
+
 		if (SkyType::SkyBox == crtSkyType)
 		{
 			// Create a new TextureHandle each frame if the skybox texture path has been updated,
@@ -228,7 +283,7 @@ void WorldRenderer::Render(float deltaTime)
 
 		bgfx::setState(state);
 
-		GetRenderContext()->Submit(GetViewID(), "WorldProgram", pMaterialComponent->GetFeaturesCombine());
+		bgfx::submit(GetViewID(), bgfx::ProgramHandle{pMaterialComponent->GetShadreProgram()});
 	}
 }
 

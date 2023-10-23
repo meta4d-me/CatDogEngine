@@ -23,6 +23,7 @@ SceneWorld::SceneWorld()
 
 	// To add a new component : 2. Init component type here.
 	m_pAnimationComponentStorage = m_pWorld->Register<engine::AnimationComponent>();
+	m_pBlendShapeComponentStorage = m_pWorld->Register<engine::BlendShapeComponent>();
 	m_pCameraComponentStorage = m_pWorld->Register<engine::CameraComponent>();
 	m_pCollisionMeshComponentStorage = m_pWorld->Register<engine::CollisionMeshComponent>();
 #ifdef ENABLE_DDGI
