@@ -22,7 +22,6 @@ class ShaderBuilder
 public:
 	static void CompileRegisteredNonUberShader(engine::RenderContext* pRenderContext);
 	static void CompileRegisteredUberShader(engine::RenderContext* pRenderContext, engine::MaterialType* pMaterialType);
-
 	static void CompileUberShaderAllVariants(engine::RenderContext* pRenderContext, engine::MaterialType* pMaterialType);
 
 	// Compile specified shader program/program variant.

@@ -104,7 +104,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	InitEngineRenderers();
 
 	// Add shader build tasks and create a thread to update tasks.
-	InitShaderPrograms();
+	InitShaderPrograms(initArgs.compileAllShaders);
 	m_pEditorImGuiContext->AddStaticLayer(std::make_unique<Splash>("Splash"));
 
 	std::thread resourceThread([]()
@@ -518,14 +518,26 @@ bool EditorApp::IsAtmosphericScatteringEnable() const
 		&& engine::GraphicsBackend::OpenGLES != backend;
 }
 
-void EditorApp::InitShaderPrograms() const
+void EditorApp::InitShaderPrograms(bool compileAllShaders) const
 {
 	ShaderBuilder::CompileRegisteredNonUberShader(m_pRenderContext.get());
-	ShaderBuilder::CompileRegisteredUberShader(m_pRenderContext.get(), m_pSceneWorld->GetPBRMaterialType());
+
+	if (compileAllShaders)
+	{
+		ShaderBuilder::CompileUberShaderAllVariants(m_pRenderContext.get(), m_pSceneWorld->GetPBRMaterialType());
 
 #ifdef ENABLE_DDGI
-	ShaderBuilder::CompileRegisteredUberShader(m_pSceneWorld->GetDDGIMaterialType());
+		ShaderBuilder::CompileUberShaderAllVariants(m_pRenderContext.get(), m_pSceneWorld->GetDDGIMaterialType());
 #endif
+	}
+	else
+	{
+		ShaderBuilder::CompileRegisteredUberShader(m_pRenderContext.get(), m_pSceneWorld->GetPBRMaterialType());
+
+#ifdef ENABLE_DDGI
+		ShaderBuilder::CompileRegisteredUberShader(m_pRenderContext.get(), m_pSceneWorld->GetDDGIMaterialType());
+#endif
+	}
 }
 
 void EditorApp::InitEditorController()
