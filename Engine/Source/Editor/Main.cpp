@@ -9,7 +9,7 @@ int main()
 	pEngine->Init({ .pTitle = "CatDogEditor", .pIconFilePath = "editor_icon.png",
 		.width = 1280, .height = 720, .useFullScreen = false,
 		.language = Language::ChineseSimplied,
-		.backend = GraphicsBackend::Direct3D11, .compileAllShaders = true });
+		.backend = GraphicsBackend::Direct3D11, .compileAllShaders = false });
 
 	pEngine->Run();
 
