@@ -7,7 +7,7 @@
 #include <bx/math.h>
 #include <imgui/imgui.h>
 
-#include <cmath>
+#include <algorithm>
 
 namespace
 {
