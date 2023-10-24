@@ -22,6 +22,7 @@ class Camera;
 class Light;
 class Material;
 class Mesh;
+class Morph;
 class Node;
 class SceneDatabase;
 class Texture;
@@ -66,6 +67,7 @@ private:
 	void AddSkinMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat);
 	void AddAnimation(engine::Entity entity, const cd::Animation& animation, const cd::SceneDatabase* pSceneDatabase);
 	void AddMaterial(engine::Entity entity, const cd::Material* pMaterial, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase);
+	void AddMorphs(engine::Entity entity, const std::vector<cd::Morph>& morphs, const cd::Mesh* pMesh);
 
 private:
 	engine::MaterialType* m_pDefaultMaterialType = nullptr;

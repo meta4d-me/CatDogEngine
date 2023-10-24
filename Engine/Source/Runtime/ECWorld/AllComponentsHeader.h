@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ECWorld/AnimationComponent.h"
+#include "ECWorld/BlendShapeComponent.h"
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/CollisionMeshComponent.h"
 #ifdef ENABLE_DDGI

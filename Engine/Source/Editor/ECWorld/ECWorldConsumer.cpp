@@ -130,12 +130,33 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 		}
 	};
 
-	//if (0U != pSceneDatabase->GetBoneCount())
-	//{
-	//	engine::Entity skeletonEntity = m_pSceneWorld->GetWorld()->CreateEntity();
-	//	AddSkeleton(skeletonEntity, pSceneDatabase);
-	//	AddAnimation(skeletonEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
-	//}
+	auto ParseMeshWithMorphs = [&](cd::MeshID meshID, const cd::Transform& tranform, const std::vector<cd::Morph>& morphs)
+	{
+		engine::Entity meshEntity = m_pSceneWorld->GetWorld()->CreateEntity();
+		AddTransform(meshEntity, tranform);
+
+		const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
+
+		// TODO : Or the user doesn't want to import animation data.
+		const bool isStaticMesh = 0U == mesh.GetVertexInfluenceCount();
+		if (isStaticMesh)
+		{
+			AddStaticMesh(meshEntity, mesh, m_pDefaultMaterialType->GetRequiredVertexFormat());
+			AddMorphs(meshEntity, morphs, &mesh);
+			cd::MaterialID meshMaterialID = mesh.GetMaterialID();
+			AddMaterial(meshEntity, meshMaterialID.IsValid() ? &pSceneDatabase->GetMaterial(meshMaterialID.Data()) : nullptr, m_pDefaultMaterialType, pSceneDatabase);
+		}
+		else
+		{
+			engine::MaterialType* pMaterialType = m_pSceneWorld->GetAnimationMaterialType();
+			AddSkinMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
+
+			// TODO : Use a standalone .cdanim file to play animation.
+			// Currently, we assume that imported SkinMesh will play animation automatically for testing.
+			AddAnimation(meshEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
+			AddMaterial(meshEntity, nullptr, pMaterialType, pSceneDatabase);
+		}
+	};
 
 	// There are multiple kinds of cases in the SceneDatabase:
 	// 1. No nodes but have meshes in the SceneDatabase.
@@ -149,9 +170,17 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 		{
 			continue;
 		}
-
-		ParseMesh(mesh.GetID(), cd::Transform::Identity());
-		parsedMeshIDs.insert(mesh.GetID().Data());
+		
+		if(pSceneDatabase->GetMorphCount())
+		{
+			ParseMeshWithMorphs(mesh.GetID(), cd::Transform::Identity(), pSceneDatabase->GetMorphs());
+			parsedMeshIDs.insert(mesh.GetID().Data());
+		}
+		else 
+		{
+			ParseMesh(mesh.GetID(), cd::Transform::Identity());
+			parsedMeshIDs.insert(mesh.GetID().Data());
+		}
 	}
 
 	for (const auto& node : pSceneDatabase->GetNodes())
@@ -424,6 +453,16 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	}
 
 	materialComponent.Build();
+}
+/**/
+void ECWorldConsumer::AddMorphs(engine::Entity entity, const std::vector<cd::Morph>& morphs, const cd::Mesh* pMesh)
+{
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+
+	auto& blendShapeComponent = pWorld->CreateComponent<engine::BlendShapeComponent>(entity);
+	blendShapeComponent.SetMorphs(morphs);
+	blendShapeComponent.SetMesh(pMesh);
+	blendShapeComponent.Build();
 }
 
 void ECWorldConsumer::AddSkeleton(engine::Entity entity, const cd::SceneDatabase* pSceneDatabase)

@@ -28,6 +28,7 @@ class SceneWorld
 {
 	// To add a new component : 1. Define component type here.
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Animation);
+	DEFINE_COMPONENT_STORAGE_WITH_APIS(BlendShape);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Camera);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(CollisionMesh);
 #ifdef ENABLE_DDGI
@@ -93,6 +94,7 @@ public:
 
 		// To add a new component : 3. Delete component here when removing an entity.
 		DeleteAnimationComponent(entity);
+		DeleteBlendShapeComponent(entity);
 		DeleteCameraComponent(entity);
 		DeleteCollisionMeshComponent(entity);
 #ifdef ENABLE_DDGI

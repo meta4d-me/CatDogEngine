@@ -7,11 +7,13 @@
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/Localization.h"
 #include "ImGui/UILayers/DebugPanel.h"
+#include "ImGui/UILayers/Profiler.h"
 #include "Log/Log.h"
 #include "Math/MeshGenerator.h"
 #include "Path/Path.h"
 #include "Rendering/AABBRenderer.h"
 #include "Rendering/AnimationRenderer.h"
+#include "Rendering/BlendShapeRenderer.h"
 #include "Rendering/BlitRenderTargetPass.h"
 #ifdef ENABLE_DDGI
 #include "Rendering/DDGIRenderer.h"
@@ -175,9 +177,8 @@ void EditorApp::InitEditorUILayers()
 	pSceneView->SetAABBRenderer(m_pAABBRenderer);
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
 
-	auto pSkeletonView = std::make_unique<SkeletonView>("SkeletonView");
-	pSkeletonView->SetCameraController(m_pViewportCameraController.get());
-	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSkeletonView));
+	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<SkeletonView>("SkeletonView"));
+	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<engine::Profiler>("Profiler"));
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
 
 	auto pAssetBrowser = std::make_unique<AssetBrowser>("AssetBrowser");
@@ -206,10 +207,8 @@ void EditorApp::InitEngineImGuiContext(engine::Language language)
 
 void EditorApp::InitEngineUILayers()
 {
-	//auto pEntityList = std::make_unique<engine::DebugPanel>("DebugPanel");
-	//pEntityList->SetCameraController(m_pCameraController);
-	//m_pEngineImGuiContext->AddDynamicLayer(cd::MoveTemp(pEntityList));
-
+	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<engine::DebugPanel>("DebugPanel"));
+	
 	auto pImGuizmoView = std::make_unique<editor::ImGuizmoView>("ImGuizmoView");
 	pImGuizmoView->SetSceneView(m_pSceneView);
 	m_pEngineImGuiContext->AddDynamicLayer(cd::MoveTemp(pImGuizmoView));
@@ -279,7 +278,9 @@ void EditorApp::InitEditorCameraEntity()
 	cameraComponent.SetNearPlane(0.1f);
 	cameraComponent.SetFarPlane(2000.0f);
 	cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
+	cameraComponent.SetExposure(1.0f);
 	cameraComponent.SetGammaCorrection(0.45f);
+	cameraComponent.SetToneMappingMode(cd::ToneMappingMode::ACES);
 	cameraComponent.SetBloomDownSampleTImes(4);
 	cameraComponent.SetBloomIntensity(1.0f);
 	cameraComponent.SetLuminanceThreshold(1.0f);
@@ -399,6 +400,10 @@ void EditorApp::InitEngineRenderers()
 	pSceneRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pSceneRenderer));
 
+	auto pBlendShapeRenderer = std::make_unique<engine::BlendShapeRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pBlendShapeRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pBlendShapeRenderer));
+
 	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pTerrainRenderer = pTerrainRenderer.get();
 	pTerrainRenderer->SetSceneWorld(m_pSceneWorld.get());
@@ -450,7 +455,6 @@ void EditorApp::InitEngineRenderers()
 	// But postprocess will bring unnecessary confusion. 
 	auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pPostProcessRenderer->SetSceneWorld(m_pSceneWorld.get());
-	pPostProcessRenderer->SetEnable(true);
 	AddEngineRenderer(cd::MoveTemp(pPostProcessRenderer));
 
 	// Note that if you don't want to use ImGuiRenderer for engine, you should also disable EngineImGuiContext.
