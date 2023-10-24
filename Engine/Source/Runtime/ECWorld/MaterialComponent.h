@@ -3,7 +3,6 @@
 #include "Core/StringCrc.h"
 #include "ECWorld/SkyComponent.h"
 #include "Material/ShaderSchema.h"
-#include "Scene/Material.h"
 #include "Scene/MaterialTextureType.h"
 #include "Scene/Texture.h"
 
@@ -31,6 +30,7 @@ namespace engine
 {
 
 class MaterialType;
+class RenderContext;
 
 class MaterialComponent final
 {
@@ -93,15 +93,14 @@ public:
 	const std::string& GetName() const { return m_name; }
 
 	// Uber shader data.
-	void ActiveShaderFeature(ShaderFeature feature);
+	void ActivateShaderFeature(ShaderFeature feature);
 	void DeactiveShaderFeature(ShaderFeature feature);
-	void MatchUberShaderCrc();
-	uint16_t GetShadreProgram() const;
-
 	void SetShaderFeatures(std::set<ShaderFeature> options) { m_shaderFeatures = cd::MoveTemp(m_shaderFeatures); }
 	std::set<ShaderFeature>& GetShaderFeatures() { return m_shaderFeatures; }
 	const std::set<ShaderFeature>& GetShaderFeatures() const { return m_shaderFeatures; }
 
+	const std::string& GetFeaturesCombine();
+	const std::string& GetProgramName() const;
 	std::string GetVertexShaderName() const;
 	std::string GetFragmentShaderName() const;
 
@@ -143,17 +142,10 @@ public:
 	float& GetAlphaCutOff() { return m_alphaCutOff; }
 	float GetAlphaCutOff() const { return m_alphaCutOff; }
 
-	// Different sky types provide different environment lighting.
-	void SetSkyType(SkyType type);
-	const SkyType GetSkyType() const { return m_skyType; }
-	SkyType GetSkyType() { return m_skyType; }
-
 private:
 	// Input
 	const cd::Material* m_pMaterialData = nullptr;
 	const engine::MaterialType* m_pMaterialType = nullptr;
-	std::set<ShaderFeature> m_shaderFeatures;
-	StringCrc m_uberShaderCrc;
 
 	std::string m_name;
 	cd::Vec3f m_albedoColor;
@@ -164,7 +156,10 @@ private:
 	cd::BlendMode m_blendMode;
 	float m_alphaCutOff;
 
-	SkyType m_skyType;
+	bool m_isShaderFeatureDirty = false;
+	std::set<ShaderFeature> m_shaderFeatures;
+	std::string m_featureCombine;
+
 	std::vector<TextureBlob> m_cacheTextureBlobs;
 
 	// Output

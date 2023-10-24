@@ -1,7 +1,7 @@
 #include "../common/bgfx_compute.sh"
 
 #define COMPUTE
-#include "atm_functions.sh"
+#include "../common/atm_functions.sh"
 
 IMAGE3D_WR(s_delta_rayleigh_scattering, rgba32f, 0);
 IMAGE3D_WR(s_delta_mie_scattering, rgba32f, 1);

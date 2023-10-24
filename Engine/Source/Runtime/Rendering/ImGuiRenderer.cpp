@@ -1,5 +1,6 @@
 #include "ImGuiRenderer.h"
 
+#include "Core/StringCrc.h"
 #include "Rendering/RenderContext.h"
 
 #include <imgui/imgui.h>
@@ -8,6 +9,14 @@ namespace engine
 {
 
 void ImGuiRenderer::Init()
+{
+	constexpr StringCrc programCrc = StringCrc("ImGuiProgram");
+	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_imgui", "fs_imgui" });
+
+	bgfx::setViewName(GetViewID(), "ImGuiRenderer");
+}
+
+void ImGuiRenderer::Warmup()
 {
 	constexpr StringCrc imguiVertexLayoutName("imgui_vertex_layout");
 	if (0 == GetRenderContext()->GetVertexLayout(imguiVertexLayoutName).m_stride)
@@ -22,13 +31,7 @@ void ImGuiRenderer::Init()
 	}
 
 	GetRenderContext()->CreateUniform("s_tex", bgfx::UniformType::Sampler);
-	GetRenderContext()->CreateProgram("ImGuiProgram", "vs_imgui.bin", "fs_imgui.bin");
-
-	bgfx::setViewName(GetViewID(), "ImGuiRenderer");
-}
-
-ImGuiRenderer::~ImGuiRenderer()
-{
+	GetRenderContext()->UploadShaderProgram("ImGuiProgram");
 }
 
 void ImGuiRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -169,8 +172,7 @@ void ImGuiRenderer::Render(float deltaTime)
 					pEncoder->setVertexBuffer(0, &vertexBuffer, cmd->VtxOffset, numVertices);
 					pEncoder->setIndexBuffer(&indexBuffer, cmd->IdxOffset, cmd->ElemCount);
 
-					constexpr StringCrc imguiProgram("ImGuiProgram");
-					pEncoder->submit(GetViewID(), GetRenderContext()->GetProgram(imguiProgram));
+					pEncoder->submit(GetViewID(), GetRenderContext()->GetShaderProgramHandle("ImGuiProgram"));
 				}
 			}
 		}

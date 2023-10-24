@@ -8,6 +8,7 @@ namespace engine
 class Camera;
 class RenderContext;
 class RenderTarget;
+class ShaderCollections;
 class StaticMeshComponent;
 
 class Renderer
@@ -25,6 +26,8 @@ public:
 	static RenderContext* GetRenderContext();
 
 	virtual void Init() = 0;
+	// All registered shaders are compiled in the App::Init stage, simply create the GPU resource here.
+	virtual void Warmup() = 0;
 	virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) = 0;
 	virtual void Render(float deltaTime) = 0;
 

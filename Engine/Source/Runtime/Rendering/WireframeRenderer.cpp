@@ -4,16 +4,25 @@
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
-#include "RenderContext.h"
+#include "Rendering/RenderContext.h"
 #include "Scene/Texture.h"
+
+#undef EDITOR_MODE
 
 namespace engine
 {
 
 void WireframeRenderer::Init()
 {
-	GetRenderContext()->CreateProgram("WireframeLineProgram", "vs_wireframe_line.bin", "fs_wireframe_line.bin");
+	constexpr StringCrc programCrc = StringCrc("WireframeLineProgram");
+	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_wireframe_line", "fs_wireframe_line" });
+
 	bgfx::setViewName(GetViewID(), "WireframeRenderer");
+}
+
+void WireframeRenderer::Warmup()
+{
+	GetRenderContext()->UploadShaderProgram("WireframeLineProgram");
 }
 
 void WireframeRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -60,8 +69,7 @@ void WireframeRenderer::Render(float deltaTime)
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_LINES;
 		bgfx::setState(state);
 
-		constexpr StringCrc whiteModelProgram("WireframeLineProgram");
-		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(whiteModelProgram));
+		GetRenderContext()->Submit(GetViewID(), "WireframeLineProgram");
 	}
 }
 

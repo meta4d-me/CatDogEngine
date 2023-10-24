@@ -9,11 +9,19 @@ Engine/ThirdPartyProjects
 ARM64
 
 # tmp
-Projects/Shared
+Projects/Shared/*
 Projects/Test/*
 !Projects/Test/*/
 Projects/Test/Textures/*
 !Projects/Test/Textures/*/
+
+# Precompiled Shader
+!Projects/Shared/BuiltInShaders
+Projects/Shared/BuiltInShaders/*
+!Projects/Shared/BuiltInShaders/Direct3D11
+Projects/Shared/BuiltInShaders/Direct3D11/*
+!Projects/Shared/BuiltInShaders/Direct3D11/vs_imgui.bin
+!Projects/Shared/BuiltInShaders/Direct3D11/fs_imgui.bin
 
 # Commercial SKD
 Engine/Auto/commercial_sdk_locations.bat

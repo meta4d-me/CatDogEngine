@@ -4,7 +4,7 @@
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
-#include "RenderContext.h"
+#include "Rendering/RenderContext.h"
 #include "Scene/Texture.h"
 
 namespace engine
@@ -12,8 +12,15 @@ namespace engine
 
 void WhiteModelRenderer::Init()
 {
-	GetRenderContext()->CreateProgram("WhiteModelProgram", "vs_whiteModel.bin", "fs_whiteModel.bin");
+	constexpr StringCrc programCrc = StringCrc("WhiteModelProgram");
+	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_whiteModel", "fs_whiteModel" });
+
 	bgfx::setViewName(GetViewID(), "WhiteModelRenderer");
+}
+
+void WhiteModelRenderer::Warmup()
+{
+	GetRenderContext()->UploadShaderProgram("WhiteModelProgram");
 }
 
 void WhiteModelRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -55,8 +62,7 @@ void WhiteModelRenderer::Render(float deltaTime)
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
 		bgfx::setState(state);
 
-		constexpr StringCrc whiteModelProgram("WhiteModelProgram");
-		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(whiteModelProgram));
+		GetRenderContext()->Submit(GetViewID(), "WhiteModelProgram");
 	}
 }
 
