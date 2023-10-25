@@ -222,20 +222,10 @@ void MainMenu::BuildMenu()
 	{
 		engine::SceneWorld* pSceneWorld = GetSceneWorld();
 
-		if (ImGui::MenuItem(CD_TEXT("TEXT_REBUILD_NONUBER_SHADERS")))
+		if (ImGui::MenuItem(CD_TEXT("TEXT_BUILD_PBR_VARIANT")))
 		{
-			std::string nonUberPath = CDENGINE_BUILTIN_SHADER_PATH;
-			ShaderBuilder::BuildNonUberShader(nonUberPath + "shaders");
+			ShaderBuilder::CompileUberShaderAllVariants(GetRenderContext(), pSceneWorld->GetPBRMaterialType());
 		}
-		if (ImGui::MenuItem(CD_TEXT("TEXT_REBUILD_PBR_SHADERS")))
-		{
-			ShaderBuilder::BuildUberShader(pSceneWorld->GetPBRMaterialType());
-		}
-		if (ImGui::MenuItem(CD_TEXT("TEXT_REBUILD_ANIMATION_SHADERS")))
-		{
-			ShaderBuilder::BuildUberShader(pSceneWorld->GetAnimationMaterialType());
-		}
-		ResourceBuilder::Get().Update();
 
 		ImGui::EndMenu();
 	}

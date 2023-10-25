@@ -40,7 +40,7 @@ CD_FORCEINLINE bool IsMaterialTextureTypeValid(cd::MaterialTextureType type)
 } // namespace Detail
 
 ECWorldConsumer::ECWorldConsumer(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext) :
-	m_pSceneWorld(pSceneWorld)
+	m_pSceneWorld(pSceneWorld), m_pRenderContext(pRenderContext)
 {
 }
 
@@ -85,6 +85,34 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 		}
 	};
 
+	auto ParseMeshWithMorphs = [&](cd::MeshID meshID, const cd::Transform& tranform, const std::vector<cd::Morph>& morphs)
+	{
+		engine::Entity meshEntity = m_pSceneWorld->GetWorld()->CreateEntity();
+		AddTransform(meshEntity, tranform);
+
+		const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
+
+		// TODO : Or the user doesn't want to import animation data.
+		const bool isStaticMesh = 0U == mesh.GetVertexInfluenceCount();
+		if (isStaticMesh)
+		{
+			AddStaticMesh(meshEntity, mesh, m_pDefaultMaterialType->GetRequiredVertexFormat());
+			AddMorphs(meshEntity, morphs, &mesh);
+			cd::MaterialID meshMaterialID = mesh.GetMaterialID();
+			AddMaterial(meshEntity, meshMaterialID.IsValid() ? &pSceneDatabase->GetMaterial(meshMaterialID.Data()) : nullptr, m_pDefaultMaterialType, pSceneDatabase);
+		}
+		else
+		{
+			engine::MaterialType* pMaterialType = m_pSceneWorld->GetAnimationMaterialType();
+			AddSkinMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
+
+			// TODO : Use a standalone .cdanim file to play animation.
+			// Currently, we assume that imported SkinMesh will play animation automatically for testing.
+			AddAnimation(meshEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
+			AddMaterial(meshEntity, nullptr, pMaterialType, pSceneDatabase);
+		}
+	};
+
 	// There are multiple kinds of cases in the SceneDatabase:
 	// 1. No nodes but have meshes in the SceneDatabase.
 	// 2. Only a root node with multiple meshes.
@@ -97,9 +125,17 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 		{
 			continue;
 		}
-
-		ParseMesh(mesh.GetID(), cd::Transform::Identity());
-		parsedMeshIDs.insert(mesh.GetID().Data());
+		
+		if(pSceneDatabase->GetMorphCount())
+		{
+			ParseMeshWithMorphs(mesh.GetID(), cd::Transform::Identity(), pSceneDatabase->GetMorphs());
+			parsedMeshIDs.insert(mesh.GetID().Data());
+		}
+		else 
+		{
+			ParseMesh(mesh.GetID(), cd::Transform::Identity());
+			parsedMeshIDs.insert(mesh.GetID().Data());
+		}
 	}
 
 	for (const auto& node : pSceneDatabase->GetNodes())
@@ -225,128 +261,83 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	std::set<uint8_t> compiledTextureSlot;
 	std::map<std::string, const cd::Texture*> outputTexturePathToData;
 
-	bool missRequiredTextures = false;
-	bool unknownTextureSlot = false;
-	if (pMaterial)
-	{
-		for (cd::MaterialTextureType requiredTextureType : pMaterialType->GetRequiredTextureTypes())
-		{
-			cd::TextureID textureID = pMaterial->GetTextureID(requiredTextureType);
-			if (!textureID.IsValid())
-			{
-				missRequiredTextures = true;
-				CD_ENGINE_ERROR("Material {0} massing required texture {1}!", pMaterial->GetName(),
-					nameof::nameof_enum(requiredTextureType));
-				break;
-			}
-
-			std::optional<uint8_t> optTextureSlot = pMaterialType->GetTextureSlot(requiredTextureType);
-			if (!optTextureSlot.has_value())
-			{
-				unknownTextureSlot = true;
-				CD_ENGINE_ERROR("Material {0} unknown texture slot of textuere type {1}!", pMaterial->GetName(),
-					nameof::nameof_enum(requiredTextureType));
-				break;
-			}
-
-			uint8_t textureSlot = optTextureSlot.value();
-			const cd::Texture& requiredTexture = pSceneDatabase->GetTexture(textureID.Data());
-			std::string outputTexturePath = engine::Path::GetTextureOutputFilePath(requiredTexture.GetPath(), ".dds");
-			if (compiledTextureSlot.find(textureSlot) == compiledTextureSlot.end())
-			{
-				// When multiple textures have the same texture slot, it implies that these textures are packed in one file.
-				// For example, AO + Metalness + Roughness are packed so they have same slots which mean we only need to build it once.
-				// Note that these texture types can only have same setting to build texture.
-				compiledTextureSlot.insert(textureSlot);
-				ResourceBuilder::Get().AddTextureBuildTask(requiredTexture.GetType(), requiredTexture.GetPath(), outputTexturePath.c_str());
-				outputTexturePathToData[cd::MoveTemp(outputTexturePath)] = &requiredTexture;
-			}
-		}
-	}
-
-	// In any bad case, we should have a material component.
 	engine::MaterialComponent& materialComponent = m_pSceneWorld->GetWorld()->CreateComponent<engine::MaterialComponent>(entity);
 	materialComponent.Init();
+	materialComponent.SetMaterialType(pMaterialType);
+	materialComponent.SetMaterialData(pMaterial);
+	materialComponent.ActivateShaderFeature(engine::GetSkyTypeShaderFeature(m_pSceneWorld->GetSkyComponent(m_pSceneWorld->GetSkyEntity())->GetSkyType()));
 
 	cd::Vec3f albedoColor(1.0f);
 	engine::ShaderSchema& shaderSchema = pMaterialType->GetShaderSchema();
-	if (missRequiredTextures || unknownTextureSlot)
+	if (pMaterial)
 	{
-		// Give a special red color to notify.
-		albedoColor = cd::Vec3f(1.0f, 0.0f, 0.0f);
+		// Expected textures are ready to build. Add more optional texture data.
+		for (cd::MaterialTextureType optionalTextureType : pMaterialType->GetOptionalTextureTypes())
+		{
+			cd::TextureID textureID = pMaterial->GetTextureID(optionalTextureType);
+			if (!textureID.IsValid())
+			{
+				// TODO : Its ok to have a material factor instead of texture, remove factor case warning.
+				CD_WARN("Material {0} does not have optional texture type {1}!", pMaterial->GetName(),
+					nameof::nameof_enum(optionalTextureType));
+				continue;
+			}
+
+			std::optional<uint8_t> optTextureSlot = pMaterialType->GetTextureSlot(optionalTextureType);
+			if (!optTextureSlot.has_value())
+			{
+				CD_ERROR("Unknow texture {0} slot!", nameof::nameof_enum(optionalTextureType));
+				break;
+			}
+
+			if (Detail::IsMaterialTextureTypeValid(optionalTextureType))
+			{
+				materialComponent.ActivateShaderFeature(Detail::materialTextureTypeToShaderFeature.at(optionalTextureType));
+			}
+
+			uint8_t textureSlot = optTextureSlot.value();
+			const cd::Texture& optionalTexture = pSceneDatabase->GetTexture(textureID.Data());
+			std::string outputTexturePath = engine::Path::GetTextureOutputFilePath(optionalTexture.GetPath(), ".dds");
+			if (compiledTextureSlot.find(textureSlot) == compiledTextureSlot.end())
+			{
+				compiledTextureSlot.insert(textureSlot);
+				ResourceBuilder::Get().AddTextureBuildTask(optionalTexture.GetType(), optionalTexture.GetPath(), outputTexturePath.c_str());
+				outputTexturePathToData[cd::MoveTemp(outputTexturePath)] = &optionalTexture;
+			}
+		}
+
+		if (auto optMetallic = pMaterial->GetFloatProperty(cd::MaterialPropertyGroup::Metallic, cd::MaterialProperty::Factor); optMetallic.has_value())
+		{
+			materialComponent.SetMetallicFactor(optMetallic.value());
+		}
+
+		if (auto optRoughness = pMaterial->GetFloatProperty(cd::MaterialPropertyGroup::Roughness, cd::MaterialProperty::Factor); optRoughness.has_value())
+		{
+			materialComponent.SetRoughnessFactor(optRoughness.value());
+		}
+
+		if (auto optTwoSided = pMaterial->GetBoolProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::TwoSided); optTwoSided.has_value())
+		{
+			materialComponent.SetTwoSided(optTwoSided.value());
+		}
+
+		if (auto optBlendMode = pMaterial->GetI32Property(cd::MaterialPropertyGroup::General, cd::MaterialProperty::BlendMode); optBlendMode.has_value())
+		{
+			cd::BlendMode blendMode = static_cast<cd::BlendMode>(optBlendMode.value());
+			if (cd::BlendMode::Mask == blendMode)
+			{
+				auto optAlphaTestValue = pMaterial->GetFloatProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::OpacityMaskClipValue);
+				assert(optAlphaTestValue.has_value());
+
+				materialComponent.SetAlphaCutOff(optAlphaTestValue.value());
+			}
+
+			materialComponent.SetBlendMode(blendMode);
+		}
 	}
 	else
 	{
-		if (pMaterial)
-		{
-			// Expected textures are ready to build. Add more optional texture data.
-			for (cd::MaterialTextureType optionalTextureType : pMaterialType->GetOptionalTextureTypes())
-			{
-				cd::TextureID textureID = pMaterial->GetTextureID(optionalTextureType);
-				if (!textureID.IsValid())
-				{
-					// TODO : Its ok to have a material factor instead of texture, remove factor case warning.
-					CD_WARN("Material {0} does not have optional texture type {1}!", pMaterial->GetName(),
-						nameof::nameof_enum(optionalTextureType));
-					continue;
-				}
-
-				std::optional<uint8_t> optTextureSlot = pMaterialType->GetTextureSlot(optionalTextureType);
-				if (!optTextureSlot.has_value())
-				{
-					CD_ERROR("Unknow texture {0} slot!", nameof::nameof_enum(optionalTextureType));
-					break;
-				}
-
-				if (Detail::IsMaterialTextureTypeValid(optionalTextureType))
-				{
-					materialComponent.ActiveShaderFeature(Detail::materialTextureTypeToShaderFeature.at(optionalTextureType));
-				}
-
-				uint8_t textureSlot = optTextureSlot.value();
-				const cd::Texture& optionalTexture = pSceneDatabase->GetTexture(textureID.Data());
-				std::string outputTexturePath = engine::Path::GetTextureOutputFilePath(optionalTexture.GetPath(), ".dds");
-				if (compiledTextureSlot.find(textureSlot) == compiledTextureSlot.end())
-				{
-					compiledTextureSlot.insert(textureSlot);
-					ResourceBuilder::Get().AddTextureBuildTask(optionalTexture.GetType(), optionalTexture.GetPath(), outputTexturePath.c_str());
-					outputTexturePathToData[cd::MoveTemp(outputTexturePath)] = &optionalTexture;
-				}
-			}
-
-			if (auto optMetallic = pMaterial->GetFloatProperty(cd::MaterialPropertyGroup::Metallic, cd::MaterialProperty::Factor); optMetallic.has_value())
-			{
-				materialComponent.SetMetallicFactor(optMetallic.value());
-			}
-
-			if (auto optRoughness = pMaterial->GetFloatProperty(cd::MaterialPropertyGroup::Roughness, cd::MaterialProperty::Factor); optRoughness.has_value())
-			{
-				materialComponent.SetRoughnessFactor(optRoughness.value());
-			}
-
-			if (auto optTwoSided = pMaterial->GetBoolProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::TwoSided); optTwoSided.has_value())
-			{
-				materialComponent.SetTwoSided(optTwoSided.value());
-			}
-
-			if (auto optBlendMode = pMaterial->GetI32Property(cd::MaterialPropertyGroup::General, cd::MaterialProperty::BlendMode); optBlendMode.has_value())
-			{
-				cd::BlendMode blendMode = static_cast<cd::BlendMode>(optBlendMode.value());
-				if (cd::BlendMode::Mask == blendMode)
-				{
-					auto optAlphaTestValue = pMaterial->GetFloatProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::OpacityMaskClipValue);
-					assert(optAlphaTestValue.has_value());
-
-					materialComponent.SetAlphaCutOff(optAlphaTestValue.value());
-				}
-
-				materialComponent.SetBlendMode(blendMode);
-			}
-		}
-		else
-		{
-			albedoColor = cd::Vec3f(0.2f);
-		}
+		albedoColor = cd::Vec3f(0.2f);
 	}
 
 	// TODO : ResourceBuilder will move to EditorApp::Update in the future.
@@ -355,10 +346,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 
 	// TODO : create material component before ResourceBuilder done.
 	// Assign a special color for loading resource status.
-	materialComponent.SetMaterialType(pMaterialType);
-	materialComponent.SetMaterialData(pMaterial);
 	materialComponent.SetAlbedoColor(cd::MoveTemp(albedoColor));
-	materialComponent.SetSkyType(m_pSceneWorld->GetSkyComponent(m_pSceneWorld->GetSkyEntity())->GetSkyType());
 
 	// Textures.
 	for (const auto& [outputTextureFilePath, pTextureData] : outputTexturePathToData)
@@ -371,6 +359,16 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	}
 
 	materialComponent.Build();
+}
+/**/
+void ECWorldConsumer::AddMorphs(engine::Entity entity, const std::vector<cd::Morph>& morphs, const cd::Mesh* pMesh)
+{
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+
+	auto& blendShapeComponent = pWorld->CreateComponent<engine::BlendShapeComponent>(entity);
+	blendShapeComponent.SetMorphs(morphs);
+	blendShapeComponent.SetMesh(pMesh);
+	blendShapeComponent.Build();
 }
 
 }

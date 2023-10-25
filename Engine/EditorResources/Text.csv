@@ -10,8 +10,6 @@ TEXT_SAVE,保存,Save
 TEXT_SAVE_AS,另存为,Save AS
 TEXT_WINDOW,窗口,Window
 TEXT_BUILD,编译,Build
-TEXT_REBUILD_NONUBER_SHADERS,重新生成着色器,Rebuild Non-Uber shaders
-TEXT_REBUILD_PBR_SHADERS,重新生成PBR着色器,Rebuild PBR shaders
-TEXT_REBUILD_ANIMATION_SHADERS,重新生成动画着色器,Rebuild Animation shaders
+TEXT_BUILD_PBR_VARIANT,编译所有PBR着色器变体,Build All PBR Shader Variant
 TEXT_ABOUT,关于,About
 TEXT_DOCUMENTS,文档,Documents

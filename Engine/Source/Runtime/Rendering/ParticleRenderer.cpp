@@ -1,4 +1,8 @@
 #include "ParticleRenderer.h"
+#include "ECWorld/CameraComponent.h"
+#include "ECWorld/SceneWorld.h"
+#include "ECWorld/TransformComponent.h"
+#include "Rendering/RenderContext.h"
 
 namespace engine {
 
@@ -10,6 +14,11 @@ void ParticleRenderer::Init()
 	GetRenderContext()->CreateUniform("s_texColor", bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateProgram("ParticleProgram", "vs_particle.bin", "fs_particle.bin");
 	bgfx::setViewName(GetViewID(), "ParticleRenderer");
+}
+
+void ParticleRenderer::Warmup()
+{
+
 }
 
 void ParticleRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

@@ -14,9 +14,9 @@ namespace engine
 	{
 	public:
 		using Renderer::Renderer;
-		virtual ~BloomRenderer();
 
 		virtual void Init() override;
+		virtual void Warmup() override;
 		virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) override;
 		virtual void Render(float deltaTime) override;
 
@@ -34,15 +34,15 @@ namespace engine
 		bgfx::FrameBufferHandle m_sampleChainFB[TEX_CHAIN_LEN];
 		bgfx::FrameBufferHandle m_combineFB;
 
-		uint16_t width;
-		uint16_t height;
+		uint16_t m_width;
+		uint16_t m_height;
 
-		uint16_t start_dowmSamplePassID;
-		uint16_t start_verticalBlurPassID;
-		uint16_t start_horizontalBlurPassID;
-		uint16_t start_upSamplePassID;
-		uint16_t blit_colorPassID;
-		uint16_t combinePassID;
+		uint16_t m_startDowmSamplePassID;
+		uint16_t m_startVerticalBlurPassID;
+		uint16_t m_startHorizontalBlurPassID;
+		uint16_t m_startUpSamplePassID;
+		uint16_t m_blitColorPassID;
+		uint16_t m_combinePassID;
 	};
 
 }

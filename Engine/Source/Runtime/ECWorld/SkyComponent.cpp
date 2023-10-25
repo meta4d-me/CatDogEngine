@@ -3,19 +3,19 @@
 namespace engine
 {
 
-void SkyComponent::SetSkyType(SkyType crtType)
+void SkyComponent::SetSkyType(SkyType type)
 {
-	if (m_type == crtType)
+	if (m_type == type)
 	{
 		return;
 	}
 
-	m_type = crtType;
+	m_type = type;
 	static std::string preRadPath = m_radianceTexturePath;
 	if (SkyType::None == m_type)
 	{
 		preRadPath = cd::MoveTemp(m_radianceTexturePath);
-		m_radianceTexturePath = SkyComponent::PureGrayTexturePath;
+		m_radianceTexturePath = m_pureGrayTexturePath;
 	}
 	else if(preRadPath != m_radianceTexturePath)
 	{
@@ -36,6 +36,11 @@ void SkyComponent::SetIrradianceTexturePath(std::string path)
 void SkyComponent::SetRadianceTexturePath(std::string path)
 {
 	m_radianceTexturePath = cd::MoveTemp(path);
+}
+
+void SkyComponent::SetPureGrayTexturePath(std::string path)
+{
+	m_pureGrayTexturePath = cd::MoveTemp(path);
 }
 
 }

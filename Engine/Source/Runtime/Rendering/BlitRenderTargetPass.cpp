@@ -1,6 +1,6 @@
 #include "BlitRenderTargetPass.h"
 
-#include "RenderContext.h"
+#include "Rendering/RenderContext.h"
 
 namespace engine
 {
@@ -11,6 +11,10 @@ void BlitRenderTargetPass::Init()
 }
 
 BlitRenderTargetPass::~BlitRenderTargetPass()
+{
+}
+
+void BlitRenderTargetPass::Warmup()
 {
 }
 

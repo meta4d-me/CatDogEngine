@@ -3,7 +3,7 @@
 #include "Core/StringCrc.h"
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/TransformComponent.h"
-#include "RenderContext.h"
+#include "Rendering/RenderContext.h"
 #include "Rendering/Utility/VertexLayoutUtility.h"
 
 namespace engine
@@ -56,8 +56,15 @@ void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase,
 
 void SkeletonRenderer::Init()
 {
-	GetRenderContext()->CreateProgram("SkeletonProgram", "vs_AABB.bin", "fs_AABB.bin");
+	constexpr StringCrc programCrc = StringCrc("SkeletonProgram");
+	GetRenderContext()->RegisterShaderProgram(programCrc, {"vs_AABB", "fs_AABB"});
+
 	bgfx::setViewName(GetViewID(), "SkeletonRenderer");
+}
+
+void SkeletonRenderer::Warmup()
+{
+	GetRenderContext()->UploadShaderProgram("SkeletonProgram");
 }
 
 void SkeletonRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -127,8 +134,8 @@ void SkeletonRenderer::Render(float delataTime)
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_LINES;
 
 		bgfx::setState(state);
-		constexpr StringCrc SkeletonProgram("SkeletonProgram");
-		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(SkeletonProgram));
+
+		GetRenderContext()->Submit(GetViewID(), "SkeletonProgram");
 	}
 	
 }
