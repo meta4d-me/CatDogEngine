@@ -8,17 +8,18 @@ namespace engine {
 
 void ParticleRenderer::Init()
 {
-	constexpr const char* particleTexture = "Textures/Particle.png";
-	m_particleTextureHandle = GetRenderContext()->CreateTexture(particleTexture);
-
-	GetRenderContext()->CreateUniform("s_texColor", bgfx::UniformType::Sampler);
-	GetRenderContext()->CreateProgram("ParticleProgram", "vs_particle.bin", "fs_particle.bin");
+	constexpr StringCrc ParticleProgram = StringCrc{ "ParticleProgram" };
+	GetRenderContext()->RegisterShaderProgram(ParticleProgram, { "vs_PBR", "fs_PBR" });
+	//GetRenderContext()->CreateProgram("ParticleProgram", "vs_particle.bin", "fs_particle.bin");
 	bgfx::setViewName(GetViewID(), "ParticleRenderer");
 }
 
 void ParticleRenderer::Warmup()
 {
-
+	constexpr const char* particleTexture = "Textures/Particle.png";
+	m_particleTextureHandle = GetRenderContext()->CreateTexture(particleTexture);
+	GetRenderContext()->CreateUniform("s_texColor", bgfx::UniformType::Sampler);
+	GetRenderContext()->UploadShaderProgram("ParticleProgram");
 }
 
 void ParticleRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -71,8 +72,7 @@ void ParticleRenderer::Render(float deltaTime)
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_TRISTRIP;
 		bgfx::setState(state);
 
-		constexpr StringCrc ParticleProgram("ParticleProgram");
-		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(ParticleProgram));
+		GetRenderContext()->Submit(GetViewID(), "ParticleProgram");
 	}
 }
 
