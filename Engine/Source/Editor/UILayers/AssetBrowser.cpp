@@ -13,6 +13,7 @@
 #include "Log/Log.h"
 #include "Material/MaterialType.h"
 #include "Producers/CDProducer/CDProducer.h"
+#include "Producers/EffekseerProducer/EffekseerProducer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Resources/ResourceBuilder.h"
@@ -22,6 +23,7 @@
 #include "Producers/GenericProducer/GenericProducer.h"
 #endif
 
+#include <Windows.h>
 #include <json/json.hpp>
 
 #include <imgui/imgui.h>
@@ -1109,7 +1111,32 @@ void AssetBrowser::ImportJson(const char* pFilePath)
 
 void AssetBrowser::ImportParticleEffect(const char* pFilePath)
 {
+	////engine::RenderContext* pCurrentRenderContext = GetRenderContext();
+	//engine::SceneWorld* pSceneWorld = GetImGuiContextInstance()->GetSceneWorld();
 
+	//cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
+	////uint32_t oldNodeCount = pSceneDatabase->GetNodeCount();
+	////uint32_t oldMeshCount = pSceneDatabase->GetMeshCount();
+	//uint32_t oldParticleEmitterCount = pSceneDatabase->GetParticleEmitterCount();
+
+	//// Step 1 : Convert model file to cd::SceneDatabase
+	//std::filesystem::path inputFilePath(pFilePath);
+	//std::filesystem::path inputFileExtension = inputFilePath.extension();
+	//if (0 == inputFileExtension.compare(".efkefc"))
+	//{
+	///*	cdtools::CDProducer cdProducer(pFilePath);
+	//	cd::SceneDatabase newSceneDatabase;
+	//	cdtools::Processor processor(&cdProducer, nullptr, &newSceneDatabase);
+	//	proce qssor.Run();
+	//	pSceneDatabase->Merge(cd::MoveTemp(newSceneDatabase));*/
+	//	std::string filePath = pFilePath;
+	//	int size = MultiByteToWideChar(CP_UTF8, 0, filePath.c_str(), -1, nullptr, 0);
+	//	std::wstring wstr(size, 0);
+	//	MultiByteToWideChar(CP_UTF8, 0, filePath.c_str(), -1, &wstr[0], size);
+	//	std::wstring wFilePath = wstr;
+	//	const char16_t* u16_cstr = reinterpret_cast<const char16_t*>(wFilePath.c_str());
+	//	cdtools::EffekseerProducer efkProducer(u16_cstr);
+	//}
 }
 
 void AssetBrowser::ExportAssetFile(const char* pFilePath)

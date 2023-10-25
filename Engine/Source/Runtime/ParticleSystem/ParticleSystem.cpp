@@ -39,7 +39,7 @@ void engine::ParticleSystem::Reset(int index)
 {
 
 	m_pos[index] = cd::Vec3f(0.0f, 0.0f, 0.0f);
-	m_velocity[index] = cd::Vec3f(rand()%3, rand()%3, 0.0f);
+	m_velocity[index] = cd::Vec3f(0.0f, 0.0f, 0.0f);
 	m_acceleration[index] = cd::Vec3f(0.0f, 0.0f, 0.0f);
 	
 	m_color[index] = cd::Vec4f{1.0f, 1.0f,1.0f,1.0f};
@@ -61,29 +61,29 @@ void engine::ParticleSystem::Update(float deltaTime, int index)
 
 	if (index % 4 == 0)
 	{
-		m_pos[index].x() = m_pos[index].x();
-		m_pos[index].y() = m_pos[index].y();
+		m_pos[index].x() = m_pos[index].x() + m_velocity[index].x();
+		m_pos[index].y() = m_pos[index].y() + m_velocity[index].y();
 		m_texture_u[index] = 1.0f;
 		m_texture_v[index] = 1.0f;
 	}
 	else if (index % 4 == 1)
 	{
-		m_pos[index].x() = m_pos[index-1].x()+ 1 ;
-		m_pos[index].y() = m_pos[index-1].y() ;
+		m_pos[index].x() = m_pos[index-1].x()+ 1 +m_velocity[index].x() ;
+		m_pos[index].y() = m_pos[index-1].y() + m_velocity[index].y();
 		m_texture_u[index] = 0.0f;
 		m_texture_v[index] = 1.0f;
 	}
 	else if (index % 4 == 2)
 	{
-		m_pos[index].x() = m_pos[index-2].x() + 1;
-		m_pos[index].y() = m_pos[index-2].y() + 1;
+		m_pos[index].x() = m_pos[index-2].x() + 1 + m_velocity[index].x();
+		m_pos[index].y() = m_pos[index-2].y() + 1 + m_velocity[index].y();
 		m_texture_u[index] = 0.0f;
 		m_texture_v[index] = 0.0f;
 	}
 	else if (index % 4 == 3)
 	{
-		m_pos[index].x() = m_pos[index-3].x();
-		m_pos[index].y() = m_pos[index-3].y() + 1 ;
+		m_pos[index].x() = m_pos[index-3].x() + m_velocity[index].x();
+		m_pos[index].y() = m_pos[index-3].y() + 1 + m_velocity[index].y() ;
 		m_texture_u[index] = 1.0f;
 		m_texture_v[index] = 0.0f;
 	}

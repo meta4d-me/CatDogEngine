@@ -594,7 +594,7 @@ void UpdateComponentWidget<engine::ParticleEmitterComponent>(engine::SceneWorld*
 
 	if (isOpen)
 	{
-
+		ImGuiUtils::ImGuiVectorProperty("Velocity",pParticleEmitterComponent->GetParticleSystem().GetVelocity());
 	}
 
 	ImGui::Separator();

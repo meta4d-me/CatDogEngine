@@ -23,21 +23,21 @@ void ParticleRenderer::Render(float deltaTime)
 	for (Entity entity : m_pCurrentSceneWorld->GetParticleEmitterEntities())
 	{
 		engine::ParticleEmitterComponent* pEmitterComponent = m_pCurrentSceneWorld->GetParticleEmitterComponent(entity);
+		auto particleMaxCount = pEmitterComponent->GetParticleSystem().GetMaxCount();
 		const cd::Transform& particleTransform = m_pCurrentSceneWorld->GetTransformComponent(entity)->GetTransform();
-
-		float newAngle = particleTransform.GetRotation().Pitch();
+	/*	float newAngle = particleTransform.GetRotation().Pitch();
 		auto a = cd::Math::DegreeToRadian(newAngle);
 		auto b = cd::Quaternion::RotateZ(a);
 		pEmitterComponent->GetParticleSystem().SetFront(b*pEmitterComponent->GetParticleSystem().GetFront());
-		cd::Quaternion rotationQuat = cd::Quaternion::FromAxisAngle(pEmitterComponent->GetParticleSystem().GetFront(), particleTransform.GetRotation().Pitch());
+		cd::Quaternion rotationQuat = cd::Quaternion::FromAxisAngle(pEmitterComponent->GetParticleSystem().GetFront(), particleTransform.GetRotation().Pitch());*/
 
-		for (int i = 0; i < pEmitterComponent->GetParticleSystem().GetMaxCount(); ++i)
+		for (int i = 0; i < particleMaxCount; ++i)
 		{
 			pEmitterComponent->GetParticleSystem().AllocateParticleIndex();
 			pEmitterComponent->GetParticleSystem().SetPos(particleTransform.GetTranslation());
 		}
 
-		for (int i = 0; i < pEmitterComponent->GetParticleSystem().GetMaxCount(); ++i)
+		for (int i = 0; i < particleMaxCount; ++i)
 		{
 			if (pEmitterComponent->GetParticleSystem().UpdateActive(deltaTime, i))
 			{
