@@ -1,9 +1,11 @@
 ﻿#pragma once
 
 #include "Core/StringCrc.h"
+#include "Rendering/ShaderFeature.h"
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -12,24 +14,6 @@
 
 namespace engine
 {
-
-enum class ShaderFeature : uint32_t
-{
-	DEFAULT = 0,
-
-	// PBR parameters
-	ALBEDO_MAP,
-	NORMAL_MAP,
-	ORM_MAP,
-	EMISSIVE_MAP,
-
-	// Techniques
-	IBL,
-	ATM,
-	AREAL_LIGHT,
-
-	COUNT,
-};
 
 enum class LoadingStatus : uint8_t
 {
@@ -46,62 +30,48 @@ class ShaderSchema
 public:
 	static constexpr uint16_t InvalidProgramHandle = UINT16_MAX;
 	static constexpr StringCrc DefaultUberShaderCrc = StringCrc("");
-
 	using ShaderBlob = std::vector<std::byte>;
-	using ShaderFeatureSet = std::set<ShaderFeature>;
 
 public:
 	ShaderSchema() = default;
-	explicit ShaderSchema(std::string vsPath, std::string fsPath);
+	explicit ShaderSchema(std::string progeamName, std::string vsPath, std::string fsPath);
 	ShaderSchema(const ShaderSchema&) = delete;
 	ShaderSchema& operator=(const ShaderSchema&) = delete;
 	ShaderSchema(ShaderSchema&&) = default;
 	ShaderSchema& operator=(ShaderSchema&&) = default;
 	~ShaderSchema() = default;
 
-	const char* GetVertexShaderPath() const { return m_vertexShaderPath.c_str(); }
-	const char* GetFragmentShaderPath() const { return m_fragmentShaderPath.c_str(); }
+	const std::string& GetProgramName() const { return m_programName; }
+	const std::string& GetVertexShaderPath() const { return m_vertexShaderPath; }
+	const std::string& GetFragmentShaderPath() const { return m_fragmentShaderPath; }
 
 	void AddFeatureSet(ShaderFeatureSet featureSet);
 
-	// Calling "AddFeatureSet/SetConflictOptions and Build" after Build will cause unnecessary performance overhead.
 	void Build();
 	void CleanBuild();
 	void CleanAll();
 
-	void SetCompiledProgram(StringCrc shaderFeaturesCrc, uint16_t programHandle);
-	uint16_t GetCompiledProgram(StringCrc shaderFeaturesCrc) const;
+	const std::optional<ShaderFeatureSet> GetConflictFeatureSet(ShaderFeature feature) const;
 
-	StringCrc GetFeaturesCrc(const ShaderFeatureSet& featureSet) const;
-	bool IsFeaturesValid(StringCrc shaderFeaturesCrc) const;
+	std::string GetFeaturesCombine(const ShaderFeatureSet& featureSet) const;
+	StringCrc GetFeaturesCombineCrc(const ShaderFeatureSet& featureSet) const;
 
-	std::vector<ShaderFeatureSet>& GetFeatures() { return m_shaderFeatureSets; }
-	const std::vector<ShaderFeatureSet>& GetFeatures() const { return m_shaderFeatureSets; }
+	std::set<ShaderFeatureSet>& GetFeatures() { return m_shaderFeatureSets; }
+	const std::set<ShaderFeatureSet>& GetFeatures() const { return m_shaderFeatureSets; }
 
-	std::vector<std::string>& GetFeatureCombines() { return m_featureCombines; }
-	const std::vector<std::string>& GetFeatureCombines() const { return m_featureCombines; }
-
-	// TODO : More generic.
-	void AddUberVSBlob(ShaderBlob shaderBlob);
-	void AddUberFSBlob(StringCrc shaderFeaturesCrc, ShaderBlob shaderBlob);
-	const ShaderBlob& GetVSBlob() const { return *m_pVSBlob.get(); }
-	const ShaderBlob& GetFSBlob(StringCrc shaderFeaturesCrc) const;
+	std::set<std::string>& GetAllFeatureCombines() { return m_allFeatureCombines; }
+	const std::set<std::string>& GetAllFeatureCombines() const { return m_allFeatureCombines; }
 
 private:
+	std::string m_programName;
 	std::string m_vertexShaderPath;
 	std::string m_fragmentShaderPath;
 
 	bool m_isDirty = false;
-	// Adding order of shaer features.
-	std::vector<ShaderFeatureSet> m_shaderFeatureSets;
-	// Parameters to compile shaders.
-	std::vector<std::string> m_featureCombines;
-
-	// Key: StringCrc(feature combine), Value: shader handle.
-	std::map<uint32_t, uint16_t> m_compiledProgramHandles;
-
-	std::unique_ptr<ShaderBlob> m_pVSBlob;
-	std::map<uint32_t, std::unique_ptr<ShaderBlob>> m_shaderFeaturesToFSBlobs;
+	// Registration order of shader features.
+	std::set<ShaderFeatureSet> m_shaderFeatureSets;
+	// All permutations matching the registered shader features.
+	std::set<std::string> m_allFeatureCombines;
 };
 
 }

@@ -3,27 +3,19 @@
 #include "Base/Template.h"
 #include "Core/StringCrc.h"
 #include "Math/Vector.hpp"
+#include "Rendering/SkyType.h"
 
 #include <string>
 
 namespace engine
 {
 
-enum class SkyType
-{
-	None = 0,
-	SkyBox,
-	AtmosphericScattering,
-
-	Count,
-};
-
 class SkyComponent final
 {
 public:
 	static constexpr const char* DefaultIrradainceTexturePath = "Textures/skybox/defaultSkybox_irr.dds";
 	static constexpr const char* DefaultRadianceTexturePath = "Textures/skybox/defaultSkybox_rad.dds";
-	static constexpr const char* PureGrayTexturePath = "Textures/skybox/PureGray.dds";
+	static constexpr const char* DefaultPureGrayTexturePath = "Textures/skybox/PureGray.dds";
 
 public:
 	static constexpr StringCrc GetClassName()
@@ -39,7 +31,7 @@ public:
 	SkyComponent& operator=(SkyComponent&&) = default;
 	~SkyComponent() = default;
 
-	void SetSkyType(SkyType crtType);
+	void SetSkyType(SkyType type);
 	SkyType& GetSkyType() { return m_type; }
 	const SkyType& GetSkyType() const { return m_type; }
 
@@ -79,6 +71,10 @@ public:
 	std::string& GetRadianceTexturePath() { return m_radianceTexturePath; }
 	const std::string& GetRadianceTexturePath() const { return m_radianceTexturePath; }
 
+	void SetPureGrayTexturePath(std::string path);
+	std::string& GetPureGrayTexturePath() { return m_pureGrayTexturePath; }
+	const std::string& GetPureGrayTexturePath() const { return m_pureGrayTexturePath; }
+
 private:
 	SkyType m_type = SkyType::SkyBox;
 	bool m_isAtmophericScatteringEnable = false;
@@ -94,6 +90,7 @@ private:
 
 	std::string m_irradianceTexturePath = DefaultIrradainceTexturePath;
 	std::string m_radianceTexturePath = DefaultRadianceTexturePath;
+	std::string m_pureGrayTexturePath = DefaultPureGrayTexturePath;
 };
 
 }

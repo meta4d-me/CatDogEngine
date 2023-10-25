@@ -23,6 +23,7 @@ SceneWorld::SceneWorld()
 
 	// To add a new component : 2. Init component type here.
 	m_pAnimationComponentStorage = m_pWorld->Register<engine::AnimationComponent>();
+	m_pBlendShapeComponentStorage = m_pWorld->Register<engine::BlendShapeComponent>();
 	m_pCameraComponentStorage = m_pWorld->Register<engine::CameraComponent>();
 	m_pCollisionMeshComponentStorage = m_pWorld->Register<engine::CollisionMeshComponent>();
 #ifdef ENABLE_DDGI
@@ -32,7 +33,6 @@ SceneWorld::SceneWorld()
 	m_pLightComponentStorage = m_pWorld->Register<engine::LightComponent>();
 	m_pMaterialComponentStorage = m_pWorld->Register<engine::MaterialComponent>();
 	m_pNameComponentStorage = m_pWorld->Register<engine::NameComponent>();
-	m_pShaderVariantCollectionsComponentStorage = m_pWorld->Register<engine::ShaderVariantCollectionsComponent>();
 	m_pSkyComponentStorage = m_pWorld->Register<engine::SkyComponent>();
 	m_pStaticMeshComponentStorage = m_pWorld->Register<engine::StaticMeshComponent>();
 	m_pParticleComponentStorage = m_pWorld->Register<engine::ParticleComponent>();
@@ -50,7 +50,7 @@ void SceneWorld::CreatePBRMaterialType(bool isAtmosphericScatteringEnable)
 	m_pPBRMaterialType = std::make_unique<MaterialType>();
 	m_pPBRMaterialType->SetMaterialName("CD_PBR");
 
-	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("shaders/vs_PBR"), Path::GetBuiltinShaderInputPath("shaders/fs_PBR"));
+	ShaderSchema shaderSchema("WorldProgram", Path::GetBuiltinShaderInputPath("vs_PBR"), Path::GetBuiltinShaderInputPath("fs_PBR"));
 	shaderSchema.AddFeatureSet({ ShaderFeature::ALBEDO_MAP });
 	shaderSchema.AddFeatureSet({ ShaderFeature::NORMAL_MAP });
 	shaderSchema.AddFeatureSet({ ShaderFeature::ORM_MAP });
@@ -87,7 +87,7 @@ void SceneWorld::CreateAnimationMaterialType()
 	m_pAnimationMaterialType = std::make_unique<MaterialType>();
 	m_pAnimationMaterialType->SetMaterialName("CD_Animation");
 
-	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("shaders/vs_animation"), Path::GetBuiltinShaderInputPath("shaders/fs_animation"));
+	ShaderSchema shaderSchema("AnimationProgram", Path::GetBuiltinShaderInputPath("vs_animation"), Path::GetBuiltinShaderInputPath("fs_animation"));
 	m_pAnimationMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat animationVertexFormat;
@@ -169,12 +169,6 @@ void SceneWorld::SetSkyEntity(engine::Entity entity)
 {
 	CD_TRACE("Setup Sky entity : {0}", entity);
 	m_skyEntity = entity;
-}
-
-void SceneWorld::SetShaderVariantCollectionEntity(engine::Entity entity)
-{
-	CD_TRACE("Setup Shader Variant Collection entity : {0}", entity);
-	m_shaderVariantCollectionEntity = entity;
 }
 
 void SceneWorld::AddCameraToSceneDatabase(engine::Entity entity)

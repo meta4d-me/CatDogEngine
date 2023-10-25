@@ -18,6 +18,7 @@ class Renderer;
 class AABBRenderer;
 class RenderTarget;
 class SceneWorld;
+class ShaderCollections;
 
 }
 
@@ -50,9 +51,14 @@ public:
 	void RemoveWindow(size_t index);
 
 	void InitRenderContext(engine::GraphicsBackend backend, void* hwnd = nullptr);
+
 	void InitEditorRenderers();
 	void InitEngineRenderers();
-	void InitShaderPrograms() const;
+
+	void EditorRenderersWarmup();
+	void EngineRenderersWarmup();
+
+	void InitShaderPrograms(bool compileAllShaders = false) const;
 	void AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer);
 	void AddEngineRenderer(std::unique_ptr<engine::Renderer> pRenderer);
 
@@ -71,11 +77,13 @@ public:
 private:
 	void InitEditorCameraEntity();
 	void InitSkyEntity();
-	void InitShaderVariantCollectionEntity();
 
 #ifdef ENABLE_DDGI
 	void InitDDGIEntity();
 #endif
+
+	void UpdateMaterials();
+	void LazyCompileAndLoadShaders();
 
 	bool m_bInitEditor = false;
 	engine::EngineInitArgs m_initArgs;
@@ -101,6 +109,8 @@ private:
 
 	// Rendering
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;
+	std::unique_ptr<engine::ShaderCollections> m_pShaderCollections;
+
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEditorRenderers;
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEngineRenderers;
 

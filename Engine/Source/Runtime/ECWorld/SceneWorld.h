@@ -28,6 +28,7 @@ class SceneWorld
 {
 	// To add a new component : 1. Define component type here.
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Animation);
+	DEFINE_COMPONENT_STORAGE_WITH_APIS(BlendShape);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Camera);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(CollisionMesh);
 #ifdef ENABLE_DDGI
@@ -37,7 +38,6 @@ class SceneWorld
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Light);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Material);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Name);
-	DEFINE_COMPONENT_STORAGE_WITH_APIS(ShaderVariantCollections);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Sky);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(StaticMesh);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Particle);
@@ -71,9 +71,6 @@ public:
 	void SetSkyEntity(engine::Entity entity);
 	CD_FORCEINLINE engine::Entity GetSkyEntity() const { return m_skyEntity; }
 
-	void SetShaderVariantCollectionEntity(engine::Entity entity);
-	CD_FORCEINLINE engine::Entity GetShaderVariantCollectionEntity() const { return m_shaderVariantCollectionEntity; }
-
 	void DeleteEntity(engine::Entity entity)
 	{
 		if (entity == m_mainCameraEntity)
@@ -89,6 +86,7 @@ public:
 
 		// To add a new component : 3. Delete component here when removing an entity.
 		DeleteAnimationComponent(entity);
+		DeleteBlendShapeComponent(entity);
 		DeleteCameraComponent(entity);
 		DeleteCollisionMeshComponent(entity);
 #ifdef ENABLE_DDGI
@@ -98,7 +96,6 @@ public:
 		DeleteLightComponent(entity);
 		DeleteMaterialComponent(entity);
 		DeleteNameComponent(entity);
-		DeleteShaderVariantCollectionsComponent(entity);
 		DeleteSkyComponent(entity);
 		DeleteStaticMeshComponent(entity);
 		DeleteParticleComponent(entity);
@@ -144,9 +141,7 @@ private:
 	engine::Entity m_selectedEntity = engine::INVALID_ENTITY;
 	engine::Entity m_mainCameraEntity = engine::INVALID_ENTITY;
 
-	// TODO : wrap them to project data.
 	engine::Entity m_skyEntity = engine::INVALID_ENTITY;
-	engine::Entity m_shaderVariantCollectionEntity = engine::INVALID_ENTITY;
 
 #ifdef ENABLE_DDGI
 	engine::Entity m_ddgiEntity = engine::INVALID_ENTITY;

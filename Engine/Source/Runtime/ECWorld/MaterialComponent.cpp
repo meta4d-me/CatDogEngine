@@ -95,17 +95,6 @@ uint64_t GetBGFXTextureFlag(cd::MaterialTextureType textureType, cd::TextureMapM
 	return textureFlag;
 }
 
-const std::unordered_map<engine::SkyType, engine::ShaderFeature> skyTypeToShaderFeature
-{
-	{ engine::SkyType::SkyBox, engine::ShaderFeature::IBL},
-	{ engine::SkyType::AtmosphericScattering, engine::ShaderFeature::ATM },
-};
-
-CD_FORCEINLINE bool IsSkyTypeValid(engine::SkyType type)
-{
-	return skyTypeToShaderFeature.find(type) != skyTypeToShaderFeature.end();
-}
-
 }
 
 namespace engine
@@ -138,24 +127,48 @@ const MaterialComponent::TextureInfo* MaterialComponent::GetTextureInfo(cd::Mate
 	return &itTextureInfo->second;
 }
 
-void MaterialComponent::ActiveShaderFeature(engine::ShaderFeature feature)
+void MaterialComponent::ActivateShaderFeature(ShaderFeature feature)
 {
-	m_shaderFeatures.insert(feature);
+	if (ShaderFeature::DEFAULT == feature)
+	{
+		return;
+	}
+
+	const auto& optConflict = m_pMaterialType->GetShaderSchema().GetConflictFeatureSet(feature);
+	assert(optConflict.has_value());
+
+	for (const auto& conflict : optConflict.value())
+	{
+		m_shaderFeatures.erase(conflict);
+	}
+
+	m_shaderFeatures.insert(cd::MoveTemp(feature));
+
+	m_isShaderFeatureDirty = true;
 }
 
-void MaterialComponent::DeactiveShaderFeature(engine::ShaderFeature feature)
+void MaterialComponent::DeactiveShaderFeature(ShaderFeature feature)
 {
 	m_shaderFeatures.erase(feature);
+
+	m_isShaderFeatureDirty = true;
 }
 
-void MaterialComponent::MatchUberShaderCrc()
+const std::string& MaterialComponent::GetFeaturesCombine()
 {
-	m_uberShaderCrc = m_pMaterialType->GetShaderSchema().GetFeaturesCrc(m_shaderFeatures);
+	if (false == m_isShaderFeatureDirty)
+	{
+		return m_featureCombine;
+	}
+
+	m_featureCombine = m_pMaterialType->GetShaderSchema().GetFeaturesCombine(m_shaderFeatures);
+	m_isShaderFeatureDirty = false;
+	return m_featureCombine;
 }
 
-uint16_t MaterialComponent::GetShadreProgram() const
+const std::string& MaterialComponent::GetProgramName() const
 {
-	return m_pMaterialType->GetShaderSchema().GetCompiledProgram(m_uberShaderCrc);
+	return m_pMaterialType->GetShaderSchema().GetProgramName();
 }
 
 void MaterialComponent::Reset()
@@ -163,7 +176,6 @@ void MaterialComponent::Reset()
 	m_pMaterialData = nullptr;
 	m_pMaterialType = nullptr;
 	m_shaderFeatures.clear();
-	m_uberShaderCrc = ShaderSchema::DefaultUberShaderCrc;
 	m_name.clear();
 	m_albedoColor = cd::Vec3f::One();
 	m_emissiveColor = cd::Vec3f::One();
@@ -172,8 +184,11 @@ void MaterialComponent::Reset()
 	m_twoSided = false;
 	m_blendMode = cd::BlendMode::Opaque;
 	m_alphaCutOff = 1.0f;
+	m_isShaderFeatureDirty = false;
+	m_shaderFeatures.clear();
+	m_featureCombine.clear();
+	m_cacheTextureBlobs.clear();
 	m_textureResources.clear();
-	m_skyType = SkyType::None;
 }
 
 std::string MaterialComponent::GetVertexShaderName() const
@@ -260,29 +275,6 @@ void MaterialComponent::Build()
 		assert(textureInfo.textureHandle != bgfx::kInvalidHandle);
 		assert(textureInfo.samplerHandle != bgfx::kInvalidHandle);
 	}
-}
-
-void MaterialComponent::SetSkyType(SkyType crtType)
-{
-	// SkyType::None is a special case which is not a shader feature but means deactive ShaderFeature::IBL and ShaderFeature::ATM.
-
-	if (SkyType::Count == crtType || m_skyType == crtType)
-	{
-		return;
-	}
-
-	if (IsSkyTypeValid(m_skyType))
-	{
-		m_shaderFeatures.erase(skyTypeToShaderFeature.at(m_skyType));
-	}
-
-	if (IsSkyTypeValid(crtType))
-	{
-		m_shaderFeatures.insert(skyTypeToShaderFeature.at(crtType));
-	}
-
-	m_uberShaderCrc = m_pMaterialType->GetShaderSchema().GetFeaturesCrc(m_shaderFeatures);
-	m_skyType = crtType;
 }
 
 }

@@ -9,7 +9,7 @@
 #include "LightUniforms.h"
 #include "Material/ShaderSchema.h"
 #include "Math/Transform.hpp"
-#include "RenderContext.h"
+#include "Rendering/RenderContext.h"
 #include "Scene/Texture.h"
 #include "U_IBL.sh"
 #include "U_AtmophericScattering.sh"
@@ -47,6 +47,14 @@ constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MS
 
 void WorldRenderer::Init()
 {
+	constexpr StringCrc programCrc = StringCrc("WorldProgram");
+	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_PBR", "fs_PBR" });
+
+	bgfx::setViewName(GetViewID(), "WorldRenderer");
+}
+
+void WorldRenderer::Warmup()
+{
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
 	GetRenderContext()->CreateUniform(lutSampler, bgfx::UniformType::Sampler);
@@ -69,8 +77,6 @@ void WorldRenderer::Init()
 
 	GetRenderContext()->CreateUniform(LightDir, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(HeightOffsetAndshadowLength, bgfx::UniformType::Vec4, 1);
-
-	bgfx::setViewName(GetViewID(), "WorldRenderer");
 }
 
 void WorldRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -103,6 +109,12 @@ void WorldRenderer::Render(float deltaTime)
 			continue;
 		}
 
+		BlendShapeComponent* pBlendShapeComponent = m_pCurrentSceneWorld->GetBlendShapeComponent(entity);
+		if (pBlendShapeComponent)
+		{
+			continue;
+		}
+
 		// SkinMesh
 		if(m_pCurrentSceneWorld->GetAnimationComponent(entity))
 		{
@@ -131,14 +143,12 @@ void WorldRenderer::Render(float deltaTime)
 					GetRenderContext()->FillUniform(albedoUVOffsetAndScaleCrc, &uvOffsetAndScaleData, 1);
 				}
 
-				bgfx::setTexture(pTextureInfo->slot, bgfx::UniformHandle{pTextureInfo->samplerHandle}, bgfx::TextureHandle{pTextureInfo->textureHandle});
+				bgfx::setTexture(pTextureInfo->slot, bgfx::UniformHandle{ pTextureInfo->samplerHandle }, bgfx::TextureHandle{ pTextureInfo->textureHandle });
 			}
 		}
 
 		// Sky
 		SkyType crtSkyType = pSkyComponent->GetSkyType();
-		pMaterialComponent->SetSkyType(crtSkyType);
-
 		if (SkyType::SkyBox == crtSkyType)
 		{
 			// Create a new TextureHandle each frame if the skybox texture path has been updated,
@@ -218,7 +228,7 @@ void WorldRenderer::Render(float deltaTime)
 
 		bgfx::setState(state);
 
-		bgfx::submit(GetViewID(), bgfx::ProgramHandle{pMaterialComponent->GetShadreProgram()});
+		GetRenderContext()->Submit(GetViewID(), "WorldProgram", pMaterialComponent->GetFeaturesCombine());
 	}
 }
 
