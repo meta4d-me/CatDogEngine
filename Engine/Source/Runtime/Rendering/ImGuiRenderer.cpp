@@ -74,7 +74,7 @@ void ImGuiRenderer::UpdateView(const float* pViewMatrix, const float* pProjectio
 
 	cd::Matrix4x4 orthoMatrix = cd::Matrix4x4::Orthographic(x, x + width, y, y + height, 0.0f, 1000.0f, 0.0f, pCapabilities->homogeneousDepth);
 	bgfx::setViewRect(GetViewID(), 0, 0, uint16_t(width), uint16_t(height));
-	bgfx::setViewTransform(GetViewID(), nullptr, orthoMatrix.Begin());
+	bgfx::setViewTransform(GetViewID(), nullptr, orthoMatrix.begin());
 }
 
 void ImGuiRenderer::Render(float deltaTime)

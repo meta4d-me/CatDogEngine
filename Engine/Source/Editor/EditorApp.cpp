@@ -651,8 +651,8 @@ bool EditorApp::Update(float deltaTime)
 		{
 			if (pRenderer->IsEnable())
 			{
-				const float* pViewMatrix = pMainCameraComponent->GetViewMatrix().Begin();
-				const float* pProjectionMatrix = pMainCameraComponent->GetProjectionMatrix().Begin();
+				const float* pViewMatrix = pMainCameraComponent->GetViewMatrix().begin();
+				const float* pProjectionMatrix = pMainCameraComponent->GetProjectionMatrix().begin();
 				pRenderer->UpdateView(pViewMatrix, pProjectionMatrix);
 				pRenderer->Render(deltaTime);
 			}

@@ -49,15 +49,15 @@ void BlendShapeComponent::Build()
 
 	for (uint32_t vertexIndex = 0; vertexIndex < m_meshVertexCount; ++vertexIndex)
 	{
-		std::memcpy(&morphAffectedVBDataPtr[morphAffectedVBDataSize], m_pMesh->GetVertexPosition(vertexIndex).Begin(), positionSize);
+		std::memcpy(&morphAffectedVBDataPtr[morphAffectedVBDataSize], m_pMesh->GetVertexPosition(vertexIndex).begin(), positionSize);
 		morphAffectedVBDataSize += positionSize;
 		std::memcpy(&morphAffectedVBDataPtr[morphAffectedVBDataSize], &placeholder, placeholderSize);
 		morphAffectedVBDataSize += placeholderSize;
-		std::memcpy(&nonMorphAffectedDataPtr[nonMorphAffectedVBDataSize], m_pMesh->GetVertexNormal(vertexIndex).Begin(), normalSize);
+		std::memcpy(&nonMorphAffectedDataPtr[nonMorphAffectedVBDataSize], m_pMesh->GetVertexNormal(vertexIndex).begin(), normalSize);
 		nonMorphAffectedVBDataSize += normalSize;
-		std::memcpy(&nonMorphAffectedDataPtr[nonMorphAffectedVBDataSize], m_pMesh->GetVertexTangent(vertexIndex).Begin(), tangentSize);
+		std::memcpy(&nonMorphAffectedDataPtr[nonMorphAffectedVBDataSize], m_pMesh->GetVertexTangent(vertexIndex).begin(), tangentSize);
 		nonMorphAffectedVBDataSize += tangentSize;
-		std::memcpy(&nonMorphAffectedDataPtr[nonMorphAffectedVBDataSize], m_pMesh->GetVertexUV(0, vertexIndex).Begin(), UVSize);
+		std::memcpy(&nonMorphAffectedDataPtr[nonMorphAffectedVBDataSize], m_pMesh->GetVertexUV(0, vertexIndex).begin(), UVSize);
 		nonMorphAffectedVBDataSize += UVSize;
 	}
 
@@ -128,7 +128,7 @@ void BlendShapeComponent::Build()
 			uint32_t vertexIDData= m_pMorphsData[morphIndex].GetVertexSourceID(vertexIndex).Data();
 			std::memcpy(&allMorphVertexIDDataPtr[allMorphVertexIDDataSize], &vertexIDData, sizeof(vertexIDData));
 			allMorphVertexIDDataSize += sizeof(vertexIDData);
-			std::memcpy(&allMorphVertexIDDataPtr[allMorphVertexIDDataSize], m_pMorphsData[morphIndex].GetVertexPosition(vertexIndex).Begin(), positionSize);
+			std::memcpy(&allMorphVertexIDDataPtr[allMorphVertexIDDataSize], m_pMorphsData[morphIndex].GetVertexPosition(vertexIndex).begin(), positionSize);
 			allMorphVertexIDDataSize += positionSize;
 		}
 	}

@@ -41,7 +41,7 @@ void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase,
 
 		uint16_t parentID = currBone.GetParentID().Data();
 		uint16_t currBoneID = currBone.GetID().Data();
-		std::memcpy(&currentDataPtr[vertexOffset], translate.Begin(), posDataSize);
+		std::memcpy(&currentDataPtr[vertexOffset], translate.begin(), posDataSize);
 		vertexOffset += posDataSize;
 		std::memcpy(&currentIndexPtr[indexOffset], &parentID, indexTypeSize);
 		indexOffset += static_cast<uint32_t>(indexTypeSize);
@@ -90,7 +90,7 @@ void SkeletonRenderer::Build()
 		return;
 	}
 
-	bgfx::setTransform(cd::Matrix4x4::Identity().Begin());
+	bgfx::setTransform(cd::Matrix4x4::Identity().begin());
 	cd::VertexFormat vertexFormat;
 	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
 
@@ -101,7 +101,7 @@ void SkeletonRenderer::Build()
 	uint32_t currentIndexOffset = 0U;
 	std::byte* pCurrentVertexBuffer = m_vertexBuffer.data();
 	const cd::Point& position = firstBone.GetTransform().GetTranslation();
-	std::memcpy(&pCurrentVertexBuffer[currentVertexOffset], position.Begin(), details::posDataSize);
+	std::memcpy(&pCurrentVertexBuffer[currentVertexOffset], position.begin(), details::posDataSize);
 	currentVertexOffset += details::posDataSize;
 
 	details::TraverseBone(firstBone, pSceneDatabase, m_vertexBuffer.data(), m_indexBuffer.data(), currentVertexOffset, currentIndexOffset);
