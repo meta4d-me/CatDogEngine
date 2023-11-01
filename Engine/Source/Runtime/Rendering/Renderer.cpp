@@ -1,8 +1,8 @@
 #include "Renderer.h"
 
 #include "ECWorld/StaticMeshComponent.h"
-#include "RenderContext.h"
-#include "RenderTarget.h"
+#include "Rendering/RenderContext.h"
+#include "Rendering/RenderTarget.h"
 
 #include <bgfx/bgfx.h>
 
@@ -16,6 +16,7 @@ Renderer::Renderer(uint16_t viewID, RenderTarget* pRenderTarget)
 }
 
 static RenderContext* m_pRenderContext = nullptr;
+
 void Renderer::SetRenderContext(RenderContext* pRenderContext)
 {
 	m_pRenderContext = pRenderContext;

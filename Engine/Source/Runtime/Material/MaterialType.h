@@ -38,9 +38,6 @@ public:
 	void AddOptionalTextureType(cd::MaterialTextureType textureType, uint8_t slot);
 	const std::set<cd::MaterialTextureType>& GetOptionalTextureTypes() const { return m_optionalTextureTypes; }
 
-	void AddRequiredTextureType(cd::MaterialTextureType textureType, uint8_t slot);
-	const std::set<cd::MaterialTextureType>& GetRequiredTextureTypes() const { return m_requiredTextureTypes; }
-
 	std::optional<uint8_t> GetTextureSlot(cd::MaterialTextureType textureType) const;
 
 private:
@@ -49,7 +46,6 @@ private:
 
 	cd::VertexFormat m_requiredVertexFormat;
 	std::set<cd::MaterialTextureType> m_optionalTextureTypes;
-	std::set<cd::MaterialTextureType> m_requiredTextureTypes;
 	std::map<cd::MaterialTextureType, uint8_t> m_textureTypeSlots;
 };
 

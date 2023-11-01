@@ -7,6 +7,7 @@
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/Localization.h"
 #include "ImGui/UILayers/DebugPanel.h"
+#include "ImGui/UILayers/Profiler.h"
 #include "Log/Log.h"
 #include "Math/MeshGenerator.h"
 #include "Path/Path.h"
@@ -27,13 +28,13 @@
 #include "Rendering/ShadowMapRenderer.h"
 #include "Rendering/SkeletonRenderer.h"
 #include "Rendering/SkyboxRenderer.h"
+#include "Rendering/ShaderCollections.h"
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Rendering/ParticleRenderer.h"
 #include "Resources/FileWatcher.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ShaderBuilder.h"
-#include "Resources/ShaderLoader.h"
 #include "Scene/SceneDatabase.h"
 #include "UILayers/AssetBrowser.h"
 #include "UILayers/EntityList.h"
@@ -91,17 +92,21 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 
 	// Init graphics backend
 	InitRenderContext(m_initArgs.backend, pSplashWindow->GetNativeHandle());
+	
 	pSplashWindow->OnResize.Bind<engine::RenderContext, &engine::RenderContext::OnResize>(m_pRenderContext.get());
 	AddWindow(cd::MoveTemp(pSplashWindow));
 
 	InitEditorRenderers();
+	EditorRenderersWarmup();
 	InitEditorImGuiContext(m_initArgs.language);
 
 	InitECWorld();
 	m_pEditorImGuiContext->SetSceneWorld(m_pSceneWorld.get());
 
+	InitEngineRenderers();
+
 	// Add shader build tasks and create a thread to update tasks.
-	InitShaderPrograms();
+	InitShaderPrograms(initArgs.compileAllShaders);
 	m_pEditorImGuiContext->AddStaticLayer(std::make_unique<Splash>("Splash"));
 
 	std::thread resourceThread([]()
@@ -110,7 +115,9 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	});
 	resourceThread.detach();
 
+	// TODO : Shader hot compile and load.
 	m_pFileWatcher = std::make_unique<FileWatcher>(CDENGINE_BUILTIN_SHADER_PATH);
+	m_pFileWatcher->EnableWatchSubTree();
 }
 
 void EditorApp::Shutdown()
@@ -179,6 +186,7 @@ void EditorApp::InitEditorUILayers()
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
 
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<SkeletonView>("SkeletonView"));
+	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<engine::Profiler>("Profiler"));
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<Inspector>("Inspector"));
 
 	auto pAssetBrowser = std::make_unique<AssetBrowser>("AssetBrowser");
@@ -207,10 +215,8 @@ void EditorApp::InitEngineImGuiContext(engine::Language language)
 
 void EditorApp::InitEngineUILayers()
 {
-	//auto pEntityList = std::make_unique<engine::DebugPanel>("DebugPanel");
-	//pEntityList->SetCameraController(m_pCameraController);
-	//m_pEngineImGuiContext->AddDynamicLayer(cd::MoveTemp(pEntityList));
-
+	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<engine::DebugPanel>("DebugPanel"));
+	
 	auto pImGuizmoView = std::make_unique<editor::ImGuizmoView>("ImGuizmoView");
 	pImGuizmoView->SetSceneView(m_pSceneView);
 	m_pEngineImGuiContext->AddDynamicLayer(cd::MoveTemp(pImGuizmoView));
@@ -248,7 +254,6 @@ void EditorApp::InitECWorld()
 	InitEditorCameraEntity();
 
 	InitSkyEntity();
-	InitShaderVariantCollectionEntity();
 
 #ifdef ENABLE_DDGI
 	m_pSceneWorld->InitDDGISDK();
@@ -280,7 +285,9 @@ void EditorApp::InitEditorCameraEntity()
 	cameraComponent.SetNearPlane(0.1f);
 	cameraComponent.SetFarPlane(2000.0f);
 	cameraComponent.SetNDCDepth(bgfx::getCaps()->homogeneousDepth ? cd::NDCDepth::MinusOneToOne : cd::NDCDepth::ZeroToOne);
+	cameraComponent.SetExposure(1.0f);
 	cameraComponent.SetGammaCorrection(0.45f);
+	cameraComponent.SetToneMappingMode(cd::ToneMappingMode::ACES);
 	cameraComponent.SetBloomDownSampleTImes(4);
 	cameraComponent.SetBloomIntensity(1.0f);
 	cameraComponent.SetLuminanceThreshold(1.0f);
@@ -327,19 +334,6 @@ void EditorApp::InitSkyEntity()
 	meshComponent.Submit();
 }
 
-void EditorApp::InitShaderVariantCollectionEntity()
-{
-	engine::World* pWorld = m_pSceneWorld->GetWorld();
-
-	engine::Entity shaderVariantCollectionEntity = pWorld->CreateEntity();
-	m_pSceneWorld->SetShaderVariantCollectionEntity(shaderVariantCollectionEntity);
-
-	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(shaderVariantCollectionEntity);
-	nameComponent.SetName("ShaderVariantCollection");
-
-	auto& shaderVariantCollectionsComponent = pWorld->CreateComponent<engine::ShaderVariantCollectionsComponent>(shaderVariantCollectionEntity);
-}
-
 #ifdef ENABLE_DDGI
 void EditorApp::InitDDGIEntity()
 {
@@ -355,6 +349,43 @@ void EditorApp::InitDDGIEntity()
 }
 #endif
 
+void EditorApp::UpdateMaterials()
+{
+	for (engine::Entity entity : m_pSceneWorld->GetMaterialEntities())
+	{
+		engine::MaterialComponent* pMaterialComponent = m_pSceneWorld->GetMaterialComponent(entity);
+		if (!pMaterialComponent)
+		{
+			continue;
+		}
+
+		m_pRenderContext->CheckShaderProgram(pMaterialComponent->GetProgramName(), pMaterialComponent->GetFeaturesCombine());
+	}
+}
+
+void EditorApp::LazyCompileAndLoadShaders()
+{
+	bool doCompile = false;
+
+	for (const auto& task : m_pRenderContext->GetShaderCompileTasks())
+	{
+		ShaderBuilder::BuildShader(m_pRenderContext.get(), task);
+		doCompile = true;
+	}
+
+	if (doCompile)
+	{
+		ResourceBuilder::Get().Update(true);
+
+		for (auto& info : m_pRenderContext->GetShaderCompileTasks())
+		{
+			m_pRenderContext->UploadShaderProgram(info.m_programName, info.m_featuresCombine);
+		}
+
+		m_pRenderContext->ClearShaderCompileTasks();
+	}
+}
+
 void EditorApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
 {
 	CD_INFO("Init graphics backend : {}", nameof::nameof_enum(backend));
@@ -363,6 +394,9 @@ void EditorApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
 	m_pRenderContext = std::make_unique<engine::RenderContext>();
 	m_pRenderContext->Init(backend, hwnd);
 	engine::Renderer::SetRenderContext(m_pRenderContext.get());
+
+	m_pShaderCollections = std::make_unique<engine::ShaderCollections>();
+	m_pRenderContext->SetShaderCollections(m_pShaderCollections.get());
 }
 
 void EditorApp::InitEditorRenderers()
@@ -460,11 +494,26 @@ void EditorApp::InitEngineRenderers()
 	// But postprocess will bring unnecessary confusion. 
 	auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pPostProcessRenderer->SetSceneWorld(m_pSceneWorld.get());
-	pPostProcessRenderer->SetEnable(true);
 	AddEngineRenderer(cd::MoveTemp(pPostProcessRenderer));
 
 	// Note that if you don't want to use ImGuiRenderer for engine, you should also disable EngineImGuiContext.
 	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget));
+}
+
+void EditorApp::EditorRenderersWarmup()
+{
+	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEditorRenderers)
+	{
+		pRenderer->Warmup();
+	}
+}
+
+void EditorApp::EngineRenderersWarmup()
+{
+	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
+	{
+		pRenderer->Warmup();
+	}
 }
 
 bool EditorApp::IsAtmosphericScatteringEnable() const
@@ -476,21 +525,26 @@ bool EditorApp::IsAtmosphericScatteringEnable() const
 		&& engine::GraphicsBackend::OpenGLES != backend;
 }
 
-void EditorApp::InitShaderPrograms() const
+void EditorApp::InitShaderPrograms(bool compileAllShaders) const
 {
-	std::string nonUberBuildPath = CDENGINE_BUILTIN_SHADER_PATH;
-	ShaderBuilder::BuildNonUberShader(nonUberBuildPath + "shaders");
-	if (IsAtmosphericScatteringEnable())
-	{
-		std::string atmBuildPath = CDENGINE_BUILTIN_SHADER_PATH;
-		ShaderBuilder::BuildNonUberShader(atmBuildPath + "atm");
-	}
+	ShaderBuilder::CompileRegisteredNonUberShader(m_pRenderContext.get());
 
-	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetPBRMaterialType());
-	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetAnimationMaterialType());
+	if (compileAllShaders)
+	{
+		ShaderBuilder::CompileUberShaderAllVariants(m_pRenderContext.get(), m_pSceneWorld->GetPBRMaterialType());
+
 #ifdef ENABLE_DDGI
-	ShaderBuilder::BuildUberShader(m_pSceneWorld->GetDDGIMaterialType());
+		ShaderBuilder::CompileUberShaderAllVariants(m_pRenderContext.get(), m_pSceneWorld->GetDDGIMaterialType());
 #endif
+	}
+	else
+	{
+		ShaderBuilder::CompileRegisteredUberShader(m_pRenderContext.get(), m_pSceneWorld->GetPBRMaterialType());
+
+#ifdef ENABLE_DDGI
+		ShaderBuilder::CompileRegisteredUberShader(m_pRenderContext.get(), m_pSceneWorld->GetDDGIMaterialType());
+#endif
+	}
 }
 
 void EditorApp::InitEditorController()
@@ -522,11 +576,8 @@ bool EditorApp::Update(float deltaTime)
 	if (!m_bInitEditor && ResourceBuilder::Get().IsIdle())
 	{
 		m_bInitEditor = true;
-		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetPBRMaterialType());
-		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetAnimationMaterialType());
-#ifdef ENABLE_DDGI
-		engine::ShaderLoader::UploadUberShader(m_pSceneWorld->GetDDGIMaterialType());
-#endif
+
+		EngineRenderersWarmup();
 
 		// Phase 2 - Project Manager
 		//		* TODO : Show project selector
@@ -545,7 +596,6 @@ bool EditorApp::Update(float deltaTime)
 		GetMainWindow()->SetBordedLess(false);
 		GetMainWindow()->SetResizeable(true);
 
-		InitEngineRenderers();
 		m_pEditorImGuiContext->ClearUILayers();
 		InitEditorUILayers();
 
@@ -556,8 +606,8 @@ bool EditorApp::Update(float deltaTime)
 	}
 
 	GetMainWindow()->Update();
-	m_pSceneWorld->Update();
 	m_pEditorImGuiContext->Update(deltaTime);
+	m_pSceneWorld->Update();
 
 	engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
 	engine::TerrainComponent* pTerrainComponent = m_pSceneWorld->GetTerrainComponent(m_pSceneWorld->GetSelectedEntity());
@@ -583,7 +633,7 @@ bool EditorApp::Update(float deltaTime)
 		{
 			m_pViewportCameraController->Update(deltaTime);
 		}
-		//Do Screen Space Smoothing
+		// Do Screen Space Smoothing
 		if (pTerrainComponent && m_pSceneView->IsTerrainEditMode() && engine::Input::Get().IsMouseLBPressed())
 		{
 			float screenSpaceX = 2.0f * static_cast<float>(engine::Input::Get().GetMousePositionX() - m_pSceneView->GetWindowPosX()) /
@@ -600,6 +650,9 @@ bool EditorApp::Update(float deltaTime)
 
 		m_pEngineImGuiContext->SetWindowPosOffset(m_pSceneView->GetWindowPosX(), m_pSceneView->GetWindowPosY());
 		m_pEngineImGuiContext->Update(deltaTime);
+
+		UpdateMaterials();
+		LazyCompileAndLoadShaders();
 
 		for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
 		{

@@ -19,6 +19,7 @@ struct EngineInitArgs
 	bool useFullScreen = false;
 	Language language = Language::English;
 	GraphicsBackend backend = GraphicsBackend::Direct3D11;
+	bool compileAllShaders = false;
 };
 
 class IApplication

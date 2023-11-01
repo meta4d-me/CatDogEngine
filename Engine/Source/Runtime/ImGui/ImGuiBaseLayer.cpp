@@ -2,6 +2,7 @@
 
 #include "ECWorld/SceneWorld.h"
 #include "ImGui/ImGuiContextInstance.h"
+#include "Rendering/RenderContext.h"
 
 #include <imgui/imgui.h>
 

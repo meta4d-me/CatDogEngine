@@ -49,17 +49,32 @@ constexpr const char* changedWeight = "u_changedWeight";
 constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 
+constexpr const char *BlendShapeWeightsProgram = "BlendShapeWeightsProgram";
+constexpr const char *BlendShapeWeightPosProgram = "BlendShapeWeightPosProgram";
+constexpr const char *BlendShapeFinalPosProgram = "BlendShapeFinalPosProgram";
+constexpr const char *BlendShapeUpdatePosProgram = "BlendShapeUpdatePosProgram";
+
+constexpr StringCrc BlendShapeWeightsProgramCrc = StringCrc("BlendShapeWeightsProgram");
+constexpr StringCrc BlendShapeWeightPosProgramCrc = StringCrc("BlendShapeWeightPosProgram");
+constexpr StringCrc BlendShapeFinalPosProgramCrc = StringCrc("BlendShapeFinalPosProgram");
+constexpr StringCrc BlendShapeUpdatePosProgramCrc = StringCrc("BlendShapeUpdatePosProgram");
+
 }
 
 void BlendShapeRenderer::Init()
 {
+	GetRenderContext()->RegisterShaderProgram(BlendShapeWeightsProgramCrc, { "cs_blendshape_weights" });
+	GetRenderContext()->RegisterShaderProgram(BlendShapeWeightPosProgramCrc, { "cs_blendshape_weight_pos" });
+	GetRenderContext()->RegisterShaderProgram(BlendShapeFinalPosProgramCrc, { "cs_blendshape_final_pos" });
+	GetRenderContext()->RegisterShaderProgram(BlendShapeUpdatePosProgramCrc, { "cs_blendshape_update_pos" });
+
+	bgfx::setViewName(GetViewID(), "BlendShapeRenderer");
+}
+
+void BlendShapeRenderer::Warmup()
+{
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
-	GetRenderContext()->CreateProgram("BlendShapeWeightsProgram", "cs_blendshape_weights.bin");
-	GetRenderContext()->CreateProgram("BlendShapeWeightPosProgram", "cs_blendshape_weight_pos.bin");
-	GetRenderContext()->CreateProgram("BlendShapeFinalPosProgram", "cs_blendshape_final_pos.bin");
-	GetRenderContext()->CreateProgram("BlendShapeUpdatePosProgram", "cs_blendshape_update_pos.bin");
-	
 	GetRenderContext()->CreateUniform(lutSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(cubeIrradianceSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(cubeRadianceSampler, bgfx::UniformType::Sampler);
@@ -84,7 +99,10 @@ void BlendShapeRenderer::Init()
 	GetRenderContext()->CreateUniform(morphCountVertexCount, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(changedWeight, bgfx::UniformType::Vec4, 1);
 
-	bgfx::setViewName(GetViewID(), "BlendShapeRenderer");
+	GetRenderContext()->UploadShaderProgram(BlendShapeWeightsProgram);
+	GetRenderContext()->UploadShaderProgram(BlendShapeWeightPosProgram);
+	GetRenderContext()->UploadShaderProgram(BlendShapeFinalPosProgram);
+	GetRenderContext()->UploadShaderProgram(BlendShapeUpdatePosProgram);
 }
 
 void BlendShapeRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -136,10 +154,7 @@ void BlendShapeRenderer::Render(float deltaTime)
 			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
 		}
 
-		constexpr StringCrc blendShapeWeightsProgram("BlendShapeWeightsProgram");
-		constexpr StringCrc blendShapeWeightPosProgram("BlendShapeWeightPosProgram");
-		constexpr StringCrc blendShapeFinalPosProgram("BlendShapeFinalPosProgram");
-		constexpr StringCrc blendShapeUpdatePosProgram("BlendShapeUpdatePosProgram");
+		uint16_t viewId = GetViewID();
 
 		// Compute Blend Shape
 		if (pBlendShapeComponent->IsDirty())
@@ -150,18 +165,19 @@ void BlendShapeRenderer::Render(float deltaTime)
 			constexpr StringCrc morphCountVertexCountCrc(morphCountVertexCount);
 			cd::Vec4f morphCount = cd::Vec4f{ static_cast<float>(pBlendShapeComponent->GetActiveMorphCount()),static_cast<float>(pBlendShapeComponent->GetMeshVertexCount()),0,0};
 			GetRenderContext()->FillUniform(morphCountVertexCountCrc, &morphCount, 1);
-			bgfx::dispatch(GetViewID(), GetRenderContext()->GetProgram(blendShapeWeightsProgram),1U,1U,1U);
-			
+			GetRenderContext()->Dispatch(viewId, BlendShapeWeightsProgram, 1U, 1U, 1U);
+
 			bgfx::setBuffer(BS_MORPH_AFFECTED_STAGE, bgfx::VertexBufferHandle{pBlendShapeComponent->GetMorphAffectedVB()}, bgfx::Access::Read);
 			bgfx::setBuffer(BS_FINAL_MORPH_AFFECTED_STAGE, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetFinalMorphAffectedVB()}, bgfx::Access::ReadWrite);
 			GetRenderContext()->FillUniform(morphCountVertexCountCrc, &morphCount, 1);
-			bgfx::dispatch(GetViewID(), GetRenderContext()->GetProgram(blendShapeWeightPosProgram),1U, 1U, 1U);
-			
+			GetRenderContext()->Dispatch(viewId, BlendShapeWeightPosProgram, 1U, 1U, 1U);
+
 			bgfx::setBuffer(BS_FINAL_MORPH_AFFECTED_STAGE, bgfx::DynamicVertexBufferHandle{pBlendShapeComponent->GetFinalMorphAffectedVB()}, bgfx::Access::ReadWrite);
 			bgfx::setBuffer(BS_ALL_MORPH_VERTEX_ID_STAGE, bgfx::IndexBufferHandle{pBlendShapeComponent->GetAllMorphVertexIDIB()}, bgfx::Access::Read);
 			bgfx::setBuffer(BS_ACTIVE_MORPH_DATA_STAGE, bgfx::DynamicIndexBufferHandle{pBlendShapeComponent->GetActiveMorphOffestLengthWeightIB()}, bgfx::Access::Read);
 			GetRenderContext()->FillUniform(morphCountVertexCountCrc, &morphCount, 1);
-			bgfx::dispatch(GetViewID(), GetRenderContext()->GetProgram(blendShapeFinalPosProgram));
+			GetRenderContext()->Dispatch(viewId, BlendShapeFinalPosProgram, 1U, 1U, 1U);
+
 			pBlendShapeComponent->SetDirty(false);
 		}
 		if(pBlendShapeComponent->NeedUpdate()) 
@@ -175,7 +191,8 @@ void BlendShapeRenderer::Render(float deltaTime)
 			//constexpr StringCrc changedWeightCrc(changedWeight);
 			//cd::Vec4f changedWeightData = cd::Vec4f{ static_cast<float>(pBlendShapeComponent->GetUpdatedWeight()),0,0,0 };
 			//GetRenderContext()->FillUniform(changedWeightCrc, &changedWeightData, 1);
-			bgfx::dispatch(GetViewID(), GetRenderContext()->GetProgram(blendShapeUpdatePosProgram));
+			GetRenderContext()->Dispatch(viewId, BlendShapeUpdatePosProgram, 1U, 1U, 1U);
+
 			pBlendShapeComponent->ClearNeedUpdate();
 		}
 
@@ -202,8 +219,6 @@ void BlendShapeRenderer::Render(float deltaTime)
 
 		// Sky
 		SkyType crtSkyType = pSkyComponent->GetSkyType();
-		pMaterialComponent->SetSkyType(crtSkyType);
-
 		if (SkyType::SkyBox == crtSkyType)
 		{
 			// Create a new TextureHandle each frame if the skybox texture path has been updated,
@@ -283,7 +298,7 @@ void BlendShapeRenderer::Render(float deltaTime)
 
 		bgfx::setState(state);
 
-		bgfx::submit(GetViewID(), bgfx::ProgramHandle{pMaterialComponent->GetShadreProgram()});
+		GetRenderContext()->Submit(viewId, "WorldProgram", pMaterialComponent->GetFeaturesCombine());
 	}
 }
 

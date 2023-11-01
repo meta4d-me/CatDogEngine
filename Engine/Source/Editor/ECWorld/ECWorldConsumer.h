@@ -71,6 +71,7 @@ private:
 private:
 	engine::MaterialType* m_pDefaultMaterialType = nullptr;
 	engine::SceneWorld* m_pSceneWorld = nullptr;
+	engine::RenderContext* m_pRenderContext = nullptr;
 
 	uint32_t m_nodeMinID;
 	uint32_t m_meshMinID;

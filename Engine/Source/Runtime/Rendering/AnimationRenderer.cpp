@@ -4,7 +4,7 @@
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
-#include "RenderContext.h"
+#include "Rendering/RenderContext.h"
 #include "Scene/Texture.h"
 
 #include <cmath>
@@ -135,14 +135,20 @@ void CalculateBoneTransform(std::vector<cd::Matrix4x4>& boneMatrices, const cd::
 
 void AnimationRenderer::Init()
 {
-#ifdef VISUALIZE_BONE_WEIGHTS
-	m_pRenderContext->CreateUniform("u_debugBoneIndex", bgfx::UniformType::Vec4, 1);
-	m_pRenderContext->CreateProgram("AnimationProgram", "vs_visualize_bone_weight.bin", "fs_visualize_bone_weight.bin");
-#else
-	GetRenderContext()->CreateProgram("AnimationProgram", "vs_animation.bin", "fs_animation.bin");
-#endif
+	constexpr StringCrc programCrc = StringCrc("AnimationProgram");
+	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_animation", "fs_animation" });
 
 	bgfx::setViewName(GetViewID(), "AnimationRenderer");
+}
+
+void AnimationRenderer::Warmup()
+{
+#ifdef VISUALIZE_BONE_WEIGHTS
+	m_pRenderContext->CreateUniform("u_debugBoneIndex", bgfx::UniformType::Vec4, 1);
+	m_pRenderContext->CreateProgram("AnimationProgram", "vs_visualize_bone_weight", "fs_visualize_bone_weight");
+#else
+	GetRenderContext()->UploadShaderProgram("AnimationProgram");
+#endif
 }
 
 void AnimationRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -211,8 +217,7 @@ void AnimationRenderer::Render(float deltaTime)
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);
 
-		constexpr StringCrc animationProgram("AnimationProgram");
-		bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(animationProgram));
+		GetRenderContext()->Submit(GetViewID(), "AnimationProgram");
 	}
 }
 

@@ -3,13 +3,18 @@
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/TransformComponent.h"
-#include "RenderContext.h"
+#include "Rendering/RenderContext.h"
 
 namespace engine {
 
 void ParticleRenderer::Init()
 {
 	bgfx::setViewName(GetViewID(), "ParticleRenderer");
+}
+
+void ParticleRenderer::Warmup()
+{
+
 }
 
 void ParticleRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)

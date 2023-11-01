@@ -2,9 +2,17 @@
 
 #include "Material/MaterialType.h"
 #include "Resources/ResourceBuilder.h"
+#include "Rendering/ShaderCompileInfo.h"
 
 #include <map>
 #include <string>
+
+namespace engine
+{
+
+class RenderContext;
+
+}
 
 namespace editor
 {
@@ -12,11 +20,12 @@ namespace editor
 class ShaderBuilder
 {
 public:
-	static void BuildNonUberShader(std::string folderPath);
-	static void BuildUberShader(engine::MaterialType* pMaterialType);
+	static void CompileRegisteredNonUberShader(engine::RenderContext* pRenderContext);
+	static void CompileRegisteredUberShader(engine::RenderContext* pRenderContext, engine::MaterialType* pMaterialType);
+	static void CompileUberShaderAllVariants(engine::RenderContext* pRenderContext, engine::MaterialType* pMaterialType);
 
-private:
-	static const ShaderType GetShaderType(const std::string& fileName);
+	// Compile specified shader program/program variant.
+	static void BuildShader(engine::RenderContext* pRenderContext, const engine::ShaderCompileInfo& info);
 };
 
 } // namespace editor
