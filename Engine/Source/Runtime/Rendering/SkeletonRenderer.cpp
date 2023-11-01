@@ -30,6 +30,7 @@ void CalculateTransform(std::vector<cd::Matrix4x4>& boneMatrices, const cd::Scen
 			if (animationTime < nextKey.GetTime())
 			{
 				const auto& currentKey = pTrack->GetTranslationKeys()[keyIndex];
+				const auto& rootBoneKey = pRootTrack->GetTranslationKeys()[keyIndex];
 				float keyFrameDeltaTime = nextKey.GetTime() - currentKey.GetTime();
 				float keyFrameRate = (animationTime - currentKey.GetTime()) / keyFrameDeltaTime;
 				assert(keyFrameRate >= 0.0f && keyFrameRate <= 1.0f);
