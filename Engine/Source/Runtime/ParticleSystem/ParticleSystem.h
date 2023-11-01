@@ -28,6 +28,12 @@ public:
 	cd::Vec3f& GetPos(int index) { return m_pos[index]; }
 	void SetPos(cd::Vec3f pos) { m_pos[m_particleIndex] = pos; }
 
+	cd::Vec3f& GetRotation(int index) { return m_rotation[index]; }
+	void SetRotation(cd::Vec3f rotate) { m_rotation[m_particleIndex] = rotate; }
+
+	cd::Vec3f& GetScale(int index) { return m_scale[index]; }
+	void SetScale(cd::Vec3f scale) { m_scale[m_particleIndex] = scale; }
+
 	cd::Vec3f& GetVelocity() { return m_velocity[m_particleIndex]; }
 	void SetVelocity(cd::Vec3f velocity) { m_velocity[m_particleIndex] = velocity; }
 
@@ -70,6 +76,9 @@ private:
 
 	std::vector<int> m_FreeParticleIndex;
 	std::vector<cd::Vec3f> m_pos;
+	std::vector<cd::Vec3f>m_rotation;
+	std::vector<cd::Vec3f>m_scale;
+
 	std::vector<cd::Vec3f> m_velocity;
 	//std::vector<cd::Quaternion> m_emiterDirection;
 	std::vector<cd::Vec3f> m_acceleration;

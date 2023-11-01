@@ -39,6 +39,8 @@ void engine::ParticleSystem::Reset(int index)
 {
 
 	m_pos[index] = cd::Vec3f(0.0f, 0.0f, 0.0f);
+	m_rotation[index] = cd::Vec3f(0.0f, 0.0f, 0.0f);
+	m_scale[index] = cd::Vec3f(0.0f, 0.0f, 0.0f);
 	m_velocity[index] = cd::Vec3f(0.0f, 0.0f, 0.0f);
 	m_acceleration[index] = cd::Vec3f(0.0f, 0.0f, 0.0f);
 	
@@ -116,6 +118,8 @@ bool engine::ParticleSystem::UpdateActive(float deltaTime,int i)
 void engine::ParticleSystem::Init()
 {
 	 m_pos.resize(m_particleMaxCount);
+	 m_rotation.resize(m_particleMaxCount);
+	 m_scale.resize(m_particleMaxCount);
 	 m_velocity.resize(m_particleMaxCount);
 	 m_acceleration.resize(m_particleMaxCount);
 	 m_color.resize(m_particleMaxCount);

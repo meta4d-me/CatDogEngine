@@ -102,7 +102,7 @@ bool IsLightInputFile(const char* pFileExtension)
 
 bool IsParticleInputFile(const char* pFileExtension)
 {
-	constexpr const char* pFileExtensions[] = { ".efkefc" };
+	constexpr const char* pFileExtensions[] = { ".efkefc"};
 	constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
 	for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
 	{

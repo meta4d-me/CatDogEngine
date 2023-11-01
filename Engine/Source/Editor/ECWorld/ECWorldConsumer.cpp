@@ -57,6 +57,11 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 		CD_WARN("[ECWorldConsumer] No valid meshes in the consumed SceneDatabase.");
 	}
 
+	if (0U != pSceneDatabase->GetParticleEmitterCount())
+	{
+		CD_INFO("[ECWorldConsumer] Have ParticleEmitter");
+	}
+
 	auto ParseMesh = [&](cd::MeshID meshID, const cd::Transform& tranform)
 	{
 		engine::Entity meshEntity = m_pSceneWorld->GetWorld()->CreateEntity();
@@ -139,7 +144,7 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 	}
 
 	for (const auto& node : pSceneDatabase->GetNodes())
-	{
+	{ 
 		if (m_nodeMinID > node.GetID().Data())
 		{
 			continue;
@@ -166,6 +171,12 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 	{
 		engine::Entity lightEntity = m_pSceneWorld->GetWorld()->CreateEntity();
 		AddLight(lightEntity, light);
+	}
+
+	for (const auto& particle : pSceneDatabase->GetParticleEmitters())
+	{
+		engine::Entity particleEntity = m_pSceneWorld->GetWorld()->CreateEntity();
+		AddParticleEmitter(particleEntity, particle);
 	}
 }
 
@@ -369,6 +380,24 @@ void ECWorldConsumer::AddMorphs(engine::Entity entity, const std::vector<cd::Mor
 	blendShapeComponent.SetMorphs(morphs);
 	blendShapeComponent.SetMesh(pMesh);
 	blendShapeComponent.Build();
+}
+
+void ECWorldConsumer::AddParticleEmitter(engine::Entity entity, const cd::ParticleEmitter& particle)
+{
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+	engine::NameComponent& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
+	nameComponent.SetName(particle.GetName());
+	auto& particleEmitterComponent = pWorld->CreateComponent<engine::ParticleEmitterComponent>(entity);
+	// TODO : Some initialization here.
+	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+	cd::Vec3f pos = particle.GetPosition();
+	transformComponent.SetTransform(cd::Transform::Identity());
+	transformComponent.GetTransform().SetTranslation(pos);
+	transformComponent.Build();
+
+	particleEmitterComponent.GetParticleSystem().Init();
+	particleEmitterComponent.SetFVelocity(particle.GetVelocity());
+	particleEmitterComponent.Build();
 }
 
 }

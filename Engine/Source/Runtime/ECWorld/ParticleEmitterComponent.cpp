@@ -14,19 +14,19 @@ void engine::ParticleEmitterComponent::Build()
 	PaddingVertexBuffer();
 	PaddingIndexBuffer();
 
-	m_particleVBH = bgfx::createDynamicVertexBuffer(bgfx::makeRef(m_particleVertexBuffer.data(), static_cast<uint32_t>(m_particleVertexBuffer.size())), vertexLayout).idx;
-	m_particleIBH = bgfx::createDynamicIndexBuffer(bgfx::makeRef(m_particleIndexBuffer.data(), static_cast<uint32_t>(m_particleIndexBuffer.size())), 0U).idx;
+	m_particleVBH = bgfx::createVertexBuffer(bgfx::makeRef(m_particleVertexBuffer.data(), static_cast<uint32_t>(m_particleVertexBuffer.size())), vertexLayout).idx;
+	m_particleIBH = bgfx::createIndexBuffer(bgfx::makeRef(m_particleIndexBuffer.data(), static_cast<uint32_t>(m_particleIndexBuffer.size())), 0U).idx;
 }
 
-void engine::ParticleEmitterComponent::UpdateBuffer()
-{
-	//bgfx::update(vbh, 0, bgfx::makeRef(vertexBuffer.data(), vertexBuffer.size()));
-	PaddingVertexBuffer();
-	PaddingIndexBuffer();
-
-	bgfx::update(bgfx::DynamicVertexBufferHandle{ GetParticleVBH() }, 0 , bgfx::makeRef(m_particleVertexBuffer.data(), static_cast<uint32_t>(m_particleVertexBuffer.size())));
-	bgfx::update(bgfx::DynamicIndexBufferHandle{GetParticleIBH()}, 0, bgfx::makeRef(m_particleIndexBuffer.data(), static_cast<uint32_t>(m_particleIndexBuffer.size())));
-}
+//void engine::ParticleEmitterComponent::UpdateBuffer()
+//{
+//	//bgfx::update(vbh, 0, bgfx::makeRef(vertexBuffer.data(), vertexBuffer.size()));
+//	PaddingVertexBuffer();
+//	PaddingIndexBuffer();
+//
+//	bgfx::update(bgfx::DynamicVertexBufferHandle{ GetParticleVBH() }, 0 , bgfx::makeRef(m_particleVertexBuffer.data(), static_cast<uint32_t>(m_particleVertexBuffer.size())));
+//	bgfx::update(bgfx::DynamicIndexBufferHandle{GetParticleIBH()}, 0, bgfx::makeRef(m_particleIndexBuffer.data(), static_cast<uint32_t>(m_particleIndexBuffer.size())));
+//}
 
 void engine::ParticleEmitterComponent::PaddingVertexBuffer()
 {
@@ -63,7 +63,7 @@ void engine::ParticleEmitterComponent::PaddingIndexBuffer()
 * indexBuffer
 */
 	size_t indexTypeSize = sizeof(uint16_t);
-	m_particleIndexBuffer.resize(m_particleSystem.GetMaxCount()/4*7 * indexTypeSize);
+	m_particleIndexBuffer.resize(m_particleSystem.GetMaxCount()/4* 6 * indexTypeSize);
 	uint32_t currentDataSize = 0U;
 	auto currentDataPtr = m_particleIndexBuffer.data();
 
@@ -77,7 +77,7 @@ void engine::ParticleEmitterComponent::PaddingIndexBuffer()
 		indexes.push_back(vertexIndex);
 		indexes.push_back(vertexIndex+2);
 		indexes.push_back(vertexIndex+3);
-		indexes.push_back(static_cast<uint16_t>(65535));
+
 	}
 
 	for (const auto& index : indexes)

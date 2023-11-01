@@ -9,8 +9,7 @@ namespace engine {
 void ParticleRenderer::Init()
 {
 	constexpr StringCrc ParticleProgram = StringCrc{ "ParticleProgram" };
-	GetRenderContext()->RegisterShaderProgram(ParticleProgram, { "vs_PBR", "fs_PBR" });
-	//GetRenderContext()->CreateProgram("ParticleProgram", "vs_particle.bin", "fs_particle.bin");
+	GetRenderContext()->RegisterShaderProgram(ParticleProgram, { "vs_particle", "fs_particle" });
 	bgfx::setViewName(GetViewID(), "ParticleRenderer");
 }
 
@@ -45,6 +44,8 @@ void ParticleRenderer::Render(float deltaTime)
 		{
 			pEmitterComponent->GetParticleSystem().AllocateParticleIndex();
 			pEmitterComponent->GetParticleSystem().SetPos(particleTransform.GetTranslation());
+			//pEmitterComponent->GetParticleSystem().SetVelocity(cd::Vec3f(0.7f,0.7f,0.0f));
+			pEmitterComponent->GetParticleSystem().SetVelocity(pEmitterComponent->GetFVelocity());
 		}
 
 		for (int i = 0; i < particleMaxCount; ++i)
@@ -56,17 +57,41 @@ void ParticleRenderer::Render(float deltaTime)
 			}
 		}
 
-		if (m_bufferChange)
+		pEmitterComponent->PaddingVertexBuffer();
+		pEmitterComponent->PaddingIndexBuffer();
+
+		const uint16_t instanceStride = 80;
+		// to total number of instances to draw
+		uint32_t totalSprites = pEmitterComponent->GetParticleSystem().GetMaxCount();
+		uint32_t drawnSprites = bgfx::getAvailInstanceDataBuffer(totalSprites, instanceStride);
+
+		bgfx::InstanceDataBuffer idb;
+		bgfx::allocInstanceDataBuffer(&idb, drawnSprites, instanceStride);
+
+		uint8_t* data = idb.data;
+
+		for (uint32_t ii = 0; ii < drawnSprites; ++ii)
 		{
-			pEmitterComponent->UpdateBuffer();
+			float* mtx = (float*)data;
+			bx::mtxRotateXY(mtx,0.0f, 0.0f);
+			mtx[12] = pEmitterComponent->GetParticleSystem().GetPos(ii).x();
+			mtx[13] = pEmitterComponent->GetParticleSystem().GetPos(ii).y();
+			mtx[14] = pEmitterComponent->GetParticleSystem().GetPos(ii).z();
+			float* color = (float*)&data[64];
+			color[0] = 1.0f;
+			color[1] = 1.0f;
+			color[2] = 1.0f;
+			color[3] = 1.0f;
+
+			data += instanceStride;
 		}
 
 		constexpr StringCrc ParticleSampler("s_texColor");
 		bgfx::setTexture(0, GetRenderContext()->GetUniform(ParticleSampler), m_particleTextureHandle);
+		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pEmitterComponent->GetParticleVBH() });
+		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{  pEmitterComponent->GetParticleIBH() });
 
-		bgfx::setVertexBuffer(0, bgfx::DynamicVertexBufferHandle{ pEmitterComponent->GetParticleVBH() });
-		bgfx::setIndexBuffer(bgfx::DynamicIndexBufferHandle{  pEmitterComponent->GetParticleIBH() });
-
+		bgfx::setInstanceDataBuffer(&idb);
 
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_TRISTRIP;

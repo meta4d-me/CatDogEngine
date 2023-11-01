@@ -27,6 +27,9 @@ public:
 
 	engine::ParticleSystem &GetParticleSystem() { return m_particleSystem; }
 
+	cd::Vec3f& GetFVelocity() { return m_fill_velocity; }
+	void SetFVelocity(cd::Vec3f fillnum) { m_fill_velocity = fillnum; }
+
 	uint16_t& GetParticleVBH(){ return m_particleVBH; }
 	uint16_t& GetParticleIBH() { return m_particleIBH; }
 
@@ -35,7 +38,7 @@ public:
 
 	void Build();
 
-	void UpdateBuffer();
+	//void UpdateBuffer();
 
 	void PaddingVertexBuffer();
 
@@ -43,6 +46,9 @@ public:
 
 private:
 	ParticleSystem			m_particleSystem;
+
+	cd::Vec3f m_fill_velocity
+;
 	std::vector<std::byte> m_particleVertexBuffer;
 	std::vector<std::byte> m_particleIndexBuffer;
 	uint16_t m_particleVBH = UINT16_MAX;
