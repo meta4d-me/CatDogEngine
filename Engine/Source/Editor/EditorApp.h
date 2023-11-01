@@ -91,6 +91,7 @@ private:
 	// Scene
 	std::unique_ptr<engine::SceneWorld> m_pSceneWorld;
 	editor::SceneView* m_pSceneView = nullptr;
+	engine::Renderer* m_pShadowMapRenderer = nullptr;
 	engine::Renderer* m_pSceneRenderer = nullptr;
 	engine::Renderer* m_pWhiteModelRenderer = nullptr;
 	engine::Renderer* m_pWireframeRenderer = nullptr;
