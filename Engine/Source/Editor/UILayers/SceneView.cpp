@@ -330,13 +330,21 @@ void SceneView::Update()
 
 	ImVec2 windowPos = ImGui::GetWindowPos();
 	ImVec2 mousePos = ImGui::GetMousePos();
+	bool isMouseInsideSeneView = false;
 	cd::Vec2f rightDown(windowPos.x + regionSize.x, windowPos.y + regionSize.y);
 
 	// Check if mouse hover on the area of SceneView so it can control.
 	ImVec2 cursorPosition = ImGui::GetCursorPos();
 	ImVec2 sceneViewPosition = ImGui::GetWindowPos() + cursorPosition;
 	SetWindowPos(sceneViewPosition.x, sceneViewPosition.y);
-
+	if (ImGui::IsWindowHovered())
+	{
+		isMouseInsideSeneView = true;
+	}
+	else
+	{
+		isMouseInsideSeneView = false;
+	}
 	// Draw scene.
 	ImGui::Image(reinterpret_cast<ImTextureID>(m_pRenderTarget->GetTextureHandle(0).idx),
 		ImVec2(m_pRenderTarget->GetWidth(), m_pRenderTarget->GetHeight()));
@@ -372,7 +380,7 @@ void SceneView::Update()
 		}
 
 		m_isMouseDownFirstTime = false;
-		if (mousePos.x > windowPos.x && mousePos.x < rightDown.x() && mousePos.y > windowPos.y && mousePos.y < rightDown.y() && !m_isTerrainEditMode)
+		if (isMouseInsideSeneView && !m_isTerrainEditMode)
 		{
 			m_pCameraController->SetIsInViewScene(true);
 			m_isMouseShow = false;
