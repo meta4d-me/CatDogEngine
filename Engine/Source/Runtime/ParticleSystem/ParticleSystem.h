@@ -46,9 +46,6 @@ public:
 	cd::Vec4f& GetColor(int index) { return m_color[index]; }
 	void SetColor(cd::Vec4f color) { m_color[m_particleIndex] = color; }
 
-	cd::Vec3f& GetFront( ) { return m_front; }
-	void SetFront(cd::Vec3f front) { m_front = front; }
-
 	float& GetTexture_u(int index) { return m_texture_u[index]; }
 	float& GetTexture_v(int index) { return m_texture_v[index]; }
 
@@ -89,8 +86,6 @@ private:
 	std::vector<bool>	m_isActive;
 	std::vector<float> m_currentTime;
 	std::vector<float> m_lifeTime;
-
-	cd::Vec3f m_front = cd::Vec3f(0.0f, 0.0f, 1.0f);
 };
 
 }

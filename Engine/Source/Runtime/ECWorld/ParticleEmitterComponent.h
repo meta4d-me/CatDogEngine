@@ -29,6 +29,9 @@ public:
 
 	cd::Vec3f& GetFVelocity() { return m_fill_velocity; }
 	void SetFVelocity(cd::Vec3f fillnum) { m_fill_velocity = fillnum; }
+	
+	cd::Vec4f& GetFColor() { return m_fill_color; }
+	void SetFColor(cd::Vec4f fillcolor) { m_fill_color = fillcolor; }
 
 	uint16_t& GetParticleVBH(){ return m_particleVBH; }
 	uint16_t& GetParticleIBH() { return m_particleIBH; }
@@ -47,8 +50,9 @@ public:
 private:
 	ParticleSystem			m_particleSystem;
 
-	cd::Vec3f m_fill_velocity
-;
+	cd::Vec3f m_fill_velocity;
+	cd::Vec4f m_fill_color{1.0f,1.0f,1.0f,1.0f};
+
 	std::vector<std::byte> m_particleVertexBuffer;
 	std::vector<std::byte> m_particleIndexBuffer;
 	uint16_t m_particleVBH = UINT16_MAX;

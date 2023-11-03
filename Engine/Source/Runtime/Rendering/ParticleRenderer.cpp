@@ -44,21 +44,17 @@ void ParticleRenderer::Render(float deltaTime)
 		{
 			pEmitterComponent->GetParticleSystem().AllocateParticleIndex();
 			pEmitterComponent->GetParticleSystem().SetPos(particleTransform.GetTranslation());
-			//pEmitterComponent->GetParticleSystem().SetVelocity(cd::Vec3f(0.7f,0.7f,0.0f));
 			pEmitterComponent->GetParticleSystem().SetVelocity(pEmitterComponent->GetFVelocity());
 		}
 
 		for (int i = 0; i < particleMaxCount; ++i)
 		{
-			if (pEmitterComponent->GetParticleSystem().UpdateActive(deltaTime, i))
-			{
-				//pEmitterComponent->GetParticleSystem().SetPos(rotationQuat * pEmitterComponent->GetParticleSystem().GetPos(i));
-				m_bufferChange = true; 
-			}
+			pEmitterComponent->GetParticleSystem().UpdateActive(deltaTime, i);
 		}
 
 		pEmitterComponent->PaddingVertexBuffer();
 		pEmitterComponent->PaddingIndexBuffer();
+
 
 		const uint16_t instanceStride = 80;
 		// to total number of instances to draw
@@ -78,10 +74,10 @@ void ParticleRenderer::Render(float deltaTime)
 			mtx[13] = pEmitterComponent->GetParticleSystem().GetPos(ii).y();
 			mtx[14] = pEmitterComponent->GetParticleSystem().GetPos(ii).z();
 			float* color = (float*)&data[64];
-			color[0] = 1.0f;
-			color[1] = 1.0f;
-			color[2] = 1.0f;
-			color[3] = 1.0f;
+			color[0] = pEmitterComponent->GetFColor().x();
+			color[1] = pEmitterComponent->GetFColor().y();
+			color[2] = pEmitterComponent->GetFColor().z();
+			color[3] = pEmitterComponent->GetFColor().w();
 
 			data += instanceStride;
 		}

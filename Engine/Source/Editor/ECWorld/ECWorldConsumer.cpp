@@ -397,6 +397,7 @@ void ECWorldConsumer::AddParticleEmitter(engine::Entity entity, const cd::Partic
 
 	particleEmitterComponent.GetParticleSystem().Init();
 	particleEmitterComponent.SetFVelocity(particle.GetVelocity());
+	particleEmitterComponent.SetFColor(particle.GetColor()/255.0f);
 	particleEmitterComponent.Build();
 }
 

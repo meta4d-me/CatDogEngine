@@ -631,6 +631,7 @@ void UpdateComponentWidget<engine::ParticleEmitterComponent>(engine::SceneWorld*
 	if (isOpen)
 	{
 		ImGuiUtils::ImGuiVectorProperty("Velocity",pParticleEmitterComponent->GetFVelocity());
+		 ImGuiUtils::ColorPickerProperty(" Color", pParticleEmitterComponent->GetFColor());
 	}
 
 	ImGui::Separator();

@@ -28,7 +28,6 @@ private:
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
 	bgfx::TextureHandle m_particleTextureHandle;
 
-	bool m_bufferChange;
 };
 
 }

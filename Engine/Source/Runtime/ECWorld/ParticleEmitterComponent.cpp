@@ -1,6 +1,7 @@
 #include "ParticleEmitterComponent.h"
 #include "Scene/VertexFormat.h"
 #include "Rendering/Utility/VertexLayoutUtility.h"
+#include <Log\Log.h>
 
 void engine::ParticleEmitterComponent::Build()
 {
