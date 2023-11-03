@@ -207,7 +207,7 @@ void EditorApp::InitEngineImGuiContext(engine::Language language)
 
 void EditorApp::InitEngineUILayers()
 {
-	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<engine::DebugPanel>("DebugPanel"));
+	m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<engine::DebugPanel>("DebugPanel"));
 	
 	auto pImGuizmoView = std::make_unique<editor::ImGuizmoView>("ImGuizmoView");
 	pImGuizmoView->SetSceneView(m_pSceneView);

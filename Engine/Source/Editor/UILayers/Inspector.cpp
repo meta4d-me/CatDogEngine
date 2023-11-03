@@ -670,6 +670,9 @@ void UpdateComponentWidget<engine::AnimationComponent>(engine::SceneWorld* pScen
 	{
 		ImGui::Separator();
 		ImGuiUtils::ImGuiBoolProperty("play", pAnimationComponent->GetIsPlaying());
+		ImGuiUtils::ImGuiEnumProperty("AnimationClip", pAnimationComponent->GetAnimationClip());
+		ImGuiUtils::ImGuiFloatProperty("Factor", pAnimationComponent->GetBlendFactor(),cd::Unit::None,0.0f,1.0f,false,0.01f);
+		ImGuiUtils::ImGuiFloatProperty("Time", pAnimationComponent->GetAnimationPlayTime(), cd::Unit::None, 0.0f);
 	}
 	ImGui::Separator();
 	ImGui::PopStyleVar();
@@ -715,6 +718,7 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::NameComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::TransformComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::CameraComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::AnimationComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, m_lastSelectedEntity);
@@ -724,7 +728,6 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::CollisionMeshComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::BlendShapeComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::ShaderVariantCollectionsComponent>(pSceneWorld, m_lastSelectedEntity);
-	details::UpdateComponentWidget<engine::AnimationComponent>(pSceneWorld, m_lastSelectedEntity);
 
 #ifdef ENABLE_DDGI
 	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, m_lastSelectedEntity);

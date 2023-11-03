@@ -310,7 +310,6 @@ void SceneView::Update()
 
 	// Draw top menu buttons which include ImGuizmo operation modes, ViewCamera settings.
 	UpdateToolMenuButtons();
-
 	// Check if need to resize scene view.
 	ImVec2 regionSize = ImGui::GetContentRegionAvail();
 	uint16_t regionWidth = static_cast<uint16_t>(regionSize.x);

@@ -16,6 +16,16 @@ class Track;
 namespace engine
 {
 
+enum class AnimationClip
+{
+	Idel,
+	Walking,
+	Running,
+	
+	Blend,
+	Count,
+};
+
 class AnimationComponent final
 {
 public:
@@ -52,14 +62,28 @@ public:
 	void SetAnimationPlayTime(float time) { m_animationPlayTime = time; }
 	float& GetAnimationPlayTime() { return m_animationPlayTime; }
 
+	void SetAnimationPlaySpped(float time) { m_animationPlayTime = time; }
+	float& GetAnimationPlaySpeed() { return m_animationPlayTime; }
+
+	void SetAnimationClip(AnimationClip crtClip) { m_clip = crtClip; }
+	AnimationClip& GetAnimationClip() { return m_clip; }
+	const AnimationClip& GeAnimationClip() const { return m_clip; }
+
+	void SetBlendFactor(float factor) { m_blendFactor = factor; }
+	float& GetBlendFactor() { return m_blendFactor; }
+	const float& GetBlendFactor() const { return m_blendFactor; }
+
 	bool& GetIsPlaying() { return m_playAnimation; }
 
 private:
+	AnimationClip m_clip = AnimationClip::Idel;
 	const cd::Animation* m_pAnimation = nullptr;
 	const cd::Track* m_pTrack = nullptr;
 
+	float m_blendFactor = 0.0f;
 	bool m_playAnimation = false;
 	
+	float m_animationPlaySpeed;
 	float m_animationPlayTime;
 	float m_duration;
 	float m_ticksPerSecond;

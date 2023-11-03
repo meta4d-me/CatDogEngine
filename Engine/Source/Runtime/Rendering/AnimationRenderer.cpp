@@ -257,7 +257,7 @@ void AnimationRenderer::Render(float deltaTime)
 	static float animationRunningTime = 0.0f;
 
 	const cd::SceneDatabase* pSceneDatabase = m_pCurrentSceneWorld->GetSceneDatabase();
-	for (Entity entity : m_pCurrentSceneWorld->GetAnimationEntities())
+	for (Entity entity : m_pCurrentSceneWorld->GetSkinMeshEntities())
 	{
 		StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
 		if (!pMeshComponent)
@@ -267,24 +267,7 @@ void AnimationRenderer::Render(float deltaTime)
 
 		TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity);
 		bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
-
-		AnimationComponent* pAnimationComponent = m_pCurrentSceneWorld->GetAnimationComponent(entity);
-
-		if (pAnimationComponent->GetIsPlaying())
-		{
-			animationRunningTime += deltaTime;
-		}
-
-		static std::vector<cd::Matrix4x4> vertexMatrices;
-		vertexMatrices.clear();
-		for (uint16_t boneIndex = 0; boneIndex < 128; ++boneIndex)
-		{
-			vertexMatrices.push_back(cd::Matrix4x4::Identity());
-		}
-
-		const cd::Bone& rootBone = pSceneDatabase->GetBone(0);
-		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()});
-		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
+		UpdateStaticMeshComponent(pMeshComponent);
 
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);

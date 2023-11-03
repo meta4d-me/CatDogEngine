@@ -100,11 +100,15 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 	{
 		CD_WARN("[ECWorldConsumer] No valid meshes in the consumed SceneDatabase.");
 	}
-
+	static int animationCount = 0;
 	auto ParseMesh = [&](cd::MeshID meshID, const cd::Transform& tranform)
 	{
+		if (animationCount == 1)
+		{
+			return;
+		}
 		engine::Entity meshEntity = m_pSceneWorld->GetWorld()->CreateEntity();
-		AddTransform(meshEntity, tranform);
+ 		AddTransform(meshEntity, tranform);
 
 		const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
 
@@ -125,7 +129,8 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 			// TODO : Use a standalone .cdanim file to play animation.
 			// Currently, we assume that imported SkinMesh will play animation automatically for testing.
 			AddMaterial(meshEntity, nullptr, pMaterialType, pSceneDatabase);
-			AddAnimation(meshEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
+			AddAnimation(meshEntity, pSceneDatabase->GetAnimation(animationCount), pSceneDatabase);
+			animationCount++;
 			AddSkeleton(meshEntity, pSceneDatabase);		
 		}
 	};
@@ -297,7 +302,6 @@ void ECWorldConsumer::AddAnimation(engine::Entity entity, const cd::Animation& a
 	animationComponent.SetTrackData(pSceneDatabase->GetTracks().data());
 	animationComponent.SetDuration(animation.GetDuration());
 	animationComponent.SetTicksPerSecond(animation.GetTicksPerSecnod());
-
 	bgfx::UniformHandle boneMatricesUniform = bgfx::createUniform("u_boneMatrices", bgfx::UniformType::Mat4, 128);
 	animationComponent.SetBoneMatricesUniform(boneMatricesUniform.idx);
 }
