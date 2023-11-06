@@ -219,7 +219,7 @@ void WindowManager::Update()
 
 		case SDL_DROPFILE:
 		{
-			GetActiveWindow()->OnDropFile.Invoke(sdlEvent.drop.file);
+			OnDropFile.Invoke(sdlEvent.drop.file);
 		}
 		break;
 

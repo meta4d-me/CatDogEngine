@@ -76,7 +76,6 @@ public:
 
 public:
     // Delegates
-    Delegate<void(const char*)> OnDropFile;
     MulticastDelegate<void(uint16_t, uint16_t)> OnResize;
 
 private:
