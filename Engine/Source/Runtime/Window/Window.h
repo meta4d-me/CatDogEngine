@@ -28,7 +28,7 @@ public:
 public:
     Window() = delete;
     Window(const void* pParentHandle);
-    Window(const char* pTitle, uint16_t width, uint16_t height);
+    Window(const char* pTitle, int x, int y, int w, int h);
     Window(const Window&) = delete;
     Window& operator=(const Window&) = delete;
     Window(Window&&) = delete;
@@ -55,13 +55,15 @@ public:
     void SetFullScreen(bool on);
 
     // Status
+    bool IsInputFocused() const;
+    bool IsMouseFocused() const;
     bool IsFocused() const;
     void SetFocused();
-    bool GetInputFocus() const;
-    bool GetMouseFocus() const;
 
     bool ShouldClose() const { return m_isClosed; }
     void Close(bool bPushSdlEvent = true);
+
+    bool IsMinimized() const;
 
     // Styles
     void SetResizeable(bool on);

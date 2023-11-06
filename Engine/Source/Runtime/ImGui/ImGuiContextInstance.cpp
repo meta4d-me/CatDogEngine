@@ -248,7 +248,11 @@ void ImGuiContextInstance::InitViewport(WindowManager* pWindowManager, RenderCon
 	ImGuiPlatformIO& platformIO = ImGui::GetPlatformIO();
 	platformIO.Platform_CreateWindow = [](ImGuiViewport* pViewport)
 	{
-		auto pWindow = std::make_unique<engine::Window>("ViewportWindow", 1, 1);
+		auto pWindow = std::make_unique<engine::Window>("ViewportWindow", static_cast<int>(pViewport->Pos.x), static_cast<int>(pViewport->Pos.y),
+			static_cast<int>(pViewport->Size.x), static_cast<int>(pViewport->Size.y));
+		bool noDecoration = pViewport->Flags & ImGuiViewportFlags_NoDecoration;
+		pWindow->SetBordedLess(noDecoration);
+		pWindow->SetResizeable(!noDecoration);
 		pViewport->PlatformHandle = pWindow.get();
 		pViewport->PlatformHandleRaw = pWindow->GetHandle();
 		s_pWindowManager->AddWindow(cd::MoveTemp(pWindow));
@@ -258,7 +262,6 @@ void ImGuiContextInstance::InitViewport(WindowManager* pWindowManager, RenderCon
 	{
 		s_pWindowManager->RemoveWindow(pViewport->PlatformHandleRaw);
 		pViewport->PlatformHandle = nullptr;
-		pViewport->PlatformUserData = nullptr;
 	};
 
 	platformIO.Platform_ShowWindow = [](ImGuiViewport* pViewport)
@@ -305,7 +308,13 @@ void ImGuiContextInstance::InitViewport(WindowManager* pWindowManager, RenderCon
 	platformIO.Platform_SetWindowFocus = [](ImGuiViewport* pViewport)
 	{
 		engine::Window* pWindow = s_pWindowManager->GetWindow(pViewport->PlatformHandleRaw);
-		return pWindow->SetFocused();
+		pWindow->SetFocused();
+	};
+
+	platformIO.Platform_GetWindowMinimized = [](ImGuiViewport* pViewport)
+	{
+		engine::Window* pWindow = s_pWindowManager->GetWindow(pViewport->PlatformHandleRaw);
+		return pWindow->IsMinimized();
 	};
 
 	// Register rendering interfaces.
@@ -319,7 +328,11 @@ void ImGuiContextInstance::InitViewport(WindowManager* pWindowManager, RenderCon
 
 	platformIO.Renderer_DestroyWindow = [](ImGuiViewport* pViewport)
 	{
-		s_pRenderContext->DestoryRenderTarget(s_pRenderContext->GetRenderTargetCrc(pViewport->PlatformUserData));
+		if (pViewport->PlatformUserData)
+		{
+			s_pRenderContext->DestoryRenderTarget(s_pRenderContext->GetRenderTargetCrc(pViewport->PlatformUserData));
+			pViewport->PlatformUserData = nullptr;
+		}
 	};
 
 	platformIO.Renderer_SetWindowSize = [](ImGuiViewport* pViewport, ImVec2 v)
@@ -445,18 +458,14 @@ void ImGuiContextInstance::Update(float deltaTime)
 
 	auto& io = ImGui::GetIO();
 
-	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-	{
-		UpdateViewport();
-
-		auto position = engine::Input::Get().GetGloalMousePosition();
-		engine::Input::Get().SetMousePositionX(position.first);
-		engine::Input::Get().SetMousePositionY(position.second);
-	}
-
 	// It is necessary to pass correct deltaTime to ImGui underlaying framework because it will use the value to check
 	// something such as if mouse button double click happens(Two click event happens in one frame, < deltaTime).
 	io.DeltaTime = deltaTime;
+
+	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+	{
+		UpdateViewport();
+	}
 
 	AddInputEvent();
 
@@ -494,6 +503,9 @@ void ImGuiContextInstance::Update(float deltaTime)
 void ImGuiContextInstance::AddInputEvent()
 {
 	ImGuiIO& io = ImGui::GetIO();
+
+	io.AddFocusEvent(Input::Get().IsFocused());
+
 	if (bool mouseLBPressed = Input::Get().IsMouseLBPressed(); m_lastMouseLBPressed != mouseLBPressed)
 	{
 		io.AddMouseButtonEvent(ImGuiMouseButton_Left, mouseLBPressed);

@@ -55,9 +55,9 @@ Window::Window(const void* pParentHandle)
 	m_pSDLWindow = SDL_CreateWindowFrom(pParentHandle);
 }
 
-Window::Window(const char* pTitle, uint16_t width, uint16_t height)
+Window::Window(const char* pTitle, int x, int y, int w, int h)
 {
-	m_pSDLWindow = SDL_CreateWindow(pTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
+	m_pSDLWindow = SDL_CreateWindow(pTitle, x == -1 ? SDL_WINDOWPOS_UNDEFINED : x, y == -1 ? SDL_WINDOWPOS_UNDEFINED : y, w, h, 0);
 }
 
 Window::~Window()
@@ -172,12 +172,12 @@ void Window::SetFullScreen(bool on)
 	SDL_SetWindowFullscreen(m_pSDLWindow, on ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 }
 
-bool Window::GetInputFocus() const
+bool Window::IsInputFocused() const
 {
 	return SDL_GetWindowFlags(m_pSDLWindow) & SDL_WINDOW_INPUT_FOCUS;
 }
 
-bool Window::GetMouseFocus() const
+bool Window::IsMouseFocused() const
 {
 	return SDL_GetWindowFlags(m_pSDLWindow) & SDL_WINDOW_MOUSE_FOCUS;
 }
@@ -201,6 +201,11 @@ void Window::Close(bool bPushSdlEvent)
 	SDL_QuitEvent& quitEvent = sdlEvent.quit;
 	quitEvent.type = SDL_QUIT;
 	SDL_PushEvent(&sdlEvent);
+}
+
+bool Window::IsMinimized() const
+{
+	return SDL_GetWindowFlags(m_pSDLWindow) & SDL_WINDOW_MINIMIZED;
 }
 
 void Window::SetResizeable(bool on)
@@ -279,144 +284,7 @@ void Window::WrapMouseInCenter() const
 
 void Window::Update()
 {
-	Input::Get().Reset();
 
-	SDL_Event sdlEvent;
-	while (SDL_PollEvent(&sdlEvent))
-	{
-		switch (sdlEvent.type)
-		{
-		case SDL_QUIT:
-		{
-			Close(false);
-		}
-		break;
-
-		case SDL_WINDOWEVENT:
-		{
-			const SDL_WindowEvent& wev = sdlEvent.window;
-			switch (wev.event)
-			{
-			case SDL_WINDOWEVENT_RESIZED:
-			case SDL_WINDOWEVENT_SIZE_CHANGED:
-			{
-				int w, h;
-				SDL_GetWindowSize(m_pSDLWindow, &w, &h);
-				OnResize.Invoke(w, h);
-			}
-			break;
-			}
-		}
-		break;
-
-		case SDL_MOUSEMOTION:
-		{
-			// Top left is (0,0) for (x, y)
-			// xrel is positive to the right, negative to the left
-			// yrel is positive to the bottom, negative to the top
-			const SDL_MouseMotionEvent& mouseMotionEvent = sdlEvent.motion;
-			Input::Get().SetMousePositionX(mouseMotionEvent.x);
-			Input::Get().SetMousePositionY(mouseMotionEvent.y);
-			Input::Get().SetMousePositionOffsetX(mouseMotionEvent.xrel);
-			Input::Get().SetMousePositionOffsetY(mouseMotionEvent.yrel);
-		}
-		break;
-
-		case SDL_MOUSEBUTTONDOWN:
-		{
-			switch (sdlEvent.button.button)
-			{
-			case SDL_BUTTON_LEFT:
-				Input::Get().SetMouseLBPressed(true);
-				break;
-			case SDL_BUTTON_RIGHT:
-				Input::Get().SetMouseRBPressed(true);
-				break;
-			case SDL_BUTTON_MIDDLE:
-				Input::Get().SetMouseMBPressed(true);
-				break;
-			}
-		}
-		break;
-
-		case SDL_MOUSEBUTTONUP:
-		{
-			switch (sdlEvent.button.button)
-			{
-			case SDL_BUTTON_LEFT:
-				Input::Get().SetMouseLBPressed(false);
-				break;
-			case SDL_BUTTON_RIGHT:
-				Input::Get().SetMouseRBPressed(false);
-				break;
-			case SDL_BUTTON_MIDDLE:
-				Input::Get().SetMouseMBPressed(false);
-				break;
-			}
-		}
-		break;
-
-		case SDL_MOUSEWHEEL:
-		{
-			Input::Get().SetMouseScrollOffsetY(sdlEvent.wheel.preciseY);
-		}
-		break;
-
-		case SDL_TEXTINPUT:
-		{   
-			const size_t inputLen = strlen(sdlEvent.text.text);
-			Input::Get().AppendInputCharacter(sdlEvent.text.text, inputLen);
-		}
-		break;
-
-		case SDL_KEYDOWN:
-		{
-			Sint32 sdlKeyCode = sdlEvent.key.keysym.sym;
-			KeyMod keyMod = static_cast<KeyMod>(sdlEvent.key.keysym.mod);
-			if (keyMod != KeyMod::KMOD_NONE)
-			{
-				Input::Get().SetModifier(keyMod);
-			}
-			if (sdlKeyCode >= Input::MaxKeyCode)
-			{
-				return;
-			}
-			KeyCode keyCode = static_cast<KeyCode>(static_cast<std::underlying_type_t<KeyCode>>(sdlKeyCode));
-			Input::Get().SetKeyPressed(keyCode, true);
-			Input::Get().AppendKeyEvent(keyCode, keyMod, true);
-		}
-		break;
-
-		case SDL_KEYUP:
-		{
-			Sint32 sdlKeyCode = sdlEvent.key.keysym.sym;
-			KeyMod keyMod = static_cast<KeyMod>(sdlEvent.key.keysym.mod);
-			if (keyMod != KeyMod::KMOD_NONE)
-			{
-				Input::Get().ClearModifier(keyMod);
-			}
-
-			if (sdlKeyCode >= Input::MaxKeyCode)
-			{
-				return;
-			}
-			KeyCode keyCode = static_cast<KeyCode>(static_cast<std::underlying_type_t<KeyCode>>(sdlKeyCode));
-			Input::Get().SetKeyPressed(keyCode, false);
-			Input::Get().AppendKeyEvent(keyCode, keyMod, false);
-
-		}
-		break;
-
-		case SDL_DROPFILE:
-		{
-			OnDropFile.Invoke(sdlEvent.drop.file);
-		}
-		break;
-
-		default:
-			break;
-		}
-	}
 }
 
 }

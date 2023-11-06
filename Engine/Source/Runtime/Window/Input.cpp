@@ -82,4 +82,9 @@ std::pair<int, int> Input::GetGloalMousePosition() const
 	return std::make_pair(x, y);
 }
 
+void Input::Update()
+{
+	Input::Get().Reset();
+}
+
 }

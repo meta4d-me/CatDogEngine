@@ -85,11 +85,11 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	// Phase 1 - Splash
 	//		* Compile uber shader permutations automatically when initialization or detect changes
 	//		* Show compile progresses so it still needs to update ui
-	auto pSplashWindow = std::make_unique<engine::Window>("Loading", 500, 400);
+	auto pSplashWindow = std::make_unique<engine::Window>("Loading", -1, -1, 500, 400);
 	pSplashWindow->SetWindowIcon(m_initArgs.pIconFilePath);
 	pSplashWindow->SetBordedLess(true);
 	pSplashWindow->SetResizeable(false);
-	pSplashWindow->WrapMouseInCenter();
+	//pSplashWindow->WrapMouseInCenter();
 
 	// Init graphics backend
 	InitRenderContext(m_initArgs.backend, pSplashWindow->GetHandle());
@@ -586,8 +586,9 @@ bool EditorApp::Update(float deltaTime)
 		InitEngineUILayers();
 	}
 
-	m_pWindowManager->Update();
+	engine::Input::Get().Update();
 	m_pEditorImGuiContext->Update(deltaTime);
+	m_pWindowManager->Update();
 	m_pSceneWorld->Update();
 
 	engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
@@ -615,7 +616,7 @@ bool EditorApp::Update(float deltaTime)
 
 	if (m_pEngineImGuiContext)
 	{
-		GetMainWindow()->SetMouseVisible(m_pSceneView->IsShowMouse(), m_pSceneView->GetMouseFixedPositionX(), m_pSceneView->GetMouseFixedPositionY());
+		//GetMainWindow()->SetMouseVisible(m_pSceneView->IsShowMouse(), m_pSceneView->GetMouseFixedPositionX(), m_pSceneView->GetMouseFixedPositionY());
 		if (m_pViewportCameraController)
 		{
 			m_pViewportCameraController->Update(deltaTime);

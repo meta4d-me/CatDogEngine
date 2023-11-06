@@ -25,6 +25,9 @@ public:
 	void Update();
 
 private:
+	engine::Window* GetActiveWindow() const;
+
+private:
 	std::map<void*, std::unique_ptr<engine::Window>> m_mapWindows;
 };
 

@@ -77,6 +77,10 @@ public:
 	int32_t GetMousePositionOffsetY() const { return m_mousePositionOffsetY; }
 	void SetMousePositionOffsetY(int32_t y) { m_mousePositionOffsetY = y; }
 
+	// Window
+	void SetFocused(bool on) { m_isFocused = on; }
+	bool IsFocused() const { return m_isFocused; }
+
 	// Keyboard device
 	bool IsKeyPressed(KeyCode code) const { return m_keyPressed[static_cast<uint8_t>(code)]; }
 	void SetKeyPressed(KeyCode code, bool pressed);
@@ -95,6 +99,8 @@ public:
 
 	std::pair<int, int> GetGloalMousePosition() const;
 
+	void Update();
+
 private:
 	Input();
 
@@ -108,6 +114,9 @@ private:
 	bool m_mouseLBPressed = false;
 	bool m_mouseRBPressed = false;
 	bool m_mouseMBPressed = false;
+
+	// Window event
+	bool m_isFocused = false;
 
 	// Keyboard device
 	bool m_keyPressed[MaxKeyCode]{};
