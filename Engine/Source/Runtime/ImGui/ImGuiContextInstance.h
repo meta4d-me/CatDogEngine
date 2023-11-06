@@ -20,7 +20,7 @@ class ImGuiContextInstance
 {
 public:
 	ImGuiContextInstance() = delete;
-	explicit ImGuiContextInstance(uint16_t width, uint16_t height, bool enableDock = false);
+	explicit ImGuiContextInstance(uint16_t width, uint16_t height, bool enableDock = false, bool enableViewport = false);
 	ImGuiContextInstance(const ImGuiContextInstance&) = delete;
 	ImGuiContextInstance& operator=(const ImGuiContextInstance&) = delete;
 	ImGuiContextInstance(ImGuiContextInstance&&) = default;
@@ -62,6 +62,8 @@ public:
 	void SetSceneWorld(SceneWorld* pSceneWorld) { m_pSceneWorld = pSceneWorld; }
 	SceneWorld* GetSceneWorld() const { return m_pSceneWorld; }
 
+	bool IsViewportEnable() const { return m_enableViewport; }
+
 private:
 	void AddInputEvent();
 	void SetImGuiStyles();
@@ -84,6 +86,7 @@ private:
 	float m_lastMousePositionX = 0.0f;
 	float m_lastMousePositionY = 0.0f;
 
+	bool m_enableViewport = false;
 	std::vector<std::unique_ptr<ImGuiBaseLayer>> m_pImGuiStaticLayers;
 	std::vector<std::unique_ptr<ImGuiBaseLayer>> m_pImGuiDockableLayers;
 };

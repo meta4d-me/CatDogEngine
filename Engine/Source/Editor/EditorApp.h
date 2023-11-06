@@ -2,6 +2,7 @@
 
 #include "Application/IApplication.h"
 
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -45,10 +46,10 @@ public:
 	virtual bool Update(float deltaTime) override;
 	virtual void Shutdown() override;
 
-	engine::Window* GetWindow(size_t index) const;
-	engine::Window* GetMainWindow() const { return GetWindow(0); }
-	size_t AddWindow(std::unique_ptr<engine::Window> pWindow);
-	void RemoveWindow(size_t index);
+	engine::Window* GetWindow(void* handle) const;
+	engine::Window* GetMainWindow() const { return m_pMainWindow; }
+	void AddWindow(std::unique_ptr<engine::Window> pWindow);
+	void RemoveWindow(void* handle);
 
 	void InitRenderContext(engine::GraphicsBackend backend, void* hwnd = nullptr);
 
@@ -66,7 +67,6 @@ public:
 	void InitEditorUILayers();
 	void InitEngineImGuiContext(engine::Language language);
 	void InitEngineUILayers();
-	void InitImGuiViewports(engine::RenderContext* pRenderContext);
 	void RegisterImGuiUserData(engine::ImGuiContextInstance* pImGuiContext);
 
 	void InitECWorld();
@@ -89,7 +89,9 @@ private:
 	engine::EngineInitArgs m_initArgs;
 
 	// Windows
-	std::vector<std::unique_ptr<engine::Window>> m_pAllWindows;
+	engine::Window* m_pMainWindow = nullptr;
+	engine::Window* m_pFocusedWindow = nullptr;
+	std::map<void*, std::unique_ptr<engine::Window>> m_mapWindows;
 
 	// ImGui
 	std::unique_ptr<engine::ImGuiContextInstance> m_pEditorImGuiContext;

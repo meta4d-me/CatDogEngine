@@ -87,11 +87,13 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	pSplashWindow->SetWindowIcon(m_initArgs.pIconFilePath);
 	pSplashWindow->SetBordedLess(true);
 	pSplashWindow->SetResizeable(false);
+	pSplashWindow->WrapMouseInCenter();
 
 	// Init graphics backend
-	InitRenderContext(m_initArgs.backend, pSplashWindow->GetNativeHandle());
+	InitRenderContext(m_initArgs.backend, pSplashWindow->GetHandle());
 	
 	pSplashWindow->OnResize.Bind<engine::RenderContext, &engine::RenderContext::OnResize>(m_pRenderContext.get());
+	m_pMainWindow = pSplashWindow.get();
 	AddWindow(cd::MoveTemp(pSplashWindow));
 
 	InitEditorRenderers();
@@ -122,30 +124,30 @@ void EditorApp::Shutdown()
 {
 }
 
-engine::Window* EditorApp::GetWindow(size_t index) const
+engine::Window* EditorApp::GetWindow(void* handle) const
 {
-	return m_pAllWindows[index].get();
+	auto itWindow = m_mapWindows.find(handle);
+	return itWindow != m_mapWindows.end() ? itWindow->second.get() : nullptr;
 }
 
-size_t EditorApp::AddWindow(std::unique_ptr<engine::Window> pWindow)
+void EditorApp::AddWindow(std::unique_ptr<engine::Window> pWindow)
 {
-	size_t windowIndex = m_pAllWindows.size();
-	m_pAllWindows.emplace_back(cd::MoveTemp(pWindow));
-	return windowIndex;
+	m_mapWindows[pWindow->GetHandle()] = cd::MoveTemp(pWindow);
 }
 
-void EditorApp::RemoveWindow(size_t index)
+void EditorApp::RemoveWindow(void* handle)
 {
-	assert(index < m_pAllWindows.size());
-	m_pAllWindows[index]->Close();
-	m_pAllWindows.erase(m_pAllWindows.begin() + index);
+	assert(handle != m_pMainWindow->GetHandle());
+	m_mapWindows.erase(handle);
 }
 
 void EditorApp::InitEditorImGuiContext(engine::Language language)
 {
 	assert(GetMainWindow() && "Init window before imgui context");
 
-	m_pEditorImGuiContext = std::make_unique<engine::ImGuiContextInstance>(GetMainWindow()->GetWidth(), GetMainWindow()->GetHeight(), true/*dockable*/);
+	const bool enableDock = true;
+	const bool enableViewport = true;
+	m_pEditorImGuiContext = std::make_unique<engine::ImGuiContextInstance>(GetMainWindow()->GetWidth(), GetMainWindow()->GetHeight(), enableDock, enableViewport);
 	RegisterImGuiUserData(m_pEditorImGuiContext.get());
 
 	// TODO : more font files to load and switch dynamically.
@@ -157,6 +159,17 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 
 	// Set style settings.
 	m_pEditorImGuiContext->SetImGuiThemeColor(engine::ThemeColor::Dark);
+
+	// Init viewport settings.
+	if (enableViewport)
+	{
+		m_pEditorImGuiViewport = std::make_unique<EditorImGuiViewport>(this, m_pRenderContext.get());
+		ImGuiViewport* pMainViewport = ImGui::GetMainViewport();
+		assert(pMainViewport);
+		pMainViewport->PlatformHandle = GetMainWindow();
+		pMainViewport->PlatformHandleRaw = GetMainWindow()->GetHandle();
+		m_pEditorImGuiViewport->Update();
+	}
 }
 
 void EditorApp::InitEditorUILayers()
@@ -219,16 +232,6 @@ void EditorApp::InitEngineUILayers()
 	pImGuizmoView->SetSceneView(m_pSceneView);
 	m_pEngineImGuiContext->AddDynamicLayer(cd::MoveTemp(pImGuizmoView));
 	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<TestNodeEditor>("TestNodeEditor"));
-}
-
-void EditorApp::InitImGuiViewports(engine::RenderContext* pRenderContext)
-{
-	if (ImGuiViewport* pMainViewport = ImGui::GetMainViewport())
-	{
-		pMainViewport->PlatformHandle = GetMainWindow();
-		pMainViewport->PlatformHandleRaw = GetMainWindow()->GetNativeHandle();
-	}
-	m_pEditorImGuiViewport = std::make_unique<EditorImGuiViewport>(pRenderContext);
 }
 
 void EditorApp::RegisterImGuiUserData(engine::ImGuiContextInstance* pImGuiContext)
@@ -598,7 +601,22 @@ bool EditorApp::Update(float deltaTime)
 		InitEngineUILayers();
 	}
 
-	GetMainWindow()->Update();
+	for (auto& [_, pWindow] : m_mapWindows)
+	{
+		pWindow->Update();
+		if (pWindow->IsFocused())
+		{
+			m_pFocusedWindow = pWindow.get();
+		}
+	}
+
+	if (m_pEditorImGuiContext->IsViewportEnable())
+	{
+		m_pEditorImGuiViewport->Update();
+		auto position = engine::Input::Get().GetGloalMousePosition();
+		engine::Input::Get().SetMousePositionX(position.first);
+		engine::Input::Get().SetMousePositionY(position.second);
+	}
 	m_pEditorImGuiContext->Update(deltaTime);
 	m_pSceneWorld->Update();
 

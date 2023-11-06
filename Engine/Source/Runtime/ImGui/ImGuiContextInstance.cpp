@@ -4,6 +4,7 @@
 #include "IconFont/MaterialDesign.inl"
 #include "ImGui/ImGuiBaseLayer.h"
 #include "Window/Input.h"
+#include "Window/Window.h"
 #include "Log/Log.h"
 
 #include <bgfx/bgfx.h>
@@ -175,7 +176,8 @@ private:
 namespace engine
 {
 
-ImGuiContextInstance::ImGuiContextInstance(uint16_t width, uint16_t height, bool enableDock)
+ImGuiContextInstance::ImGuiContextInstance(uint16_t width, uint16_t height, bool enableDock, bool enableViewport) :
+	m_enableViewport(enableViewport)
 {
 	m_pImGuiContext = ImGui::CreateContext();
 	SwitchCurrentContext();
@@ -190,8 +192,11 @@ ImGuiContextInstance::ImGuiContextInstance(uint16_t width, uint16_t height, bool
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	}
 
-	// TODO
-	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+	if (enableViewport)
+	{
+		io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports | ImGuiBackendFlags_RendererHasViewports;
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+	}
 
 	io.IniFilename = nullptr;
 	io.LogFilename = nullptr;
@@ -319,9 +324,11 @@ void ImGuiContextInstance::Update(float deltaTime)
 {
 	SwitchCurrentContext();
 
+	auto& io = ImGui::GetIO();
+	
 	// It is necessary to pass correct deltaTime to ImGui underlaying framework because it will use the value to check
 	// something such as if mouse button double click happens(Two click event happens in one frame, < deltaTime).
-	ImGui::GetIO().DeltaTime = deltaTime;
+	io.DeltaTime = deltaTime;
 
 	AddInputEvent();
 
@@ -332,7 +339,6 @@ void ImGuiContextInstance::Update(float deltaTime)
 		pImGuiLayer->Update();
 	}
 
-	ImGuiIO& io = ImGui::GetIO();
 	const bool dockingEnabled = io.ConfigFlags & ImGuiConfigFlags_DockingEnable;
 	if (dockingEnabled)
 	{

@@ -93,6 +93,8 @@ public:
 
 	void FlushInputs();
 
+	std::pair<int, int> GetGloalMousePosition() const;
+
 private:
 	Input();
 
