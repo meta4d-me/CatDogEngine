@@ -3,7 +3,6 @@
 #include "Application/Engine.h"
 #include "Display/CameraController.h"
 #include "ECWorld/SceneWorld.h"
-#include "ImGui/EditorImGuiViewport.h"
 #include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/Localization.h"
 #include "ImGui/UILayers/DebugPanel.h"
@@ -48,6 +47,7 @@
 #include "UILayers/TestNodeEditor.h"
 #include "Window/Input.h"
 #include "Window/Window.h"
+#include "Window/WindowManager.h"
 
 #include <imgui/imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -80,6 +80,8 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 		CD_ERROR("Failed to open CSV file");
 	}
 
+	m_pWindowManager = std::make_unique<engine::WindowManager>();
+
 	// Phase 1 - Splash
 	//		* Compile uber shader permutations automatically when initialization or detect changes
 	//		* Show compile progresses so it still needs to update ui
@@ -94,7 +96,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	
 	pSplashWindow->OnResize.Bind<engine::RenderContext, &engine::RenderContext::OnResize>(m_pRenderContext.get());
 	m_pMainWindow = pSplashWindow.get();
-	AddWindow(cd::MoveTemp(pSplashWindow));
+	m_pWindowManager->AddWindow(cd::MoveTemp(pSplashWindow));
 
 	InitEditorRenderers();
 	EditorRenderersWarmup();
@@ -124,23 +126,6 @@ void EditorApp::Shutdown()
 {
 }
 
-engine::Window* EditorApp::GetWindow(void* handle) const
-{
-	auto itWindow = m_mapWindows.find(handle);
-	return itWindow != m_mapWindows.end() ? itWindow->second.get() : nullptr;
-}
-
-void EditorApp::AddWindow(std::unique_ptr<engine::Window> pWindow)
-{
-	m_mapWindows[pWindow->GetHandle()] = cd::MoveTemp(pWindow);
-}
-
-void EditorApp::RemoveWindow(void* handle)
-{
-	assert(handle != m_pMainWindow->GetHandle());
-	m_mapWindows.erase(handle);
-}
-
 void EditorApp::InitEditorImGuiContext(engine::Language language)
 {
 	assert(GetMainWindow() && "Init window before imgui context");
@@ -163,12 +148,12 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 	// Init viewport settings.
 	if (enableViewport)
 	{
-		m_pEditorImGuiViewport = std::make_unique<EditorImGuiViewport>(this, m_pRenderContext.get());
+		m_pEditorImGuiContext->InitViewport(m_pWindowManager.get(), m_pRenderContext.get());
 		ImGuiViewport* pMainViewport = ImGui::GetMainViewport();
 		assert(pMainViewport);
 		pMainViewport->PlatformHandle = GetMainWindow();
 		pMainViewport->PlatformHandleRaw = GetMainWindow()->GetHandle();
-		m_pEditorImGuiViewport->Update();
+		m_pEditorImGuiContext->UpdateViewport();
 	}
 }
 
@@ -601,22 +586,7 @@ bool EditorApp::Update(float deltaTime)
 		InitEngineUILayers();
 	}
 
-	for (auto& [_, pWindow] : m_mapWindows)
-	{
-		pWindow->Update();
-		if (pWindow->IsFocused())
-		{
-			m_pFocusedWindow = pWindow.get();
-		}
-	}
-
-	if (m_pEditorImGuiContext->IsViewportEnable())
-	{
-		m_pEditorImGuiViewport->Update();
-		auto position = engine::Input::Get().GetGloalMousePosition();
-		engine::Input::Get().SetMousePositionX(position.first);
-		engine::Input::Get().SetMousePositionY(position.second);
-	}
+	m_pWindowManager->Update();
 	m_pEditorImGuiContext->Update(deltaTime);
 	m_pSceneWorld->Update();
 
@@ -635,6 +605,12 @@ bool EditorApp::Update(float deltaTime)
 			pRenderer->UpdateView(pViewMatrix, pProjectionMatrix);
 			pRenderer->Render(deltaTime);
 		}
+	}
+
+	if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+	{
+		ImGui::UpdatePlatformWindows();
+		ImGui::RenderPlatformWindowsDefault();
 	}
 
 	if (m_pEngineImGuiContext)

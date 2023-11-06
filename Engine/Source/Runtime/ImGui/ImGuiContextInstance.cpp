@@ -3,8 +3,11 @@
 #include "IconFont/IconsMaterialDesignIcons.h"
 #include "IconFont/MaterialDesign.inl"
 #include "ImGui/ImGuiBaseLayer.h"
+#include "Rendering/RenderContext.h"
+#include "Rendering/RenderTarget.h"
 #include "Window/Input.h"
 #include "Window/Window.h"
+#include "Window/WindowManager.h"
 #include "Log/Log.h"
 
 #include <bgfx/bgfx.h>
@@ -16,7 +19,7 @@
 #include <misc/freetype/imgui_freetype.h>
 #endif
 
-//#include <format>
+#include <format>
 #include <string>
 #include <unordered_map>
 
@@ -176,8 +179,7 @@ private:
 namespace engine
 {
 
-ImGuiContextInstance::ImGuiContextInstance(uint16_t width, uint16_t height, bool enableDock, bool enableViewport) :
-	m_enableViewport(enableViewport)
+ImGuiContextInstance::ImGuiContextInstance(uint16_t width, uint16_t height, bool enableDock, bool enableViewport)
 {
 	m_pImGuiContext = ImGui::CreateContext();
 	SwitchCurrentContext();
@@ -237,6 +239,123 @@ void ImGuiContextInstance::ClearUILayers()
 {
 	m_pImGuiStaticLayers.clear();
 	m_pImGuiDockableLayers.clear();
+}
+
+void ImGuiContextInstance::InitViewport(WindowManager* pWindowManager, RenderContext* pRenderContext)
+{
+	// Register window interfaces.
+	static WindowManager* s_pWindowManager = pWindowManager;
+	ImGuiPlatformIO& platformIO = ImGui::GetPlatformIO();
+	platformIO.Platform_CreateWindow = [](ImGuiViewport* pViewport)
+	{
+		auto pWindow = std::make_unique<engine::Window>("ViewportWindow", 1, 1);
+		pViewport->PlatformHandle = pWindow.get();
+		pViewport->PlatformHandleRaw = pWindow->GetHandle();
+		s_pWindowManager->AddWindow(cd::MoveTemp(pWindow));
+	};
+
+	platformIO.Platform_DestroyWindow = [](ImGuiViewport* pViewport)
+	{
+		s_pWindowManager->RemoveWindow(pViewport->PlatformHandleRaw);
+		pViewport->PlatformHandle = nullptr;
+		pViewport->PlatformUserData = nullptr;
+	};
+
+	platformIO.Platform_ShowWindow = [](ImGuiViewport* pViewport)
+	{
+		s_pWindowManager->GetWindow(pViewport->PlatformHandleRaw)->Show();
+	};
+
+	platformIO.Platform_SetWindowPos = [](ImGuiViewport* pViewport, ImVec2 v)
+	{
+		s_pWindowManager->GetWindow(pViewport->PlatformHandleRaw)->SetPosition(static_cast<int>(v.x), static_cast<int>(v.y));
+	};
+
+	platformIO.Platform_GetWindowPos = [](ImGuiViewport* pViewport) -> ImVec2
+	{
+		engine::Window* pWindow = s_pWindowManager->GetWindow(pViewport->PlatformHandleRaw);
+		auto position = pWindow->GetPosition();
+		return { static_cast<float>(position.first), static_cast<float>(position.second) };
+	};
+
+	platformIO.Platform_SetWindowSize = [](ImGuiViewport* pViewport, ImVec2 v)
+	{
+		s_pWindowManager->GetWindow(pViewport->PlatformHandleRaw)->SetSize(static_cast<int>(v.x), static_cast<int>(v.y));
+	};
+
+	platformIO.Platform_GetWindowSize = [](ImGuiViewport* pViewport) -> ImVec2
+	{
+		engine::Window* pWindow = s_pWindowManager->GetWindow(pViewport->PlatformHandleRaw);
+		auto size = pWindow->GetSize();
+		return { static_cast<float>(size.first), static_cast<float>(size.second) };
+	};
+
+	platformIO.Platform_SetWindowTitle = [](ImGuiViewport* pViewport, const char* pTitle)
+	{
+		engine::Window* pWindow = s_pWindowManager->GetWindow(pViewport->PlatformHandleRaw);
+		pWindow->SetTitle(pTitle);
+	};
+
+	platformIO.Platform_GetWindowFocus = [](ImGuiViewport* pViewport)
+	{
+		engine::Window* pWindow = s_pWindowManager->GetWindow(pViewport->PlatformHandleRaw);
+		return pWindow->IsFocused();
+	};
+	
+	platformIO.Platform_SetWindowFocus = [](ImGuiViewport* pViewport)
+	{
+		engine::Window* pWindow = s_pWindowManager->GetWindow(pViewport->PlatformHandleRaw);
+		return pWindow->SetFocused();
+	};
+
+	// Register rendering interfaces.
+	static RenderContext* s_pRenderContext = pRenderContext;
+	platformIO.Renderer_CreateWindow = [](ImGuiViewport* pViewport)
+	{
+		pViewport->PlatformUserData = reinterpret_cast<void*>(s_pRenderContext->CreateView());
+		engine::StringCrc newRenderTargetName = s_pRenderContext->GetRenderTargetCrc(pViewport->PlatformUserData);
+		s_pRenderContext->CreateRenderTarget(newRenderTargetName, 1, 1, pViewport->PlatformHandleRaw);
+	};
+
+	platformIO.Renderer_DestroyWindow = [](ImGuiViewport* pViewport)
+	{
+		s_pRenderContext->DestoryRenderTarget(s_pRenderContext->GetRenderTargetCrc(pViewport->PlatformUserData));
+	};
+
+	platformIO.Renderer_SetWindowSize = [](ImGuiViewport* pViewport, ImVec2 v)
+	{
+		auto* pRenderTarget = s_pRenderContext->GetRenderTarget(pViewport->PlatformUserData);
+		pRenderTarget->Resize(static_cast<uint16_t>(v.x), static_cast<uint16_t>(v.y));
+	};
+}
+
+void ImGuiContextInstance::UpdateViewport()
+{
+	ImGuiPlatformIO& platformIO = ImGui::GetPlatformIO();
+	int monitorCount = engine::Window::GetDisplayMonitorCount();
+	platformIO.Monitors.resize(0);
+	for (int monitorIndex = 0; monitorIndex < monitorCount; ++monitorIndex)
+	{
+		auto mainRect = engine::Window::GetDisplayMonitorMainRect(monitorIndex);
+		auto workRect = engine::Window::GetDisplayMonitorWorkRect(monitorIndex);
+
+		ImGuiPlatformMonitor monitor;
+		monitor.MainPos = ImVec2((float)mainRect.x, (float)mainRect.y);
+		monitor.MainSize = ImVec2((float)mainRect.w, (float)mainRect.h);
+		monitor.WorkPos = ImVec2((float)workRect.x, (float)workRect.y);
+		monitor.WorkSize = ImVec2((float)workRect.w, (float)workRect.h);
+
+		// Check if the display's position is at (0,0), which is typical for the primary display.
+		bool isPrimaryDisplay = mainRect.x == 0 && mainRect.y == 0;
+		if (isPrimaryDisplay)
+		{
+			platformIO.Monitors.push_front(monitor);
+		}
+		else
+		{
+			platformIO.Monitors.push_back(monitor);
+		}
+	}
 }
 
 void ImGuiContextInstance::BeginDockSpace()
@@ -325,7 +444,16 @@ void ImGuiContextInstance::Update(float deltaTime)
 	SwitchCurrentContext();
 
 	auto& io = ImGui::GetIO();
-	
+
+	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+	{
+		UpdateViewport();
+
+		auto position = engine::Input::Get().GetGloalMousePosition();
+		engine::Input::Get().SetMousePositionX(position.first);
+		engine::Input::Get().SetMousePositionY(position.second);
+	}
+
 	// It is necessary to pass correct deltaTime to ImGui underlaying framework because it will use the value to check
 	// something such as if mouse button double click happens(Two click event happens in one frame, < deltaTime).
 	io.DeltaTime = deltaTime;

@@ -65,17 +65,6 @@ Window::~Window()
 	SDL_DestroyWindow(m_pSDLWindow);
 }
 
-void Window::Close(bool bPushSdlEvent)
-{
-	m_isClosed = true;
-	if (!bPushSdlEvent) { return; }
-
-	SDL_Event sdlEvent;
-	SDL_QuitEvent& quitEvent = sdlEvent.quit;
-	quitEvent.type = SDL_QUIT;
-	SDL_PushEvent(&sdlEvent);
-}
-
 void* Window::GetHandle() const
 {
 	SDL_SysWMinfo wmi;
@@ -193,6 +182,27 @@ bool Window::GetMouseFocus() const
 	return SDL_GetWindowFlags(m_pSDLWindow) & SDL_WINDOW_MOUSE_FOCUS;
 }
 
+bool Window::IsFocused() const
+{
+	return SDL_GetWindowFlags(m_pSDLWindow) & SDL_WINDOW_INPUT_FOCUS;
+}
+
+void Window::SetFocused()
+{
+	SDL_RaiseWindow(m_pSDLWindow);
+}
+
+void Window::Close(bool bPushSdlEvent)
+{
+	m_isClosed = true;
+	if (!bPushSdlEvent) { return; }
+
+	SDL_Event sdlEvent;
+	SDL_QuitEvent& quitEvent = sdlEvent.quit;
+	quitEvent.type = SDL_QUIT;
+	SDL_PushEvent(&sdlEvent);
+}
+
 void Window::SetResizeable(bool on)
 {
 	SDL_SetWindowResizable(m_pSDLWindow, static_cast<SDL_bool>(on));
@@ -270,8 +280,6 @@ void Window::WrapMouseInCenter() const
 void Window::Update()
 {
 	Input::Get().Reset();
-
-	m_isFocused = SDL_GetWindowFlags(m_pSDLWindow) & SDL_WINDOW_INPUT_FOCUS;
 
 	SDL_Event sdlEvent;
 	while (SDL_PollEvent(&sdlEvent))

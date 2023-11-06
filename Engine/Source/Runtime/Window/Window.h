@@ -36,7 +36,6 @@ public:
     ~Window();
     
     void* GetHandle() const;
-    //void* GetParentHandle() const;
 
     const char* GetTitle() const;
     void SetTitle(const char* pTitle);
@@ -55,8 +54,16 @@ public:
     void Hide();
     void SetFullScreen(bool on);
 
+    // Status
+    bool IsFocused() const;
+    void SetFocused();
     bool GetInputFocus() const;
     bool GetMouseFocus() const;
+
+    bool ShouldClose() const { return m_isClosed; }
+    void Close(bool bPushSdlEvent = true);
+
+    // Styles
     void SetResizeable(bool on);
     void SetBordedLess(bool on);
     void SetWindowIcon(const char* pFilePath) const;
@@ -65,19 +72,14 @@ public:
 
     void Update();
 
-    bool IsFocused() const { return m_isFocused; }
-
-    bool ShouldClose() const { return m_isClosed; }
-    void Close(bool bPushSdlEvent = true);
 public:
-    // Window
+    // Delegates
     Delegate<void(const char*)> OnDropFile;
     MulticastDelegate<void(uint16_t, uint16_t)> OnResize;
 
 private:
     SDL_Window* m_pSDLWindow = nullptr;
     bool m_isClosed = false;
-    bool m_isFocused = false;
 };
 
 }

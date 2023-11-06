@@ -2,6 +2,8 @@
 
 #include "Rendering/Renderer.h"
 
+struct ImDrawData;
+
 namespace engine
 {
 
@@ -14,6 +16,9 @@ public:
 	virtual void Warmup() override;
 	virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) override;
 	virtual void Render(float deltaTime) override;
+
+private:
+	void RenderDrawData(ImDrawData* pImGuiDrawData, float deltaTime);
 };
 
 }

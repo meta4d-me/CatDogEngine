@@ -5,6 +5,8 @@
 
 #include <imgui/imgui.h>
 
+#include <format>
+
 namespace engine
 {
 
@@ -12,8 +14,6 @@ void ImGuiRenderer::Init()
 {
 	constexpr StringCrc programCrc = StringCrc("ImGuiProgram");
 	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_imgui", "fs_imgui" });
-
-	bgfx::setViewName(GetViewID(), "ImGuiRenderer");
 }
 
 void ImGuiRenderer::Warmup()
@@ -56,31 +56,47 @@ void ImGuiRenderer::UpdateView(const float* pViewMatrix, const float* pProjectio
 	}
 
 	ImGui::Render();
-	ImGui::UpdatePlatformWindows();
-	ImGui::RenderPlatformWindowsDefault();
 
-	bgfx::setViewMode(GetViewID(), bgfx::ViewMode::Sequential);
-	if (const engine::RenderTarget* pRenderTarget = GetRenderTarget())
+	ImGuiPlatformIO& platformIO = ImGui::GetPlatformIO();
+	for (const ImGuiViewport* pViewport : platformIO.Viewports)
 	{
-		bgfx::setViewFrameBuffer(GetViewID(), *(pRenderTarget->GetFrameBufferHandle()));
+		uint16_t viewID = GetRenderContext()->GetViewportViewID(pViewport->PlatformUserData);
+		auto* pRenderTarget = GetRenderContext()->GetRenderTarget(pViewport->PlatformUserData);
+		if (!pRenderTarget)
+		{
+			viewID = GetViewID();
+		}
+		else
+		{
+			bgfx::setViewFrameBuffer(viewID, *pRenderTarget->GetFrameBufferHandle());
+		}
+		
+		bgfx::setViewName(viewID, "ImGuiRenderer");
+		bgfx::setViewMode(viewID, bgfx::ViewMode::Sequential);
+		
+		const ImDrawData* pImGuiDrawData = pViewport->DrawData;
+		float x = pImGuiDrawData->DisplayPos.x;
+		float y = pImGuiDrawData->DisplayPos.y;
+		float width = pImGuiDrawData->DisplaySize.x;
+		float height = pImGuiDrawData->DisplaySize.y;
+		const bgfx::Caps* pCapabilities = bgfx::getCaps();
+		cd::Matrix4x4 orthoMatrix = cd::Matrix4x4::Orthographic(x, x + width, y, y + height, 0.0f, 1000.0f, 0.0f, pCapabilities->homogeneousDepth);
+		bgfx::setViewRect(viewID, 0, 0, uint16_t(width), uint16_t(height));
+		bgfx::setViewTransform(viewID, nullptr, orthoMatrix.begin());
 	}
-
-	const ImDrawData* pImGuiDrawData = ImGui::GetDrawData();
-	float x = pImGuiDrawData->DisplayPos.x;
-	float y = pImGuiDrawData->DisplayPos.y;
-	float width = pImGuiDrawData->DisplaySize.x;
-	float height = pImGuiDrawData->DisplaySize.y;
-	const bgfx::Caps* pCapabilities = bgfx::getCaps();
-
-	cd::Matrix4x4 orthoMatrix = cd::Matrix4x4::Orthographic(x, x + width, y, y + height, 0.0f, 1000.0f, 0.0f, pCapabilities->homogeneousDepth);
-	bgfx::setViewRect(GetViewID(), 0, 0, uint16_t(width), uint16_t(height));
-	bgfx::setViewTransform(GetViewID(), nullptr, orthoMatrix.begin());
 }
 
 void ImGuiRenderer::Render(float deltaTime)
 {
-	ImDrawData* pImGuiDrawData = ImGui::GetDrawData();
+	ImGuiPlatformIO& platformIO = ImGui::GetPlatformIO();
+	for (const ImGuiViewport* pViewport : platformIO.Viewports)
+	{
+		RenderDrawData(pViewport->DrawData, deltaTime);
+	}
+}
 
+void ImGuiRenderer::RenderDrawData(ImDrawData* pImGuiDrawData, float deltaTime)
+{
 	int frameBufferWidth = static_cast<int>(pImGuiDrawData->DisplaySize.x * pImGuiDrawData->FramebufferScale.x);
 	int frameBufferHeight = static_cast<int>(pImGuiDrawData->DisplaySize.y * pImGuiDrawData->FramebufferScale.y);
 	const ImVec2 clipPos = pImGuiDrawData->DisplayPos;			// (0,0) unless using multi-viewports

@@ -601,6 +601,33 @@ void RenderContext::FillUniform(StringCrc resourceCrc, const void *pData, uint16
 	bgfx::setUniform(GetUniform(resourceCrc), pData, vec4Count);
 }
 
+uint16_t RenderContext::GetViewportViewID(void* pViewportViewID) const
+{
+	struct CastPtrToViewID
+	{
+		union
+		{
+			void* pUserData;
+			uint16_t viewID;
+		};
+	};
+
+	CastPtrToViewID cast;
+	cast.pUserData = pViewportViewID;
+	uint16_t viewID = cast.viewID;
+	return viewID;
+}
+
+StringCrc RenderContext::GetRenderTargetCrc(void* pViewportViewID) const
+{
+	return StringCrc(std::format("ViewportRT_{}", GetViewportViewID(pViewportViewID)));
+}
+
+RenderTarget* RenderContext::GetRenderTarget(void* pViewportViewID) const
+{
+	return GetRenderTarget(GetRenderTargetCrc(pViewportViewID));
+}
+
 RenderTarget* RenderContext::GetRenderTarget(StringCrc resourceCrc) const
 {
 	auto itResource = m_renderTargetCaches.find(resourceCrc.Value());
