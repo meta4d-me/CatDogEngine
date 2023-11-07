@@ -5,14 +5,14 @@
 
 #include "Log/Log.h"
 
-namespace editor
-{
-
 #define DMON_LOG_DEBUG(s) do { CD_INFO(s); } while(0)
 #define DMON_LOG_ERROR(s) do { CD_ERROR(s); assert(false); } while(0)
 
 #define DMON_IMPL
 #include "dmon.h"
+
+namespace editor
+{
 
 using WatchID = dmon_watch_id;
 using WatchAction = dmon_action;
