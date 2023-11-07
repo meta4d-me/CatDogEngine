@@ -31,7 +31,7 @@
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Rendering/ParticleRenderer.h"
-#include "Resources/FileWatcher.h"
+#include "Resources/FileWatcher.hpp"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ShaderBuilder.h"
 #include "Scene/SceneDatabase.h"
@@ -113,9 +113,39 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	});
 	resourceThread.detach();
 
-	// TODO : Shader hot compile and load.
-	m_pFileWatcher = std::make_unique<FileWatcher>(CDENGINE_BUILTIN_SHADER_PATH);
-	m_pFileWatcher->EnableWatchSubTree();
+#if 0
+	// Test code, will be removed in the next PR.
+	auto FileWatchCallback = [](
+		WatchID id, WatchAction action,
+		const char* rootDir, const char* filePath,
+		const char* oldFilePath, void* user)
+	{
+		switch (action)
+		{
+			case DMON_ACTION_CREATE:
+				CD_FATAL("Create");
+				break;
+
+			case DMON_ACTION_DELETE:
+				CD_FATAL("Delete");
+				break;
+
+			case DMON_ACTION_MODIFY:
+				CD_FATAL("Modify");
+				break;
+
+			case DMON_ACTION_MOVE:
+				CD_FATAL("Move");
+				break;
+
+			default:
+				CD_FATAL("Default");
+		}
+	};
+
+	m_pFileWatcher = std::make_unique<FileWatcher>();
+	m_pFileWatcher->Watch(CDENGINE_BUILTIN_SHADER_PATH, FileWatchCallback, DMON_WATCHFLAGS_RECURSIVE, nullptr);
+#endif
 }
 
 void EditorApp::Shutdown()
