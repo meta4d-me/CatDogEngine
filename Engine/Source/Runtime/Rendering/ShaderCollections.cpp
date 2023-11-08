@@ -60,7 +60,7 @@ void ShaderCollections::SetShaderPrograms(std::map<uint32_t, std::set<std::strin
 	m_shaderPrograms = cd::MoveTemp(shaders);
 }
 
-void ShaderCollections::SetFeatureCombinePrograms(std::map<uint32_t, std::set<std::string>> combines)
+void ShaderCollections::SetProgramFeatureCombines(std::map<uint32_t, std::set<std::string>> combines)
 {
 	m_programFeatureCombines = cd::MoveTemp(combines);
 }
