@@ -44,8 +44,8 @@ public:
 	const std::map<uint32_t, std::set<std::string>>& GetShaderPrograms() const { return m_shaderPrograms; }
 
 	void SetProgramFeatureCombines(std::map<uint32_t, std::set<std::string>> combines);
-	std::map<uint32_t, std::set<std::string>> &GetProgramFeatureCombines() { return m_programFeatureCombines; }
-	const std::map<uint32_t, std::set<std::string>> &GetProgramFeatureCombiness() const { return m_programFeatureCombines; }
+	std::map<uint32_t, std::set<std::string>>& GetProgramFeatureCombines() { return m_programFeatureCombines; }
+	const std::map<uint32_t, std::set<std::string>>& GetProgramFeatureCombiness() const { return m_programFeatureCombines; }
 
 private:
 	// Key : StringCrc(Program name), Value : Shader names
