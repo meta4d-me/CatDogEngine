@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/Delegates/Delegate.hpp"
+
 #include <map>
 #include <memory>
 
@@ -23,6 +25,9 @@ public:
 	void RemoveWindow(void* handle);
 
 	void Update();
+
+	// Delegates
+	Delegate<void(const char*)> OnDropFile;
 
 private:
 	engine::Window* GetActiveWindow() const;

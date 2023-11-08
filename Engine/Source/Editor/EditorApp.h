@@ -111,9 +111,6 @@ private:
 	engine::Renderer* m_pTerrainRenderer = nullptr;
 	engine::Renderer* m_pAABBRenderer = nullptr;
 
-	// Delegates
-	Delegate<void(const char*)> OnDropFile;
-
 	// Controllers for processing input events.
 	std::unique_ptr<engine::CameraController> m_pViewportCameraController;
 
