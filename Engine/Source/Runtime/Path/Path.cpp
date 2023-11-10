@@ -130,4 +130,24 @@ std::string Path::GetTerrainTextureOutputFilePath(const char* pInputFilePath, co
     return ((GetEngineResourcesPath() / "Textures" / "Terrain" / std::filesystem::path(pInputFilePath).stem()).replace_extension(extension)).generic_string();
 }
 
+bool Path::FileExists(const char* pFilePath)
+{
+    return std::filesystem::exists(pFilePath);
+}
+
+bool Path::DirectoryExists(const char* pDirectoryPath)
+{
+    return std::filesystem::is_directory(pDirectoryPath);
+}
+
+std::string Path::GetFileName(const char* pFilePath)
+{
+    return std::filesystem::path(pFilePath).filename().string();
+}
+
+std::string Path::GetFileNameWithoutExtension(const char* pFilePath)
+{
+    return std::filesystem::path(pFilePath).stem().string();
+}
+
 }

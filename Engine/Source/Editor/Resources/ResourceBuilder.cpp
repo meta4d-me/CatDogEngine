@@ -1,9 +1,9 @@
 #include "ResourceBuilder.h"
 
 #include "Base/Template.h"
+#include "Log/Log.h"
 #include "Path/Path.h"
 #include "Time/Clock.h"
-#include "Log/Log.h"
 
 #include <cassert>
 
@@ -13,7 +13,7 @@ namespace editor
 ResourceBuilder::ResourceBuilder()
 {
 	std::string modifyCachePath = GetModifyCacheFilePath();
-	if (std::filesystem::exists(cd::MoveTemp(modifyCachePath)))
+	if (engine::Path::FileExists(modifyCachePath.c_str()))
 	{
 		ReadModifyCacheFile();
 	}
@@ -61,7 +61,7 @@ void ResourceBuilder::WriteModifyCacheFile()
 
 	std::string modifyCachePath = GetModifyCacheFilePath();
 
-	if (!std::filesystem::exists(modifyCachePath))
+	if (!engine::Path::FileExists(modifyCachePath.c_str()))
 	{
 		CD_INFO("Creating modify cache file at : {0}", modifyCachePath);
 		std::filesystem::create_directories(std::filesystem::path(modifyCachePath).parent_path());
@@ -111,7 +111,7 @@ ProcessStatus ResourceBuilder::CheckFileStatus(const char* pInputFilePath, const
 	
 	const char* key = pOutputFilePath;
 
-	if (!std::filesystem::exists(pInputFilePath))
+	if (!engine::Path::FileExists(pInputFilePath))
 	{
 		CD_ERROR("Input file path {0} does not exist!", pInputFilePath);
 		return ProcessStatus::InputNotExist;
@@ -133,7 +133,7 @@ ProcessStatus ResourceBuilder::CheckFileStatus(const char* pInputFilePath, const
 		return ProcessStatus::InputModified;
 	}
 
-	if (!std::filesystem::exists(pOutputFilePath))
+	if (!engine::Path::FileExists(pOutputFilePath))
 	{
 		CD_INFO("Output file path {0} dose not exist.", pOutputFilePath);
 		return ProcessStatus::OutputNotExist;
