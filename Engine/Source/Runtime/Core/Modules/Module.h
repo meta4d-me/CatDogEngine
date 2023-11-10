@@ -68,12 +68,12 @@ public:
 	}
 
 private:
-	// Input
+	// Configs
 	std::string m_name;
 	std::string m_filePath;
 	bool m_autoLoad = false;
 
-	// Output
+	// Runtime
 	ModuleStatus m_status = ModuleStatus::Unload;
 	void* m_handle = nullptr;
 	std::unique_ptr<IModule> m_module;

@@ -6,6 +6,33 @@
 namespace engine
 {
 
+ModuleManager::~ModuleManager() = default;
+
+void ModuleManager::LoadModules(bool checkAutoLoad)
+{
+	for (auto& [_, module] : m_allModules)
+	{
+		if (!module->IsLoaded())
+		{
+			if (checkAutoLoad && module->GetAutoLoad())
+			{
+				module->Load();
+			}
+		}
+	}
+}
+
+void ModuleManager::UnloadModules()
+{
+	for (auto& [_, module] : m_allModules)
+	{
+		if (module->IsLoaded())
+		{
+			module->Unload();
+		}
+	}
+}
+
 Module* ModuleManager::AddModule(const char* pFilePath)
 {
 	std::string moduleName = Path::GetFileNameWithoutExtension(pFilePath);
