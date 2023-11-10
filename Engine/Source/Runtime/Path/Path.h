@@ -29,6 +29,11 @@ public:
 	static std::string GetTextureOutputFilePath(const char* pInputFilePath, const char* extension);
 	static std::string GetTerrainTextureOutputFilePath(const char* pInputFilePath, const char* extension);
 
+	static bool FileExists(const char* pFilePath);
+	static bool DirectoryExists(const char* pDirectoryPath);
+	static std::string GetFileName(const char* pFilePath);
+	static std::string GetFileNameWithoutExtension(const char* pFilePath);
+
 private:
 	static std::filesystem::path GetEngineBuiltinShaderPath();
 	static std::filesystem::path GetEngineResourcesPath();
