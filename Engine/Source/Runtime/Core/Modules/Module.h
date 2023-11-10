@@ -2,6 +2,8 @@
 
 #include "Base/Template.h"
 #include "IModule.h"
+#include "IO/InputArchive.hpp"
+#include "IO/OutputArchive.hpp"
 
 #include <memory>
 #include <string>
@@ -12,8 +14,17 @@ namespace engine
 enum class ModuleStatus
 {
 	Unload,
-	NotFound,
 	Loaded,
+};
+
+enum class ModuleLoadResult
+{
+	AlreadyLoaded,
+	FileNotExist,
+	LoadDllFailure,
+	InterfaceMissing,
+	InitFailure,
+	Success
 };
 
 class Module
@@ -27,21 +38,43 @@ public:
 	~Module() = default;
 
 	void SetName(std::string name) { m_name = cd::MoveTemp(name); }
-	const char* GetName() const { return m_name.c_str(); }
+	std::string& GetName() { return m_name; }
+	const std::string& GetName() const { return m_name; }
 
 	void SetFilePath(std::string path) { m_filePath = cd::MoveTemp(path); }
-	const char* GetFilePath() const { return m_filePath.c_str(); }
+	std::string& GetFilePath() { return m_filePath; }
+	const std::string& GetFilePath() const { return m_filePath; }
 
-	void SetStatus(ModuleStatus status) { m_status = status; }
-	ModuleStatus GetStatus() const { return m_status; }
+	void SetAutoLoad(bool on) { m_autoLoad = on; }
+	bool& GetAutoLoad() { return m_autoLoad; }
+	bool GetAutoLoad() const { return m_autoLoad; }
+
+	bool IsLoaded() const { return ModuleStatus::Loaded == m_status; }
+	ModuleLoadResult Load();
+	void Unload();
+
+	template<bool SwapBytesOrder>
+	Module& operator<<(cd::TInputArchive<SwapBytesOrder>& inputArchive)
+	{
+		inputArchive >> GetName() >> GetFilePath() >> GetAutoLoad();
+		return *this;
+	}
+
+	template<bool SwapBytesOrder>
+	const Module& operator>>(cd::TOutputArchive<SwapBytesOrder>& outputArchive) const
+	{
+		outputArchive << GetName() << GetFilePath() << GetAutoLoad();
+		return *this;
+	}
 
 private:
+	// Input
 	std::string m_name;
 	std::string m_filePath;
-
-	ModuleStatus m_status = ModuleStatus::Unload;
 	bool m_autoLoad = false;
-	
+
+	// Output
+	ModuleStatus m_status = ModuleStatus::Unload;
 	void* m_handle = nullptr;
 	std::unique_ptr<IModule> m_module;
 };

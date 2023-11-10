@@ -21,7 +21,6 @@ Module* ModuleManager::AddModule(const char* pFilePath)
 
 	pModule->SetName(cd::MoveTemp(moduleName));
 	pModule->SetFilePath(pFilePath);
-	pModule->SetStatus(Path::FileExists(pFilePath) ? ModuleStatus::Unload : ModuleStatus::NotFound);
 	return pModule;
 }
 
