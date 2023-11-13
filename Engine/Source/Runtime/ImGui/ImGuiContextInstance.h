@@ -14,51 +14,49 @@ namespace engine
 {
 
 class ImGuiBaseLayer;
+class RenderContext;
 class SceneWorld;
+class WindowManager;
 
 class ImGuiContextInstance
 {
 public:
 	ImGuiContextInstance() = delete;
-	explicit ImGuiContextInstance(uint16_t width, uint16_t height, bool enableDock = false);
+	explicit ImGuiContextInstance(uint16_t width, uint16_t height, bool enableDock = false, bool enableViewport = false);
 	ImGuiContextInstance(const ImGuiContextInstance&) = delete;
 	ImGuiContextInstance& operator=(const ImGuiContextInstance&) = delete;
 	ImGuiContextInstance(ImGuiContextInstance&&) = default;
 	ImGuiContextInstance& operator=(ImGuiContextInstance&&) = default;
 	virtual ~ImGuiContextInstance();
 
-	// ImGui can have multiple ImGuiContexts. For example, you want to render ImGui both in engine and editor.
-	// This method helps to switch ImGui's current context pointer to this ImGuiContextInstance.
-	// Note that if a method needs to call ImGui api, please call this method in the first line
-	// unless you really know what you are doing.
-	// Update multiple ImGuiContext in different threads is not safe. So please update them both in main thread by correct order.
-	void SwitchCurrentContext() const;
-
-	// Query if m_pImGuiContext is current active context.
-	bool IsActive() const;
-
-	// Static layer means non-movable, non-dockable.
-	void AddStaticLayer(std::unique_ptr<ImGuiBaseLayer> pLayer);
-
-	// Dockable layer means movable, dockable.
-	std::vector<std::unique_ptr<ImGuiBaseLayer>>& GetDockableLayers() { return m_pImGuiDockableLayers; }
-	void AddDynamicLayer(std::unique_ptr<ImGuiBaseLayer> pLayer);
-    
-	void ClearUILayers();
-
 	void Update(float deltaTime);
 
-	void OnResize(uint16_t width, uint16_t height);
+	// Context settings.
+	bool IsActive() const;
+	void SwitchCurrentContext() const;
 
+	// GUI management.
+	void OnResize(uint16_t width, uint16_t height);
+	void AddStaticLayer(std::unique_ptr<ImGuiBaseLayer> pLayer);
+	std::vector<std::unique_ptr<ImGuiBaseLayer>>& GetDockableLayers() { return m_pImGuiDockableLayers; }
+	void AddDynamicLayer(std::unique_ptr<ImGuiBaseLayer> pLayer);
+	void ClearUILayers();
+
+	// GUI styles.
 	void LoadFontFiles(const std::vector<std::string>& ttfFileNames, engine::Language language);
 	ThemeColor GetImGuiThemeColor() const { return m_themeColor; }
+	void SetImGuiThemeColor(ThemeColor theme);
 	Language GetImGuiLanguage() const { return m_language; }
 	void SetImGuiLanguage(Language language);
 
-	void SetImGuiThemeColor(ThemeColor theme);
-
+	// Input management.
 	void SetWindowPosOffset(float x, float y) { m_windowPosOffsetX = x; m_windowPosOffsetY = y; }
 
+	// Viewport feature.
+	void InitViewport(WindowManager* pWindowManager, RenderContext* pRenderContext);
+	void UpdateViewport();
+
+	// Access to world data.
 	void SetSceneWorld(SceneWorld* pSceneWorld) { m_pSceneWorld = pSceneWorld; }
 	SceneWorld* GetSceneWorld() const { return m_pSceneWorld; }
 

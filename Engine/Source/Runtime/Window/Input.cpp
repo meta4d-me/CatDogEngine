@@ -1,6 +1,7 @@
 #include "Input.h"
 
 #include "Log/Log.h"
+#include "SDL.h"
 
 #include <imgui/imgui.h>
 #include <unordered_map>
@@ -72,6 +73,18 @@ void Input::FlushInputs()
 	m_keyEventList.clear(); 
 	m_inputCharBufferIndex = 0;
 	m_inputCharBuffer[0] = '\0';
+}
+
+std::pair<int, int> Input::GetGloalMousePosition() const
+{
+	int x, y;
+	SDL_GetGlobalMouseState(&x, &y);
+	return std::make_pair(x, y);
+}
+
+void Input::Update()
+{
+	Input::Get().Reset();
 }
 
 }

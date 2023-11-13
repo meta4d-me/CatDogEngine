@@ -174,37 +174,37 @@ void StaticMeshComponent::Build()
 		if (containsPosition)
 		{
 			constexpr uint32_t dataSize = cd::Point::Size * sizeof(cd::Point::ValueType);
-			FillVertexBuffer(m_pMeshData->GetVertexPosition(vertexIndex).Begin(), dataSize);
+			FillVertexBuffer(m_pMeshData->GetVertexPosition(vertexIndex).begin(), dataSize);
 		}
 
 		if (containsNormal)
 		{
 			constexpr uint32_t dataSize = cd::Direction::Size * sizeof(cd::Direction::ValueType);
-			FillVertexBuffer(m_pMeshData->GetVertexNormal(vertexIndex).Begin(), dataSize);
+			FillVertexBuffer(m_pMeshData->GetVertexNormal(vertexIndex).begin(), dataSize);
 		}
 
 		if (containsTangent)
 		{
 			constexpr uint32_t dataSize = cd::Direction::Size * sizeof(cd::Direction::ValueType);
-			FillVertexBuffer(m_pMeshData->GetVertexTangent(vertexIndex).Begin(), dataSize);
+			FillVertexBuffer(m_pMeshData->GetVertexTangent(vertexIndex).begin(), dataSize);
 		}
 		
 		if (containsBiTangent)
 		{
 			constexpr uint32_t dataSize = cd::Direction::Size * sizeof(cd::Direction::ValueType);
-			FillVertexBuffer(m_pMeshData->GetVertexBiTangent(vertexIndex).Begin(), dataSize);
+			FillVertexBuffer(m_pMeshData->GetVertexBiTangent(vertexIndex).begin(), dataSize);
 		}
 		
 		if (containsUV)
 		{
 			constexpr uint32_t dataSize = cd::UV::Size * sizeof(cd::UV::ValueType);
-			FillVertexBuffer(m_pMeshData->GetVertexUV(0)[vertexIndex].Begin(), dataSize);
+			FillVertexBuffer(m_pMeshData->GetVertexUV(0)[vertexIndex].begin(), dataSize);
 		}
 
 		if (containsColor)
 		{
 			constexpr uint32_t dataSize = cd::Color::Size * sizeof(cd::Color::ValueType);
-			FillVertexBuffer(m_pMeshData->GetVertexColor(0)[vertexIndex].Begin(), dataSize);
+			FillVertexBuffer(m_pMeshData->GetVertexColor(0)[vertexIndex].begin(), dataSize);
 		}
 
 		if (containsBoneIndex && containsBoneWeight)
