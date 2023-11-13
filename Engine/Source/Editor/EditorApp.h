@@ -82,8 +82,13 @@ private:
 	void InitDDGIEntity();
 #endif
 
+	void InitFileWatcher();
+	void ShaderHotModifyDetec();
 	void UpdateMaterials();
-	void LazyCompileAndLoadShaders();
+	void RuntimeCompileAndLoadShaders();
+
+	bool m_crtInputFocus = true;
+	bool m_preInputFocus = true;
 
 	bool m_bInitEditor = false;
 	engine::EngineInitArgs m_initArgs;

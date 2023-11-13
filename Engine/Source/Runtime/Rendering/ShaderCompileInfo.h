@@ -26,6 +26,20 @@ public:
 	{
 		return (m_programName == other.m_programName) && (m_featuresCombine == other.m_featuresCombine);
 	}
+
+	bool operator<(const ShaderCompileInfo& other) const
+	{
+		if (m_programName < other.m_programName)
+		{
+			return true;
+		}
+		if (m_programName > other.m_programName)
+		{
+			return false;
+		}
+
+		return m_featuresCombine < other.m_featuresCombine;
+	}
 };
 
 }
