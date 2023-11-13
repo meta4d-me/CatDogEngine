@@ -1,4 +1,4 @@
-#include "CameraController.h"
+#include "EditorCameraController.h"
 
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/SceneWorld.h"
@@ -13,15 +13,15 @@
 namespace engine
 {
 
-CameraController::CameraController(
+EditorCameraController::EditorCameraController(
 	const SceneWorld* pSceneWorld,
 	float sensitivity,
 	float movement_speed)
-	: CameraController(pSceneWorld, sensitivity, sensitivity, movement_speed)
+	: EditorCameraController(pSceneWorld, sensitivity, sensitivity, movement_speed)
 {
 }
 
-CameraController::CameraController(
+EditorCameraController::EditorCameraController(
 	const SceneWorld* pSceneWorld,
 	float horizontal_sensitivity,
 	float vertical_sensitivity,
@@ -35,14 +35,14 @@ CameraController::CameraController(
 	assert(pSceneWorld);
 }
 
-void CameraController::CameraToController()
+void EditorCameraController::CameraToController()
 {
 	m_eye = GetMainCameraTransform().GetTranslation();
 	m_lookAt = CameraComponent::GetLookAt(GetMainCameraTransform());
 	m_up = CameraComponent::GetUp(GetMainCameraTransform());
 }
 
-void CameraController::ControllerToCamera()
+void EditorCameraController::ControllerToCamera()
 {
 	cd::Vec3f eye = m_eye;
 	cd::Vec3f lookAt = m_lookAt;
@@ -86,12 +86,9 @@ void CameraController::ControllerToCamera()
 	pTransformComponent->Build();
 }
 
-void CameraController::Update(float deltaTime)
+void EditorCameraController::Update(float deltaTime)
 {
 	Moving();
-	bool isAnyMouseButtonPressed = engine::Input::Get().IsMouseLBPressed() || engine::Input::Get().IsMouseMBPressed() || engine::Input::Get().IsMouseRBPressed();
-	bool isAnyDirectionMouseMoved = 0 != engine::Input::Get().GetMousePositionOffsetX() || 0 != engine::Input::Get().GetMousePositionOffsetY();
-	m_isMouseMovedInView = isAnyMouseButtonPressed && isAnyDirectionMouseMoved;
 
 	if (Input::Get().IsKeyPressed(KeyCode::z))
 	{
@@ -183,7 +180,7 @@ void CameraController::Update(float deltaTime)
 			Yaw(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
 		}
 
-		if (Input::Get().IsMouseLBPressed() && m_isInViewScene && !ImGuizmo::IsUsing())
+		if (Input::Get().IsMouseLBPressed() && !ImGuizmo::IsUsing())
 		{
 			m_isTracking = false;
 			PitchLocal(m_verticalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
@@ -192,76 +189,76 @@ void CameraController::Update(float deltaTime)
 	}
 }
 
-void CameraController::SetMovementSpeed(float speed)
+void EditorCameraController::SetMovementSpeed(float speed)
 {
 	m_movementSpeed = speed;
 }
 
-void CameraController::SetSensitivity(float horizontal, float verticle)
+void EditorCameraController::SetSensitivity(float horizontal, float verticle)
 {
 	m_horizontalSensitivity = horizontal;
 	m_verticalSensitivity = verticle;
 }
 
-void CameraController::SetHorizontalSensitivity(float sensitivity)
+void EditorCameraController::SetHorizontalSensitivity(float sensitivity)
 {
 	m_horizontalSensitivity = sensitivity;
 }
 
-void CameraController::SetVerticalSensitivity(float sensitivity)
+void EditorCameraController::SetVerticalSensitivity(float sensitivity)
 {
 	m_verticalSensitivity = sensitivity;
 }
 
-engine::CameraComponent* CameraController::GetMainCameraComponent() const
+engine::CameraComponent* EditorCameraController::GetMainCameraComponent() const
 {
 	return m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
 }
 
-engine::TransformComponent* CameraController::GetMainCameraTransformComponent() const
+engine::TransformComponent* EditorCameraController::GetMainCameraTransformComponent() const
 {
 	return m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity());
 }
 
-const cd::Transform& CameraController::GetMainCameraTransform() 
+const cd::Transform& EditorCameraController::GetMainCameraTransform() 
 {
 	return m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity())->GetTransform();
 }
 
-void CameraController::MoveForward(float amount)
+void EditorCameraController::MoveForward(float amount)
 {
 	m_eye = m_eye + m_lookAt * amount;
 	ControllerToCamera();
 }
 
-void CameraController::MoveBackward(float amount)
+void EditorCameraController::MoveBackward(float amount)
 {
 	MoveForward(-amount);
 }
 
-void CameraController::MoveLeft(float amount)
+void EditorCameraController::MoveLeft(float amount)
 {
 	m_eye = m_eye + m_lookAt.Cross(m_up) * amount;
 	ControllerToCamera();
 }
 
-void CameraController::MoveRight(float amount)
+void EditorCameraController::MoveRight(float amount)
 {
 	MoveLeft(-amount);
 }
 
-void CameraController::MoveUp(float amount)
+void EditorCameraController::MoveUp(float amount)
 {
 	m_eye = m_eye + cd::Vec3f(0.0f, 1.0f, 0.0f) * amount;
 	ControllerToCamera();
 }
 
-void CameraController::MoveDown(float amount)
+void EditorCameraController::MoveDown(float amount)
 {
 	MoveUp(-amount);
 }
 
-void CameraController::Rotate(const cd::Vec3f& axis, float angleDegrees)
+void EditorCameraController::Rotate(const cd::Vec3f& axis, float angleDegrees)
 {
 	cd::Quaternion rotation = cd::Quaternion::FromAxisAngle(axis, cd::Math::DegreeToRadian<float>(angleDegrees));
 	m_lookAt = rotation * m_lookAt;
@@ -269,43 +266,43 @@ void CameraController::Rotate(const cd::Vec3f& axis, float angleDegrees)
 	ControllerToCamera();
 }
 
-void CameraController::Rotate(float x, float y, float z, float angleDegrees)
+void EditorCameraController::Rotate(float x, float y, float z, float angleDegrees)
 {
 	Rotate(cd::Vec3f(x, y, z), angleDegrees);
 }
 
 
-void CameraController::Yaw(float angleDegrees)
+void EditorCameraController::Yaw(float angleDegrees)
 {
 	Rotate(0.0f, 1.0f, 0.0f, angleDegrees);
 }
 
-void CameraController::Pitch(float angleDegrees)
+void EditorCameraController::Pitch(float angleDegrees)
 {
 	Rotate(1.0f, 0.0f, 0.0f, angleDegrees);
 }
 
-void CameraController::Roll(float angleDegrees)
+void EditorCameraController::Roll(float angleDegrees)
 {
 	Rotate(0.0f, 0.0f, 1.0f, angleDegrees);
 }
 
-void CameraController::YawLocal(float angleDegrees)
+void EditorCameraController::YawLocal(float angleDegrees)
 {
 	Rotate(m_up, angleDegrees);
 }
 
-void CameraController::PitchLocal(float angleDegrees)
+void EditorCameraController::PitchLocal(float angleDegrees)
 {
 	Rotate(m_up.Cross(m_lookAt), angleDegrees);
 }
 
-void CameraController::RollLocal(float angleDegrees)
+void EditorCameraController::RollLocal(float angleDegrees)
 {
 	Rotate(m_lookAt, angleDegrees);
 }
 
-void CameraController::ElevationChanging(float angleDegrees)
+void EditorCameraController::ElevationChanging(float angleDegrees)
 {
 	m_elevation += angleDegrees / 360.0f * cd::Math::PI;
 	if (m_elevation > cd::Math::PI)
@@ -319,7 +316,7 @@ void CameraController::ElevationChanging(float angleDegrees)
 	ControllerToCamera();
 }
 
-void CameraController::AzimuthChanging(float angleDegrees)
+void EditorCameraController::AzimuthChanging(float angleDegrees)
 {
 	m_azimuth -= angleDegrees / 360.0f * cd::Math::PI;
 	if (m_azimuth > cd::Math::PI)
@@ -333,7 +330,7 @@ void CameraController::AzimuthChanging(float angleDegrees)
 	ControllerToCamera();
 }
 
-void CameraController::SynchronizeTrackingCamera()
+void EditorCameraController::SynchronizeTrackingCamera()
 {
 	m_lookAtPoint = m_lookAt * m_distanceFromLookAt + m_eye;
 	m_elevation = std::asin(-m_lookAt.y());
@@ -356,13 +353,14 @@ void CameraController::SynchronizeTrackingCamera()
 	}
 }
 
-void CameraController::CameraFocus()
+void EditorCameraController::CameraFocus()
 {
 	Entity selectedEntity = m_pSceneWorld->GetSelectedEntity();
 	if (selectedEntity == INVALID_ENTITY)
 	{
 		return;
 	}
+
 	if (TransformComponent* pTransform = m_pSceneWorld->GetTransformComponent(selectedEntity))
 	{
 		m_isMoving = true;
@@ -381,7 +379,7 @@ void CameraController::CameraFocus()
 	}
 }
 
-void CameraController::Moving()
+void EditorCameraController::Moving()
 {
 	if (m_isMoving)
 	{
@@ -399,13 +397,13 @@ void CameraController::Moving()
 	}
 }
 
-void CameraController::Panning(float x, float y)
+void EditorCameraController::Panning(float x, float y)
 {
 	MoveLeft(x);
 	m_eye = m_eye + m_up * y;
 }
 
-void CameraController::MoveToPosition(cd::Point position, cd::Vec3f rotation)
+void EditorCameraController::MoveToPosition(cd::Point position, cd::Vec3f rotation)
 {
 	m_isMoving = true;
 	m_eyeDestination = position;

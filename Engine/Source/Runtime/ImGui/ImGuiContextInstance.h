@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/StringCrc.h"
 #include "Localization.h"
 #include "ThemeColor.h"
 
@@ -9,6 +10,9 @@
 #include <vector>
 
 struct ImGuiContext;
+struct ImGuiIO;
+struct ImGuiPlatformIO;
+struct ImGuiStyle;
 
 namespace engine
 {
@@ -21,50 +25,69 @@ class WindowManager;
 class ImGuiContextInstance
 {
 public:
-	ImGuiContextInstance() = delete;
-	explicit ImGuiContextInstance(uint16_t width, uint16_t height, bool enableDock = false, bool enableViewport = false);
+	ImGuiContextInstance();
 	ImGuiContextInstance(const ImGuiContextInstance&) = delete;
 	ImGuiContextInstance& operator=(const ImGuiContextInstance&) = delete;
 	ImGuiContextInstance(ImGuiContextInstance&&) = default;
 	ImGuiContextInstance& operator=(ImGuiContextInstance&&) = default;
 	virtual ~ImGuiContextInstance();
 
-	void Update(float deltaTime);
-
-	// Context settings.
-	bool IsActive() const;
+	// Context
 	void SwitchCurrentContext() const;
+	bool IsActive() const;
+	ImGuiContext* GetContext() const { return m_pImGuiContext; }
+	ImGuiIO& GetIO() const;
+	ImGuiPlatformIO& GetPlatformIO() const;
+	ImGuiStyle& GetStyle() const;
+	void InitBackendUserData(void* pWindow, void* pRenderContext);
 
-	// GUI management.
+	// Display
+	void SetRectPosition(float x, float y) { m_rectPosX = x; m_rectPosY = y; }
+	void SetDisplaySize(uint16_t width, uint16_t height);
 	void OnResize(uint16_t width, uint16_t height);
+	bool IsInsideDisplayRect(float x, float y) const;
 	void AddStaticLayer(std::unique_ptr<ImGuiBaseLayer> pLayer);
 	std::vector<std::unique_ptr<ImGuiBaseLayer>>& GetDockableLayers() { return m_pImGuiDockableLayers; }
 	void AddDynamicLayer(std::unique_ptr<ImGuiBaseLayer> pLayer);
+	ImGuiBaseLayer* GetLayerByName(StringCrc nameCrc) const;
 	void ClearUILayers();
 
-	// GUI styles.
+	// Styles
 	void LoadFontFiles(const std::vector<std::string>& ttfFileNames, engine::Language language);
 	ThemeColor GetImGuiThemeColor() const { return m_themeColor; }
 	void SetImGuiThemeColor(ThemeColor theme);
 	Language GetImGuiLanguage() const { return m_language; }
 	void SetImGuiLanguage(Language language);
 
-	// Input management.
-	void SetWindowPosOffset(float x, float y) { m_windowPosOffsetX = x; m_windowPosOffsetY = y; }
+	// Docking features.
+	void EnableDock();
+	bool IsDockEnable() const;
 
 	// Viewport feature.
+	void EnableViewport();
+	bool IsViewportEnable() const;
 	void InitViewport(WindowManager* pWindowManager, RenderContext* pRenderContext);
 	void UpdateViewport();
+
+	// Loop.
+	void BeginFrame();
+	void Update(float deltaTime);
+	void EndFrame();
 
 	// Access to world data.
 	void SetSceneWorld(SceneWorld* pSceneWorld) { m_pSceneWorld = pSceneWorld; }
 	SceneWorld* GetSceneWorld() const { return m_pSceneWorld; }
 
 private:
-	void AddInputEvent();
-	void SetImGuiStyles();
+	void InitLayoutStyles();
+
 	void BeginDockSpace();
 	void EndDockSpace();
+
+	// Input
+	void AddInputEvent();
+	void AddMouseInputEvent();
+	void AddKeyboardInputEvent();
 
 private:
 	SceneWorld* m_pSceneWorld = nullptr;
@@ -72,8 +95,8 @@ private:
 	Language m_language;
 	ThemeColor m_themeColor;
 
-	float m_windowPosOffsetX = 0.0f;
-	float m_windowPosOffsetY = 0.0f;
+	float m_rectPosX = 0.0f;
+	float m_rectPosY = 0.0f;
 
 	bool m_lastMouseLBPressed = false;
 	bool m_lastMouseRBPressed = false;
@@ -82,6 +105,7 @@ private:
 	float m_lastMousePositionX = 0.0f;
 	float m_lastMousePositionY = 0.0f;
 
+	std::map<StringCrc, ImGuiBaseLayer*> m_mapNameCrcToLayers;
 	std::vector<std::unique_ptr<ImGuiBaseLayer>> m_pImGuiStaticLayers;
 	std::vector<std::unique_ptr<ImGuiBaseLayer>> m_pImGuiDockableLayers;
 };

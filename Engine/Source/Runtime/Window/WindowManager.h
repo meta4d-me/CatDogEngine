@@ -2,6 +2,7 @@
 
 #include "Core/Delegates/Delegate.hpp"
 
+#include <cstdint>
 #include <map>
 #include <memory>
 
@@ -13,6 +14,9 @@ class Window;
 class WindowManager final
 {
 public:
+	using MapIDToWindow = std::map<uint32_t, std::unique_ptr<engine::Window>>;
+
+public:
 	WindowManager();
 	WindowManager(const WindowManager&) = delete;
 	WindowManager& operator=(const WindowManager&) = delete;
@@ -20,20 +24,23 @@ public:
 	WindowManager& operator=(WindowManager&&) = default;
 	~WindowManager();
 
-	engine::Window* GetWindow(void* handle) const;
+	MapIDToWindow& GetAllWindows() { return m_allWindows; }
+	const MapIDToWindow& GetAllWindows() const { return m_allWindows; }
+	engine::Window* GetWindow(uint32_t id) const;
 	void AddWindow(std::unique_ptr<engine::Window> pWindow);
-	void RemoveWindow(void* handle);
+	void RemoveWindow(uint32_t id);
 
 	void Update();
 
 	// Delegates
+	Delegate<void(uint32_t, int, int)> OnMouseMove;
 	Delegate<void(const char*)> OnDropFile;
 
 private:
 	engine::Window* GetActiveWindow() const;
 
 private:
-	std::map<void*, std::unique_ptr<engine::Window>> m_mapWindows;
+	MapIDToWindow m_allWindows;
 };
 
 }

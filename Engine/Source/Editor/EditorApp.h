@@ -10,10 +10,11 @@ namespace engine
 {
 
 class AABBRenderer;
-class CameraController;
+class EditorCameraController;
 class FlybyCamera;
 class ImGuiBaseLayer;
 class ImGuiContextInstance;
+class ImGuiContextManager;
 class Window;
 class WindowManager;
 class RenderContext;
@@ -46,30 +47,35 @@ public:
 	virtual bool Update(float deltaTime) override;
 	virtual void Shutdown() override;
 
+	// Window Management
+	void InitWindowManager();
 	engine::Window* GetMainWindow() const { return m_pMainWindow; }
 	engine::WindowManager* GetWindowManager() const { return m_pWindowManager.get(); }
+	void HandleMouseMotionEvent(uint32_t windowID, int x, int y);
 
+	// Rendering Management
 	void InitRenderContext(engine::GraphicsBackend backend, void* hwnd = nullptr);
+	void InitShaderPrograms(bool compileAllShaders = false) const;
 
 	void InitEditorRenderers();
-	void InitEngineRenderers();
-
+	void AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer);
 	void EditorRenderersWarmup();
+
+	void InitEngineRenderers();
+	void AddEngineRenderer(std::unique_ptr<engine::Renderer> pRenderer);
 	void EngineRenderersWarmup();
 
-	void InitShaderPrograms(bool compileAllShaders = false) const;
-	void AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer);
-	void AddEngineRenderer(std::unique_ptr<engine::Renderer> pRenderer);
-
+	// ImGui Management
 	void InitEditorImGuiContext(engine::Language language);
 	void InitEditorUILayers();
 	void InitEngineImGuiContext(engine::Language language);
 	void InitEngineUILayers();
-	void RegisterImGuiUserData(engine::ImGuiContextInstance* pImGuiContext);
 
+	// Scene World
 	void InitECWorld();
+	
+	// Misc
 	void InitEditorController();
-
 	bool IsAtmosphericScatteringEnable() const;
 
 private:
@@ -91,8 +97,9 @@ private:
 	std::unique_ptr<engine::WindowManager> m_pWindowManager;
 
 	// ImGui
-	std::unique_ptr<engine::ImGuiContextInstance> m_pEditorImGuiContext;
-	std::unique_ptr<engine::ImGuiContextInstance> m_pEngineImGuiContext;
+	engine::ImGuiContextInstance* m_pEditorImGuiContext = nullptr;
+	engine::ImGuiContextInstance* m_pEngineImGuiContext = nullptr;
+	std::unique_ptr<engine::ImGuiContextManager> m_pImGuiContextManager;
 
 	// Scene
 	std::unique_ptr<engine::SceneWorld> m_pSceneWorld;
@@ -112,7 +119,7 @@ private:
 	engine::Renderer* m_pAABBRenderer = nullptr;
 
 	// Controllers for processing input events.
-	std::unique_ptr<engine::CameraController> m_pViewportCameraController;
+	std::unique_ptr<engine::EditorCameraController> m_pViewportCameraController;
 
 	std::unique_ptr<FileWatcher> m_pFileWatcher;
 };

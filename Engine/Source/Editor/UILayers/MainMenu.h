@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ImGui/ImGuiBaseLayer.h"
 
 #include <memory>
@@ -12,7 +14,7 @@ class FileBrowser;
 namespace engine
 {
 
-class CameraController;
+class EditorCameraController;
 
 }
 
@@ -35,11 +37,11 @@ public:
 	void BuildMenu();
 	void AboutMenu();
 
-	void SetCameraController(engine::CameraController* pCameraController) { m_pCameraController = pCameraController; }
+	void SetCameraController(engine::EditorCameraController* pCameraController) { m_pCameraController = pCameraController; }
 
 private:
-	std::unique_ptr<ImGui::FileBrowser> m_pCreatProjectDialog;
-	engine::CameraController* m_pCameraController = nullptr;
+	std::unique_ptr<ImGui::FileBrowser> m_pCreateProjectDialog;
+	engine::EditorCameraController* m_pCameraController = nullptr;
 };
 
 }

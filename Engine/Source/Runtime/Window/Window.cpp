@@ -65,6 +65,11 @@ Window::~Window()
 	SDL_DestroyWindow(m_pSDLWindow);
 }
 
+uint32_t Window::GetID() const
+{
+	return SDL_GetWindowID(m_pSDLWindow);
+}
+
 void* Window::GetHandle() const
 {
 	SDL_SysWMinfo wmi;

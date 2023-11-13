@@ -1,6 +1,6 @@
 ﻿#include "MainMenu.h"
 
-#include "Display/CameraController.h"
+#include "Camera/EditorCameraController.h"
 #include "ECWorld/SceneWorld.h"
 #include "EditorApp.h"
 #include "ImGui/ImGuiContextInstance.h"
@@ -32,8 +32,8 @@ void MainMenu::FileMenu()
 	{
 		if (ImGui::MenuItem(CD_TEXT("TEXT_NEW"), "Ctrl N"))
 		{
-			m_pCreatProjectDialog->SetTitle("Creat");
-			m_pCreatProjectDialog->Open();
+			m_pCreateProjectDialog->SetTitle("Creat");
+			m_pCreateProjectDialog->Open();
 		}
 		if (ImGui::MenuItem("Open", "Ctrl O"))
 		{
@@ -117,7 +117,7 @@ void MainMenu::EditMenu()
 
 void MainMenu::ViewMenu()
 {
-	auto FrameEntities = [](engine::SceneWorld* pSceneWorld, const std::vector<engine::Entity>& entities, engine::CameraController* pCameraController)
+	auto FrameEntities = [](engine::SceneWorld* pSceneWorld, const std::vector<engine::Entity>& entities, engine::EditorCameraController* pCameraController)
 	{
 		if (entities.empty())
 		{
@@ -245,7 +245,7 @@ void MainMenu::AboutMenu()
 
 void MainMenu::Init()
 {
-	m_pCreatProjectDialog = std::make_unique<ImGui::FileBrowser>();
+	m_pCreateProjectDialog = std::make_unique<ImGui::FileBrowser>();
 }
 
 void MainMenu::Update()
@@ -261,10 +261,10 @@ void MainMenu::Update()
 		ImGui::EndMainMenuBar();
 	}
 
-	m_pCreatProjectDialog->Display();
+	m_pCreateProjectDialog->Display();
 
-	if (engine::Input::Get().ContainsModifier(engine::KeyMod::KMOD_CTRL)
-		&& engine::Input::Get().IsKeyPressed(engine::KeyCode::q))
+	if ((ImGui::IsKeyPressed(ImGuiKey_LeftCtrl) || ImGui::IsKeyPressed(ImGuiKey_RightCtrl))
+		&& ImGui::IsKeyPressed(ImGuiKey_Q))
 	{
 		if (auto* pMainWindow = reinterpret_cast<engine::Window*>(ImGui::GetIO().BackendPlatformUserData))
 		{

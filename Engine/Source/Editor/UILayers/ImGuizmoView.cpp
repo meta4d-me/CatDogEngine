@@ -5,11 +5,10 @@
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
 #include "ImGui/ImGuiContextInstance.h"
-
-// TODO : can use StringCrc to access other UILayers from ImGuiContextInstance.
 #include "UILayers/SceneView.h"
 
 #include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 #include <ImGuizmo/ImGuizmo.h>
 
 namespace editor
@@ -21,6 +20,7 @@ ImGuizmoView::~ImGuizmoView()
 
 void ImGuizmoView::Init()
 {
+	m_sceneViewID = ImHashStr("SceneView");
 	ImGuizmo::SetGizmoSizeClipSpace(0.25f);
 }
 
@@ -40,7 +40,9 @@ void ImGuizmoView::Update()
 		return;
 	}
 
-	ImGuizmo::OPERATION operation = m_pSceneView->GetImGuizmoOperation();
+	constexpr engine::StringCrc sceneViewName("SceneView");
+	auto* pSceneView = reinterpret_cast<SceneView*>(GetImGuiContextInstance()->GetLayerByName(sceneViewName));
+	ImGuizmo::OPERATION operation = pSceneView->GetImGuizmoOperation();
 	const engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
 
 	ImGuizmo::BeginFrame();

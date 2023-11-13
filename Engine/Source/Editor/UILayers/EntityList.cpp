@@ -1,6 +1,6 @@
 #include "EntityList.h"
 
-#include "Display/CameraController.h"
+#include "Camera/EditorCameraController.h"
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/World.h"
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
@@ -333,7 +333,7 @@ void EntityList::DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity enti
     if (ImGui::IsItemClicked())
     {
         pSceneWorld->SetSelectedEntity(entity);
-        if (ImGui::IsMouseDoubleClicked(0))
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
         {
             if (m_pCameraController)
             {

@@ -35,6 +35,7 @@ public:
     Window& operator=(Window&&) = delete;
     ~Window();
     
+    uint32_t GetID() const;
     void* GetHandle() const;
 
     const char* GetTitle() const;

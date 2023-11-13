@@ -10,18 +10,18 @@ namespace engine
 class CameraComponent;
 class SceneWorld;
 
-class CameraController final
+class EditorCameraController final
 {
 public:
-	CameraController() = delete;
-	explicit CameraController(const SceneWorld* pSceneWorld, float sensitivity, float movement_speed);
-	explicit CameraController(const SceneWorld* pSceneWorld, float horizontal_sensitivity, float vertical_sensitivity, float movement_speed);
-	~CameraController() = default;
+	EditorCameraController() = delete;
+	explicit EditorCameraController(const SceneWorld* pSceneWorld, float sensitivity, float movement_speed);
+	explicit EditorCameraController(const SceneWorld* pSceneWorld, float horizontal_sensitivity, float vertical_sensitivity, float movement_speed);
+	~EditorCameraController() = default;
 
-	CameraController(const CameraController&) = delete;
-	CameraController(CameraController&&) = delete;
-	CameraController& operator=(const CameraController&) = delete;
-	CameraController& operator=(CameraController&&) = delete;
+	EditorCameraController(const EditorCameraController&) = delete;
+	EditorCameraController(EditorCameraController&&) = delete;
+	EditorCameraController& operator=(const EditorCameraController&) = delete;
+	EditorCameraController& operator=(EditorCameraController&&) = delete;
 
 	void Update(float deltaTime);
 
@@ -69,11 +69,6 @@ public:
 
 	void MoveToPosition(cd::Point position, cd::Vec3f lookAt);
 
-	// TODO : generic solution to process mouse / key input events for UI panels in different areas.
-	void SetIsInViewScene(bool isIn) { m_isInViewScene = isIn; }
-
-	bool GetViewIsMoved() { return m_isMouseMovedInView; }
-	
 private:
 	engine::CameraComponent* GetMainCameraComponent() const;
 	engine::TransformComponent* GetMainCameraTransformComponent() const;
@@ -103,7 +98,6 @@ private:
 
 	bool m_isTracking = false;
 	bool m_isMoving = false;
-	bool m_isInViewScene = false;
 	bool m_isMouseMovedInView = false;
 };
 

@@ -5,8 +5,8 @@
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
-#include "ImGui/ImGuiContextInstance.h"
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"
+#include "ImGui/ImGuiContextInstance.h"
 #include "Log/Log.h"
 #include "Material/ShaderSchema.h"
 #include "Math/Ray.hpp"
@@ -239,25 +239,12 @@ void SceneView::UpdateToolMenuButtons()
 
 void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
 {
-	if (m_currentOperation != SelectOperation)
-	{
-		return;
-	}
-
-	float screenX = static_cast<float>(m_mouseFixedPositionX - GetWindowPosX());
-	float screenY = static_cast<float>(m_mouseFixedPositionY - GetWindowPosY());
-	float screenWidth = static_cast<float>(regionWidth);
-	float screenHeight = static_cast<float>(regionHeight);
-	if (screenX < 0.0f || screenX > screenWidth ||
-		screenY < 0.0f || screenY > screenHeight)
-	{
-		return;
-	}
-
 	// Loop through scene's all static meshes' AABB to test intersections with Ray.
 	engine::SceneWorld* pSceneWorld = GetSceneWorld();
 	engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
-	cd::Ray pickRay = pCameraComponent->EmitRay(screenX, screenY, screenWidth, screenHeight);
+	ImVec2 mousePos = ImGui::GetMousePos();
+	auto [scenePosX, scenePosY] = GetRectPosition();
+	cd::Ray pickRay = pCameraComponent->EmitRay(mousePos.x - scenePosX, mousePos.y - scenePosY, regionWidth, regionHeight);
 
 	float minRayTime = FLT_MAX;
 	engine::Entity nearestEntity = engine::INVALID_ENTITY;
@@ -328,83 +315,69 @@ void SceneView::Update()
 		}
 	}
 
-	ImVec2 windowPos = ImGui::GetWindowPos();
-	ImVec2 mousePos = ImGui::GetMousePos();
-	bool isMouseInsideSeneView = false;
-	cd::Vec2f rightDown(windowPos.x + regionSize.x, windowPos.y + regionSize.y);
-
-	// Check if mouse hover on the area of SceneView so it can control.
-	ImVec2 cursorPosition = ImGui::GetCursorPos();
-	ImVec2 sceneViewPosition = ImGui::GetWindowPos() + cursorPosition;
-	SetWindowPos(sceneViewPosition.x, sceneViewPosition.y);
-	if (ImGui::IsWindowHovered())
-	{
-		isMouseInsideSeneView = true;
-	}
-	else
-	{
-		isMouseInsideSeneView = false;
-	}
 	// Draw scene.
 	ImGui::Image(reinterpret_cast<ImTextureID>(m_pRenderTarget->GetTextureHandle(0).idx),
 		ImVec2(m_pRenderTarget->GetWidth(), m_pRenderTarget->GetHeight()));
 
-	// Check if there is a file to drop in the scene view to import assets automatically.
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (const ImGuiPayload* pPayload = ImGui::AcceptDragDropPayload("AssetFile", ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
-		{
-			std::string filePath(static_cast<const char*>(pPayload->Data));
-		}
-		ImGui::EndDragDropTarget();
-	}
-
 	ImGui::PopStyleVar();
-
 	ImGui::End();
-	bool isAnyMouseButtonPressed = engine::Input::Get().IsMouseLBPressed() || engine::Input::Get().IsMouseMBPressed() || engine::Input::Get().IsMouseRBPressed();
 
-	if (isAnyMouseButtonPressed && !ImGuizmo::IsUsing())
+	if (!ImGuizmo::IsUsing())
 	{
-		if (!m_isMouseDownFirstTime)
+		bool isAnyMouseButtonDraging = ImGui::IsMouseDragging(ImGuiMouseButton_Left) || ImGui::IsMouseDragging(ImGuiMouseButton_Middle) || ImGui::IsMouseDragging(ImGuiMouseButton_Right);
+		if (isAnyMouseButtonDraging)
 		{
-			if (m_pCameraController->GetViewIsMoved())
-			{
-				m_isUsingCamera = true;
-			}
-			if (engine::Input::Get().IsMouseLBPressed())
-			{
-				m_isLeftClick = true;
-			}
-			return;
-		}
-
-		m_isMouseDownFirstTime = false;
-		if (isMouseInsideSeneView && !m_isTerrainEditMode)
-		{
-			m_pCameraController->SetIsInViewScene(true);
-			m_isMouseShow = false;
-		}
-		else
-		{
-			m_pCameraController->SetIsInViewScene(false);
+			m_pCameraController;
 		}
 	}
-	else
-	{
-		m_mouseFixedPositionX = engine::Input::Get().GetMousePositionX();
-		m_mouseFixedPositionY = engine::Input::Get().GetMousePositionY();
-		if (!m_isMouseShow && !m_isUsingCamera)
-		{
-			PickSceneMesh(regionWidth, regionHeight);
-		}
-		m_isMouseDownFirstTime = true;
-		m_isMouseShow = true;
-		m_isUsingCamera = false;
-		m_isLeftClick = false;
-	}
 
-	if (ImGui::IsMouseDoubleClicked(0) && engine::INVALID_ENTITY != pSceneWorld->GetSelectedEntity())
+	if (m_currentOperation == SelectOperation && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+	{
+		PickSceneMesh(regionWidth, regionHeight);
+	}
+	
+	//if (isAnyMouseButtonPressed && !ImGuizmo::IsUsing())
+	//{
+	//	if (!m_isMouseDownFirstTime)
+	//	{
+	//		if (m_pCameraController->GetViewIsMoved())
+	//		{
+	//			m_isUsingCamera = true;
+	//		}
+	//		if (engine::Input::Get().IsMouseLBPressed())
+	//		{
+	//			m_isLeftClick = true;
+	//		}
+	//		return;
+	//	}
+	//
+	//	m_isMouseDownFirstTime = false;
+	//	if (isMouseInsideSeneView && !m_isTerrainEditMode)
+	//	{
+	//		m_pCameraController->SetIsInViewScene(true);
+	//		m_isMouseShow = false;
+	//	}
+	//	else
+	//	{
+	//		m_pCameraController->SetIsInViewScene(false);
+	//	}
+	//}
+	//else
+	//{
+	//	m_mouseFixedPositionX = engine::Input::Get().GetMousePositionX();
+	//	m_mouseFixedPositionY = engine::Input::Get().GetMousePositionY();
+	//	if (!m_isMouseShow && !m_isUsingCamera)
+	//	{
+	//		PickSceneMesh(regionWidth, regionHeight);
+	//	}
+	//	m_isMouseDownFirstTime = true;
+	//	m_isMouseShow = true;
+	//	m_isUsingCamera = false;
+	//	m_isLeftClick = false;
+	//}
+
+	if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) &&
+		engine::INVALID_ENTITY != pSceneWorld->GetSelectedEntity())
 	{
 		m_pCameraController->CameraFocus();
 	}

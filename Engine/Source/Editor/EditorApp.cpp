@@ -1,9 +1,10 @@
 ﻿#include "EditorApp.h"
 
 #include "Application/Engine.h"
-#include "Display/CameraController.h"
+#include "Camera/EditorCameraController.h"
 #include "ECWorld/SceneWorld.h"
 #include "ImGui/ImGuiContextInstance.h"
+#include "ImGui/ImGuiContextManager.h"
 #include "ImGui/Localization.h"
 #include "ImGui/UILayers/DebugPanel.h"
 #include "ImGui/UILayers/Profiler.h"
@@ -80,7 +81,9 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 		CD_ERROR("Failed to open CSV file");
 	}
 
-	m_pWindowManager = std::make_unique<engine::WindowManager>();
+	// Init Systems
+	InitWindowManager();
+	m_pImGuiContextManager = std::make_unique<engine::ImGuiContextManager>();
 
 	// Phase 1 - Splash
 	//		* Compile uber shader permutations automatically when initialization or detect changes
@@ -160,23 +163,16 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 {
 	assert(GetMainWindow() && "Init window before imgui context");
 
-	const bool enableDock = true;
-	const bool enableViewport = true;
-	m_pEditorImGuiContext = std::make_unique<engine::ImGuiContextInstance>(GetMainWindow()->GetWidth(), GetMainWindow()->GetHeight(), enableDock, enableViewport);
-	RegisterImGuiUserData(m_pEditorImGuiContext.get());
-
-	// TODO : more font files to load and switch dynamically.
-	std::vector<std::string> ttfFileNames = { "FanWunMing-SB.ttf" };
-	m_pEditorImGuiContext->LoadFontFiles(ttfFileNames, language);
-
-	// Bind event callbacks from current available input devices.
-	GetMainWindow()->OnResize.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnResize>(m_pEditorImGuiContext.get());
-
-	// Set style settings.
+	m_pEditorImGuiContext = m_pImGuiContextManager->AddImGuiContext(engine::StringCrc("Editor"));
+	m_pEditorImGuiContext->InitBackendUserData(GetMainWindow(), m_pRenderContext.get());
+	m_pEditorImGuiContext->SetDisplaySize(GetMainWindow()->GetWidth(), GetMainWindow()->GetHeight());
+	m_pEditorImGuiContext->LoadFontFiles({ "FanWunMing-SB.ttf" }, language);
 	m_pEditorImGuiContext->SetImGuiThemeColor(engine::ThemeColor::Dark);
+	m_pEditorImGuiContext->EnableDock();
+	m_pEditorImGuiContext->EnableViewport();
 
 	// Init viewport settings.
-	if (enableViewport)
+	if (m_pEditorImGuiContext->IsViewportEnable())
 	{
 		m_pEditorImGuiContext->InitViewport(m_pWindowManager.get(), m_pRenderContext.get());
 		ImGuiViewport* pMainViewport = ImGui::GetMainViewport();
@@ -185,6 +181,8 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 		pMainViewport->PlatformHandleRaw = GetMainWindow()->GetHandle();
 		m_pEditorImGuiContext->UpdateViewport();
 	}
+
+	GetMainWindow()->OnResize.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnResize>(m_pEditorImGuiContext);
 }
 
 void EditorApp::InitEditorUILayers()
@@ -228,36 +226,20 @@ void EditorApp::InitEngineImGuiContext(engine::Language language)
 	constexpr engine::StringCrc sceneRenderTarget("SceneRenderTarget");
 	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->GetRenderTarget(sceneRenderTarget);
 
-	m_pEngineImGuiContext = std::make_unique<engine::ImGuiContextInstance>(pSceneRenderTarget->GetWidth(), pSceneRenderTarget->GetHeight());
-	RegisterImGuiUserData(m_pEngineImGuiContext.get());
-
-	std::vector<std::string> ttfFileNames = { "FanWunMing-SB.ttf" };
-	m_pEngineImGuiContext->LoadFontFiles(ttfFileNames, language);
-
+	m_pEngineImGuiContext = m_pImGuiContextManager->AddImGuiContext(engine::StringCrc("Engine"));
+	m_pEngineImGuiContext->InitBackendUserData(GetMainWindow(), m_pRenderContext.get());
+	m_pEngineImGuiContext->SetDisplaySize(pSceneRenderTarget->GetWidth(), pSceneRenderTarget->GetHeight());
+	m_pEngineImGuiContext->LoadFontFiles({ "FanWunMing-SB.ttf" }, language);
 	m_pEngineImGuiContext->SetImGuiThemeColor(engine::ThemeColor::Light);
-
-	pSceneRenderTarget->OnResize.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnResize>(m_pEngineImGuiContext.get());
+	
+	pSceneRenderTarget->OnResize.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnResize>(m_pEngineImGuiContext);
 }
 
 void EditorApp::InitEngineUILayers()
 {
 	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<engine::DebugPanel>("DebugPanel"));
-	
-	auto pImGuizmoView = std::make_unique<editor::ImGuizmoView>("ImGuizmoView");
-	pImGuizmoView->SetSceneView(m_pSceneView);
-	m_pEngineImGuiContext->AddDynamicLayer(cd::MoveTemp(pImGuizmoView));
+	m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<editor::ImGuizmoView>("ImGuizmoView"));
 	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<TestNodeEditor>("TestNodeEditor"));
-}
-
-void EditorApp::RegisterImGuiUserData(engine::ImGuiContextInstance* pImGuiContext)
-{
-	assert(GetMainWindow() && m_pRenderContext);
-
-	ImGuiIO& io = ImGui::GetIO();
-	assert(io.UserData == pImGuiContext);
-
-	io.BackendPlatformUserData = GetMainWindow();
-	io.BackendRendererUserData = m_pRenderContext.get();
 }
 
 void EditorApp::InitECWorld()
@@ -561,7 +543,7 @@ void EditorApp::InitShaderPrograms(bool compileAllShaders) const
 void EditorApp::InitEditorController()
 {
 	// Controller for Input events.
-	m_pViewportCameraController = std::make_unique<engine::CameraController>(
+	m_pViewportCameraController = std::make_unique<engine::EditorCameraController>(
 		m_pSceneWorld.get(),
 		12.0f /* horizontal sensitivity */,
 		12.0f /* vertical sensitivity */);
@@ -617,6 +599,7 @@ bool EditorApp::Update(float deltaTime)
 	}
 
 	engine::Input::Get().Update();
+	m_pEditorImGuiContext->BeginFrame();
 	m_pEditorImGuiContext->Update(deltaTime);
 	m_pWindowManager->Update();
 	m_pSceneWorld->Update();
@@ -638,35 +621,40 @@ bool EditorApp::Update(float deltaTime)
 		}
 	}
 
-	if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-	{
-		ImGui::UpdatePlatformWindows();
-		ImGui::RenderPlatformWindowsDefault();
-	}
+	auto [sceneRectX, sceneRectY] = m_pSceneView->GetRectPosition();
+	m_pEditorImGuiContext->EndFrame();
 
 	if (m_pEngineImGuiContext)
 	{
-		//GetMainWindow()->SetMouseVisible(m_pSceneView->IsShowMouse(), m_pSceneView->GetMouseFixedPositionX(), m_pSceneView->GetMouseFixedPositionY());
 		if (m_pViewportCameraController)
 		{
 			m_pViewportCameraController->Update(deltaTime);
 		}
+
 		// Do Screen Space Smoothing
-		if (pTerrainComponent && m_pSceneView->IsTerrainEditMode() && engine::Input::Get().IsMouseLBPressed())
+		//if (pTerrainComponent && m_pSceneView->IsTerrainEditMode() && engine::Input::Get().IsMouseLBPressed())
+		//{
+		//	float screenSpaceX = 2.0f * static_cast<float>(engine::Input::Get().GetMousePositionX() - m_pSceneView->GetWindowPosX()) /
+		//		m_pSceneView->GetRenderTarget()->GetWidth() - 1.0f;
+		//	float screenSpaceY = 1.0f - 2.0f * static_cast<float>(engine::Input::Get().GetMousePositionY() - m_pSceneView->GetWindowPosY()) /
+		//		m_pSceneView->GetRenderTarget()->GetHeight();
+		//
+		//	engine::TransformComponent* pCameraTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity());
+		//	cd::Vec3f camPos = pCameraTransformComponent->GetTransform().GetTranslation();
+		//
+		//	pTerrainComponent->ScreenSpaceSmooth(screenSpaceX, screenSpaceY, pMainCameraComponent->GetProjectionMatrix().Inverse(),
+		//		pMainCameraComponent->GetViewMatrix().Inverse(), camPos);
+		//}
+
+		m_pEngineImGuiContext->BeginFrame();
+		if (!m_pEngineImGuiContext->IsViewportEnable())
 		{
-			float screenSpaceX = 2.0f * static_cast<float>(engine::Input::Get().GetMousePositionX() - m_pSceneView->GetWindowPosX()) /
-				m_pSceneView->GetRenderTarget()->GetWidth() - 1.0f;
-			float screenSpaceY = 1.0f - 2.0f * static_cast<float>(engine::Input::Get().GetMousePositionY() - m_pSceneView->GetWindowPosY()) /
-				m_pSceneView->GetRenderTarget()->GetHeight();
-
-			engine::TransformComponent* pCameraTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity());
-			cd::Vec3f camPos = pCameraTransformComponent->GetTransform().GetTranslation();
-
-			pTerrainComponent->ScreenSpaceSmooth(screenSpaceX, screenSpaceY, pMainCameraComponent->GetProjectionMatrix().Inverse(),
-				pMainCameraComponent->GetViewMatrix().Inverse(), camPos);
+			auto [windowX, windowY] = m_pMainWindow->GetPosition();
+			sceneRectX -= windowX;
+			sceneRectY -= windowY;
 		}
 
-		m_pEngineImGuiContext->SetWindowPosOffset(m_pSceneView->GetWindowPosX(), m_pSceneView->GetWindowPosY());
+		m_pEngineImGuiContext->SetRectPosition(sceneRectX, sceneRectY);
 		m_pEngineImGuiContext->Update(deltaTime);
 
 		UpdateMaterials();
@@ -682,13 +670,46 @@ bool EditorApp::Update(float deltaTime)
 				pRenderer->Render(deltaTime);
 			}
 		}
-	}
 
+		m_pEngineImGuiContext->EndFrame();
+	}
 	m_pRenderContext->EndFrame();
 
 	engine::Input::Get().FlushInputs();
 
 	return !GetMainWindow()->ShouldClose();
+}
+
+void EditorApp::InitWindowManager()
+{
+	m_pWindowManager = std::make_unique<engine::WindowManager>();
+	m_pWindowManager->OnMouseMove.Bind<EditorApp, &EditorApp::HandleMouseMotionEvent>(this);
+}
+
+void EditorApp::HandleMouseMotionEvent(uint32_t windowID, int x, int y)
+{
+	engine::Input::Get().SetMousePositionX(x);
+	engine::Input::Get().SetMousePositionY(y);
+
+	//auto [screenX, screenY] = engine::Input::GetGloalMousePosition();
+	////auto* pWindow = m_pWindowManager->GetWindow(windowID);	
+	//for (auto& [_, pImGuiContext] : m_pImGuiContextManager->GetAllImGuiContexts())
+	//{
+	//	if (pImGuiContext->IsViewportEnable())
+	//	{
+	//		// In multiple viewport mode, it always use global screen space coordinates.
+	//		engine::Input::Get().SetMousePositionX(screenX);
+	//		engine::Input::Get().SetMousePositionY(screenY);
+	//	}
+	//	else
+	//	{
+	//		if (pImGuiContext->IsInsideDisplayRect())
+	//		{
+	//			engine::Input::Get().SetMousePositionX(x);
+	//			engine::Input::Get().SetMousePositionY(y);
+	//		}
+	//	}
+	//}
 }
 
 }

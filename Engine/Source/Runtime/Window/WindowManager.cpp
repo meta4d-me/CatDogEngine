@@ -4,9 +4,6 @@
 #include "Input.h"
 #include "Window.h"
 
-// TODO : remove imgui dependencies.
-#include "ImGui/imgui.h"
-
 #include "SDL.h"
 
 #include <cassert>
@@ -24,25 +21,25 @@ WindowManager::~WindowManager()
 	Window::Shutdown();
 }
 
-Window* WindowManager::GetWindow(void* handle) const
+Window* WindowManager::GetWindow(uint32_t id) const
 {
-	auto itWindow = m_mapWindows.find(handle);
-	return itWindow != m_mapWindows.end() ? itWindow->second.get() : nullptr;
+	auto itWindow = m_allWindows.find(id);
+	return itWindow != m_allWindows.end() ? itWindow->second.get() : nullptr;
 }
 
 void WindowManager::AddWindow(std::unique_ptr<Window> pWindow)
 {
-	m_mapWindows[pWindow->GetHandle()] = cd::MoveTemp(pWindow);
+	m_allWindows[pWindow->GetID()] = cd::MoveTemp(pWindow);
 }
 
-void WindowManager::RemoveWindow(void* handle)
+void WindowManager::RemoveWindow(uint32_t id)
 {
-	m_mapWindows.erase(handle);
+	m_allWindows.erase(id);
 }
 
 engine::Window* WindowManager::GetActiveWindow() const
 {
-	for (const auto& [_, pWindow] : m_mapWindows)
+	for (const auto& [_, pWindow] : m_allWindows)
 	{
 		if (pWindow->IsFocused())
 		{
@@ -62,7 +59,7 @@ void WindowManager::Update()
 		{
 		case SDL_QUIT:
 		{
-			for (const auto& [_, pWindow] : m_mapWindows)
+			for (const auto& [_, pWindow] : m_allWindows)
 			{
 				pWindow->Close(false);
 			}
@@ -98,12 +95,12 @@ void WindowManager::Update()
 			case SDL_WINDOWEVENT_MOVED:
 			case SDL_WINDOWEVENT_RESIZED:
 			{
-				if (ImGuiViewport* pViewport = ImGui::FindViewportByPlatformHandle((void*)SDL_GetWindowFromID(wev.windowID)))
-				{
-					pViewport->PlatformRequestClose = wev.event == SDL_WINDOWEVENT_CLOSE;
-					pViewport->PlatformRequestMove = wev.event == SDL_WINDOWEVENT_MOVED;
-					pViewport->PlatformRequestResize = wev.event == SDL_WINDOWEVENT_RESIZED;
-				}
+				//if (ImGuiViewport* pViewport = ImGui::FindViewportByPlatformHandle((void*)SDL_GetWindowFromID(wev.windowID)))
+				//{
+				//	pViewport->PlatformRequestClose = wev.event == SDL_WINDOWEVENT_CLOSE;
+				//	pViewport->PlatformRequestMove = wev.event == SDL_WINDOWEVENT_MOVED;
+				//	pViewport->PlatformRequestResize = wev.event == SDL_WINDOWEVENT_RESIZED;
+				//}
 			}
 			break;
 			}
@@ -112,23 +109,8 @@ void WindowManager::Update()
 
 		case SDL_MOUSEMOTION:
 		{
-			// Top left is (0,0) for (x, y)
-			// xrel is positive to the right, negative to the left
-			// yrel is positive to the bottom, negative to the top
 			const SDL_MouseMotionEvent& mouseMotionEvent = sdlEvent.motion;
-			int mouseX = mouseMotionEvent.x;
-			int mouseY = mouseMotionEvent.y;
-			if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-			{
-				int windowX, windowY;
-				SDL_GetWindowPosition(SDL_GetWindowFromID(mouseMotionEvent.windowID), &windowX, &windowY);
-				mouseX += windowX;
-				mouseY += windowY;
-			}
-			Input::Get().SetMousePositionX(mouseX);
-			Input::Get().SetMousePositionY(mouseY);
-			//Input::Get().SetMousePositionOffsetX(mouseMotionEvent.xrel);
-			//Input::Get().SetMousePositionOffsetY(mouseMotionEvent.yrel);
+			OnMouseMove.Invoke(mouseMotionEvent.windowID, mouseMotionEvent.x, mouseMotionEvent.y);
 		}
 		break;
 
