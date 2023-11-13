@@ -352,7 +352,7 @@ void EditorApp::InitFileWatcher()
 	FileWatchCallbackWrapper::SetRenderContext(m_pRenderContext.get());
 	FileWatchCallbackWrapper::SetWindow(GetMainWindow());
 	m_pFileWatcher = std::make_unique<FileWatcher>();
-	m_pFileWatcher->Watch(watchPath, FileWatchCallbackWrapper::Callback, 0, nullptr); // DMON_WATCHFLAGS_RECURSIVE
+	m_pFileWatcher->Watch(watchPath, FileWatchCallbackWrapper::Callback, 0, nullptr);
 }
 
 void EditorApp::ShaderHotModifyDetec()

@@ -109,7 +109,7 @@ public:
                 CD_TRACE("    Path : {0}", rootDir);
                 CD_TRACE("    Name : {0}", filePath);
 
-                if (m_pWindow->GetInputFocus())
+                if (m_pWindow->GetInputFocus() && engine::Path::GetExtension(filePath) != ".sc")
                 {
                     return;
                 }

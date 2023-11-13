@@ -33,6 +33,7 @@ public:
 	static bool DirectoryExists(const char* pDirectoryPath);
 	static std::string GetFileName(const char* pFilePath);
 	static std::string GetFileNameWithoutExtension(const char* pFilePath);
+	static std::string GetExtension(const char* pFilePath);
 
 private:
 	static std::filesystem::path GetEngineBuiltinShaderPath();

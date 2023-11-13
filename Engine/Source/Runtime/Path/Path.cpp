@@ -142,12 +142,17 @@ bool Path::DirectoryExists(const char* pDirectoryPath)
 
 std::string Path::GetFileName(const char* pFilePath)
 {
-    return std::filesystem::path(pFilePath).filename().string();
+    return std::filesystem::path(pFilePath).filename().generic_string();
 }
 
 std::string Path::GetFileNameWithoutExtension(const char* pFilePath)
 {
-    return std::filesystem::path(pFilePath).stem().string();
+    return std::filesystem::path(pFilePath).stem().generic_string();
+}
+
+std::string Path::GetExtension(const char* pFilePath)
+{
+    return std::filesystem::path(pFilePath).extension().generic_string();
 }
 
 }
