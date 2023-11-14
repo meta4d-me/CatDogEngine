@@ -219,6 +219,7 @@ void EditorApp::InitEditorUILayers()
 
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pAssetBrowser));
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<OutputLog>("OutputLog"));
+	m_pImGuiContextManager->RegisterImGuiLayersFromContext(m_pEditorImGuiContext);
 }
 
 void EditorApp::InitEngineImGuiContext(engine::Language language)
@@ -240,6 +241,7 @@ void EditorApp::InitEngineUILayers()
 	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<engine::DebugPanel>("DebugPanel"));
 	m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<editor::ImGuizmoView>("ImGuizmoView"));
 	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<TestNodeEditor>("TestNodeEditor"));
+	m_pImGuiContextManager->RegisterImGuiLayersFromContext(m_pEngineImGuiContext);
 }
 
 void EditorApp::InitECWorld()

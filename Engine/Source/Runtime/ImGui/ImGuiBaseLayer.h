@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/StringCrc.h"
+
 #include <optional>
 #include <utility>
 
@@ -9,6 +11,7 @@ namespace engine
 {
 
 class ImGuiContextInstance;
+class ImGuiContextManager;
 class RenderContext;
 class SceneWorld;
 
@@ -36,7 +39,8 @@ public:
 	bool IsEnable() const { return m_isEnable; }
 
 	ImGuiContextInstance* GetImGuiContextInstance() const;
-
+	ImGuiContextManager* GetImGuiContextManager() const;
+	ImGuiBaseLayer* GetImGuiLayer(StringCrc nameCrc) const;
 	RenderContext* GetRenderContext() const;
 	SceneWorld* GetSceneWorld() const;
 

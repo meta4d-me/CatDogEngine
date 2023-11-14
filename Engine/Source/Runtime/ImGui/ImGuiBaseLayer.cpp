@@ -2,6 +2,7 @@
 
 #include "ECWorld/SceneWorld.h"
 #include "ImGui/ImGuiContextInstance.h"
+#include "ImGui/ImGuiContextManager.h"
 #include "Rendering/RenderContext.h"
 
 #include <imgui/imgui.h>
@@ -36,6 +37,16 @@ std::pair<float, float> ImGuiBaseLayer::GetRectSize() const
 ImGuiContextInstance* ImGuiBaseLayer::GetImGuiContextInstance() const
 {
 	return static_cast<engine::ImGuiContextInstance*>(ImGui::GetIO().UserData);
+}
+
+ImGuiContextManager* ImGuiBaseLayer::GetImGuiContextManager() const
+{
+	return GetImGuiContextInstance()->GetContextManager();
+}
+
+ImGuiBaseLayer* ImGuiBaseLayer::GetImGuiLayer(StringCrc nameCrc) const
+{
+	return GetImGuiContextManager()->GetImGuiLayer(nameCrc);
 }
 
 RenderContext* ImGuiBaseLayer::GetRenderContext() const

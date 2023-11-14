@@ -218,21 +218,13 @@ bool ImGuiContextInstance::IsInsideDisplayRect(float x, float y) const
 void ImGuiContextInstance::AddStaticLayer(std::unique_ptr<ImGuiBaseLayer> pLayer)
 {
 	pLayer->Init();
-	m_mapNameCrcToLayers[StringCrc(pLayer->GetName())] = pLayer.get();
 	m_pImGuiStaticLayers.emplace_back(std::move(pLayer));
 }
 
 void ImGuiContextInstance::AddDynamicLayer(std::unique_ptr<ImGuiBaseLayer> pLayer)
 {
 	pLayer->Init();
-	m_mapNameCrcToLayers[StringCrc(pLayer->GetName())] = pLayer.get();
 	m_pImGuiDockableLayers.emplace_back(std::move(pLayer));
-}
-
-ImGuiBaseLayer* ImGuiContextInstance::GetLayerByName(StringCrc nameCrc) const
-{
-	auto itLayer = m_mapNameCrcToLayers.find(nameCrc);
-	return itLayer != m_mapNameCrcToLayers.end() ? itLayer->second : nullptr;
 }
 
 void ImGuiContextInstance::ClearUILayers()

@@ -41,7 +41,7 @@ void ImGuizmoView::Update()
 	}
 
 	constexpr engine::StringCrc sceneViewName("SceneView");
-	auto* pSceneView = reinterpret_cast<SceneView*>(GetImGuiContextInstance()->GetLayerByName(sceneViewName));
+	auto* pSceneView = reinterpret_cast<SceneView*>(GetImGuiLayer(sceneViewName));
 	ImGuizmo::OPERATION operation = pSceneView->GetImGuizmoOperation();
 	const engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
 

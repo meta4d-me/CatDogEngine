@@ -204,7 +204,7 @@ void MainMenu::WindowMenu()
 {
 	if (ImGui::BeginMenu(CD_TEXT("TEXT_WINDOW")))
 	{
-		for (const auto& pDockableLayer : GetImGuiContextInstance()->GetDockableLayers())
+		for (const auto& pDockableLayer : GetImGuiContextInstance()->GetDynamicLayers())
 		{
 			if (ImGui::MenuItem(pDockableLayer->GetName(), "", pDockableLayer->IsEnable()))
 			{

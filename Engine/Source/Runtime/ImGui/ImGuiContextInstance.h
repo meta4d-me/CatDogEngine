@@ -18,6 +18,7 @@ namespace engine
 {
 
 class ImGuiBaseLayer;
+class ImGuiContextManager;
 class RenderContext;
 class SceneWorld;
 class WindowManager;
@@ -39,6 +40,8 @@ public:
 	ImGuiIO& GetIO() const;
 	ImGuiPlatformIO& GetPlatformIO() const;
 	ImGuiStyle& GetStyle() const;
+	void SetContextManager(ImGuiContextManager* pManager) { m_pImGuiContextManager = pManager; }
+	ImGuiContextManager* GetContextManager() const { return m_pImGuiContextManager; }
 	void InitBackendUserData(void* pWindow, void* pRenderContext);
 
 	// Display
@@ -46,10 +49,10 @@ public:
 	void SetDisplaySize(uint16_t width, uint16_t height);
 	void OnResize(uint16_t width, uint16_t height);
 	bool IsInsideDisplayRect(float x, float y) const;
+	const std::vector<std::unique_ptr<ImGuiBaseLayer>>& GetStaticLayers() const { return m_pImGuiStaticLayers; }
 	void AddStaticLayer(std::unique_ptr<ImGuiBaseLayer> pLayer);
-	std::vector<std::unique_ptr<ImGuiBaseLayer>>& GetDockableLayers() { return m_pImGuiDockableLayers; }
+	const std::vector<std::unique_ptr<ImGuiBaseLayer>>& GetDynamicLayers() const { return m_pImGuiDockableLayers; }
 	void AddDynamicLayer(std::unique_ptr<ImGuiBaseLayer> pLayer);
-	ImGuiBaseLayer* GetLayerByName(StringCrc nameCrc) const;
 	void ClearUILayers();
 
 	// Styles
@@ -92,6 +95,7 @@ private:
 private:
 	SceneWorld* m_pSceneWorld = nullptr;
 	ImGuiContext* m_pImGuiContext = nullptr;
+	ImGuiContextManager* m_pImGuiContextManager = nullptr;
 	Language m_language;
 	ThemeColor m_themeColor;
 
@@ -105,7 +109,6 @@ private:
 	float m_lastMousePositionX = 0.0f;
 	float m_lastMousePositionY = 0.0f;
 
-	std::map<StringCrc, ImGuiBaseLayer*> m_mapNameCrcToLayers;
 	std::vector<std::unique_ptr<ImGuiBaseLayer>> m_pImGuiStaticLayers;
 	std::vector<std::unique_ptr<ImGuiBaseLayer>> m_pImGuiDockableLayers;
 };
