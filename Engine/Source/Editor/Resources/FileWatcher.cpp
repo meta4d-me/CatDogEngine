@@ -1,7 +1,4 @@
-#pragma once
-
-#include <cstdint>
-#include <functional>
+#include "FileWatcher.h"
 
 #include "Log/Log.h"
 #include "Path/Path.h"
@@ -20,70 +17,18 @@ namespace editor
 using WatchID = dmon_watch_id;
 using WatchAction = dmon_action;
 
-class FileWatcher final
+namespace
 {
 
-public:
-    FileWatcher(const FileWatcher&) = delete;
-    FileWatcher& operator=(const FileWatcher&) = delete;
-    FileWatcher(FileWatcher&&) = delete;
-    FileWatcher& operator=(FileWatcher&&) = delete;
-
-    FileWatcher()
-    {
-        Init();
-    }
-
-    ~FileWatcher()
-    {
-        Deinit();
-    }
-
-    void Init()
-    {
-        dmon_init();
-    }
-
-    void Deinit()
-    {
-        dmon_deinit();
-    }
-
-    WatchID Watch(
-        const char* rootDir,
-        void (*callback)(
-            WatchID watchID, WatchAction action,
-            const char* dirName, const char* filename,
-            const char* oldName, void* user),
-        uint32_t flags, void* userData)
-    {
-        WatchID watchID = dmon_watch(rootDir, callback, flags, userData);
-
-        CD_INFO("Start watching {0}", rootDir);
-        CD_INFO("    Watch ID {0}", watchID.id);
-
-        m_witchInfos[watchID.id] = rootDir;
-
-        return watchID;
-    }
-
-    void UnWatch(WatchID watchID)
-    {
-        dmon_unwatch(watchID);
-    }
-
-    std::map<uint32_t, std::string> m_witchInfos;
-};
-
-class FileWatchCallbackWrapper final
+class ShaderHotModifyCallbackWrapper final
 {
 public:
-    FileWatchCallbackWrapper() = default;
-    FileWatchCallbackWrapper(const FileWatchCallbackWrapper&) = delete;
-    FileWatchCallbackWrapper& operator=(const FileWatchCallbackWrapper&) = delete;
-    FileWatchCallbackWrapper(FileWatchCallbackWrapper&&) = delete;
-    FileWatchCallbackWrapper& operator=(FileWatchCallbackWrapper&&) = delete;
-    ~FileWatchCallbackWrapper() = default;
+    ShaderHotModifyCallbackWrapper() = default;
+    ShaderHotModifyCallbackWrapper(const ShaderHotModifyCallbackWrapper&) = delete;
+    ShaderHotModifyCallbackWrapper& operator=(const ShaderHotModifyCallbackWrapper&) = delete;
+    ShaderHotModifyCallbackWrapper(ShaderHotModifyCallbackWrapper&&) = delete;
+    ShaderHotModifyCallbackWrapper& operator=(ShaderHotModifyCallbackWrapper&&) = delete;
+    ~ShaderHotModifyCallbackWrapper() = default;
 
     static void Callback(
         WatchID id, WatchAction action,
@@ -111,6 +56,8 @@ public:
 
                 if (m_pWindow->GetInputFocus() && engine::Path::GetExtension(filePath) != ".sc")
                 {
+                    // Returns when the window does not get focus.
+                    // Returns when a non-shader file is detected.
                     return;
                 }
 
@@ -130,21 +77,64 @@ public:
         }
     }
 
-    static void SetRenderContext(engine::RenderContext* pRenderContext)
-    {
-        m_pRenderContext = pRenderContext;
-    }
-
-    static void SetWindow(engine::Window* pWindow)
-    {
-        m_pWindow = pWindow;
-    }
-
     static engine::RenderContext* m_pRenderContext;
     static engine::Window* m_pWindow;
 };
 
-engine::RenderContext* FileWatchCallbackWrapper::m_pRenderContext = nullptr;
-engine::Window* FileWatchCallbackWrapper::m_pWindow = nullptr;
+engine::RenderContext* ShaderHotModifyCallbackWrapper::m_pRenderContext = nullptr;
+engine::Window* ShaderHotModifyCallbackWrapper::m_pWindow = nullptr;
+
+}
+
+FileWatcher::FileWatcher()
+{
+    Init();
+}
+
+FileWatcher::~FileWatcher()
+{
+    Deinit();
+}
+
+void FileWatcher::Init() const
+{
+    dmon_init();
+}
+
+void FileWatcher::Deinit() const
+{
+    dmon_deinit();
+}
+
+uint32_t FileWatcher::WatchShaders(const char* rootDir)
+{
+    ShaderHotModifyCallbackWrapper::m_pRenderContext = m_pRenderContext;
+    ShaderHotModifyCallbackWrapper::m_pWindow = m_pWindow;
+
+    WatchID watchID = dmon_watch(rootDir, ShaderHotModifyCallbackWrapper::Callback, 0, nullptr);
+    
+    CD_INFO("Start watching {0}", rootDir);
+    CD_INFO("    Watch ID {0}", watchID.id);
+    
+    m_witchInfos[watchID.id] = rootDir;
+
+    return watchID.id;
+}
+
+void FileWatcher::UnWatch(uint32_t watchID)
+{
+    dmon_unwatch(WatchID{ watchID });
+    m_witchInfos.erase(watchID);
+}
+
+void FileWatcher::SetWitchInfos(std::map<uint32_t, const char*> witchInfos)
+{
+    m_witchInfos = cd::MoveTemp(witchInfos);
+}
+
+const char* FileWatcher::GetWatchingPath(uint32_t id) const
+{
+    return m_witchInfos.at(id);
+}
 
 }

@@ -31,7 +31,7 @@
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Rendering/ParticleRenderer.h"
-#include "Resources/FileWatcher.hpp"
+#include "Resources/FileWatcher.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ShaderBuilder.h"
 #include "Scene/SceneDatabase.h"
@@ -349,10 +349,10 @@ void EditorApp::InitFileWatcher()
 {
 	constexpr const char* watchPath = CDENGINE_BUILTIN_SHADER_PATH "shaders/";
 
-	FileWatchCallbackWrapper::SetRenderContext(m_pRenderContext.get());
-	FileWatchCallbackWrapper::SetWindow(GetMainWindow());
 	m_pFileWatcher = std::make_unique<FileWatcher>();
-	m_pFileWatcher->Watch(watchPath, FileWatchCallbackWrapper::Callback, 0, nullptr);
+	m_pFileWatcher->SetRenderContext(m_pRenderContext.get());
+	m_pFileWatcher->SetWindow(GetMainWindow());
+	m_pFileWatcher->WatchShaders(watchPath);
 }
 
 void EditorApp::ShaderHotModifyDetec()
