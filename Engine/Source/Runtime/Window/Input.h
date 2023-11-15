@@ -48,8 +48,14 @@ public:
 	// TODO : consider foreground/background switch.
 	void Reset()
 	{
+		// mouse
 		m_mousePositionOffsetX = m_mousePositionOffsetY = 0;
 		m_mouseScrollOffsetY = 0;
+
+		// keyboard
+		m_keyEventList.clear();
+		m_inputCharBufferIndex = 0;
+		m_inputCharBuffer[0] = '\0';
 	}
 
 	// Mouse device
@@ -94,10 +100,6 @@ public:
 
 	const std::vector<KeyEvent>& GetKeyEventList() const { return m_keyEventList; }
 	const char* GetInputCharacters() const { return m_inputCharBuffer.data(); }
-
-	void FlushInputs();
-
-	void Update();
 
 private:
 	Input();

@@ -204,7 +204,7 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 
 void EditorApp::InitEditorUILayers()
 {
-	InitEditorController();
+	InitCameraController();
 
 	// Add UI layers after finish imgui and rendering contexts' initialization.
 	auto pMainMenu = std::make_unique<MainMenu>("MainMenu");
@@ -562,14 +562,10 @@ void EditorApp::InitShaderPrograms(bool compileAllShaders) const
 	}
 }
 
-void EditorApp::InitEditorController()
+void EditorApp::InitCameraController()
 {
-	// Controller for Input events.
-	m_pViewportCameraController = std::make_unique<engine::ViewportCameraController>(
-		m_pSceneWorld.get(),
-		12.0f /* horizontal sensitivity */,
-		12.0f /* vertical sensitivity */);
-	m_pViewportCameraController->CameraToController();
+	m_pViewportCameraController = std::make_unique<engine::ViewportCameraController>(m_pSceneWorld.get(),
+		12.0f /* horizontal sensitivity */, 12.0f /* vertical sensitivity */, 5.0f /* move speed */);
 }
 
 void EditorApp::AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer)
@@ -620,6 +616,9 @@ bool EditorApp::Update(float deltaTime)
 		InitEngineUILayers();
 	}
 
+	// Input
+	engine::Input::Get().Reset();
+
 	// Window
 	m_pWindowManager->Update();
 	auto mainWindowPos = m_pMainWindow->GetPosition();
@@ -628,9 +627,6 @@ bool EditorApp::Update(float deltaTime)
 
 	// World Data
 	m_pSceneWorld->Update();
-
-	// Input
-	engine::Input::Get().Update();
 
 	// Update Editor GUI
 	m_pEditorImGuiContext->SetRectPosition(mainWindowX, mainWindowY);
@@ -688,9 +684,6 @@ bool EditorApp::Update(float deltaTime)
 		m_pEngineImGuiContext->EndFrame();
 	}
 	m_pRenderContext->EndFrame();
-
-	// Reset input data.
-	engine::Input::Get().FlushInputs();
 
 	return !GetMainWindow()->ShouldClose();
 }

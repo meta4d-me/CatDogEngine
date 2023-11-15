@@ -21,7 +21,7 @@ public:
 	virtual bool IsTurning() const { return false; }
 	virtual bool IsTracking() const { return false; }
 	virtual bool IsInWalkMode() const { return false; }
-	virtual bool IsControling() const { return IsInAnimation() || IsZooming() || IsFOVZooming() || IsPanning() || IsTurning() || IsTracking() || IsInWalkMode(); }
+	virtual bool IsInControl() const { return IsInAnimation() || IsZooming() || IsFOVZooming() || IsPanning() || IsTurning() || IsTracking() || IsInWalkMode(); }
 
 	// Event Handlers
 	virtual void OnMouseDown() {}

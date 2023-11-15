@@ -14,24 +14,11 @@
 namespace engine
 {
 
-ViewportCameraController::ViewportCameraController(
-	const SceneWorld* pSceneWorld,
-	float sensitivity,
-	float movement_speed)
-	: ViewportCameraController(pSceneWorld, sensitivity, sensitivity, movement_speed)
-{
-}
-
-ViewportCameraController::ViewportCameraController(
-	const SceneWorld* pSceneWorld,
-	float horizontal_sensitivity,
-	float vertical_sensitivity,
-	float movement_speed)
-	: m_pSceneWorld(pSceneWorld)
-	, m_horizontalSensitivity(horizontal_sensitivity)
-	, m_verticalSensitivity(vertical_sensitivity)
-	, m_movementSpeed(movement_speed)
-	, m_initialMovemenSpeed(movement_speed)
+ViewportCameraController::ViewportCameraController(const SceneWorld* pSceneWorld, float horizontal_sensitivity, float vertical_sensitivity, float movement_speed) :
+	m_pSceneWorld(pSceneWorld),
+	m_horizontalSensitivity(horizontal_sensitivity),
+	m_verticalSensitivity(vertical_sensitivity),
+	m_movementSpeed(movement_speed)
 {
 	assert(pSceneWorld);
 }
@@ -53,14 +40,18 @@ bool ViewportCameraController::IsZooming() const
 
 bool ViewportCameraController::IsPanning() const
 {
-	return ImGui::IsMouseDown(ImGuiMouseButton_Middle);
+	if (ImGui::IsMouseDown(ImGuiMouseButton_Middle))
+	{
+		return !ImGui::IsMouseDown(ImGuiMouseButton_Left) && !ImGui::IsMouseDown(ImGuiMouseButton_Right);
+	}
+
+	return ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::IsMouseDown(ImGuiMouseButton_Right);
 }
 
 bool ViewportCameraController::IsTurning() const
 {
 	if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
 	{
-		// Offset Y is used to zoom in/out when left mouse button down.
 		return Input::Get().GetMousePositionOffsetX() != 0.0f;
 	}
 
@@ -100,11 +91,28 @@ void ViewportCameraController::OnMouseUp()
 void ViewportCameraController::OnMouseMove(float x, float y)
 {
 	bool dirty = false;
-	if (IsZooming())
+	do
 	{
-		Zoom(y);
-		dirty = true;
-	}
+		if (IsPanning())
+		{
+			Panning(x, y);
+			dirty = true;
+			// While panning, should not do other opertions at the same time.
+			break;
+		}
+
+		if (IsZooming())
+		{
+			Zoom(-y);
+			dirty = true;
+		}
+
+		if (IsTurning())
+		{
+			Turning(x, y);
+			dirty = true;
+		}
+	} while (false);
 
 	if (dirty)
 	{
@@ -127,12 +135,35 @@ void ViewportCameraController::OnMouseWheel(float y)
 	}
 }
 
+void ViewportCameraController::Zoom(float delta)
+{
+	float scaleDelta = delta * m_movementSpeed;
+	m_distanceFromLookAt -= scaleDelta;
+	m_eye = m_eye + m_lookAt * scaleDelta;
+}
+
+void ViewportCameraController::Panning(float x, float y)
+{
+	MoveLeft(x);
+	m_eye = m_eye + m_up * y;
+}
+
+void ViewportCameraController::Turning(float x, float y)
+{
+
+}
+
 void ViewportCameraController::Update(float deltaTime)
 {
 	if (IsInAnimation())
 	{
 		// Camera is focusing an entity automatically.
 		return;
+	}
+
+	if (IsInControl())
+	{
+		CameraToController();
 	}
 
 	float offsetX = static_cast<float>(Input::Get().GetMousePositionOffsetX());
@@ -248,8 +279,8 @@ void ViewportCameraController::CameraToController()
 void ViewportCameraController::ControllerToCamera()
 {
 	cd::Vec3f eye = m_eye;
-	cd::Vec3f lookAt = m_lookAt;
-	cd::Vec3f up = m_up;
+	cd::Vec3f lookAt = m_lookAt.Normalize();
+	cd::Vec3f up = m_up.Normalize();
 
 	if (m_isTracking)
 	{
@@ -282,9 +313,10 @@ void ViewportCameraController::ControllerToCamera()
 	TransformComponent* pTransformComponent = GetMainCameraTransformComponent();
 	pTransformComponent->GetTransform().SetTranslation(eye);
 	
-	cd::Vec3f rotationAxis = cd::Vec3f(0.0f, 0.0f,1.0f).Cross(lookAt).Normalize();
+	cd::Vec3f rotationAxis = cd::Vec3f(0.0f, 0.0f, 1.0f).Cross(lookAt);
 	float rotationAngle = std::acos(cd::Vec3f(0.0f, 0.0f, 1.0f).Dot(lookAt));
 	pTransformComponent->GetTransform().SetRotation(cd::Quaternion::FromAxisAngle(rotationAxis, rotationAngle));
+	pTransformComponent->Dirty();
 	pTransformComponent->Build();
 }
 
@@ -327,7 +359,6 @@ const cd::Transform& ViewportCameraController::GetMainCameraTransform()
 void ViewportCameraController::MoveForward(float amount)
 {
 	m_eye = m_eye + m_lookAt * amount;
-	ControllerToCamera();
 }
 
 void ViewportCameraController::MoveBackward(float amount)
@@ -338,7 +369,6 @@ void ViewportCameraController::MoveBackward(float amount)
 void ViewportCameraController::MoveLeft(float amount)
 {
 	m_eye = m_eye + m_lookAt.Cross(m_up) * amount;
-	ControllerToCamera();
 }
 
 void ViewportCameraController::MoveRight(float amount)
@@ -349,7 +379,6 @@ void ViewportCameraController::MoveRight(float amount)
 void ViewportCameraController::MoveUp(float amount)
 {
 	m_eye = m_eye + cd::Vec3f(0.0f, 1.0f, 0.0f) * amount;
-	ControllerToCamera();
 }
 
 void ViewportCameraController::MoveDown(float amount)
@@ -411,7 +440,6 @@ void ViewportCameraController::ElevationChanging(float angleDegrees)
 	{
 		m_elevation += cd::Math::TWO_PI;
 	}
-	ControllerToCamera();
 }
 
 void ViewportCameraController::AzimuthChanging(float angleDegrees)
@@ -425,7 +453,6 @@ void ViewportCameraController::AzimuthChanging(float angleDegrees)
 	{
 		m_azimuth += cd::Math::TWO_PI;
 	}
-	ControllerToCamera();
 }
 
 void ViewportCameraController::SynchronizeTrackingCamera()
@@ -495,19 +522,6 @@ void ViewportCameraController::Focusing()
 			ControllerToCamera();
 		}
 	}
-}
-
-void ViewportCameraController::Zoom(float delta)
-{
-	float scaleDelta = delta * m_movementSpeed;
-	m_distanceFromLookAt -= scaleDelta;
-	m_eye = m_eye + m_lookAt * scaleDelta;
-}
-
-void ViewportCameraController::Panning(float x, float y)
-{
-	MoveLeft(x);
-	m_eye = m_eye + m_up * y;
 }
 
 void ViewportCameraController::MoveToPosition(cd::Point position, cd::Vec3f rotation)

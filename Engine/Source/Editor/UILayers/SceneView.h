@@ -57,7 +57,7 @@ public:
 
 	engine::MulticastDelegate<void(uint16_t, uint16_t)> OnResize;
 
-	void PickSceneMesh(float regionWidth, float regionHeight);
+	void PickSceneMesh();
 
 	ImGuizmo::OPERATION GetImGuizmoOperation() const { return m_currentOperation; }
 	RenderModeType GetRenderMode() const { return m_renderMode; }

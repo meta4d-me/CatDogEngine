@@ -165,9 +165,6 @@ void MainMenu::ViewMenu()
 			pTransformComponent->Dirty();
 			pTransformComponent->Build();
 			pCameraComponent->BuildViewMatrix(pTransformComponent->GetTransform());
-
-			// TODO : add event queue to get mouse down and up events.
-			pCameraController->CameraToController();
 		}
 	};
 

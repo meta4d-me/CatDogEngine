@@ -74,7 +74,7 @@ public:
 	void InitECWorld();
 	
 	// Misc
-	void InitEditorController();
+	void InitCameraController();
 	bool IsAtmosphericScatteringEnable() const;
 
 private:

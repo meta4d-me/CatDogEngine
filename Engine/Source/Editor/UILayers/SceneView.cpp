@@ -237,14 +237,13 @@ void SceneView::UpdateToolMenuButtons()
 	ImGui::PopStyleColor();
 }
 
-void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
+void SceneView::PickSceneMesh()
 {
 	// Loop through scene's all static meshes' AABB to test intersections with Ray.
 	engine::SceneWorld* pSceneWorld = GetSceneWorld();
 	engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
 	ImVec2 mousePos = ImGui::GetMousePos();
-	auto [scenePosX, scenePosY] = GetRectPosition();
-	cd::Ray pickRay = pCameraComponent->EmitRay(mousePos.x - scenePosX, mousePos.y - scenePosY, regionWidth, regionHeight);
+	cd::Ray pickRay = pCameraComponent->EmitRay(mousePos.x - m_workRectPosX, mousePos.y - m_workRectPosY, m_workRectWidth, m_workRectHeight);
 
 	float minRayTime = FLT_MAX;
 	engine::Entity nearestEntity = engine::INVALID_ENTITY;
@@ -322,22 +321,30 @@ void SceneView::Update()
 		}
 	}
 
-	// Draw scene.
-	ImGui::Image(reinterpret_cast<ImTextureID>(m_pRenderTarget->GetTextureHandle(0).idx),
-		ImVec2(m_pRenderTarget->GetWidth(), m_pRenderTarget->GetHeight()));
+	// Draw scene : index 0 should be SceneColor.
+	ImGui::Image(reinterpret_cast<ImTextureID>(m_pRenderTarget->GetTextureHandle(0).idx), ImVec2(m_pRenderTarget->GetWidth(), m_pRenderTarget->GetHeight()));
 
 	ImGui::PopStyleVar();
 	ImGui::End();
 
-	if (m_currentOperation == SelectOperation && ImGui::IsMouseDown(ImGuiMouseButton_Left))
+	// Operations
+	if (m_pCameraController->IsInControl() || ImGuizmo::IsUsing())
 	{
-		PickSceneMesh(regionWidth, regionHeight);
 	}
-
-	if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) &&
-		engine::INVALID_ENTITY != pSceneWorld->GetSelectedEntity())
+	else
 	{
-		m_pCameraController->CameraFocus();
+		// Pick
+		if (m_currentOperation == SelectOperation && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		{
+			PickSceneMesh();
+		}
+
+		// Focus
+		if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) &&
+			engine::INVALID_ENTITY != pSceneWorld->GetSelectedEntity())
+		{
+			m_pCameraController->CameraFocus();
+		}
 	}
 }
 

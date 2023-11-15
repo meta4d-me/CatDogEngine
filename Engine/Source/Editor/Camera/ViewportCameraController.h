@@ -15,14 +15,12 @@ class ViewportCameraController : public ICameraController
 {
 public:
 	ViewportCameraController() = delete;
-	explicit ViewportCameraController(const SceneWorld* pSceneWorld, float sensitivity, float movement_speed);
 	explicit ViewportCameraController(const SceneWorld* pSceneWorld, float horizontal_sensitivity, float vertical_sensitivity, float movement_speed);
-	~ViewportCameraController() = default;
-
 	ViewportCameraController(const ViewportCameraController&) = delete;
 	ViewportCameraController(ViewportCameraController&&) = delete;
 	ViewportCameraController& operator=(const ViewportCameraController&) = delete;
 	ViewportCameraController& operator=(ViewportCameraController&&) = delete;
+	virtual ~ViewportCameraController() = default;
 
 	// Operations
 	virtual bool IsInAnimation() const override;
@@ -41,18 +39,14 @@ public:
 	// TODO : EventDriven, not update.
 	void Update(float deltaTime);
 
-	// Synchronizes the controller to the transform of camera current state
-	void CameraToController();
-
-	// Synchronizes the transform of camera to the controller's current state
-	void ControllerToCamera();
-
 	// Implement the effect of a translation animation.
 	void CameraFocus();
 	void Focusing();
-
+	
 	//
 	void Zoom(float delta);
+	void Panning(float x, float y);
+	void Turning(float x, float y);
 
 	// Configs
 	void SetMovementSpeed(float speed);
@@ -76,13 +70,9 @@ public:
 	void PitchLocal(float angleDegrees);
 	void RollLocal(float angleDegrees);
 
-	void Panning(float x, float y);
-
 	// Circling Operations
 	void AzimuthChanging(float amount);
 	void ElevationChanging(float amount);
-
-
 
 	// Synchronize view when begin using mayastyle camera or fpscamera
 	void SynchronizeTrackingCamera();
@@ -95,6 +85,12 @@ private:
 	const cd::Transform& GetMainCameraTransform();
 	float CalculateZoomScale() { return std::max(std::abs(m_distanceFromLookAt), m_dollyThreshold); }
 
+	// Synchronizes the controller to the transform of camera current state
+	void CameraToController();
+
+	// Synchronizes the transform of camera to the controller's current state
+	void ControllerToCamera();
+
 private:
 	const SceneWorld* m_pSceneWorld;
 
@@ -106,7 +102,6 @@ private:
 	float m_horizontalSensitivity = 0.0f;
 	float m_verticalSensitivity = 0.0f;
 	float m_movementSpeed = 0.0f;
-	float m_initialMovemenSpeed = 0.0f;
 	float m_mouseScroll = 0.0f;
 
 	cd::Vec3f m_lookAtPoint = cd::Vec3f::Zero();

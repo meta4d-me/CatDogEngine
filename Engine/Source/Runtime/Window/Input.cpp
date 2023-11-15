@@ -67,16 +67,4 @@ void Input::AppendInputCharacter(const char* c, size_t len)
 	m_inputCharBufferIndex += len;
 }
 
-void Input::FlushInputs()
-{ 
-	m_keyEventList.clear(); 
-	m_inputCharBufferIndex = 0;
-	m_inputCharBuffer[0] = '\0';
-}
-
-void Input::Update()
-{
-	Input::Get().Reset();
-}
-
 }
