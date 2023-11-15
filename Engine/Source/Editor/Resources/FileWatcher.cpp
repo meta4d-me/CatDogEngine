@@ -17,9 +17,6 @@ namespace editor
 using WatchID = dmon_watch_id;
 using WatchAction = dmon_action;
 
-namespace
-{
-
 class ShaderHotModifyCallbackWrapper final
 {
 public:
@@ -54,10 +51,10 @@ public:
                 CD_TRACE("    Path : {0}", rootDir);
                 CD_TRACE("    Name : {0}", filePath);
 
-                if (m_pWindow->GetInputFocus() && engine::Path::GetExtension(filePath) != ".sc")
+                if (m_pWindow->GetInputFocus() || engine::Path::GetExtension(filePath) != ".sc")
                 {
-                    // Returns when the window does not get focus.
-                    // Returns when a non-shader file is detected.
+                    // Return when window get focus.
+                    // Return when a non-shader file is detected.
                     return;
                 }
 
@@ -83,8 +80,6 @@ public:
 
 engine::RenderContext* ShaderHotModifyCallbackWrapper::m_pRenderContext = nullptr;
 engine::Window* ShaderHotModifyCallbackWrapper::m_pWindow = nullptr;
-
-}
 
 FileWatcher::FileWatcher()
 {

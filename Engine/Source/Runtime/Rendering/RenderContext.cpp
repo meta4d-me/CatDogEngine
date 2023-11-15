@@ -739,9 +739,9 @@ void RenderContext::DestoryShader(StringCrc resourceCrc)
 		assert(bgfx::isValid(bgfx::ShaderHandle{ it->second }));
 		bgfx::destroy(bgfx::ShaderHandle{ it->second });
 		m_shaderHandles.erase(it);
-
-		m_shaderBlobs.erase(resourceCrc);
 	}
+	// Erase shader blob anyway.
+	m_shaderBlobs.erase(resourceCrc);
 }
 
 void RenderContext::DestoryProgram(StringCrc resourceCrc)
