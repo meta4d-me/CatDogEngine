@@ -1,7 +1,8 @@
 #include "Input.h"
 
 #include "Log/Log.h"
-#include "SDL.h"
+
+#include <SDL.h>
 
 #include <imgui/imgui.h>
 #include <unordered_map>

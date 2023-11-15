@@ -13,19 +13,6 @@
 namespace engine
 {
 
-void Window::Init()
-{
-	// JoyStick : SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER
-	SDL_Init(SDL_INIT_EVENTS);
-	SDL_SetHintWithPriority("SDL_BORDERLESS_RESIZABLE_STYLE", "1", SDL_HINT_OVERRIDE);
-	SDL_SetHintWithPriority("SDL_BORDERLESS_WINDOWED_STYLE", "1", SDL_HINT_OVERRIDE);
-}
-
-void Window::Shutdown()
-{
-	SDL_Quit();
-}
-
 int Window::GetDisplayMonitorCount()
 {
 	return SDL_GetNumVideoDisplays();

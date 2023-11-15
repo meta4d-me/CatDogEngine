@@ -1,6 +1,6 @@
 ﻿#include "MainMenu.h"
 
-#include "Camera/EditorCameraController.h"
+#include "Camera/ViewportCameraController.h"
 #include "ECWorld/SceneWorld.h"
 #include "EditorApp.h"
 #include "ImGui/ImGuiContextInstance.h"
@@ -53,13 +53,13 @@ void MainMenu::FileMenu()
 
 		ImGui::Separator();
 
-		if (ImGui::MenuItem("Quit", "Ctrl Q"))
-		{
-			if (auto* pMainWindow = reinterpret_cast<engine::Window*>(ImGui::GetIO().BackendPlatformUserData))
-			{
-				pMainWindow->Close();
-			}
-		}
+		//if (ImGui::MenuItem("Quit", "Ctrl Q"))
+		//{
+		//	if (auto* pMainWindow = reinterpret_cast<engine::Window*>(ImGui::GetIO().BackendPlatformUserData))
+		//	{
+		//		pMainWindow->Close();
+		//	}
+		//}
 
 		ImGui::EndMenu();
 	}
@@ -117,7 +117,7 @@ void MainMenu::EditMenu()
 
 void MainMenu::ViewMenu()
 {
-	auto FrameEntities = [](engine::SceneWorld* pSceneWorld, const std::vector<engine::Entity>& entities, engine::EditorCameraController* pCameraController)
+	auto FrameEntities = [](engine::SceneWorld* pSceneWorld, const std::vector<engine::Entity>& entities, engine::ViewportCameraController* pCameraController)
 	{
 		if (entities.empty())
 		{
@@ -164,7 +164,6 @@ void MainMenu::ViewMenu()
 			
 			pTransformComponent->Dirty();
 			pTransformComponent->Build();
-			pCameraComponent->ViewDirty();
 			pCameraComponent->BuildViewMatrix(pTransformComponent->GetTransform());
 
 			// TODO : add event queue to get mouse down and up events.
@@ -263,14 +262,14 @@ void MainMenu::Update()
 
 	m_pCreateProjectDialog->Display();
 
-	if ((ImGui::IsKeyPressed(ImGuiKey_LeftCtrl) || ImGui::IsKeyPressed(ImGuiKey_RightCtrl))
-		&& ImGui::IsKeyPressed(ImGuiKey_Q))
-	{
-		if (auto* pMainWindow = reinterpret_cast<engine::Window*>(ImGui::GetIO().BackendPlatformUserData))
-		{
-			pMainWindow->Close();
-		}
-	}
+	//if ((ImGui::IsKeyPressed(ImGuiKey_LeftCtrl) || ImGui::IsKeyPressed(ImGuiKey_RightCtrl))
+	//	&& ImGui::IsKeyPressed(ImGuiKey_Q))
+	//{
+	//	if (auto* pMainWindow = reinterpret_cast<engine::Window*>(ImGui::GetIO().BackendPlatformUserData))
+	//	{
+	//		pMainWindow->Close();
+	//	}
+	//}
 }
 
 }

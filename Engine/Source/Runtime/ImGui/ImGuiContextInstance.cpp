@@ -180,11 +180,21 @@ ImGuiStyle& ImGuiContextInstance::GetStyle() const
 	return m_pImGuiContext->Style;
 }
 
-void ImGuiContextInstance::InitBackendUserData(void* pWindow, void* pRenderContext)
+void ImGuiContextInstance::InitBackendUserData(void* pWindowManager, void* pRenderContext)
 {
 	ImGuiIO& io = GetIO();
-	io.BackendPlatformUserData = pWindow;
+	io.BackendPlatformUserData = pWindowManager;
 	io.BackendRendererUserData = pRenderContext;
+}
+
+WindowManager* ImGuiContextInstance::GetWindowManager() const
+{
+	return static_cast<WindowManager*>(GetIO().BackendPlatformUserData);
+}
+
+RenderContext* ImGuiContextInstance::GetRenderContext() const
+{
+	return static_cast<RenderContext*>(GetIO().BackendRendererUserData);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -345,14 +355,15 @@ bool ImGuiContextInstance::IsViewportEnable() const
 	return GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable;
 }
 
-void ImGuiContextInstance::InitViewport(WindowManager* pWindowManager, RenderContext* pRenderContext)
+void ImGuiContextInstance::InitViewport()
 {
 	// Register window interfaces.
-	static WindowManager* s_pWindowManager = pWindowManager;
+	static auto* s_pWindowManager = GetWindowManager();
+
 	ImGuiPlatformIO& platformIO = GetPlatformIO();
 	platformIO.Platform_CreateWindow = [](ImGuiViewport* pViewport)
 	{
-		auto pWindow = std::make_unique<engine::Window>("ViewportWindow", static_cast<int>(pViewport->Pos.x), static_cast<int>(pViewport->Pos.y),
+		auto pWindow = std::make_unique<engine::Window>("TempName", static_cast<int>(pViewport->Pos.x), static_cast<int>(pViewport->Pos.y),
 			static_cast<int>(pViewport->Size.x), static_cast<int>(pViewport->Size.y));
 		bool noDecoration = pViewport->Flags & ImGuiViewportFlags_NoDecoration;
 		pWindow->SetBordedLess(noDecoration);
@@ -427,7 +438,7 @@ void ImGuiContextInstance::InitViewport(WindowManager* pWindowManager, RenderCon
 	};
 
 	// Register rendering interfaces.
-	static RenderContext* s_pRenderContext = pRenderContext;
+	static RenderContext* s_pRenderContext = GetRenderContext();
 	platformIO.Renderer_CreateWindow = [](ImGuiViewport* pViewport)
 	{
 		pViewport->PlatformUserData = reinterpret_cast<void*>(s_pRenderContext->CreateView());
@@ -868,6 +879,13 @@ void ImGuiContextInstance::AddMouseInputEvent()
 {
 	ImGuiIO& io = GetIO();
 
+	// TODO : is this focus event for this context?
+	if (bool isFocused = Input::Get().IsFocused(); isFocused != m_lastFocused)
+	{
+		io.AddFocusEvent(isFocused);
+		m_lastFocused = isFocused;
+	}
+
 	float mousePosX;
 	float mousePosY;
 	if (IsViewportEnable())
@@ -884,13 +902,25 @@ void ImGuiContextInstance::AddMouseInputEvent()
 	}
 
 	// Filter mouse events outside of rect.
-	if (!IsInsideDisplayRect(mousePosX, mousePosY))
+	bool isInsideDisplayRect = IsInsideDisplayRect(mousePosX, mousePosY);
+	if (isInsideDisplayRect != m_lastInsideDisplayRect)
+	{
+		if (isInsideDisplayRect)
+		{
+			OnMouseEnterDisplayRect.Invoke();
+		}
+		else
+		{
+			OnMouseLeaveDisplayRect.Invoke();
+		}
+
+		m_lastInsideDisplayRect = isInsideDisplayRect;
+	}
+
+	if (!isInsideDisplayRect)
 	{
 		return;
 	}
-
-	// TODO : is this focus event for this context?
-	io.AddFocusEvent(Input::Get().IsFocused());
 
 	if (mousePosX != m_lastMousePositionX || mousePosY != m_lastMousePositionY)
 	{

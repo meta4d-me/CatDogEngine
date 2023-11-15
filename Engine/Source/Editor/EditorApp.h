@@ -10,7 +10,7 @@ namespace engine
 {
 
 class AABBRenderer;
-class EditorCameraController;
+class ViewportCameraController;
 class FlybyCamera;
 class ImGuiBaseLayer;
 class ImGuiContextInstance;
@@ -51,7 +51,6 @@ public:
 	void InitWindowManager();
 	engine::Window* GetMainWindow() const { return m_pMainWindow; }
 	engine::WindowManager* GetWindowManager() const { return m_pWindowManager.get(); }
-	void HandleMouseMotionEvent(uint32_t windowID, int x, int y);
 
 	// Rendering Management
 	void InitRenderContext(engine::GraphicsBackend backend, void* hwnd = nullptr);
@@ -119,7 +118,7 @@ private:
 	engine::Renderer* m_pAABBRenderer = nullptr;
 
 	// Controllers for processing input events.
-	std::unique_ptr<engine::EditorCameraController> m_pViewportCameraController;
+	std::unique_ptr<engine::ViewportCameraController> m_pViewportCameraController;
 
 	std::unique_ptr<FileWatcher> m_pFileWatcher;
 };

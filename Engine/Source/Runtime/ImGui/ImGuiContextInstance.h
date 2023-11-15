@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/Delegates/Delegate.hpp"
 #include "Core/StringCrc.h"
 #include "Localization.h"
 #include "ThemeColor.h"
@@ -42,7 +43,9 @@ public:
 	ImGuiStyle& GetStyle() const;
 	void SetContextManager(ImGuiContextManager* pManager) { m_pImGuiContextManager = pManager; }
 	ImGuiContextManager* GetContextManager() const { return m_pImGuiContextManager; }
-	void InitBackendUserData(void* pWindow, void* pRenderContext);
+	void InitBackendUserData(void* pWindowManager, void* pRenderContext);
+	WindowManager* GetWindowManager() const;
+	RenderContext* GetRenderContext() const;
 
 	// Display
 	void SetRectPosition(float x, float y) { m_rectPosX = x; m_rectPosY = y; }
@@ -69,7 +72,7 @@ public:
 	// Viewport feature.
 	void EnableViewport();
 	bool IsViewportEnable() const;
-	void InitViewport(WindowManager* pWindowManager, RenderContext* pRenderContext);
+	void InitViewport();
 	void UpdateViewport();
 
 	// Loop.
@@ -80,6 +83,10 @@ public:
 	// Access to world data.
 	void SetSceneWorld(SceneWorld* pSceneWorld) { m_pSceneWorld = pSceneWorld; }
 	SceneWorld* GetSceneWorld() const { return m_pSceneWorld; }
+
+	// Delegates
+	Delegate<void(void)> OnMouseEnterDisplayRect;
+	Delegate<void(void)> OnMouseLeaveDisplayRect;
 
 private:
 	void InitLayoutStyles();
@@ -102,6 +109,8 @@ private:
 	float m_rectPosX = 0.0f;
 	float m_rectPosY = 0.0f;
 
+	bool m_lastInsideDisplayRect = false;
+	bool m_lastFocused = false;
 	bool m_lastMouseLBPressed = false;
 	bool m_lastMouseRBPressed = false;
 	bool m_lastMouseMBPressed = false;

@@ -18,8 +18,6 @@ public:
     };
 
 public:
-    static void Init();
-    static void Shutdown();
     static int GetDisplayMonitorCount();
     static const char* GetDisplayMonitorName(int index);
     static Rect GetDisplayMonitorMainRect(int index);

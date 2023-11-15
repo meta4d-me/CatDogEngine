@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Camera/EditorCameraController.h"
+#include "Camera/ViewportCameraController.h"
 #include "Core/Delegates/MulticastDelegate.hpp"
 #include "ECWorld/Entity.h"
 #include "ImGui/ImGuiBaseLayer.h"
@@ -52,6 +52,9 @@ public:
 	virtual void Init() override;
 	virtual void Update() override;
 
+	virtual std::pair<float, float> GetWorkRectPosition() const override;
+	virtual std::pair<float, float> GetWorkRectSize() const override;
+
 	engine::MulticastDelegate<void(uint16_t, uint16_t)> OnResize;
 
 	void PickSceneMesh(float regionWidth, float regionHeight);
@@ -66,7 +69,7 @@ public:
 	
 	bool IsTerrainEditMode() const { return m_isTerrainEditMode; }
 
-	void SetCameraController(engine::EditorCameraController* pCameraController) { m_pCameraController = pCameraController; }
+	void SetCameraController(engine::ViewportCameraController* pCameraController) { m_pCameraController = pCameraController; }
 	const engine::RenderTarget* GetRenderTarget() const { return m_pRenderTarget; }
 
 private:
@@ -83,6 +86,11 @@ private:
 
 	ImGuizmo::OPERATION m_currentOperation;
 
+	float m_workRectPosX = 0.0f;
+	float m_workRectPosY = 0.0f;
+	float m_workRectWidth = 1.0f;
+	float m_workRectHeight = 1.0f;
+
 	bool m_is3DMode = true;
 	bool m_isIBLActive = false;
 	bool m_isTerrainEditMode = false;
@@ -94,7 +102,7 @@ private:
 	engine::Renderer* m_pAABBRenderer = nullptr;
 
 	engine::RenderTarget* m_pRenderTarget = nullptr;
-	engine::EditorCameraController* m_pCameraController = nullptr;
+	engine::ViewportCameraController* m_pCameraController = nullptr;
 };
 
 }

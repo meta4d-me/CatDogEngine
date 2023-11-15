@@ -32,8 +32,10 @@ public:
 	uint32_t GetID() const { return m_id; }
 
 	ImGuiWindow* GetRootWindow() const;
-	std::pair<float, float> GetRectPosition() const;
-	std::pair<float, float> GetRectSize() const;
+	virtual std::pair<float, float> GetRectPosition() const;
+	virtual std::pair<float, float> GetRectSize() const;
+	virtual std::pair<float, float> GetWorkRectPosition() const;
+	virtual std::pair<float, float> GetWorkRectSize() const;
 
 	void SetEnable(bool enable) { m_isEnable = enable; }
 	bool IsEnable() const { return m_isEnable; }

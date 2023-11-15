@@ -6,10 +6,18 @@
 #include <map>
 #include <memory>
 
+struct SDL_Cursor;
+
 namespace engine
 {
 
 class Window;
+
+enum class MouseCursorType : int
+{
+	Arrow = 0,
+	Crosshair
+};
 
 class WindowManager final
 {
@@ -30,10 +38,13 @@ public:
 	void AddWindow(std::unique_ptr<engine::Window> pWindow);
 	void RemoveWindow(uint32_t id);
 
+	const SDL_Cursor* GetMouseCursor(MouseCursorType cursorType) const { return m_allMouseCursors[static_cast<int>(cursorType)]; }
+	void ShowCursor(bool on) const;
+	void SetCursor(MouseCursorType cursorType) const;
+
 	void Update();
 
 	// Delegates
-	Delegate<void(uint32_t, int, int)> OnMouseMove;
 	Delegate<void(const char*)> OnDropFile;
 
 private:
@@ -41,6 +52,7 @@ private:
 
 private:
 	MapIDToWindow m_allWindows;
+	std::vector<SDL_Cursor*> m_allMouseCursors;
 };
 
 }

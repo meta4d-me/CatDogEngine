@@ -1,6 +1,6 @@
 #include "EntityList.h"
 
-#include "Camera/EditorCameraController.h"
+#include "Camera/ViewportCameraController.h"
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/World.h"
 #include "ImGui/IconFont/IconsMaterialDesignIcons.h"

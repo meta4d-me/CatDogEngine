@@ -360,7 +360,6 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 			ImGuiUtils::ImGuiFloatProperty("NearPlane", pCameraComponent->GetNearPlane()) ||
 			ImGuiUtils::ImGuiFloatProperty("FarPlane", pCameraComponent->GetFarPlane()))
 		{
-			pCameraComponent->Dirty();
 			pCameraComponent->BuildProjectMatrix();
 		}
 

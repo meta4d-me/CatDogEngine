@@ -1,10 +1,11 @@
 #include "WindowManager.h"
 
+#include "Base/NameOf.h"
 #include "Base/Template.h"
 #include "Input.h"
 #include "Window.h"
 
-#include "SDL.h"
+#include <SDL.h>
 
 #include <cassert>
 
@@ -13,12 +14,28 @@ namespace engine
 
 WindowManager::WindowManager()
 {
-	Window::Init();
+	// JoyStick : SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
+	SDL_SetHintWithPriority("SDL_BORDERLESS_RESIZABLE_STYLE", "1", SDL_HINT_OVERRIDE);
+	SDL_SetHintWithPriority("SDL_BORDERLESS_WINDOWED_STYLE", "1", SDL_HINT_OVERRIDE);
+
+	// Init system cursors.
+	m_allMouseCursors.resize(nameof::enum_count<MouseCursorType>(), nullptr);
+	m_allMouseCursors[static_cast<int>(MouseCursorType::Arrow)] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+	m_allMouseCursors[static_cast<int>(MouseCursorType::Crosshair)] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
 }
 
 WindowManager::~WindowManager()
 {
-	Window::Shutdown();
+	m_allWindows.clear();
+
+	for (auto* pCursor : m_allMouseCursors)
+	{
+		SDL_FreeCursor(pCursor);
+	}
+	m_allMouseCursors.clear();
+
+	SDL_Quit();
 }
 
 Window* WindowManager::GetWindow(uint32_t id) const
@@ -48,6 +65,16 @@ engine::Window* WindowManager::GetActiveWindow() const
 	}
 
 	return nullptr;
+}
+
+void WindowManager::ShowCursor(bool on) const
+{
+	SDL_ShowCursor(on);
+}
+
+void WindowManager::SetCursor(MouseCursorType cursorType) const
+{
+	SDL_SetCursor(m_allMouseCursors[static_cast<int>(cursorType)]);
 }
 
 void WindowManager::Update()
@@ -110,7 +137,10 @@ void WindowManager::Update()
 		case SDL_MOUSEMOTION:
 		{
 			const SDL_MouseMotionEvent& mouseMotionEvent = sdlEvent.motion;
-			OnMouseMove.Invoke(mouseMotionEvent.windowID, mouseMotionEvent.x, mouseMotionEvent.y);
+			engine::Input::Get().SetMousePositionX(mouseMotionEvent.x);
+			engine::Input::Get().SetMousePositionY(mouseMotionEvent.y);
+			engine::Input::Get().SetMousePositionOffsetX(mouseMotionEvent.xrel);
+			engine::Input::Get().SetMousePositionOffsetY(mouseMotionEvent.yrel);
 		}
 		break;
 

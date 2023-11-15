@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Camera/ICameraController.h"
 #include "ECWorld/TransformComponent.h"
 #include "Math/Box.hpp"
 #include "Math/Transform.hpp"
@@ -10,20 +11,48 @@ namespace engine
 class CameraComponent;
 class SceneWorld;
 
-class EditorCameraController final
+class ViewportCameraController : public ICameraController
 {
 public:
-	EditorCameraController() = delete;
-	explicit EditorCameraController(const SceneWorld* pSceneWorld, float sensitivity, float movement_speed);
-	explicit EditorCameraController(const SceneWorld* pSceneWorld, float horizontal_sensitivity, float vertical_sensitivity, float movement_speed);
-	~EditorCameraController() = default;
+	ViewportCameraController() = delete;
+	explicit ViewportCameraController(const SceneWorld* pSceneWorld, float sensitivity, float movement_speed);
+	explicit ViewportCameraController(const SceneWorld* pSceneWorld, float horizontal_sensitivity, float vertical_sensitivity, float movement_speed);
+	~ViewportCameraController() = default;
 
-	EditorCameraController(const EditorCameraController&) = delete;
-	EditorCameraController(EditorCameraController&&) = delete;
-	EditorCameraController& operator=(const EditorCameraController&) = delete;
-	EditorCameraController& operator=(EditorCameraController&&) = delete;
+	ViewportCameraController(const ViewportCameraController&) = delete;
+	ViewportCameraController(ViewportCameraController&&) = delete;
+	ViewportCameraController& operator=(const ViewportCameraController&) = delete;
+	ViewportCameraController& operator=(ViewportCameraController&&) = delete;
 
+	// Operations
+	virtual bool IsInAnimation() const override;
+	virtual bool IsZooming() const override;
+	virtual bool IsPanning() const override;
+	virtual bool IsTurning() const override;
+	virtual bool IsTracking() const override;
+	virtual bool IsInWalkMode() const override;
+
+	// Event Handlers
+	virtual void OnMouseDown() override;
+	virtual void OnMouseUp() override;
+	virtual void OnMouseMove(float x, float y) override;
+	virtual void OnMouseWheel(float y) override;
+
+	// TODO : EventDriven, not update.
 	void Update(float deltaTime);
+
+	// Synchronizes the controller to the transform of camera current state
+	void CameraToController();
+
+	// Synchronizes the transform of camera to the controller's current state
+	void ControllerToCamera();
+
+	// Implement the effect of a translation animation.
+	void CameraFocus();
+	void Focusing();
+
+	//
+	void Zoom(float delta);
 
 	// Configs
 	void SetMovementSpeed(float speed);
@@ -53,16 +82,7 @@ public:
 	void AzimuthChanging(float amount);
 	void ElevationChanging(float amount);
 
-	// Double Click entity,camera will focus
-	void CameraFocus();
-	// Implement the effect of a translation animation.
-	void Moving();
 
-	// Synchronizes the controller to the transform of camera current state
-	void CameraToController();
-
-	// Synchronizes the transform of camera to the controller's current state
-	void ControllerToCamera();
 
 	// Synchronize view when begin using mayastyle camera or fpscamera
 	void SynchronizeTrackingCamera();
@@ -97,8 +117,8 @@ private:
 	cd::Vec3f m_lookAtDestination;
 
 	bool m_isTracking = false;
-	bool m_isMoving = false;
-	bool m_isMouseMovedInView = false;
+	bool m_isFocusing = false;
+	bool m_isInWalkMode = false;
 };
 
 }

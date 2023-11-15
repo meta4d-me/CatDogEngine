@@ -5,11 +5,10 @@ namespace engine
 
 void CameraComponent::BuildViewMatrix(const cd::Transform& transform)
 {
+	cd::Vec3f eye = transform.GetTranslation();
 	cd::Vec3f lookAt = GetLookAt(transform).Normalize();
 	cd::Vec3f up = GetUp(transform).Normalize();
-	cd::Vec3f eye = transform.GetTranslation();
-	m_viewMatrix = cd::Matrix4x4::LookAt<cd::Handedness::Left>(eye, eye + lookAt, up);
-	m_projectionMatrix = cd::Matrix4x4::Perspective(m_fov, m_aspect, m_nearPlane, m_farPlane, cd::NDCDepth::MinusOneToOne == m_ndcDepth);
+	return BuildViewMatrix(eye, lookAt, up);
 }
 
 void CameraComponent::BuildViewMatrix(const cd::Vec3f& eye, const cd::Vec3f& lookAt, const cd::Vec3f& up)

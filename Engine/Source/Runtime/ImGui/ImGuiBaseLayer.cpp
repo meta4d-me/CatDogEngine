@@ -34,6 +34,19 @@ std::pair<float, float> ImGuiBaseLayer::GetRectSize() const
 	return std::make_pair(size.x, size.y);
 }
 
+std::pair<float, float> ImGuiBaseLayer::GetWorkRectPosition() const
+{
+	auto pos = GetRootWindow()->ContentRegionRect.Min;
+	return std::make_pair(pos.x, pos.y);
+}
+
+std::pair<float, float> ImGuiBaseLayer::GetWorkRectSize() const
+{
+	auto maxPos = GetRootWindow()->ContentRegionRect.Max;
+	auto minPos = GetRootWindow()->ContentRegionRect.Min;
+	return std::make_pair(maxPos.x - minPos.x, maxPos.y - minPos.y);
+}
+
 ImGuiContextInstance* ImGuiBaseLayer::GetImGuiContextInstance() const
 {
 	return static_cast<engine::ImGuiContextInstance*>(ImGui::GetIO().UserData);

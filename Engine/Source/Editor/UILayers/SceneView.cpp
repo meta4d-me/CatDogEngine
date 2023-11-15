@@ -299,7 +299,13 @@ void SceneView::Update()
 	UpdateToolMenuButtons();
 
 	// Check if need to resize scene view.
+	ImVec2 currentPos = GetRootWindow()->DC.CursorPos;
 	ImVec2 regionSize = ImGui::GetContentRegionAvail();
+	m_workRectPosX = currentPos.x;
+	m_workRectPosY = currentPos.y;
+	m_workRectWidth = regionSize.x;
+	m_workRectHeight = regionSize.y;
+
 	uint16_t regionWidth = static_cast<uint16_t>(regionSize.x);
 	uint16_t regionHeight = static_cast<uint16_t>(regionSize.y);
 	if (regionWidth != m_lastContentWidth || regionHeight != m_lastContentHeight)
@@ -312,6 +318,7 @@ void SceneView::Update()
 		if (!pCameraComponent->DoConstrainAspectRatio())
 		{
 			pCameraComponent->SetAspect(static_cast<float>(regionWidth) / static_cast<float>(regionHeight));
+			pCameraComponent->BuildProjectMatrix();
 		}
 	}
 
@@ -322,65 +329,26 @@ void SceneView::Update()
 	ImGui::PopStyleVar();
 	ImGui::End();
 
-	if (!ImGuizmo::IsUsing())
-	{
-		bool isAnyMouseButtonDraging = ImGui::IsMouseDragging(ImGuiMouseButton_Left) || ImGui::IsMouseDragging(ImGuiMouseButton_Middle) || ImGui::IsMouseDragging(ImGuiMouseButton_Right);
-		if (isAnyMouseButtonDraging)
-		{
-			m_pCameraController;
-		}
-	}
-
-	if (m_currentOperation == SelectOperation && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+	if (m_currentOperation == SelectOperation && ImGui::IsMouseDown(ImGuiMouseButton_Left))
 	{
 		PickSceneMesh(regionWidth, regionHeight);
 	}
-	
-	//if (isAnyMouseButtonPressed && !ImGuizmo::IsUsing())
-	//{
-	//	if (!m_isMouseDownFirstTime)
-	//	{
-	//		if (m_pCameraController->GetViewIsMoved())
-	//		{
-	//			m_isUsingCamera = true;
-	//		}
-	//		if (engine::Input::Get().IsMouseLBPressed())
-	//		{
-	//			m_isLeftClick = true;
-	//		}
-	//		return;
-	//	}
-	//
-	//	m_isMouseDownFirstTime = false;
-	//	if (isMouseInsideSeneView && !m_isTerrainEditMode)
-	//	{
-	//		m_pCameraController->SetIsInViewScene(true);
-	//		m_isMouseShow = false;
-	//	}
-	//	else
-	//	{
-	//		m_pCameraController->SetIsInViewScene(false);
-	//	}
-	//}
-	//else
-	//{
-	//	m_mouseFixedPositionX = engine::Input::Get().GetMousePositionX();
-	//	m_mouseFixedPositionY = engine::Input::Get().GetMousePositionY();
-	//	if (!m_isMouseShow && !m_isUsingCamera)
-	//	{
-	//		PickSceneMesh(regionWidth, regionHeight);
-	//	}
-	//	m_isMouseDownFirstTime = true;
-	//	m_isMouseShow = true;
-	//	m_isUsingCamera = false;
-	//	m_isLeftClick = false;
-	//}
 
 	if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) &&
 		engine::INVALID_ENTITY != pSceneWorld->GetSelectedEntity())
 	{
 		m_pCameraController->CameraFocus();
 	}
+}
+
+std::pair<float, float> SceneView::GetWorkRectPosition() const
+{
+	return std::make_pair(m_workRectPosX, m_workRectPosY);
+}
+
+std::pair<float, float> SceneView::GetWorkRectSize() const
+{
+	return std::make_pair(m_workRectWidth, m_workRectHeight);
 }
 
 }

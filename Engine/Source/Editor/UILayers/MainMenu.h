@@ -14,7 +14,7 @@ class FileBrowser;
 namespace engine
 {
 
-class EditorCameraController;
+class ViewportCameraController;
 
 }
 
@@ -37,11 +37,11 @@ public:
 	void BuildMenu();
 	void AboutMenu();
 
-	void SetCameraController(engine::EditorCameraController* pCameraController) { m_pCameraController = pCameraController; }
+	void SetCameraController(engine::ViewportCameraController* pCameraController) { m_pCameraController = pCameraController; }
 
 private:
 	std::unique_ptr<ImGui::FileBrowser> m_pCreateProjectDialog;
-	engine::EditorCameraController* m_pCameraController = nullptr;
+	engine::ViewportCameraController* m_pCameraController = nullptr;
 };
 
 }

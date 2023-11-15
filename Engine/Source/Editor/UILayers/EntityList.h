@@ -10,7 +10,7 @@
 namespace engine
 {
 
-class EditorCameraController;
+class ViewportCameraController;
 class SceneWorld;
 
 }
@@ -30,11 +30,11 @@ public:
 	void AddEntity(engine::SceneWorld* pSceneWorld);
 	void DrawEntity(engine::SceneWorld* pSceneWorld, engine::Entity entity);
 
-	void SetCameraController(engine::EditorCameraController* pCameraController) { m_pCameraController = pCameraController; }
+	void SetCameraController(engine::ViewportCameraController* pCameraController) { m_pCameraController = pCameraController; }
 
 private:
 	ImGuiTextFilter m_entityFilter;
-	engine::EditorCameraController* m_pCameraController = nullptr;
+	engine::ViewportCameraController* m_pCameraController = nullptr;
 };
 
 }
