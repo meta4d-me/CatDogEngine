@@ -73,7 +73,7 @@ public:
 	void EnableViewport();
 	bool IsViewportEnable() const;
 	void InitViewport();
-	void UpdateViewport();
+	void UpdateMonitors();
 
 	// Loop.
 	void BeginFrame();

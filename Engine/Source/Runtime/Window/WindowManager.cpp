@@ -12,6 +12,13 @@
 namespace engine
 {
 
+std::pair<int, int> WindowManager::GetGloalMousePosition()
+{
+	int x, y;
+	SDL_GetGlobalMouseState(&x, &y);
+	return std::make_pair(x, y);
+}
+
 WindowManager::WindowManager()
 {
 	// JoyStick : SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER

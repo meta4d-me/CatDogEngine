@@ -18,7 +18,8 @@ class SceneWorld;
 class ImGuiBaseLayer
 {
 public:
-	ImGuiBaseLayer(const char* pName);
+	ImGuiBaseLayer() = delete;
+	explicit ImGuiBaseLayer(const char* pName);
 	ImGuiBaseLayer(const ImGuiBaseLayer&) = delete;
 	ImGuiBaseLayer& operator=(const ImGuiBaseLayer&) = delete;
 	ImGuiBaseLayer(ImGuiBaseLayer&&) = default;

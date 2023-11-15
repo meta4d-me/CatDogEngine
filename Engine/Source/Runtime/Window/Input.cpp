@@ -2,21 +2,12 @@
 
 #include "Log/Log.h"
 
-#include <SDL.h>
-
 #include <imgui/imgui.h>
 #include <unordered_map>
 #include <utility>
 
 namespace engine
 {
-
-std::pair<int, int> Input::GetGloalMousePosition()
-{
-	int x, y;
-	SDL_GetGlobalMouseState(&x, &y);
-	return std::make_pair(x, y);
-}
 
 Input::Input()
 {

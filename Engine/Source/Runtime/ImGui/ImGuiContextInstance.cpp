@@ -462,7 +462,7 @@ void ImGuiContextInstance::InitViewport()
 	};
 }
 
-void ImGuiContextInstance::UpdateViewport()
+void ImGuiContextInstance::UpdateMonitors()
 {
 	ImGuiPlatformIO& platformIO = GetPlatformIO();
 	int monitorCount = engine::Window::GetDisplayMonitorCount();
@@ -886,19 +886,13 @@ void ImGuiContextInstance::AddMouseInputEvent()
 		m_lastFocused = isFocused;
 	}
 
-	float mousePosX;
-	float mousePosY;
+	float mousePosX = static_cast<float>(Input::Get().GetMousePositionX());
+	float mousePosY = static_cast<float>(Input::Get().GetMousePositionY());
 	if (IsViewportEnable())
 	{
 		// Multiple Viewports require screen space mouse coordinates.
-		auto [screenX, screenY] = engine::Input::GetGloalMousePosition();
-		mousePosX = static_cast<float>(screenX);
-		mousePosY = static_cast<float>(screenY);
-	}
-	else
-	{
-		mousePosX = static_cast<float>(Input::Get().GetMousePositionX());
-		mousePosY = static_cast<float>(Input::Get().GetMousePositionY());
+		mousePosX += m_rectPosX;
+		mousePosY += m_rectPosY;
 	}
 
 	// Filter mouse events outside of rect.
@@ -1019,7 +1013,7 @@ void ImGuiContextInstance::Update(float deltaTime)
 
 	if (IsViewportEnable())
 	{
-		UpdateViewport();
+		UpdateMonitors();
 	}
 
 	AddInputEvent();

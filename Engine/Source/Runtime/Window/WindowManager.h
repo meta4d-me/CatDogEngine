@@ -25,6 +25,9 @@ public:
 	using MapIDToWindow = std::map<uint32_t, std::unique_ptr<engine::Window>>;
 
 public:
+	static std::pair<int, int> GetGloalMousePosition();
+
+public:
 	WindowManager();
 	WindowManager(const WindowManager&) = delete;
 	WindowManager& operator=(const WindowManager&) = delete;

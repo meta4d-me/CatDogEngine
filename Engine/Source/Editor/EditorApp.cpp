@@ -196,7 +196,7 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 		assert(pMainViewport);
 		pMainViewport->PlatformHandle = GetMainWindow();
 		pMainViewport->PlatformHandleRaw = GetMainWindow()->GetHandle();
-		m_pEditorImGuiContext->UpdateViewport();
+		m_pEditorImGuiContext->UpdateMonitors();
 	}
 
 	GetMainWindow()->OnResize.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnResize>(m_pEditorImGuiContext);
@@ -620,17 +620,24 @@ bool EditorApp::Update(float deltaTime)
 		InitEngineUILayers();
 	}
 
-	engine::Input::Get().Update();
-	m_pEditorImGuiContext->BeginFrame();
-	m_pEditorImGuiContext->Update(deltaTime);
+	// Window
 	m_pWindowManager->Update();
+	auto mainWindowPos = m_pMainWindow->GetPosition();
+	float mainWindowX = static_cast<float>(mainWindowPos.first);
+	float mainWindowY = static_cast<float>(mainWindowPos.second);
+
+	// World Data
 	m_pSceneWorld->Update();
 
-	engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
-	engine::TerrainComponent* pTerrainComponent = m_pSceneWorld->GetTerrainComponent(m_pSceneWorld->GetSelectedEntity());
-	assert(pMainCameraComponent);
-	pMainCameraComponent->BuildProjectMatrix();
+	// Input
+	engine::Input::Get().Update();
 
+	// Update Editor GUI
+	m_pEditorImGuiContext->SetRectPosition(mainWindowX, mainWindowY);
+	m_pEditorImGuiContext->BeginFrame();
+	m_pEditorImGuiContext->Update(deltaTime);
+
+	// Render Editor GUI
 	m_pRenderContext->BeginFrame();
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEditorRenderers)
 	{
@@ -642,10 +649,9 @@ bool EditorApp::Update(float deltaTime)
 			pRenderer->Render(deltaTime);
 		}
 	}
-
-	auto [sceneRectX, sceneRectY] = m_pSceneView->GetWorkRectPosition();
 	m_pEditorImGuiContext->EndFrame();
 
+	// Update Engine GUI
 	if (m_pEngineImGuiContext)
 	{
 		if (m_pViewportCameraController)
@@ -653,35 +659,22 @@ bool EditorApp::Update(float deltaTime)
 			m_pViewportCameraController->Update(deltaTime);
 		}
 
-		// Do Screen Space Smoothing
-		//if (pTerrainComponent && m_pSceneView->IsTerrainEditMode() && engine::Input::Get().IsMouseLBPressed())
-		//{
-		//	float screenSpaceX = 2.0f * static_cast<float>(engine::Input::Get().GetMousePositionX() - m_pSceneView->GetWindowPosX()) /
-		//		m_pSceneView->GetRenderTarget()->GetWidth() - 1.0f;
-		//	float screenSpaceY = 1.0f - 2.0f * static_cast<float>(engine::Input::Get().GetMousePositionY() - m_pSceneView->GetWindowPosY()) /
-		//		m_pSceneView->GetRenderTarget()->GetHeight();
-		//
-		//	engine::TransformComponent* pCameraTransformComponent = m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity());
-		//	cd::Vec3f camPos = pCameraTransformComponent->GetTransform().GetTranslation();
-		//
-		//	pTerrainComponent->ScreenSpaceSmooth(screenSpaceX, screenSpaceY, pMainCameraComponent->GetProjectionMatrix().Inverse(),
-		//		pMainCameraComponent->GetViewMatrix().Inverse(), camPos);
-		//}
-
-		m_pEngineImGuiContext->BeginFrame();
+		// Set ImGuiContextInstance bounds same to SceneView.
+		auto [sceneRectX, sceneRectY] = m_pSceneView->GetWorkRectPosition();
 		if (!m_pEngineImGuiContext->IsViewportEnable())
 		{
-			auto [windowX, windowY] = m_pMainWindow->GetPosition();
-			sceneRectX -= windowX;
-			sceneRectY -= windowY;
+			sceneRectX -= mainWindowX;
+			sceneRectY -= mainWindowY;
 		}
-
 		m_pEngineImGuiContext->SetRectPosition(sceneRectX, sceneRectY);
+
+		m_pEngineImGuiContext->BeginFrame();
 		m_pEngineImGuiContext->Update(deltaTime);
 
+		// Rendering Scene World.
 		UpdateMaterials();
 		LazyCompileAndLoadShaders();
-
+		engine::CameraComponent* pMainCameraComponent = m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
 		for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
 		{
 			if (pRenderer->IsEnable())
@@ -692,11 +685,11 @@ bool EditorApp::Update(float deltaTime)
 				pRenderer->Render(deltaTime);
 			}
 		}
-
 		m_pEngineImGuiContext->EndFrame();
 	}
 	m_pRenderContext->EndFrame();
 
+	// Reset input data.
 	engine::Input::Get().FlushInputs();
 
 	return !GetMainWindow()->ShouldClose();

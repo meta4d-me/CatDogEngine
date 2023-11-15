@@ -30,9 +30,6 @@ public:
 	};
 
 public:
-	static std::pair<int, int> GetGloalMousePosition();
-
-public:
 	// Input is a singleton class which will be used conveniently to query device status.
 	// Always call SetXXX methods in the main thread as Window::Update occurs there. So don't worry about thread safe.
 	static Input& Get()
