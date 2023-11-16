@@ -37,8 +37,8 @@ public:
 
 	MapIDToWindow& GetAllWindows() { return m_allWindows; }
 	const MapIDToWindow& GetAllWindows() const { return m_allWindows; }
-	engine::Window* GetWindow(uint32_t id) const;
-	void AddWindow(std::unique_ptr<engine::Window> pWindow);
+	Window* GetWindow(uint32_t id) const;
+	void AddWindow(std::unique_ptr<Window> pWindow);
 	void RemoveWindow(uint32_t id);
 
 	const SDL_Cursor* GetMouseCursor(MouseCursorType cursorType) const { return m_allMouseCursors[static_cast<int>(cursorType)]; }

@@ -125,16 +125,13 @@ void WindowManager::Update()
 				Input::Get().SetFocused(false);
 			}
 			break;
-			case SDL_WINDOWEVENT_CLOSE:
-			case SDL_WINDOWEVENT_MOVED:
 			case SDL_WINDOWEVENT_RESIZED:
 			{
-				//if (ImGuiViewport* pViewport = ImGui::FindViewportByPlatformHandle((void*)SDL_GetWindowFromID(wev.windowID)))
-				//{
-				//	pViewport->PlatformRequestClose = wev.event == SDL_WINDOWEVENT_CLOSE;
-				//	pViewport->PlatformRequestMove = wev.event == SDL_WINDOWEVENT_MOVED;
-				//	pViewport->PlatformRequestResize = wev.event == SDL_WINDOWEVENT_RESIZED;
-				//}
+				if (auto* pWindow = GetWindow(wev.windowID))
+				{
+					auto [width, height] = pWindow->GetSize();
+					pWindow->OnResize.Invoke(width, height);
+				}
 			}
 			break;
 			}

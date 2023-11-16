@@ -48,8 +48,10 @@ void ImGuizmoView::Update()
 	ImGuizmo::BeginFrame();
 	constexpr bool isPerspective = true;
 	ImGuizmo::SetOrthographic(!isPerspective);
-	ImGuiIO& io = ImGui::GetIO();
-	ImGuizmo::SetRect(0.0f, 0.0f, ImGui::GetIO().DisplaySize.x, io.DisplaySize.y);
+	
+	auto& io = ImGui::GetIO();
+	auto [sceneViewPosX, sceneViewPosY] = GetImGuiContextInstance()->GetRectPosition();
+	ImGuizmo::SetRect(sceneViewPosX, sceneViewPosY, io.DisplaySize.x, io.DisplaySize.y);
 	cd::Matrix4x4 worldMatrix = pTransformComponent->GetWorldMatrix();
 	ImGuizmo::Manipulate(pCameraComponent->GetViewMatrix().begin(), pCameraComponent->GetProjectionMatrix().begin(),
 		operation, ImGuizmo::LOCAL, worldMatrix.begin());

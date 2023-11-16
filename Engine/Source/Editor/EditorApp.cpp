@@ -58,23 +58,6 @@
 //#include <format>
 #include <thread>
 
-namespace
-{
-
-void OnEnterSceneView()
-{
-	auto* pWindowManager = static_cast<engine::WindowManager*>(ImGui::GetIO().BackendPlatformUserData);
-	pWindowManager->SetCursor(engine::MouseCursorType::Crosshair);
-}
-
-void OnLeaveSceneView()
-{
-	auto* pWindowManager = static_cast<engine::WindowManager*>(ImGui::GetIO().BackendPlatformUserData);
-	pWindowManager->SetCursor(engine::MouseCursorType::Arrow);
-}
-
-}
-
 namespace editor
 {
 
@@ -176,6 +159,23 @@ void EditorApp::Shutdown()
 {
 }
 
+void EditorApp::InitWindowManager()
+{
+	m_pWindowManager = std::make_unique<engine::WindowManager>();
+}
+
+void EditorApp::OnMouseEnterSceneView()
+{
+	auto* pWindowManager = static_cast<engine::WindowManager*>(ImGui::GetIO().BackendPlatformUserData);
+	pWindowManager->SetCursor(engine::MouseCursorType::Crosshair);
+}
+
+void EditorApp::OnMouseLeaveSceneView()
+{
+	auto* pWindowManager = static_cast<engine::WindowManager*>(ImGui::GetIO().BackendPlatformUserData);
+	pWindowManager->SetCursor(engine::MouseCursorType::Arrow);
+}
+
 void EditorApp::InitEditorImGuiContext(engine::Language language)
 {
 	assert(GetMainWindow() && "Init window before imgui context");
@@ -252,8 +252,8 @@ void EditorApp::InitEngineImGuiContext(engine::Language language)
 	
 	pSceneRenderTarget->OnResize.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnResize>(m_pEngineImGuiContext);
 
-	m_pEngineImGuiContext->OnMouseEnterDisplayRect.Bind<OnEnterSceneView>();
-	m_pEngineImGuiContext->OnMouseLeaveDisplayRect.Bind<OnLeaveSceneView>();
+	m_pEngineImGuiContext->OnMouseEnterDisplayRect.Bind<EditorApp, &EditorApp::OnMouseEnterSceneView>(this);
+	m_pEngineImGuiContext->OnMouseLeaveDisplayRect.Bind<EditorApp, &EditorApp::OnMouseLeaveSceneView>(this);
 }
 
 void EditorApp::InitEngineUILayers()
@@ -686,11 +686,6 @@ bool EditorApp::Update(float deltaTime)
 	m_pRenderContext->EndFrame();
 
 	return !GetMainWindow()->ShouldClose();
-}
-
-void EditorApp::InitWindowManager()
-{
-	m_pWindowManager = std::make_unique<engine::WindowManager>();
 }
 
 }

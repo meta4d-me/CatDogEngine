@@ -51,6 +51,8 @@ public:
 	void InitWindowManager();
 	engine::Window* GetMainWindow() const { return m_pMainWindow; }
 	engine::WindowManager* GetWindowManager() const { return m_pWindowManager.get(); }
+	void OnMouseEnterSceneView();
+	void OnMouseLeaveSceneView();
 
 	// Rendering Management
 	void InitRenderContext(engine::GraphicsBackend backend, void* hwnd = nullptr);

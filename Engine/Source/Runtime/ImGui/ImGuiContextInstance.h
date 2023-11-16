@@ -49,6 +49,7 @@ public:
 
 	// Display
 	void SetRectPosition(float x, float y) { m_rectPosX = x; m_rectPosY = y; }
+	std::pair<float, float> GetRectPosition() { return std::make_pair(m_rectPosX, m_rectPosY); }
 	void SetDisplaySize(uint16_t width, uint16_t height);
 	void OnResize(uint16_t width, uint16_t height);
 	bool IsInsideDisplayRect(float x, float y) const;
