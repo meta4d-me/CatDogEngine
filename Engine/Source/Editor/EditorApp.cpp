@@ -248,7 +248,7 @@ void EditorApp::InitEngineImGuiContext(engine::Language language)
 	m_pEngineImGuiContext->InitBackendUserData(m_pWindowManager.get(), m_pRenderContext.get());
 	m_pEngineImGuiContext->SetDisplaySize(pSceneRenderTarget->GetWidth(), pSceneRenderTarget->GetHeight());
 	m_pEngineImGuiContext->LoadFontFiles({ "FanWunMing-SB.ttf" }, language);
-	m_pEngineImGuiContext->SetImGuiThemeColor(engine::ThemeColor::Light);
+	m_pEngineImGuiContext->SetImGuiThemeColor(engine::ThemeColor::Grey);
 	
 	pSceneRenderTarget->OnResize.Bind<engine::ImGuiContextInstance, &engine::ImGuiContextInstance::OnResize>(m_pEngineImGuiContext);
 
