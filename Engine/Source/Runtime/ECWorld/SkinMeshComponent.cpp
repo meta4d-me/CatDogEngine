@@ -18,18 +18,18 @@ void SkinMeshComponent::Build()
 
 void SkinMeshComponent::SetBoneMatricesSize(uint32_t boneCount)
 {
-	m_changeMatrices.resize(boneCount);
+	m_boneGlobalMatrices.resize(boneCount);
 	m_boneMatrices.resize(boneCount);
 	for (uint32_t i = 0; i < boneCount; ++i)
 	{
-		m_changeMatrices[i] = cd::Matrix4x4::Identity();
+		m_boneGlobalMatrices[i] = cd::Matrix4x4::Identity();
 		m_boneMatrices[i] = cd::Matrix4x4::Identity();
 	}
 }
 
-void SkinMeshComponent::SetBoneChangeMatrix(uint32_t index, const cd::Matrix4x4& boneChangeMatrix)
+void SkinMeshComponent::SetBoneGlobalMatrix(uint32_t index, const cd::Matrix4x4& boneChangeMatrix)
 {
-	m_changeMatrices[index] = boneChangeMatrix;
+	m_boneGlobalMatrices[index] = boneChangeMatrix;
 	m_changeBoneIndex = index;
 }
 

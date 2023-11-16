@@ -44,20 +44,23 @@ constexpr uint32_t indexDataSize = sizeof(uint16_t) * 4;
 
 constexpr size_t indexTypeSize = sizeof(uint16_t);
 
-void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase, engine::SkinMeshComponent& skinmeshComponent, std::byte* currentDataPtr,
+void TraverseBone(const cd::Bone& bone, cd::Matrix4x4& totalDelta, cd::Matrix4x4& globalMatrix, const cd::SceneDatabase* pSceneDatabase, engine::SkinMeshComponent& skinmeshComponent, std::byte* currentDataPtr,
 	std::byte* currentIndexPtr, uint32_t& vertexOffset, uint32_t& indexOffset)
 {
+	
 	for (auto& child : bone.GetChildIDs())
 	{
+		cd::Matrix4x4 curGlobalMatrix = globalMatrix;
 		const cd::Bone& currBone = pSceneDatabase->GetBone(child.Data());
-		cd::Vec4f position4f(0.0f, 0.0f, 0.0f, 1.0f);
-		cd::Vec4f translate = currBone.GetTransform().GetMatrix() * position4f;
-		cd::Matrix4x4 localTransform = currBone.GetOffset().Inverse();
-		cd::Vec4f globalTransform = localTransform * position4f;
-		cd::Vec3f position = cd::Vec3f(globalTransform.x(), globalTransform.y(), -globalTransform.z());
+		
+		int ID = child.Data();
+
+		curGlobalMatrix = curGlobalMatrix * currBone.GetTransform().GetMatrix();
+	
 		uint16_t parentID = bone.GetID().Data();
 		uint16_t currBoneID = currBone.GetID().Data();
-		std::memcpy(&currentDataPtr[vertexOffset], globalTransform.Begin(), posDataSize);
+		skinmeshComponent.SetBoneGlobalMatrix(currBoneID, curGlobalMatrix);
+		std::memcpy(&currentDataPtr[vertexOffset], curGlobalMatrix.GetTranslation().Begin(), posDataSize);
 		//std::memcpy(&currentDataPtr[vertexOffset], translate.Begin(), posDataSize);
 		vertexOffset += posDataSize;
 
@@ -72,12 +75,12 @@ void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase,
 		indexOffset += static_cast<uint32_t>(indexTypeSize);
 
 		const cd::Matrix4x4& boneMatrix = currBone.GetOffset();
-		skinmeshComponent.SetBoneChangeMatrix(currBoneID, localTransform);
+		//skinmeshComponent.SetBoneChangeMatrix(currBoneID, localTransform);
 
 		const cd::Transform& boneTransform = currBone.GetTransform();
 		//skinmeshComponent.SetBoneChangeMatrix(currBoneID, boneTransform.GetMatrix());
 
-		TraverseBone(currBone, pSceneDatabase, skinmeshComponent, currentDataPtr, currentIndexPtr, vertexOffset, indexOffset);
+		TraverseBone(currBone, totalDelta, curGlobalMatrix, pSceneDatabase, skinmeshComponent, currentDataPtr, currentIndexPtr, vertexOffset, indexOffset);
 	}
 }
 
@@ -499,20 +502,19 @@ void ECWorldConsumer::AddSkeleton(engine::Entity entity, const cd::SceneDatabase
 	uint32_t currentVertexOffset = 0U;
 	uint32_t currentIndexOffset = 0U;
 	std::byte* pCurrentVertexBuffer = vertexBuffer.data();
-	const cd::Point& position = firstBone.GetOffset().Inverse().GetTranslation();
+	cd::Matrix4x4 globalMatrix = firstBone.GetOffset().Inverse();
 	uint16_t BoneID = firstBone.GetID().Data();
-	std::memcpy(&pCurrentVertexBuffer[currentVertexOffset], position.Begin(), Detail::posDataSize);
+	std::memcpy(&pCurrentVertexBuffer[currentVertexOffset], globalMatrix.GetTranslation().Begin(), Detail::posDataSize);
 	currentVertexOffset += Detail::posDataSize;
 
 	uint16_t currBoneID[4] = { BoneID, 0, 0, 0 };
 	std::memcpy(&pCurrentVertexBuffer[currentVertexOffset], currBoneID, Detail::indexDataSize);
 	currentVertexOffset += Detail::indexDataSize;
 
-	const cd::Matrix4x4& boneMatrix = firstBone.GetOffset();
-	const cd::Transform& boneTransform = firstBone.GetTransform();
-	skinmeshComponent.SetBoneChangeMatrix(BoneID, boneMatrix.Inverse());
+	skinmeshComponent.SetBoneGlobalMatrix(BoneID, globalMatrix);
+	cd::Matrix4x4 totalDelta = cd::Quaternion::FromAxisAngle(cd::Vec3f(0.0f, 1.0f, 1.0f), 30.0f).Identity().ToMatrix4x4();
 
-	Detail::TraverseBone(firstBone, pSceneDatabase, skinmeshComponent, vertexBuffer.data(), indexBuffer.data(), currentVertexOffset, currentIndexOffset);
+	Detail::TraverseBone(firstBone, totalDelta, globalMatrix, pSceneDatabase, skinmeshComponent, vertexBuffer.data(), indexBuffer.data(), currentVertexOffset, currentIndexOffset);
 	bgfx::VertexLayout vertexLayout;
 	engine::VertexLayoutUtility::CreateVertexLayout(vertexLayout, vertexFormat.GetVertexLayout());
 	uint16_t boneVBH = bgfx::createVertexBuffer(bgfx::makeRef(vertexBuffer.data(), static_cast<uint32_t>(vertexBuffer.size())), vertexLayout).idx;

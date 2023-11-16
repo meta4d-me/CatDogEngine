@@ -39,7 +39,7 @@ void SkeletonView::DrawBone(engine::SceneWorld* pSceneWorld, const cd::Bone& Bon
                 if (m_pCameraController)
                 {
                     const cd::Vec3f& position = pSkinMeshComponent->GetBoneMatrix(pSceneWorld->GetSelectedBoneID().Data()).GetTranslation();
-                    cd::Vec4f vec4Position =pSkinMeshComponent->GetBoneChangeMatrix(pSceneWorld->GetSelectedBoneID().Data()) * (cd::Vec4f(position.x(),position.y(),position.z(),1.0f));
+           
                     m_pCameraController->CameraFocus();
                 }
             }

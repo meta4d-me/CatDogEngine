@@ -41,9 +41,9 @@ public:
 	uint16_t GetBoneIBH() const { return m_boneIBH; }
 
 	void SetBoneMatricesSize(uint32_t boneCount);
-	void SetBoneChangeMatrix(uint32_t index, const cd::Matrix4x4& boneChangeMatrix);
-	const cd::Matrix4x4& GetBoneChangeMatrix(uint32_t index) { return m_changeMatrices[index]; }
-	const std::vector<cd::Matrix4x4>& GetBoneChangeMatrices() const { return m_changeMatrices; }
+	void SetBoneGlobalMatrix(uint32_t index, const cd::Matrix4x4& boneChangeMatrix);
+	const cd::Matrix4x4& GetBoneGlobalMatrix(uint32_t index) { return m_boneGlobalMatrices[index]; }
+	const std::vector<cd::Matrix4x4>& GetBoneGlobalMatrices() const { return m_boneGlobalMatrices; }
 	uint32_t GetChangeBoneIndex() const { return m_changeBoneIndex; }
 	void SetChangeBoneIndex(uint32_t index) {m_changeBoneIndex = index;}
 	void ResetChangeBoneIndex() { m_changeBoneIndex = engine::INVALID_ENTITY; }
@@ -63,7 +63,7 @@ private:
 	uint16_t m_boneIBH = UINT16_MAX;
 	uint16_t m_boneMatricesUniform;
 
-	std::vector<cd::Matrix4x4> m_changeMatrices;
+	std::vector<cd::Matrix4x4> m_boneGlobalMatrices;
 	std::vector<cd::Matrix4x4> m_boneMatrices;
 };
 

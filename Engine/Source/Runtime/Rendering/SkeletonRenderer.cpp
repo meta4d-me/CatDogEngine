@@ -123,7 +123,7 @@ cd::Matrix4x4 CalculateRootBoneTransform(const cd::SceneDatabase* pSceneDatabase
 }
 
 void CalculateTransform(std::vector<cd::Matrix4x4>& boneMatrices, const cd::SceneDatabase* pSceneDatabase,
-	float animationTime, const cd::Bone& bone, const char* clipName, const cd::Matrix4x4 rootBoonTransform)
+	float animationTime, const cd::Bone& bone, const char* clipName, SkinMeshComponent* pSkinmeshConponent,cd::Matrix4x4& globalMatrix, const cd::Matrix4x4 rootBoonTransform)
 {
 	auto CalculateInterpolatedTranslation = [&animationTime](const cd::Track* pTrack) -> cd::Vec3f
 		{
@@ -201,20 +201,38 @@ void CalculateTransform(std::vector<cd::Matrix4x4>& boneMatrices, const cd::Scen
 			return cd::Vec3f::One();
 		};
 
-	cd::Matrix4x4 boneLocalTransform = cd::Matrix4x4::Identity();
+	cd::Matrix4x4 deltaTransform = cd::Matrix4x4::Identity();
+
 	if (const cd::Track* pTrack = pSceneDatabase->GetTrackByName((std::string(clipName) + bone.GetName()).c_str()))
 	{
-		boneLocalTransform = cd::Transform(CalculateInterpolatedTranslation(pTrack),
-			CalculateInterpolatedRotation(pTrack),
-			CalculateInterpolatedScale(pTrack)).GetMatrix() * bone.GetOffset();
+		if (0 == bone.GetID().Data())
+		{
+			deltaTransform = pSkinmeshConponent->GetBoneGlobalMatrix(0).Inverse() * cd::Transform(CalculateInterpolatedTranslation(pTrack),
+				CalculateInterpolatedRotation(pTrack),
+				CalculateInterpolatedScale(pTrack)).GetMatrix();
+		}
+		else
+		{
+			cd::Matrix4x4 parent = pSkinmeshConponent->GetBoneGlobalMatrix(bone.GetParentID().Data());
+			cd::Matrix4x4 curBoneGlobalMatrix = pSkinmeshConponent->GetBoneGlobalMatrix(bone.GetParentID().Data()) *  cd::Transform(CalculateInterpolatedTranslation(pTrack),
+				CalculateInterpolatedRotation(pTrack),
+				CalculateInterpolatedScale(pTrack)).GetMatrix();
+			cd::Matrix4x4 local = cd::Transform(CalculateInterpolatedTranslation(pTrack),
+				CalculateInterpolatedRotation(pTrack),
+				CalculateInterpolatedScale(pTrack)).GetMatrix();
+			deltaTransform = pSkinmeshConponent->GetBoneGlobalMatrix(bone.GetID().Data()).Inverse() * curBoneGlobalMatrix;
+		}
 	}
-
-	boneMatrices[bone.GetID().Data()] = rootBoonTransform * boneLocalTransform ;
+	cd::Matrix4x4 global = pSkinmeshConponent->GetBoneGlobalMatrix(bone.GetID().Data()) * deltaTransform;
+	pSkinmeshConponent->SetBoneGlobalMatrix(bone.GetID().Data(), global);
+	boneMatrices[bone.GetID().Data()] = deltaTransform;
 
 	for (cd::BoneID boneID : bone.GetChildIDs())
 	{
+		
+		cd::Matrix4x4 curGlobalMatrix = global;
 		const cd::Bone& childBone = pSceneDatabase->GetBone(boneID.Data());
-		CalculateTransform(boneMatrices, pSceneDatabase, animationTime, childBone, clipName, rootBoonTransform);
+		CalculateTransform(boneMatrices, pSceneDatabase, animationTime, childBone, clipName, pSkinmeshConponent, curGlobalMatrix, rootBoonTransform);
 	}
 }
 
@@ -230,8 +248,8 @@ void BlendTwoPos(std::vector<cd::Matrix4x4>& blendBoneMatrices, std::vector<cd::
 
 	/*CalculateTransform(BoneMatricesA, pSceneDatabase, clipATime * blendTimeProgress, pSceneDatabase->GetBone(0), pSceneDatabase->GetAnimation(0).GetName(), CalculateRootBoneTransform(pSceneDatabase, clipARunningTime, pSceneDatabase->GetAnimation(0).GetName()));
 	CalculateTransform(BoneMatricesB, pSceneDatabase, clipBTime * blendTimeProgress, pSceneDatabase->GetBone(0), pSceneDatabase->GetAnimation(1).GetName(), CalculateRootBoneTransform(pSceneDatabase, clipBRunningTime, pSceneDatabase->GetAnimation(1).GetName()));*/
-	CalculateTransform(BoneMatricesA, pSceneDatabase, clipATime * blendTimeProgress, pSceneDatabase->GetBone(0), pSceneDatabase->GetAnimation(0).GetName(), cd::Matrix4x4::Identity());
-	CalculateTransform(BoneMatricesB, pSceneDatabase, clipBTime * blendTimeProgress, pSceneDatabase->GetBone(0), pSceneDatabase->GetAnimation(1).GetName(), cd::Matrix4x4::Identity());
+	//CalculateTransform(BoneMatricesA, pSceneDatabase, clipATime * blendTimeProgress, pSceneDatabase->GetBone(0), pSceneDatabase->GetAnimation(0).GetName(), cd::Matrix4x4::Identity());
+	//CalculateTransform(BoneMatricesB, pSceneDatabase, clipBTime * blendTimeProgress, pSceneDatabase->GetBone(0), pSceneDatabase->GetAnimation(1).GetName(), cd::Matrix4x4::Identity());
 	for (auto& bone : pSceneDatabase->GetBones())
 	{
 		cd::Vec3f translationA = BoneMatricesA[bone.GetID().Data()].GetTranslation();
@@ -244,8 +262,9 @@ void BlendTwoPos(std::vector<cd::Matrix4x4>& blendBoneMatrices, std::vector<cd::
 		cd::Transform transA = cd::Transform(translationA, rotationA, scaleA);
 		cd::Transform transB = cd::Transform(translationB, rotationB, scaleB);
 		cd::Vec3f blendTranslation = cd::Vec3f::Lerp(transA.GetTranslation(), transB.GetTranslation(), factor);
-		cd::Quaternion blendRotation = rotationA + (rotationA - rotationB) * factor;
+		cd::Quaternion blendRotation = cd::Quaternion::Lerp(rotationA, rotationB, factor);
 		cd::Vec3f blendScale = cd::Vec3f::Lerp(transA.GetScale(), transB.GetScale(), factor);
+		cd::Vec3f blenda = blendRotation.ToEulerAngles();
 
 		cd::Matrix4x4 matrixA = BoneMatricesA[bone.GetID().Data()];
 		cd::Matrix4x4 matrixB = BoneMatricesB[bone.GetID().Data()];
@@ -254,8 +273,10 @@ void BlendTwoPos(std::vector<cd::Matrix4x4>& blendBoneMatrices, std::vector<cd::
 		cd::Vec4f col2 = matrixA.GetColumn(2) + (matrixB.GetColumn(2) - matrixA.GetColumn(2)) * factor;
 		cd::Vec4f col3 = matrixA.GetColumn(3) + (matrixB.GetColumn(3) - matrixA.GetColumn(3)) * factor;
 		cd::Matrix4x4 matrixBlend(col0,col1,col2,col3);
-		cd::Matrix4x4 boneLocalTranform = cd::Transform(blendTranslation, blendRotation.Normalize(), blendScale).GetMatrix();
-		blendBoneMatrices[bone.GetID().Data()] = boneLocalTranform;
+		cd::Quaternion rotation = cd::Quaternion::FromMatrix(matrixBlend.GetRotation());
+		cd::Vec3f blendb = rotation.ToEulerAngles();
+		cd::Matrix4x4 boneLocalTranform = cd::Transform(blendTranslation, blendRotation, blendScale).GetMatrix();
+		blendBoneMatrices[bone.GetID().Data()] = matrixBlend;
 	}	
 }
 
@@ -300,15 +321,15 @@ void SkeletonRenderer::Render(float deltaTime)
 		{
 			animationRunningTime += deltaTime;
 		}
-		static std::vector<cd::Matrix4x4> localBoneMatrix;
+		static std::vector<cd::Matrix4x4> globalDeltaBoneMatrix;
 		static std::vector<cd::Matrix4x4> boneMatrixA;
 		static std::vector<cd::Matrix4x4> boneMatrixB;
-		localBoneMatrix.clear();
+		globalDeltaBoneMatrix.clear();
 		boneMatrixA.clear();
 		boneMatrixB.clear();
 		for (uint16_t boneIndex = 0; boneIndex < 128; ++boneIndex)
 		{
-			localBoneMatrix.push_back(cd::Matrix4x4::Identity());
+			globalDeltaBoneMatrix.push_back(cd::Matrix4x4::Identity());
 			boneMatrixA.push_back(cd::Matrix4x4::Identity());
 			boneMatrixB.push_back(cd::Matrix4x4::Identity());
 		}
@@ -322,24 +343,25 @@ void SkeletonRenderer::Render(float deltaTime)
 		
 			float animationTime = details::CustomFMod(animationRunningTime, duration);
 			pAnimationComponent->SetAnimationPlayTime(animationTime);
-			if (animationTime >= playTime)
+			cd::Matrix4x4 curBoneGlobalMatrix = pSkinMeshComponent->GetBoneGlobalMatrix(0);
+			//if (animationTime >= playTime)
 			{
 				nowRootTransform = details::CalculateRootBoneTransform(pSceneDatabase, animationTime, clipName);
 				playTime = animationTime;
 				CD_INFO(animationTime);
-				details::CalculateTransform(localBoneMatrix, pSceneDatabase, animationTime, pSceneDatabase->GetBone(0), clipName, deltaRootTransform);
+				details::CalculateTransform(globalDeltaBoneMatrix, pSceneDatabase, animationTime, pSceneDatabase->GetBone(0), clipName, pSkinMeshComponent, curBoneGlobalMatrix, deltaRootTransform);
 			}
-			else
+		/*	else
 			{
 				beforRootTransform = details::CalculateRootBoneTransform(pSceneDatabase, duration, clipName);
 				CD_INFO("loopTime");
 				CD_INFO(playTime);
 				deltaRootTransform = beforRootTransform * deltaRootTransform;
 				playTime = animationTime;
-				details::CalculateTransform(localBoneMatrix, pSceneDatabase, duration, pSceneDatabase->GetBone(0), clipName, deltaRootTransform);
-			}
+				details::CalculateTransform(globalDeltaBoneMatrix, pSceneDatabase, duration, pSceneDatabase->GetBone(0), clipName, pSkinMeshComponent, curBoneGlobalMatrix, deltaRootTransform);
+			}*/
 			//pTransformComponent->SetTransform(cd::Transform(rootTransform.GetTranslation(), cd::Quaternion::FromMatrix(rootTransform.GetRotation()), rootTransform.GetScale()));
-			details::CalculateTransform(localBoneMatrix, pSceneDatabase, animationTime, pSceneDatabase->GetBone(0), clipName, deltaRootTransform);
+			//details::CalculateTransform(globalDeltaBoneMatrix, pSceneDatabase, animationTime, pSceneDatabase->GetBone(0), clipName, pSkinMeshComponent, curBoneGlobalMatrix, deltaRootTransform);
 
 		}
 		else if (engine::AnimationClip::Walking == pAnimationComponent->GetAnimationClip())
@@ -350,7 +372,7 @@ void SkeletonRenderer::Render(float deltaTime)
 			ticksPerSecond = pSceneDatabase->GetAnimation(1).GetTicksPerSecnod();
 			float animationTime = details::CustomFMod(animationRunningTime, duration);
 			cd::Matrix4x4 rootBoneInserve = details::CalculateRootBoneTransform(pSceneDatabase, animationTime, clipName);
-			details::CalculateTransform(localBoneMatrix, pSceneDatabase, animationTime, pSceneDatabase->GetBone(0), clipName, rootBoneInserve);
+			//details::CalculateTransform(globalDeltaBoneMatrix, pSceneDatabase, animationTime, pSceneDatabase->GetBone(0), clipName, pSkinMeshComponent, rootBoneInserve);
 		}
 		else if (engine::AnimationClip::Running == pAnimationComponent->GetAnimationClip())
 		{
@@ -360,7 +382,7 @@ void SkeletonRenderer::Render(float deltaTime)
 			ticksPerSecond = pSceneDatabase->GetAnimation(1).GetTicksPerSecnod();
 			float animationTime = details::CustomFMod(animationRunningTime, duration);
 			cd::Matrix4x4 rootBoneInserve = details::CalculateRootBoneTransform(pSceneDatabase, animationTime, clipName);
-			details::CalculateTransform(localBoneMatrix, pSceneDatabase, animationTime, pSceneDatabase->GetBone(0), clipName, cd::Matrix4x4::Identity());
+			//details::CalculateTransform(globalDeltaBoneMatrix, pSceneDatabase, animationTime, pSceneDatabase->GetBone(0), clipName, pSkinMeshComponent, curBoneGlobalMatrix, cd::Matrix4x4::Identity());
 		}
 		else if (engine::AnimationClip::Blend == pAnimationComponent->GetAnimationClip())
 		{
@@ -372,14 +394,14 @@ void SkeletonRenderer::Render(float deltaTime)
 			float clipBRunningTime = details::CustomFMod(animationRunningTime, clipBTime);
 			float blendRunningTime = details::CustomFMod(animationRunningTime, blendTime);
 			float blendTimeProgress = blendRunningTime / blendTime;
-			details::BlendTwoPos(localBoneMatrix, boneMatrixA, boneMatrixB, blendRunningTime, factor, pSceneDatabase);
+			details::BlendTwoPos(globalDeltaBoneMatrix, boneMatrixA, boneMatrixB, blendRunningTime, factor, pSceneDatabase);
 		}
 
 	
 		//assert(ticksPerSecond > 1.0f);
 		float animationTime = details::CustomFMod(animationRunningTime, duration);
 
-		bgfx::setUniform(bgfx::UniformHandle{ pSkinMeshComponent->GetBoneMatrixsUniform() }, localBoneMatrix.data(), static_cast<uint16_t>(localBoneMatrix.size()));
+		bgfx::setUniform(bgfx::UniformHandle{ pSkinMeshComponent->GetBoneMatrixsUniform() }, globalDeltaBoneMatrix.data(), static_cast<uint16_t>(globalDeltaBoneMatrix.size()));
 		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pSkinMeshComponent->GetBoneVBH() });
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pSkinMeshComponent->GetBoneIBH() });
 
