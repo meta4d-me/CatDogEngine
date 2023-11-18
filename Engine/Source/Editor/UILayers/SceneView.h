@@ -57,8 +57,6 @@ public:
 
 	engine::MulticastDelegate<void(uint16_t, uint16_t)> OnResize;
 
-	void PickSceneMesh();
-
 	ImGuizmo::OPERATION GetImGuizmoOperation() const { return m_currentOperation; }
 	RenderModeType GetRenderMode() const { return m_renderMode; }
 
@@ -71,6 +69,9 @@ public:
 
 	void SetCameraController(engine::ViewportCameraController* pCameraController) { m_pCameraController = pCameraController; }
 	const engine::RenderTarget* GetRenderTarget() const { return m_pRenderTarget; }
+
+	void PickSceneMesh();
+	void UpdateOperations();
 
 private:
 	void UpdateToolMenuButtons();

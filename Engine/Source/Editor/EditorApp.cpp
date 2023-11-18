@@ -650,11 +650,6 @@ bool EditorApp::Update(float deltaTime)
 	// Update Engine GUI
 	if (m_pEngineImGuiContext)
 	{
-		if (m_pViewportCameraController)
-		{
-			m_pViewportCameraController->Update(deltaTime);
-		}
-
 		// Set ImGuiContextInstance bounds same to SceneView.
 		auto [sceneRectX, sceneRectY] = m_pSceneView->GetWorkRectPosition();
 		if (!m_pEngineImGuiContext->IsViewportEnable())
@@ -666,6 +661,11 @@ bool EditorApp::Update(float deltaTime)
 
 		m_pEngineImGuiContext->BeginFrame();
 		m_pEngineImGuiContext->Update(deltaTime);
+
+		if (m_pViewportCameraController)
+		{
+			m_pViewportCameraController->Update(deltaTime);
+		}
 
 		// Rendering Scene World.
 		UpdateMaterials();

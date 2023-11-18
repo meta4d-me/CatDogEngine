@@ -278,6 +278,45 @@ void SceneView::PickSceneMesh()
 	pSceneWorld->SetSelectedEntity(nearestEntity);
 }
 
+void SceneView::UpdateOperations()
+{
+	// Check if mouse is inside Scene.
+	bool isMouseInsideScene = false;
+	auto [mouseX, mouseY] = ImGui::GetMousePos();
+	if (mouseX > m_workRectPosX &&
+		mouseX < m_workRectPosX + m_workRectWidth &&
+		mouseY > m_workRectPosY &&
+		mouseY < m_workRectPosY + m_workRectHeight)
+	{
+		isMouseInsideScene = true;
+	}
+
+	if (!isMouseInsideScene)
+	{
+		return;
+	}
+
+	// Operations
+	if (m_pCameraController->IsInControl() || ImGuizmo::IsUsing())
+	{
+	}
+	else
+	{
+		// Pick
+		if (m_currentOperation == SelectOperation && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		{
+			PickSceneMesh();
+		}
+
+		// Focus
+		if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) &&
+			engine::INVALID_ENTITY != GetSceneWorld()->GetSelectedEntity())
+		{
+			m_pCameraController->CameraFocus();
+		}
+	}
+}
+
 void SceneView::Update()
 {
 	engine::SceneWorld* pSceneWorld = GetSceneWorld();
@@ -327,39 +366,7 @@ void SceneView::Update()
 	ImGui::PopStyleVar();
 	ImGui::End();
 
-	// Check if mouse is inside Scene.
-	bool isMouseInsideScene = false;
-	auto [mouseX, mouseY] = ImGui::GetMousePos();
-	if (mouseX > m_workRectPosX &&
-		m_workRectPosX < m_workRectPosX + m_workRectWidth &&
-		mouseY > m_workRectPosY &&
-		mouseY < m_workRectPosY + m_workRectHeight)
-	{
-		isMouseInsideScene = true;
-	}
-
-	if (isMouseInsideScene)
-	{
-		// Operations
-		if (m_pCameraController->IsInControl() || ImGuizmo::IsUsing())
-		{
-		}
-		else
-		{
-			// Pick
-			if (m_currentOperation == SelectOperation && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-			{
-				PickSceneMesh();
-			}
-
-			// Focus
-			if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) &&
-				engine::INVALID_ENTITY != pSceneWorld->GetSelectedEntity())
-			{
-				m_pCameraController->CameraFocus();
-			}
-		}
-	}
+	UpdateOperations();
 }
 
 std::pair<float, float> SceneView::GetWorkRectPosition() const

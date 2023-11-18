@@ -22,12 +22,6 @@ public:
 	virtual bool IsTracking() const { return false; }
 	virtual bool IsInWalkMode() const { return false; }
 	virtual bool IsInControl() const { return IsInAnimation() || IsZooming() || IsFOVZooming() || IsPanning() || IsTurning() || IsTracking() || IsInWalkMode(); }
-
-	// Event Handlers
-	virtual void OnMouseDown() {}
-	virtual void OnMouseUp() {}
-	virtual void OnMouseMove(float x, float y) {}
-	virtual void OnMouseWheel(float y) {}
 };
 
 }

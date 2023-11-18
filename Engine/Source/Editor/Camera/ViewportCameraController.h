@@ -24,29 +24,30 @@ public:
 
 	// Operations
 	virtual bool IsInAnimation() const override;
+	void CameraFocus();
+	void Focusing();
+
 	virtual bool IsZooming() const override;
+	void Zoom(float delta);
+
 	virtual bool IsPanning() const override;
+	void Panning(float x, float y);
+
 	virtual bool IsTurning() const override;
+	void Turning(float x, float y);
+
 	virtual bool IsTracking() const override;
+	void Tracking(float x, float y);
+
 	virtual bool IsInWalkMode() const override;
+	bool Walking();
 
 	// Event Handlers
-	virtual void OnMouseDown() override;
-	virtual void OnMouseUp() override;
-	virtual void OnMouseMove(float x, float y) override;
-	virtual void OnMouseWheel(float y) override;
+	bool OnMouseMove(float x, float y);
+	bool OnMouseWheel(float y);
 
 	// TODO : EventDriven, not update.
 	void Update(float deltaTime);
-
-	// Implement the effect of a translation animation.
-	void CameraFocus();
-	void Focusing();
-	
-	//
-	void Zoom(float delta);
-	void Panning(float x, float y);
-	void Turning(float x, float y);
 
 	// Configs
 	void SetMovementSpeed(float speed);
@@ -101,7 +102,8 @@ private:
 
 	float m_horizontalSensitivity = 0.0f;
 	float m_verticalSensitivity = 0.0f;
-	float m_movementSpeed = 0.0f;
+	float m_moveSpeed = 0.0f;
+
 	float m_mouseScroll = 0.0f;
 
 	cd::Vec3f m_lookAtPoint = cd::Vec3f::Zero();
@@ -111,9 +113,8 @@ private:
 	cd::Vec3f m_eyeDestination; // This is for focusing animation
 	cd::Vec3f m_lookAtDestination;
 
-	bool m_isTracking = false;
 	bool m_isFocusing = false;
-	bool m_isInWalkMode = false;
+	bool m_isTracking = false;
 };
 
 }

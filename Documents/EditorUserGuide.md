@@ -17,15 +17,11 @@ Here is viewport camera operations in the Editor.
 * Zoom
   
   * Scroll mouse wheel vertically
-  
-  * Keep pressing MLB and move mouse vertically
 
 * FOV Zoom
   
-  * Not support : user case?
+  * Not support
 
 * Panning
   
   * Keep pressing MMB and move.
-  
-  * Keep pressing MLB and MRB at the same time and move.
