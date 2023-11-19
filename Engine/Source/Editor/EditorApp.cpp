@@ -235,6 +235,8 @@ void EditorApp::InitEditorUILayers()
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pAssetBrowser));
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<OutputLog>("OutputLog"));
 	m_pImGuiContextManager->RegisterImGuiLayersFromContext(m_pEditorImGuiContext);
+
+	m_pEditorImGuiContext->OnMouseDown.Bind<SceneView, &SceneView::OnMouseDown>(m_pSceneView);
 }
 
 void EditorApp::InitEngineImGuiContext(engine::Language language)
@@ -256,8 +258,6 @@ void EditorApp::InitEngineImGuiContext(engine::Language language)
 
 void EditorApp::InitEngineUILayers()
 {
-	InitCameraController();
-
 	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<engine::DebugPanel>("DebugPanel"));
 	m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<editor::ImGuizmoView>("ImGuizmoView"));
 	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<TestNodeEditor>("TestNodeEditor"));
@@ -615,11 +615,13 @@ bool EditorApp::Update(float deltaTime)
 		GetMainWindow()->SetBordedLess(false);
 		GetMainWindow()->SetResizeable(true);
 
-		m_pEditorImGuiContext->ClearUILayers();
-		InitEditorUILayers();
-
 		InitEngineImGuiContext(m_initArgs.language);
 		m_pEngineImGuiContext->SetSceneWorld(m_pSceneWorld.get());
+
+		InitCameraController();
+
+		m_pEditorImGuiContext->ClearUILayers();
+		InitEditorUILayers();
 
 		InitEngineUILayers();
 	}

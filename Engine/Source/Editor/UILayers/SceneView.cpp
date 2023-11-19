@@ -237,7 +237,7 @@ void SceneView::UpdateToolMenuButtons()
 	ImGui::PopStyleColor();
 }
 
-void SceneView::PickSceneMesh()
+void SceneView::PickSceneMesh(float x, float y)
 {
 	// Loop through scene's all static meshes' AABB to test intersections with Ray.
 	engine::SceneWorld* pSceneWorld = GetSceneWorld();
@@ -278,43 +278,30 @@ void SceneView::PickSceneMesh()
 	pSceneWorld->SetSelectedEntity(nearestEntity);
 }
 
-void SceneView::UpdateOperations()
+bool SceneView::OnMouseDown(float x, float y)
 {
-	// Check if mouse is inside Scene.
-	//bool isMouseInsideScene = false;
-	//auto [mouseX, mouseY] = ImGui::GetMousePos();
-	//if (mouseX > m_workRectPosX &&
-	//	mouseX < m_workRectPosX + m_workRectWidth &&
-	//	mouseY > m_workRectPosY &&
-	//	mouseY < m_workRectPosY + m_workRectHeight)
-	//{
-	//	isMouseInsideScene = true;
-	//}
-	//
-	//if (!isMouseInsideScene)
-	//{
-	//	return;
-	//}
-	//
-	//// Operations
-	//if (m_pCameraController->IsInControl() || ImGuizmo::IsUsing())
-	//{
-	//}
-	//else
-	//{
-	//	// Pick
-	//	if (m_currentOperation == SelectOperation && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-	//	{
-	//		PickSceneMesh();
-	//	}
-	//
-	//	// Focus
-	//	if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) &&
-	//		engine::INVALID_ENTITY != GetSceneWorld()->GetSelectedEntity())
-	//	{
-	//		m_pCameraController->CameraFocus();
-	//	}
-	//}
+	// Operations
+	if (ImGuizmo::IsUsing())
+	{
+	}
+	else
+	{
+		// Pick
+		if (m_currentOperation == SelectOperation && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		{
+			PickSceneMesh(x, y);
+			return true;
+		}
+	
+		// Focus
+		if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) &&
+			engine::INVALID_ENTITY != GetSceneWorld()->GetSelectedEntity())
+		{
+			m_pCameraController->CameraFocus();
+		}
+	}
+
+	return false;
 }
 
 void SceneView::Update()
@@ -365,8 +352,6 @@ void SceneView::Update()
 
 	ImGui::PopStyleVar();
 	ImGui::End();
-
-	UpdateOperations();
 }
 
 std::pair<float, float> SceneView::GetWorkRectPosition() const

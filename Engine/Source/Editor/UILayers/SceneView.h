@@ -70,8 +70,8 @@ public:
 	void SetCameraController(engine::ViewportCameraController* pCameraController) { m_pCameraController = pCameraController; }
 	const engine::RenderTarget* GetRenderTarget() const { return m_pRenderTarget; }
 
-	void PickSceneMesh();
-	void UpdateOperations();
+	bool OnMouseDown(float x, float y);
+	void PickSceneMesh(float x, float y);
 
 private:
 	void UpdateToolMenuButtons();

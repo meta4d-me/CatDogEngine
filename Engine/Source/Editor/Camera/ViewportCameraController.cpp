@@ -65,7 +65,45 @@ bool ViewportCameraController::IsTracking() const
 
 bool ViewportCameraController::IsInWalkMode() const
 {
-	return ImGui::IsAnyMouseDown();
+	bool isAnyKeyDown = ImGui::IsKeyPressed(ImGuiKey_W) || ImGui::IsKeyPressed(ImGuiKey_UpArrow) ||
+		ImGui::IsKeyPressed(ImGuiKey_A) || ImGui::IsKeyPressed(ImGuiKey_LeftArrow) ||
+		ImGui::IsKeyPressed(ImGuiKey_S) || ImGui::IsKeyPressed(ImGuiKey_DownArrow) ||
+		ImGui::IsKeyPressed(ImGuiKey_D) || ImGui::IsKeyPressed(ImGuiKey_RightArrow) ||
+		ImGui::IsKeyPressed(ImGuiKey_E) || ImGui::IsKeyPressed(ImGuiKey_Q);
+
+	return ImGui::IsAnyMouseDown() && isAnyKeyDown;
+}
+
+bool ViewportCameraController::OnMouseWheel(float delta)
+{
+	//if (IsInWalkMode())
+	//{
+	//	m_walkSpeedScale += delta > 0.0f ? 1.0f : -1.0f;
+	//	m_walkSpeedScale = std::clamp(m_walkSpeedScale, 0.1f, 10.0f);
+	//}
+	if (IsZooming())
+	{
+		float fixedDelta = delta > 0.0f ? 120.0f : -120.0f;
+		delta = -fixedDelta * CalculateZoomScale() * 0.002f;
+		if (fixedDelta > 0.0f)
+		{
+			float origLookAtDist = m_distanceFromLookAt;
+			m_distanceFromLookAt += delta;
+			delta = -fixedDelta * CalculateZoomScale() * 0.002f;
+			m_distanceFromLookAt = origLookAtDist;
+		}
+
+		const float minWheelDelta = 1.5f;
+		if (delta > -minWheelDelta && delta < minWheelDelta)
+		{
+			delta = delta < 0.0f ? -minWheelDelta : minWheelDelta;
+		}
+		m_distanceFromLookAt += delta;
+
+		ControllerToCamera();
+	}
+
+	return true;
 }
 
 bool ViewportCameraController::OnMouseDown(float x, float y)
@@ -149,35 +187,6 @@ bool ViewportCameraController::OnMouseMove(float x, float y)
 	return true;
 }
 
-bool ViewportCameraController::OnMouseWheel(float delta)
-{
-	if (!IsZooming())
-	{
-		return false;
-	}
-
-	float fixedDelta = delta > 0.0f ? 120.0f : -120.0f;
-	delta = -fixedDelta * CalculateZoomScale() * 0.002f;
-	if (fixedDelta > 0.0f)
-	{
-		float origLookAtDist = m_distanceFromLookAt;
-		m_distanceFromLookAt += delta;
-		delta = -fixedDelta * CalculateZoomScale() * 0.002f;
-		m_distanceFromLookAt = origLookAtDist;
-	}
-
-	const float minWheelDelta = 1.5f;
-	if (delta > -minWheelDelta && delta < minWheelDelta)
-	{
-		delta = delta < 0.0f ? -minWheelDelta : minWheelDelta;
-	}
-	m_distanceFromLookAt += delta;
-
-	ControllerToCamera();
-
-	return true;
-}
-
 bool ViewportCameraController::OnKeyDown()
 {
 	if (!IsInWalkMode())
@@ -188,30 +197,32 @@ bool ViewportCameraController::OnKeyDown()
 	cd::Direction direction(0.0f);
 	if (ImGui::IsKeyPressed(ImGuiKey_W) || ImGui::IsKeyPressed(ImGuiKey_UpArrow))
 	{
-		direction -= m_lookAt;
+		direction -= cd::Vec3f(1.0f, 0.0f, 1.0f) * m_lookAt;
 	}
 	
 	if (ImGui::IsKeyPressed(ImGuiKey_A) || ImGui::IsKeyPressed(ImGuiKey_LeftArrow))
 	{
-		direction += m_lookAt.Cross(m_up);
+		direction += cd::Vec3f(1.0f, 0.0f, 1.0f) * m_lookAt.Cross(m_up);
 	}
 	
 	if (ImGui::IsKeyPressed(ImGuiKey_S) || ImGui::IsKeyPressed(ImGuiKey_DownArrow))
 	{
-		direction += m_lookAt;
+		direction += cd::Vec3f(1.0f, 0.0f, 1.0f) * m_lookAt;
 	}
 	
 	if (ImGui::IsKeyPressed(ImGuiKey_D) || ImGui::IsKeyPressed(ImGuiKey_RightArrow))
 	{
-		direction -= m_lookAt.Cross(m_up);
+		direction -= cd::Vec3f(1.0f, 0.0f, 1.0f) * m_lookAt.Cross(m_up);
 	}
 	
 	if (ImGui::IsKeyPressed(ImGuiKey_E))
 	{
+		direction -= cd::Vec3f(0.0f, 1.0f, 0.0f) * m_up;
 	}
 	
 	if (ImGui::IsKeyPressed(ImGuiKey_Q))
 	{
+		direction += cd::Vec3f(0.0f, 1.0f, 0.0f) * m_up;
 	}
 
 	direction.Normalize();
