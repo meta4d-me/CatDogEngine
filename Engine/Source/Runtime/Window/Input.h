@@ -53,6 +53,7 @@ public:
 		m_mouseScrollOffsetY = 0;
 
 		// keyboard
+		m_keyModifiers = KeyMod::KMOD_NONE;
 		m_keyEventList.clear();
 		m_inputCharBufferIndex = 0;
 		m_inputCharBuffer[0] = '\0';

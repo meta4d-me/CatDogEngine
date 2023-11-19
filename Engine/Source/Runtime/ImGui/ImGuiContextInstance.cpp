@@ -734,19 +734,22 @@ void ImGuiContextInstance::SetImGuiLanguage(Language language)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-/// Input
+/// Events
 ///////////////////////////////////////////////////////////////////////////////////////////
-void ImGuiContextInstance::AddInputEvent()
+void ImGuiContextInstance::AddInputEvents()
 {
+	// Reset
+	m_isAnyKeyDown = false;
+
 	// Don't push unnecessary events to ImGui. Or it will overflow its event queue to cause a time delay UI feedback.
 	// Why we don't use callback directly from native platform window? Because we have multiple imgui contexts to receive input events.
 	// And only the active imgui context can receive window messages. It sounds no problem but imgui context can switch during one frame multiple times.
 	// It is not safe to use event callback.
-	AddMouseInputEvent();
-	AddKeyboardInputEvent();
+	AddMouseInputEvents();
+	AddKeyboardInputEvents();
 }
 
-void ImGuiContextInstance::AddMouseInputEvent()
+void ImGuiContextInstance::AddMouseInputEvents()
 {
 	ImGuiIO& io = GetIO();
 
@@ -754,6 +757,98 @@ void ImGuiContextInstance::AddMouseInputEvent()
 	if (bool isFocused = Input::Get().IsFocused(); isFocused != m_lastFocused)
 	{
 		io.AddFocusEvent(isFocused);
+	}
+
+	float mousePosX = static_cast<float>(Input::Get().GetMousePositionX());
+	float mousePosY = static_cast<float>(Input::Get().GetMousePositionY());
+	if (IsViewportEnable())
+	{
+		// Multiple Viewports require screen space mouse coordinates.
+		mousePosX += m_rectPosX;
+		mousePosY += m_rectPosY;
+	}
+
+	// Filter mouse events outside of rect.
+	// TODO : should use focus to judge.
+	bool isInsideDisplayRect = IsInsideDisplayRect(mousePosX, mousePosY);
+	if (!isInsideDisplayRect)
+	{
+		return;
+	}
+
+	if (mousePosX != m_lastMousePositionX || mousePosY != m_lastMousePositionY)
+	{
+		io.AddMousePosEvent(mousePosX, mousePosY);
+	}
+
+	if (bool mouseLBPressed = Input::Get().IsMouseLBPressed(); m_lastMouseLBPressed != mouseLBPressed)
+	{
+		io.AddMouseButtonEvent(ImGuiMouseButton_Left, mouseLBPressed);
+	}
+
+	if (bool mouseMBPressed = Input::Get().IsMouseMBPressed(); m_lastMouseMBPressed != mouseMBPressed)
+	{
+		io.AddMouseButtonEvent(ImGuiMouseButton_Middle, mouseMBPressed);
+	}
+
+	if (bool mouseRBPressed = Input::Get().IsMouseRBPressed(); m_lastMouseRBPressed != mouseRBPressed)
+	{
+		io.AddMouseButtonEvent(ImGuiMouseButton_Right, mouseRBPressed);
+	}
+
+	if (float mouseScrollOffsetY = Input::Get().GetMouseScrollOffsetY(); mouseScrollOffsetY != m_lastMouseScrollOffstY)
+	{
+		io.AddMouseWheelEvent(0.0f, mouseScrollOffsetY);
+	}
+}
+
+void ImGuiContextInstance::AddKeyboardInputEvents()
+{
+	ImGuiIO& io = GetIO();
+
+	const std::vector<Input::KeyEvent> keyEvents = Input::Get().GetKeyEventList();
+	for (uint32_t i = 0; i < keyEvents.size(); ++i)
+	{
+		const Input::KeyEvent keyEvent = keyEvents[i];
+		if (keyEvent.mod != KeyMod::KMOD_NONE)
+		{
+			// Add the modifier key event
+			if (kImguiKeyModToImGuiModLookup.find(keyEvent.mod) != kImguiKeyModToImGuiModLookup.cend())
+			{
+				io.AddKeyEvent(kImguiKeyModToImGuiModLookup[keyEvent.mod], keyEvent.isPressed);
+				m_isAnyKeyDown = true;
+			}
+
+			// Also add the key itself as key event
+			if (kImguiKeyModToImGuiKeyLookup.find(keyEvent.mod) != kImguiKeyModToImGuiKeyLookup.cend())
+			{
+				io.AddKeyEvent(kImguiKeyModToImGuiKeyLookup[keyEvent.mod], keyEvent.isPressed);
+				m_isAnyKeyDown = true;
+			}
+		}
+
+		if (kImguiKeyLookup.find(keyEvent.code) != kImguiKeyLookup.cend())
+		{
+			io.AddKeyEvent(kImguiKeyLookup[keyEvent.code], keyEvent.isPressed);
+			m_isAnyKeyDown = true;
+		}
+	}
+
+	const char* inputChars = Input::Get().GetInputCharacters();
+	const size_t inputCharSize = strlen(inputChars);
+	for (size_t i = 0; i < inputCharSize; ++i)
+	{
+		io.AddInputCharacter(inputChars[i]);
+	}
+}
+
+void ImGuiContextInstance::PopulateEvents()
+{
+	ImGuiIO& io = GetIO();
+
+	// TODO : is this focus event for this context?
+	if (bool isFocused = Input::Get().IsFocused(); isFocused != m_lastFocused)
+	{
 		m_lastFocused = isFocused;
 	}
 
@@ -789,67 +884,54 @@ void ImGuiContextInstance::AddMouseInputEvent()
 
 	if (mousePosX != m_lastMousePositionX || mousePosY != m_lastMousePositionY)
 	{
-		io.AddMousePosEvent(mousePosX, mousePosY);
 		m_lastMousePositionX = mousePosX;
 		m_lastMousePositionY = mousePosY;
+
+		OnMouseMove.Invoke(mousePosX, mousePosY);
 	}
 
+	bool isMouseDown = false;
+	bool isMouseUp = false;
 	if (bool mouseLBPressed = Input::Get().IsMouseLBPressed(); m_lastMouseLBPressed != mouseLBPressed)
 	{
-		io.AddMouseButtonEvent(ImGuiMouseButton_Left, mouseLBPressed);
 		m_lastMouseLBPressed = mouseLBPressed;
-	}
-
-	if (bool mouseRBPressed = Input::Get().IsMouseRBPressed(); m_lastMouseRBPressed != mouseRBPressed)
-	{
-		io.AddMouseButtonEvent(ImGuiMouseButton_Right, mouseRBPressed);
-		m_lastMouseRBPressed = mouseRBPressed;
+		isMouseDown = mouseLBPressed;
+		isMouseUp = !mouseLBPressed;
 	}
 
 	if (bool mouseMBPressed = Input::Get().IsMouseMBPressed(); m_lastMouseMBPressed != mouseMBPressed)
 	{
-		io.AddMouseButtonEvent(ImGuiMouseButton_Middle, mouseMBPressed);
 		m_lastMouseMBPressed = mouseMBPressed;
+		isMouseDown = mouseMBPressed;
+		isMouseUp = !mouseMBPressed;
+	}
+
+	if (bool mouseRBPressed = Input::Get().IsMouseRBPressed(); m_lastMouseRBPressed != mouseRBPressed)
+	{
+		m_lastMouseRBPressed = mouseRBPressed;
+		isMouseDown = mouseRBPressed;
+		isMouseUp = !mouseRBPressed;
+	}
+
+	if (isMouseDown)
+	{
+		OnMouseDown.Invoke(mousePosX, mousePosY);
+	}
+
+	if (isMouseUp)
+	{
+		OnMouseUp.Invoke(mousePosX, mousePosY);
 	}
 
 	if (float mouseScrollOffsetY = Input::Get().GetMouseScrollOffsetY(); mouseScrollOffsetY != m_lastMouseScrollOffstY)
 	{
-		io.AddMouseWheelEvent(0.0f, mouseScrollOffsetY);
+		OnMouseWheel.Invoke(mouseScrollOffsetY);
 		m_lastMouseScrollOffstY = mouseScrollOffsetY;
 	}
-}
 
-void ImGuiContextInstance::AddKeyboardInputEvent()
-{
-	ImGuiIO& io = GetIO();
-
-	const std::vector<Input::KeyEvent> keyEvents = Input::Get().GetKeyEventList();
-	for (uint32_t i = 0; i < keyEvents.size(); ++i)
+	if (m_isAnyKeyDown)
 	{
-		const Input::KeyEvent keyEvent = keyEvents[i];
-		if (keyEvent.mod != KeyMod::KMOD_NONE)
-		{
-			// Add the modifier key event
-			if (kImguiKeyModToImGuiModLookup.find(keyEvent.mod) != kImguiKeyModToImGuiModLookup.cend())
-			{
-				io.AddKeyEvent(kImguiKeyModToImGuiModLookup[keyEvent.mod], keyEvent.isPressed);
-			}
-			// Also add the key itself as key event
-			if (kImguiKeyModToImGuiKeyLookup.find(keyEvent.mod) != kImguiKeyModToImGuiKeyLookup.cend())
-			{
-				io.AddKeyEvent(kImguiKeyModToImGuiKeyLookup[keyEvent.mod], keyEvent.isPressed);
-			}
-		}
-		if (kImguiKeyLookup.find(keyEvent.code) != kImguiKeyLookup.cend()) {
-			io.AddKeyEvent(kImguiKeyLookup[keyEvent.code], keyEvent.isPressed);
-		}
-	}
-
-	const char* inputChars = Input::Get().GetInputCharacters();
-	const size_t inputCharSize = strlen(inputChars);
-	for (size_t i = 0; i < inputCharSize; ++i)
-	{
-		io.AddInputCharacter(inputChars[i]);
+		OnKeyDown.Invoke();
 	}
 }
 
@@ -887,9 +969,9 @@ void ImGuiContextInstance::Update(float deltaTime)
 		UpdateMonitors();
 	}
 
-	AddInputEvent();
-
+	AddInputEvents();
 	ImGui::NewFrame();
+	PopulateEvents();
 
 	for (const auto& pImGuiLayer : m_pImGuiStaticLayers)
 	{

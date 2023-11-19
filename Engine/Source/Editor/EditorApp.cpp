@@ -204,8 +204,6 @@ void EditorApp::InitEditorImGuiContext(engine::Language language)
 
 void EditorApp::InitEditorUILayers()
 {
-	InitCameraController();
-
 	// Add UI layers after finish imgui and rendering contexts' initialization.
 	auto pMainMenu = std::make_unique<MainMenu>("MainMenu");
 	pMainMenu->SetCameraController(m_pViewportCameraController.get());
@@ -258,6 +256,8 @@ void EditorApp::InitEngineImGuiContext(engine::Language language)
 
 void EditorApp::InitEngineUILayers()
 {
+	InitCameraController();
+
 	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<engine::DebugPanel>("DebugPanel"));
 	m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<editor::ImGuizmoView>("ImGuizmoView"));
 	//m_pEngineImGuiContext->AddDynamicLayer(std::make_unique<TestNodeEditor>("TestNodeEditor"));
@@ -564,8 +564,16 @@ void EditorApp::InitShaderPrograms(bool compileAllShaders) const
 
 void EditorApp::InitCameraController()
 {
-	m_pViewportCameraController = std::make_unique<engine::ViewportCameraController>(m_pSceneWorld.get(),
-		12.0f /* horizontal sensitivity */, 12.0f /* vertical sensitivity */, 5.0f /* move speed */);
+	m_pViewportCameraController = std::make_unique<engine::ViewportCameraController>(m_pSceneWorld.get(), 5.0f /* move speed */);
+	m_pViewportCameraController->CameraToController();
+
+	// Bind engine imgui context as it can filter events outside of SceneView.
+	auto* pCameraController = m_pViewportCameraController.get();
+	m_pEngineImGuiContext->OnMouseWheel.Bind<engine::ViewportCameraController, &engine::ViewportCameraController::OnMouseWheel>(pCameraController);
+	m_pEngineImGuiContext->OnMouseMove.Bind<engine::ViewportCameraController, &engine::ViewportCameraController::OnMouseMove>(pCameraController);
+	m_pEngineImGuiContext->OnMouseDown.Bind<engine::ViewportCameraController, &engine::ViewportCameraController::OnMouseDown>(pCameraController);
+	m_pEngineImGuiContext->OnMouseUp.Bind<engine::ViewportCameraController, &engine::ViewportCameraController::OnMouseUp>(pCameraController);
+	m_pEngineImGuiContext->OnKeyDown.Bind<engine::ViewportCameraController, &engine::ViewportCameraController::OnKeyDown>(pCameraController);
 }
 
 void EditorApp::AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer)
@@ -661,11 +669,6 @@ bool EditorApp::Update(float deltaTime)
 
 		m_pEngineImGuiContext->BeginFrame();
 		m_pEngineImGuiContext->Update(deltaTime);
-
-		if (m_pViewportCameraController)
-		{
-			m_pViewportCameraController->Update(deltaTime);
-		}
 
 		// Rendering Scene World.
 		UpdateMaterials();

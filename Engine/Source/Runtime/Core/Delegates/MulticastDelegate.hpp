@@ -49,14 +49,10 @@ public:
 		m_delegates.emplace_back(std::move(delegate));
 	}
 
+	bool Empty() const { return m_delegates.empty(); }
+
 	void Invoke(Args... args) const
 	{
-		if (m_delegates.empty())
-		{
-			// assert("MulticastDelegate doesn't bind any function calls.");
-			return;
-		}
-
 		for(const auto& delegate : m_delegates)
 		{
 			delegate.Invoke(args...);

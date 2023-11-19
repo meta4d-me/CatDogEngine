@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/Delegates/Delegate.hpp"
+#include "Core/Delegates/MulticastDelegate.hpp"
 #include "Core/StringCrc.h"
 #include "Localization.h"
 #include "ThemeColor.h"
@@ -86,6 +87,11 @@ public:
 	SceneWorld* GetSceneWorld() const { return m_pSceneWorld; }
 
 	// Delegates
+	MulticastDelegate<bool(float)> OnMouseWheel;
+	MulticastDelegate<bool(float, float)> OnMouseMove;
+	MulticastDelegate<bool(float, float)> OnMouseDown;
+	MulticastDelegate<bool(float, float)> OnMouseUp;
+	MulticastDelegate<bool(void)> OnKeyDown;
 	Delegate<void(void)> OnMouseEnterDisplayRect;
 	Delegate<void(void)> OnMouseLeaveDisplayRect;
 
@@ -95,10 +101,11 @@ private:
 	void BeginDockSpace();
 	void EndDockSpace();
 
-	// Input
-	void AddInputEvent();
-	void AddMouseInputEvent();
-	void AddKeyboardInputEvent();
+	// Events
+	void AddInputEvents();
+	void AddMouseInputEvents();
+	void AddKeyboardInputEvents();
+	void PopulateEvents();
 
 private:
 	SceneWorld* m_pSceneWorld = nullptr;
@@ -109,6 +116,8 @@ private:
 
 	float m_rectPosX = 0.0f;
 	float m_rectPosY = 0.0f;
+	
+	bool m_isAnyKeyDown = false;
 
 	bool m_lastInsideDisplayRect = false;
 	bool m_lastFocused = false;

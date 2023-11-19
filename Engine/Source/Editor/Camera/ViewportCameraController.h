@@ -15,76 +15,12 @@ class ViewportCameraController : public ICameraController
 {
 public:
 	ViewportCameraController() = delete;
-	explicit ViewportCameraController(const SceneWorld* pSceneWorld, float horizontal_sensitivity, float vertical_sensitivity, float movement_speed);
+	explicit ViewportCameraController(const SceneWorld* pSceneWorld, float speed);
 	ViewportCameraController(const ViewportCameraController&) = delete;
 	ViewportCameraController(ViewportCameraController&&) = delete;
 	ViewportCameraController& operator=(const ViewportCameraController&) = delete;
 	ViewportCameraController& operator=(ViewportCameraController&&) = delete;
 	virtual ~ViewportCameraController() = default;
-
-	// Operations
-	virtual bool IsInAnimation() const override;
-	void CameraFocus();
-	void Focusing();
-
-	virtual bool IsZooming() const override;
-	void Zoom(float delta);
-
-	virtual bool IsPanning() const override;
-	void Panning(float x, float y);
-
-	virtual bool IsTurning() const override;
-	void Turning(float x, float y);
-
-	virtual bool IsTracking() const override;
-	void Tracking(float x, float y);
-
-	virtual bool IsInWalkMode() const override;
-	bool Walking();
-
-	// Event Handlers
-	bool OnMouseMove(float x, float y);
-	bool OnMouseWheel(float y);
-
-	// TODO : EventDriven, not update.
-	void Update(float deltaTime);
-
-	// Configs
-	void SetMovementSpeed(float speed);
-	void SetSensitivity(float horizontal, float verticle);
-	void SetHorizontalSensitivity(float sensitivity);
-	void SetVerticalSensitivity(float sensitivity);
-
-	// Fps Operations
-	void MoveForward(float amount);
-	void MoveBackward(float amount);
-	void MoveLeft(float amount);
-	void MoveRight(float amount);
-	void MoveUp(float amount);
-	void MoveDown(float amount);
-	void Rotate(const cd::Vec3f& axis, float angleDegrees);
-	void Rotate(float x, float y, float z, float angleDegrees);
-	void Yaw(float angleDegrees);
-	void Pitch(float angleDegrees);
-	void Roll(float angleDegrees);
-	void YawLocal(float angleDegrees);
-	void PitchLocal(float angleDegrees);
-	void RollLocal(float angleDegrees);
-
-	// Circling Operations
-	void AzimuthChanging(float amount);
-	void ElevationChanging(float amount);
-
-	// Synchronize view when begin using mayastyle camera or fpscamera
-	void SynchronizeTrackingCamera();
-
-	void MoveToPosition(cd::Point position, cd::Vec3f lookAt);
-
-private:
-	engine::CameraComponent* GetMainCameraComponent() const;
-	engine::TransformComponent* GetMainCameraTransformComponent() const;
-	const cd::Transform& GetMainCameraTransform();
-	float CalculateZoomScale() { return std::max(std::abs(m_distanceFromLookAt), m_dollyThreshold); }
 
 	// Synchronizes the controller to the transform of camera current state
 	void CameraToController();
@@ -92,24 +28,52 @@ private:
 	// Synchronizes the transform of camera to the controller's current state
 	void ControllerToCamera();
 
+	// Operations
+	virtual bool IsInAnimation() const override;
+	void CameraFocus();
+	void Focusing();
+
+	virtual bool IsZooming() const override;
+	virtual bool IsPanning() const override;
+	virtual bool IsTurning() const override;
+	virtual bool IsTracking() const override;
+	virtual bool IsInWalkMode() const override;
+
+	// Event Handlers
+	bool OnMouseDown(float x, float y);
+	bool OnMouseUp(float x, float y);
+	bool OnMouseMove(float x, float y);
+	bool OnMouseWheel(float delta);
+	bool OnKeyDown();
+
+	void MoveToPosition(cd::Point position, cd::Vec3f lookAt);
+
+private:
+	engine::CameraComponent* GetMainCameraComponent() const;
+	engine::TransformComponent* GetMainCameraTransformComponent() const;
+	const cd::Transform& GetMainCameraTransform();
+	float CalculateZoomScale() const { return std::max(std::abs(m_distanceFromLookAt), m_dollyThreshold); }
+	float GetWalkSpeed() const { return m_walkSpeed * m_walkSpeedScale; }
+
 private:
 	const SceneWorld* m_pSceneWorld;
+
+	cd::Vec2f m_lastMousePoint = cd::Vec2f::Zero();
+	bool m_dragging = false;
 
 	float m_dollyThreshold = 3.0f; // Maybe it should be depends on AABB
 	float m_distanceFromLookAt = 100.0f;//distance from camera to LookAt point
 	float m_azimuth = 0.0f;            //angle of rotation in XZ plane starting from +Z axis (radians)
 	float m_elevation = 0.0f;           //angle of elevation from XZ plane (radians)
 
-	float m_horizontalSensitivity = 0.0f;
-	float m_verticalSensitivity = 0.0f;
-	float m_moveSpeed = 0.0f;
-
-	float m_mouseScroll = 0.0f;
+	float m_walkSpeed = 0.0f;
+	float m_walkSpeedScale = 1.0f;
 
 	cd::Vec3f m_lookAtPoint = cd::Vec3f::Zero();
 	cd::Vec3f m_lookAt = cd::Vec3f(0.0f, 1.0f, 0.0f);
 	cd::Vec3f m_up = cd::Vec3f(0.0f, 0.0f, 1.0f);
 	cd::Vec3f m_eye = cd::Vec3f::Zero();
+	
 	cd::Vec3f m_eyeDestination; // This is for focusing animation
 	cd::Vec3f m_lookAtDestination;
 

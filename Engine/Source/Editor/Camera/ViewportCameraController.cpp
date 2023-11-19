@@ -14,11 +14,9 @@
 namespace engine
 {
 
-ViewportCameraController::ViewportCameraController(const SceneWorld* pSceneWorld, float horizontal_sensitivity, float vertical_sensitivity, float movement_speed) :
+ViewportCameraController::ViewportCameraController(const SceneWorld* pSceneWorld, float speed) :
 	m_pSceneWorld(pSceneWorld),
-	m_horizontalSensitivity(horizontal_sensitivity),
-	m_verticalSensitivity(vertical_sensitivity),
-	m_moveSpeed(movement_speed)
+	m_walkSpeed(speed)
 {
 	assert(pSceneWorld);
 }
@@ -33,24 +31,11 @@ bool ViewportCameraController::IsZooming() const
 	return ImGui::GetIO().MouseWheel != 0.0f;
 }
 
-void ViewportCameraController::Zoom(float delta)
-{
-	float scaleDelta = delta * m_moveSpeed * 4.0f;
-	m_distanceFromLookAt -= scaleDelta;
-	m_eye = m_eye + m_lookAt * scaleDelta;
-}
-
 bool ViewportCameraController::IsPanning() const
 {
 	return ImGui::IsMouseDown(ImGuiMouseButton_Middle) &&
 		!ImGui::IsMouseDown(ImGuiMouseButton_Left) &&
 		!ImGui::IsMouseDown(ImGuiMouseButton_Right);
-}
-
-void ViewportCameraController::Panning(float x, float y)
-{
-	MoveLeft(x);
-	m_eye = m_eye + m_up * y;
 }
 
 bool ViewportCameraController::IsTurning() const
@@ -68,12 +53,6 @@ bool ViewportCameraController::IsTurning() const
 	return false;
 }
 
-void ViewportCameraController::Turning(float x, float y)
-{
-	PitchLocal(m_verticalSensitivity * y * 0.01f);
-	Yaw(m_horizontalSensitivity * x * 0.01f);
-}
-
 bool ViewportCameraController::IsTracking() const
 {
 	if (ImGuizmo::IsUsing())
@@ -81,12 +60,7 @@ bool ViewportCameraController::IsTracking() const
 		return false;
 	}
 
-	return ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::IsKeyDown(ImGuiKey_Z);
-}
-
-void ViewportCameraController::Tracking(float x, float y)
-{
-
+	return ImGui::IsMouseDown(ImGuiMouseButton_Left) && engine::Input::Get().ContainsModifier(engine::KeyMod::KMOD_ALT);
 }
 
 bool ViewportCameraController::IsInWalkMode() const
@@ -94,138 +68,162 @@ bool ViewportCameraController::IsInWalkMode() const
 	return ImGui::IsAnyMouseDown();
 }
 
-bool ViewportCameraController::Walking()
+bool ViewportCameraController::OnMouseDown(float x, float y)
 {
-	bool dirty = false;
-	if (ImGui::IsKeyPressed(ImGuiKey_W))
+	if (IsInControl())
 	{
-		MoveForward(m_moveSpeed);
-		dirty = true;
+		m_lastMousePoint.x() = x;
+		m_lastMousePoint.y() = y;
+		m_dragging = true;
+		return true;
 	}
 
-	if (ImGui::IsKeyPressed(ImGuiKey_A))
+	return false;
+}
+
+bool ViewportCameraController::OnMouseUp(float x, float y)
+{
+	if (m_dragging)
 	{
-		MoveLeft(m_moveSpeed);
-		dirty = true;
+		m_dragging = false;
+		return true;
 	}
 
-	if (ImGui::IsKeyPressed(ImGuiKey_S))
-	{
-		MoveBackward(m_moveSpeed);
-		dirty = true;
-	}
-
-	if (ImGui::IsKeyPressed(ImGuiKey_D))
-	{
-		MoveRight(m_moveSpeed);
-		dirty = true;
-	}
-
-	if (ImGui::IsKeyPressed(ImGuiKey_E))
-	{
-		MoveDown(m_moveSpeed);
-		dirty = true;
-	}
-
-	if (ImGui::IsKeyPressed(ImGuiKey_Q))
-	{
-		MoveUp(m_moveSpeed);
-		dirty = true;
-	}
-
-	return dirty;
+	return false;
 }
 
 bool ViewportCameraController::OnMouseMove(float x, float y)
 {
-	bool dirty = false;
-	do
+	if (!m_dragging || !IsInControl())
 	{
-		if (IsTracking())
+		return false;
+	}
+
+	ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+	float dx = (x - m_lastMousePoint.x()) * (4.0f / displaySize.x);
+	float dy = (y - m_lastMousePoint.y()) * (4.0f / displaySize.y);
+
+	if (IsTracking())
+	{
+		m_elevation += dy * 4.0f;
+		if (m_elevation > cd::Math::PI)
 		{
-			Tracking(x, y);
-			dirty = true;
-			break;
+			m_elevation -= cd::Math::TWO_PI;
+		}
+		else if (m_elevation < -cd::Math::PI)
+		{
+			m_elevation += cd::Math::TWO_PI;
 		}
 
-		if (IsPanning())
+		m_azimuth += dx * 4.0f;
+		if (m_azimuth > cd::Math::PI)
 		{
-			Panning(x, y);
-			dirty = true;
-			// While panning, should not do other opertions at the same time.
-			break;
+			m_azimuth -= cd::Math::TWO_PI;
+		}
+		else if (m_azimuth < -cd::Math::PI)
+		{
+			m_azimuth += cd::Math::TWO_PI;
 		}
 
-		if (IsZooming())
-		{
-			Zoom(-y);
-			dirty = true;
-		}
-
-		if (IsTurning())
-		{
-			Turning(x, y);
-			dirty = true;
-		}
-	} while (false);
-
-	return dirty;
-}
-
-bool ViewportCameraController::OnMouseWheel(float y)
-{
-	bool dirty = false;
-	if (IsZooming())
-	{
-		Zoom(y);
-		dirty = true;
-	}
-
-	if (ImGui::IsAnyMouseDown())
-	{
-		float speedRate = std::pow(2.0f, y / 10.0f);
-		m_moveSpeed = speedRate * m_moveSpeed;
-	}
-
-	return dirty;
-}
-
-void ViewportCameraController::Update(float deltaTime)
-{
-	if (IsInAnimation())
-	{
-		// Camera is focusing an entity automatically.
-		Focusing();
-		return;
-	}
-
-	if (IsInControl())
-	{
-		CameraToController();
-	}
-
-	bool dirty = false;
-	ImVec2 delta = ImGui::GetMouseDragDelta();
-	if (delta.x != 0.0f || delta.y != 0.0f)
-	{
-		dirty |= OnMouseMove(delta.x, delta.y);
-	}
-
-	float scrollY = ImGui::GetIO().MouseWheel;
-	if (scrollY != 0.0f)
-	{
-		dirty |= OnMouseWheel(scrollY);
-	}
-
-	if (IsInWalkMode())
-	{
-		dirty |= Walking();
-	}
-
-	if (dirty)
-	{
 		ControllerToCamera();
 	}
+	else if (IsZooming())
+	{
+		float zoom = -dy - dx;
+		m_distanceFromLookAt += zoom * CalculateZoomScale() * 0.7f;
+
+		ControllerToCamera();
+	}
+	else if (IsPanning())
+	{
+		float scale = CalculateZoomScale() * 0.21f;
+		float sign = scale > 0.0f ? 1.0f : -1.0f;
+		m_lookAtPoint += sign * m_up * dy * scale;
+		m_lookAtPoint += sign * m_lookAt.Cross(m_up) * dx * scale * GetMainCameraComponent()->GetAspect();
+
+		ControllerToCamera();
+	}
+
+	m_lastMousePoint.x() = x;
+	m_lastMousePoint.y() = y;
+	return true;
+}
+
+bool ViewportCameraController::OnMouseWheel(float delta)
+{
+	if (!IsZooming())
+	{
+		return false;
+	}
+
+	float fixedDelta = delta > 0.0f ? 120.0f : -120.0f;
+	delta = -fixedDelta * CalculateZoomScale() * 0.002f;
+	if (fixedDelta > 0.0f)
+	{
+		float origLookAtDist = m_distanceFromLookAt;
+		m_distanceFromLookAt += delta;
+		delta = -fixedDelta * CalculateZoomScale() * 0.002f;
+		m_distanceFromLookAt = origLookAtDist;
+	}
+
+	const float minWheelDelta = 1.5f;
+	if (delta > -minWheelDelta && delta < minWheelDelta)
+	{
+		delta = delta < 0.0f ? -minWheelDelta : minWheelDelta;
+	}
+	m_distanceFromLookAt += delta;
+
+	ControllerToCamera();
+
+	return true;
+}
+
+bool ViewportCameraController::OnKeyDown()
+{
+	if (!IsInWalkMode())
+	{
+		return false;
+	}
+
+	cd::Direction direction(0.0f);
+	if (ImGui::IsKeyPressed(ImGuiKey_W) || ImGui::IsKeyPressed(ImGuiKey_UpArrow))
+	{
+		direction -= m_lookAt;
+	}
+	
+	if (ImGui::IsKeyPressed(ImGuiKey_A) || ImGui::IsKeyPressed(ImGuiKey_LeftArrow))
+	{
+		direction += m_lookAt.Cross(m_up);
+	}
+	
+	if (ImGui::IsKeyPressed(ImGuiKey_S) || ImGui::IsKeyPressed(ImGuiKey_DownArrow))
+	{
+		direction += m_lookAt;
+	}
+	
+	if (ImGui::IsKeyPressed(ImGuiKey_D) || ImGui::IsKeyPressed(ImGuiKey_RightArrow))
+	{
+		direction -= m_lookAt.Cross(m_up);
+	}
+	
+	if (ImGui::IsKeyPressed(ImGuiKey_E))
+	{
+	}
+	
+	if (ImGui::IsKeyPressed(ImGuiKey_Q))
+	{
+	}
+
+	direction.Normalize();
+
+	cd::Point newEye = m_eye + direction * GetWalkSpeed();
+	auto delta = m_eye - newEye;
+	m_eye = newEye;
+	m_lookAtPoint += delta;
+
+	ControllerToCamera();
+
+	return true;
 }
 
 void ViewportCameraController::CameraToController()
@@ -233,165 +231,9 @@ void ViewportCameraController::CameraToController()
 	m_eye = GetMainCameraTransform().GetTranslation();
 	m_lookAt = CameraComponent::GetLookAt(GetMainCameraTransform());
 	m_up = CameraComponent::GetUp(GetMainCameraTransform());
-}
-
-void ViewportCameraController::ControllerToCamera()
-{
-	cd::Vec3f eye = m_eye;
-	cd::Vec3f lookAt = m_lookAt.Normalize();
-	cd::Vec3f up = m_up.Normalize();
-
-	GetMainCameraComponent()->BuildViewMatrix(eye, lookAt, up);
-	TransformComponent* pTransformComponent = GetMainCameraTransformComponent();
-	pTransformComponent->GetTransform().SetTranslation(eye);
-	
-	cd::Vec3f rotationAxis = cd::Vec3f(0.0f, 0.0f, 1.0f).Cross(lookAt);
-	float rotationAngle = std::acos(cd::Vec3f(0.0f, 0.0f, 1.0f).Dot(lookAt));
-	pTransformComponent->GetTransform().SetRotation(cd::Quaternion::FromAxisAngle(rotationAxis, rotationAngle));
-	pTransformComponent->Dirty();
-	pTransformComponent->Build();
-}
-
-void ViewportCameraController::SetMovementSpeed(float speed)
-{
-	m_moveSpeed = speed;
-}
-
-void ViewportCameraController::SetSensitivity(float horizontal, float verticle)
-{
-	m_horizontalSensitivity = horizontal;
-	m_verticalSensitivity = verticle;
-}
-
-void ViewportCameraController::SetHorizontalSensitivity(float sensitivity)
-{
-	m_horizontalSensitivity = sensitivity;
-}
-
-void ViewportCameraController::SetVerticalSensitivity(float sensitivity)
-{
-	m_verticalSensitivity = sensitivity;
-}
-
-engine::CameraComponent* ViewportCameraController::GetMainCameraComponent() const
-{
-	return m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
-}
-
-engine::TransformComponent* ViewportCameraController::GetMainCameraTransformComponent() const
-{
-	return m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity());
-}
-
-const cd::Transform& ViewportCameraController::GetMainCameraTransform() 
-{
-	return m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity())->GetTransform();
-}
-
-void ViewportCameraController::MoveForward(float amount)
-{
-	m_eye = m_eye + m_lookAt * amount;
-}
-
-void ViewportCameraController::MoveBackward(float amount)
-{
-	MoveForward(-amount);
-}
-
-void ViewportCameraController::MoveLeft(float amount)
-{
-	m_eye = m_eye + m_lookAt.Cross(m_up) * amount;
-}
-
-void ViewportCameraController::MoveRight(float amount)
-{
-	MoveLeft(-amount);
-}
-
-void ViewportCameraController::MoveUp(float amount)
-{
-	m_eye = m_eye + cd::Vec3f(0.0f, 1.0f, 0.0f) * amount;
-}
-
-void ViewportCameraController::MoveDown(float amount)
-{
-	MoveUp(-amount);
-}
-
-void ViewportCameraController::Rotate(const cd::Vec3f& axis, float angleDegrees)
-{
-	cd::Quaternion rotation = cd::Quaternion::FromAxisAngle(axis, cd::Math::DegreeToRadian<float>(angleDegrees));
-	m_lookAt = rotation * m_lookAt;
-	m_up = rotation * m_up;
-	ControllerToCamera();
-}
-
-void ViewportCameraController::Rotate(float x, float y, float z, float angleDegrees)
-{
-	Rotate(cd::Vec3f(x, y, z), angleDegrees);
-}
-
-void ViewportCameraController::Yaw(float angleDegrees)
-{
-	Rotate(0.0f, 1.0f, 0.0f, angleDegrees);
-}
-
-void ViewportCameraController::Pitch(float angleDegrees)
-{
-	Rotate(1.0f, 0.0f, 0.0f, angleDegrees);
-}
-
-void ViewportCameraController::Roll(float angleDegrees)
-{
-	Rotate(0.0f, 0.0f, 1.0f, angleDegrees);
-}
-
-void ViewportCameraController::YawLocal(float angleDegrees)
-{
-	Rotate(m_up, angleDegrees);
-}
-
-void ViewportCameraController::PitchLocal(float angleDegrees)
-{
-	Rotate(m_up.Cross(m_lookAt), angleDegrees);
-}
-
-void ViewportCameraController::RollLocal(float angleDegrees)
-{
-	Rotate(m_lookAt, angleDegrees);
-}
-
-void ViewportCameraController::ElevationChanging(float angleDegrees)
-{
-	m_elevation += angleDegrees / 360.0f * cd::Math::PI;
-	if (m_elevation > cd::Math::PI)
-	{
-		m_elevation -= cd::Math::TWO_PI;
-	}
-	else if (m_elevation < -cd::Math::PI)
-	{
-		m_elevation += cd::Math::TWO_PI;
-	}
-}
-
-void ViewportCameraController::AzimuthChanging(float angleDegrees)
-{
-	m_azimuth -= angleDegrees / 360.0f * cd::Math::PI;
-	if (m_azimuth > cd::Math::PI)
-	{
-		m_azimuth -= cd::Math::TWO_PI;
-	}
-	else if (m_azimuth < -cd::Math::PI)
-	{
-		m_azimuth += cd::Math::TWO_PI;
-	}
-}
-
-void ViewportCameraController::SynchronizeTrackingCamera()
-{
 	m_lookAtPoint = m_lookAt * m_distanceFromLookAt + m_eye;
-	m_elevation = std::asin(-m_lookAt.y());
 
+	m_elevation = std::asin(-m_lookAt.y());
 	if (cd::Math::IsSmallThanZero(m_up.y()))
 	{
 		if (cd::Math::IsLargeThanZero(m_lookAt.y()))
@@ -408,6 +250,61 @@ void ViewportCameraController::SynchronizeTrackingCamera()
 	{
 		m_azimuth = std::atan2(-m_lookAt.x(), -m_lookAt.z());
 	}
+}
+
+void ViewportCameraController::ControllerToCamera()
+{
+	cd::Vec3f eye = m_eye;
+	cd::Vec3f lookAt = m_lookAt.Normalize();
+	cd::Vec3f up = m_up.Normalize();
+
+	float sinPhi = std::sin(m_elevation);
+	float cosPhi = std::cos(m_elevation);
+	float sinTheta = std::sin(m_azimuth);
+	float cosTheta = std::cos(m_azimuth);
+
+	lookAt = cd::Vec3f(-cosPhi * sinTheta, -sinPhi, -cosPhi * cosTheta);
+	cd::Vec3f cross = cd::Vec3f(cosTheta, 0.0f, -sinTheta);
+	up = cross.Cross(lookAt);
+
+	float lookAtOffset = 0.0f;
+	if (m_distanceFromLookAt < m_dollyThreshold)
+	{
+		lookAtOffset = m_distanceFromLookAt - m_dollyThreshold;
+	}
+
+	float eyeOffset = m_distanceFromLookAt;
+	eye = m_lookAtPoint - (lookAt * eyeOffset);
+
+	// Synchronize view to fps camera
+	m_eye = eye;
+	m_lookAt = lookAt;
+	m_up = up;
+
+	GetMainCameraComponent()->BuildViewMatrix(eye, lookAt, up);
+	TransformComponent* pTransformComponent = GetMainCameraTransformComponent();
+	pTransformComponent->GetTransform().SetTranslation(eye);
+	
+	cd::Vec3f rotationAxis = cd::Vec3f(0.0f, 0.0f, 1.0f).Cross(lookAt);
+	float rotationAngle = std::acos(cd::Vec3f(0.0f, 0.0f, 1.0f).Dot(lookAt));
+	pTransformComponent->GetTransform().SetRotation(cd::Quaternion::FromAxisAngle(rotationAxis, rotationAngle));
+	pTransformComponent->Dirty();
+	pTransformComponent->Build();
+}
+
+engine::CameraComponent* ViewportCameraController::GetMainCameraComponent() const
+{
+	return m_pSceneWorld->GetCameraComponent(m_pSceneWorld->GetMainCameraEntity());
+}
+
+engine::TransformComponent* ViewportCameraController::GetMainCameraTransformComponent() const
+{
+	return m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity());
+}
+
+const cd::Transform& ViewportCameraController::GetMainCameraTransform() 
+{
+	return m_pSceneWorld->GetTransformComponent(m_pSceneWorld->GetMainCameraEntity())->GetTransform();
 }
 
 void ViewportCameraController::CameraFocus()
@@ -427,7 +324,7 @@ void ViewportCameraController::CameraFocus()
 			meshAABB = meshAABB.Transform(pTransform->GetWorldMatrix());
 			m_distanceFromLookAt = (meshAABB.Max() - meshAABB.Center()).Length() * 3.0f;
 			m_eyeDestination = meshAABB.Center() - m_lookAt * m_distanceFromLookAt;
-			m_moveSpeed = meshAABB.Size().Length() * 1.5f;
+			m_walkSpeedScale = meshAABB.Size().Length() * 1.5f;
 		}
 		else
 		{
@@ -450,7 +347,6 @@ void ViewportCameraController::Focusing()
 			float stepDistance = (m_eye - m_eyeDestination).Length() / 5.0f;
 			m_eye = m_eye - eyeMove * stepDistance;
 
-			SynchronizeTrackingCamera();
 			ControllerToCamera();
 		}
 	}

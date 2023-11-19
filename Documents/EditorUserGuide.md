@@ -16,7 +16,7 @@ Here is viewport camera operations in the Editor.
 
 * Zoom
   
-  * Scroll mouse wheel vertically
+  * Scroll mouse wheel vertically.
 
 * FOV Zoom
   
@@ -24,4 +24,16 @@ Here is viewport camera operations in the Editor.
 
 * Panning
   
-  * Keep pressing MMB and move.
+  * Keep pressing MMB and move mouse.
+
+* Tracking/Rotating
+
+  * Press Alt and MLB and move mouse.
+
+* Turning
+
+  * Press LMB and move.
+
+* Walking
+
+  * Press any mouse button and Press W/A/S/D/Q/E.
