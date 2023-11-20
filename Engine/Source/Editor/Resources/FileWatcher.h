@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Resources/FileWatchInfo.h"
+
 #include <cstdint>
 #include <map>
 
@@ -27,23 +29,20 @@ public:
     ~FileWatcher();
 
     void Init();
-    void SetRenderContext(engine::RenderContext* pRenderContext) { m_pRenderContext = pRenderContext; }
-    void SetWindow(engine::Window* pWindow) { m_pWindow = pWindow; }
     void Deinit();
 
-    uint32_t WatchShaders(const char* rootDir);
+    uint32_t Watch(FileWatchInfo info);
     void UnWatch(uint32_t watchID);
 
-    void SetWatchInfos(std::map<uint32_t, const char*>);
-    std::map<uint32_t, const char*>& GetWatchInfos() { return m_watchInfos; }
-    const std::map<uint32_t, const char*>& GetWitchInfos() const { return m_watchInfos; }
-    const char* GetWatchingPath(uint32_t id) const;
+    void SetWatchInfos(std::map<uint32_t, FileWatchInfo>);
+    std::map<uint32_t, FileWatchInfo>& GetWatchInfos() { return m_fileWatchInfos; }
+    const std::map<uint32_t, FileWatchInfo>& GetWatchInfos() const { return m_fileWatchInfos; }
+
+    const FileWatchInfo& GetWatchInfo(uint32_t id) const;
+    const std::string& GetWatchingPath(uint32_t id) const;
 
 private:
-    std::map<uint32_t, const char*> m_watchInfos;
-
-    engine::RenderContext* m_pRenderContext;
-    engine::Window* m_pWindow;
+    std::map<uint32_t, FileWatchInfo> m_fileWatchInfos;
 };
 
 }

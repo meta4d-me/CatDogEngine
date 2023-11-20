@@ -20,71 +20,80 @@ using WatchAction = dmon_action;
 namespace
 {
 
-class ShaderHotModifyCallbackWrapper final
+class CallbackWrapper final
 {
 public:
-    ShaderHotModifyCallbackWrapper() = default;
-    ShaderHotModifyCallbackWrapper(const ShaderHotModifyCallbackWrapper&) = delete;
-    ShaderHotModifyCallbackWrapper& operator=(const ShaderHotModifyCallbackWrapper&) = delete;
-    ShaderHotModifyCallbackWrapper(ShaderHotModifyCallbackWrapper&&) = delete;
-    ShaderHotModifyCallbackWrapper& operator=(ShaderHotModifyCallbackWrapper&&) = delete;
-    ~ShaderHotModifyCallbackWrapper() = default;
+    CallbackWrapper() = default;
+    CallbackWrapper(const CallbackWrapper&) = delete;
+    CallbackWrapper& operator=(const CallbackWrapper&) = delete;
+    CallbackWrapper(CallbackWrapper&&) = delete;
+    CallbackWrapper& operator=(CallbackWrapper&&) = delete;
+    ~CallbackWrapper() = default;
 
     static void Callback(
-        WatchID id, WatchAction action,
+        WatchID watchID, WatchAction action,
         const char* rootDir, const char* filePath,
-        const char* oldFilePath, void* user)
+        const char* oldFilePath, void* userData)
     {
+        FileWatcher* pFileWatcher = static_cast<FileWatcher*>(userData);
+
         switch (action)
         {
             case DMON_ACTION_CREATE:
+            {
                 CD_TRACE("New file created");
                 CD_TRACE("    Path : {0}", rootDir);
                 CD_TRACE("    Name : {0}", filePath);
+
+                // TODO : Dont assert when delegate dosent bind.
+                pFileWatcher->GetWatchInfo(watchID.id).m_onCreate.Invoke(rootDir, filePath);
+
                 break;
+            }
 
             case DMON_ACTION_DELETE:
+            {
                 CD_TRACE("File deleted");
                 CD_TRACE("    Path : {0}", rootDir);
                 CD_TRACE("    Name : {0}", filePath);
+                
+                pFileWatcher->GetWatchInfo(watchID.id).m_onDelete.Invoke(rootDir, filePath);
+
                 break;
+            }
 
             case DMON_ACTION_MODIFY:
+            {
                 CD_TRACE("File Modified");
                 CD_TRACE("    Path : {0}", rootDir);
                 CD_TRACE("    Name : {0}", filePath);
 
-                if (m_pWindow->GetInputFocus() || engine::Path::GetExtension(filePath) != ".sc")
-                {
-                    // Return when window get focus.
-                    // Return when a non-shader file is detected.
-                    return;
-                }
-
-                m_pRenderContext->CheckModifiedProgram(engine::Path::GetFileNameWithoutExtension(filePath));
+                pFileWatcher->GetWatchInfo(watchID.id).m_onModify.Invoke(rootDir, filePath);
 
                 break;
+            }
 
             case DMON_ACTION_MOVE:
+            {
                 CD_TRACE("File moved");
                 CD_TRACE("    Path : {0}", rootDir);
                 CD_TRACE("    Old Name : {0}", oldFilePath);
                 CD_TRACE("    New Name : {0}", filePath);
+                
+                pFileWatcher->GetWatchInfo(watchID.id).m_onMove.Invoke(rootDir, filePath, oldFilePath);
+
                 break;
+            }
 
             default:
-                CD_WARN("Unknown WatchAction!");
+            {
+                CD_ERROR("Unknown WatchAction!");
+            }
         }
     }
-
-    static engine::RenderContext* m_pRenderContext;
-    static engine::Window* m_pWindow;
 };
 
-engine::RenderContext* ShaderHotModifyCallbackWrapper::m_pRenderContext = nullptr;
-engine::Window* ShaderHotModifyCallbackWrapper::m_pWindow = nullptr;
-
-}
+} // namespace
 
 FileWatcher::FileWatcher()
 {
@@ -104,20 +113,15 @@ void FileWatcher::Init()
 void FileWatcher::Deinit()
 {
     dmon_deinit();
-    m_watchInfos.clear();
+    m_fileWatchInfos.clear();
 }
 
-uint32_t FileWatcher::WatchShaders(const char* rootDir)
+uint32_t FileWatcher::Watch(FileWatchInfo info)
 {
-    ShaderHotModifyCallbackWrapper::m_pRenderContext = m_pRenderContext;
-    ShaderHotModifyCallbackWrapper::m_pWindow = m_pWindow;
+    CD_INFO("Start watching {0}{1}", info.m_watchPath, (info.m_isrecursive ? " and its subpaths." : ""));
 
-    WatchID watchID = dmon_watch(rootDir, ShaderHotModifyCallbackWrapper::Callback, 0, nullptr);
-    
-    CD_INFO("Start watching {0}", rootDir);
-    CD_INFO("    Watch ID {0}", watchID.id);
-    
-    m_watchInfos[watchID.id] = rootDir;
+    WatchID watchID = dmon_watch(info.m_watchPath.c_str(), CallbackWrapper::Callback, static_cast<uint32_t>(info.m_isrecursive), this);
+    m_fileWatchInfos[watchID.id] = cd::MoveTemp(info);
 
     return watchID.id;
 }
@@ -125,17 +129,22 @@ uint32_t FileWatcher::WatchShaders(const char* rootDir)
 void FileWatcher::UnWatch(uint32_t watchID)
 {
     dmon_unwatch(WatchID{ watchID });
-    m_watchInfos.erase(watchID);
+    m_fileWatchInfos.erase(watchID);
 }
 
-void FileWatcher::SetWatchInfos(std::map<uint32_t, const char*> witchInfos)
+void FileWatcher::SetWatchInfos(std::map<uint32_t, FileWatchInfo> witchInfos)
 {
-    m_watchInfos = cd::MoveTemp(witchInfos);
+    m_fileWatchInfos = cd::MoveTemp(witchInfos);
 }
 
-const char* FileWatcher::GetWatchingPath(uint32_t id) const
+const FileWatchInfo& FileWatcher::GetWatchInfo(uint32_t id) const
 {
-    return m_watchInfos.at(id);
+    return m_fileWatchInfos.at(id);
+}
+
+const std::string& FileWatcher::GetWatchingPath(uint32_t id) const
+{
+    return m_fileWatchInfos.at(id).m_watchPath;
 }
 
 }

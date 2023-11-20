@@ -83,6 +83,8 @@ private:
 #endif
 
 	void InitFileWatcher();
+	void OnShaderHotModifiedCallback(const char* rootDir, const char* filePath);
+
 	void UpdateMaterials();
 	void CompileAndLoadShaders();
 

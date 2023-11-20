@@ -350,9 +350,23 @@ void EditorApp::InitFileWatcher()
 	constexpr const char* pWatchPath = CDENGINE_BUILTIN_SHADER_PATH "shaders/";
 
 	m_pFileWatcher = std::make_unique<FileWatcher>();
-	m_pFileWatcher->SetRenderContext(m_pRenderContext.get());
-	m_pFileWatcher->SetWindow(GetMainWindow());
-	m_pFileWatcher->WatchShaders(pWatchPath);
+
+	FileWatchInfo info;
+	info.m_watchPath = pWatchPath;
+	info.m_isrecursive = false;
+	info.m_onModify.Bind<editor::EditorApp, &editor::EditorApp::OnShaderHotModifiedCallback>(this);
+	m_pFileWatcher->Watch(cd::MoveTemp(info));
+}
+
+void EditorApp::OnShaderHotModifiedCallback(const char* rootDir, const char* filePath)
+{
+	if (GetMainWindow()->GetInputFocus() || engine::Path::GetExtension(filePath) != ".sc")
+	{
+	    // Return when window get focus.
+	    // Return when a non-shader file is detected.
+	    return;
+	}
+	m_pRenderContext->CheckModifiedProgram(engine::Path::GetFileNameWithoutExtension(filePath));
 }
 
 void EditorApp::UpdateMaterials()
