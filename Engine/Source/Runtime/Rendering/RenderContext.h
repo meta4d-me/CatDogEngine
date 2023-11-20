@@ -68,7 +68,7 @@ public:
 	void AddShaderFeature(StringCrc programNameCrc, std::string combine);
 
 	bool CheckShaderProgram(const std::string& programName, const std::string& featuresCombine = "");
-	bool CheckModifiedShaderProgram(const std::string& programName, const std::string& featuresCombine = "");
+	bool OnShaderHotModified(const std::string& programName, const std::string& featuresCombine = "");
 	void UploadShaderProgram(const std::string& programName, const std::string& featuresCombine = "");
 	void DestroyShaderProgram(const std::string& programName, const std::string& featuresCombine = "");
 

@@ -17,6 +17,9 @@ namespace editor
 using WatchID = dmon_watch_id;
 using WatchAction = dmon_action;
 
+namespace
+{
+
 class ShaderHotModifyCallbackWrapper final
 {
 public:
@@ -81,6 +84,8 @@ public:
 engine::RenderContext* ShaderHotModifyCallbackWrapper::m_pRenderContext = nullptr;
 engine::Window* ShaderHotModifyCallbackWrapper::m_pWindow = nullptr;
 
+}
+
 FileWatcher::FileWatcher()
 {
     Init();
@@ -91,14 +96,15 @@ FileWatcher::~FileWatcher()
     Deinit();
 }
 
-void FileWatcher::Init() const
+void FileWatcher::Init()
 {
     dmon_init();
 }
 
-void FileWatcher::Deinit() const
+void FileWatcher::Deinit()
 {
     dmon_deinit();
+    m_watchInfos.clear();
 }
 
 uint32_t FileWatcher::WatchShaders(const char* rootDir)
@@ -111,7 +117,7 @@ uint32_t FileWatcher::WatchShaders(const char* rootDir)
     CD_INFO("Start watching {0}", rootDir);
     CD_INFO("    Watch ID {0}", watchID.id);
     
-    m_witchInfos[watchID.id] = rootDir;
+    m_watchInfos[watchID.id] = rootDir;
 
     return watchID.id;
 }
@@ -119,17 +125,17 @@ uint32_t FileWatcher::WatchShaders(const char* rootDir)
 void FileWatcher::UnWatch(uint32_t watchID)
 {
     dmon_unwatch(WatchID{ watchID });
-    m_witchInfos.erase(watchID);
+    m_watchInfos.erase(watchID);
 }
 
-void FileWatcher::SetWitchInfos(std::map<uint32_t, const char*> witchInfos)
+void FileWatcher::SetWatchInfos(std::map<uint32_t, const char*> witchInfos)
 {
-    m_witchInfos = cd::MoveTemp(witchInfos);
+    m_watchInfos = cd::MoveTemp(witchInfos);
 }
 
 const char* FileWatcher::GetWatchingPath(uint32_t id) const
 {
-    return m_witchInfos.at(id);
+    return m_watchInfos.at(id);
 }
 
 }

@@ -347,20 +347,12 @@ void EditorApp::InitDDGIEntity()
 
 void EditorApp::InitFileWatcher()
 {
-	constexpr const char* watchPath = CDENGINE_BUILTIN_SHADER_PATH "shaders/";
+	constexpr const char* pWatchPath = CDENGINE_BUILTIN_SHADER_PATH "shaders/";
 
 	m_pFileWatcher = std::make_unique<FileWatcher>();
 	m_pFileWatcher->SetRenderContext(m_pRenderContext.get());
 	m_pFileWatcher->SetWindow(GetMainWindow());
-	m_pFileWatcher->WatchShaders(watchPath);
-}
-
-void EditorApp::ShaderHotModifyDetec()
-{
-	if (true == m_crtInputFocus)
-	{
-		return;
-	}
+	m_pFileWatcher->WatchShaders(pWatchPath);
 }
 
 void EditorApp::UpdateMaterials()
@@ -380,19 +372,19 @@ void EditorApp::UpdateMaterials()
 		m_pRenderContext->CheckShaderProgram(programName, featuresCombine);
 
 		// Shader source files have been modified, need to re-compile existing variants.
-		if (true == m_crtInputFocus && false == m_preInputFocus)
+		if (m_crtInputFocus && !m_preInputFocus)
 		{
-			m_pRenderContext->CheckModifiedShaderProgram(programName, featuresCombine);
+			m_pRenderContext->OnShaderHotModified(programName, featuresCombine);
 		}
 	}
 
-	if (true == m_crtInputFocus && false == m_preInputFocus)
+	if (m_crtInputFocus && !m_preInputFocus)
 	{
 		m_pRenderContext->ClearModifiedProgramNameCrcs();
 	}
 }
 
-void EditorApp::RuntimeCompileAndLoadShaders()
+void EditorApp::CompileAndLoadShaders()
 {
 	bool doCompile = false;
 
@@ -679,7 +671,7 @@ bool EditorApp::Update(float deltaTime)
 		m_pEngineImGuiContext->Update(deltaTime);
 
 		UpdateMaterials();
-		RuntimeCompileAndLoadShaders();
+		CompileAndLoadShaders();
 
 		for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
 		{

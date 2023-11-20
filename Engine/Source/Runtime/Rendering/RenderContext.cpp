@@ -201,12 +201,14 @@ bool RenderContext::CheckShaderProgram(const std::string& programName, const std
 		// there is no duplication of compilation behavior.
 		AddShaderCompileTask(ShaderCompileInfo{ programName, featuresCombine });
 		m_pShaderCollections->AddFeatureCombine(StringCrc{ programName }, featuresCombine);
+
 		return true;
 	}
+
 	return false;
 }
 
-bool RenderContext::CheckModifiedShaderProgram(const std::string& programName, const std::string& featuresCombine)
+bool RenderContext::OnShaderHotModified(const std::string& programName, const std::string& featuresCombine)
 {
 	assert(m_pShaderCollections->IsProgramValid(StringCrc{ programName }));
 
@@ -214,8 +216,10 @@ bool RenderContext::CheckModifiedShaderProgram(const std::string& programName, c
 	{
 		AddShaderCompileTask(engine::ShaderCompileInfo{ programName, featuresCombine });
 		DestroyShaderProgram(programName, featuresCombine);
+
 		return true;
 	}
+
 	return false;
 }
 
@@ -740,6 +744,7 @@ void RenderContext::DestoryShader(StringCrc resourceCrc)
 		bgfx::destroy(bgfx::ShaderHandle{ it->second });
 		m_shaderHandles.erase(it);
 	}
+
 	// Erase shader blob anyway.
 	m_shaderBlobs.erase(resourceCrc);
 }

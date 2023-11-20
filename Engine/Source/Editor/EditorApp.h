@@ -83,9 +83,8 @@ private:
 #endif
 
 	void InitFileWatcher();
-	void ShaderHotModifyDetec();
 	void UpdateMaterials();
-	void RuntimeCompileAndLoadShaders();
+	void CompileAndLoadShaders();
 
 	bool m_crtInputFocus = true;
 	bool m_preInputFocus = true;
