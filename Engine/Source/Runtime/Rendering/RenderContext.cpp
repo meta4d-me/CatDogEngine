@@ -195,7 +195,7 @@ bool RenderContext::CheckShaderProgram(const std::string& programName, const std
 
 	if (m_shaderProgramHandles.find(StringCrc{ programName + featuresCombine }) == m_shaderProgramHandles.end())
 	{
-		// Its only represents that we do not hold the shader program GPU handle, 
+		// It only represents that we do not hold the shader program GPU handle, 
 		// whether the shader is compiled or not is unknown.
 		// The Combile Task will still be added to the queue and ResourceBuilder ensures that
 		// there is no duplication of compilation behavior.
