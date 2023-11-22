@@ -1,5 +1,6 @@
 #include "RenderContext.h"
 
+#include "Base/Template.h"
 #include "Log/Log.h"
 #include "Path/Path.h"
 #include "Renderer.h"
@@ -146,10 +147,10 @@ void RenderContext::BeginFrame()
 {
 }
 
-void RenderContext::Submit(uint16_t viewID, const std::string& programName, const std::string& featureCombine)
+void RenderContext::Submit(uint16_t viewID, const std::string& programName, const std::string& featuresCombine)
 {
-	assert(bgfx::isValid(GetShaderProgramHandle(programName, featureCombine)));
-	bgfx::submit(viewID, GetShaderProgramHandle(programName, featureCombine));
+	assert(bgfx::isValid(GetShaderProgramHandle(programName, featuresCombine)));
+	bgfx::submit(viewID, GetShaderProgramHandle(programName, featuresCombine));
 }
 
 void RenderContext::Dispatch(uint16_t viewID, const std::string& programName, uint32_t numX, uint32_t numY, uint32_t numZ)
@@ -190,26 +191,43 @@ void RenderContext::AddShaderFeature(StringCrc programNameCrc, std::string combi
 
 bool RenderContext::CheckShaderProgram(const std::string& programName, const std::string& featuresCombine)
 {
-	assert(m_pShaderCollections->IsProgramValid(StringCrc(programName)));
+	assert(m_pShaderCollections->IsProgramValid(StringCrc{ programName }));
 
-	if (!bgfx::isValid(GetShaderProgramHandle(programName, featuresCombine)))
+	if (m_shaderProgramHandles.find(StringCrc{ programName + featuresCombine }) == m_shaderProgramHandles.end())
 	{
-		// Its only represents that we do not hold the shader program GPU handle, 
+		// It only represents that we do not hold the shader program GPU handle, 
 		// whether the shader is compiled or not is unknown.
 		// The Combile Task will still be added to the queue and ResourceBuilder ensures that
 		// there is no duplication of compilation behavior.
-		AddShaderCompileTask(ShaderCompileInfo(programName, featuresCombine));
-		m_pShaderCollections->AddFeatureCombine(StringCrc(programName), featuresCombine);
-		return false;
+		AddShaderCompileTask(ShaderCompileInfo{ programName, featuresCombine });
+		m_pShaderCollections->AddFeatureCombine(StringCrc{ programName }, featuresCombine);
+
+		return true;
 	}
-	return true;
+
+	return false;
+}
+
+bool RenderContext::OnShaderHotModified(const std::string& programName, const std::string& featuresCombine)
+{
+	assert(m_pShaderCollections->IsProgramValid(StringCrc{ programName }));
+
+	if (m_modifiedProgramNameCrcs.find(engine::StringCrc{ programName }) != m_modifiedProgramNameCrcs.end())
+	{
+		AddShaderCompileTask(engine::ShaderCompileInfo{ programName, featuresCombine });
+		DestroyShaderProgram(programName, featuresCombine);
+
+		return true;
+	}
+
+	return false;
 }
 
 void RenderContext::UploadShaderProgram(const std::string& programName, const std::string& featuresCombine)
 {
-	assert(m_pShaderCollections->IsProgramValid(StringCrc(programName)));
+	assert(m_pShaderCollections->IsProgramValid(StringCrc{ programName }));
 	
-	auto [vsName, fsName, csName] = IdentifyShaderTypes(m_pShaderCollections->GetShaders(StringCrc(programName)));
+	auto [vsName, fsName, csName] = IdentifyShaderTypes(m_pShaderCollections->GetShaders(StringCrc{ programName }));
 
 	if (featuresCombine.empty())
 	{
@@ -241,13 +259,26 @@ void RenderContext::UploadShaderProgram(const std::string& programName, const st
 	}
 }
 
+void RenderContext::DestroyShaderProgram(const std::string& programName, const std::string& featuresCombine)
+{
+	DestoryProgram(StringCrc{ programName + featuresCombine });
+
+	auto [vsName, fsName, csName] = IdentifyShaderTypes(m_pShaderCollections->GetShaders(StringCrc{ programName }));
+	StringCrc vsCrc{ vsName.data() };
+	StringCrc fsCrc{ fsName.data() + featuresCombine };
+	StringCrc csCrc{ csName.data() };
+
+	DestoryShader(vsCrc);
+	DestoryShader(fsCrc);
+	DestoryShader(csCrc);
+}
+
 void RenderContext::AddShaderCompileTask(ShaderCompileInfo info)
 {
-	const auto& it = std::find(m_shaderCompileTasks.begin(), m_shaderCompileTasks.end(), info);
-	if (it == m_shaderCompileTasks.end())
+	if (m_shaderCompileTasks.find(info) == m_shaderCompileTasks.end())
 	{
 		CD_ENGINE_INFO("Shader compile task added for {0} with shader features : [{1}]", info.m_programName, info.m_featuresCombine);
-		m_shaderCompileTasks.emplace_back(cd::MoveTemp(info));
+		m_shaderCompileTasks.insert(cd::MoveTemp(info));
 	}
 }
 
@@ -256,9 +287,32 @@ void RenderContext::ClearShaderCompileTasks()
 	m_shaderCompileTasks.clear();
 }
 
-void RenderContext::SetShaderCompileTasks(std::vector<ShaderCompileInfo> tasks)
+void RenderContext::SetShaderCompileTasks(std::set<ShaderCompileInfo> tasks)
 {
 	m_shaderCompileTasks = cd::MoveTemp(tasks);
+}
+
+void RenderContext::CheckModifiedProgram(std::string modifiedShaderName)
+{
+	// Find Shader Program name by Shader File Name.
+	// TODO : We could devise a mechanism like unity's meta file for recording dependencies on asset files,
+	// and perhaps both Program and Material information could be retrieved directly from the meta file.
+	for (const auto& [programName, shaderNames] : m_pShaderCollections->GetShaderPrograms())
+	{
+		for (const auto& shaderName : shaderNames)
+		{
+			if (shaderName == modifiedShaderName)
+			{
+				m_modifiedProgramNameCrcs.insert(programName);
+				break;
+			}
+		}
+	}
+}
+
+void RenderContext::ClearModifiedProgramNameCrcs()
+{
+	m_modifiedProgramNameCrcs.clear();
 }
 
 const RenderContext::ShaderBlob& RenderContext::AddShaderBlob(StringCrc shaderNameCrc, ShaderBlob blob)
@@ -278,14 +332,14 @@ const RenderContext::ShaderBlob& RenderContext::GetShaderBlob(StringCrc shaderNa
 	return *m_shaderBlobs.at(shaderNameCrc).get();
 }
 
-void RenderContext::SetShaderProgramHandle(const std::string& programName, bgfx::ProgramHandle handle, const std::string& featureCombine)
+void RenderContext::SetShaderProgramHandle(const std::string& programName, bgfx::ProgramHandle handle, const std::string& featuresCombine)
 {
-	m_shaderProgramHandles[StringCrc(programName + featureCombine)] = handle.idx;
+	m_shaderProgramHandles[StringCrc{ programName + featuresCombine }] = handle.idx;
 }
 
-bgfx::ProgramHandle RenderContext::GetShaderProgramHandle(const std::string& programName, const std::string& featureCombine) const
+bgfx::ProgramHandle RenderContext::GetShaderProgramHandle(const std::string& programName, const std::string& featuresCombine) const
 {
-	const auto& it = m_shaderProgramHandles.find(StringCrc(programName + featureCombine));
+	const auto& it = m_shaderProgramHandles.find(StringCrc{ programName + featuresCombine });
 	if (it != m_shaderProgramHandles.end())
 	{
 		return { it->second };
@@ -318,16 +372,16 @@ RenderTarget* RenderContext::CreateRenderTarget(StringCrc resourceCrc, std::uniq
 	return m_renderTargetCaches[resourceCrc].get();
 }
 
-bgfx::ShaderHandle RenderContext::CreateShader(const char* pShaderName)
+bgfx::ShaderHandle RenderContext::CreateShader(const char* pShaderName, const std::string& combine)
 {
-	StringCrc shaderNameCrc(pShaderName);
+	StringCrc shaderNameCrc{ pShaderName + combine };
 	auto itShaderCache = m_shaderHandles.find(shaderNameCrc);
 	if(itShaderCache != m_shaderHandles.end())
 	{
 		return { itShaderCache->second };
 	}
 
-	std::string shaderFileFullPath = Path::GetShaderOutputPath(pShaderName);
+	std::string shaderFileFullPath = Path::GetShaderOutputPath(pShaderName, combine);
 	const auto& shaderBlob = AddShaderBlob(shaderNameCrc, ResourceLoader::LoadFile(shaderFileFullPath.c_str()));
 	bgfx::ShaderHandle shaderHandle = bgfx::createShader(bgfx::makeRef(shaderBlob.data(), static_cast<uint32_t>(shaderBlob.size())));
 
@@ -342,7 +396,7 @@ bgfx::ShaderHandle RenderContext::CreateShader(const char* pShaderName)
 
 bgfx::ProgramHandle RenderContext::CreateProgram(const std::string& programName, const std::string& csName)
 {
-	StringCrc programNameCrc(programName);
+	StringCrc programNameCrc{ programName };
 	auto itProgram = m_shaderProgramHandles.find(programNameCrc);
 	if (itProgram != m_shaderProgramHandles.end())
 	{
@@ -358,9 +412,9 @@ bgfx::ProgramHandle RenderContext::CreateProgram(const std::string& programName,
 	return programHandle;
 }
 
-bgfx::ProgramHandle RenderContext::CreateProgram(const std::string& programName, const std::string& vsName, const std::string& fsName, const std::string& featureCombine)
+bgfx::ProgramHandle RenderContext::CreateProgram(const std::string& programName, const std::string& vsName, const std::string& fsName, const std::string& featuresCombine)
 {
-	StringCrc fullProgramNameCrc = StringCrc(programName + featureCombine);
+	StringCrc fullProgramNameCrc = StringCrc{ programName + featuresCombine };
 
 	const auto& it = m_shaderProgramHandles.find(fullProgramNameCrc);
 	if (it != m_shaderProgramHandles.end())
@@ -368,11 +422,8 @@ bgfx::ProgramHandle RenderContext::CreateProgram(const std::string& programName,
 		return { it->second };
 	}
 
-	std::string inputVSFilePath = engine::Path::GetBuiltinShaderInputPath(vsName.c_str());
-	std::string outputFSFilePath = engine::Path::GetShaderOutputPath(fsName.c_str(), featureCombine);
-
-	bgfx::ShaderHandle vsHandle = CreateShader(inputVSFilePath.c_str());
-	bgfx::ShaderHandle fsHandle = CreateShader(outputFSFilePath.c_str());
+	bgfx::ShaderHandle vsHandle = CreateShader(vsName.c_str());
+	bgfx::ShaderHandle fsHandle = CreateShader(fsName.c_str(), featuresCombine);
 	bgfx::ProgramHandle programHandle = bgfx::createProgram(vsHandle, fsHandle);
 
 	if (bgfx::isValid(programHandle))
@@ -385,7 +436,7 @@ bgfx::ProgramHandle RenderContext::CreateProgram(const std::string& programName,
 
 bgfx::TextureHandle RenderContext::CreateTexture(const char* pFilePath, uint64_t flags)
 {
-	StringCrc filePathCrc(pFilePath);
+	StringCrc filePathCrc{ pFilePath };
 	auto itTextureCache = m_textureHandleCaches.find(filePathCrc);
 	if (itTextureCache != m_textureHandleCaches.end())
 	{
@@ -467,7 +518,7 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pFilePath, uint64_t
 
 bgfx::TextureHandle RenderContext::CreateTexture(const char* pName, uint16_t width, uint16_t height, uint16_t depth, bgfx::TextureFormat::Enum format, uint64_t flags, const void* data, uint32_t size)
 {
-	StringCrc textureNameCrc(pName);
+	StringCrc textureNameCrc{ pName };
 	auto itTextureCache = m_textureHandleCaches.find(textureNameCrc);
 	if(itTextureCache != m_textureHandleCaches.end())
 	{
@@ -509,7 +560,7 @@ bgfx::TextureHandle RenderContext::UpdateTexture(const char* pName, uint16_t lay
 	bgfx::TextureHandle handle = BGFX_INVALID_HANDLE;
 	const bgfx::Memory* mem = nullptr;
 
-	StringCrc textureNameCrc(pName);
+	StringCrc textureNameCrc{ pName };
 	auto itTextureCache = m_textureHandleCaches.find(textureNameCrc);
 	if (itTextureCache == m_textureHandleCaches.end())
 	{
@@ -537,7 +588,7 @@ bgfx::TextureHandle RenderContext::UpdateTexture(const char* pName, uint16_t lay
 
 bgfx::UniformHandle RenderContext::CreateUniform(const char* pName, bgfx::UniformType::Enum uniformType, uint16_t number)
 {
-	StringCrc uniformNameCrc(pName);
+	StringCrc uniformNameCrc{ pName };
 	auto itUniformCache = m_uniformHandleCaches.find(uniformNameCrc);
 	if (itUniformCache != m_uniformHandleCaches.end())
 	{
@@ -693,6 +744,9 @@ void RenderContext::DestoryShader(StringCrc resourceCrc)
 		bgfx::destroy(bgfx::ShaderHandle{ it->second });
 		m_shaderHandles.erase(it);
 	}
+
+	// Erase shader blob anyway.
+	m_shaderBlobs.erase(resourceCrc);
 }
 
 void RenderContext::DestoryProgram(StringCrc resourceCrc)
