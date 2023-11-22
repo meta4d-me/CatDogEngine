@@ -1,6 +1,7 @@
 #pragma once 
 
 #include "Graphics/GraphicsBackend.h"
+#include "Base/Template.h"
 
 #include <cstdlib>
 #include <filesystem>
@@ -28,6 +29,17 @@ public:
 	static std::string GetShaderOutputPath(const char* pInputFilePath, const std::string& options = "");
 	static std::string GetTextureOutputFilePath(const char* pInputFilePath, const char* extension);
 	static std::string GetTerrainTextureOutputFilePath(const char* pInputFilePath, const char* extension);
+
+	static std::string Join(std::filesystem::path path)
+	{
+		return path.generic_string();
+	}
+
+	template<typename... Args>
+	static std::string Join(std::filesystem::path path, Args... args)
+	{
+		return (std::filesystem::path{ cd::MoveTemp(path) } / Join(cd::MoveTemp(args)...)).generic_string();
+	}
 
 	static bool FileExists(const char* pFilePath);
 	static bool DirectoryExists(const char* pDirectoryPath);
