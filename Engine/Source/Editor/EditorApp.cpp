@@ -73,9 +73,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	m_initArgs = cd::MoveTemp(initArgs);
 
 	// Load config files
-	std::filesystem::path rootPath = CDEDITOR_RESOURCES_ROOT_PATH;
-	rootPath /= "Text.csv";
-	if (!engine::Localization::ReadCSV(rootPath.string()))
+	if (!engine::Localization::ReadCSV(engine::Path::Join(CDEDITOR_RESOURCES_ROOT_PATH, "Text.csv")))
 	{
 		CD_ERROR("Failed to open CSV file");
 	}
