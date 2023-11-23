@@ -1,7 +1,7 @@
 #pragma once 
 
-#include "Graphics/GraphicsBackend.h"
 #include "Base/Template.h"
+#include "Graphics/GraphicsBackend.h"
 
 #include <cstdlib>
 #include <filesystem>
