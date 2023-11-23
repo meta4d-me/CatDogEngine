@@ -73,9 +73,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	m_initArgs = cd::MoveTemp(initArgs);
 
 	// Load config files
-	std::filesystem::path rootPath = CDEDITOR_RESOURCES_ROOT_PATH;
-	rootPath /= "Text.csv";
-	if (!engine::Localization::ReadCSV(rootPath.string()))
+	if (!engine::Localization::ReadCSV(engine::Path::Join(CDEDITOR_RESOURCES_ROOT_PATH, "Text.csv")))
 	{
 		CD_ERROR("Failed to open CSV file");
 	}
@@ -347,12 +345,10 @@ void EditorApp::InitDDGIEntity()
 
 void EditorApp::InitFileWatcher()
 {
-	constexpr const char* pWatchPath = CDENGINE_BUILTIN_SHADER_PATH "shaders/";
-
 	m_pFileWatcher = std::make_unique<FileWatcher>();
 
 	FileWatchInfo info;
-	info.m_watchPath = pWatchPath;
+	info.m_watchPath = engine::Path::Join(CDENGINE_BUILTIN_SHADER_PATH, "shaders");
 	info.m_isrecursive = false;
 	info.m_onModify.Bind<editor::EditorApp, &editor::EditorApp::OnShaderHotModifiedCallback>(this);
 	m_pFileWatcher->Watch(cd::MoveTemp(info));
@@ -360,7 +356,7 @@ void EditorApp::InitFileWatcher()
 
 void EditorApp::OnShaderHotModifiedCallback(const char* rootDir, const char* filePath)
 {
-	if (GetMainWindow()->GetInputFocus() || engine::Path::GetExtension(filePath) != ".sc")
+	if (GetMainWindow()->GetInputFocus() || engine::Path::GetExtension(filePath) != engine::Path::ShaderInputExtension)
 	{
 	    // Return when window get focus.
 	    // Return when a non-shader file is detected.
