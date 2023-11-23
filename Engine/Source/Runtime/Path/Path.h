@@ -30,11 +30,6 @@ public:
 	static std::string GetTextureOutputFilePath(const char* pInputFilePath, const char* extension);
 	static std::string GetTerrainTextureOutputFilePath(const char* pInputFilePath, const char* extension);
 
-	static std::string Join(std::filesystem::path path)
-	{
-		return path.generic_string();
-	}
-
 	template<typename... Args>
 	static std::string Join(std::filesystem::path path, Args... args)
 	{
@@ -48,6 +43,8 @@ public:
 	static std::string GetExtension(const char* pFilePath);
 
 private:
+	static std::string Join(std::filesystem::path path);
+
 	static std::filesystem::path GetEngineBuiltinShaderPath();
 	static std::filesystem::path GetEngineResourcesPath();
 	static std::filesystem::path GetEditorResourcesPath();
