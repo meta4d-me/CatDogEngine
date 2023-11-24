@@ -5,9 +5,40 @@
 //-----------------------------------------------------------------------------------------//
 
 #include "../UniformDefines/U_Light.sh"
+#include "../UniformDefines/U_Shadow.sh"
 
 uniform vec4 u_lightCountAndStride;
 uniform vec4 u_lightParams[LIGHT_LENGTH];
+uniform mat4 u_lightViewProj;//[LIGHT_NUM]
+uniform vec4 u_bias;//[LIGHT_NUM]
+
+SAMPLER2D(s_texShadowMap, SHADOW_MAP_SLOT);
+
+float CalculateShadow(vec3 fragPosWorldSpace, vec3 normal, vec3 lightDir)//add parameter : light index?
+{
+    // viewproj coordinate to light space
+    vec4 fragPosLightSpace = mul(u_lightViewProj, vec4(fragPosWorldSpace, 1.0));
+    // perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    // Transform to [0,1] range
+    projCoords = vec3(projCoords.x * 0.5 + 0.5, 0.5 - projCoords.y * 0.5, projCoords.z);
+    // Get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+    // Get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+	float closestDepth = texture2D(s_texShadowMap, projCoords.xy);
+    // Calculate bias (based on depth map resolution and slope)
+    float bias = 0.002;
+    // Check whether current frag pos is in shadow
+
+	//return currentDepth;
+	
+	float shadow = step(closestDepth, currentDepth - bias);
+
+	if(projCoords.z > 1.0)
+        shadow = 1.0;
+
+    return shadow;
+}
 
 U_Light GetLightParams(int pointer) {
 	// struct {
@@ -145,7 +176,10 @@ vec3 CalculateSpotLight(U_Light light, Material material, vec3 worldPos, vec3 vi
 	vec3 specularBRDF = Fre * NDF * Vis;
 	
 	vec3 KD = mix(1.0 - Fre, vec3_splat(0.0), material.metallic);
-	return (KD * diffuseBRDF + specularBRDF) * radiance * NdotL;
+
+	float shadow = CalculateShadow(worldPos, material.normal, lightDir);
+
+	return (1.0 - shadow) * (KD * diffuseBRDF + specularBRDF) * radiance * NdotL;
 }
 
 // -------------------- Directional -------------------- //
@@ -167,7 +201,10 @@ vec3 CalculateDirectionalLight(U_Light light, Material material, vec3 worldPos, 
 	
 	vec3 KD = mix(1.0 - Fre, vec3_splat(0.0), material.metallic);
 	vec3 irradiance = light.color * light.intensity;
-	return (KD * diffuseBRDF + specularBRDF) * irradiance * NdotL;
+
+	float shadow = CalculateShadow(worldPos, material.normal, lightDir);
+	
+	return (1.0 - shadow) * (KD * diffuseBRDF + specularBRDF) * irradiance * NdotL;
 }
 
 // -------------------- Sphere -------------------- //

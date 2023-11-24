@@ -1,0 +1,1 @@
+#define SHADOW_MAP_SLOT 11

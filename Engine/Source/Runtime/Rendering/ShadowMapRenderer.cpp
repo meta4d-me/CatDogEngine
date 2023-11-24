@@ -5,6 +5,7 @@
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
 #include "ECWorld/LightComponent.h"
+#include "ECWorld/ShadowComponent.h"
 #include "LightUniforms.h"
 #include "Material/ShaderSchema.h"
 #include "Math/Transform.hpp"
@@ -26,31 +27,35 @@ constexpr const char* LightDir = "u_LightDir";
 constexpr const char* HeightOffsetAndshadowLength = "u_HeightOffsetAndshadowLength";
 
 constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
-constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
-
+constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A| BGFX_STATE_WRITE_Z 
+															| BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
+constexpr uint64_t depthBufferFlags = BGFX_TEXTURE_RT | BGFX_SAMPLER_COMPARE_LEQUAL;
+constexpr uint64_t clearFrameBufferFlags = BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH;
 }
 
 void ShadowMapRenderer::Init()
 {
-	GetRenderContext()->CreateProgram("ShadowMapProgram", "vs_shadowMap.bin", "fs_shadowMap.bin");
-	GetRenderContext()->CreateUniform(cameraPos, bgfx::UniformType::Vec4, 1);
+	constexpr StringCrc programCrc = StringCrc("ShadowMapProgram");
+	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_shadowMap", "fs_shadowMap" });
 
-	GetRenderContext()->CreateUniform(lightCountAndStride, bgfx::UniformType::Vec4, 1);
-	GetRenderContext()->CreateUniform(lightParams, bgfx::UniformType::Vec4, LightUniform::VEC4_COUNT);
-
-	GetRenderContext()->CreateUniform(LightDir, bgfx::UniformType::Vec4, 1);
-	GetRenderContext()->CreateUniform(HeightOffsetAndshadowLength, bgfx::UniformType::Vec4, 1);
-
-	for (int i = 0; i < 6; i++)
+	for(int lightIndex = 0; lightIndex < shadowLightMaxNum; lightIndex++)
 	{
-		m_renderPassID[i] = GetRenderContext()->CreateView();
-		bgfx::setViewName(m_renderPassID[i], "ShadowMapRenderer");
+		for (int mapId = 0; mapId < shadowTexturePassMaxNum; mapId++)
+		{
+			m_renderPassID[lightIndex * shadowTexturePassMaxNum + mapId] = GetRenderContext()->CreateView();
+			bgfx::setViewName(m_renderPassID[lightIndex * shadowTexturePassMaxNum + mapId], "ShadowMapRenderer");
+		}
 	}
+}
+
+void ShadowMapRenderer::Warmup()
+{
+	GetRenderContext()->UploadShaderProgram("ShadowMapProgram");
 }
 
 void ShadowMapRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
-	//UpdateViewRenderTarget();
+	//UpdateViewRenderTarget(); //in Render()
 }
 
 void ShadowMapRenderer::Render(float deltaTime)
@@ -68,43 +73,46 @@ void ShadowMapRenderer::Render(float deltaTime)
 		const cd::Matrix4x4 camView = pMainCameraComponent->GetViewMatrix();
 		const cd::Matrix4x4 camProj = pMainCameraComponent->GetProjectionMatrix();
 		const cd::Matrix4x4 invCamViewProj = (camProj * camView).Inverse();
+		bool ndcDepthMinusOneToOne = cd::NDCDepth::MinusOneToOne == pMainCameraComponent->GetNDCDepth();
 
 		auto UnProject = [&invCamViewProj](const cd::Vec4f ndcCorner)->cd::Vec3f
 		{
 			cd::Vec4f worldPos = invCamViewProj * ndcCorner;
 			return worldPos.xyz() / worldPos.w();
 		};
-
+		
+		uint16_t shadowNum = 0U;
 		for (auto lightEntity : lightEntities)
 		{
-			LightComponent* lightComponent = m_pCurrentSceneWorld->GetLightComponent(lightEntity);
+			ShadowComponent* shadowComponent = m_pCurrentSceneWorld->GetShadowComponent(lightEntity);
+			// area light does not have shadowComponent
+			if (nullptr == shadowComponent)
+			{
+				continue;
+			}
 
+			LightComponent* lightComponent = m_pCurrentSceneWorld->GetLightComponent(lightEntity);
+			
+			// render shadow map
 			switch (lightComponent->GetType())
 			{
 			case cd::LightType::Directional:
 			{
 				//fbo and texture init(if not initiated) and acquire
-				if (!lightComponent->IsShadowMapFBsValid())
+				if (!shadowComponent->IsShadowMapFBsValid())
 				{
 					bgfx::TextureHandle fbtextures[] =
 					{
-						bgfx::createTexture2D(
-							   lightComponent->GetShadowMapSize()
-							, lightComponent->GetShadowMapSize()
-							, false
-							, 1
-							, bgfx::TextureFormat::D16
-							, BGFX_TEXTURE_RT | BGFX_SAMPLER_COMPARE_LEQUAL
-							),
+						bgfx::createTexture2D(shadowComponent->GetShadowMapSize(), shadowComponent->GetShadowMapSize(), 
+							false, 1, bgfx::TextureFormat::D32F, depthBufferFlags),
 					};
 					bgfx::FrameBufferHandle shadowMapFB = bgfx::createFrameBuffer(BX_COUNTOF(fbtextures), fbtextures, true);
-					//lightComponent->AddShadowMapTexture(fbtextures[0]);
-					lightComponent->AddShadowMapFB(shadowMapFB);
+				
+					shadowComponent->AddShadowMapTexture(fbtextures[0]);
+					shadowComponent->AddShadowMapFB(shadowMapFB);
 				}
 
-				bool ndcDepthMinusOneToOne = cd::NDCDepth::MinusOneToOne == pMainCameraComponent->GetNDCDepth();
 				// light view and orthographic pro
-
 				std::vector<cd::Vec3f> frustumCorners;
 				if (ndcDepthMinusOneToOne)
 				{
@@ -134,7 +142,6 @@ void ShadowMapRenderer::Render(float deltaTime)
 					};
 					frustumCorners = std::move(temp);
 				}
-
 				cd::Vec3f center = cd::Vec3f(0, 0, 0);
 				for (const auto& corner : frustumCorners)
 				{
@@ -163,11 +170,17 @@ void ShadowMapRenderer::Render(float deltaTime)
 				}
 
 				cd::Matrix4x4 lightProjection = cd::Matrix4x4::Orthographic(minX, maxX, maxY, minY, minZ, maxZ, 0, ndcDepthMinusOneToOne);
-				//cd::Matrix4x4 lightProjection = cd::Matrix4x4::Orthographic(-200, 200, 200, -200, -200, 200, 0, ndcDepthMinusOneToOne);
 
 				uint64_t state = defaultRenderingState;
+				bgfx::setState(state);
+				uint16_t viewId = m_renderPassID[shadowNum * shadowTexturePassMaxNum + 0];
+				bgfx::setViewRect(viewId, 0, 0, shadowComponent->GetShadowMapSize(), shadowComponent->GetShadowMapSize());
+				bgfx::setViewFrameBuffer(viewId, shadowComponent->GetShadowMapFBs().at(0));
+				bgfx::setViewClear(viewId, clearFrameBufferFlags, 0x303030ff, 1.0f, 0);
+				bgfx::setViewTransform(viewId, lightView.Begin(), lightProjection.Begin());
 
-				bgfx::setViewClear(GetViewID(), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
+				cd::Matrix4x4 lightViewProj = lightProjection * lightView;
+				shadowComponent->SetLightViewProjMatrix(lightViewProj);
 
 				for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
 				{
@@ -177,13 +190,11 @@ void ShadowMapRenderer::Render(float deltaTime)
 					{
 						continue;
 					}
-
 					BlendShapeComponent* pBlendShapeComponent = m_pCurrentSceneWorld->GetBlendShapeComponent(entity);
 					if (pBlendShapeComponent)
 					{
 						continue;
 					}
-
 					// Transform
 					if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 					{
@@ -192,43 +203,28 @@ void ShadowMapRenderer::Render(float deltaTime)
 
 					// Mesh
 					UpdateStaticMeshComponent(pMeshComponent);
-
-					bgfx::setState(state);
-
-					bgfx::setViewTransform(m_renderPassID[0], lightView.Begin(), lightProjection.Begin());
-					bgfx::setViewRect(m_renderPassID[0], 0, 0, lightComponent->GetShadowMapSize(), lightComponent->GetShadowMapSize());
-					bgfx::setViewFrameBuffer(m_renderPassID[0], lightComponent->GetShadowMapFBs().at(0));
-
-					constexpr StringCrc shadowMapProgram("ShadowMapProgram");
-					bgfx::submit(m_renderPassID[0], GetRenderContext()->GetProgram(shadowMapProgram));
+					GetRenderContext()->Submit(viewId, "ShadowMapProgram");
 				}
 			}
 			break;
 			case cd::LightType::Point:
 			{
 				//fbo and texture init(if not initiated) and acquire
-				if (!lightComponent->IsShadowMapFBsValid())
+				if (!shadowComponent->IsShadowMapFBsValid())
 				{
 					for (uint16_t i = 0U; i < 6; i++)
 					{
 						bgfx::TextureHandle fbtextures[] =
 						{
-							bgfx::createTexture2D(
-								   lightComponent->GetShadowMapSize()
-								, lightComponent->GetShadowMapSize()
-								, false
-								, 1
-								, bgfx::TextureFormat::D16
-								, BGFX_TEXTURE_RT | BGFX_SAMPLER_COMPARE_LEQUAL
-								),
+							bgfx::createTexture2D(shadowComponent->GetShadowMapSize(), shadowComponent->GetShadowMapSize(),
+								false, 1, bgfx::TextureFormat::D16, depthBufferFlags),
 						};
 						bgfx::FrameBufferHandle shadowMapFB = bgfx::createFrameBuffer(BX_COUNTOF(fbtextures), fbtextures, true);
-						//lightComponent->AddShadowMapTexture(fbtextures[0]);
-						lightComponent->AddShadowMapFB(shadowMapFB);
+						shadowComponent->AddShadowMapTexture(fbtextures[0]);
+						shadowComponent->AddShadowMapFB(shadowMapFB);
 					}
 				}
 
-				bool ndcDepthMinusOneToOne = cd::NDCDepth::MinusOneToOne == pMainCameraComponent->GetNDCDepth();
 				// light view * 6 and perspective pro
 				const cd::Vec3f lightPosition = lightComponent->GetPosition();
 				float range = lightComponent->GetRange();
@@ -247,12 +243,14 @@ void ShadowMapRenderer::Render(float deltaTime)
 
 				uint64_t state = defaultRenderingState;	
 				bgfx::setState(state);
-				for (uint16_t i = 0U; i < 6; i++)
+				for (uint16_t i = 0U; i < shadowTexturePassMaxNum; i++)
 				{
-					bgfx::setViewClear(m_renderPassID[i], BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
-					bgfx::setViewRect(m_renderPassID[i], 0, 0, lightComponent->GetShadowMapSize(), lightComponent->GetShadowMapSize());
-					bgfx::setViewFrameBuffer(m_renderPassID[i], lightComponent->GetShadowMapFBs().at(i));
-					bgfx::setViewTransform(m_renderPassID[i], lightView[i].Begin(), lightProjection.Begin());
+					uint16_t viewId = m_renderPassID[shadowNum * shadowTexturePassMaxNum + i];
+					bgfx::setViewRect(viewId, 0, 0, shadowComponent->GetShadowMapSize(), shadowComponent->GetShadowMapSize());
+					bgfx::setViewFrameBuffer(viewId, shadowComponent->GetShadowMapFBs().at(i));
+					bgfx::setViewClear(viewId, clearFrameBufferFlags, 0x303030ff, 1.0f, 0);
+					bgfx::setViewTransform(viewId, lightView[i].Begin(), lightProjection.Begin());
+
 					for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
 					{
 						// No mesh attached?
@@ -268,9 +266,7 @@ void ShadowMapRenderer::Render(float deltaTime)
 							bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
 						}
 						UpdateStaticMeshComponent(pMeshComponent);
-
-						constexpr StringCrc shadowMapProgram("ShadowMapProgram");
-						bgfx::submit(m_renderPassID[i], GetRenderContext()->GetProgram(shadowMapProgram));
+						GetRenderContext()->Submit(viewId, "ShadowMapProgram");
 					}
 				}
 			}
@@ -278,25 +274,18 @@ void ShadowMapRenderer::Render(float deltaTime)
 			case cd::LightType::Spot:
 			{
 				//fbo and texture init(if not initiated) and acquire
-				if (!lightComponent->IsShadowMapFBsValid())
+				if (!shadowComponent->IsShadowMapFBsValid())
 				{
 					bgfx::TextureHandle fbtextures[] =
 					{
-						bgfx::createTexture2D(
-							   lightComponent->GetShadowMapSize()
-							, lightComponent->GetShadowMapSize()
-							, false
-							, 1
-							, bgfx::TextureFormat::D16
-							, BGFX_TEXTURE_RT | BGFX_SAMPLER_COMPARE_LEQUAL
-							),
+						bgfx::createTexture2D(shadowComponent->GetShadowMapSize(), shadowComponent->GetShadowMapSize(),
+							false, 1, bgfx::TextureFormat::D32F, depthBufferFlags),
 					};
 					bgfx::FrameBufferHandle shadowMapFB = bgfx::createFrameBuffer(BX_COUNTOF(fbtextures), fbtextures, true);
-					//lightComponent->AddShadowMapTexture(fbtextures[0]);
-					lightComponent->AddShadowMapFB(shadowMapFB);
+					shadowComponent->AddShadowMapTexture(fbtextures[0]);
+					shadowComponent->AddShadowMapFB(shadowMapFB);
 				}
 
-				bool ndcDepthMinusOneToOne = cd::NDCDepth::MinusOneToOne == pMainCameraComponent->GetNDCDepth();
 				// light view and perspective pro
 				const cd::Vec3f lightPosition = lightComponent->GetPosition();
 				const cd::Vec3f lightDirection = lightComponent->GetDirection();
@@ -307,9 +296,15 @@ void ShadowMapRenderer::Render(float deltaTime)
 				cd::Matrix4x4 lightProjection = cd::Matrix4x4::Perspective(lightComponent->GetInnerAndOuter().y(), 1.0f, 0.01f, range, ndcDepthMinusOneToOne);
 
 				uint64_t state = defaultRenderingState;
-				bgfx::setViewClear(GetViewID(), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff, 1.0f, 0);
-				bgfx::setState(state);
+				bgfx::setState(state);	
+				uint16_t viewId = m_renderPassID[shadowNum * shadowTexturePassMaxNum + 0];
+				bgfx::setViewRect(viewId, 0, 0, shadowComponent->GetShadowMapSize(), shadowComponent->GetShadowMapSize());
+				bgfx::setViewFrameBuffer(viewId, shadowComponent->GetShadowMapFBs().at(0));
+				bgfx::setViewClear(viewId, clearFrameBufferFlags, 0x303030ff, 1.0f, 0);
+				bgfx::setViewTransform(viewId, lightView.Begin(), lightProjection.Begin());
 
+				cd::Matrix4x4 lightViewProj = lightProjection * lightView;
+				shadowComponent->SetLightViewProjMatrix(lightViewProj);
 
 				for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
 				{
@@ -319,74 +314,31 @@ void ShadowMapRenderer::Render(float deltaTime)
 					{
 						continue;
 					}
-
 					BlendShapeComponent* pBlendShapeComponent = m_pCurrentSceneWorld->GetBlendShapeComponent(entity);
 					if (pBlendShapeComponent)
 					{
 						continue;
 					}
-
 					// Transform
 					if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 					{
 						bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
 					}
-					// Mesh 
-					
+					// Mesh
 					UpdateStaticMeshComponent(pMeshComponent);
-					
-					bgfx::setViewTransform(GetViewID(), lightView.Begin(), lightProjection.Begin());
-					bgfx::setViewRect(GetViewID(), 0, 0, lightComponent->GetShadowMapSize(), lightComponent->GetShadowMapSize());
-					bgfx::setViewFrameBuffer(GetViewID(), lightComponent->GetShadowMapFBs()[0]);
-					constexpr StringCrc shadowMapProgram("ShadowMapProgram");
-					bgfx::submit(GetViewID(), GetRenderContext()->GetProgram(shadowMapProgram));
+					GetRenderContext()->Submit(viewId, "ShadowMapProgram");
 				}
 			}
 			break;
-			case cd::LightType::Rectangle:
-			break;
+			}
+
+			shadowNum++;
+			if (3 == shadowNum)
+			{
+				break;
 			}
 		}
-		/*
-			for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
-			{
-				// No mesh attached?
-				StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
-				if (!pMeshComponent)
-				{
-					continue;
-				}
-
-				BlendShapeComponent* pBlendShapeComponent = m_pCurrentSceneWorld->GetBlendShapeComponent(entity);
-				if (pBlendShapeComponent)
-				{
-					continue;
-				}
-
-				// SkinMesh
-				if (m_pCurrentSceneWorld->GetAnimationComponent(entity))
-				{
-					continue;
-				}
-
-				// Transform
-				if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
-				{
-					bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
-				}
-
-				// Mesh
-				UpdateStaticMeshComponent(pMeshComponent);
-
-				// Submit uniform values : camera settings
-				constexpr StringCrc cameraPosCrc(cameraPos);
-				GetRenderContext()->FillUniform(cameraPosCrc, &cameraTransform.GetTranslation().x(), 1);
-
-
-			}
-		*/
 	}
-
 }
 
 }

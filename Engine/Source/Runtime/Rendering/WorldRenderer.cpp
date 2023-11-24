@@ -13,6 +13,7 @@
 #include "Scene/Texture.h"
 #include "U_IBL.sh"
 #include "U_AtmophericScattering.sh"
+#include "U_Shadow.sh"
 
 namespace engine
 {
@@ -23,7 +24,10 @@ namespace
 constexpr const char* lutSampler                  = "s_texLUT";
 constexpr const char* cubeIrradianceSampler       = "s_texCubeIrr";
 constexpr const char* cubeRadianceSampler         = "s_texCubeRad";
-											      
+
+constexpr const char* shadowMapSampler = "s_texShadowMap";
+constexpr const char* lightViewProj = "u_lightViewProj";
+
 constexpr const char* lutTexture                  = "Textures/lut/ibl_brdf_lut.dds";
 											      
 constexpr const char* cameraPos                   = "u_cameraPos";
@@ -60,6 +64,9 @@ void WorldRenderer::Warmup()
 	GetRenderContext()->CreateUniform(lutSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(cubeIrradianceSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(cubeRadianceSampler, bgfx::UniformType::Sampler);
+	GetRenderContext()->CreateUniform(shadowMapSampler, bgfx::UniformType::Sampler);
+
+	GetRenderContext()->CreateUniform(lightViewProj, bgfx::UniformType::Mat4, 1);
 
 	GetRenderContext()->CreateTexture(lutTexture);
 	GetRenderContext()->CreateTexture(pSkyComponent->GetIrradianceTexturePath().c_str(), samplerFlags);
@@ -162,12 +169,14 @@ void WorldRenderer::Render(float deltaTime)
 
 			constexpr StringCrc radSamplerCrc(cubeRadianceSampler);
 			GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), samplerFlags);
+			//bgfx::TextureHandle th1 = GetRenderContext()->GetTexture(StringCrc(pSkyComponent->GetRadianceTexturePath()));
 			bgfx::setTexture(IBL_RADIANCE_SLOT,
 				GetRenderContext()->GetUniform(radSamplerCrc),
 				GetRenderContext()->GetTexture(StringCrc(pSkyComponent->GetRadianceTexturePath())));
 
 			constexpr StringCrc lutsamplerCrc(lutSampler);
 			constexpr StringCrc luttextureCrc(lutTexture);
+			//bgfx::TextureHandle th2 = GetRenderContext()->GetTexture(luttextureCrc);
 			bgfx::setTexture(BRDF_LUT_SLOT, GetRenderContext()->GetUniform(lutsamplerCrc), GetRenderContext()->GetTexture(luttextureCrc));
 		}
 		else if (SkyType::AtmosphericScattering == crtSkyType)
@@ -214,6 +223,56 @@ void WorldRenderer::Render(float deltaTime)
 			GetRenderContext()->FillUniform(lightParamsCrc, pLightDataBegin, static_cast<uint16_t>(lightEntityCount * LightUniform::LIGHT_STRIDE));
 		}
 
+		// Submit uniform values : shadow map and settings
+		for (int i = 0; i < lightEntityCount; i++)
+		{
+			auto shadowComponent = m_pCurrentSceneWorld->GetShadowComponent(lightEntities[i]);
+
+			constexpr StringCrc sceneRenderTarget("SceneRenderTarget");
+			const RenderTarget* pSceneRT = GetRenderContext()->GetRenderTarget(sceneRenderTarget);
+			bgfx::TextureHandle depthColorTextureHandle = shadowComponent->GetShadowMapTexture().at(0);// pSceneRT->GetTextureHandle(1);
+
+			constexpr StringCrc shadowRenderTargetBlitDepthColor("ShadowRenderTargetBlitDepthColor");
+
+			bgfx::TextureHandle blitTargetDepthColorHandle = GetRenderContext()->GetTexture(shadowRenderTargetBlitDepthColor);
+			
+			bool buildSRV = false;
+			if (bgfx::isValid(blitTargetDepthColorHandle))
+			{
+				/*if (pSceneRT->GetWidth() != m_blitTextureWidth ||
+					pSceneRT->GetHeight() != m_blitTextureHeight)
+				{
+					bgfx::destroy(blitTargetDepthColorHandle);
+					buildSRV = true;
+				}*/
+			}
+			else
+			{
+				buildSRV = true;
+			}
+
+			if (buildSRV)
+			{
+				/*m_blitTextureWidth = pSceneRT->GetWidth();
+				m_blitTextureHeight = pSceneRT->GetHeight();*/
+
+				uint16_t blitTextureWidth = 1024U;// pSceneRT->GetWidth();
+				uint16_t blitTextureHeight = 1024U;// pSceneRT->GetHeight();
+
+				blitTargetDepthColorHandle = bgfx::createTexture2D(blitTextureWidth, blitTextureHeight, false, 1, bgfx::TextureFormat::D32F,
+					BGFX_TEXTURE_BLIT_DST | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
+				GetRenderContext()->SetTexture(shadowRenderTargetBlitDepthColor, blitTargetDepthColorHandle);
+			}
+
+			constexpr StringCrc shadowMapSamplerCrc(shadowMapSampler);
+			bgfx::blit(GetViewID(), blitTargetDepthColorHandle, 0, 0, depthColorTextureHandle);
+
+			bgfx::setTexture(SHADOW_MAP_SLOT, GetRenderContext()->GetUniform(shadowMapSamplerCrc), blitTargetDepthColorHandle);
+
+			constexpr StringCrc lightViewProjCrc(lightViewProj);
+			GetRenderContext()->FillUniform(lightViewProjCrc, shadowComponent->GetLightViewProjMatrix().Begin(), 1);
+		}
+
 		uint64_t state = defaultRenderingState;
 		if (!pMaterialComponent->GetTwoSided())
 		{
@@ -233,3 +292,5 @@ void WorldRenderer::Render(float deltaTime)
 }
 
 }
+
+

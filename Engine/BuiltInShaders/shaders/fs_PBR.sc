@@ -4,6 +4,7 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 #include "../common/BRDF.sh"
 #include "../common/Material.sh"
 #include "../common/Camera.sh"
+//#include "../common/Shadow.sh"
 
 #include "../common/LightSource.sh"
 #include "../common/Envirnoment.sh"
@@ -37,10 +38,11 @@ void main()
 	
 	// Emissive
 	vec3 emiColor = material.emissive * u_emissiveColor.xyz;
-	
+
 	// Fragment Color
-	gl_FragData[0] = vec4(dirColor + envColor + emiColor, 1.0);
+	gl_FragData[0] = vec4(dirColor + envColor + emiColor, 1.0);// 
 	gl_FragData[1] = vec4(emiColor, 1.0);
 	
 	// Post-processing will be used in the last pass.
+	
 }

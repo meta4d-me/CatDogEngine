@@ -2,17 +2,14 @@
 
 #include "Renderer.h"
 
+#include <vector>
+
 namespace engine
 {
-namespace 
-{
-constexpr uint16_t shadowLightMaxNum = 1U;
-constexpr uint16_t shadowTexturePassMaxNum = 6U;
-}
 
 class SceneWorld;
 
-class ShadowMapRenderer final : public Renderer
+class VolumeLightRenderer final : public Renderer
 {
 public:
 	using Renderer::Renderer;
@@ -24,9 +21,9 @@ public:
 
 	void SetSceneWorld(SceneWorld* pSceneWorld) { m_pCurrentSceneWorld = pSceneWorld; }
 
+
 private:
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
-	uint16_t m_renderPassID[18];
 };
 
 }
