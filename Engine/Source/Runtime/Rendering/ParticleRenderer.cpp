@@ -81,6 +81,7 @@ void ParticleRenderer::Render(float deltaTime)
 			float* mtx = (float*)data;
 			//bx::mtxRotateXY(mtx,0.0f, 0.0f);
 			bx::mtxRotateXYZ(mtx, particleRotation.Pitch(), particleRotation.Yaw(), particleRotation.Roll());
+			//bx::mtxRotateXYZ(mtx, 1.0f, 1.0f, 1.0f);
 			mtx[12] = pEmitterComponent->GetParticleSystem().GetPos(ii).x();
 			mtx[13] = pEmitterComponent->GetParticleSystem().GetPos(ii).y();
 			mtx[14] = pEmitterComponent->GetParticleSystem().GetPos(ii).z();
