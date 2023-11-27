@@ -249,6 +249,7 @@ void EditorApp::InitECWorld()
 	m_pSceneWorld->CreatePBRMaterialType(IsAtmosphericScatteringEnable());
 	m_pSceneWorld->CreateAnimationMaterialType();
 	m_pSceneWorld->CreateTerrainMaterialType();
+	m_pSceneWorld->CreateParticleMaterialType();
 	InitEditorCameraEntity();
 
 	InitSkyEntity();

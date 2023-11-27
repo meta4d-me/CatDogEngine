@@ -23,7 +23,6 @@
 #include "Producers/GenericProducer/GenericProducer.h"
 #endif
 
-#include <Windows.h>
 #include <json/json.hpp>
 
 #include <imgui/imgui.h>

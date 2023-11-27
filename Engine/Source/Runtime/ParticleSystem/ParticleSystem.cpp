@@ -1,12 +1,13 @@
 #include "ParticleSystem.h"
 #include <fstream>
+#include <random>
 
 void engine::ParticleSystem::AllocateParticleIndex()
 {
-	if (!m_FreeParticleIndex.empty())
+	if (!m_freeParticleIndex.empty())
 	{
-		int index = m_FreeParticleIndex.back();
-		m_FreeParticleIndex.pop_back();
+		int index = m_freeParticleIndex.back();
+		m_freeParticleIndex.pop_back();
 		m_particleIndex = index;
 	}
 	else
@@ -42,6 +43,7 @@ void engine::ParticleSystem::Reset(int index)
 	m_rotation[index] = cd::Vec3f(0.0f, 0.0f, 0.0f);
 	m_scale[index] = cd::Vec3f(0.0f, 0.0f, 0.0f);
 	m_velocity[index] = cd::Vec3f(0.0f, 0.0f, 0.0f);
+	m_velocityXYZ[index] = cd::Vec3f(0.0f, 0.0f, 0.0f);
 	m_acceleration[index] = cd::Vec3f(0.0f, 0.0f, 0.0f);
 	
 	m_color[index] = cd::Vec4f{1.0f, 1.0f,1.0f,1.0f};
@@ -61,33 +63,65 @@ void engine::ParticleSystem::Update(float deltaTime, int index)
 		return;
 	}
 
-	if (index % 4 == 0)
+	if (GetType() == engine::ParticleType::Sprite)
 	{
-		m_pos[index].x() = m_pos[index].x() + m_velocity[index].x();
-		m_pos[index].y() = m_pos[index].y() + m_velocity[index].y();
-		m_texture_u[index] = 1.0f;
-		m_texture_v[index] = 1.0f;
+		if (GetRandomState()&& index%4 ==0)
+		{
+			std::random_device rd; 
+			std::default_random_engine generator(rd()); 
+			std::uniform_real_distribution<float> distributionX(std::min(-m_twoSideVelocity.x(), m_twoSideVelocity.x()), std::max(-m_twoSideVelocity.x(), m_twoSideVelocity.x()));
+			std::uniform_real_distribution<float> distributionY(std::min(-m_twoSideVelocity.y(), m_twoSideVelocity.y()), std::max(-m_twoSideVelocity.y(), m_twoSideVelocity.y()));
+			//std::uniform_real_distribution<float> distributionZ(std::min(-m_twoSideVelocity.x(), m_twoSideVelocity.x()), std::max(-m_twoSideVelocity.x(), m_twoSideVelocity.x()));
+			float randomX = distributionX(generator);
+			float randomY = distributionY(generator);
+			m_velocityXYZ[index].x() += randomX;
+			m_velocityXYZ[index].y() += randomY;
+		}
+
+		if (index % 4 == 0)
+		{
+			m_pos[index].x() = m_pos[index].x() + m_velocity[index].x() + m_velocityXYZ[index].x();
+			m_pos[index].y() = m_pos[index].y() + m_velocity[index].y() + m_velocityXYZ[index].y();
+			m_texture_uv[index].x() = 1.0f;
+			m_texture_uv[index].y() = 1.0f;	
+		}
+		else if (index % 4 == 1)
+		{
+			m_pos[index].x() = m_pos[index-1].x()+ m_scale[index].x() ;
+			m_pos[index].y() = m_pos[index-1].y();
+			m_texture_uv[index].x() = 0.0f;
+			m_texture_uv[index].y() = 1.0f;	
+		}
+		else if (index % 4 == 2)
+		{
+			m_pos[index].x() = m_pos[index-2].x() + m_scale[index].x();
+			m_pos[index].y() = m_pos[index-2].y() + m_scale[index].y();
+			m_texture_uv[index].x() = 0.0f;
+			m_texture_uv[index].y() = 0.0f;
+		}
+		else if (index % 4 == 3)
+		{
+			m_pos[index].x() = m_pos[index-3].x();
+			m_pos[index].y() = m_pos[index-3].y() + m_scale[index].y() ;
+			m_texture_uv[index].x() = 1.0f;
+			m_texture_uv[index].y() = 0.0f;
+		}
 	}
-	else if (index % 4 == 1)
+	else if (GetType() == engine::ParticleType::Ribbon)
 	{
-		m_pos[index].x() = m_pos[index-1].x()+ 1 +m_velocity[index].x() ;
-		m_pos[index].y() = m_pos[index-1].y() + m_velocity[index].y();
-		m_texture_u[index] = 0.0f;
-		m_texture_v[index] = 1.0f;
+
 	}
-	else if (index % 4 == 2)
+	else if (GetType() == engine::ParticleType::Track)
 	{
-		m_pos[index].x() = m_pos[index-2].x() + 1 + m_velocity[index].x();
-		m_pos[index].y() = m_pos[index-2].y() + 1 + m_velocity[index].y();
-		m_texture_u[index] = 0.0f;
-		m_texture_v[index] = 0.0f;
+
 	}
-	else if (index % 4 == 3)
+	else if (GetType() == engine::ParticleType::Ring)
 	{
-		m_pos[index].x() = m_pos[index-3].x() + m_velocity[index].x();
-		m_pos[index].y() = m_pos[index-3].y() + 1 + m_velocity[index].y() ;
-		m_texture_u[index] = 1.0f;
-		m_texture_v[index] = 0.0f;
+
+	}
+	else if (GetType() == engine::ParticleType::Model)
+	{
+
 	}
 
 	for (int i = index; i < m_particleMaxCount; ++i)
@@ -106,7 +140,7 @@ bool engine::ParticleSystem::UpdateActive(float deltaTime,int i)
 	Update(deltaTime, i);
 	if (!m_isActive[i])
 	{
-		m_FreeParticleIndex.push_back(i);
+		m_freeParticleIndex.push_back(i);
 	}
 	else
 	{
@@ -117,16 +151,29 @@ bool engine::ParticleSystem::UpdateActive(float deltaTime,int i)
 
 void engine::ParticleSystem::Init()
 {
-	 m_pos.resize(m_particleMaxCount);
-	 m_rotation.resize(m_particleMaxCount);
-	 m_scale.resize(m_particleMaxCount);
-	 m_velocity.resize(m_particleMaxCount);
-	 m_acceleration.resize(m_particleMaxCount);
-	 m_color.resize(m_particleMaxCount);
-	 m_texture_u.resize(m_particleMaxCount);
-	 m_texture_v.resize(m_particleMaxCount);
+	m_pos.resize(m_particleMaxCount);
+	m_rotation.resize(m_particleMaxCount);
+	m_scale.resize(m_particleMaxCount);
+	m_velocity.resize(m_particleMaxCount);
+	m_velocityXYZ.resize(m_particleMaxCount);
+	m_acceleration.resize(m_particleMaxCount);
+	m_color.resize(m_particleMaxCount);
+	m_texture_uv.resize(m_particleMaxCount);
 
 	m_isActive.resize(m_particleMaxCount);
 	m_currentTime.resize(m_particleMaxCount);
 	m_lifeTime.resize(m_particleMaxCount);
+}
+
+void engine::ParticleSystem::SetMaxCount(int num)
+{
+	m_particleMaxCount = num;
+	//m_currentParticleCount = 0;
+	//m_particleIndex = -1;
+	//m_currentActiveCount = 0;
+	//Init();
+	//for (int i = 0; i < m_particleMaxCount; ++i)
+	//{
+	//	Reset(i);
+	//}
 }

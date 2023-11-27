@@ -57,11 +57,6 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 		CD_WARN("[ECWorldConsumer] No valid meshes in the consumed SceneDatabase.");
 	}
 
-	if (0U != pSceneDatabase->GetParticleEmitterCount())
-	{
-		CD_INFO("[ECWorldConsumer] Have ParticleEmitter");
-	}
-
 	auto ParseMesh = [&](cd::MeshID meshID, const cd::Transform& tranform)
 	{
 		engine::Entity meshEntity = m_pSceneWorld->GetWorld()->CreateEntity();
@@ -173,10 +168,10 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 		AddLight(lightEntity, light);
 	}
 
-	for (const auto& particle : pSceneDatabase->GetParticleEmitters())
+	for (const auto& emitter : pSceneDatabase->GetParticleEmitters())
 	{
-		engine::Entity particleEntity = m_pSceneWorld->GetWorld()->CreateEntity();
-		AddParticleEmitter(particleEntity, particle);
+		engine::Entity emitterEntity = m_pSceneWorld->GetWorld()->CreateEntity();
+		AddParticleEmitter(emitterEntity, emitter);
 	}
 }
 
@@ -382,22 +377,38 @@ void ECWorldConsumer::AddMorphs(engine::Entity entity, const std::vector<cd::Mor
 	blendShapeComponent.Build();
 }
 
-void ECWorldConsumer::AddParticleEmitter(engine::Entity entity, const cd::ParticleEmitter& particle)
+void ECWorldConsumer::AddParticleEmitter(engine::Entity entity, const cd::ParticleEmitter& emitter)
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
 	engine::NameComponent& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
-	nameComponent.SetName(particle.GetName());
+	nameComponent.SetName(emitter.GetName());
 	auto& particleEmitterComponent = pWorld->CreateComponent<engine::ParticleEmitterComponent>(entity);
 	// TODO : Some initialization here.
 	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
-	cd::Vec3f pos = particle.GetPosition();
+	cd::Vec3f pos = emitter.GetPosition();
+	cd::Vec3f rotation = emitter.GetFixedRotation();
+	cd::Vec3f scale = emitter.GetFixedScale();
+	auto fixedrotation = cd::Math::RadianToDegree(rotation);
+	cd::Quaternion rotationQuat = cd::Quaternion::FromPitchYawRoll(fixedrotation.x(), fixedrotation.y(), fixedrotation.z());
 	transformComponent.SetTransform(cd::Transform::Identity());
 	transformComponent.GetTransform().SetTranslation(pos);
+	transformComponent.GetTransform().SetRotation(rotationQuat);
+	transformComponent.GetTransform().SetScale(scale);
 	transformComponent.Build();
 
+	engine::MaterialType* pMaterialType = m_pSceneWorld->GetParticleMaterialType();
+	particleEmitterComponent.SetRequiredVertexFormat(&pMaterialType->GetRequiredVertexFormat());
+	//const cd::VertexFormat *requriredVertexFormat = emitter.GetVertexFormat();
+	//particleEmitterComponent.SetRequiredVertexFormat(requriredVertexFormat);
 	particleEmitterComponent.GetParticleSystem().Init();
-	particleEmitterComponent.SetFVelocity(particle.GetVelocity());
-	particleEmitterComponent.SetFColor(particle.GetColor()/255.0f);
+	if (emitter.GetType() == 2) { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Sprite); }
+	else if (emitter.GetType() == 3) { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Ribbon); }
+	else if (emitter.GetType() == 4) { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Ring); }
+	else if (emitter.GetType() == 5) { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Model); }
+	else if (emitter.GetType() == 6) { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Track); }
+
+	particleEmitterComponent.SetEmitterColor(emitter.GetColor()/255.0f);
+	particleEmitterComponent.SetEmitterVelocity(emitter.GetVelocity());
 	particleEmitterComponent.Build();
 }
 

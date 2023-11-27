@@ -143,6 +143,20 @@ void SceneWorld::CreateTerrainMaterialType()
 	m_pTerrainMaterialType->SetRequiredVertexFormat(cd::MoveTemp(terrainVertexFormat));
 }
 
+void SceneWorld::CreateParticleMaterialType()
+{
+	m_pParticleMaterialType = std::make_unique<MaterialType>();
+	m_pParticleMaterialType->SetMaterialName("CD_Particle");
+
+	ShaderSchema shaderSchema;
+	m_pParticleMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
+
+	cd::VertexFormat particleVertexFormat;
+	particleVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+	particleVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Color, cd::GetAttributeValueType<cd::Color::ValueType>(), cd::Color::Size);
+	particleVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
+	m_pParticleMaterialType->SetRequiredVertexFormat(cd::MoveTemp(particleVertexFormat));
+}
 
 void SceneWorld::SetSelectedEntity(engine::Entity entity)
 {

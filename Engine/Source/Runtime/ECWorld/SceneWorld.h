@@ -111,6 +111,9 @@ public:
 	void CreateTerrainMaterialType();
 	CD_FORCEINLINE engine::MaterialType* GetTerrainMaterialType() const { return m_pTerrainMaterialType.get(); }
 
+	void CreateParticleMaterialType();
+	CD_FORCEINLINE engine::MaterialType* GetParticleMaterialType() const { return m_pParticleMaterialType.get(); }
+
 #ifdef ENABLE_DDGI
 	void CreateDDGIMaterialType();
 	CD_FORCEINLINE engine::MaterialType* GetDDGIMaterialType() const { return m_pDDGIMaterialType.get(); }
@@ -134,6 +137,7 @@ private:
 	std::unique_ptr<engine::MaterialType> m_pAnimationMaterialType;
 	std::unique_ptr<engine::MaterialType> m_pTerrainMaterialType;
 	std::unique_ptr<engine::MaterialType> m_pDDGIMaterialType;
+	std::unique_ptr<engine::MaterialType> m_pParticleMaterialType;
 
 	// TODO : wrap them into another class?
 	engine::Entity m_selectedEntity = engine::INVALID_ENTITY;

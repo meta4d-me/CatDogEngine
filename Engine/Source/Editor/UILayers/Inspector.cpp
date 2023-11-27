@@ -630,8 +630,19 @@ void UpdateComponentWidget<engine::ParticleEmitterComponent>(engine::SceneWorld*
 
 	if (isOpen)
 	{
-		ImGuiUtils::ImGuiVectorProperty("Velocity",pParticleEmitterComponent->GetFVelocity());
-		 ImGuiUtils::ColorPickerProperty(" Color", pParticleEmitterComponent->GetFColor());
+		ImGuiUtils::ImGuiEnumProperty("Type", pParticleEmitterComponent->GetEmitterParticleType());
+		ImGuiUtils::ImGuiIntProperty("ParticleNum", pParticleEmitterComponent->GetParticleNum(),cd::Unit::None, 0, 300);
+		ImGuiUtils::ImGuiBoolProperty("RandomVelocity", pParticleEmitterComponent->GetRandomVelocityState());
+		if (pParticleEmitterComponent->GetRandomVelocityState())
+		{
+			ImGuiUtils::ImGuiVectorProperty("Velocity",pParticleEmitterComponent->GetEmitterVelocity());
+			ImGuiUtils::ImGuiVectorProperty("TwoSideVelocity",pParticleEmitterComponent->GetRandomVelocity());
+		}
+		else
+		{
+			ImGuiUtils::ImGuiVectorProperty("Velocity", pParticleEmitterComponent->GetEmitterVelocity());
+		}
+		ImGuiUtils::ColorPickerProperty(" Color", pParticleEmitterComponent->GetEmitterColor());
 	}
 
 	ImGui::Separator();

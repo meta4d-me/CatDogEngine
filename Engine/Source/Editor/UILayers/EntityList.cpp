@@ -30,6 +30,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
     engine::MaterialType* pPBRMaterialType = pSceneWorld->GetPBRMaterialType();
     engine::MaterialType* pTerrainMaterialType = pSceneWorld->GetTerrainMaterialType();
+    engine::MaterialType* pParticleMaterialType = pSceneWorld->GetParticleMaterialType();
 
     auto AddNamedEntity = [&pWorld](std::string defaultName) -> engine::Entity
     {
@@ -232,6 +233,13 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         transformComponent.SetTransform(cd::Transform::Identity());
         transformComponent.Build();
 
+        //std::optional<cd::Mesh> optMesh = engine::GenerateTerrainMesh(particleEmitterComponent.GetMeshWidth(), particleEmitterComponent.GetMeshDepth(), pTerrainMaterialType->GetRequiredVertexFormat());
+        //assert(optMesh.has_value());
+        //cd::Mesh& mesh = optMesh.value();
+
+        //auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
+        //meshComponent.SetMeshData(&mesh);
+        particleEmitterComponent.SetRequiredVertexFormat(&pParticleMaterialType->GetRequiredVertexFormat());//to do : modify vertexFormat
         particleEmitterComponent.GetParticleSystem().Init();
         particleEmitterComponent.Build();
     }

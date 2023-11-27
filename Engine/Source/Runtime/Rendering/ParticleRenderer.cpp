@@ -32,30 +32,40 @@ void ParticleRenderer::Render(float deltaTime)
 	for (Entity entity : m_pCurrentSceneWorld->GetParticleEmitterEntities())
 	{
 		engine::ParticleEmitterComponent* pEmitterComponent = m_pCurrentSceneWorld->GetParticleEmitterComponent(entity);
-		auto particleMaxCount = pEmitterComponent->GetParticleSystem().GetMaxCount();
+		// Emitter Setting
 		const cd::Transform& particleTransform = m_pCurrentSceneWorld->GetTransformComponent(entity)->GetTransform();
+		const cd::Quaternion& particleRotation = m_pCurrentSceneWorld->GetTransformComponent(entity)->GetTransform().GetRotation();
+		pEmitterComponent->GetParticleSystem().SetMaxCount(pEmitterComponent->GetParticleNum() * 4);
+		auto particleMaxCount = pEmitterComponent->GetParticleSystem().GetMaxCount();
+		pEmitterComponent->GetParticleSystem().SetType(pEmitterComponent->GetEmitterParticleType());
+		pEmitterComponent->GetParticleSystem().SetRandomState(pEmitterComponent->GetRandomVelocityState());
+		pEmitterComponent->GetParticleSystem().SetTwoSideVelocity(pEmitterComponent->GetRandomVelocity());
 	/*	float newAngle = particleTransform.GetRotation().Pitch();
 		auto a = cd::Math::DegreeToRadian(newAngle);
 		auto b = cd::Quaternion::RotateZ(a);
 		pEmitterComponent->GetParticleSystem().SetFront(b*pEmitterComponent->GetParticleSystem().GetFront());
 		cd::Quaternion rotationQuat = cd::Quaternion::FromAxisAngle(pEmitterComponent->GetParticleSystem().GetFront(), particleTransform.GetRotation().Pitch());*/
 
+		//Every Pairticle Setting
 		for (int i = 0; i < particleMaxCount; ++i)
 		{
 			pEmitterComponent->GetParticleSystem().AllocateParticleIndex();
 			pEmitterComponent->GetParticleSystem().SetPos(particleTransform.GetTranslation());
-			pEmitterComponent->GetParticleSystem().SetVelocity(pEmitterComponent->GetFVelocity());
+			pEmitterComponent->GetParticleSystem().SetVelocity(pEmitterComponent->GetEmitterVelocity());
+			pEmitterComponent->GetParticleSystem().SetScale(particleTransform.GetScale());
 		}
 
+		//Update Particle Change
 		for (int i = 0; i < particleMaxCount; ++i)
 		{
 			pEmitterComponent->GetParticleSystem().UpdateActive(deltaTime, i);
 		}
 
+		//Particle Data Submit
 		pEmitterComponent->PaddingVertexBuffer();
 		pEmitterComponent->PaddingIndexBuffer();
 
-
+		//Particle Emitter Insta
 		const uint16_t instanceStride = 80;
 		// to total number of instances to draw
 		uint32_t totalSprites = pEmitterComponent->GetParticleSystem().GetMaxCount();
@@ -69,23 +79,24 @@ void ParticleRenderer::Render(float deltaTime)
 		for (uint32_t ii = 0; ii < drawnSprites; ++ii)
 		{
 			float* mtx = (float*)data;
-			bx::mtxRotateXY(mtx,0.0f, 0.0f);
+			//bx::mtxRotateXY(mtx,0.0f, 0.0f);
+			bx::mtxRotateXYZ(mtx, particleRotation.Pitch(), particleRotation.Yaw(), particleRotation.Roll());
 			mtx[12] = pEmitterComponent->GetParticleSystem().GetPos(ii).x();
 			mtx[13] = pEmitterComponent->GetParticleSystem().GetPos(ii).y();
 			mtx[14] = pEmitterComponent->GetParticleSystem().GetPos(ii).z();
 			float* color = (float*)&data[64];
-			color[0] = pEmitterComponent->GetFColor().x();
-			color[1] = pEmitterComponent->GetFColor().y();
-			color[2] = pEmitterComponent->GetFColor().z();
-			color[3] = pEmitterComponent->GetFColor().w();
+			color[0] = pEmitterComponent->GetEmitterColor().x();
+			color[1] = pEmitterComponent->GetEmitterColor().y();
+			color[2] = pEmitterComponent->GetEmitterColor().z();
+			color[3] = pEmitterComponent->GetEmitterColor().w();
 
 			data += instanceStride;
 		}
 
 		constexpr StringCrc ParticleSampler("s_texColor");
 		bgfx::setTexture(0, GetRenderContext()->GetUniform(ParticleSampler), m_particleTextureHandle);
-		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pEmitterComponent->GetParticleVBH() });
-		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{  pEmitterComponent->GetParticleIBH() });
+		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pEmitterComponent->GetParticleVertexBufferHandle() });
+		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{  pEmitterComponent->GetParticleIndexBufferHandle() });
 
 		bgfx::setInstanceDataBuffer(&idb);
 
