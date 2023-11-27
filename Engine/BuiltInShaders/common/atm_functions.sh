@@ -14,25 +14,48 @@
 #define TEMPLATE_ARGUMENT(x)
 #define assert(x)
 
+// ------------------------------ Parameters ------------------------------ //
+
 // TODO : add function to generate these parameters.
-static const AtmosphereParameters ATMOSPHERE = {
-	vec3(10.000000, 10.000000, 10.000000),
-	0.004675,
-	6360.000000,
-	6420.000000,
-	{{0.000000, 0.000000, 0.000000, 0.000000, 0.000000},
-		{0.000000, 1.000000, -0.125000, 0.000000, 0.000000}},
-	vec3(0.005802, 0.013558, 0.033100),
-	{{0.000000, 0.000000, 0.000000, 0.000000, 0.000000},
-		{0.000000, 1.000000, -0.833333, 0.000000, 0.000000}},
-	vec3(0.003996, 0.003996, 0.003996),
-	vec3(0.004440, 0.004440, 0.004440),
-	0.900000,
-	{{25.000000, 0.000000, 0.000000, 0.066667, -0.666667},
-		{0.000000, 0.000000, 0.000000, -0.066667, 2.666667}},
-	vec3(0.000650, 0.001881, 0.000085),
-	vec3(0.100000, 0.100000, 0.100000),
-	-0.207912};
+
+AtmosphereParameters GetAtmosphere() {
+	DensityProfileLayer densityProfileLayer0 = {0.000000, 0.000000, 0.000000, 0.000000, 0.000000};
+	DensityProfileLayer densityProfileLayer1 = {0.000000, 1.000000, -0.125000, 0.000000, 0.000000};
+	DensityProfile densityProfile1;
+	densityProfile1.layers[0] = densityProfileLayer0;
+	densityProfile1.layers[1] = densityProfileLayer1;
+	
+	DensityProfileLayer densityProfileLayer2 = {0.000000, 0.000000, 0.000000, 0.000000, 0.000000};
+	DensityProfileLayer densityProfileLayer3 = {0.000000, 1.000000, -0.833333, 0.000000, 0.00000};
+	DensityProfile densityProfile2;
+	densityProfile2.layers[0] = densityProfileLayer2;
+	densityProfile2.layers[1] = densityProfileLayer3;
+	
+	DensityProfileLayer densityProfileLayer4 = {25.000000, 0.000000, 0.000000, 0.066667, -0.666667};
+	DensityProfileLayer densityProfileLayer5 = {0.000000, 0.000000, 0.000000, -0.066667, 2.666667};
+	DensityProfile densityProfile3;
+	densityProfile3.layers[0] = densityProfileLayer4;
+	densityProfile3.layers[1] = densityProfileLayer5;
+	
+	AtmosphereParameters atmosphere = {
+		vec3(10.000000, 10.000000, 10.000000),
+		0.004675,
+		6360.000000,
+		6420.000000,
+		densityProfile1,
+		vec3(0.005802, 0.013558, 0.033100),
+		densityProfile2,
+		vec3(0.003996, 0.003996, 0.003996),
+		vec3(0.004440, 0.004440, 0.004440),
+		0.900000,
+		densityProfile3,
+		vec3(0.000650, 0.001881, 0.000085),
+		vec3(0.100000, 0.100000, 0.100000),
+		-0.207912};
+		
+	return atmosphere;
+}
+
 
 // ------------------------------ Textures ------------------------------ //
 
@@ -569,7 +592,7 @@ void GetRMuSFromIrradianceTextureUv(IN(AtmosphereParameters) atmosphere, IN(vec2
 	mu_s = ClampCosine(2.0 * x_mu_s - 1.0);
 }
 
-static const vec2 IRRADIANCE_TEXTURE_SIZE = vec2(IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT);
+CONST(vec2) IRRADIANCE_TEXTURE_SIZE = vec2(IRRADIANCE_TEXTURE_WIDTH, IRRADIANCE_TEXTURE_HEIGHT);
 
 // Direct Irradiance -> Texture
 IrradianceSpectrum ComputeDirectIrradianceTexture(IN(AtmosphereParameters) atmosphere, IN(vec2) frag_coord) {

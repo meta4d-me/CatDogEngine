@@ -11,13 +11,13 @@ void main()
 {
 	// Tramsform unit from cm to km.
 	vec3 cameraPos = GetCamera().position / vec3_splat(100.0 * 100.0);
-	vec3 rayStart = cameraPos + vec3(0.0, ATMOSPHERE.bottom_radius + u_HeightOffset.x , 0.0);
+	vec3 rayStart = cameraPos + vec3(0.0, GetAtmosphere().bottom_radius + u_HeightOffset.x , 0.0);
 	vec3 rayDir = normalize(v_worldPos.xyz);
 	vec3 sunDir = -normalize(u_LightDir.xyz);
 	
 	vec3 trans;
 	// TODO : Need a shadow volume algorithm to get shadow_length parameter to compute god ray.
-	vec3 scattering = GetSkyRadiance(ATMOSPHERE, rayStart, rayDir, 0.0, sunDir, trans);
+	vec3 scattering = GetSkyRadiance(GetAtmosphere(), rayStart, rayDir, 0.0, sunDir, trans);
 	
 	gl_FragColor = vec4(scattering, 1.0);
 }

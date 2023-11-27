@@ -467,14 +467,14 @@ void EditorApp::InitEngineRenderers()
 	pSceneRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pSceneRenderer));
 
-	auto pBlendShapeRenderer = std::make_unique<engine::BlendShapeRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-	pBlendShapeRenderer->SetSceneWorld(m_pSceneWorld.get());
-	AddEngineRenderer(cd::MoveTemp(pBlendShapeRenderer));
+	// auto pBlendShapeRenderer = std::make_unique<engine::BlendShapeRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	// pBlendShapeRenderer->SetSceneWorld(m_pSceneWorld.get());
+	// AddEngineRenderer(cd::MoveTemp(pBlendShapeRenderer));
 
-	auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-	m_pTerrainRenderer = pTerrainRenderer.get();
-	pTerrainRenderer->SetSceneWorld(m_pSceneWorld.get());
-	AddEngineRenderer(cd::MoveTemp(pTerrainRenderer));
+	// auto pTerrainRenderer = std::make_unique<engine::TerrainRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	// m_pTerrainRenderer = pTerrainRenderer.get();
+	// pTerrainRenderer->SetSceneWorld(m_pSceneWorld.get());
+	// AddEngineRenderer(cd::MoveTemp(pTerrainRenderer));
 
 	auto pSkeletonRenderer = std::make_unique<engine::SkeletonRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pSkeletonRenderer->SetSceneWorld(m_pSceneWorld.get());
@@ -546,6 +546,8 @@ void EditorApp::EngineRenderersWarmup()
 
 bool EditorApp::IsAtmosphericScatteringEnable() const
 {
+	return true;
+
 	engine::GraphicsBackend backend = engine::Path::GetGraphicsBackend();
 
 	return engine::GraphicsBackend::Vulkan != backend

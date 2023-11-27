@@ -8,9 +8,10 @@ IMAGE2D_WR(s_transmittance, rgba32f, 0);
 NUM_THREADS(8, 8, 1)
 void main()
 {
-	ivec2 uv = ivec2(gl_GlobalInvocationID.xy);
+	vec2 uv = gl_GlobalInvocationID.xy;
+	ivec2 iuv = ivec2(uv);
 	
-	vec3 transmittance = ComputeTransmittanceToTopAtmosphereBoundaryTexture(ATMOSPHERE, uv);
+	vec3 transmittance = ComputeTransmittanceToTopAtmosphereBoundaryTexture(GetAtmosphere(), uv);
 	
-	imageStore(s_transmittance, uv, vec4(transmittance.xyz, 1.0));
+	imageStore(s_transmittance, iuv, vec4(transmittance.xyz, 1.0));
 }

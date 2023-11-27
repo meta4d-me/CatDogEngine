@@ -9,11 +9,12 @@ IMAGE2D_WR(s_irradiance, rgba32f, 1);
 NUM_THREADS(8, 8, 1)
 void main()
 {
-	ivec2 uv = ivec2(gl_GlobalInvocationID.xy);
+	vec2 uv = gl_GlobalInvocationID.xy;
+	ivec2 iuv = ivec2(uv);
 	
-	vec3 delta_irradiance = ComputeDirectIrradianceTexture(ATMOSPHERE, uv);
+	vec3 delta_irradiance = ComputeDirectIrradianceTexture(GetAtmosphere(), uv);
 	vec3 irradiance = vec3_splat(0.0);
 	
-	imageStore(s_delta_irradiance, uv, vec4(delta_irradiance.xyz, 1.0));
-	imageStore(s_irradiance, uv, vec4(irradiance.xyz, 1.0));
+	imageStore(s_delta_irradiance, iuv, vec4(delta_irradiance.xyz, 1.0));
+	imageStore(s_irradiance, iuv, vec4(irradiance.xyz, 1.0));
 }
