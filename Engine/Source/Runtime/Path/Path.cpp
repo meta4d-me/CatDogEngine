@@ -53,6 +53,11 @@ std::filesystem::path Path::GetPlatformAppDataPath(const char* pRootPath)
 #endif
 }
 
+std::string Path::Join(std::filesystem::path path)
+{
+    return path.generic_string();
+}
+
 std::filesystem::path Path::GetEngineBuiltinShaderPath()
 {
     return std::filesystem::path(CDENGINE_BUILTIN_SHADER_PATH);
@@ -128,6 +133,31 @@ std::string Path::GetTextureOutputFilePath(const char* pInputFilePath, const cha
 std::string Path::GetTerrainTextureOutputFilePath(const char* pInputFilePath, const char* extension)
 {
     return ((GetEngineResourcesPath() / "Textures" / "Terrain" / std::filesystem::path(pInputFilePath).stem()).replace_extension(extension)).generic_string();
+}
+
+bool Path::FileExists(const char* pFilePath)
+{
+    return std::filesystem::exists(pFilePath);
+}
+
+bool Path::DirectoryExists(const char* pDirectoryPath)
+{
+    return std::filesystem::is_directory(pDirectoryPath);
+}
+
+std::string Path::GetFileName(const char* pFilePath)
+{
+    return std::filesystem::path(pFilePath).filename().generic_string();
+}
+
+std::string Path::GetFileNameWithoutExtension(const char* pFilePath)
+{
+    return std::filesystem::path(pFilePath).stem().generic_string();
+}
+
+std::string Path::GetExtension(const char* pFilePath)
+{
+    return std::filesystem::path(pFilePath).extension().generic_string();
 }
 
 }

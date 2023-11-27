@@ -1,6 +1,6 @@
 #pragma once
 
-#include <assert.h>
+#include <cassert>
 #include <functional>
 
 namespace engine
@@ -71,10 +71,22 @@ public:
 		m_pProxyFunc = &ConstMethodProxy<C, Function>;
 	}
 
+	bool Empty() const { return m_pProxyFunc == nullptr; }
+
 	RetVal Invoke(Args... args) const
 	{
-		assert(m_pProxyFunc != nullptr && "Cannot invoke unbound Delegate. Call Bind() first.");
-		return m_pProxyFunc(m_pInstance, std::forward<Args>(args)...);
+		//assert(m_pProxyFunc != nullptr && "Cannot invoke unbound Delegate. Call Bind() first.");
+		if constexpr (std::is_same_v<RetVal, void>)
+		{
+			if (m_pProxyFunc != nullptr)
+			{
+				m_pProxyFunc(m_pInstance, std::forward<Args>(args)...);
+			}
+		}
+		else
+		{
+			return m_pProxyFunc != nullptr ? m_pProxyFunc(m_pInstance, std::forward<Args>(args)...) : RetVal{};
+		}
 	}
 
 private:

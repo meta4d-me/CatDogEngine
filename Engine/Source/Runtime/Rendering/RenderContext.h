@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <set>
 #include <tuple>
 #include <unordered_map>
 
@@ -44,7 +45,7 @@ public:
 	void Init(GraphicsBackend backend, void* hwnd = nullptr);
 	void OnResize(uint16_t width, uint16_t height);
 	void BeginFrame();
-	void Submit(uint16_t viewID, const std::string& programName, const std::string& featureCombine = "");
+	void Submit(uint16_t viewID, const std::string& programName, const std::string& featuresCombine = "");
 	void Dispatch(uint16_t viewID, const std::string& programName, uint32_t numX, uint32_t numY, uint32_t numZ);
 	void EndFrame();
 	void Shutdown();
@@ -67,13 +68,20 @@ public:
 	void AddShaderFeature(StringCrc programNameCrc, std::string combine);
 
 	bool CheckShaderProgram(const std::string& programName, const std::string& featuresCombine = "");
+	bool OnShaderHotModified(const std::string& programName, const std::string& featuresCombine = "");
 	void UploadShaderProgram(const std::string& programName, const std::string& featuresCombine = "");
+	void DestroyShaderProgram(const std::string& programName, const std::string& featuresCombine = "");
 
 	void AddShaderCompileTask(ShaderCompileInfo info);
 	void ClearShaderCompileTasks();
-	void SetShaderCompileTasks(std::vector<ShaderCompileInfo> tasks);
-	std::vector<ShaderCompileInfo>& GetShaderCompileTasks() { return m_shaderCompileTasks; }
-	const std::vector<ShaderCompileInfo>& GetShaderCompileTasks() const { return m_shaderCompileTasks; }
+	void SetShaderCompileTasks(std::set<ShaderCompileInfo> tasks);
+	std::set<ShaderCompileInfo>& GetShaderCompileTasks() { return m_shaderCompileTasks; }
+	const std::set<ShaderCompileInfo>& GetShaderCompileTasks() const { return m_shaderCompileTasks; }
+
+	void CheckModifiedProgram(std::string modifiedShaderName);
+	void ClearModifiedProgramNameCrcs();
+	std::set<StringCrc>& GetModifiedProgramNameCrcs() { return m_modifiedProgramNameCrcs; }
+	const std::set<StringCrc>& GetModifiedProgramNameCrcs() const { return m_modifiedProgramNameCrcs; }
 
 	/////////////////////////////////////////////////////////////////////
 	// Shader blob apis
@@ -85,16 +93,16 @@ public:
 	// Resource related apis
 	/////////////////////////////////////////////////////////////////////
 
-	void SetShaderProgramHandle(const std::string& programName, bgfx::ProgramHandle handle, const std::string& featureCombine = "");
-	bgfx::ProgramHandle GetShaderProgramHandle(const std::string& programName, const std::string& featureCombine = "") const;
+	void SetShaderProgramHandle(const std::string& programName, bgfx::ProgramHandle handle, const std::string& featuresCombine = "");
+	bgfx::ProgramHandle GetShaderProgramHandle(const std::string& programName, const std::string& featuresCombine = "") const;
 
 	RenderTarget* CreateRenderTarget(StringCrc resourceCrc, uint16_t width, uint16_t height, std::vector<AttachmentDescriptor> attachmentDescs);
 	RenderTarget* CreateRenderTarget(StringCrc resourceCrc, uint16_t width, uint16_t height, void* pWindowHandle);
 	RenderTarget* CreateRenderTarget(StringCrc resourceCrc, std::unique_ptr<RenderTarget> pRenderTarget);
 
-	bgfx::ShaderHandle CreateShader(const char* filePath);
+	bgfx::ShaderHandle CreateShader(const char* filePath, const std::string& combine = "");
 	bgfx::ProgramHandle CreateProgram(const std::string& programName, const std::string& csName);
-	bgfx::ProgramHandle CreateProgram(const std::string& programName, const std::string& vsName, const std::string& fsName, const std::string& featureCombine = "");
+	bgfx::ProgramHandle CreateProgram(const std::string& programName, const std::string& vsName, const std::string& fsName, const std::string& featuresCombine = "");
 
 	bgfx::TextureHandle CreateTexture(const char* filePath, uint64_t flags = 0UL);
 	bgfx::TextureHandle CreateTexture(const char* pName, uint16_t width, uint16_t height, uint16_t depth, bgfx::TextureFormat::Enum format, uint64_t flags = 0UL, const void* data = nullptr, uint32_t size = 0);
@@ -126,22 +134,23 @@ private:
 	uint16_t m_backBufferWidth;
 	uint16_t m_backBufferHeight;
 
-	std::unordered_map<uint32_t, std::unique_ptr<RenderTarget>> m_renderTargetCaches;
-	std::unordered_map<uint32_t, bgfx::VertexLayout> m_vertexLayoutCaches;
-	std::unordered_map<uint32_t, uint16_t> m_textureHandleCaches;
-	std::unordered_map<uint32_t, uint16_t> m_uniformHandleCaches;
+	std::unordered_map<StringCrc, std::unique_ptr<RenderTarget>> m_renderTargetCaches;
+	std::unordered_map<StringCrc, bgfx::VertexLayout> m_vertexLayoutCaches;
+	std::unordered_map<StringCrc, uint16_t> m_textureHandleCaches;
+	std::unordered_map<StringCrc, uint16_t> m_uniformHandleCaches;
 
 	ShaderCollections* m_pShaderCollections = nullptr;
 
 	// Key : StringCrc(Program name), Value : Shader program handle
-	std::unordered_map<uint32_t, uint16_t> m_shaderProgramHandles;
+	std::unordered_map<StringCrc, uint16_t> m_shaderProgramHandles;
 
 	// Key : StringCrc(Shader name), Value : Shader handle
-	std::unordered_map<uint32_t, uint16_t> m_shaderHandles;
+	std::unordered_map<StringCrc, uint16_t> m_shaderHandles;
 	// Key : StringCrc(Shader name), Value : Shader binary data
-	std::unordered_map<uint32_t, std::unique_ptr<ShaderBlob>> m_shaderBlobs;
+	std::unordered_map<StringCrc, std::unique_ptr<ShaderBlob>> m_shaderBlobs;
 
-	std::vector<ShaderCompileInfo> m_shaderCompileTasks;
+	std::set<ShaderCompileInfo> m_shaderCompileTasks;
+	std::set<StringCrc> m_modifiedProgramNameCrcs;
 };
 
 }

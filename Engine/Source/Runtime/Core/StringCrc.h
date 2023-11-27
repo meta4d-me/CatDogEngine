@@ -19,6 +19,8 @@ public:
 	~TStringCrc() = default;
 
 	constexpr T Value() const { return m_hashValue; }
+	bool operator<(const TStringCrc& other) const { return m_hashValue < other.m_hashValue; }
+	bool operator>(const TStringCrc& other) const { return m_hashValue > other.m_hashValue; }
 	bool operator==(const TStringCrc& other) const { return m_hashValue == other.m_hashValue; }
 	bool operator!=(const TStringCrc& other) const { return m_hashValue != other.m_hashValue; }
 
@@ -27,5 +29,19 @@ private:
 };
 
 using StringCrc = TStringCrc<uint32_t>;
+
+}
+
+namespace std
+{
+
+template<>
+struct hash<engine::StringCrc>
+{
+	uint64_t operator()(const engine::StringCrc& key) const
+	{
+		return static_cast<uint32_t>(key.Value());
+	}
+};
 
 }
