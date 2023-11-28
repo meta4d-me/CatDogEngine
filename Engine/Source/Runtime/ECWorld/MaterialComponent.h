@@ -91,6 +91,7 @@ public:
 	void SetName(std::string name) { m_name = cd::MoveTemp(name); }
 	std::string& GetName() { return m_name; }
 	const std::string& GetName() const { return m_name; }
+	const std::string& GetShaderProgramName() const;
 
 	// Uber shader data.
 	void ActivateShaderFeature(ShaderFeature feature);
@@ -98,11 +99,7 @@ public:
 	void SetShaderFeatures(std::set<ShaderFeature> options) { m_shaderFeatures = cd::MoveTemp(m_shaderFeatures); }
 	std::set<ShaderFeature>& GetShaderFeatures() { return m_shaderFeatures; }
 	const std::set<ShaderFeature>& GetShaderFeatures() const { return m_shaderFeatures; }
-
 	const std::string& GetFeaturesCombine();
-	const std::string& GetProgramName() const;
-	std::string GetVertexShaderName() const;
-	std::string GetFragmentShaderName() const;
 
 	// Texture data.
 	void AddTextureBlob(cd::MaterialTextureType textureType, cd::TextureFormat textureFormat, cd::TextureMapMode uMapMode, cd::TextureMapMode vMapMode, TextureBlob textureBlob, uint32_t width, uint32_t height, uint32_t depth = 1);

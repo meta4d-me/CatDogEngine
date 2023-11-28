@@ -64,7 +64,7 @@ void ShaderBuilder::CompileRegisteredNonUberShader(engine::RenderContext* pRende
 
 void ShaderBuilder::CompileRegisteredUberShader(engine::RenderContext* pRenderContext, engine::MaterialType* pMaterialType)
 {
-	const std::string& programName = pMaterialType->GetShaderSchema().GetProgramName();
+	const std::string& programName = pMaterialType->GetShaderSchema().GetShaderProgramName();
 	engine::StringCrc programNameCrc = engine::StringCrc(programName);
 
 	if (!pRenderContext->GetShaderCollections()->HasFeatureCombine(programNameCrc))
@@ -81,7 +81,7 @@ void ShaderBuilder::CompileRegisteredUberShader(engine::RenderContext* pRenderCo
 
 void ShaderBuilder::CompileUberShaderAllVariants(engine::RenderContext* pRenderContext, engine::MaterialType* pMaterialType)
 {
-	const std::string& programName = pMaterialType->GetShaderSchema().GetProgramName();
+	const std::string& programName = pMaterialType->GetShaderSchema().GetShaderProgramName();
 
 	const std::set<std::string>& shaders = pRenderContext->GetShaderCollections()->GetShaders(engine::StringCrc(programName));
 	const std::set<std::string>& combines = pMaterialType->GetShaderSchema().GetAllFeatureCombines();

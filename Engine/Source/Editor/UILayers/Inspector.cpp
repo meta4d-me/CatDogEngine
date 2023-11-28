@@ -306,8 +306,8 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 
 			if (isOpen)
 			{
-				ImGuiUtils::ImGuiStringProperty("Vertex Shader", pMaterialComponent->GetVertexShaderName());
-				ImGuiUtils::ImGuiStringProperty("Fragment Shader", pMaterialComponent->GetFragmentShaderName());
+				// TODO : Need RenderContext if we want to get shader file's name.
+				ImGuiUtils::ImGuiStringProperty("Shader Program", pMaterialComponent->GetShaderProgramName());
 				ImGui::Separator();
 
 				std::vector<const char*> activeShaderFeatures;

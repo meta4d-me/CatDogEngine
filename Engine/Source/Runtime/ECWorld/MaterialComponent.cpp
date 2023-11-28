@@ -127,6 +127,11 @@ const MaterialComponent::TextureInfo* MaterialComponent::GetTextureInfo(cd::Mate
 	return &itTextureInfo->second;
 }
 
+const std::string& MaterialComponent::GetShaderProgramName() const
+{
+	return m_pMaterialType->GetShaderSchema().GetShaderProgramName();
+}
+
 void MaterialComponent::ActivateShaderFeature(ShaderFeature feature)
 {
 	if (ShaderFeature::DEFAULT == feature)
@@ -166,11 +171,6 @@ const std::string& MaterialComponent::GetFeaturesCombine()
 	return m_featureCombine;
 }
 
-const std::string& MaterialComponent::GetProgramName() const
-{
-	return m_pMaterialType->GetShaderSchema().GetProgramName();
-}
-
 void MaterialComponent::Reset()
 {
 	m_pMaterialData = nullptr;
@@ -189,16 +189,6 @@ void MaterialComponent::Reset()
 	m_featureCombine.clear();
 	m_cacheTextureBlobs.clear();
 	m_textureResources.clear();
-}
-
-std::string MaterialComponent::GetVertexShaderName() const
-{
-	return std::filesystem::path(m_pMaterialType->GetShaderSchema().GetVertexShaderPath()).filename().string();
-}
-
-std::string MaterialComponent::GetFragmentShaderName() const
-{
-	return std::filesystem::path(m_pMaterialType->GetShaderSchema().GetFragmentShaderPath()).filename().string();
 }
 
 void MaterialComponent::AddTextureBlob(cd::MaterialTextureType textureType, cd::TextureFormat textureFormat, cd::TextureMapMode uMapMode, cd::TextureMapMode vMapMode,
