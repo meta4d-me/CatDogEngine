@@ -1,6 +1,7 @@
 ﻿#include "Inspector.h"
 
 #include "Rendering/RenderContext.h"
+#include "Rendering/ShaderCollections.h"
 #include "Graphics/GraphicsBackend.h"
 #include "ImGui/ImGuiUtils.hpp"
 #include "Path/Path.h"
@@ -9,12 +10,10 @@ namespace details
 {
 
 template<typename Component>
-void UpdateComponentWidget(engine::SceneWorld* pSceneWorld, engine::Entity entity)
-{
-}
+void UpdateComponentWidget(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext, engine::Entity entity) {}
 
 template<>
-void UpdateComponentWidget<engine::CollisionMeshComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+void UpdateComponentWidget<engine::CollisionMeshComponent>(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext, engine::Entity entity)
 {
 	auto* pCollisionMesh = pSceneWorld->GetCollisionMeshComponent(entity);
 	if (!pCollisionMesh)
@@ -36,7 +35,7 @@ void UpdateComponentWidget<engine::CollisionMeshComponent>(engine::SceneWorld* p
 }
 
 template<>
-void UpdateComponentWidget<engine::NameComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+void UpdateComponentWidget<engine::NameComponent>(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext, engine::Entity entity)
 {
 	auto* pNameComponent = pSceneWorld->GetNameComponent(entity);
 	if (!pNameComponent)
@@ -58,7 +57,7 @@ void UpdateComponentWidget<engine::NameComponent>(engine::SceneWorld* pSceneWorl
 }
 
 template<>
-void UpdateComponentWidget<engine::TransformComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+void UpdateComponentWidget<engine::TransformComponent>(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext, engine::Entity entity)
 {
 	auto* pTransformComponent = pSceneWorld->GetTransformComponent(entity);
 	if (!pTransformComponent)
@@ -84,7 +83,7 @@ void UpdateComponentWidget<engine::TransformComponent>(engine::SceneWorld* pScen
 }
 
 template<>
-void UpdateComponentWidget<engine::StaticMeshComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+void UpdateComponentWidget<engine::StaticMeshComponent>(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext, engine::Entity entity)
 {
 	auto* pStaticMeshComponent = pSceneWorld->GetStaticMeshComponent(entity);
 	if (!pStaticMeshComponent)
@@ -123,7 +122,7 @@ void UpdateComponentWidget<engine::StaticMeshComponent>(engine::SceneWorld* pSce
 }
 
 template<>
-void UpdateComponentWidget<engine::BlendShapeComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+void UpdateComponentWidget<engine::BlendShapeComponent>(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext, engine::Entity entity)
 {
 	auto* pBlendShapeComponent = pSceneWorld->GetBlendShapeComponent(entity);
 	if (!pBlendShapeComponent)
@@ -156,7 +155,7 @@ void UpdateComponentWidget<engine::BlendShapeComponent>(engine::SceneWorld* pSce
 }
 
 template<>
-void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext, engine::Entity entity)
 {
 	auto* pMaterialComponent = pSceneWorld->GetMaterialComponent(entity);
 	if (!pMaterialComponent)
@@ -306,8 +305,13 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 
 			if (isOpen)
 			{
-				// TODO : Need RenderContext if we want to get shader file's name.
-				ImGuiUtils::ImGuiStringProperty("Shader Program", pMaterialComponent->GetShaderProgramName());
+				const auto& shaderProgramName = pMaterialComponent->GetShaderProgramName();
+				ImGuiUtils::ImGuiStringProperty("Shader Program", shaderProgramName);
+
+				for (const auto& shaderFileName : pRenderContext->GetShaderCollections()->GetShaders(engine::StringCrc{ shaderProgramName }))
+				{
+					ImGuiUtils::ImGuiStringProperty("Shader", shaderFileName);
+				}
 				ImGui::Separator();
 
 				std::vector<const char*> activeShaderFeatures;
@@ -339,7 +343,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 }
 
 template<>
-void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext, engine::Entity entity)
 {
 	auto* pCameraComponent = pSceneWorld->GetCameraComponent(entity);
 	if (!pCameraComponent)
@@ -401,7 +405,7 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 }
 
 template<>
-void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext, engine::Entity entity)
 {
 	auto* pLightComponent = pSceneWorld->GetLightComponent(entity);
 	if (!pLightComponent)
@@ -499,7 +503,7 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 }
 
 template<>
-void UpdateComponentWidget<engine::TerrainComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+void UpdateComponentWidget<engine::TerrainComponent>(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext, engine::Entity entity)
 {
 	auto* pTerrainComponent = pSceneWorld->GetTerrainComponent(entity);
 	if (!pTerrainComponent)
@@ -563,7 +567,7 @@ void UpdateComponentWidget<engine::DDGIComponent>(engine::SceneWorld* pSceneWorl
 #endif
 
 template<>
-void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext, engine::Entity entity)
 {
 	auto* pSkyComponent = pSceneWorld->GetSkyComponent(entity);
 	if (!pSkyComponent)
@@ -616,7 +620,7 @@ void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld
 }
 
 template<>
-void UpdateComponentWidget<engine::ParticleComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+void UpdateComponentWidget<engine::ParticleComponent>(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext, engine::Entity entity)
 {
 	auto* pParticleComponent = pSceneWorld->GetParticleComponent(entity);
 	if (!pParticleComponent)
@@ -654,6 +658,7 @@ void Inspector::Init()
 
 void Inspector::Update()
 {
+	engine::RenderContext* pRenderContext = GetRenderContext();
 	engine::SceneWorld* pSceneWorld = GetSceneWorld();
 	if (engine::Entity selectedEntity = pSceneWorld->GetSelectedEntity(); selectedEntity != engine::INVALID_ENTITY)
 	{
@@ -675,17 +680,17 @@ void Inspector::Update()
 
 	ImGui::BeginChild("Inspector");
 
-	details::UpdateComponentWidget<engine::NameComponent>(pSceneWorld, m_lastSelectedEntity);
-	details::UpdateComponentWidget<engine::TransformComponent>(pSceneWorld, m_lastSelectedEntity);
-	details::UpdateComponentWidget<engine::CameraComponent>(pSceneWorld, m_lastSelectedEntity);
-	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, m_lastSelectedEntity);
-	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, m_lastSelectedEntity);
-	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, m_lastSelectedEntity);
-	details::UpdateComponentWidget<engine::StaticMeshComponent>(pSceneWorld, m_lastSelectedEntity);
-	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, m_lastSelectedEntity);
-	details::UpdateComponentWidget<engine::ParticleComponent>(pSceneWorld, m_lastSelectedEntity);
-	details::UpdateComponentWidget<engine::CollisionMeshComponent>(pSceneWorld, m_lastSelectedEntity);
-	details::UpdateComponentWidget<engine::BlendShapeComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::NameComponent>(pSceneWorld, pRenderContext, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::TransformComponent>(pSceneWorld, pRenderContext, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::CameraComponent>(pSceneWorld, pRenderContext, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::LightComponent>(pSceneWorld, pRenderContext, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::SkyComponent>(pSceneWorld, pRenderContext, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, pRenderContext, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::StaticMeshComponent>(pSceneWorld, pRenderContext, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, pRenderContext, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::ParticleComponent>(pSceneWorld, pRenderContext, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::CollisionMeshComponent>(pSceneWorld, pRenderContext, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::BlendShapeComponent>(pSceneWorld, pRenderContext, m_lastSelectedEntity);
 
 #ifdef ENABLE_DDGI
 	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, m_lastSelectedEntity);
