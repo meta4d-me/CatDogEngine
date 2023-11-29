@@ -54,77 +54,114 @@ void engine::ParticleSystem::Reset(int index)
 
 }
 
-void engine::ParticleSystem::Update(float deltaTime, int index)
+
+bool engine::ParticleSystem::JudgeCurrentParticleLifeOver(int index)
 {
 	if (m_currentTime[index] >= m_lifeTime[index])
 	{
-		m_isActive[index] = false;
-		m_currentTime[index] = 0.0f;
+		Reset(index);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void engine::ParticleSystem::UpdateSprite(int index)
+{
+	if (GetRandomState() && index % engine::ParticleTypeVertexCount::SpriteVertexCount == 0)
+	{
+		std::random_device rd;
+		std::default_random_engine generator(rd());
+		std::uniform_real_distribution<float> distributionX(std::min(-m_twoSideVelocity.x(), m_twoSideVelocity.x()), std::max(-m_twoSideVelocity.x(), m_twoSideVelocity.x()));
+		std::uniform_real_distribution<float> distributionY(std::min(-m_twoSideVelocity.y(), m_twoSideVelocity.y()), std::max(-m_twoSideVelocity.y(), m_twoSideVelocity.y()));
+		//std::uniform_real_distribution<float> distributionZ(std::min(-m_twoSideVelocity.x(), m_twoSideVelocity.x()), std::max(-m_twoSideVelocity.x(), m_twoSideVelocity.x()));
+		float randomX = distributionX(generator);
+		float randomY = distributionY(generator);
+		m_velocityXYZ[index].x() += randomX;
+		m_velocityXYZ[index].y() += randomY;
+	}
+
+	if (index % engine::ParticleTypeVertexCount::SpriteVertexCount == 0)
+	{
+		m_pos[index].x() = m_pos[index].x() + m_velocity[index].x() + m_velocityXYZ[index].x();
+		m_pos[index].y() = m_pos[index].y() + m_velocity[index].y() + m_velocityXYZ[index].y();
+		m_texture_uv[index].x() = 1.0f;
+		m_texture_uv[index].y() = 1.0f;
+	}
+	else if (index % engine::ParticleTypeVertexCount::SpriteVertexCount == 1)
+	{
+		m_pos[index].x() = m_pos[index - 1].x() + m_scale[index].x();
+		m_pos[index].y() = m_pos[index - 1].y();
+		m_texture_uv[index].x() = 0.0f;
+		m_texture_uv[index].y() = 1.0f;
+	}
+	else if (index % engine::ParticleTypeVertexCount::SpriteVertexCount == 2)
+	{
+		m_pos[index].x() = m_pos[index - 2].x() + m_scale[index].x();
+		m_pos[index].y() = m_pos[index - 2].y() + m_scale[index].y();
+		m_texture_uv[index].x() = 0.0f;
+		m_texture_uv[index].y() = 0.0f;
+	}
+	else if (index % engine::ParticleTypeVertexCount::SpriteVertexCount == 3)
+	{
+		m_pos[index].x() = m_pos[index - 3].x();
+		m_pos[index].y() = m_pos[index - 3].y() + m_scale[index].y();
+		m_texture_uv[index].x() = 1.0f;
+		m_texture_uv[index].y() = 0.0f;
+	}
+}
+
+void engine::ParticleSystem::UpdateRibbon(int index)
+{
+}
+
+void engine::ParticleSystem::UpdateTrack(int index)
+{
+}
+
+void engine::ParticleSystem::UpdateRing(int index)
+{
+}
+
+void engine::ParticleSystem::UpdateModel(int index)
+{
+}
+
+void engine::ParticleSystem::Update(float deltaTime, int index)
+{
+	if (JudgeCurrentParticleLifeOver(index))
+	{
 		return;
+	}
+	else
+	{
+
 	}
 
 	if (GetType() == engine::ParticleType::Sprite)
 	{
-		if (GetRandomState()&& index%4 ==0)
-		{
-			std::random_device rd; 
-			std::default_random_engine generator(rd()); 
-			std::uniform_real_distribution<float> distributionX(std::min(-m_twoSideVelocity.x(), m_twoSideVelocity.x()), std::max(-m_twoSideVelocity.x(), m_twoSideVelocity.x()));
-			std::uniform_real_distribution<float> distributionY(std::min(-m_twoSideVelocity.y(), m_twoSideVelocity.y()), std::max(-m_twoSideVelocity.y(), m_twoSideVelocity.y()));
-			//std::uniform_real_distribution<float> distributionZ(std::min(-m_twoSideVelocity.x(), m_twoSideVelocity.x()), std::max(-m_twoSideVelocity.x(), m_twoSideVelocity.x()));
-			float randomX = distributionX(generator);
-			float randomY = distributionY(generator);
-			m_velocityXYZ[index].x() += randomX;
-			m_velocityXYZ[index].y() += randomY;
-		}
-
-		if (index % 4 == 0)
-		{
-			m_pos[index].x() = m_pos[index].x() + m_velocity[index].x() + m_velocityXYZ[index].x();
-			m_pos[index].y() = m_pos[index].y() + m_velocity[index].y() + m_velocityXYZ[index].y();
-			m_texture_uv[index].x() = 1.0f;
-			m_texture_uv[index].y() = 1.0f;	
-		}
-		else if (index % 4 == 1)
-		{
-			m_pos[index].x() = m_pos[index-1].x()+ m_scale[index].x() ;
-			m_pos[index].y() = m_pos[index-1].y();
-			m_texture_uv[index].x() = 0.0f;
-			m_texture_uv[index].y() = 1.0f;	
-		}
-		else if (index % 4 == 2)
-		{
-			m_pos[index].x() = m_pos[index-2].x() + m_scale[index].x();
-			m_pos[index].y() = m_pos[index-2].y() + m_scale[index].y();
-			m_texture_uv[index].x() = 0.0f;
-			m_texture_uv[index].y() = 0.0f;
-		}
-		else if (index % 4 == 3)
-		{
-			m_pos[index].x() = m_pos[index-3].x();
-			m_pos[index].y() = m_pos[index-3].y() + m_scale[index].y() ;
-			m_texture_uv[index].x() = 1.0f;
-			m_texture_uv[index].y() = 0.0f;
-		}
+		UpdateSprite(index);
 	}
 	else if (GetType() == engine::ParticleType::Ribbon)
 	{
-
+		UpdateRibbon(index);
 	}
 	else if (GetType() == engine::ParticleType::Track)
 	{
-
+		UpdateTrack(index);
 	}
 	else if (GetType() == engine::ParticleType::Ring)
 	{
-
+		UpdateRing(index);
 	}
 	else if (GetType() == engine::ParticleType::Model)
 	{
-
+		UpdateModel(index);
 	}
 
-	for (int i = index; i < m_particleMaxCount; ++i)
+	for (int i = 0; i < index; ++i)
 	{
 		m_currentTime[i] += deltaTime;
 	}
@@ -164,6 +201,8 @@ void engine::ParticleSystem::Init()
 	m_currentTime.resize(m_particleMaxCount);
 	m_lifeTime.resize(m_particleMaxCount);
 }
+
+
 
 void engine::ParticleSystem::SetMaxCount(int num)
 {

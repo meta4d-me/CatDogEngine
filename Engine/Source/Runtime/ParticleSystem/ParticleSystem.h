@@ -19,6 +19,15 @@ enum ParticleType
 	Model
 };
 
+enum ParticleTypeVertexCount
+{
+	SpriteVertexCount = 4,
+	RibbonVertetxCount,
+	TrackVertexCount,
+	RingVertexCount,
+	ModeVertexCountl
+};
+
 class ParticleSystem final
 {
 public:
@@ -77,11 +86,23 @@ public:
 	float& GetLifeTime(int index) { return m_lifeTime[index]; }
 	void SetLifeTime(float lifeTime) { m_lifeTime[m_particleIndex] = lifeTime; }
 
+	bool JudgeCurrentParticleLifeOver(int index);
+
+	void Update(float deltaTime, int index);
+
+	void UpdateSprite(int index);
+
+	void UpdateRibbon(int index);
+
+	void UpdateTrack(int index);
+
+	void UpdateRing(int index);
+
+	void UpdateModel(int index);
+
 	void AllocateParticleIndex();
 
 	void Reset( int index);
-
-	void Update(float deltaTime, int index);
 
 	bool UpdateActive(float deltaTime, int i);
 
@@ -90,7 +111,7 @@ public:
 private:
 	int m_currentParticleCount = 0;
 	int m_particleIndex = -1;
-	int m_particleMaxCount = 1200;
+	int m_particleMaxCount = 40;
 	int m_currentActiveCount = 0;
 
 	engine::ParticleType m_particletype;

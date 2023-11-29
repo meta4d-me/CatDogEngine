@@ -56,6 +56,7 @@ void ParticleRenderer::Render(float deltaTime)
 		}
 
 		//Update Particle Change
+		// One Tick Once     Every particle Once
 		for (int i = 0; i < particleMaxCount; ++i)
 		{
 			pEmitterComponent->GetParticleSystem().UpdateActive(deltaTime, i);

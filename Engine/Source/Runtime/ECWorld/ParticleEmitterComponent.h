@@ -66,7 +66,7 @@ private:
 
 	engine::ParticleType m_emitterparticletype = engine::ParticleType::Sprite;
 
-	int m_particleNum = 300;
+	int m_particleNum = 10;
 	bool m_randomVelocityState;
 	cd::Vec3f m_randomVelocity;
 	cd::Vec3f m_emitter_velocity;

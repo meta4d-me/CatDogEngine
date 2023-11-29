@@ -84,7 +84,8 @@ void engine::ParticleEmitterComponent::PaddingIndexBuffer()
 	{
 		const bool useU16Index = static_cast<uint32_t>(m_particleSystem.GetMaxCount()) <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()) + 1U;
 		const uint32_t indexTypeSize = useU16Index ? sizeof(uint16_t) : sizeof(uint32_t);
-		const uint32_t indicesCount = m_particleSystem.GetMaxCount() / 4U * 6U;
+		int indexCount = 6;
+		const uint32_t indicesCount = m_particleSystem.GetMaxCount() / engine::ParticleTypeVertexCount::SpriteVertexCount * indexCount;
 		m_particleIndexBuffer.resize(indicesCount * indexTypeSize);
 		///
 	/*	size_t indexTypeSize = sizeof(uint16_t);
@@ -93,7 +94,7 @@ void engine::ParticleEmitterComponent::PaddingIndexBuffer()
 		auto currentDataPtr = m_particleIndexBuffer.data();
 
 		std::vector<uint16_t> indexes;
-		for (uint16_t i = 0; i < m_particleSystem.GetMaxCount(); i += 4)
+		for (uint16_t i = 0; i < m_particleSystem.GetMaxCount(); i += engine::ParticleTypeVertexCount::SpriteVertexCount)
 		{
 			uint16_t vertexIndex = static_cast<uint16_t>(i);
 			indexes.push_back(vertexIndex);
