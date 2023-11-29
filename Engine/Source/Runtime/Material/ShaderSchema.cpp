@@ -10,10 +10,9 @@
 namespace engine
 {
 
-ShaderSchema::ShaderSchema(std::string shaderProgramName)
+void ShaderSchema::SetShaderProgramName(std::string name)
 {
-	m_shaderProgramName = cd::MoveTemp(shaderProgramName);
-	m_isDirty = false;
+	m_shaderProgramName = cd::MoveTemp(name);
 }
 
 void ShaderSchema::AddFeatureSet(ShaderFeatureSet featureSet)

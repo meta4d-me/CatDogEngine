@@ -45,12 +45,13 @@ SceneWorld::SceneWorld()
 #endif
 }
 
-void SceneWorld::CreatePBRMaterialType(bool isAtmosphericScatteringEnable)
+void SceneWorld::CreatePBRMaterialType(std::string shaderProgramName, bool isAtmosphericScatteringEnable)
 {
 	m_pPBRMaterialType = std::make_unique<MaterialType>();
 	m_pPBRMaterialType->SetMaterialName("CD_PBR");
 
-	ShaderSchema shaderSchema("WorldProgram");
+	ShaderSchema shaderSchema;
+	shaderSchema.SetShaderProgramName(cd::MoveTemp(shaderProgramName));
 	shaderSchema.AddFeatureSet({ ShaderFeature::ALBEDO_MAP });
 	shaderSchema.AddFeatureSet({ ShaderFeature::NORMAL_MAP });
 	shaderSchema.AddFeatureSet({ ShaderFeature::ORM_MAP });
@@ -84,12 +85,13 @@ void SceneWorld::CreatePBRMaterialType(bool isAtmosphericScatteringEnable)
 	m_pPBRMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Emissive, EMISSIVE_MAP_SLOT);
 }
 
-void SceneWorld::CreateAnimationMaterialType()
+void SceneWorld::CreateAnimationMaterialType(std::string shaderProgramName)
 {
 	m_pAnimationMaterialType = std::make_unique<MaterialType>();
 	m_pAnimationMaterialType->SetMaterialName("CD_Animation");
 
-	ShaderSchema shaderSchema("AnimationProgram");
+	ShaderSchema shaderSchema;
+	shaderSchema.SetShaderProgramName(cd::MoveTemp(shaderProgramName));
 	m_pAnimationMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat animationVertexFormat;
@@ -100,13 +102,31 @@ void SceneWorld::CreateAnimationMaterialType()
 	m_pAnimationMaterialType->SetRequiredVertexFormat(cd::MoveTemp(animationVertexFormat));
 }
 
+void SceneWorld::CreateTerrainMaterialType(std::string shaderProgramName)
+{
+	m_pTerrainMaterialType = std::make_unique<MaterialType>();
+	m_pTerrainMaterialType->SetMaterialName("CD_Terrain");
+
+	ShaderSchema shaderSchema;
+	shaderSchema.SetShaderProgramName(cd::MoveTemp(shaderProgramName));
+	m_pTerrainMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
+
+	cd::VertexFormat terrainVertexFormat;
+	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
+	m_pTerrainMaterialType->SetRequiredVertexFormat(cd::MoveTemp(terrainVertexFormat));
+}
+
 #ifdef ENABLE_DDGI
-void SceneWorld::CreateDDGIMaterialType()
+void SceneWorld::CreateDDGIMaterialType(std::string shaderProgramName)
 {
 	m_pDDGIMaterialType = std::make_unique<MaterialType>();
 	m_pDDGIMaterialType->SetMaterialName("CD_DDGI");
 
-	ShaderSchema shaderSchema(Path::GetBuiltinShaderInputPath("shaders/vs_DDGI"), Path::GetBuiltinShaderInputPath("shaders/fs_DDGI"));
+	ShaderSchema shaderSchema();
+	shaderSchema.SetShaderProgramName(cd::MoveTemp(shaderProgramName));
 	shaderSchema.AddFeatureSet({ ShaderFeature::ALBEDO_MAP });
 	shaderSchema.AddFeatureSet({ ShaderFeature::NORMAL_MAP });
 	shaderSchema.AddFeatureSet({ ShaderFeature::ORM_MAP });
@@ -130,23 +150,6 @@ void SceneWorld::CreateDDGIMaterialType()
 }
 #endif
 
-void SceneWorld::CreateTerrainMaterialType()
-{
-	m_pTerrainMaterialType = std::make_unique<MaterialType>();
-	m_pTerrainMaterialType->SetMaterialName("CD_Terrain");
-
-	ShaderSchema shaderSchema;
-	m_pTerrainMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
-
-	cd::VertexFormat terrainVertexFormat;
-	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
-	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
-	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
-	terrainVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
-	m_pTerrainMaterialType->SetRequiredVertexFormat(cd::MoveTemp(terrainVertexFormat));
-}
-
-
 void SceneWorld::SetSelectedEntity(engine::Entity entity)
 {
 	CD_TRACE("Select entity : {0}", entity);
@@ -159,6 +162,12 @@ void SceneWorld::SetMainCameraEntity(engine::Entity entity)
 	m_mainCameraEntity = entity;
 }
 
+void SceneWorld::SetSkyEntity(engine::Entity entity)
+{
+	CD_TRACE("Setup Sky entity : {0}", entity);
+	m_skyEntity = entity;
+}
+
 #ifdef ENABLE_DDGI
 void SceneWorld::SetDDGIEntity(engine::Entity entity)
 {
@@ -166,12 +175,6 @@ void SceneWorld::SetDDGIEntity(engine::Entity entity)
 	m_ddgiEntity = entity;
 }
 #endif
-
-void SceneWorld::SetSkyEntity(engine::Entity entity)
-{
-	CD_TRACE("Setup Sky entity : {0}", entity);
-	m_skyEntity = entity;
-}
 
 void SceneWorld::AddCameraToSceneDatabase(engine::Entity entity)
 {

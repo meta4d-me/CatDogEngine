@@ -34,13 +34,13 @@ public:
 
 public:
 	ShaderSchema() = default;
-	explicit ShaderSchema(std::string shaderProgramName);
 	ShaderSchema(const ShaderSchema&) = delete;
 	ShaderSchema& operator=(const ShaderSchema&) = delete;
 	ShaderSchema(ShaderSchema&&) = default;
 	ShaderSchema& operator=(ShaderSchema&&) = default;
 	~ShaderSchema() = default;
 
+	void SetShaderProgramName(std::string name);
 	std::string& GetShaderProgramName() { return m_shaderProgramName; }
 	const std::string& GetShaderProgramName() const { return m_shaderProgramName; }
 

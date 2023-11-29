@@ -70,6 +70,7 @@ public:
 	void RegisterImGuiUserData(engine::ImGuiContextInstance* pImGuiContext);
 
 	void InitECWorld();
+	void InitMaterialType();
 	void InitEditorController();
 
 	bool IsAtmosphericScatteringEnable() const;

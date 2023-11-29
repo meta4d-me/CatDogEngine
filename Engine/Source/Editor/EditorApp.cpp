@@ -240,11 +240,8 @@ void EditorApp::RegisterImGuiUserData(engine::ImGuiContextInstance* pImGuiContex
 
 void EditorApp::InitECWorld()
 {
-	m_pSceneWorld = std::make_unique<engine::SceneWorld>();
+	InitMaterialType();
 
-	m_pSceneWorld->CreatePBRMaterialType(IsAtmosphericScatteringEnable());
-	m_pSceneWorld->CreateAnimationMaterialType();
-	m_pSceneWorld->CreateTerrainMaterialType();
 	InitEditorCameraEntity();
 
 	InitSkyEntity();
@@ -253,6 +250,26 @@ void EditorApp::InitECWorld()
 	m_pSceneWorld->InitDDGISDK();
 	InitDDGIEntity();
 #endif
+}
+
+void EditorApp::InitMaterialType()
+{
+	constexpr const char* WorldProgram = "WorldProgram";
+	constexpr const char* AnimationProgram = "AnimationProgram";
+	constexpr const char* TerrainProgram = "TerrainProgram";
+
+	constexpr engine::StringCrc WorldProgramCrc = engine::StringCrc(WorldProgram);
+	constexpr engine::StringCrc AnimationProgramCrc = engine::StringCrc(AnimationProgram);
+	constexpr engine::StringCrc TerrainProgramCrc = engine::StringCrc(TerrainProgram);
+
+	m_pRenderContext->RegisterShaderProgram(WorldProgramCrc, { "vs_PBR", "fs_PBR" });
+	m_pRenderContext->RegisterShaderProgram(AnimationProgramCrc, { "vs_animation", "fs_animation" });
+	m_pRenderContext->RegisterShaderProgram(TerrainProgramCrc, { "vs_terrain", "fs_terrain" });
+
+	m_pSceneWorld = std::make_unique<engine::SceneWorld>();
+	m_pSceneWorld->CreatePBRMaterialType(WorldProgram, IsAtmosphericScatteringEnable());
+	m_pSceneWorld->CreateAnimationMaterialType(AnimationProgram);
+	m_pSceneWorld->CreateTerrainMaterialType(TerrainProgram);
 }
 
 void EditorApp::InitEditorCameraEntity()
@@ -396,17 +413,14 @@ void EditorApp::UpdateMaterials()
 
 void EditorApp::CompileAndLoadShaders()
 {
-	bool doCompile = false;
-
 	// 1. Compile
 	for (const auto& task : m_pRenderContext->GetShaderCompileTasks())
 	{
 		ShaderBuilder::BuildShader(m_pRenderContext.get(), task);
-		doCompile = true;
 	}
 
 	// 2. Load
-	if (doCompile)
+	if (!m_pRenderContext->GetShaderCompileTasks().empty())
 	{
 		ResourceBuilder::Get().Update(true);
 
