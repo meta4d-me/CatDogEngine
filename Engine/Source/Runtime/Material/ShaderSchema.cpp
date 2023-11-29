@@ -94,7 +94,7 @@ void ShaderSchema::CleanAll()
 	m_shaderFeatureSets.clear();
 }
 
-const std::optional<ShaderFeatureSet> ShaderSchema::GetConflictFeatureSet(const ShaderFeature feature) const
+const ShaderFeatureSet ShaderSchema::GetConflictFeatureSet(const ShaderFeature feature) const
 {
 	for (const auto& shaderFeatureSet : m_shaderFeatureSets)
 	{
@@ -104,7 +104,7 @@ const std::optional<ShaderFeatureSet> ShaderSchema::GetConflictFeatureSet(const 
 		}
 	}
 
-	return std::nullopt;
+	return ShaderFeatureSet{};
 }
 
 std::string ShaderSchema::GetFeaturesCombine(const ShaderFeatureSet& featureSet) const
