@@ -13,6 +13,7 @@ project("Editor")
 		path.join(ThirdPartySourcePath, "imguizmo/*.cpp"),
 		path.join(ThirdPartySourcePath, "imgui-node-editor/*.h"),
 		path.join(ThirdPartySourcePath, "imgui-node-editor/*.cpp"),
+		path.join(ThirdPartySourcePath, "dmon/*.h"),
 	}
 	
 	vpaths {
@@ -55,6 +56,7 @@ project("Editor")
 		path.join(ThirdPartySourcePath, "imgui"),
 		path.join(ThirdPartySourcePath, "imguizmo"),
 		path.join(ThirdPartySourcePath, "imgui-node-editor"),
+		path.join(ThirdPartySourcePath, "dmon"),
 		ThirdPartySourcePath,
 	}
 

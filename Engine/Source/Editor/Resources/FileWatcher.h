@@ -1,58 +1,48 @@
 #pragma once
 
-#include <functional>
-#include <string>
-#include <thread>
+#include "Resources/FileWatchInfo.h"
+
+#include <cstdint>
+#include <map>
+
+namespace engine
+{
+
+class RenderContext;
+class Window;
+
+}
 
 namespace editor
 {
 
-class FileWatcher
+class FileWatcher final
 {
-private:
-    typedef std::function<void(std::string)> FileWatcherCallback;
 
 public:
-    FileWatcher(std::string path);
-    ~FileWatcher();
-
-    FileWatcher() = delete;
     FileWatcher(const FileWatcher&) = delete;
     FileWatcher& operator=(const FileWatcher&) = delete;
     FileWatcher(FileWatcher&&) = delete;
     FileWatcher& operator=(FileWatcher&&) = delete;
 
-    void SetFileAddedCallback(FileWatcherCallback callback);
-    void SetFileModifiedCallback(FileWatcherCallback callback);
-    void SetFileRemovedCallback(FileWatcherCallback callback);
-    void SetFileRenamedOldCallback(FileWatcherCallback callback);
-    void SetFileRenamedNewCallback(FileWatcherCallback callback);
+    FileWatcher();
+    ~FileWatcher();
 
-    void Start();
-    void Stop();
+    void Init();
+    void Deinit();
 
-    const std::string& GetPath() const { return m_path; }
-    
-    const bool GetIsRunning() const { return m_isRunning; }
+    uint32_t Watch(FileWatchInfo info);
+    void UnWatch(uint32_t watchID);
 
-    void EnableWatchSubTree() { m_isWatchSubTree = true; }
-    void DisableWatchSubTree() { m_isWatchSubTree = false; }
-    const bool GetIsWatchSubTree() const { return m_isWatchSubTree; }
+    void SetWatchInfos(std::map<uint32_t, FileWatchInfo>);
+    std::map<uint32_t, FileWatchInfo>& GetWatchInfos() { return m_fileWatchInfos; }
+    const std::map<uint32_t, FileWatchInfo>& GetWatchInfos() const { return m_fileWatchInfos; }
+
+    const FileWatchInfo& GetWatchInfo(uint32_t id) const;
+    const std::string& GetWatchingPath(uint32_t id) const;
 
 private:
-    FileWatcherCallback m_fileAddedCallback;
-    FileWatcherCallback m_fileModifiedCallback;
-    FileWatcherCallback m_fileRemovedCallback;
-    FileWatcherCallback m_fileRenamedOldCallBack;
-    FileWatcherCallback m_fileRenamedNewCallBack;
-
-    std::string m_path;
-    bool m_isRunning;
-    bool m_isWatchSubTree;
-
-    std::thread m_thread;
-
-    void Watch();
+    std::map<uint32_t, FileWatchInfo> m_fileWatchInfos;
 };
 
 }

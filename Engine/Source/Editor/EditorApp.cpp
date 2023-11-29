@@ -75,9 +75,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	m_initArgs = cd::MoveTemp(initArgs);
 
 	// Load config files
-	std::filesystem::path rootPath = CDEDITOR_RESOURCES_ROOT_PATH;
-	rootPath /= "Text.csv";
-	if (!engine::Localization::ReadCSV(rootPath.string()))
+	if (!engine::Localization::ReadCSV(engine::Path::Join(CDEDITOR_RESOURCES_ROOT_PATH, "Text.csv")))
 	{
 		CD_ERROR("Failed to open CSV file");
 	}
@@ -115,9 +113,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 	});
 	resourceThread.detach();
 
-	// TODO : Shader hot compile and load.
-	m_pFileWatcher = std::make_unique<FileWatcher>(CDENGINE_BUILTIN_SHADER_PATH);
-	m_pFileWatcher->EnableWatchSubTree();
+	InitFileWatcher();
 }
 
 void EditorApp::Shutdown()
@@ -349,6 +345,28 @@ void EditorApp::InitDDGIEntity()
 }
 #endif
 
+void EditorApp::InitFileWatcher()
+{
+	m_pFileWatcher = std::make_unique<FileWatcher>();
+
+	FileWatchInfo info;
+	info.m_watchPath = engine::Path::Join(CDENGINE_BUILTIN_SHADER_PATH, "shaders");
+	info.m_isrecursive = false;
+	info.m_onModify.Bind<editor::EditorApp, &editor::EditorApp::OnShaderHotModifiedCallback>(this);
+	m_pFileWatcher->Watch(cd::MoveTemp(info));
+}
+
+void EditorApp::OnShaderHotModifiedCallback(const char* rootDir, const char* filePath)
+{
+	if (GetMainWindow()->GetInputFocus() || engine::Path::GetExtension(filePath) != engine::Path::ShaderInputExtension)
+	{
+	    // Return when window get focus.
+	    // Return when a non-shader file is detected.
+	    return;
+	}
+	m_pRenderContext->CheckModifiedProgram(engine::Path::GetFileNameWithoutExtension(filePath));
+}
+
 void EditorApp::UpdateMaterials()
 {
 	for (engine::Entity entity : m_pSceneWorld->GetMaterialEntities())
@@ -359,20 +377,37 @@ void EditorApp::UpdateMaterials()
 			continue;
 		}
 
-		m_pRenderContext->CheckShaderProgram(pMaterialComponent->GetProgramName(), pMaterialComponent->GetFeaturesCombine());
+		const std::string& programName = pMaterialComponent->GetProgramName();
+		const std::string& featuresCombine = pMaterialComponent->GetFeaturesCombine();
+
+		// New shader feature added, need to compile new variants.
+		m_pRenderContext->CheckShaderProgram(programName, featuresCombine);
+
+		// Shader source files have been modified, need to re-compile existing variants.
+		if (m_crtInputFocus && !m_preInputFocus)
+		{
+			m_pRenderContext->OnShaderHotModified(programName, featuresCombine);
+		}
+	}
+
+	if (m_crtInputFocus && !m_preInputFocus)
+	{
+		m_pRenderContext->ClearModifiedProgramNameCrcs();
 	}
 }
 
-void EditorApp::LazyCompileAndLoadShaders()
+void EditorApp::CompileAndLoadShaders()
 {
 	bool doCompile = false;
 
+	// 1. Compile
 	for (const auto& task : m_pRenderContext->GetShaderCompileTasks())
 	{
 		ShaderBuilder::BuildShader(m_pRenderContext.get(), task);
 		doCompile = true;
 	}
 
+	// 2. Load
 	if (doCompile)
 	{
 		ResourceBuilder::Get().Update(true);
@@ -606,6 +641,7 @@ bool EditorApp::Update(float deltaTime)
 	}
 
 	GetMainWindow()->Update();
+	m_crtInputFocus = GetMainWindow()->GetInputFocus();
 	m_pEditorImGuiContext->Update(deltaTime);
 	m_pSceneWorld->Update();
 
@@ -652,7 +688,7 @@ bool EditorApp::Update(float deltaTime)
 		m_pEngineImGuiContext->Update(deltaTime);
 
 		UpdateMaterials();
-		LazyCompileAndLoadShaders();
+		CompileAndLoadShaders();
 
 		for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)
 		{
@@ -669,6 +705,8 @@ bool EditorApp::Update(float deltaTime)
 	m_pRenderContext->EndFrame();
 
 	engine::Input::Get().FlushInputs();
+
+	m_preInputFocus = m_crtInputFocus;
 
 	return !GetMainWindow()->ShouldClose();
 }

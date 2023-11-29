@@ -82,8 +82,14 @@ private:
 	void InitDDGIEntity();
 #endif
 
+	void InitFileWatcher();
+	void OnShaderHotModifiedCallback(const char* rootDir, const char* filePath);
+
 	void UpdateMaterials();
-	void LazyCompileAndLoadShaders();
+	void CompileAndLoadShaders();
+
+	bool m_crtInputFocus = true;
+	bool m_preInputFocus = true;
 
 	bool m_bInitEditor = false;
 	engine::EngineInitArgs m_initArgs;

@@ -45,3 +45,6 @@
 [submodule "Engine/Source/ThirdParty/imgui-node-editor"]
 	path = Engine/Source/ThirdParty/imgui-node-editor
 	url = https://github.com/thedmd/imgui-node-editor
+[submodule "Engine/Source/ThirdParty/dmon"]
+	path = Engine/Source/ThirdParty/dmon
+	url = https://github.com/CatDogEngine/dmon
