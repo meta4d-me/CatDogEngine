@@ -5,7 +5,6 @@
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
 #include "ECWorld/LightComponent.h"
-#include "ECWorld/ShadowComponent.h"
 #include "LightUniforms.h"
 #include "Material/ShaderSchema.h"
 #include "Math/Transform.hpp"
@@ -27,8 +26,8 @@ constexpr const char* LightDir = "u_LightDir";
 constexpr const char* HeightOffsetAndshadowLength = "u_HeightOffsetAndshadowLength";
 
 constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
-constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A| BGFX_STATE_WRITE_Z 
-															| BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
+constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z
+| BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 constexpr uint64_t depthBufferFlags = BGFX_TEXTURE_RT | BGFX_SAMPLER_COMPARE_LEQUAL;
 constexpr uint64_t clearFrameBufferFlags = BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH;
 }
@@ -38,7 +37,7 @@ void ShadowMapRenderer::Init()
 	constexpr StringCrc programCrc = StringCrc("ShadowMapProgram");
 	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_shadowMap", "fs_shadowMap" });
 
-	for(int lightIndex = 0; lightIndex < shadowLightMaxNum; lightIndex++)
+	for (int lightIndex = 0; lightIndex < shadowLightMaxNum; lightIndex++)
 	{
 		for (int mapId = 0; mapId < shadowTexturePassMaxNum; mapId++)
 		{
@@ -80,36 +79,35 @@ void ShadowMapRenderer::Render(float deltaTime)
 			cd::Vec4f worldPos = invCamViewProj * ndcCorner;
 			return worldPos.xyz() / worldPos.w();
 		};
-		
+
 		uint16_t shadowNum = 0U;
 		for (auto lightEntity : lightEntities)
 		{
-			ShadowComponent* shadowComponent = m_pCurrentSceneWorld->GetShadowComponent(lightEntity);
+			LightComponent* lightComponent = m_pCurrentSceneWorld->GetLightComponent(lightEntity);
+
 			// area light does not have shadowComponent
-			if (nullptr == shadowComponent)
+			if (false == lightComponent->GetIsCastShadow())
 			{
 				continue;
 			}
 
-			LightComponent* lightComponent = m_pCurrentSceneWorld->GetLightComponent(lightEntity);
-			
 			// render shadow map
 			switch (lightComponent->GetType())
 			{
 			case cd::LightType::Directional:
 			{
 				//fbo and texture init(if not initiated) and acquire
-				if (!shadowComponent->IsShadowMapFBsValid())
+				if (!lightComponent->IsShadowMapFBsValid())
 				{
 					bgfx::TextureHandle fbtextures[] =
 					{
-						bgfx::createTexture2D(shadowComponent->GetShadowMapSize(), shadowComponent->GetShadowMapSize(), 
+						bgfx::createTexture2D(lightComponent->GetShadowMapSize(), lightComponent->GetShadowMapSize(),
 							false, 1, bgfx::TextureFormat::D32F, depthBufferFlags),
 					};
 					bgfx::FrameBufferHandle shadowMapFB = bgfx::createFrameBuffer(BX_COUNTOF(fbtextures), fbtextures, true);
-				
-					shadowComponent->AddShadowMapTexture(fbtextures[0]);
-					shadowComponent->AddShadowMapFB(shadowMapFB);
+
+					lightComponent->AddShadowMapTexture(fbtextures[0]);
+					lightComponent->AddShadowMapFB(shadowMapFB);
 				}
 
 				// light view and orthographic pro
@@ -130,7 +128,7 @@ void ShadowMapRenderer::Render(float deltaTime)
 				}
 				else
 				{
-					const std::vector<cd::Vec3f> temp = {	
+					const std::vector<cd::Vec3f> temp = {
 						UnProject(cd::Vec4f(-1, -1, 1, 1)),	// near
 						UnProject(cd::Vec4f(-1, -1, 0, 1)),	// far
 						UnProject(cd::Vec4f(-1,  1, 1, 1)),	// near
@@ -174,13 +172,13 @@ void ShadowMapRenderer::Render(float deltaTime)
 				uint64_t state = defaultRenderingState;
 				bgfx::setState(state);
 				uint16_t viewId = m_renderPassID[shadowNum * shadowTexturePassMaxNum + 0];
-				bgfx::setViewRect(viewId, 0, 0, shadowComponent->GetShadowMapSize(), shadowComponent->GetShadowMapSize());
-				bgfx::setViewFrameBuffer(viewId, shadowComponent->GetShadowMapFBs().at(0));
+				bgfx::setViewRect(viewId, 0, 0, lightComponent->GetShadowMapSize(), lightComponent->GetShadowMapSize());
+				bgfx::setViewFrameBuffer(viewId, lightComponent->GetShadowMapFBs().at(0));
 				bgfx::setViewClear(viewId, clearFrameBufferFlags, 0x303030ff, 1.0f, 0);
 				bgfx::setViewTransform(viewId, lightView.Begin(), lightProjection.Begin());
 
 				cd::Matrix4x4 lightViewProj = lightProjection * lightView;
-				shadowComponent->SetLightViewProjMatrix(lightViewProj);
+				lightComponent->SetLightViewProjMatrix(lightViewProj);
 
 				for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
 				{
@@ -210,18 +208,18 @@ void ShadowMapRenderer::Render(float deltaTime)
 			case cd::LightType::Point:
 			{
 				//fbo and texture init(if not initiated) and acquire
-				if (!shadowComponent->IsShadowMapFBsValid())
+				if (!lightComponent->IsShadowMapFBsValid())
 				{
 					for (uint16_t i = 0U; i < 6; i++)
 					{
 						bgfx::TextureHandle fbtextures[] =
 						{
-							bgfx::createTexture2D(shadowComponent->GetShadowMapSize(), shadowComponent->GetShadowMapSize(),
-								false, 1, bgfx::TextureFormat::D16, depthBufferFlags),
+							bgfx::createTexture2D(lightComponent->GetShadowMapSize(), lightComponent->GetShadowMapSize(),
+								false, 1, bgfx::TextureFormat::D32F, depthBufferFlags),
 						};
 						bgfx::FrameBufferHandle shadowMapFB = bgfx::createFrameBuffer(BX_COUNTOF(fbtextures), fbtextures, true);
-						shadowComponent->AddShadowMapTexture(fbtextures[0]);
-						shadowComponent->AddShadowMapFB(shadowMapFB);
+						lightComponent->AddShadowMapTexture(fbtextures[0]);
+						lightComponent->AddShadowMapFB(shadowMapFB);
 					}
 				}
 
@@ -230,7 +228,7 @@ void ShadowMapRenderer::Render(float deltaTime)
 				float range = lightComponent->GetRange();
 
 				// TODO :check direction
-				cd::Matrix4x4 lightView[6] = 
+				cd::Matrix4x4 lightView[6] =
 				{
 					cd::Matrix4x4::LookAt<cd::Handedness::Left>(lightPosition, lightPosition + cd::Vec3f(-1.0f, 0.0f, 0.0f),	cd::Vec3f(0.0f, 1.0f, 0.0f)),	//Left
 					cd::Matrix4x4::LookAt<cd::Handedness::Left>(lightPosition, lightPosition + cd::Vec3f(1.0f, 0.0f, 0.0f),	cd::Vec3f(0.0f, 1.0f, 0.0f)),	//Right
@@ -241,13 +239,13 @@ void ShadowMapRenderer::Render(float deltaTime)
 				};
 				cd::Matrix4x4 lightProjection = cd::Matrix4x4::Perspective(90.0f, 1.0f, 1.0f, range, ndcDepthMinusOneToOne);
 
-				uint64_t state = defaultRenderingState;	
+				uint64_t state = defaultRenderingState;
 				bgfx::setState(state);
 				for (uint16_t i = 0U; i < shadowTexturePassMaxNum; i++)
 				{
 					uint16_t viewId = m_renderPassID[shadowNum * shadowTexturePassMaxNum + i];
-					bgfx::setViewRect(viewId, 0, 0, shadowComponent->GetShadowMapSize(), shadowComponent->GetShadowMapSize());
-					bgfx::setViewFrameBuffer(viewId, shadowComponent->GetShadowMapFBs().at(i));
+					bgfx::setViewRect(viewId, 0, 0, lightComponent->GetShadowMapSize(), lightComponent->GetShadowMapSize());
+					bgfx::setViewFrameBuffer(viewId, lightComponent->GetShadowMapFBs().at(i));
 					bgfx::setViewClear(viewId, clearFrameBufferFlags, 0x303030ff, 1.0f, 0);
 					bgfx::setViewTransform(viewId, lightView[i].Begin(), lightProjection.Begin());
 
@@ -274,16 +272,16 @@ void ShadowMapRenderer::Render(float deltaTime)
 			case cd::LightType::Spot:
 			{
 				//fbo and texture init(if not initiated) and acquire
-				if (!shadowComponent->IsShadowMapFBsValid())
+				if (!lightComponent->IsShadowMapFBsValid())
 				{
 					bgfx::TextureHandle fbtextures[] =
 					{
-						bgfx::createTexture2D(shadowComponent->GetShadowMapSize(), shadowComponent->GetShadowMapSize(),
+						bgfx::createTexture2D(lightComponent->GetShadowMapSize(), lightComponent->GetShadowMapSize(),
 							false, 1, bgfx::TextureFormat::D32F, depthBufferFlags),
 					};
 					bgfx::FrameBufferHandle shadowMapFB = bgfx::createFrameBuffer(BX_COUNTOF(fbtextures), fbtextures, true);
-					shadowComponent->AddShadowMapTexture(fbtextures[0]);
-					shadowComponent->AddShadowMapFB(shadowMapFB);
+					lightComponent->AddShadowMapTexture(fbtextures[0]);
+					lightComponent->AddShadowMapFB(shadowMapFB);
 				}
 
 				// light view and perspective pro
@@ -296,15 +294,15 @@ void ShadowMapRenderer::Render(float deltaTime)
 				cd::Matrix4x4 lightProjection = cd::Matrix4x4::Perspective(lightComponent->GetInnerAndOuter().y(), 1.0f, 0.01f, range, ndcDepthMinusOneToOne);
 
 				uint64_t state = defaultRenderingState;
-				bgfx::setState(state);	
+				bgfx::setState(state);
 				uint16_t viewId = m_renderPassID[shadowNum * shadowTexturePassMaxNum + 0];
-				bgfx::setViewRect(viewId, 0, 0, shadowComponent->GetShadowMapSize(), shadowComponent->GetShadowMapSize());
-				bgfx::setViewFrameBuffer(viewId, shadowComponent->GetShadowMapFBs().at(0));
+				bgfx::setViewRect(viewId, 0, 0, lightComponent->GetShadowMapSize(), lightComponent->GetShadowMapSize());
+				bgfx::setViewFrameBuffer(viewId, lightComponent->GetShadowMapFBs().at(0));
 				bgfx::setViewClear(viewId, clearFrameBufferFlags, 0x303030ff, 1.0f, 0);
 				bgfx::setViewTransform(viewId, lightView.Begin(), lightProjection.Begin());
 
 				cd::Matrix4x4 lightViewProj = lightProjection * lightView;
-				shadowComponent->SetLightViewProjMatrix(lightViewProj);
+				lightComponent->SetLightViewProjMatrix(lightViewProj);
 
 				for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
 				{

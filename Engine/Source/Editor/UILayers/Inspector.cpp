@@ -404,7 +404,6 @@ template<>
 void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
 {
 	auto* pLightComponent = pSceneWorld->GetLightComponent(entity);
-	auto* pShadowComponent = pSceneWorld->GetShadowComponent(entity);
 	if (!pLightComponent)
 	{
 		return;
@@ -432,8 +431,8 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 			ImGuiUtils::ImGuiFloatProperty("Intensity", pLightComponent->GetIntensity(), cd::Unit::Lumen, 0.0f, 10000.0f, false, 5.0f);
 			ImGuiUtils::ImGuiVectorProperty("Position", pLightComponent->GetPosition(), cd::Unit::CenterMeter);
 			ImGuiUtils::ImGuiFloatProperty("Range", pLightComponent->GetRange(), cd::Unit::CenterMeter, 0.0f, 10000.0f, false, 1.0f);
-			ImGuiUtils::ImGuiBoolProperty("Shadow", pShadowComponent->GetIsCastShadow());
-			ImGuiUtils::ImGuiBoolProperty("Volume", pShadowComponent->GetIsCastVolume());
+			ImGuiUtils::ImGuiBoolProperty("Shadow", pLightComponent->GetIsCastShadow());
+			ImGuiUtils::ImGuiBoolProperty("Volume", pLightComponent->GetIsCastVolume());
 		}
 		else if (cd::LightType::Directional == lightType)
 		{

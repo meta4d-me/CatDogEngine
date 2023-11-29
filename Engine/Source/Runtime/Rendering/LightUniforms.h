@@ -13,7 +13,7 @@ class RenderContext;
 namespace
 {
 
-constexpr uint16_t MAX_LIGHT_COUNT = 64;
+constexpr uint16_t MAX_LIGHT_COUNT = 8;
 
 constexpr uint16_t ConstexprCeil(float x)
 {

@@ -7,7 +7,7 @@
 #define RECTANGLE_LIGHT 5
 #define TUBE_LIGHT 6
 
-#define LIGHT_LENGTH 320
+#define LIGHT_LENGTH 40	// LIGHT_LENGTH = num of lights * num of total vec4 in one light = total vec4
 
 struct U_Light {
 	// vec4 * 5

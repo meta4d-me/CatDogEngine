@@ -215,22 +215,23 @@ void WorldRenderer::Render(float deltaTime)
 		static cd::Vec4f lightInfoData(0, LightUniform::LIGHT_STRIDE, 0.0f, 0.0f);
 		lightInfoData.x() = static_cast<float>(lightEntityCount);
 		GetRenderContext()->FillUniform(lightCountAndStrideCrc, lightInfoData.Begin(), 1);
-		if (lightEntityCount > 0)
+		float lightData[20*6] = {0};
+		for (uint16_t i = 0U; i < lightEntityCount; ++i)
 		{
-			// Light component storage has continus memory address and layout.
-			float* pLightDataBegin = reinterpret_cast<float*>(m_pCurrentSceneWorld->GetLightComponent(lightEntities[0]));
-			constexpr engine::StringCrc lightParamsCrc(lightParams);
-			GetRenderContext()->FillUniform(lightParamsCrc, pLightDataBegin, static_cast<uint16_t>(lightEntityCount * LightUniform::LIGHT_STRIDE));
+			LightComponent* lightComponent = m_pCurrentSceneWorld->GetLightComponent(lightEntities[i]);
+			memcpy(&lightData[20*i+0], lightComponent->GetLightUniformData(), sizeof(U_Light));
 		}
+		constexpr engine::StringCrc lightParamsCrc(lightParams);
+		GetRenderContext()->FillUniform(lightParamsCrc, lightData, static_cast<uint16_t>(lightEntityCount * LightUniform::LIGHT_STRIDE));
 
 		// Submit uniform values : shadow map and settings
 		for (int i = 0; i < lightEntityCount; i++)
 		{
-			auto shadowComponent = m_pCurrentSceneWorld->GetShadowComponent(lightEntities[i]);
+			auto lightComponent = m_pCurrentSceneWorld->GetLightComponent(lightEntities[i]);
 
 			constexpr StringCrc sceneRenderTarget("SceneRenderTarget");
 			const RenderTarget* pSceneRT = GetRenderContext()->GetRenderTarget(sceneRenderTarget);
-			bgfx::TextureHandle depthColorTextureHandle = shadowComponent->GetShadowMapTexture().at(0);// pSceneRT->GetTextureHandle(1);
+			bgfx::TextureHandle depthColorTextureHandle = lightComponent->GetShadowMapTexture().at(0);// pSceneRT->GetTextureHandle(1);
 
 			constexpr StringCrc shadowRenderTargetBlitDepthColor("ShadowRenderTargetBlitDepthColor");
 
@@ -270,7 +271,7 @@ void WorldRenderer::Render(float deltaTime)
 			bgfx::setTexture(SHADOW_MAP_SLOT, GetRenderContext()->GetUniform(shadowMapSamplerCrc), blitTargetDepthColorHandle);
 
 			constexpr StringCrc lightViewProjCrc(lightViewProj);
-			GetRenderContext()->FillUniform(lightViewProjCrc, shadowComponent->GetLightViewProjMatrix().Begin(), 1);
+			GetRenderContext()->FillUniform(lightViewProjCrc, lightComponent->GetLightViewProjMatrix().Begin(), 1);
 		}
 
 		uint64_t state = defaultRenderingState;
