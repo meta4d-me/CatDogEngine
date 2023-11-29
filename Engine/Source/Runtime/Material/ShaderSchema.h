@@ -34,16 +34,15 @@ public:
 
 public:
 	ShaderSchema() = default;
-	explicit ShaderSchema(std::string progeamName, std::string vsPath, std::string fsPath);
 	ShaderSchema(const ShaderSchema&) = delete;
 	ShaderSchema& operator=(const ShaderSchema&) = delete;
 	ShaderSchema(ShaderSchema&&) = default;
 	ShaderSchema& operator=(ShaderSchema&&) = default;
 	~ShaderSchema() = default;
 
-	const std::string& GetProgramName() const { return m_programName; }
-	const std::string& GetVertexShaderPath() const { return m_vertexShaderPath; }
-	const std::string& GetFragmentShaderPath() const { return m_fragmentShaderPath; }
+	void SetShaderProgramName(std::string name);
+	std::string& GetShaderProgramName() { return m_shaderProgramName; }
+	const std::string& GetShaderProgramName() const { return m_shaderProgramName; }
 
 	void AddFeatureSet(ShaderFeatureSet featureSet);
 
@@ -51,7 +50,7 @@ public:
 	void CleanBuild();
 	void CleanAll();
 
-	const std::optional<ShaderFeatureSet> GetConflictFeatureSet(ShaderFeature feature) const;
+	const ShaderFeatureSet GetConflictFeatureSet(const ShaderFeature feature) const;
 
 	std::string GetFeaturesCombine(const ShaderFeatureSet& featureSet) const;
 	StringCrc GetFeaturesCombineCrc(const ShaderFeatureSet& featureSet) const;
@@ -63,9 +62,7 @@ public:
 	const std::set<std::string>& GetAllFeatureCombines() const { return m_allFeatureCombines; }
 
 private:
-	std::string m_programName;
-	std::string m_vertexShaderPath;
-	std::string m_fragmentShaderPath;
+	std::string m_shaderProgramName;
 
 	bool m_isDirty = false;
 	// Registration order of shader features.

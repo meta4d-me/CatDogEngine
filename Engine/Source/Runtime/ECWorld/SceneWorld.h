@@ -104,17 +104,17 @@ public:
 		DeleteTransformComponent(entity);
 	}
 
-	void CreatePBRMaterialType(bool isAtmosphericScatteringEnable = false);
+	void CreatePBRMaterialType(std::string shaderProgramName, bool isAtmosphericScatteringEnable = false);
 	CD_FORCEINLINE engine::MaterialType* GetPBRMaterialType() const { return m_pPBRMaterialType.get(); }
 
-	void CreateAnimationMaterialType();
+	void CreateAnimationMaterialType(std::string shaderProgramName);
 	CD_FORCEINLINE engine::MaterialType* GetAnimationMaterialType() const { return m_pAnimationMaterialType.get(); }
 
-	void CreateTerrainMaterialType();
+	void CreateTerrainMaterialType(std::string shaderProgramName);
 	CD_FORCEINLINE engine::MaterialType* GetTerrainMaterialType() const { return m_pTerrainMaterialType.get(); }
 
 #ifdef ENABLE_DDGI
-	void CreateDDGIMaterialType();
+	void CreateDDGIMaterialType(std::string shaderProgramName);
 	CD_FORCEINLINE engine::MaterialType* GetDDGIMaterialType() const { return m_pDDGIMaterialType.get(); }
 #endif
 

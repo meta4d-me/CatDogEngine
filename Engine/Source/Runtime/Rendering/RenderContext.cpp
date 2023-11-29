@@ -303,6 +303,7 @@ void RenderContext::CheckModifiedProgram(std::string modifiedShaderName)
 		{
 			if (shaderName == modifiedShaderName)
 			{
+				// Use set to ensure no duplicate detection are recorded.
 				m_modifiedProgramNameCrcs.insert(programName);
 				break;
 			}

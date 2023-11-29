@@ -1,6 +1,7 @@
 ﻿#include "Inspector.h"
 
 #include "Rendering/RenderContext.h"
+#include "Rendering/ShaderCollections.h"
 #include "Graphics/GraphicsBackend.h"
 #include "ImGui/ImGuiUtils.hpp"
 #include "Path/Path.h"
@@ -9,9 +10,7 @@ namespace details
 {
 
 template<typename Component>
-void UpdateComponentWidget(engine::SceneWorld* pSceneWorld, engine::Entity entity)
-{
-}
+void UpdateComponentWidget(engine::SceneWorld* pSceneWorld, engine::Entity entity) {}
 
 template<>
 void UpdateComponentWidget<engine::CollisionMeshComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
@@ -306,8 +305,14 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 
 			if (isOpen)
 			{
-				ImGuiUtils::ImGuiStringProperty("Vertex Shader", pMaterialComponent->GetVertexShaderName());
-				ImGuiUtils::ImGuiStringProperty("Fragment Shader", pMaterialComponent->GetFragmentShaderName());
+				const auto& shaderProgramName = pMaterialComponent->GetShaderProgramName();
+				ImGuiUtils::ImGuiStringProperty("Shader Program", shaderProgramName);
+
+				engine::RenderContext* pRenderContext = static_cast<engine::RenderContext*>(ImGui::GetIO().BackendRendererUserData);
+				for (const auto& shaderFileName : pRenderContext->GetShaderCollections()->GetShaders(engine::StringCrc{ shaderProgramName }))
+				{
+					ImGuiUtils::ImGuiStringProperty("Shader", shaderFileName);
+				}
 				ImGui::Separator();
 
 				std::vector<const char*> activeShaderFeatures;
@@ -654,6 +659,7 @@ void Inspector::Init()
 
 void Inspector::Update()
 {
+	engine::RenderContext* pRenderContext = GetRenderContext();
 	engine::SceneWorld* pSceneWorld = GetSceneWorld();
 	if (engine::Entity selectedEntity = pSceneWorld->GetSelectedEntity(); selectedEntity != engine::INVALID_ENTITY)
 	{
