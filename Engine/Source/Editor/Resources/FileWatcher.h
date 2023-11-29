@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <map>
+#include <optional>
 
 namespace engine
 {
@@ -31,7 +32,7 @@ public:
     void Init();
     void Deinit();
 
-    uint32_t Watch(FileWatchInfo info);
+    std::optional<uint32_t> Watch(FileWatchInfo info);
     void UnWatch(uint32_t watchID);
 
     void SetWatchInfos(std::map<uint32_t, FileWatchInfo>);

@@ -47,9 +47,6 @@ constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MS
 
 void WorldRenderer::Init()
 {
-	constexpr StringCrc programCrc = StringCrc("WorldProgram");
-	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_PBR", "fs_PBR" });
-
 	bgfx::setViewName(GetViewID(), "WorldRenderer");
 }
 
@@ -94,8 +91,7 @@ void WorldRenderer::Render(float deltaTime)
 	for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
 	{
 		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
-		if (!pMaterialComponent ||
-			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetPBRMaterialType())
+		if (!pMaterialComponent || pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetPBRMaterialType())
 		{
 			// TODO : improve this condition. As we want to skip some feature-specified entities to render.
 			// For example, terrain/particle/...
@@ -228,7 +224,7 @@ void WorldRenderer::Render(float deltaTime)
 
 		bgfx::setState(state);
 
-		GetRenderContext()->Submit(GetViewID(), "WorldProgram", pMaterialComponent->GetFeaturesCombine());
+		GetRenderContext()->Submit(GetViewID(), pMaterialComponent->GetShaderProgramName(), pMaterialComponent->GetFeaturesCombine());
 	}
 }
 

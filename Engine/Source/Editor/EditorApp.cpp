@@ -240,12 +240,8 @@ void EditorApp::RegisterImGuiUserData(engine::ImGuiContextInstance* pImGuiContex
 
 void EditorApp::InitECWorld()
 {
-	m_pSceneWorld = std::make_unique<engine::SceneWorld>();
+	InitMaterialType();
 
-	m_pSceneWorld->CreatePBRMaterialType(IsAtmosphericScatteringEnable());
-	m_pSceneWorld->CreateAnimationMaterialType();
-	m_pSceneWorld->CreateTerrainMaterialType();
-	m_pSceneWorld->CreateParticleMaterialType();
 	InitEditorCameraEntity();
 
 	InitSkyEntity();
@@ -254,6 +250,30 @@ void EditorApp::InitECWorld()
 	m_pSceneWorld->InitDDGISDK();
 	InitDDGIEntity();
 #endif
+}
+
+void EditorApp::InitMaterialType()
+{
+	constexpr const char* WorldProgram = "WorldProgram";
+	constexpr const char* AnimationProgram = "AnimationProgram";
+	constexpr const char* TerrainProgram = "TerrainProgram";
+	constexpr const char* ParticleProgram = "ParticleProgram";
+
+	constexpr engine::StringCrc WorldProgramCrc{ WorldProgram };
+	constexpr engine::StringCrc AnimationProgramCrc{ AnimationProgram };
+	constexpr engine::StringCrc TerrainProgramCrc{ TerrainProgram };
+	constexpr engine::StringCrc ParticleProgramCrc{ ParticleProgram};
+
+	m_pRenderContext->RegisterShaderProgram(WorldProgramCrc, { "vs_PBR", "fs_PBR" });
+	m_pRenderContext->RegisterShaderProgram(AnimationProgramCrc, { "vs_animation", "fs_animation" });
+	m_pRenderContext->RegisterShaderProgram(TerrainProgramCrc, { "vs_terrain", "fs_terrain" });
+	m_pRenderContext->RegisterShaderProgram(ParticleProgramCrc, { "vs_particle","fs_particle" });
+
+	m_pSceneWorld = std::make_unique<engine::SceneWorld>();
+	m_pSceneWorld->CreatePBRMaterialType(WorldProgram, IsAtmosphericScatteringEnable());
+	m_pSceneWorld->CreateAnimationMaterialType(AnimationProgram);
+	m_pSceneWorld->CreateTerrainMaterialType(TerrainProgram);
+	m_pSceneWorld->CreateParticleMaterialType(ParticleProgram);
 }
 
 void EditorApp::InitEditorCameraEntity()
@@ -359,8 +379,8 @@ void EditorApp::OnShaderHotModifiedCallback(const char* rootDir, const char* fil
 {
 	if (GetMainWindow()->GetInputFocus() || engine::Path::GetExtension(filePath) != engine::Path::ShaderInputExtension)
 	{
-	    // Return when window get focus.
-	    // Return when a non-shader file is detected.
+	    // Do nothing when window holds the focus.
+	    // Do nothing when a non-shader file is detected.
 	    return;
 	}
 	m_pRenderContext->CheckModifiedProgram(engine::Path::GetFileNameWithoutExtension(filePath));
@@ -376,7 +396,7 @@ void EditorApp::UpdateMaterials()
 			continue;
 		}
 
-		const std::string& programName = pMaterialComponent->GetProgramName();
+		const std::string& programName = pMaterialComponent->GetShaderProgramName();
 		const std::string& featuresCombine = pMaterialComponent->GetFeaturesCombine();
 
 		// New shader feature added, need to compile new variants.
@@ -397,17 +417,14 @@ void EditorApp::UpdateMaterials()
 
 void EditorApp::CompileAndLoadShaders()
 {
-	bool doCompile = false;
-
 	// 1. Compile
 	for (const auto& task : m_pRenderContext->GetShaderCompileTasks())
 	{
 		ShaderBuilder::BuildShader(m_pRenderContext.get(), task);
-		doCompile = true;
 	}
 
 	// 2. Load
-	if (doCompile)
+	if (!m_pRenderContext->GetShaderCompileTasks().empty())
 	{
 		ResourceBuilder::Get().Update(true);
 
