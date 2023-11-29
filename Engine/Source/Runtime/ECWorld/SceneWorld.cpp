@@ -56,15 +56,8 @@ void SceneWorld::CreatePBRMaterialType(std::string shaderProgramName, bool isAtm
 	shaderSchema.AddFeatureSet({ ShaderFeature::NORMAL_MAP });
 	shaderSchema.AddFeatureSet({ ShaderFeature::ORM_MAP });
 	shaderSchema.AddFeatureSet({ ShaderFeature::EMISSIVE_MAP });
-	if (isAtmosphericScatteringEnable)
-	{
-		shaderSchema.AddFeatureSet({ ShaderFeature::IBL, ShaderFeature::ATM });
-	}
-	else
-	{
-		// TODO : Compile atm shader in GL/VK mode correctly.
-		shaderSchema.AddFeatureSet({ ShaderFeature::IBL });
-	}
+	// TODO : Compile atm shader in GL/VK mode correctly.
+	isAtmosphericScatteringEnable ? shaderSchema.AddFeatureSet({ ShaderFeature::IBL, ShaderFeature::ATM }) : shaderSchema.AddFeatureSet({ ShaderFeature::IBL });
 	shaderSchema.Build();
 	m_pPBRMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 

@@ -258,9 +258,9 @@ void EditorApp::InitMaterialType()
 	constexpr const char* AnimationProgram = "AnimationProgram";
 	constexpr const char* TerrainProgram = "TerrainProgram";
 
-	constexpr engine::StringCrc WorldProgramCrc = engine::StringCrc(WorldProgram);
-	constexpr engine::StringCrc AnimationProgramCrc = engine::StringCrc(AnimationProgram);
-	constexpr engine::StringCrc TerrainProgramCrc = engine::StringCrc(TerrainProgram);
+	constexpr engine::StringCrc WorldProgramCrc{ WorldProgram };
+	constexpr engine::StringCrc AnimationProgramCrc{ AnimationProgram };
+	constexpr engine::StringCrc TerrainProgramCrc{ TerrainProgram };
 
 	m_pRenderContext->RegisterShaderProgram(WorldProgramCrc, { "vs_PBR", "fs_PBR" });
 	m_pRenderContext->RegisterShaderProgram(AnimationProgramCrc, { "vs_animation", "fs_animation" });
