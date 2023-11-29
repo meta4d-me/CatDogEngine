@@ -135,11 +135,13 @@ void MaterialComponent::ActivateShaderFeature(ShaderFeature feature)
 	}
 
 	const auto& optConflict = m_pMaterialType->GetShaderSchema().GetConflictFeatureSet(feature);
-	assert(optConflict.has_value());
-
-	for (const auto& conflict : optConflict.value())
+	//assert(optConflict.has_value());
+	if (optConflict.has_value())
 	{
-		m_shaderFeatures.erase(conflict);
+		for (const auto& conflict : optConflict.value())
+		{
+			m_shaderFeatures.erase(conflict);
+		}
 	}
 
 	m_shaderFeatures.insert(cd::MoveTemp(feature));

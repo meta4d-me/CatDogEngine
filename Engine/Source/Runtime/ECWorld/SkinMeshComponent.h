@@ -31,18 +31,44 @@ public:
 	SkinMeshComponent& operator=(SkinMeshComponent&&) = default;
 	~SkinMeshComponent() = default;
 
-	uint16_t GetBonePositionBuffer() const { return m_boneVBH; }
-	uint16_t GetIndexBuffer() const { return m_boneIBH; }
+	void SetBoneMatricesUniform(uint16_t uniform) { m_boneMatricesUniform = uniform; }
+	uint16_t GetBoneMatrixsUniform() const { return m_boneMatricesUniform; }
+
+	void SetBoneVBH(uint16_t boneVBH) { m_boneVBH = boneVBH; }
+	uint16_t GetBoneVBH() const { return m_boneVBH; }
+
+	void SetBoneIBH(uint16_t boneIBH) { m_boneIBH = boneIBH; }
+	uint16_t GetBoneIBH() const { return m_boneIBH; }
+
+	void SetBoneMatricesSize(uint32_t boneCount);
+	void SetBoneGlobalMatrix(uint32_t index, const cd::Matrix4x4& boneChangeMatrix);
+	const cd::Matrix4x4& GetBoneGlobalMatrix(uint32_t index) { return m_boneGlobalMatrices[index]; }
+	const std::vector<cd::Matrix4x4>& GetBoneGlobalMatrices() const { return m_boneGlobalMatrices; }
+	uint32_t GetChangeBoneIndex() const { return m_changeBoneIndex; }
+	void SetChangeBoneIndex(uint32_t index) { m_changeBoneIndex = index; }
+	void ResetChangeBoneIndex() { m_changeBoneIndex = engine::INVALID_ENTITY; }
+
+	void SetBoneMatrix(uint32_t index, const cd::Matrix4x4& changeMatrix) { m_boneMatrices[index] = changeMatrix * m_boneMatrices[index]; }
+	const cd::Matrix4x4& GetBoneMatrix(uint32_t index) { return m_boneMatrices[index]; }
+
+	cd::Matrix4x4& GetRootMatrix() { return m_curRootMatrix; }
+	void SetRootMatrix(const cd::Matrix4x4& rootMatrix) { m_curRootMatrix = rootMatrix; }
 
 	void Reset();
 	void Build();
 
 private:
+	//input
+	uint32_t m_changeBoneIndex = engine::INVALID_ENTITY;
+
 	//output
-	std::vector<std::byte> m_vertexBuffer;
-	std::vector<std::byte> m_indexBuffer;
 	uint16_t m_boneVBH = UINT16_MAX;
 	uint16_t m_boneIBH = UINT16_MAX;
+	uint16_t m_boneMatricesUniform;
+
+	cd::Matrix4x4 m_curRootMatrix = cd::Matrix4x4::Identity();
+	std::vector<cd::Matrix4x4> m_boneGlobalMatrices;
+	std::vector<cd::Matrix4x4> m_boneMatrices;
 };
 
 }

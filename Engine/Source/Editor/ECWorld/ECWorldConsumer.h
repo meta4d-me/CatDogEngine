@@ -62,6 +62,7 @@ private:
 	void AddCamera(engine::Entity entity, const cd::Camera& camera);
 	void AddLight(engine::Entity entity, const cd::Light& light);
 	void AddTransform(engine::Entity entity, const cd::Transform& transform);
+	void AddSkeleton(engine::Entity entity, const cd::SceneDatabase* pSceneDatabase);
 	void AddStaticMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat);
 	void AddSkinMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat);
 	void AddAnimation(engine::Entity entity, const cd::Animation& animation, const cd::SceneDatabase* pSceneDatabase);

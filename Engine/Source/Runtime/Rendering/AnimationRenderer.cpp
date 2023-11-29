@@ -143,12 +143,7 @@ void AnimationRenderer::Init()
 
 void AnimationRenderer::Warmup()
 {
-#ifdef VISUALIZE_BONE_WEIGHTS
-	m_pRenderContext->CreateUniform("u_debugBoneIndex", bgfx::UniformType::Vec4, 1);
-	m_pRenderContext->CreateProgram("AnimationProgram", "vs_visualize_bone_weight", "fs_visualize_bone_weight");
-#else
 	GetRenderContext()->UploadShaderProgram("AnimationProgram");
-#endif
 }
 
 void AnimationRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -192,27 +187,7 @@ void AnimationRenderer::Render(float deltaTime)
 
 		TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity);
 		bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
-
-		AnimationComponent* pAnimationComponent = m_pCurrentSceneWorld->GetAnimationComponent(entity);
-
-		const cd::Animation* pAnimation = pAnimationComponent->GetAnimationData();
-		float ticksPerSecond = pAnimation->GetTicksPerSecnod();
-		assert(ticksPerSecond > 1.0f);
-		float animationTime = details::CustomFModf(animationRunningTime * ticksPerSecond, pAnimation->GetDuration());
-
-		static std::vector<cd::Matrix4x4> boneMatrices;
-		boneMatrices.clear();
-		for (uint16_t boneIndex = 0; boneIndex < 128; ++boneIndex)
-		{
-			boneMatrices.push_back(cd::Matrix4x4::Identity());
-		}
-
-		const cd::Bone& rootBone = pSceneDatabase->GetBone(0);
-		details::CalculateBoneTransform(boneMatrices, pSceneDatabase, animationTime, rootBone,
-			cd::Matrix4x4::Identity(), pTransformComponent->GetWorldMatrix().Inverse());
-		bgfx::setUniform(bgfx::UniformHandle{pAnimationComponent->GetBoneMatrixsUniform()}, boneMatrices.data(), static_cast<uint16_t>(boneMatrices.size()));
-		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()});
-		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
+		UpdateStaticMeshComponent(pMeshComponent);
 
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);
