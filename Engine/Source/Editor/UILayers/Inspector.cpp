@@ -658,6 +658,7 @@ void UpdateComponentWidget<engine::AnimationComponent>(engine::SceneWorld* pScen
 		ImGuiUtils::ImGuiFloatProperty("Factor", pAnimationComponent->GetBlendFactor(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
 		ImGuiUtils::ImGuiFloatProperty("Time", pAnimationComponent->GetAnimationPlayTime(), cd::Unit::None);
 		ImGuiUtils::ImGuiFloatProperty("PlayBackSpeed", pAnimationComponent->GetPlayBackSpeed(), cd::Unit::None, 0.0f, 10.0f, false, 0.01f);
+		ImGuiUtils::ImGuiBoolProperty("Transiting", pAnimationComponent->GetIsTransiting());
 	}
 	ImGui::Separator();
 	ImGui::PopStyleVar();

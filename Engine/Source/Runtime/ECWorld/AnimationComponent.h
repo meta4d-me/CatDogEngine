@@ -75,6 +75,7 @@ public:
 	const float GetBlendFactor() const { return m_blendFactor; }
 
 	bool& GetIsPlaying() { return m_playAnimation; }
+	bool& GetIsTransiting() { return m_transiting; }
 
 private:
 	AnimationClip m_clip = AnimationClip::Idel;
@@ -84,6 +85,7 @@ private:
 	float m_blendFactor = 0.0f;
 	float m_playBackSpeed = 1.0f;
 	bool m_playAnimation = false;
+	bool m_transiting = false;
 
 	float m_animationPlayTime;
 	float m_duration;
