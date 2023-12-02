@@ -117,6 +117,9 @@ public:
 	void SetUniform(StringCrc resourceCrc, bgfx::UniformHandle uniformreHandle);
 	void FillUniform(StringCrc resourceCrc, const void *pData, uint16_t vec4Count = 1) const;
 
+	uint16_t GetViewportViewID(void* pViewportViewID) const;
+	StringCrc GetRenderTargetCrc(void* pViewportViewID) const;
+	RenderTarget* GetRenderTarget(void* pViewportViewID) const;
 	RenderTarget* GetRenderTarget(StringCrc resourceCrc) const;
 	const bgfx::VertexLayout& GetVertexLayout(StringCrc resourceCrc) const;
 	bgfx::ShaderHandle GetShader(StringCrc resourceCrc) const;

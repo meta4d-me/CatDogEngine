@@ -1,5 +1,7 @@
+#pragma once
+
+#include "Camera/ViewportCameraController.h"
 #include "Core/Delegates/MulticastDelegate.hpp"
-#include "Display/CameraController.h"
 #include "ECWorld/Entity.h"
 #include "ImGui/ImGuiBaseLayer.h"
 #include "Rendering/AABBRenderer.h"
@@ -50,9 +52,10 @@ public:
 	virtual void Init() override;
 	virtual void Update() override;
 
-	engine::MulticastDelegate<void(uint16_t, uint16_t)> OnResize;
+	virtual std::pair<float, float> GetWorkRectPosition() const override;
+	virtual std::pair<float, float> GetWorkRectSize() const override;
 
-	void PickSceneMesh(float regionWidth, float regionHeight);
+	engine::MulticastDelegate<void(uint16_t, uint16_t)> OnResize;
 
 	ImGuizmo::OPERATION GetImGuizmoOperation() const { return m_currentOperation; }
 	RenderModeType GetRenderMode() const { return m_renderMode; }
@@ -64,14 +67,12 @@ public:
 	
 	bool IsTerrainEditMode() const { return m_isTerrainEditMode; }
 
-	bool IsFirstClick() const { return m_isMouseDownFirstTime; }
-	bool IsShowMouse() { return m_isMouseShow; }
-	uint32_t GetMouseFixedPositionX() const { return m_mouseFixedPositionX; }
-	uint32_t GetMouseFixedPositionY() const { return m_mouseFixedPositionY; }
-
-	void SetCameraController(engine::CameraController* pCameraController) { m_pCameraController = pCameraController; }
-
+	void SetCameraController(engine::ViewportCameraController* pCameraController) { m_pCameraController = pCameraController; }
 	const engine::RenderTarget* GetRenderTarget() const { return m_pRenderTarget; }
+
+	bool OnMouseDown(float x, float y);
+	void PickSceneMesh(float x, float y);
+
 private:
 	void UpdateToolMenuButtons();
 	void Update2DAnd3DButtons();
@@ -86,12 +87,14 @@ private:
 
 	ImGuizmo::OPERATION m_currentOperation;
 
+	float m_workRectPosX = 0.0f;
+	float m_workRectPosY = 0.0f;
+	float m_workRectWidth = 1.0f;
+	float m_workRectHeight = 1.0f;
+
 	bool m_is3DMode = true;
 	bool m_isIBLActive = false;
 	bool m_isTerrainEditMode = false;
-	bool m_isMouseShow = true;
-	bool m_isUsingCamera = false;
-	bool m_isLeftClick = false;
 	RenderModeType m_renderMode = RenderModeType::Rendered;
 
 	engine::Renderer* m_pSceneRenderer = nullptr;
@@ -100,12 +103,7 @@ private:
 	engine::Renderer* m_pAABBRenderer = nullptr;
 
 	engine::RenderTarget* m_pRenderTarget = nullptr;
-	bool m_isMouseDownFirstTime = true;
-
-	int32_t m_mouseFixedPositionX = 0;
-	int32_t m_mouseFixedPositionY = 0;
-
-	engine::CameraController* m_pCameraController = nullptr;
+	engine::ViewportCameraController* m_pCameraController = nullptr;
 };
 
 }

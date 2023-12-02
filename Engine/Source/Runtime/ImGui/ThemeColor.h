@@ -5,11 +5,8 @@ namespace engine
 
 enum class ThemeColor
 {
-	Black = 0,
-	Classic,
-	Dark,
-	Grey,
-	Light
+	Dark = 0,
+	Grey
 };
 
 }

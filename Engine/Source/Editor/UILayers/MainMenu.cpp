@@ -1,6 +1,6 @@
 ﻿#include "MainMenu.h"
 
-#include "Display/CameraController.h"
+#include "Camera/ViewportCameraController.h"
 #include "ECWorld/SceneWorld.h"
 #include "EditorApp.h"
 #include "ImGui/ImGuiContextInstance.h"
@@ -32,8 +32,8 @@ void MainMenu::FileMenu()
 	{
 		if (ImGui::MenuItem(CD_TEXT("TEXT_NEW"), "Ctrl N"))
 		{
-			m_pCreatProjectDialog->SetTitle("Creat");
-			m_pCreatProjectDialog->Open();
+			m_pCreateProjectDialog->SetTitle("Creat");
+			m_pCreateProjectDialog->Open();
 		}
 		if (ImGui::MenuItem("Open", "Ctrl O"))
 		{
@@ -53,13 +53,13 @@ void MainMenu::FileMenu()
 
 		ImGui::Separator();
 
-		if (ImGui::MenuItem("Quit", "Ctrl Q"))
-		{
-			if (auto* pMainWindow = reinterpret_cast<engine::Window*>(ImGui::GetIO().BackendPlatformUserData))
-			{
-				pMainWindow->Close();
-			}
-		}
+		//if (ImGui::MenuItem("Quit", "Ctrl Q"))
+		//{
+		//	if (auto* pMainWindow = reinterpret_cast<engine::Window*>(ImGui::GetIO().BackendPlatformUserData))
+		//	{
+		//		pMainWindow->Close();
+		//	}
+		//}
 
 		ImGui::EndMenu();
 	}
@@ -117,7 +117,7 @@ void MainMenu::EditMenu()
 
 void MainMenu::ViewMenu()
 {
-	auto FrameEntities = [](engine::SceneWorld* pSceneWorld, const std::vector<engine::Entity>& entities, engine::CameraController* pCameraController)
+	auto FrameEntities = [](engine::SceneWorld* pSceneWorld, const std::vector<engine::Entity>& entities, engine::ViewportCameraController* pCameraController)
 	{
 		if (entities.empty())
 		{
@@ -164,11 +164,7 @@ void MainMenu::ViewMenu()
 			
 			pTransformComponent->Dirty();
 			pTransformComponent->Build();
-			pCameraComponent->ViewDirty();
 			pCameraComponent->BuildViewMatrix(pTransformComponent->GetTransform());
-
-			// TODO : add event queue to get mouse down and up events.
-			pCameraController->CameraToController();
 		}
 	};
 
@@ -204,7 +200,7 @@ void MainMenu::WindowMenu()
 {
 	if (ImGui::BeginMenu(CD_TEXT("TEXT_WINDOW")))
 	{
-		for (const auto& pDockableLayer : GetImGuiContextInstance()->GetDockableLayers())
+		for (const auto& pDockableLayer : GetImGuiContextInstance()->GetDynamicLayers())
 		{
 			if (ImGui::MenuItem(pDockableLayer->GetName(), "", pDockableLayer->IsEnable()))
 			{
@@ -245,7 +241,7 @@ void MainMenu::AboutMenu()
 
 void MainMenu::Init()
 {
-	m_pCreatProjectDialog = std::make_unique<ImGui::FileBrowser>();
+	m_pCreateProjectDialog = std::make_unique<ImGui::FileBrowser>();
 }
 
 void MainMenu::Update()
@@ -261,16 +257,16 @@ void MainMenu::Update()
 		ImGui::EndMainMenuBar();
 	}
 
-	m_pCreatProjectDialog->Display();
+	m_pCreateProjectDialog->Display();
 
-	if (engine::Input::Get().ContainsModifier(engine::KeyMod::KMOD_CTRL)
-		&& engine::Input::Get().IsKeyPressed(engine::KeyCode::q))
-	{
-		if (auto* pMainWindow = reinterpret_cast<engine::Window*>(ImGui::GetIO().BackendPlatformUserData))
-		{
-			pMainWindow->Close();
-		}
-	}
+	//if ((ImGui::IsKeyPressed(ImGuiKey_LeftCtrl) || ImGui::IsKeyPressed(ImGuiKey_RightCtrl))
+	//	&& ImGui::IsKeyPressed(ImGuiKey_Q))
+	//{
+	//	if (auto* pMainWindow = reinterpret_cast<engine::Window*>(ImGui::GetIO().BackendPlatformUserData))
+	//	{
+	//		pMainWindow->Close();
+	//	}
+	//}
 }
 
 }

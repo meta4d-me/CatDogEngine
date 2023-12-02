@@ -1,16 +1,25 @@
 #pragma once
 
+#include "Core/StringCrc.h"
+
+#include <optional>
+#include <utility>
+
+struct ImGuiWindow;
+
 namespace engine
 {
 
 class ImGuiContextInstance;
+class ImGuiContextManager;
 class RenderContext;
 class SceneWorld;
 
 class ImGuiBaseLayer
 {
 public:
-	ImGuiBaseLayer(const char* pName) : m_pName(pName) { }
+	ImGuiBaseLayer() = delete;
+	explicit ImGuiBaseLayer(const char* pName);
 	ImGuiBaseLayer(const ImGuiBaseLayer&) = delete;
 	ImGuiBaseLayer& operator=(const ImGuiBaseLayer&) = delete;
 	ImGuiBaseLayer(ImGuiBaseLayer&&) = default;
@@ -21,21 +30,26 @@ public:
 	virtual void Update() = 0;
 
 	const char* GetName() const { return m_pName; }
-	float GetWindowPosX() const { return m_windowPosX; }
-	float GetWindowPosY() const { return m_windowPosY; }
-	void SetWindowPos(float x, float y) { m_windowPosX = x; m_windowPosY = y; }
+	uint32_t GetID() const { return m_id; }
+
+	ImGuiWindow* GetRootWindow() const;
+	virtual std::pair<float, float> GetRectPosition() const;
+	virtual std::pair<float, float> GetRectSize() const;
+	virtual std::pair<float, float> GetWorkRectPosition() const;
+	virtual std::pair<float, float> GetWorkRectSize() const;
 
 	void SetEnable(bool enable) { m_isEnable = enable; }
 	bool IsEnable() const { return m_isEnable; }
 
 	ImGuiContextInstance* GetImGuiContextInstance() const;
+	ImGuiContextManager* GetImGuiContextManager() const;
+	ImGuiBaseLayer* GetImGuiLayer(StringCrc nameCrc) const;
 	RenderContext* GetRenderContext() const;
 	SceneWorld* GetSceneWorld() const;
 
 protected:
 	const char* m_pName = nullptr;
-	float m_windowPosX = 0.0f;
-	float m_windowPosY = 0.0f;
+	uint32_t m_id = UINT32_MAX;
 	bool m_isEnable = true;
 };
 

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ImGui/ImGuiBaseLayer.h"
 
 #include "Scene/Bone.h"

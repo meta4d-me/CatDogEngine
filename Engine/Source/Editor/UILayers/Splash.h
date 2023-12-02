@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ImGui/ImGuiBaseLayer.h"
 
 #include <cstdint>

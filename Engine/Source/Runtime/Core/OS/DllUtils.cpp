@@ -1,6 +1,6 @@
 #include "DllUtils.h"
 
-#include "SDL.h"
+#include <SDL.h>
 
 namespace engine
 {

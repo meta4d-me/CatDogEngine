@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ImGui/ImGuiBaseLayer.h"
 
 namespace editor
@@ -14,10 +16,8 @@ public:
 	virtual void Init() override;
 	virtual void Update() override;
 
-	void SetSceneView(const SceneView* pSceneView) { m_pSceneView = pSceneView; }
-
 private:
-	const SceneView* m_pSceneView = nullptr;
+	uint32_t m_sceneViewID;
 };
 
 }

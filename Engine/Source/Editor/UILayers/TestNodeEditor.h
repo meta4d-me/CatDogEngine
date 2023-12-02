@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ImGui/ImGuiBaseLayer.h"
 
 namespace ax::NodeEditor

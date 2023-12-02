@@ -5,11 +5,10 @@
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
 #include "ImGui/ImGuiContextInstance.h"
-
-// TODO : can use StringCrc to access other UILayers from ImGuiContextInstance.
 #include "UILayers/SceneView.h"
 
 #include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 #include <ImGuizmo/ImGuizmo.h>
 
 namespace editor
@@ -21,6 +20,7 @@ ImGuizmoView::~ImGuizmoView()
 
 void ImGuizmoView::Init()
 {
+	m_sceneViewID = ImHashStr("SceneView");
 	ImGuizmo::SetGizmoSizeClipSpace(0.25f);
 }
 
@@ -40,17 +40,21 @@ void ImGuizmoView::Update()
 		return;
 	}
 
-	ImGuizmo::OPERATION operation = m_pSceneView->GetImGuizmoOperation();
+	constexpr engine::StringCrc sceneViewName("SceneView");
+	auto* pSceneView = reinterpret_cast<SceneView*>(GetImGuiLayer(sceneViewName));
+	ImGuizmo::OPERATION operation = pSceneView->GetImGuizmoOperation();
 	const engine::CameraComponent* pCameraComponent = pSceneWorld->GetCameraComponent(pSceneWorld->GetMainCameraEntity());
 
 	ImGuizmo::BeginFrame();
 	constexpr bool isPerspective = true;
 	ImGuizmo::SetOrthographic(!isPerspective);
-	ImGuiIO& io = ImGui::GetIO();
-	ImGuizmo::SetRect(0.0f, 0.0f, ImGui::GetIO().DisplaySize.x, io.DisplaySize.y);
+	
+	auto& io = ImGui::GetIO();
+	auto [sceneViewPosX, sceneViewPosY] = GetImGuiContextInstance()->GetRectPosition();
+	ImGuizmo::SetRect(sceneViewPosX, sceneViewPosY, io.DisplaySize.x, io.DisplaySize.y);
 	cd::Matrix4x4 worldMatrix = pTransformComponent->GetWorldMatrix();
-	ImGuizmo::Manipulate(pCameraComponent->GetViewMatrix().Begin(), pCameraComponent->GetProjectionMatrix().Begin(),
-		operation, ImGuizmo::LOCAL, worldMatrix.Begin());
+	ImGuizmo::Manipulate(pCameraComponent->GetViewMatrix().begin(), pCameraComponent->GetProjectionMatrix().begin(),
+		operation, ImGuizmo::LOCAL, worldMatrix.begin());
 
 	if (ImGuizmo::IsUsing())
 	{

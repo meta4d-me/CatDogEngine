@@ -2,20 +2,23 @@
 
 #include "Application/IApplication.h"
 
+#include <map>
 #include <memory>
 #include <vector>
 
 namespace engine
 {
 
-class CameraController;
+class AABBRenderer;
+class ViewportCameraController;
 class FlybyCamera;
 class ImGuiBaseLayer;
 class ImGuiContextInstance;
+class ImGuiContextManager;
 class Window;
+class WindowManager;
 class RenderContext;
 class Renderer;
-class AABBRenderer;
 class RenderTarget;
 class SceneWorld;
 class ShaderCollections;
@@ -27,7 +30,6 @@ struct ImGuiContext;
 namespace editor
 {
 
-class EditorImGuiViewport;
 class FileWatcher;
 class SceneView;
 
@@ -45,33 +47,37 @@ public:
 	virtual bool Update(float deltaTime) override;
 	virtual void Shutdown() override;
 
-	engine::Window* GetWindow(size_t index) const;
-	engine::Window* GetMainWindow() const { return GetWindow(0); }
-	size_t AddWindow(std::unique_ptr<engine::Window> pWindow);
-	void RemoveWindow(size_t index);
+	// Window Management
+	void InitWindowManager();
+	engine::Window* GetMainWindow() const { return m_pMainWindow; }
+	engine::WindowManager* GetWindowManager() const { return m_pWindowManager.get(); }
+	void OnMouseEnterSceneView();
+	void OnMouseLeaveSceneView();
 
+	// Rendering Management
 	void InitRenderContext(engine::GraphicsBackend backend, void* hwnd = nullptr);
+	void InitShaderPrograms(bool compileAllShaders = false) const;
 
 	void InitEditorRenderers();
-	void InitEngineRenderers();
-
+	void AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer);
 	void EditorRenderersWarmup();
+
+	void InitEngineRenderers();
+	void AddEngineRenderer(std::unique_ptr<engine::Renderer> pRenderer);
 	void EngineRenderersWarmup();
 
-	void InitShaderPrograms(bool compileAllShaders = false) const;
-	void AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer);
-	void AddEngineRenderer(std::unique_ptr<engine::Renderer> pRenderer);
-
+	// ImGui Management
 	void InitEditorImGuiContext(engine::Language language);
 	void InitEditorUILayers();
 	void InitEngineImGuiContext(engine::Language language);
 	void InitEngineUILayers();
-	void InitImGuiViewports(engine::RenderContext* pRenderContext);
-	void RegisterImGuiUserData(engine::ImGuiContextInstance* pImGuiContext);
 
+	// Scene World
 	void InitECWorld();
+
+	// Misc
+	void InitCameraController();
 	void InitMaterialType();
-	void InitEditorController();
 
 	bool IsAtmosphericScatteringEnable() const;
 
@@ -96,15 +102,22 @@ private:
 	engine::EngineInitArgs m_initArgs;
 
 	// Windows
-	std::vector<std::unique_ptr<engine::Window>> m_pAllWindows;
+	engine::Window* m_pMainWindow = nullptr;
+	std::unique_ptr<engine::WindowManager> m_pWindowManager;
 
 	// ImGui
-	std::unique_ptr<engine::ImGuiContextInstance> m_pEditorImGuiContext;
-	std::unique_ptr<engine::ImGuiContextInstance> m_pEngineImGuiContext;
-	std::unique_ptr<EditorImGuiViewport> m_pEditorImGuiViewport;
+	engine::ImGuiContextInstance* m_pEditorImGuiContext = nullptr;
+	engine::ImGuiContextInstance* m_pEngineImGuiContext = nullptr;
+	std::unique_ptr<engine::ImGuiContextManager> m_pImGuiContextManager;
 
 	// Scene
 	std::unique_ptr<engine::SceneWorld> m_pSceneWorld;
+
+	// Rendering
+	std::unique_ptr<engine::RenderContext> m_pRenderContext;
+	std::unique_ptr<engine::ShaderCollections> m_pShaderCollections;
+	std::vector<std::unique_ptr<engine::Renderer>> m_pEditorRenderers;
+	std::vector<std::unique_ptr<engine::Renderer>> m_pEngineRenderers;
 	editor::SceneView* m_pSceneView = nullptr;
 	engine::Renderer* m_pSceneRenderer = nullptr;
 	engine::Renderer* m_pWhiteModelRenderer = nullptr;
@@ -114,15 +127,8 @@ private:
 	engine::Renderer* m_pTerrainRenderer = nullptr;
 	engine::Renderer* m_pAABBRenderer = nullptr;
 
-	// Rendering
-	std::unique_ptr<engine::RenderContext> m_pRenderContext;
-	std::unique_ptr<engine::ShaderCollections> m_pShaderCollections;
-
-	std::vector<std::unique_ptr<engine::Renderer>> m_pEditorRenderers;
-	std::vector<std::unique_ptr<engine::Renderer>> m_pEngineRenderers;
-
 	// Controllers for processing input events.
-	std::unique_ptr<engine::CameraController> m_pViewportCameraController;
+	std::unique_ptr<engine::ViewportCameraController> m_pViewportCameraController;
 
 	std::unique_ptr<FileWatcher> m_pFileWatcher;
 };

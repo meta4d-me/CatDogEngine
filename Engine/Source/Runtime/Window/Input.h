@@ -48,8 +48,15 @@ public:
 	// TODO : consider foreground/background switch.
 	void Reset()
 	{
+		// mouse
 		m_mousePositionOffsetX = m_mousePositionOffsetY = 0;
 		m_mouseScrollOffsetY = 0;
+
+		// keyboard
+		m_keyModifiers = KeyMod::KMOD_NONE;
+		m_keyEventList.clear();
+		m_inputCharBufferIndex = 0;
+		m_inputCharBuffer[0] = '\0';
 	}
 
 	// Mouse device
@@ -77,6 +84,10 @@ public:
 	int32_t GetMousePositionOffsetY() const { return m_mousePositionOffsetY; }
 	void SetMousePositionOffsetY(int32_t y) { m_mousePositionOffsetY = y; }
 
+	// Window
+	void SetFocused(bool on) { m_isFocused = on; }
+	bool IsFocused() const { return m_isFocused; }
+
 	// Keyboard device
 	bool IsKeyPressed(KeyCode code) const { return m_keyPressed[static_cast<uint8_t>(code)]; }
 	void SetKeyPressed(KeyCode code, bool pressed);
@@ -91,8 +102,6 @@ public:
 	const std::vector<KeyEvent>& GetKeyEventList() const { return m_keyEventList; }
 	const char* GetInputCharacters() const { return m_inputCharBuffer.data(); }
 
-	void FlushInputs();
-
 private:
 	Input();
 
@@ -106,6 +115,9 @@ private:
 	bool m_mouseLBPressed = false;
 	bool m_mouseRBPressed = false;
 	bool m_mouseMBPressed = false;
+
+	// Window event
+	bool m_isFocused = false;
 
 	// Keyboard device
 	bool m_keyPressed[MaxKeyCode]{};

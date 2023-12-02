@@ -1,6 +1,8 @@
+#pragma once
+
 #include "ImGui/ImGuiBaseLayer.h"
 
-#include "imgui.h"
+#include <imgui/imgui.h>
 
 #include <sstream>
 

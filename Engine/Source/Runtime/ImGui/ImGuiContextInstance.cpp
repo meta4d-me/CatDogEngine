@@ -3,7 +3,11 @@
 #include "IconFont/IconsMaterialDesignIcons.h"
 #include "IconFont/MaterialDesign.inl"
 #include "ImGui/ImGuiBaseLayer.h"
+#include "Rendering/RenderContext.h"
+#include "Rendering/RenderTarget.h"
 #include "Window/Input.h"
+#include "Window/Window.h"
+#include "Window/WindowManager.h"
 #include "Log/Log.h"
 
 #include <bgfx/bgfx.h>
@@ -15,7 +19,7 @@
 #include <misc/freetype/imgui_freetype.h>
 #endif
 
-//#include <format>
+#include <format>
 #include <string>
 #include <unordered_map>
 
@@ -24,150 +28,105 @@ namespace
 
 std::unordered_map<engine::KeyCode, ImGuiKey> kImguiKeyLookup {
 	{engine::KeyCode::RETURN, ImGuiKey::ImGuiKey_Enter},
-	{engine::KeyCode::ESCAPE, ImGuiKey::ImGuiKey_Escape},
-	{engine::KeyCode::BACKSPACE, ImGuiKey::ImGuiKey_Backspace},
-	{engine::KeyCode::TAB, ImGuiKey::ImGuiKey_Tab},
-	{engine::KeyCode::SPACE, ImGuiKey::ImGuiKey_Space},
-	// {engine::KeyCode::EXCLAIM, ImGuiKey::ImGuiKey_}, 
-	// {engine::KeyCode::QUOTEDBL, ImGuiKey::ImGuiKey_},
-	// {engine::KeyCode::HASH, ImGuiKey::ImGuiKey_},
-	// {engine::KeyCode::PERCENT, ImGuiKey::ImGuiKey_},
-	// {engine::KeyCode::DOLLAR, ImGuiKey::ImGuiKey_},
-	// {engine::KeyCode::AMPERSAND, ImGuiKey::ImGuiKey_},
-	{engine::KeyCode::QUOTE, ImGuiKey::ImGuiKey_Apostrophe},
-	// {engine::KeyCode::LEFTPAREN, ImGuiKey::ImGuiKey_},
-	// {engine::KeyCode::RIGHTPAREN, ImGuiKey::ImGuiKey_},
-	// {engine::KeyCode::ASTERISK, ImGuiKey::ImGuiKey_},
-	// {engine::KeyCode::PLUS, ImGuiKey::ImGuiKey_},
-	{engine::KeyCode::COMMA, ImGuiKey::ImGuiKey_Comma},
-	{engine::KeyCode::MINUS, ImGuiKey::ImGuiKey_Minus},
-	{engine::KeyCode::PERIOD, ImGuiKey::ImGuiKey_Period},
-	{engine::KeyCode::SLASH, ImGuiKey::ImGuiKey_Slash},
-	{engine::KeyCode::NUM_0, ImGuiKey::ImGuiKey_0},
-	{engine::KeyCode::NUM_1, ImGuiKey::ImGuiKey_1},
-	{engine::KeyCode::NUM_2, ImGuiKey::ImGuiKey_2},
-	{engine::KeyCode::NUM_3, ImGuiKey::ImGuiKey_3},
-	{engine::KeyCode::NUM_4, ImGuiKey::ImGuiKey_4},
-	{engine::KeyCode::NUM_5, ImGuiKey::ImGuiKey_5},
-	{engine::KeyCode::NUM_6, ImGuiKey::ImGuiKey_6},
-	{engine::KeyCode::NUM_7, ImGuiKey::ImGuiKey_7},
-	{engine::KeyCode::NUM_8, ImGuiKey::ImGuiKey_8},
-	{engine::KeyCode::NUM_9, ImGuiKey::ImGuiKey_9},
-	// {engine::KeyCode::COLON, ImGuiKey::ImGuiKey_},
-	{engine::KeyCode::SEMICOLON, ImGuiKey::ImGuiKey_Semicolon},
-	// {engine::KeyCode::LESS, ImGuiKey::ImGuiKey_},
-	{engine::KeyCode::EQUALS, ImGuiKey::ImGuiKey_Equal},
-	// {engine::KeyCode::GREATER, ImGuiKey::ImGuiKey_},
-	// {engine::KeyCode::QUESTION, ImGuiKey::ImGuiKey_},
-	// {engine::KeyCode::AT, ImGuiKey::ImGuiKey_},
-	{engine::KeyCode::LEFTBRACKET, ImGuiKey::ImGuiKey_LeftBracket},
-	{engine::KeyCode::BACKSLASH, ImGuiKey::ImGuiKey_Backslash},
-	{engine::KeyCode::RIGHTBRACKET, ImGuiKey::ImGuiKey_RightBracket},
-	// {engine::KeyCode::CARET, ImGuiKey::ImGuiKey_},
-	// {engine::KeyCode::UNDERSCORE, ImGuiKey::ImGuiKey_},
-	{engine::KeyCode::BACKQUOTE, ImGuiKey::ImGuiKey_GraveAccent},
-	{engine::KeyCode::a, ImGuiKey::ImGuiKey_A},
-	{engine::KeyCode::b, ImGuiKey::ImGuiKey_B},
-	{engine::KeyCode::c, ImGuiKey::ImGuiKey_C},
-	{engine::KeyCode::d, ImGuiKey::ImGuiKey_D},
-	{engine::KeyCode::e, ImGuiKey::ImGuiKey_E},
-	{engine::KeyCode::f, ImGuiKey::ImGuiKey_F},
-	{engine::KeyCode::g, ImGuiKey::ImGuiKey_G},
-	{engine::KeyCode::h, ImGuiKey::ImGuiKey_H},
-	{engine::KeyCode::i, ImGuiKey::ImGuiKey_I},
-	{engine::KeyCode::j, ImGuiKey::ImGuiKey_J},
-	{engine::KeyCode::k, ImGuiKey::ImGuiKey_K},
-	{engine::KeyCode::l, ImGuiKey::ImGuiKey_L},
-	{engine::KeyCode::m, ImGuiKey::ImGuiKey_M},
-	{engine::KeyCode::n, ImGuiKey::ImGuiKey_N},
-	{engine::KeyCode::o, ImGuiKey::ImGuiKey_O},
-	{engine::KeyCode::p, ImGuiKey::ImGuiKey_P},
-	{engine::KeyCode::q, ImGuiKey::ImGuiKey_Q},
-	{engine::KeyCode::r, ImGuiKey::ImGuiKey_R},
-	{engine::KeyCode::s, ImGuiKey::ImGuiKey_S},
-	{engine::KeyCode::t, ImGuiKey::ImGuiKey_T},
-	{engine::KeyCode::u, ImGuiKey::ImGuiKey_U},
-	{engine::KeyCode::v, ImGuiKey::ImGuiKey_V},
-	{engine::KeyCode::w, ImGuiKey::ImGuiKey_W},
-	{engine::KeyCode::x, ImGuiKey::ImGuiKey_X},
-	{engine::KeyCode::y, ImGuiKey::ImGuiKey_Y},
-	{engine::KeyCode::z, ImGuiKey::ImGuiKey_Z},
+	{ engine::KeyCode::ESCAPE, ImGuiKey::ImGuiKey_Escape },
+	{ engine::KeyCode::BACKSPACE, ImGuiKey::ImGuiKey_Backspace },
+	{ engine::KeyCode::TAB, ImGuiKey::ImGuiKey_Tab },
+	{ engine::KeyCode::SPACE, ImGuiKey::ImGuiKey_Space },
+		// {engine::KeyCode::EXCLAIM, ImGuiKey::ImGuiKey_}, 
+		// {engine::KeyCode::QUOTEDBL, ImGuiKey::ImGuiKey_},
+		// {engine::KeyCode::HASH, ImGuiKey::ImGuiKey_},
+		// {engine::KeyCode::PERCENT, ImGuiKey::ImGuiKey_},
+		// {engine::KeyCode::DOLLAR, ImGuiKey::ImGuiKey_},
+		// {engine::KeyCode::AMPERSAND, ImGuiKey::ImGuiKey_},
+	{ engine::KeyCode::QUOTE, ImGuiKey::ImGuiKey_Apostrophe },
+		// {engine::KeyCode::LEFTPAREN, ImGuiKey::ImGuiKey_},
+		// {engine::KeyCode::RIGHTPAREN, ImGuiKey::ImGuiKey_},
+		// {engine::KeyCode::ASTERISK, ImGuiKey::ImGuiKey_},
+		// {engine::KeyCode::PLUS, ImGuiKey::ImGuiKey_},
+	{ engine::KeyCode::COMMA, ImGuiKey::ImGuiKey_Comma },
+	{ engine::KeyCode::MINUS, ImGuiKey::ImGuiKey_Minus },
+	{ engine::KeyCode::PERIOD, ImGuiKey::ImGuiKey_Period },
+	{ engine::KeyCode::SLASH, ImGuiKey::ImGuiKey_Slash },
+	{ engine::KeyCode::NUM_0, ImGuiKey::ImGuiKey_0 },
+	{ engine::KeyCode::NUM_1, ImGuiKey::ImGuiKey_1 },
+	{ engine::KeyCode::NUM_2, ImGuiKey::ImGuiKey_2 },
+	{ engine::KeyCode::NUM_3, ImGuiKey::ImGuiKey_3 },
+	{ engine::KeyCode::NUM_4, ImGuiKey::ImGuiKey_4 },
+	{ engine::KeyCode::NUM_5, ImGuiKey::ImGuiKey_5 },
+	{ engine::KeyCode::NUM_6, ImGuiKey::ImGuiKey_6 },
+	{ engine::KeyCode::NUM_7, ImGuiKey::ImGuiKey_7 },
+	{ engine::KeyCode::NUM_8, ImGuiKey::ImGuiKey_8 },
+	{ engine::KeyCode::NUM_9, ImGuiKey::ImGuiKey_9 },
+		// {engine::KeyCode::COLON, ImGuiKey::ImGuiKey_},
+	{ engine::KeyCode::SEMICOLON, ImGuiKey::ImGuiKey_Semicolon },
+		// {engine::KeyCode::LESS, ImGuiKey::ImGuiKey_},
+	{ engine::KeyCode::EQUALS, ImGuiKey::ImGuiKey_Equal },
+		// {engine::KeyCode::GREATER, ImGuiKey::ImGuiKey_},
+		// {engine::KeyCode::QUESTION, ImGuiKey::ImGuiKey_},
+		// {engine::KeyCode::AT, ImGuiKey::ImGuiKey_},
+	{ engine::KeyCode::LEFTBRACKET, ImGuiKey::ImGuiKey_LeftBracket },
+	{ engine::KeyCode::BACKSLASH, ImGuiKey::ImGuiKey_Backslash },
+	{ engine::KeyCode::RIGHTBRACKET, ImGuiKey::ImGuiKey_RightBracket },
+		// {engine::KeyCode::CARET, ImGuiKey::ImGuiKey_},
+		// {engine::KeyCode::UNDERSCORE, ImGuiKey::ImGuiKey_},
+	{ engine::KeyCode::BACKQUOTE, ImGuiKey::ImGuiKey_GraveAccent },
+	{ engine::KeyCode::a, ImGuiKey::ImGuiKey_A },
+	{ engine::KeyCode::b, ImGuiKey::ImGuiKey_B },
+	{ engine::KeyCode::c, ImGuiKey::ImGuiKey_C },
+	{ engine::KeyCode::d, ImGuiKey::ImGuiKey_D },
+	{ engine::KeyCode::e, ImGuiKey::ImGuiKey_E },
+	{ engine::KeyCode::f, ImGuiKey::ImGuiKey_F },
+	{ engine::KeyCode::g, ImGuiKey::ImGuiKey_G },
+	{ engine::KeyCode::h, ImGuiKey::ImGuiKey_H },
+	{ engine::KeyCode::i, ImGuiKey::ImGuiKey_I },
+	{ engine::KeyCode::j, ImGuiKey::ImGuiKey_J },
+	{ engine::KeyCode::k, ImGuiKey::ImGuiKey_K },
+	{ engine::KeyCode::l, ImGuiKey::ImGuiKey_L },
+	{ engine::KeyCode::m, ImGuiKey::ImGuiKey_M },
+	{ engine::KeyCode::n, ImGuiKey::ImGuiKey_N },
+	{ engine::KeyCode::o, ImGuiKey::ImGuiKey_O },
+	{ engine::KeyCode::p, ImGuiKey::ImGuiKey_P },
+	{ engine::KeyCode::q, ImGuiKey::ImGuiKey_Q },
+	{ engine::KeyCode::r, ImGuiKey::ImGuiKey_R },
+	{ engine::KeyCode::s, ImGuiKey::ImGuiKey_S },
+	{ engine::KeyCode::t, ImGuiKey::ImGuiKey_T },
+	{ engine::KeyCode::u, ImGuiKey::ImGuiKey_U },
+	{ engine::KeyCode::v, ImGuiKey::ImGuiKey_V },
+	{ engine::KeyCode::w, ImGuiKey::ImGuiKey_W },
+	{ engine::KeyCode::x, ImGuiKey::ImGuiKey_X },
+	{ engine::KeyCode::y, ImGuiKey::ImGuiKey_Y },
+	{ engine::KeyCode::z, ImGuiKey::ImGuiKey_Z },
 };
 
 std::unordered_map<engine::KeyMod, ImGuiKey> kImguiKeyModToImGuiKeyLookup{
 	{engine::KeyMod::KMOD_LSHIFT, ImGuiKey::ImGuiKey_LeftShift},
-	{engine::KeyMod::KMOD_RSHIFT, ImGuiKey::ImGuiKey_RightShift},
-	{engine::KeyMod::KMOD_LCTRL, ImGuiKey::ImGuiKey_LeftCtrl},
-	{engine::KeyMod::KMOD_RCTRL, ImGuiKey::ImGuiKey_RightCtrl},
-	{engine::KeyMod::KMOD_LALT, ImGuiKey::ImGuiKey_LeftAlt},
-	{engine::KeyMod::KMOD_RALT, ImGuiKey::ImGuiKey_RightAlt},
-	{engine::KeyMod::KMOD_LGUI, ImGuiKey::ImGuiKey_LeftSuper},
-	{engine::KeyMod::KMOD_RGUI, ImGuiKey::ImGuiKey_RightSuper},
-	{engine::KeyMod::KMOD_NUM, ImGuiKey::ImGuiKey_NumLock},
-	{engine::KeyMod::KMOD_CAPS, ImGuiKey::ImGuiKey_CapsLock},
-	{engine::KeyMod::KMOD_MODE, ImGuiKey::ImGuiKey_ModSuper},
-	{engine::KeyMod::KMOD_SCROLL, ImGuiKey::ImGuiKey_ScrollLock},
+	{ engine::KeyMod::KMOD_RSHIFT, ImGuiKey::ImGuiKey_RightShift },
+	{ engine::KeyMod::KMOD_LCTRL, ImGuiKey::ImGuiKey_LeftCtrl },
+	{ engine::KeyMod::KMOD_RCTRL, ImGuiKey::ImGuiKey_RightCtrl },
+	{ engine::KeyMod::KMOD_LALT, ImGuiKey::ImGuiKey_LeftAlt },
+	{ engine::KeyMod::KMOD_RALT, ImGuiKey::ImGuiKey_RightAlt },
+	{ engine::KeyMod::KMOD_LGUI, ImGuiKey::ImGuiKey_LeftSuper },
+	{ engine::KeyMod::KMOD_RGUI, ImGuiKey::ImGuiKey_RightSuper },
+	{ engine::KeyMod::KMOD_NUM, ImGuiKey::ImGuiKey_NumLock },
+	{ engine::KeyMod::KMOD_CAPS, ImGuiKey::ImGuiKey_CapsLock },
+	{ engine::KeyMod::KMOD_MODE, ImGuiKey::ImGuiKey_ModSuper },
+	{ engine::KeyMod::KMOD_SCROLL, ImGuiKey::ImGuiKey_ScrollLock },
 };
 
 std::unordered_map<engine::KeyMod, ImGuiKey> kImguiKeyModToImGuiModLookup{
 	{engine::KeyMod::KMOD_NONE, ImGuiKey::ImGuiMod_None},
-	{engine::KeyMod::KMOD_LSHIFT, ImGuiKey::ImGuiMod_Shift},
-	{engine::KeyMod::KMOD_RSHIFT, ImGuiKey::ImGuiMod_Shift},
-	{engine::KeyMod::KMOD_LCTRL, ImGuiKey::ImGuiMod_Ctrl},
-	{engine::KeyMod::KMOD_RCTRL, ImGuiKey::ImGuiMod_Ctrl},
-	{engine::KeyMod::KMOD_LALT, ImGuiKey::ImGuiMod_Alt},
-	{engine::KeyMod::KMOD_RALT, ImGuiKey::ImGuiMod_Alt},
-	{engine::KeyMod::KMOD_LGUI, ImGuiKey::ImGuiMod_Super},
-	{engine::KeyMod::KMOD_RGUI, ImGuiKey::ImGuiMod_Super},
-	{engine::KeyMod::KMOD_CTRL, ImGuiKey::ImGuiMod_Ctrl},
-	{engine::KeyMod::KMOD_SHIFT, ImGuiKey::ImGuiMod_Shift},
-	{engine::KeyMod::KMOD_ALT, ImGuiKey::ImGuiMod_Alt},
-	{engine::KeyMod::KMOD_GUI, ImGuiKey::ImGuiMod_Super},
-};
-
-// ImGui has a static global ImGuiContext* which points to current active ImGuiContext.
-// And almost all ImGui apis assume that the api call will affect current active ImGuiContext.
-// 
-// As we have multiple ImGuiContext instances so you need to use ImGui correctly by two solutions:
-// 1. Create a TempSwitchContextScope variable before calling any ImGui API. It will switch context temporarily for you automatically.
-// It is a convenient way to develop features but it will waste a little performance on switching context.
-// 
-// 2. Don't use any ImGui apis to finish your work. Instead, you should use m_pImGuiContext to call API.
-// It is an advance way to save performances but you are easy to cause bugs if you forgot to use ImGui api.
-// For example, ImGui::GetIO() returns current active context's IO. Instead, you should use m_pImGuiContext->IO.
-//
-// I recommend that you use TempSwitchContextScope in some functions which doesn't call frequently or the logic is too complex to write many codes.
-//
-class TempSwitchContextScope
-{
-public:
-	TempSwitchContextScope(engine::ImGuiContextInstance* pThis)
-	{
-		ImGuiIO& io = ImGui::GetIO();
-		assert(io.UserData != nullptr && "Please set ImGuiContextInstance to io.UserData field.");
-		if (io.UserData != pThis)
-		{
-			pThis->SwitchCurrentContext();
-			pBackContext = reinterpret_cast<engine::ImGuiContextInstance*>(io.UserData);
-		}
-	}
-
-	~TempSwitchContextScope()
-	{
-		if (pBackContext)
-		{
-			pBackContext->SwitchCurrentContext();
-		}
-	}
-
-	// Disable Copy/Move as it is just a simple scope object to switch ImGui contexts.
-	TempSwitchContextScope(const TempSwitchContextScope&) = delete;
-	TempSwitchContextScope& operator=(const TempSwitchContextScope&) = delete;
-	TempSwitchContextScope(TempSwitchContextScope&&) = delete;
-	TempSwitchContextScope& operator=(TempSwitchContextScope&&) = delete;
-
-private:
-	engine::ImGuiContextInstance* pBackContext = nullptr;
+	{ engine::KeyMod::KMOD_LSHIFT, ImGuiKey::ImGuiMod_Shift },
+	{ engine::KeyMod::KMOD_RSHIFT, ImGuiKey::ImGuiMod_Shift },
+	{ engine::KeyMod::KMOD_LCTRL, ImGuiKey::ImGuiMod_Ctrl },
+	{ engine::KeyMod::KMOD_RCTRL, ImGuiKey::ImGuiMod_Ctrl },
+	{ engine::KeyMod::KMOD_LALT, ImGuiKey::ImGuiMod_Alt },
+	{ engine::KeyMod::KMOD_RALT, ImGuiKey::ImGuiMod_Alt },
+	{ engine::KeyMod::KMOD_LGUI, ImGuiKey::ImGuiMod_Super },
+	{ engine::KeyMod::KMOD_RGUI, ImGuiKey::ImGuiMod_Super },
+	{ engine::KeyMod::KMOD_CTRL, ImGuiKey::ImGuiMod_Ctrl },
+	{ engine::KeyMod::KMOD_SHIFT, ImGuiKey::ImGuiMod_Shift },
+	{ engine::KeyMod::KMOD_ALT, ImGuiKey::ImGuiMod_Alt },
+	{ engine::KeyMod::KMOD_GUI, ImGuiKey::ImGuiMod_Super },
 };
 
 }
@@ -175,30 +134,17 @@ private:
 namespace engine
 {
 
-ImGuiContextInstance::ImGuiContextInstance(uint16_t width, uint16_t height, bool enableDock)
+ImGuiContextInstance::ImGuiContextInstance()
 {
 	m_pImGuiContext = ImGui::CreateContext();
-	SwitchCurrentContext();
 
-	ImGuiIO& io = ImGui::GetIO();
+	// Basic settings which can export as APIs if need.
+	ImGuiIO& io = GetIO();
 	io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
-	io.ConfigWindowsMoveFromTitleBarOnly = true;
-	io.UserData = this;
-
-	if (enableDock)
-	{
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-	}
-
-	// TODO
-	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-
-	io.IniFilename = nullptr;
-	io.LogFilename = nullptr;
-
-	io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
-
-	SetImGuiStyles();
+	io.UserData = this; // Help to find ImGuiContextInstance from ImGuiIO.
+	io.IniFilename = nullptr; // No cache gui settings.
+	io.LogFilename = nullptr; // No auto generated log texts.
+	InitLayoutStyles();
 }
 
 ImGuiContextInstance::~ImGuiContextInstance()
@@ -206,6 +152,9 @@ ImGuiContextInstance::~ImGuiContextInstance()
 	ImGui::DestroyContext(m_pImGuiContext);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+/// Context
+///////////////////////////////////////////////////////////////////////////////////////////
 void ImGuiContextInstance::SwitchCurrentContext() const
 {
 	ImGui::SetCurrentContext(m_pImGuiContext);
@@ -214,6 +163,66 @@ void ImGuiContextInstance::SwitchCurrentContext() const
 bool ImGuiContextInstance::IsActive() const
 {
 	return ImGui::GetCurrentContext() == m_pImGuiContext;
+}
+
+ImGuiIO& ImGuiContextInstance::GetIO() const
+{
+	return m_pImGuiContext->IO;
+}
+
+ImGuiPlatformIO& ImGuiContextInstance::GetPlatformIO() const
+{
+	return m_pImGuiContext->PlatformIO;
+}
+
+ImGuiStyle& ImGuiContextInstance::GetStyle() const
+{
+	return m_pImGuiContext->Style;
+}
+
+void ImGuiContextInstance::InitBackendUserData(void* pWindowManager, void* pRenderContext)
+{
+	ImGuiIO& io = GetIO();
+	io.BackendPlatformUserData = pWindowManager;
+	io.BackendRendererUserData = pRenderContext;
+}
+
+WindowManager* ImGuiContextInstance::GetWindowManager() const
+{
+	return static_cast<WindowManager*>(GetIO().BackendPlatformUserData);
+}
+
+RenderContext* ImGuiContextInstance::GetRenderContext() const
+{
+	return static_cast<RenderContext*>(GetIO().BackendRendererUserData);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+/// Display
+///////////////////////////////////////////////////////////////////////////////////////////
+void ImGuiContextInstance::SetDisplaySize(uint16_t width, uint16_t height)
+{
+	ImGuiIO& io = GetIO();
+	io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
+}
+
+void ImGuiContextInstance::OnResize(uint16_t width, uint16_t height)
+{
+	SetDisplaySize(width, height);
+}
+
+bool ImGuiContextInstance::IsInsideDisplayRect(float x, float y) const
+{
+	ImGuiIO& io = GetIO();
+	if (x < m_rectPosX ||
+		x > m_rectPosX + io.DisplaySize.x ||
+		y < m_rectPosY ||
+		y > m_rectPosY + io.DisplaySize.y)
+	{
+		return false;
+	}
+
+	return true;
 }
 
 void ImGuiContextInstance::AddStaticLayer(std::unique_ptr<ImGuiBaseLayer> pLayer)
@@ -234,19 +243,35 @@ void ImGuiContextInstance::ClearUILayers()
 	m_pImGuiDockableLayers.clear();
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+/// Dock
+///////////////////////////////////////////////////////////////////////////////////////////
+void ImGuiContextInstance::EnableDock()
+{
+	ImGuiIO& io = GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+}
+
+bool ImGuiContextInstance::IsDockEnable() const
+{
+	return GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable;
+}
+
 void ImGuiContextInstance::BeginDockSpace()
 {
+	ImGuiIO& io = GetIO();
+
 	// To create a dock space, we need to create a window to host it at first.
 	constexpr const char* pDockSpaceName = "FullScreenDockSpace";
 	static bool enableDockSpace = true;
 	constexpr ImGuiWindowFlags dockSpaceWindowFlags = ImGuiWindowFlags_NoDocking |
-													  ImGuiWindowFlags_NoTitleBar |
-													  ImGuiWindowFlags_NoCollapse |
-													  ImGuiWindowFlags_NoResize |
-													  ImGuiWindowFlags_NoMove |
-													  ImGuiWindowFlags_NoBringToFrontOnFocus |
-													  ImGuiWindowFlags_NoNavFocus |
-													  ImGuiWindowFlags_NoBackground;
+		ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoCollapse |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoBringToFrontOnFocus |
+		ImGuiWindowFlags_NoNavFocus |
+		ImGuiWindowFlags_NoBackground;
 
 	// Place dock space window under static imgui layers.
 	// It is a hack now as only main menu bar is a static layer so we only need to adjust the height.
@@ -275,7 +300,7 @@ void ImGuiContextInstance::BeginDockSpace()
 	{
 		ImGui::DockBuilderRemoveNode(dockSpaceWindowID);
 		ImGui::DockBuilderAddNode(dockSpaceWindowID);
-		ImGui::DockBuilderSetNodeSize(dockSpaceWindowID, ImGui::GetIO().DisplaySize * ImGui::GetIO().DisplayFramebufferScale);
+		ImGui::DockBuilderSetNodeSize(dockSpaceWindowID, io.DisplaySize * io.DisplayFramebufferScale);
 
 		ImGuiID dockSpaceMainID = dockSpaceWindowID;
 
@@ -315,126 +340,163 @@ void ImGuiContextInstance::EndDockSpace()
 	ImGui::End();
 }
 
-void ImGuiContextInstance::Update(float deltaTime)
+///////////////////////////////////////////////////////////////////////////////////////////
+/// Viewport
+///////////////////////////////////////////////////////////////////////////////////////////
+void ImGuiContextInstance::EnableViewport()
 {
-	SwitchCurrentContext();
+	ImGuiIO& io = GetIO();
+	io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports | ImGuiBackendFlags_RendererHasViewports;
+	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+}
 
-	// It is necessary to pass correct deltaTime to ImGui underlaying framework because it will use the value to check
-	// something such as if mouse button double click happens(Two click event happens in one frame, < deltaTime).
-	ImGui::GetIO().DeltaTime = deltaTime;
+bool ImGuiContextInstance::IsViewportEnable() const
+{
+	return GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable;
+}
 
-	AddInputEvent();
+void ImGuiContextInstance::InitViewport()
+{
+	// Register window interfaces.
+	static auto* s_pWindowManager = GetWindowManager();
 
-	ImGui::NewFrame();
-    
-	for (const auto& pImGuiLayer : m_pImGuiStaticLayers)
+	ImGuiPlatformIO& platformIO = GetPlatformIO();
+	platformIO.Platform_CreateWindow = [](ImGuiViewport* pViewport)
 	{
-		pImGuiLayer->Update();
-	}
+		auto pWindow = std::make_unique<engine::Window>("TempName", static_cast<int>(pViewport->Pos.x), static_cast<int>(pViewport->Pos.y),
+			static_cast<int>(pViewport->Size.x), static_cast<int>(pViewport->Size.y));
+		bool noDecoration = pViewport->Flags & ImGuiViewportFlags_NoDecoration;
+		pWindow->SetBordedLess(noDecoration);
+		pWindow->SetResizeable(!noDecoration);
+		pViewport->PlatformHandle = pWindow.get();
+		pViewport->PlatformHandleRaw = pWindow->GetHandle();
+		s_pWindowManager->AddWindow(cd::MoveTemp(pWindow));
+	};
 
-	ImGuiIO& io = ImGui::GetIO();
-	const bool dockingEnabled = io.ConfigFlags & ImGuiConfigFlags_DockingEnable;
-	if (dockingEnabled)
+	platformIO.Platform_DestroyWindow = [](ImGuiViewport* pViewport)
 	{
-		BeginDockSpace();
-	}
+		auto* pWindow = static_cast<engine::Window*>(pViewport->PlatformHandle);
+		s_pWindowManager->RemoveWindow(pWindow->GetID());
+		pViewport->PlatformHandle = nullptr;
+		pViewport->PlatformHandleRaw = nullptr;
+	};
 
-	for (const auto& pImGuiLayer : m_pImGuiDockableLayers)
+	platformIO.Platform_ShowWindow = [](ImGuiViewport* pViewport)
 	{
-		if (pImGuiLayer->IsEnable())
+		auto* pWindow = static_cast<engine::Window*>(pViewport->PlatformHandle);
+		pWindow->Show();
+	};
+
+	platformIO.Platform_SetWindowPos = [](ImGuiViewport* pViewport, ImVec2 v)
+	{
+		auto* pWindow = static_cast<engine::Window*>(pViewport->PlatformHandle);
+		pWindow->SetPosition(static_cast<int>(v.x), static_cast<int>(v.y));
+	};
+
+	platformIO.Platform_GetWindowPos = [](ImGuiViewport* pViewport) -> ImVec2
+	{
+		const auto* pWindow = static_cast<const engine::Window*>(pViewport->PlatformHandle);
+		auto [x, y] = pWindow->GetPosition();
+		return { static_cast<float>(x), static_cast<float>(y) };
+	};
+
+	platformIO.Platform_SetWindowSize = [](ImGuiViewport* pViewport, ImVec2 v)
+	{
+		auto* pWindow = static_cast<engine::Window*>(pViewport->PlatformHandle);
+		pWindow->SetSize(static_cast<int>(v.x), static_cast<int>(v.y));
+	};
+
+	platformIO.Platform_GetWindowSize = [](ImGuiViewport* pViewport) -> ImVec2
+	{
+		const auto* pWindow = static_cast<const engine::Window*>(pViewport->PlatformHandle);
+		auto [w, h] = pWindow->GetSize();
+		return { static_cast<float>(w), static_cast<float>(h) };
+	};
+
+	platformIO.Platform_SetWindowTitle = [](ImGuiViewport* pViewport, const char* pTitle)
+	{
+		auto* pWindow = static_cast<engine::Window*>(pViewport->PlatformHandle);
+		pWindow->SetTitle(pTitle);
+	};
+
+	platformIO.Platform_GetWindowFocus = [](ImGuiViewport* pViewport)
+	{
+		const auto* pWindow = static_cast<const engine::Window*>(pViewport->PlatformHandle);
+		return pWindow->IsFocused();
+	};
+	
+	platformIO.Platform_SetWindowFocus = [](ImGuiViewport* pViewport)
+	{
+		auto* pWindow = static_cast<engine::Window*>(pViewport->PlatformHandle);
+		pWindow->SetFocused();
+	};
+
+	platformIO.Platform_GetWindowMinimized = [](ImGuiViewport* pViewport)
+	{
+		const auto* pWindow = static_cast<const engine::Window*>(pViewport->PlatformHandle);
+		return pWindow->IsMinimized();
+	};
+
+	// Register rendering interfaces.
+	static RenderContext* s_pRenderContext = GetRenderContext();
+	platformIO.Renderer_CreateWindow = [](ImGuiViewport* pViewport)
+	{
+		pViewport->PlatformUserData = reinterpret_cast<void*>(s_pRenderContext->CreateView());
+		engine::StringCrc newRenderTargetName = s_pRenderContext->GetRenderTargetCrc(pViewport->PlatformUserData);
+		s_pRenderContext->CreateRenderTarget(newRenderTargetName, 1, 1, pViewport->PlatformHandleRaw);
+	};
+
+	platformIO.Renderer_DestroyWindow = [](ImGuiViewport* pViewport)
+	{
+		if (pViewport->PlatformUserData)
 		{
-			pImGuiLayer->Update();
+			s_pRenderContext->DestoryRenderTarget(s_pRenderContext->GetRenderTargetCrc(pViewport->PlatformUserData));
+			pViewport->PlatformUserData = nullptr;
 		}
-	}
+	};
 
-	if (dockingEnabled)
+	platformIO.Renderer_SetWindowSize = [](ImGuiViewport* pViewport, ImVec2 v)
 	{
-		EndDockSpace();
-	}
+		auto* pRenderTarget = s_pRenderContext->GetRenderTarget(pViewport->PlatformUserData);
+		pRenderTarget->Resize(static_cast<uint16_t>(v.x), static_cast<uint16_t>(v.y));
+	};
 }
 
-// Don't push unnecessary events to ImGui. Or it will overflow its event queue to cause a time delay UI feedback.
-// Why we don't use callback directly from native platform window? Because we have multiple imgui contexts to receive input events.
-// And only the active imgui context can receive window messages. It sounds no problem but imgui context can switch during one frame multiple times.
-// It is not safe to use event callback.
-void ImGuiContextInstance::AddInputEvent()
+void ImGuiContextInstance::UpdateMonitors()
 {
-	ImGuiIO& io = ImGui::GetIO();
-	if (bool mouseLBPressed = Input::Get().IsMouseLBPressed(); m_lastMouseLBPressed != mouseLBPressed)
+	ImGuiPlatformIO& platformIO = GetPlatformIO();
+	int monitorCount = engine::Window::GetDisplayMonitorCount();
+	platformIO.Monitors.resize(0);
+	for (int monitorIndex = 0; monitorIndex < monitorCount; ++monitorIndex)
 	{
-		io.AddMouseButtonEvent(ImGuiMouseButton_Left, mouseLBPressed);
-		m_lastMouseLBPressed = mouseLBPressed;
-	}
+		auto mainRect = engine::Window::GetDisplayMonitorMainRect(monitorIndex);
+		auto workRect = engine::Window::GetDisplayMonitorWorkRect(monitorIndex);
 
-	if (bool mouseRBPressed = Input::Get().IsMouseRBPressed(); m_lastMouseRBPressed != mouseRBPressed)
-	{
-		io.AddMouseButtonEvent(ImGuiMouseButton_Right, mouseRBPressed);
-		m_lastMouseRBPressed = mouseRBPressed;
-	}
+		ImGuiPlatformMonitor monitor;
+		monitor.MainPos = ImVec2((float)mainRect.x, (float)mainRect.y);
+		monitor.MainSize = ImVec2((float)mainRect.w, (float)mainRect.h);
+		monitor.WorkPos = ImVec2((float)workRect.x, (float)workRect.y);
+		monitor.WorkSize = ImVec2((float)workRect.w, (float)workRect.h);
 
-	if (bool mouseMBPressed = Input::Get().IsMouseMBPressed(); m_lastMouseMBPressed != mouseMBPressed)
-	{
-		io.AddMouseButtonEvent(ImGuiMouseButton_Middle, mouseMBPressed);
-		m_lastMouseMBPressed = mouseMBPressed;
-	}
-
-	if (float mouseScrollOffsetY = Input::Get().GetMouseScrollOffsetY(); mouseScrollOffsetY != m_lastMouseScrollOffstY)
-	{
-		io.AddMouseWheelEvent(0.0f, mouseScrollOffsetY);
-		m_lastMouseScrollOffstY = mouseScrollOffsetY;
-	}
-
-	float mousePosX = static_cast<float>(Input::Get().GetMousePositionX());
-	float mousePosY = static_cast<float>(Input::Get().GetMousePositionY());
-	if (mousePosX != m_lastMousePositionX || mousePosY != m_lastMousePositionY)
-	{
-		io.AddMousePosEvent(mousePosX - m_windowPosOffsetX, mousePosY - m_windowPosOffsetY);
-		m_lastMousePositionX = mousePosX;
-		m_lastMousePositionY = mousePosY;
-	}
-
-	const std::vector<Input::KeyEvent> keyEvents = Input::Get().GetKeyEventList();
-	for (uint32_t i = 0; i < keyEvents.size(); ++i)
-	{
-		const Input::KeyEvent keyEvent = keyEvents[i];
-		if (keyEvent.mod != KeyMod::KMOD_NONE)
+		// Check if the display's position is at (0,0), which is typical for the primary display.
+		bool isPrimaryDisplay = mainRect.x == 0 && mainRect.y == 0;
+		if (isPrimaryDisplay)
 		{
-			// Add the modifier key event
-			if (kImguiKeyModToImGuiModLookup.find(keyEvent.mod) != kImguiKeyModToImGuiModLookup.cend())
-			{
-				io.AddKeyEvent(kImguiKeyModToImGuiModLookup[keyEvent.mod], keyEvent.isPressed);
-			}
-			// Also add the key itself as key event
-			if (kImguiKeyModToImGuiKeyLookup.find(keyEvent.mod) != kImguiKeyModToImGuiKeyLookup.cend())
-			{
-				io.AddKeyEvent(kImguiKeyModToImGuiKeyLookup[keyEvent.mod], keyEvent.isPressed);
-			}
+			platformIO.Monitors.push_front(monitor);
 		}
-		if (kImguiKeyLookup.find(keyEvent.code) != kImguiKeyLookup.cend()) {
-			io.AddKeyEvent(kImguiKeyLookup[keyEvent.code], keyEvent.isPressed);
+		else
+		{
+			platformIO.Monitors.push_back(monitor);
 		}
-	}
-
-	const char* inputChars = Input::Get().GetInputCharacters();
-	const size_t inputCharSize = strlen(inputChars);
-	for (size_t i = 0; i < inputCharSize; ++i)
-	{
-		io.AddInputCharacter(inputChars[i]);
 	}
 }
 
-void ImGuiContextInstance::OnResize(uint16_t width, uint16_t height)
-{
-	ImGuiIO& io = m_pImGuiContext->IO;
-	io.DisplaySize.x = width;
-	io.DisplaySize.y = height;
-}
-
+///////////////////////////////////////////////////////////////////////////////////////////
+/// Styles
+///////////////////////////////////////////////////////////////////////////////////////////
 void ImGuiContextInstance::LoadFontFiles(const std::vector<std::string>& ttfFileNames, engine::Language language)
 {
-	TempSwitchContextScope tempSwitchScope(this);
-
-	ImGuiIO& io = ImGui::GetIO();
+	ImGuiIO& io = GetIO();
 	io.FontGlobalScale = 1.0f;
 
 	ImFontConfig config;
@@ -513,7 +575,7 @@ void ImGuiContextInstance::LoadFontFiles(const std::vector<std::string>& ttfFile
 		io.Fonts->ConfigData[fontConfigDataIndex].RasterizerMultiply = 1.0f;
 	}
 
-	ImFontAtlas* pFontAtlas = ImGui::GetIO().Fonts;
+	ImFontAtlas* pFontAtlas = io.Fonts;
 #ifdef IMGUI_ENABLE_FREETYPE
 	pFontAtlas->FontBuilderIO = ImGuiFreeType::GetBuilderForFreeType();
 #endif
@@ -521,11 +583,9 @@ void ImGuiContextInstance::LoadFontFiles(const std::vector<std::string>& ttfFile
 	pFontAtlas->Build();
 }
 
-void ImGuiContextInstance::SetImGuiStyles()
+void ImGuiContextInstance::InitLayoutStyles()
 {
-	TempSwitchContextScope tempSwitchScope(this);
-
-	ImGuiStyle& style = ImGui::GetStyle();
+	ImGuiStyle& style = GetStyle();
 	style.WindowPadding = ImVec2(5, 5);
 	style.FramePadding = ImVec2(4, 4);
 	style.ItemSpacing = ImVec2(6, 2);
@@ -552,7 +612,7 @@ void ImGuiContextInstance::SetImGuiStyles()
 	style.TabBorderSize = 1.0f;
 	style.TabRounding = roundingAmount;
 
-	if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+	if (IsViewportEnable())
 	{
 		style.WindowRounding = roundingAmount;
 		style.Colors[ImGuiCol_WindowBg].w = 1.0f;
@@ -561,135 +621,43 @@ void ImGuiContextInstance::SetImGuiStyles()
 
 void ImGuiContextInstance::SetImGuiThemeColor(ThemeColor theme)
 {
-	TempSwitchContextScope tempSwitchScope(this);
-
 	m_themeColor = theme;
 
-	ImVec4* colours = ImGui::GetStyle().Colors;
-	if (ThemeColor::Black == theme)
+	ImGuiStyle& style = GetStyle();
+	ImVec4* colours = style.Colors;
+	if (ThemeColor::Dark == theme)
 	{
-		ImGui::StyleColorsDark();
-		colours[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-		colours[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-		colours[ImGuiCol_WindowBg] = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
-		colours[ImGuiCol_ChildBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-		colours[ImGuiCol_PopupBg] = ImVec4(0.19f, 0.19f, 0.19f, 0.92f);
-		colours[ImGuiCol_Border] = ImVec4(0.19f, 0.19f, 0.19f, 0.29f);
-		colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.24f);
-		colours[ImGuiCol_FrameBg] = ImVec4(0.05f, 0.05f, 0.05f, 0.54f);
-		colours[ImGuiCol_FrameBgHovered] = ImVec4(0.19f, 0.19f, 0.19f, 0.54f);
-		colours[ImGuiCol_FrameBgActive] = ImVec4(0.20f, 0.22f, 0.23f, 1.00f);
-		colours[ImGuiCol_TitleBg] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
-		colours[ImGuiCol_TitleBgActive] = ImVec4(0.06f, 0.06f, 0.06f, 1.00f);
-		colours[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
-		colours[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
-		colours[ImGuiCol_ScrollbarBg] = ImVec4(0.05f, 0.05f, 0.05f, 0.54f);
-		colours[ImGuiCol_ScrollbarGrab] = ImVec4(0.34f, 0.34f, 0.34f, 0.54f);
-		colours[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.40f, 0.40f, 0.40f, 0.54f);
-		colours[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.56f, 0.56f, 0.56f, 0.54f);
-		colours[ImGuiCol_CheckMark] = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
-		colours[ImGuiCol_SliderGrab] = ImVec4(0.34f, 0.34f, 0.34f, 0.54f);
-		colours[ImGuiCol_SliderGrabActive] = ImVec4(0.56f, 0.56f, 0.56f, 0.54f);
-		colours[ImGuiCol_Button] = ImVec4(0.05f, 0.05f, 0.05f, 0.54f);
-		colours[ImGuiCol_ButtonHovered] = ImVec4(0.19f, 0.19f, 0.19f, 0.54f);
-		colours[ImGuiCol_ButtonActive] = ImVec4(0.20f, 0.22f, 0.23f, 1.00f);
-		colours[ImGuiCol_Header] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
-		colours[ImGuiCol_HeaderHovered] = ImVec4(0.00f, 0.00f, 0.00f, 0.36f);
-		colours[ImGuiCol_HeaderActive] = ImVec4(0.20f, 0.22f, 0.23f, 0.33f);
-		colours[ImGuiCol_Separator] = ImVec4(0.28f, 0.28f, 0.28f, 0.29f);
-		colours[ImGuiCol_SeparatorHovered] = ImVec4(0.44f, 0.44f, 0.44f, 0.29f);
-		colours[ImGuiCol_SeparatorActive] = ImVec4(0.40f, 0.44f, 0.47f, 1.00f);
-		colours[ImGuiCol_ResizeGrip] = ImVec4(0.28f, 0.28f, 0.28f, 0.29f);
-		colours[ImGuiCol_ResizeGripHovered] = ImVec4(0.44f, 0.44f, 0.44f, 0.29f);
-		colours[ImGuiCol_ResizeGripActive] = ImVec4(0.40f, 0.44f, 0.47f, 1.00f);
-		colours[ImGuiCol_Tab] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
-		colours[ImGuiCol_TabHovered] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
-		colours[ImGuiCol_TabActive] = ImVec4(0.20f, 0.20f, 0.20f, 0.36f);
-		colours[ImGuiCol_TabUnfocused] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
-		colours[ImGuiCol_TabUnfocusedActive] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
-		colours[ImGuiCol_DockingPreview] = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
-		colours[ImGuiCol_DockingEmptyBg] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);;
-		colours[ImGuiCol_PlotLines] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
-		colours[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
-		colours[ImGuiCol_PlotHistogram] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
-		colours[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
-		colours[ImGuiCol_TableHeaderBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
-		colours[ImGuiCol_TableBorderStrong] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
-		colours[ImGuiCol_TableBorderLight] = ImVec4(0.28f, 0.28f, 0.28f, 0.29f);
-		colours[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-		colours[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
-		colours[ImGuiCol_TextSelectedBg] = ImVec4(0.20f, 0.22f, 0.23f, 1.00f);
-		colours[ImGuiCol_DragDropTarget] = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
-		colours[ImGuiCol_NavHighlight] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
-		colours[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 0.00f, 0.00f, 0.70f);
-		colours[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
-		colours[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
-	}
-	else if (ThemeColor::Classic == theme)
-	{
-		ImGui::StyleColorsClassic();
-	}
-	else if (ThemeColor::Dark == theme)
-	{
-		ImGui::StyleColorsDark();
-		constexpr float max = 255.0f;
-		ImVec4 Titlebar = ImVec4(40.0f / max, 42.0f / max, 54.0f / max, 1.0f);
-		ImVec4 TabActive = ImVec4(52.0f / max, 54.0f / max, 64.0f / max, 1.0f);
-		ImVec4 TabUnactive = ImVec4(35.0f / max, 43.0f / max, 59.0f / max, 1.0f);
-		colours[ImGuiCol_Text] = ImVec4(200.0f / 255.0f, 200.0f / 255.0f, 200.0f / 255.0f, 1.00f);
-		colours[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
-		colours[ImGuiCol_WindowBg] = TabActive;
-		colours[ImGuiCol_ChildBg] = TabActive;
-		colours[ImGuiCol_PopupBg] = ImVec4(42.0f / 255.0f, 38.0f / 255.0f, 47.0f / 255.0f, 1.00f);
-		colours[ImGuiCol_Border] = ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
-		colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-		colours[ImGuiCol_FrameBg] = ImVec4(65.0f / 255.0f, 79.0f / 255.0f, 92.0f / 255.0f, 1.00f);
-		colours[ImGuiCol_FrameBgHovered] = ImVec4(0.12f, 0.20f, 0.28f, 1.00f);
-		colours[ImGuiCol_FrameBgActive] = ImVec4(0.09f, 0.12f, 0.14f, 1.00f);
-		colours[ImGuiCol_TitleBg] = Titlebar;
-		colours[ImGuiCol_TitleBgActive] = Titlebar;
-		colours[ImGuiCol_TitleBgCollapsed] = Titlebar;
-		colours[ImGuiCol_MenuBarBg] = Titlebar;
-		colours[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.39f);
-		colours[ImGuiCol_ScrollbarGrab] = ImVec4(0.6f, 0.6f, 0.6f, 1.00f);
-		colours[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.7f, 0.7f, 0.7f, 1.00f);
-		colours[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.8f, 0.8f, 0.8f, 1.00f);
-		colours[ImGuiCol_CheckMark] = ImVec4(155.0f / 255.0f, 130.0f / 255.0f, 207.0f / 255.0f, 1.00f);
-		colours[ImGuiCol_SliderGrab] = ImVec4(155.0f / 255.0f, 130.0f / 255.0f, 207.0f / 255.0f, 1.00f);
-		colours[ImGuiCol_SliderGrabActive] = ImVec4(185.0f / 255.0f, 160.0f / 255.0f, 237.0f / 255.0f, 1.00f);
-		colours[ImGuiCol_Button] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
-		colours[ImGuiCol_ButtonHovered] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f) + ImVec4(0.1f, 0.1f, 0.1f, 0.1f);
-		colours[ImGuiCol_ButtonActive] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f) + ImVec4(0.1f, 0.1f, 0.1f, 0.1f);
-		colours[ImGuiCol_Separator] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
-		colours[ImGuiCol_SeparatorHovered] = ImVec4(0.10f, 0.40f, 0.75f, 0.78f);
-		colours[ImGuiCol_SeparatorActive] = ImVec4(0.10f, 0.40f, 0.75f, 1.00f);
-		colours[ImGuiCol_ResizeGrip] = ImVec4(0.26f, 0.59f, 0.98f, 0.25f);
-		colours[ImGuiCol_ResizeGripHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
-		colours[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
-		colours[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
-		colours[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
-		colours[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
-		colours[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
-		colours[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
-		colours[ImGuiCol_DragDropTarget] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-		colours[ImGuiCol_NavHighlight] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-		colours[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
-		colours[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
-		colours[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
-		colours[ImGuiCol_Header] = TabActive + ImVec4(0.1f, 0.1f, 0.1f, 0.1f);
-		colours[ImGuiCol_HeaderHovered] = TabActive + ImVec4(0.1f, 0.1f, 0.1f, 0.1f);
-		colours[ImGuiCol_HeaderActive] = TabActive + ImVec4(0.05f, 0.05f, 0.05f, 0.1f);
-		colours[ImGuiCol_Tab] = TabUnactive;
-		colours[ImGuiCol_TabHovered] = TabActive + ImVec4(0.1f, 0.1f, 0.1f, 0.1f);
-		colours[ImGuiCol_TabActive] = TabActive;
-		colours[ImGuiCol_TabUnfocused] = TabUnactive;
-		colours[ImGuiCol_TabUnfocusedActive] = TabActive;
-		colours[ImGuiCol_DockingEmptyBg] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
-		colours[ImGuiCol_DockingPreview] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
+		style.Colors[ImGuiCol_WindowBg] = ImColor(24, 26, 31);
+		style.Colors[ImGuiCol_ChildBg] = ImColor(20, 22, 26);
+		style.Colors[ImGuiCol_PopupBg] = ImColor(20, 22, 26, 240);
+		style.Colors[ImGuiCol_Border] = ImColor(0, 0, 0);
+
+		style.Colors[ImGuiCol_FrameBg] = ImColor(33, 36, 43);
+		style.Colors[ImGuiCol_FrameBgHovered] = ImColor(45, 50, 59);
+		style.Colors[ImGuiCol_FrameBgActive] = ImColor(56, 126, 210);
+
+		style.Colors[ImGuiCol_TitleBg] = ImColor(20, 23, 26);
+		style.Colors[ImGuiCol_TitleBgActive] = ImColor(27, 31, 35);
+		style.Colors[ImGuiCol_TitleBgCollapsed] = ImColor(15, 17, 19);
+		style.Colors[ImGuiCol_MenuBarBg] = ImColor(20, 23, 26);
+
+		style.Colors[ImGuiCol_ScrollbarBg] = ImColor(19, 20, 24);
+		style.Colors[ImGuiCol_ScrollbarGrab] = ImColor(33, 36, 43);
+		style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImColor(81, 88, 105);
+		style.Colors[ImGuiCol_ScrollbarGrabActive] = ImColor(100, 109, 130);
+
+		style.Colors[ImGuiCol_Button] = ImColor(51, 56, 67);
+		style.Colors[ImGuiCol_Header] = ImColor(51, 56, 67);
+		style.Colors[ImGuiCol_HeaderHovered] = ImColor(56, 126, 210);
+		style.Colors[ImGuiCol_HeaderActive] = ImColor(66, 150, 250);
+
+		style.Colors[ImGuiCol_Tab] = ImColor(20, 23, 26);
+		style.Colors[ImGuiCol_TabActive] = ImColor(60, 133, 224);
+		style.Colors[ImGuiCol_TabHovered] = ImColor(66, 150, 250);
 	}
 	else if (ThemeColor::Grey == theme)
 	{
-		ImGui::StyleColorsDark();
+		ImGui::StyleColorsDark(&style);
 		colours[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 		colours[ImGuiCol_TextDisabled] = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
 		colours[ImGuiCol_ChildBg] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
@@ -741,44 +709,6 @@ void ImGuiContextInstance::SetImGuiThemeColor(ThemeColor theme)
 		colours[ImGuiCol_TabUnfocusedActive] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
 		colours[ImGuiCol_DockingPreview] = ImVec4(0.85f, 0.85f, 0.85f, 0.28f);
 	}
-	else if (ThemeColor::Light == theme)
-	{
-		ImGui::StyleColorsLight();
-		colours[ImGuiCol_Text] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
-		colours[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
-		colours[ImGuiCol_WindowBg] = ImVec4(0.94f, 0.94f, 0.94f, 0.94f);
-		colours[ImGuiCol_PopupBg] = ImVec4(1.00f, 1.00f, 1.00f, 0.94f);
-		colours[ImGuiCol_Border] = ImVec4(0.00f, 0.00f, 0.00f, 0.39f);
-		colours[ImGuiCol_BorderShadow] = ImVec4(1.00f, 1.00f, 1.00f, 0.10f);
-		colours[ImGuiCol_FrameBg] = ImVec4(1.00f, 1.00f, 1.00f, 0.94f);
-		colours[ImGuiCol_FrameBgHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
-		colours[ImGuiCol_FrameBgActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
-		colours[ImGuiCol_TitleBg] = ImVec4(0.96f, 0.96f, 0.96f, 1.00f);
-		colours[ImGuiCol_TitleBgCollapsed] = ImVec4(1.00f, 1.00f, 1.00f, 0.51f);
-		colours[ImGuiCol_TitleBgActive] = ImVec4(0.82f, 0.82f, 0.82f, 1.00f);
-		colours[ImGuiCol_MenuBarBg] = ImVec4(0.86f, 0.86f, 0.86f, 1.00f);
-		colours[ImGuiCol_ScrollbarBg] = ImVec4(0.98f, 0.98f, 0.98f, 0.53f);
-		colours[ImGuiCol_ScrollbarGrab] = ImVec4(0.69f, 0.69f, 0.69f, 1.00f);
-		colours[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.59f, 0.59f, 0.59f, 1.00f);
-		colours[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.49f, 0.49f, 0.49f, 1.00f);
-		colours[ImGuiCol_CheckMark] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-		colours[ImGuiCol_SliderGrab] = ImVec4(0.24f, 0.52f, 0.88f, 1.00f);
-		colours[ImGuiCol_SliderGrabActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-		colours[ImGuiCol_Button] = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
-		colours[ImGuiCol_ButtonHovered] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-		colours[ImGuiCol_ButtonActive] = ImVec4(0.06f, 0.53f, 0.98f, 1.00f);
-		colours[ImGuiCol_Header] = ImVec4(0.26f, 0.59f, 0.98f, 0.31f);
-		colours[ImGuiCol_HeaderHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
-		colours[ImGuiCol_HeaderActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-		colours[ImGuiCol_ResizeGrip] = ImVec4(1.00f, 1.00f, 1.00f, 0.50f);
-		colours[ImGuiCol_ResizeGripHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
-		colours[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
-		colours[ImGuiCol_PlotLines] = ImVec4(0.39f, 0.39f, 0.39f, 1.00f);
-		colours[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
-		colours[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
-		colours[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
-		colours[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
-	}
 
 	colours[ImGuiCol_Separator] = colours[ImGuiCol_TitleBg];
 	colours[ImGuiCol_SeparatorActive] = colours[ImGuiCol_Separator];
@@ -802,4 +732,270 @@ void ImGuiContextInstance::SetImGuiLanguage(Language language)
 	m_language = language;
 	Localization::SetLanguage(language);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////
+/// Events
+///////////////////////////////////////////////////////////////////////////////////////////
+void ImGuiContextInstance::AddInputEvents()
+{
+	// Reset
+	m_isAnyKeyDown = false;
+
+	// Don't push unnecessary events to ImGui. Or it will overflow its event queue to cause a time delay UI feedback.
+	// Why we don't use callback directly from native platform window? Because we have multiple imgui contexts to receive input events.
+	// And only the active imgui context can receive window messages. It sounds no problem but imgui context can switch during one frame multiple times.
+	// It is not safe to use event callback.
+	AddMouseInputEvents();
+	AddKeyboardInputEvents();
+}
+
+void ImGuiContextInstance::AddMouseInputEvents()
+{
+	ImGuiIO& io = GetIO();
+
+	// TODO : is this focus event for this context?
+	if (bool isFocused = Input::Get().IsFocused(); isFocused != m_lastFocused)
+	{
+		io.AddFocusEvent(isFocused);
+	}
+
+	float mousePosX = static_cast<float>(Input::Get().GetMousePositionX());
+	float mousePosY = static_cast<float>(Input::Get().GetMousePositionY());
+	if (IsViewportEnable())
+	{
+		// Multiple Viewports require screen space mouse coordinates.
+		mousePosX += m_rectPosX;
+		mousePosY += m_rectPosY;
+	}
+
+	// Filter mouse events outside of rect.
+	// TODO : should use focus to judge.
+	bool isInsideDisplayRect = IsInsideDisplayRect(mousePosX, mousePosY);
+	if (!isInsideDisplayRect)
+	{
+		return;
+	}
+
+	if (mousePosX != m_lastMousePositionX || mousePosY != m_lastMousePositionY)
+	{
+		io.AddMousePosEvent(mousePosX, mousePosY);
+	}
+
+	if (bool mouseLBPressed = Input::Get().IsMouseLBPressed(); m_lastMouseLBPressed != mouseLBPressed)
+	{
+		io.AddMouseButtonEvent(ImGuiMouseButton_Left, mouseLBPressed);
+	}
+
+	if (bool mouseMBPressed = Input::Get().IsMouseMBPressed(); m_lastMouseMBPressed != mouseMBPressed)
+	{
+		io.AddMouseButtonEvent(ImGuiMouseButton_Middle, mouseMBPressed);
+	}
+
+	if (bool mouseRBPressed = Input::Get().IsMouseRBPressed(); m_lastMouseRBPressed != mouseRBPressed)
+	{
+		io.AddMouseButtonEvent(ImGuiMouseButton_Right, mouseRBPressed);
+	}
+
+	if (float mouseScrollOffsetY = Input::Get().GetMouseScrollOffsetY(); mouseScrollOffsetY != m_lastMouseScrollOffstY)
+	{
+		io.AddMouseWheelEvent(0.0f, mouseScrollOffsetY);
+	}
+}
+
+void ImGuiContextInstance::AddKeyboardInputEvents()
+{
+	ImGuiIO& io = GetIO();
+
+	const std::vector<Input::KeyEvent> keyEvents = Input::Get().GetKeyEventList();
+	for (uint32_t i = 0; i < keyEvents.size(); ++i)
+	{
+		const Input::KeyEvent keyEvent = keyEvents[i];
+		if (keyEvent.mod != KeyMod::KMOD_NONE)
+		{
+			// Add the modifier key event
+			if (kImguiKeyModToImGuiModLookup.find(keyEvent.mod) != kImguiKeyModToImGuiModLookup.cend())
+			{
+				io.AddKeyEvent(kImguiKeyModToImGuiModLookup[keyEvent.mod], keyEvent.isPressed);
+				m_isAnyKeyDown = true;
+			}
+
+			// Also add the key itself as key event
+			if (kImguiKeyModToImGuiKeyLookup.find(keyEvent.mod) != kImguiKeyModToImGuiKeyLookup.cend())
+			{
+				io.AddKeyEvent(kImguiKeyModToImGuiKeyLookup[keyEvent.mod], keyEvent.isPressed);
+				m_isAnyKeyDown = true;
+			}
+		}
+
+		if (kImguiKeyLookup.find(keyEvent.code) != kImguiKeyLookup.cend())
+		{
+			io.AddKeyEvent(kImguiKeyLookup[keyEvent.code], keyEvent.isPressed);
+			m_isAnyKeyDown = true;
+		}
+	}
+
+	const char* inputChars = Input::Get().GetInputCharacters();
+	const size_t inputCharSize = strlen(inputChars);
+	for (size_t i = 0; i < inputCharSize; ++i)
+	{
+		io.AddInputCharacter(inputChars[i]);
+	}
+}
+
+void ImGuiContextInstance::PopulateEvents()
+{
+	ImGuiIO& io = GetIO();
+
+	// TODO : is this focus event for this context?
+	if (bool isFocused = Input::Get().IsFocused(); isFocused != m_lastFocused)
+	{
+		m_lastFocused = isFocused;
+	}
+
+	float mousePosX = static_cast<float>(Input::Get().GetMousePositionX());
+	float mousePosY = static_cast<float>(Input::Get().GetMousePositionY());
+	if (IsViewportEnable())
+	{
+		// Multiple Viewports require screen space mouse coordinates.
+		mousePosX += m_rectPosX;
+		mousePosY += m_rectPosY;
+	}
+
+	// Filter mouse events outside of rect.
+	bool isInsideDisplayRect = IsInsideDisplayRect(mousePosX, mousePosY);
+	if (isInsideDisplayRect != m_lastInsideDisplayRect)
+	{
+		if (isInsideDisplayRect)
+		{
+			OnMouseEnterDisplayRect.Invoke();
+		}
+		else
+		{
+			OnMouseLeaveDisplayRect.Invoke();
+		}
+
+		m_lastInsideDisplayRect = isInsideDisplayRect;
+	}
+
+	if (!isInsideDisplayRect)
+	{
+		return;
+	}
+
+	if (mousePosX != m_lastMousePositionX || mousePosY != m_lastMousePositionY)
+	{
+		m_lastMousePositionX = mousePosX;
+		m_lastMousePositionY = mousePosY;
+
+		OnMouseMove.Invoke(mousePosX, mousePosY);
+	}
+
+	bool isMouseDown = false;
+	bool isMouseUp = false;
+	if (bool mouseLBPressed = Input::Get().IsMouseLBPressed(); m_lastMouseLBPressed != mouseLBPressed)
+	{
+		m_lastMouseLBPressed = mouseLBPressed;
+		isMouseDown = mouseLBPressed;
+		isMouseUp = !mouseLBPressed;
+	}
+
+	if (bool mouseMBPressed = Input::Get().IsMouseMBPressed(); m_lastMouseMBPressed != mouseMBPressed)
+	{
+		m_lastMouseMBPressed = mouseMBPressed;
+		isMouseDown = mouseMBPressed;
+		isMouseUp = !mouseMBPressed;
+	}
+
+	if (bool mouseRBPressed = Input::Get().IsMouseRBPressed(); m_lastMouseRBPressed != mouseRBPressed)
+	{
+		m_lastMouseRBPressed = mouseRBPressed;
+		isMouseDown = mouseRBPressed;
+		isMouseUp = !mouseRBPressed;
+	}
+
+	if (isMouseDown)
+	{
+		OnMouseDown.Invoke(mousePosX, mousePosY);
+	}
+
+	if (isMouseUp)
+	{
+		OnMouseUp.Invoke(mousePosX, mousePosY);
+	}
+
+	if (float mouseScrollOffsetY = Input::Get().GetMouseScrollOffsetY(); mouseScrollOffsetY != m_lastMouseScrollOffstY)
+	{
+		OnMouseWheel.Invoke(mouseScrollOffsetY);
+		m_lastMouseScrollOffstY = mouseScrollOffsetY;
+	}
+
+	if (m_isAnyKeyDown)
+	{
+		OnKeyDown.Invoke();
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+/// Loop
+///////////////////////////////////////////////////////////////////////////////////////////
+void ImGuiContextInstance::BeginFrame()
+{
+	SwitchCurrentContext();
+}
+
+void ImGuiContextInstance::EndFrame()
+{
+	assert(IsActive());
+
+	if (IsViewportEnable())
+	{
+		ImGui::UpdatePlatformWindows();
+		ImGui::RenderPlatformWindowsDefault();
+	}
+}
+
+void ImGuiContextInstance::Update(float deltaTime)
+{
+	assert(IsActive());
+
+	auto& io = GetIO();
+
+	// It is necessary to pass correct deltaTime to ImGui underlaying framework because it will use the value to check
+	// something such as if mouse button double click happens(Two click event happens in one frame, < deltaTime).
+	io.DeltaTime = deltaTime;
+
+	if (IsViewportEnable())
+	{
+		UpdateMonitors();
+	}
+
+	AddInputEvents();
+	ImGui::NewFrame();
+	PopulateEvents();
+
+	for (const auto& pImGuiLayer : m_pImGuiStaticLayers)
+	{
+		pImGuiLayer->Update();
+	}
+
+	const bool dockingEnabled = io.ConfigFlags & ImGuiConfigFlags_DockingEnable;
+	if (dockingEnabled)
+	{
+		BeginDockSpace();
+	}
+
+	for (const auto& pImGuiLayer : m_pImGuiDockableLayers)
+	{
+		if (pImGuiLayer->IsEnable())
+		{
+			pImGuiLayer->Update();
+		}
+	}
+
+	if (dockingEnabled)
+	{
+		EndDockSpace();
+	}
+}
+
 }

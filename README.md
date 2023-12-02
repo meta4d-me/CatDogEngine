@@ -12,22 +12,22 @@
 
 ## Features
 
-* Basic Cross Platform Editor based on ImGui
-* Basic Entity/Component Framework
-* Basic Physically Based Rendering
-* Basic PostEffects
+* Animation
+  * BlendShape
+  * Skeleton
+* Atmospheric Scattering
+* Cross Platform Editor based on ImGui
+* Entity/Component Framework
+* Physically Based Rendering
+* PostEffects
    * Bloom
    * Exposure
    * Gamma Correction
    * Tone Mapping
-* Basic Scene Graph SDK
-* Standard Atmospheric Scattering
+* Scene Graph SDK
 
 ## Developing Features
 
-* Animation
-  * BlendShape 
-  * Skeletion
 * JobSystem
 * Modern RHI except bgfx
 * Particle System
