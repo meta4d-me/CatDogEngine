@@ -127,6 +127,11 @@ const MaterialComponent::TextureInfo* MaterialComponent::GetTextureInfo(cd::Mate
 	return &itTextureInfo->second;
 }
 
+const std::string& MaterialComponent::GetShaderProgramName() const
+{
+	return m_pMaterialType->GetShaderSchema().GetShaderProgramName();
+}
+
 void MaterialComponent::ActivateShaderFeature(ShaderFeature feature)
 {
 	if (ShaderFeature::DEFAULT == feature)
@@ -134,10 +139,7 @@ void MaterialComponent::ActivateShaderFeature(ShaderFeature feature)
 		return;
 	}
 
-	const auto& optConflict = m_pMaterialType->GetShaderSchema().GetConflictFeatureSet(feature);
-	assert(optConflict.has_value());
-
-	for (const auto& conflict : optConflict.value())
+	for (const auto& conflict : m_pMaterialType->GetShaderSchema().GetConflictFeatureSet(feature))
 	{
 		m_shaderFeatures.erase(conflict);
 	}
@@ -163,12 +165,8 @@ const std::string& MaterialComponent::GetFeaturesCombine()
 
 	m_featureCombine = m_pMaterialType->GetShaderSchema().GetFeaturesCombine(m_shaderFeatures);
 	m_isShaderFeatureDirty = false;
-	return m_featureCombine;
-}
 
-const std::string& MaterialComponent::GetProgramName() const
-{
-	return m_pMaterialType->GetShaderSchema().GetProgramName();
+	return m_featureCombine;
 }
 
 void MaterialComponent::Reset()
@@ -189,16 +187,6 @@ void MaterialComponent::Reset()
 	m_featureCombine.clear();
 	m_cacheTextureBlobs.clear();
 	m_textureResources.clear();
-}
-
-std::string MaterialComponent::GetVertexShaderName() const
-{
-	return std::filesystem::path(m_pMaterialType->GetShaderSchema().GetVertexShaderPath()).filename().string();
-}
-
-std::string MaterialComponent::GetFragmentShaderName() const
-{
-	return std::filesystem::path(m_pMaterialType->GetShaderSchema().GetFragmentShaderPath()).filename().string();
 }
 
 void MaterialComponent::AddTextureBlob(cd::MaterialTextureType textureType, cd::TextureFormat textureFormat, cd::TextureMapMode uMapMode, cd::TextureMapMode vMapMode,

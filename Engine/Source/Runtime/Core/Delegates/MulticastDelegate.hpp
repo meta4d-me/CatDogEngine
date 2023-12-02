@@ -53,7 +53,7 @@ public:
 
 	void Invoke(Args... args) const
 	{
-		for(const auto& delegate : m_delegates)
+		for (const auto& delegate : m_delegates)
 		{
 			delegate.Invoke(args...);
 		}

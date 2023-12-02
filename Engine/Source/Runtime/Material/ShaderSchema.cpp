@@ -10,13 +10,9 @@
 namespace engine
 {
 
-ShaderSchema::ShaderSchema(std::string progeamName, std::string vsPath, std::string fsPath)
+void ShaderSchema::SetShaderProgramName(std::string name)
 {
-	m_programName = cd::MoveTemp(progeamName);
-	m_vertexShaderPath = cd::MoveTemp(vsPath);
-	m_fragmentShaderPath = cd::MoveTemp(fsPath);
-
-	m_isDirty = false;
+	m_shaderProgramName = cd::MoveTemp(name);
 }
 
 void ShaderSchema::AddFeatureSet(ShaderFeatureSet featureSet)
@@ -98,10 +94,8 @@ void ShaderSchema::CleanAll()
 	m_shaderFeatureSets.clear();
 }
 
-const std::optional<ShaderFeatureSet> ShaderSchema::GetConflictFeatureSet(ShaderFeature feature) const
+const ShaderFeatureSet ShaderSchema::GetConflictFeatureSet(const ShaderFeature feature) const
 {
-	const auto& asd = m_shaderFeatureSets;
-
 	for (const auto& shaderFeatureSet : m_shaderFeatureSets)
 	{
 		if (shaderFeatureSet.find(feature) != shaderFeatureSet.end())
@@ -110,7 +104,7 @@ const std::optional<ShaderFeatureSet> ShaderSchema::GetConflictFeatureSet(Shader
 		}
 	}
 
-	return std::nullopt;
+	return ShaderFeatureSet{};
 }
 
 std::string ShaderSchema::GetFeaturesCombine(const ShaderFeatureSet& featureSet) const
@@ -121,7 +115,7 @@ std::string ShaderSchema::GetFeaturesCombine(const ShaderFeatureSet& featureSet)
 	}
 
 	std::stringstream ss;
-	// Use the option order in m_shaderFeatureSets to ensure that inputs in different orders can get the same optionsCrc.
+	// Use the option order in m_shaderFeatureSets to ensure that inputs in different orders can get a same StringCrc.
 	for (const auto& registeredSet : m_shaderFeatureSets)
 	{
 		// Ignore option which contain in parameter but not contain in m_shaderFeatureSets.

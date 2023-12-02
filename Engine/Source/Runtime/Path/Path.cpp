@@ -53,6 +53,11 @@ std::filesystem::path Path::GetPlatformAppDataPath(const char* pRootPath)
 #endif
 }
 
+std::string Path::Join(std::filesystem::path path)
+{
+    return path.generic_string();
+}
+
 std::filesystem::path Path::GetEngineBuiltinShaderPath()
 {
     return std::filesystem::path(CDENGINE_BUILTIN_SHADER_PATH);
@@ -142,12 +147,17 @@ bool Path::DirectoryExists(const char* pDirectoryPath)
 
 std::string Path::GetFileName(const char* pFilePath)
 {
-    return std::filesystem::path(pFilePath).filename().string();
+    return std::filesystem::path(pFilePath).filename().generic_string();
 }
 
 std::string Path::GetFileNameWithoutExtension(const char* pFilePath)
 {
-    return std::filesystem::path(pFilePath).stem().string();
+    return std::filesystem::path(pFilePath).stem().generic_string();
+}
+
+std::string Path::GetExtension(const char* pFilePath)
+{
+    return std::filesystem::path(pFilePath).extension().generic_string();
 }
 
 }

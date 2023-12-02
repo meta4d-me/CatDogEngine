@@ -54,9 +54,6 @@ constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MS
 
 void TerrainRenderer::Init()
 {
-	constexpr StringCrc programCrc = StringCrc("TerrainProgram");
-	GetRenderContext()->RegisterShaderProgram(programCrc, {"vs_terrain", "fs_terrain"});
-
 	bgfx::setViewName(GetViewID(), "TerrainRenderer");
 }
 
@@ -89,8 +86,6 @@ void TerrainRenderer::Warmup()
 	GetRenderContext()->CreateUniform(lightParams, bgfx::UniformType::Vec4, LightUniform::VEC4_COUNT);
 
 	GetRenderContext()->CreateTexture(elevationTexture, 129U, 129U, 1, bgfx::TextureFormat::Enum::R32F, samplerFlags, nullptr, 0);
-
-	GetRenderContext()->UploadShaderProgram("TerrainProgram");
 }
 
 void TerrainRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -106,8 +101,7 @@ void TerrainRenderer::Render(float deltaTime)
 	for (Entity entity : m_pCurrentSceneWorld->GetTerrainEntities())
 	{		
 		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
-		if (!pMaterialComponent ||
-			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetTerrainMaterialType())
+		if (!pMaterialComponent || pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetTerrainMaterialType())
 		{
 			// TODO : improve this condition. As we want to skip some feature-specified entities to render.
 			// For example, terrain/particle/...
@@ -216,7 +210,7 @@ void TerrainRenderer::Render(float deltaTime)
 
 		bgfx::setState(state);
 
-		GetRenderContext()->Submit(GetViewID(), "TerrainProgram");
+		GetRenderContext()->Submit(GetViewID(), pMaterialComponent->GetShaderProgramName());
 	}
 }
 

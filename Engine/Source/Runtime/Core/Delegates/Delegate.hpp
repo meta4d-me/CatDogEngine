@@ -76,7 +76,17 @@ public:
 	RetVal Invoke(Args... args) const
 	{
 		//assert(m_pProxyFunc != nullptr && "Cannot invoke unbound Delegate. Call Bind() first.");
-		return m_pProxyFunc ? m_pProxyFunc(m_pInstance, std::forward<Args>(args)...) : RetVal{};
+		if constexpr (std::is_same_v<RetVal, void>)
+		{
+			if (m_pProxyFunc != nullptr)
+			{
+				m_pProxyFunc(m_pInstance, std::forward<Args>(args)...);
+			}
+		}
+		else
+		{
+			return m_pProxyFunc != nullptr ? m_pProxyFunc(m_pInstance, std::forward<Args>(args)...) : RetVal{};
+		}
 	}
 
 private:
