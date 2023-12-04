@@ -108,6 +108,7 @@ project("Engine")
 		}
 
 		defines {
+			-- TODO : Remove _SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING after spdlog updates the format to the right version.
 			"SPDLOG_ENABLE", "SPDLOG_NO_EXCEPTIONS", "FMT_USE_NONTYPE_TEMPLATE_ARGS=0", "_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING",
 		}
 	end
