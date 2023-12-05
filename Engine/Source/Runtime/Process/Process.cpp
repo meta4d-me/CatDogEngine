@@ -1,10 +1,18 @@
 #ifdef ENABLE_SUBPROCESS
 
 #include "Process.h"
+
+#include "Base/NameOf.h"
 #include "Log/Log.h"
 
 namespace editor
 {
+
+enum class OutputType
+{
+	StdOut,
+	StdErr,
+};
 
 Process::Process(const char* pProcessName) :
 	m_processName(pProcessName)
@@ -55,7 +63,7 @@ void Process::Run()
 
 	// Read logs from process.
 	using SubProcessReadLogFunction = unsigned (*)(struct subprocess_s* const, char* const, unsigned);
-	auto PrintSubProcessLog = [](const char* pTagName, subprocess_s* const pSubProcess, SubProcessReadLogFunction readMethod)
+	auto PrintSubProcessLog = [](OutputType outputType, subprocess_s* const pSubProcess, SubProcessReadLogFunction readMethod)
 	{
 		static char processOutputData[65536] = { 0 };
 		uint32_t processOutputDataIndex = 0U;
@@ -70,13 +78,25 @@ void Process::Run()
 		if (processOutputDataIndex > 0U)
 		{
 			// Logs from child process's stdout maybe error info because many tool authors will use stdout to print rather than stderr.
-			CD_ENGINE_ERROR("{0}\n{1}", pTagName, processOutputData);
+			if (OutputType::StdOut == outputType)
+			{
+				CD_ENGINE_TRACE("{0}\n{1}", nameof::nameof_enum(OutputType::StdOut), processOutputData);
+			}
+			else if (OutputType::StdErr == outputType)
+			{
+				CD_ENGINE_ERROR("{0}\n{1}", nameof::nameof_enum(OutputType::StdErr), processOutputData);
+			}
 		}
 	};
 
 	if (m_printChildProcessLog)
 	{
-		PrintSubProcessLog("StdErr", m_pProcess.get(), subprocess_read_stderr);
+		PrintSubProcessLog(OutputType::StdOut, m_pProcess.get(), subprocess_read_stdout);
+	}
+
+	if (m_printChildProcessErrorLog)
+	{
+		PrintSubProcessLog(OutputType::StdErr, m_pProcess.get(), subprocess_read_stderr);
 	}
 
 	if (m_waitUntilFinished)

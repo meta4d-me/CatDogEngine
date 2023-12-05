@@ -55,7 +55,7 @@ public:
 	bool AddShaderBuildTask(engine::ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pShaderFeatures = "");
 	bool AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath);
 
-	void Update(bool doPrintLog = true);
+	void Update(bool doPrintErrorLog = true, bool doPrintLog = false);
 	size_t GetCurrentTaskCount() const { return m_buildTasks.size(); }
 	bool IsIdle() const { return m_buildTasks.empty(); }
 

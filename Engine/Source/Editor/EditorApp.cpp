@@ -107,7 +107,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 
 	std::thread resourceThread([]()
 	{
-		ResourceBuilder::Get().Update(true/*doPrintLog*/);
+		ResourceBuilder::Get().Update(true, false);
 	});
 	resourceThread.detach();
 
@@ -422,7 +422,7 @@ void EditorApp::CompileAndLoadShaders()
 	// 2. Load
 	if (!m_pRenderContext->GetShaderCompileTasks().empty())
 	{
-		ResourceBuilder::Get().Update(true);
+		ResourceBuilder::Get().Update(true, false);
 
 		for (auto& info : m_pRenderContext->GetShaderCompileTasks())
 		{

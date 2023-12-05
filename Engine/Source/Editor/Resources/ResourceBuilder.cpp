@@ -314,7 +314,7 @@ bool ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, c
 	return true;
 }
 
-void ResourceBuilder::Update(bool doPrintLog)
+void ResourceBuilder::Update(bool doPrintErrorLog, bool doPrintLog)
 {
 	if (m_buildTasks.empty())
 	{
@@ -327,6 +327,7 @@ void ResourceBuilder::Update(bool doPrintLog)
 		Process& process = m_buildTasks.front();
 		process.SetWaitUntilFinished(m_buildTasks.size() == 1);
 		process.SetPrintChildProcessLog(doPrintLog);
+		process.SetPrintChildProcessErrorLog(doPrintErrorLog);
 		process.Run();
 		m_buildTasks.pop();
 	}

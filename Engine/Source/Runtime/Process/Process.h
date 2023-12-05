@@ -23,6 +23,7 @@ public:
 	~Process();
 
 	void SetPrintChildProcessLog(bool doPrint) { m_printChildProcessLog = doPrint; }
+	void SetPrintChildProcessErrorLog(bool doPrint) { m_printChildProcessErrorLog = doPrint; }
 	void SetWaitUntilFinished(bool doWait) { m_waitUntilFinished = doWait; }
 	void SetCommandArguments(std::vector<std::string> arguments) { m_commandArguments = cd::MoveTemp(arguments); }
 	void SetEnvironments(std::vector<std::string> environments) { m_environments = cd::MoveTemp(environments); }
@@ -35,7 +36,9 @@ private:
 	std::vector<std::string> m_commandArguments;
 	std::vector<std::string> m_environments;
 	bool m_waitUntilFinished = false;
-	bool m_printChildProcessLog = true;
+
+	bool m_printChildProcessLog = false;
+	bool m_printChildProcessErrorLog = true;
 };
 
 }
