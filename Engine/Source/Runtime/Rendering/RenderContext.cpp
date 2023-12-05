@@ -215,6 +215,7 @@ bool RenderContext::OnShaderHotModified(const std::string& programName, const st
 	if (m_modifiedProgramNameCrcs.find(engine::StringCrc{ programName }) != m_modifiedProgramNameCrcs.end())
 	{
 		AddShaderCompileTask(engine::ShaderCompileInfo{ programName, featuresCombine });
+		// TODO : Move it after compile task done and check compile successful.
 		DestroyShaderProgram(programName, featuresCombine);
 
 		return true;
@@ -333,6 +334,11 @@ const RenderContext::ShaderBlob& RenderContext::GetShaderBlob(StringCrc shaderNa
 	return *m_shaderBlobs.at(shaderNameCrc).get();
 }
 
+bool RenderContext::IsShaderProgramValid(const std::string& programName, const std::string& featuresCombine) const
+{
+	return bgfx::isValid(GetShaderProgramHandle(programName, featuresCombine));
+}
+
 void RenderContext::SetShaderProgramHandle(const std::string& programName, bgfx::ProgramHandle handle, const std::string& featuresCombine)
 {
 	m_shaderProgramHandles[StringCrc{ programName + featuresCombine }] = handle.idx;
@@ -423,10 +429,23 @@ bgfx::ProgramHandle RenderContext::CreateProgram(const std::string& programName,
 		return { it->second };
 	}
 
-	bgfx::ShaderHandle vsHandle = CreateShader(vsName.c_str());
-	bgfx::ShaderHandle fsHandle = CreateShader(fsName.c_str(), featuresCombine);
-	bgfx::ProgramHandle programHandle = bgfx::createProgram(vsHandle, fsHandle);
+	// BGFX will return a valid ProgramHandle with valid VSHandle and invalid FSHandle.
 
+	bgfx::ShaderHandle vsHandle = CreateShader(vsName.c_str());
+	if (!bgfx::isValid(vsHandle))
+	{
+		DestoryShader(StringCrc{ vsName });
+		return bgfx::ProgramHandle{ bgfx::kInvalidHandle };
+	}
+
+	bgfx::ShaderHandle fsHandle = CreateShader(fsName.c_str(), featuresCombine);
+	if (!bgfx::isValid(fsHandle))
+	{
+		DestoryShader(StringCrc{ fsName + featuresCombine });
+		return bgfx::ProgramHandle{ bgfx::kInvalidHandle };
+	}
+	
+	bgfx::ProgramHandle programHandle = bgfx::createProgram(vsHandle, fsHandle);
 	if (bgfx::isValid(programHandle))
 	{
 		m_shaderProgramHandles[fullProgramNameCrc] = programHandle.idx;
@@ -450,7 +469,7 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pFilePath, uint64_t
 	std::ifstream fin(textureFileFullPath, std::ios::in | std::ios::binary);
 	if (!fin.is_open())
 	{
-		return bgfx::TextureHandle{bgfx::kInvalidHandle};
+		return bgfx::TextureHandle{ bgfx::kInvalidHandle };
 	}
 
 	fin.seekg(0L, std::ios::end);
@@ -471,7 +490,7 @@ bgfx::TextureHandle RenderContext::CreateTexture(const char* pFilePath, uint64_t
 	delete[] pRawData;
 	pRawData = nullptr;
 
-	bgfx::TextureHandle handle{bgfx::kInvalidHandle};
+	bgfx::TextureHandle handle{ bgfx::kInvalidHandle };
 	if (imageContainer->m_cubeMap)
 	{
 		handle = bgfx::createTextureCube(

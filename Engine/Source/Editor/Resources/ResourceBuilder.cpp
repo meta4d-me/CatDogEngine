@@ -113,7 +113,7 @@ ProcessStatus ResourceBuilder::CheckFileStatus(const char* pInputFilePath, const
 
 	if (!engine::Path::FileExists(pInputFilePath))
 	{
-		CD_ERROR("Input file path {0} does not exist!", pInputFilePath);
+		CD_ERROR("Input file path {0} does not exists!", pInputFilePath);
 		return ProcessStatus::InputNotExist;
 	}
 
@@ -135,12 +135,12 @@ ProcessStatus ResourceBuilder::CheckFileStatus(const char* pInputFilePath, const
 
 	if (!engine::Path::FileExists(pOutputFilePath))
 	{
-		CD_INFO("Output file path {0} dose not exist.", pOutputFilePath);
+		CD_INFO("Output file path {0} dose not exists.", pOutputFilePath);
 		return ProcessStatus::OutputNotExist;
 	}
 	else
 	{
-		CD_TRACE("Output file path {0} already exist.", pOutputFilePath);
+		CD_TRACE("Output file path {0} already exists.", pOutputFilePath);
 		return ProcessStatus::Stable;
 	}
 

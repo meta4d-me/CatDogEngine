@@ -93,6 +93,8 @@ public:
 	// Resource related apis
 	/////////////////////////////////////////////////////////////////////
 
+	bool IsShaderProgramValid(const std::string& programName, const std::string& featuresCombine = "") const;
+
 	void SetShaderProgramHandle(const std::string& programName, bgfx::ProgramHandle handle, const std::string& featuresCombine = "");
 	bgfx::ProgramHandle GetShaderProgramHandle(const std::string& programName, const std::string& featuresCombine = "") const;
 

@@ -186,7 +186,9 @@ void AnimationRenderer::Render(float deltaTime)
 		}
 
 		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
-		if (!pMaterialComponent || pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetAnimationMaterialType())
+		if (!pMaterialComponent ||
+			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetAnimationMaterialType() ||
+			!GetRenderContext()->IsShaderProgramValid(pMaterialComponent->GetShaderProgramName(), pMaterialComponent->GetFeaturesCombine()))
 		{
 			continue;
 		}

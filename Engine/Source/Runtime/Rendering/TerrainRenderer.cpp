@@ -101,7 +101,9 @@ void TerrainRenderer::Render(float deltaTime)
 	for (Entity entity : m_pCurrentSceneWorld->GetTerrainEntities())
 	{		
 		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
-		if (!pMaterialComponent || pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetTerrainMaterialType())
+		if (!pMaterialComponent ||
+			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetTerrainMaterialType() ||
+			!GetRenderContext()->IsShaderProgramValid(pMaterialComponent->GetShaderProgramName(), pMaterialComponent->GetFeaturesCombine()))
 		{
 			// TODO : improve this condition. As we want to skip some feature-specified entities to render.
 			// For example, terrain/particle/...
