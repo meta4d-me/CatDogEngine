@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "Math/Quaternion.hpp"
+#include "Math/Transform.hpp"
 
 void TestVector()
 {
@@ -212,6 +213,16 @@ void TestVector()
 	}
 }
 
+void TestMatrix()
+{
+	cd::Quaternion rotationA = cd::Quaternion::FromPitchYawRoll(0.0f, 0.0f, 45.0f);
+	cd::Quaternion rotationB = cd::Quaternion::FromPitchYawRoll(10.0f, 10.0f, 10.0f);
+	
+	auto rot = rotationA * rotationB;
+	cd::Vec3f rot3f = rot.ToEulerAngles();
+	int a = 0;
+}
+
 void TestQuaternion()
 {
 	// test TQuaternion::Identity
@@ -312,8 +323,8 @@ void TestQuaternion()
 
 int main()
 {
-	TestVector();
-	TestQuaternion();
-
+	//TestVector();
+	//TestQuaternion();
+	TestMatrix();
 	return 0;
 }

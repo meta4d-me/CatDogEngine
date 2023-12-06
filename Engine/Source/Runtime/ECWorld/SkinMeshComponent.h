@@ -44,9 +44,9 @@ public:
 	void SetBoneGlobalMatrix(uint32_t index, const cd::Matrix4x4& boneChangeMatrix);
 	const cd::Matrix4x4& GetBoneGlobalMatrix(uint32_t index) { return m_boneGlobalMatrices[index]; }
 	const std::vector<cd::Matrix4x4>& GetBoneGlobalMatrices() const { return m_boneGlobalMatrices; }
-	uint32_t GetChangeBoneIndex() const { return m_changeBoneIndex; }
-	void SetChangeBoneIndex(uint32_t index) { m_changeBoneIndex = index; }
-	void ResetChangeBoneIndex() { m_changeBoneIndex = engine::INVALID_ENTITY; }
+	uint32_t GetChangeBoneIndex() const { return m_boneIndex; }
+	void SetChangeBoneIndex(uint32_t index) { m_boneIndex = index; }
+	void ResetChangeBoneIndex() { m_boneIndex = engine::INVALID_ENTITY; }
 
 	void SetBoneMatrix(uint32_t index, const cd::Matrix4x4& changeMatrix) { m_boneMatrices[index] = changeMatrix * m_boneMatrices[index]; }
 	const cd::Matrix4x4& GetBoneMatrix(uint32_t index) { return m_boneMatrices[index]; }
@@ -54,18 +54,26 @@ public:
 	cd::Matrix4x4& GetRootMatrix() { return m_curRootMatrix; }
 	void SetRootMatrix(const cd::Matrix4x4& rootMatrix) { m_curRootMatrix = rootMatrix; }
 
+	cd::Vec3f& GetRootPosition() { return m_rootPosition; }
+	void SetRootPosition(const cd::Vec3f& rootPosition) { m_rootPosition = rootPosition; }
+
+	cd::Quaternion& GetRootRotation() { return m_rootRotation; }
+	void SetRootRotation(const cd::Quaternion& rootRotation) { m_rootRotation = rootRotation; }
+
 	void Reset();
 	void Build();
 
 private:
 	//input
-	uint32_t m_changeBoneIndex = engine::INVALID_ENTITY;
+	uint32_t m_boneIndex = engine::INVALID_ENTITY;
 
 	//output
 	uint16_t m_boneVBH = UINT16_MAX;
 	uint16_t m_boneIBH = UINT16_MAX;
 	uint16_t m_boneMatricesUniform;
 
+	cd::Vec3f m_rootPosition = cd::Vec3f::Zero();
+	cd::Quaternion m_rootRotation = cd::Quaternion::Identity();
 	cd::Matrix4x4 m_curRootMatrix = cd::Matrix4x4::Identity();
 	std::vector<cd::Matrix4x4> m_boneGlobalMatrices;
 	std::vector<cd::Matrix4x4> m_boneMatrices;
