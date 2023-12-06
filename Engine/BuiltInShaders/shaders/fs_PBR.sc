@@ -44,5 +44,4 @@ void main()
 	gl_FragData[1] = vec4(emiColor, 1.0);
 	
 	// Post-processing will be used in the last pass.
-	
 }

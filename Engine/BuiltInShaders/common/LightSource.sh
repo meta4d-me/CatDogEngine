@@ -13,8 +13,9 @@ uniform mat4 u_lightViewProj;//[LIGHT_NUM]
 uniform vec4 u_bias;//[LIGHT_NUM]
 
 SAMPLER2D(s_texShadowMap, SHADOW_MAP_SLOT);
+SAMPLERCUBE(s_texCubeShadowMap, SHADOW_MAP_CUBE_SLOT);
 
-float CalculateShadow(vec3 fragPosWorldSpace, vec3 normal, vec3 lightDir)//add parameter : light index?
+float CalculateShadow(vec3 fragPosWorldSpace, vec3 normal, vec3 lightDir) // for directional light and spot light
 {
     // viewproj coordinate to light space
     vec4 fragPosLightSpace = mul(u_lightViewProj, vec4(fragPosWorldSpace, 1.0));
@@ -22,22 +23,65 @@ float CalculateShadow(vec3 fragPosWorldSpace, vec3 normal, vec3 lightDir)//add p
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     // Transform to [0,1] range
     projCoords = vec3(projCoords.x * 0.5 + 0.5, 0.5 - projCoords.y * 0.5, projCoords.z);
-    // Get depth of current fragment from light's perspective
+    //Get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
-    // Get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-	float closestDepth = texture2D(s_texShadowMap, projCoords.xy);
     // Calculate bias (based on depth map resolution and slope)
-    float bias = 0.002;
-    // Check whether current frag pos is in shadow
-
-	//return currentDepth;
+    float bias = max(0.02 * (1.0 - dot(normal, lightDir)), 0.002);
+	// PCF
+    float shadow = 0.0;
+    vec2 texelSize = 1 / bgfxTextureSize(s_texShadowMap, 0);
+	// Filter Size : 3x3 
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
+            float pcfDepth = texture2D(s_texShadowMap, projCoords.xy + vec2(x, y) * texelSize).x; 
+			shadow += step(pcfDepth, currentDepth - bias);      
+        }    
+    }
+    shadow /= 9.0;
 	
-	float shadow = step(closestDepth, currentDepth - bias);
-
 	if(projCoords.z > 1.0)
         shadow = 1.0;
 
     return shadow;
+}
+
+float CalculateCubeShadow(vec3 fragPosWorldSpace, vec3 lightPosWorldSpace, float far_plane) // for point light
+{
+	vec3 lightToFrag = fragPosWorldSpace - lightPosWorldSpace;
+	float currentDepth = length(lightToFrag);
+
+	// fix bias
+    float bias = 0.05;
+	
+	// pure hard shadow
+	/*
+	float closestDepth = textureCube(s_texCubeShadowMap, normalize(lightToFrag)).x;
+	closestDepth *= far_plane;
+	float shadow = step(closestDepth, currentDepth - bias);  
+	*/
+
+	// PCF shadow
+	float shadow = 0.0;
+	float samples = 5.0;
+	float totalOffset = 0.1;
+	float stepOffset = totalOffset / ((samples-1) * 0.5);
+	for(float x = -totalOffset; x <= totalOffset; x += stepOffset)
+	{
+    	for(float y = -totalOffset; y <= totalOffset; y += stepOffset)
+    	{
+        	for(float z = -totalOffset; z <= totalOffset; z += stepOffset)
+        	{
+				float closestDepth = textureCube(s_texCubeShadowMap, lightToFrag + vec3(x, y, z)).r; 
+				closestDepth *= far_plane;
+				shadow += step(closestDepth, currentDepth - bias); 
+			}
+		}
+	}
+	shadow /= (samples * samples * samples);
+
+	return shadow;
 }
 
 U_Light GetLightParams(int pointer) {
@@ -150,7 +194,9 @@ vec3 CalculatePointLight(U_Light light, Material material, vec3 worldPos, vec3 v
 	vec3 specularBRDF = Fre * NDF * Vis;
 	
 	vec3 KD = mix(1.0 - Fre, vec3_splat(0.0), material.metallic);
-	return (KD * diffuseBRDF + specularBRDF) * radiance * NdotL;
+
+	float shadow = CalculateCubeShadow(worldPos, light.position, light.range);
+	return (1 - shadow) * (KD * diffuseBRDF + specularBRDF) * radiance * NdotL;
 }
 
 // -------------------- Spot -------------------- //

@@ -101,6 +101,7 @@ public:
 	const std::vector<bgfx::FrameBufferHandle>& GetShadowMapFBs() const { return m_shadowMapFBs; }
 
 	void AddShadowMapTexture(bgfx::TextureHandle& shadowMapTexture) { m_shadowMapTextures.push_back(std::move(shadowMapTexture)); }
+	void AddShadowMapTexture(bgfx::TextureHandle&& shadowMapTexture) { m_shadowMapTextures.push_back(shadowMapTexture); }
 	void ClearShadowMapTexture() { for (auto shadowMapTexture : m_shadowMapTextures) bgfx::destroy(shadowMapTexture); m_shadowMapTextures.clear(); }
 	bool IsShadowMapTexturesValid() { return m_shadowMapTextures.empty() ? false : true; } //TODO: check all fb's validation
 	const std::vector<bgfx::TextureHandle>& GetShadowMapTexture() const { return m_shadowMapTextures; }

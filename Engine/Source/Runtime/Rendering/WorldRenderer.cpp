@@ -26,6 +26,7 @@ constexpr const char* cubeIrradianceSampler       = "s_texCubeIrr";
 constexpr const char* cubeRadianceSampler         = "s_texCubeRad";
 
 constexpr const char* shadowMapSampler = "s_texShadowMap";
+constexpr const char* cubeShadowMapSampler = "s_texCubeShadowMap";
 constexpr const char* lightViewProj = "u_lightViewProj";
 
 constexpr const char* lutTexture                  = "Textures/lut/ibl_brdf_lut.dds";
@@ -65,6 +66,7 @@ void WorldRenderer::Warmup()
 	GetRenderContext()->CreateUniform(cubeIrradianceSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(cubeRadianceSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(shadowMapSampler, bgfx::UniformType::Sampler);
+	GetRenderContext()->CreateUniform(cubeShadowMapSampler, bgfx::UniformType::Sampler);
 
 	GetRenderContext()->CreateUniform(lightViewProj, bgfx::UniformType::Mat4, 1);
 
@@ -231,45 +233,49 @@ void WorldRenderer::Render(float deltaTime)
 
 			constexpr StringCrc sceneRenderTarget("SceneRenderTarget");
 			const RenderTarget* pSceneRT = GetRenderContext()->GetRenderTarget(sceneRenderTarget);
-			bgfx::TextureHandle depthColorTextureHandle = lightComponent->GetShadowMapTexture().at(0);// pSceneRT->GetTextureHandle(1);
+			//bgfx::TextureHandle depthColorTextureHandle = lightComponent->GetShadowMapTexture().at(0);// pSceneRT->GetTextureHandle(1);
 
-			constexpr StringCrc shadowRenderTargetBlitDepthColor("ShadowRenderTargetBlitDepthColor");
-
-			bgfx::TextureHandle blitTargetDepthColorHandle = GetRenderContext()->GetTexture(shadowRenderTargetBlitDepthColor);
-			
-			bool buildSRV = false;
-			if (bgfx::isValid(blitTargetDepthColorHandle))
+			cd::LightType lightType = lightComponent->GetType();
+			if (cd::LightType::Point== lightType)
 			{
-				/*if (pSceneRT->GetWidth() != m_blitTextureWidth ||
-					pSceneRT->GetHeight() != m_blitTextureHeight)
+				constexpr StringCrc cubeShadowRenderTargetBlitDepthColor("CubeShadowRenderTargetBlitDepthColor");
+				bgfx::TextureHandle blitTargetDepthColorHandle = GetRenderContext()->GetTexture(cubeShadowRenderTargetBlitDepthColor);
+				uint16_t blitTextureSize = 1024U;
+				if (!bgfx::isValid(blitTargetDepthColorHandle))
 				{
-					bgfx::destroy(blitTargetDepthColorHandle);
-					buildSRV = true;
-				}*/
+					blitTargetDepthColorHandle = bgfx::createTextureCube(blitTextureSize, false, 1, bgfx::TextureFormat::R32F,
+						BGFX_TEXTURE_BLIT_DST | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
+					GetRenderContext()->SetTexture(cubeShadowRenderTargetBlitDepthColor, blitTargetDepthColorHandle);
+				}
+				for (uint16_t i = 0; i < 6; ++i) 
+				{
+					bgfx::TextureHandle depthColorTextureHandle = lightComponent->GetShadowMapTexture().at(i);
+					bgfx::blit(GetViewID(), blitTargetDepthColorHandle, 0, 0, 0, i, depthColorTextureHandle, 0, 0, 0, 0);
+					//bgfx::blit(GetViewID(), blitTargetDepthColorHandle, 0, 0, 0, i, depthColorTextureHandle, 0, 0, 0, i);
+				}
+				constexpr StringCrc cubeShadowMapSamplerCrc(cubeShadowMapSampler);
+				constexpr StringCrc shadowMapSamplerCrc(shadowMapSampler);
+				bgfx::setTexture(SHADOW_MAP_CUBE_SLOT, GetRenderContext()->GetUniform(cubeShadowMapSamplerCrc), blitTargetDepthColorHandle);
+				bgfx::setTexture(SHADOW_MAP_SLOT, GetRenderContext()->GetUniform(shadowMapSamplerCrc), bgfx::TextureHandle());
 			}
-			else
-			{
-				buildSRV = true;
+			else if (cd::LightType::Spot == lightType ||cd::LightType::Directional == lightType)
+			{	
+				bgfx::TextureHandle depthColorTextureHandle = lightComponent->GetShadowMapTexture().at(0);
+				constexpr StringCrc shadowRenderTargetBlitDepthColor("ShadowRenderTargetBlitDepthColor");
+				bgfx::TextureHandle blitTargetDepthColorHandle = GetRenderContext()->GetTexture(shadowRenderTargetBlitDepthColor);
+				if (!bgfx::isValid(blitTargetDepthColorHandle))
+				{
+					uint16_t blitTextureWidth = 1024U;
+					uint16_t blitTextureHeight = 1024U;
+
+					blitTargetDepthColorHandle = bgfx::createTexture2D(blitTextureWidth, blitTextureHeight, false, 1, bgfx::TextureFormat::D32F,
+						BGFX_TEXTURE_BLIT_DST | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
+					GetRenderContext()->SetTexture(shadowRenderTargetBlitDepthColor, blitTargetDepthColorHandle);
+				}
+				bgfx::blit(GetViewID(), blitTargetDepthColorHandle, 0, 0, depthColorTextureHandle);
+				constexpr StringCrc shadowMapSamplerCrc(shadowMapSampler);
+				bgfx::setTexture(SHADOW_MAP_SLOT, GetRenderContext()->GetUniform(shadowMapSamplerCrc), blitTargetDepthColorHandle);
 			}
-
-			if (buildSRV)
-			{
-				/*m_blitTextureWidth = pSceneRT->GetWidth();
-				m_blitTextureHeight = pSceneRT->GetHeight();*/
-
-				uint16_t blitTextureWidth = 1024U;// pSceneRT->GetWidth();
-				uint16_t blitTextureHeight = 1024U;// pSceneRT->GetHeight();
-
-				blitTargetDepthColorHandle = bgfx::createTexture2D(blitTextureWidth, blitTextureHeight, false, 1, bgfx::TextureFormat::D32F,
-					BGFX_TEXTURE_BLIT_DST | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP);
-				GetRenderContext()->SetTexture(shadowRenderTargetBlitDepthColor, blitTargetDepthColorHandle);
-			}
-
-			constexpr StringCrc shadowMapSamplerCrc(shadowMapSampler);
-			bgfx::blit(GetViewID(), blitTargetDepthColorHandle, 0, 0, depthColorTextureHandle);
-
-			bgfx::setTexture(SHADOW_MAP_SLOT, GetRenderContext()->GetUniform(shadowMapSamplerCrc), blitTargetDepthColorHandle);
-
 			constexpr StringCrc lightViewProjCrc(lightViewProj);
 			GetRenderContext()->FillUniform(lightViewProjCrc, lightComponent->GetLightViewProjMatrix().Begin(), 1);
 		}
