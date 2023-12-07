@@ -89,7 +89,7 @@ private:
 
 	void UpdateMaterials();
 	void CompileAndLoadShaders();
-	void ShaderCompileFailedCallback(uint32_t handle, std::span<const char> str);
+	void OnShaderCompileFailed(uint32_t handle, std::span<const char> str);
 
 	bool m_crtInputFocus = true;
 	bool m_preInputFocus = true;

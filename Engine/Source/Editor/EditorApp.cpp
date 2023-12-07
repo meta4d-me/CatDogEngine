@@ -415,7 +415,7 @@ void EditorApp::CompileAndLoadShaders()
 {
 	// 1. Compile
 	TaskOutputCallbacks cb;
-	cb.onErrorOutput.Bind<editor::EditorApp, &editor::EditorApp::ShaderCompileFailedCallback>(this);
+	cb.onErrorOutput.Bind<editor::EditorApp, &editor::EditorApp::OnShaderCompileFailed>(this);
 	ShaderBuilder::BuildShaderInfos(m_pRenderContext.get(), cd::MoveTemp(cb));
 
 	// 2. Load
@@ -433,7 +433,7 @@ void EditorApp::CompileAndLoadShaders()
 	}
 }
 
-void EditorApp::ShaderCompileFailedCallback(uint32_t handle, std::span<const char> str)
+void EditorApp::OnShaderCompileFailed(uint32_t handle, std::span<const char> str)
 {
 	auto& infos = m_pRenderContext->GetShaderCompileInfos();
 	auto it = infos.begin();
