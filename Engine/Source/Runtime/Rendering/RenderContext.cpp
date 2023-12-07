@@ -216,8 +216,6 @@ bool RenderContext::OnShaderHotModified(Entity entity, const std::string& progra
 	if (m_modifiedProgramNameCrcs.find(engine::StringCrc{ programName }) != m_modifiedProgramNameCrcs.end())
 	{
 		AddShaderCompileInfo(engine::ShaderCompileInfo{ entity, programName, featuresCombine });
-		// TODO : Move it after compile task done and check compile successful.
-		DestroyShaderProgram(programName, featuresCombine);
 
 		return true;
 	}

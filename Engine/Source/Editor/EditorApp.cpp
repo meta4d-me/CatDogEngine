@@ -425,6 +425,7 @@ void EditorApp::CompileAndLoadShaders()
 
 		for (const auto& info : m_pRenderContext->GetShaderCompileInfos())
 		{
+			m_pRenderContext->DestroyShaderProgram(info.m_programName, info.m_featuresCombine);
 			m_pRenderContext->UploadShaderProgram(info.m_programName, info.m_featuresCombine);
 		}
 
