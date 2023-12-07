@@ -189,7 +189,7 @@ void RenderContext::AddShaderFeature(StringCrc programNameCrc, std::string combi
 	m_pShaderCollections->AddFeatureCombine(programNameCrc, cd::MoveTemp(combine));
 }
 
-bool RenderContext::CheckShaderProgram(const std::string& programName, const std::string& featuresCombine)
+bool RenderContext::CheckShaderProgram(Entity entity, const std::string& programName, const std::string& featuresCombine)
 {
 	assert(m_pShaderCollections->IsProgramValid(StringCrc{ programName }));
 
@@ -199,7 +199,7 @@ bool RenderContext::CheckShaderProgram(const std::string& programName, const std
 		// whether the shader is compiled or not is unknown.
 		// The Combile Task will still be added to the queue and ResourceBuilder ensures that
 		// there is no duplication of compilation behavior.
-		AddShaderCompileTask(ShaderCompileInfo{ programName, featuresCombine });
+		AddShaderCompileInfo(ShaderCompileInfo{ entity, programName, featuresCombine });
 		m_pShaderCollections->AddFeatureCombine(StringCrc{ programName }, featuresCombine);
 
 		return true;
@@ -208,14 +208,14 @@ bool RenderContext::CheckShaderProgram(const std::string& programName, const std
 	return false;
 }
 
-bool RenderContext::OnShaderHotModified(const std::string& programName, const std::string& featuresCombine)
+bool RenderContext::OnShaderHotModified(Entity entity, const std::string& programName, const std::string& featuresCombine)
 {
 	assert(m_pShaderCollections->IsProgramValid(StringCrc{ programName }));
 
 	// m_modifiedProgramNameCrcs will be filled by callback function which bound to FileWatcher.
 	if (m_modifiedProgramNameCrcs.find(engine::StringCrc{ programName }) != m_modifiedProgramNameCrcs.end())
 	{
-		AddShaderCompileTask(engine::ShaderCompileInfo{ programName, featuresCombine });
+		AddShaderCompileInfo(engine::ShaderCompileInfo{ entity, programName, featuresCombine });
 		// TODO : Move it after compile task done and check compile successful.
 		DestroyShaderProgram(programName, featuresCombine);
 
@@ -228,7 +228,7 @@ bool RenderContext::OnShaderHotModified(const std::string& programName, const st
 void RenderContext::UploadShaderProgram(const std::string& programName, const std::string& featuresCombine)
 {
 	assert(m_pShaderCollections->IsProgramValid(StringCrc{ programName }));
-	
+
 	auto [vsName, fsName, csName] = IdentifyShaderTypes(m_pShaderCollections->GetShaders(StringCrc{ programName }));
 
 	if (featuresCombine.empty())
@@ -275,23 +275,23 @@ void RenderContext::DestroyShaderProgram(const std::string& programName, const s
 	DestoryShader(csCrc);
 }
 
-void RenderContext::AddShaderCompileTask(ShaderCompileInfo info)
+void RenderContext::AddShaderCompileInfo(ShaderCompileInfo info)
 {
-	if (m_shaderCompileTasks.find(info) == m_shaderCompileTasks.end())
+	if (m_shaderCompileInfos.find(info) == m_shaderCompileInfos.end())
 	{
 		CD_ENGINE_INFO("Shader compile task added for {0} with shader features : [{1}]", info.m_programName, info.m_featuresCombine);
-		m_shaderCompileTasks.insert(cd::MoveTemp(info));
+		m_shaderCompileInfos.insert(cd::MoveTemp(info));
 	}
 }
 
-void RenderContext::ClearShaderCompileTasks()
+void RenderContext::ClearShaderCompileInfos()
 {
-	m_shaderCompileTasks.clear();
+	m_shaderCompileInfos.clear();
 }
 
-void RenderContext::SetShaderCompileTasks(std::set<ShaderCompileInfo> tasks)
+void RenderContext::SetShaderCompileInfos(std::set<ShaderCompileInfo> tasks)
 {
-	m_shaderCompileTasks = cd::MoveTemp(tasks);
+	m_shaderCompileInfos = cd::MoveTemp(tasks);
 }
 
 void RenderContext::CheckModifiedProgram(std::string modifiedShaderName)

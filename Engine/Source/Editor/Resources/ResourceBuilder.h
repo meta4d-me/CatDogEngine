@@ -70,7 +70,7 @@ public:
 	TaskHandle AddRadianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath, TaskOutputCallbacks callbacks = {});
 	TaskHandle AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath, TaskOutputCallbacks callbacks = {});
 
-	void Update(bool doPrintErrorLog = true, bool doPrintLog = false);
+	void Update(bool doPrintLog = false, bool doPrintErrorLog = true);
 	uint32_t GetCurrentTaskCount() const;
 	bool IsIdle() const;
 

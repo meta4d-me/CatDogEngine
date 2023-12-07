@@ -337,7 +337,7 @@ TaskHandle ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureT
 	return AddTask(pProcess);
 }
 
-void ResourceBuilder::Update(bool doPrintErrorLog, bool doPrintLog)
+void ResourceBuilder::Update(bool doPrintLog, bool doPrintErrorLog)
 {
 	assert(m_numActiveTask == m_taskQueue.size());
 
