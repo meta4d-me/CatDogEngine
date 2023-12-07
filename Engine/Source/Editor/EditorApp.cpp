@@ -416,6 +416,7 @@ void EditorApp::CompileAndLoadShaders()
 	// 1. Compile
 	for (const auto& task : m_pRenderContext->GetShaderCompileTasks())
 	{
+		// TODO : callback function per task
 		ShaderBuilder::BuildShader(m_pRenderContext.get(), task);
 	}
 

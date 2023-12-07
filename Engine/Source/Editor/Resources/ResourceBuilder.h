@@ -5,6 +5,7 @@
 #include "Scene/MaterialTextureType.h"
 
 #include <chrono>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <queue>
@@ -26,13 +27,20 @@ enum class ProcessStatus : uint8_t
 
 class Process;
 
+using TaskHandle = uint32_t;
+
 // ResourceBuilder is used to create processes to build different resource types.
 // So it is OK to update in the main thread or work thread.
 // For resource build tasks which are using dll calls, it will be wrapped as a task to multithreading JobSystem.
 class ResourceBuilder final
 {
 public:
-	static constexpr uint8_t s_SkipStatus =
+	static constexpr uint32_t MaxTaskCount = 64;
+	static constexpr uint32_t InvalidHandle = MaxTaskCount;
+
+#define INVALID_TASK_HANDLE { InvalidHandle }
+
+	static constexpr uint8_t SkipStatus =
 		static_cast<uint8_t>(ProcessStatus::None) |
 		static_cast<uint8_t>(ProcessStatus::InputNotExist) |
 		static_cast<uint8_t>(ProcessStatus::Stable);
@@ -49,15 +57,15 @@ public:
 		return s_instance;
 	}
 
-	bool AddTask(Process process);
-	bool AddIrradianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
-	bool AddRadianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
-	bool AddShaderBuildTask(engine::ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pShaderFeatures = "");
-	bool AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath);
+	TaskHandle AddTask(Process* process);
+	TaskHandle AddShaderBuildTask(engine::ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pShaderFeatures = "");
+	TaskHandle AddIrradianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
+	TaskHandle AddRadianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
+	TaskHandle AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath);
 
 	void Update(bool doPrintErrorLog = true, bool doPrintLog = false);
-	size_t GetCurrentTaskCount() const { return m_buildTasks.size(); }
-	bool IsIdle() const { return m_buildTasks.empty(); }
+	uint32_t GetCurrentTaskCount() const;
+	bool IsIdle() const;
 
 private:
 	ResourceBuilder();
@@ -76,10 +84,12 @@ private:
 	ProcessStatus CheckFileStatus(const char* pInputFilePath, const char* pOutputFilePath);
 
 private:
-	std::queue<Process> m_buildTasks;
-	
-	std::unordered_map<std::string, long long> m_modifyTimeCache;
+	uint32_t m_numActiveTask;
+	std::array<TaskHandle, MaxTaskCount> m_handleList;
+	std::array<Process*, MaxTaskCount> m_tasks;
+	std::queue<TaskHandle> m_taskQueue;
 
+	std::unordered_map<std::string, long long> m_modifyTimeCache;
 	// We always access to fragment shader multiple times by using ubre options.
 	// So we can not update fragment shader's modify time every time we found it has been modified.
 	std::unordered_map<std::string, long long> m_newModifyTimeCache;

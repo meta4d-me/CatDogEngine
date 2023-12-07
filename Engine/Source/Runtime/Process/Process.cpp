@@ -84,6 +84,7 @@ void Process::Run()
 			}
 			else if (OutputType::StdErr == outputType)
 			{
+				// TODO : Call delegate here
 				CD_ENGINE_ERROR("{0}\n{1}", nameof::nameof_enum(OutputType::StdErr), processOutputData);
 			}
 		}

@@ -17,6 +17,13 @@ ResourceBuilder::ResourceBuilder()
 	{
 		ReadModifyCacheFile();
 	}
+
+	m_numActiveTask = 0;
+	for (uint32_t index = 0; index < MaxTaskCount; ++index)
+	{
+		m_handleList[index] = TaskHandle{ index };
+		m_tasks[index] = nullptr;
+	}
 }
 
 ResourceBuilder::~ResourceBuilder()
@@ -113,7 +120,7 @@ ProcessStatus ResourceBuilder::CheckFileStatus(const char* pInputFilePath, const
 
 	if (!engine::Path::FileExists(pInputFilePath))
 	{
-		CD_ERROR("Input file path {0} does not exists!", pInputFilePath);
+		CD_ERROR("Input file path {0} does not exist!", pInputFilePath);
 		return ProcessStatus::InputNotExist;
 	}
 
@@ -150,30 +157,42 @@ ProcessStatus ResourceBuilder::CheckFileStatus(const char* pInputFilePath, const
 }
 
 
-bool ResourceBuilder::AddTask(Process process)
+TaskHandle ResourceBuilder::AddTask(Process* pProcess)
 {
-	m_buildTasks.push(cd::MoveTemp(process));
-	return true;
+	if (m_numActiveTask >= MaxTaskCount)
+	{
+		CD_ERROR("Exceeding maximum number of tasks!");
+		return INVALID_TASK_HANDLE;
+	}
+
+	assert(m_numActiveTask >= 0 && m_numActiveTask < MaxTaskCount);
+	TaskHandle handle = m_handleList[m_numActiveTask++];
+
+	assert(nullptr == m_tasks[handle]);
+	m_tasks[handle] = pProcess;
+
+	m_taskQueue.emplace(handle);
+
+	return handle;
 }
 
-bool ResourceBuilder::AddShaderBuildTask(engine::ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pShaderFeatures)
+TaskHandle ResourceBuilder::AddShaderBuildTask(engine::ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pShaderFeatures)
 {
-	if (s_SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
+	if (SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
 	{
-		return false;
+		return INVALID_TASK_HANDLE;
 	}
 
 	// Document : https://bkaradzic.github.io/bgfx/tools.html#shader-compiler-shaderc
-	std::string cmftExePath = CDENGINE_TOOL_PATH;
-	cmftExePath += "/shaderc";
-	Process process(cmftExePath.c_str());
 
 	std::filesystem::path shaderSourceFolderPath(pInputFilePath);
 	shaderSourceFolderPath = shaderSourceFolderPath.parent_path();
 	shaderSourceFolderPath += "/varying.def.sc";
-
-	std::vector<std::string> commandArguments{ "-f", pInputFilePath, "--varyingdef", shaderSourceFolderPath.string().c_str(),
-		"-o", pOutputFilePath, "-O", "3"};
+	std::vector<std::string> commandArguments{
+		"-f", pInputFilePath, "--varyingdef",
+		shaderSourceFolderPath.string().c_str(),
+		"-o", pOutputFilePath,
+		"-O", "3"};
 	
 	commandArguments.push_back("--platform");
 #if CD_PLATFORM_OSX
@@ -237,59 +256,53 @@ bool ResourceBuilder::AddShaderBuildTask(engine::ShaderType shaderType, const ch
 		commandArguments.push_back(shaderLanguageDefine + ";" + pShaderFeatures);
 	}
 
-	process.SetCommandArguments(cd::MoveTemp(commandArguments));
-	AddTask(cd::MoveTemp(process));
-
-	return true;
+	std::string cmftExePath = (std::filesystem::path(CDENGINE_TOOL_PATH) / "shaderc").generic_string();;
+	Process* pProcess = new Process(cmftExePath.c_str());
+	pProcess->SetCommandArguments(cd::MoveTemp(commandArguments));
+	return AddTask(pProcess);
 }
 
-bool ResourceBuilder::AddIrradianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath)
+TaskHandle ResourceBuilder::AddIrradianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath)
 {
-	if (s_SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
+	if (SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
 	{
-		return false;
+		return INVALID_TASK_HANDLE;
 	}
 
-	std::string cmftExePath = (std::filesystem::path(CDENGINE_TOOL_PATH) / "cmft").generic_string();
-	Process process(cmftExePath.c_str());
 	std::string pathWithoutExtension = std::filesystem::path(pOutputFilePath).replace_extension().generic_string();
-
 	std::vector<std::string> irradianceCommandArguments{"--input", pInputFilePath,
 		"--filter", "irradiance",
 		"--dstFaceSize", "256",
 		"--outputNum", "1", "--output0", cd::MoveTemp(pathWithoutExtension), "--output0params", "dds,rgba16f,cubemap"};
 
-	process.SetCommandArguments(cd::MoveTemp(irradianceCommandArguments));
-	AddTask(cd::MoveTemp(process));
-
-	return true;
+	std::string cmftExePath = (std::filesystem::path(CDENGINE_TOOL_PATH) / "cmft").generic_string();
+	Process* pProcess = new Process(cmftExePath.c_str());
+	pProcess->SetCommandArguments(cd::MoveTemp(irradianceCommandArguments));
+	return AddTask(pProcess);
 }
 
-bool ResourceBuilder::AddRadianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath)
+TaskHandle ResourceBuilder::AddRadianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath)
 {
-	if (s_SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
+	if (SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
 	{
-		return false;
+		return INVALID_TASK_HANDLE;
 	}
 
-	std::string cmftExePath = (std::filesystem::path(CDENGINE_TOOL_PATH) / "cmft").generic_string();
-	Process process(cmftExePath.c_str());
 	std::string pathWithoutExtension = std::filesystem::path(pOutputFilePath).replace_extension().generic_string();
-
 	std::vector<std::string> radianceCommandArguments{"--input", pInputFilePath,
 		"--filter", "radiance", "--lightingModel", "phongbrdf", "--excludeBase", "true", "--mipCount", "7",
 		"--dstFaceSize", "256",
 		"--outputNum", "1", "--output0", cd::MoveTemp(pathWithoutExtension), "--output0params", "dds,rgba16f,cubemap"};
 
-	process.SetCommandArguments(cd::MoveTemp(radianceCommandArguments));
-	AddTask(cd::MoveTemp(process));
-
-	return true;
+	std::string cmftExePath = (std::filesystem::path(CDENGINE_TOOL_PATH) / "cmft").generic_string();
+	Process* pProcess = new Process(cmftExePath.c_str());
+	pProcess->SetCommandArguments(cd::MoveTemp(radianceCommandArguments));
+	return AddTask(pProcess);
 }
 
-bool ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath)
+TaskHandle ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath)
 {
-	if (s_SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
+	if (SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
 	{
 		return false;
 	}
@@ -297,7 +310,7 @@ bool ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, c
 	// Document : https://bkaradzic.github.io/bgfx/tools.html#texture-compiler-texturec
 	std::string texturecExePath = CDENGINE_TOOL_PATH;
 	texturecExePath += "/texturec";
-	Process process(texturecExePath.c_str());
+	Process* pProcess = new Process(texturecExePath.c_str());
 
 	std::vector<std::string> commandArguments{ "-f", pInputFilePath, "-o", pOutputFilePath, "-t", "BC3", "--mips", "-q", "highest", "--max", "1024"};
 	if (cd::MaterialTextureType::Normal == textureType)
@@ -308,34 +321,60 @@ bool ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, c
 	{
 		commandArguments.push_back("--linear");
 	}
-	process.SetCommandArguments(cd::MoveTemp(commandArguments));
-	AddTask(cd::MoveTemp(process));
+	pProcess->SetCommandArguments(cd::MoveTemp(commandArguments));
+	AddTask(pProcess);
 
 	return true;
 }
 
 void ResourceBuilder::Update(bool doPrintErrorLog, bool doPrintLog)
 {
-	if (m_buildTasks.empty())
+	assert(m_numActiveTask == m_taskQueue.size());
+
+	if (0 == m_numActiveTask)
 	{
 		return;
 	}
 
 	// It may wait until process exited which depends on process's setting.
-	while (!m_buildTasks.empty())
+	while (!m_taskQueue.empty())
 	{
-		Process& process = m_buildTasks.front();
-		process.SetWaitUntilFinished(m_buildTasks.size() == 1);
-		process.SetPrintChildProcessLog(doPrintLog);
-		process.SetPrintChildProcessErrorLog(doPrintErrorLog);
-		process.Run();
-		m_buildTasks.pop();
-	}
+		TaskHandle handle = m_taskQueue.front();
 
-	if (m_buildTasks.empty())
+		Process* pProcess = m_tasks[handle];
+		assert(nullptr != pProcess);
+
+		pProcess->SetWaitUntilFinished(1 == m_taskQueue.size());
+		pProcess->SetPrintChildProcessLog(doPrintLog);
+		pProcess->SetPrintChildProcessErrorLog(doPrintErrorLog);
+		pProcess->Run();
+
+		delete pProcess;
+		m_tasks[handle] = nullptr;
+		m_taskQueue.pop();
+
+		m_handleList[--m_numActiveTask] = handle;
+	}
+	assert(m_numActiveTask == m_taskQueue.size());
+
+	if (m_taskQueue.empty())
 	{
 		WriteModifyCacheFile();
 	}
+}
+
+uint32_t ResourceBuilder::GetCurrentTaskCount() const
+{
+	assert(m_numActiveTask == m_taskQueue.size());
+
+	return m_numActiveTask;
+}
+
+bool ResourceBuilder::IsIdle() const
+{
+	assert(m_numActiveTask == m_taskQueue.size());
+
+	return (0 == m_numActiveTask);
 }
 
 bool ResourceBuilder::HasNewModifyTimeCache() const

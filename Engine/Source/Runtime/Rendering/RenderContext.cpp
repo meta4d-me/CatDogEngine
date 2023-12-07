@@ -212,6 +212,7 @@ bool RenderContext::OnShaderHotModified(const std::string& programName, const st
 {
 	assert(m_pShaderCollections->IsProgramValid(StringCrc{ programName }));
 
+	// m_modifiedProgramNameCrcs will be filled by callback function which bound to FileWatcher.
 	if (m_modifiedProgramNameCrcs.find(engine::StringCrc{ programName }) != m_modifiedProgramNameCrcs.end())
 	{
 		AddShaderCompileTask(engine::ShaderCompileInfo{ programName, featuresCombine });
