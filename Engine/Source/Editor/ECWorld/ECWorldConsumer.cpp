@@ -139,7 +139,7 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 	}
 
 	for (const auto& node : pSceneDatabase->GetNodes())
-	{ 
+	{
 		if (m_nodeMinID > node.GetID().Data())
 		{
 			continue;
@@ -401,11 +401,11 @@ void ECWorldConsumer::AddParticleEmitter(engine::Entity entity, const cd::Partic
 	//const cd::VertexFormat *requriredVertexFormat = emitter.GetVertexFormat();
 	//particleEmitterComponent.SetRequiredVertexFormat(requriredVertexFormat);
 	particleEmitterComponent.GetParticleSystem().Init();
-	if (emitter.GetType() == 2) { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Sprite); }
-	else if (emitter.GetType() == 3) { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Ribbon); }
-	else if (emitter.GetType() == 4) { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Ring); }
-	else if (emitter.GetType() == 5) { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Model); }
-	else if (emitter.GetType() == 6) { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Track); }
+	if (emitter.GetTypeName() == "Sprite") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Sprite); }
+	else if (emitter.GetTypeName() == "Ribbon") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Ribbon); }
+	else if (emitter.GetTypeName() == "Ring") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Ring); }
+	else if (emitter.GetTypeName() == "Model") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Model); }
+	else if (emitter.GetTypeName() == "Track") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Track); }
 
 	particleEmitterComponent.SetEmitterColor(emitter.GetColor()/255.0f);
 	particleEmitterComponent.SetEmitterVelocity(emitter.GetVelocity());

@@ -35,7 +35,7 @@ void ParticleRenderer::Render(float deltaTime)
 		// Emitter Setting
 		const cd::Transform& particleTransform = m_pCurrentSceneWorld->GetTransformComponent(entity)->GetTransform();
 		const cd::Quaternion& particleRotation = m_pCurrentSceneWorld->GetTransformComponent(entity)->GetTransform().GetRotation();
-		pEmitterComponent->GetParticleSystem().SetMaxCount(pEmitterComponent->GetParticleNum() * 4);
+		pEmitterComponent->GetParticleSystem().SetMaxCount(pEmitterComponent->GetParticleMaxCount() * engine::ParticleTypeVertexCount::SpriteVertexCount);
 		auto particleMaxCount = pEmitterComponent->GetParticleSystem().GetMaxCount();
 		pEmitterComponent->GetParticleSystem().SetType(pEmitterComponent->GetEmitterParticleType());
 		pEmitterComponent->GetParticleSystem().SetRandomState(pEmitterComponent->GetRandomVelocityState());

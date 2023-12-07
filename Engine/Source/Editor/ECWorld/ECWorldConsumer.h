@@ -24,10 +24,10 @@ class Material;
 class Mesh;
 class Morph;
 class Node;
+class ParticleEmitter;
 class SceneDatabase;
 class Texture;
 class VertexFormat;
-class ParticleEmitter;
 
 }
 

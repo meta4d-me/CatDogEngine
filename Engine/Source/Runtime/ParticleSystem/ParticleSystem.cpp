@@ -2,7 +2,9 @@
 #include <fstream>
 #include <random>
 
-void engine::ParticleSystem::AllocateParticleIndex()
+namespace engine
+{
+void ParticleSystem::AllocateParticleIndex()
 {
 	if (!m_freeParticleIndex.empty())
 	{
@@ -36,7 +38,7 @@ void engine::ParticleSystem::AllocateParticleIndex()
 	}
 }
 
-void engine::ParticleSystem::Reset(int index)
+void ParticleSystem::Reset(int index)
 {
 
 	m_pos[index] = cd::Vec3f(0.0f, 0.0f, 0.0f);
@@ -45,8 +47,8 @@ void engine::ParticleSystem::Reset(int index)
 	m_velocity[index] = cd::Vec3f(0.0f, 0.0f, 0.0f);
 	m_velocityXYZ[index] = cd::Vec3f(0.0f, 0.0f, 0.0f);
 	m_acceleration[index] = cd::Vec3f(0.0f, 0.0f, 0.0f);
-	
-	m_color[index] = cd::Vec4f{1.0f, 1.0f,1.0f,1.0f};
+
+	m_color[index] = cd::Vec4f{ 1.0f, 1.0f,1.0f,1.0f };
 
 	m_isActive[index] = false;
 	m_currentTime[index] = 0.0f;
@@ -55,7 +57,7 @@ void engine::ParticleSystem::Reset(int index)
 }
 
 
-bool engine::ParticleSystem::JudgeCurrentParticleLifeOver(int index)
+bool ParticleSystem::JudgeCurrentParticleLifeOver(int index)
 {
 	if (m_currentTime[index] >= m_lifeTime[index])
 	{
@@ -68,7 +70,7 @@ bool engine::ParticleSystem::JudgeCurrentParticleLifeOver(int index)
 	}
 }
 
-void engine::ParticleSystem::UpdateSprite(int index)
+void ParticleSystem::UpdateSprite(int index)
 {
 	if (GetRandomState() && index % engine::ParticleTypeVertexCount::SpriteVertexCount == 0)
 	{
@@ -113,23 +115,23 @@ void engine::ParticleSystem::UpdateSprite(int index)
 	}
 }
 
-void engine::ParticleSystem::UpdateRibbon(int index)
+void ParticleSystem::UpdateRibbon(int index)
 {
 }
 
-void engine::ParticleSystem::UpdateTrack(int index)
+void ParticleSystem::UpdateTrack(int index)
 {
 }
 
-void engine::ParticleSystem::UpdateRing(int index)
+void ParticleSystem::UpdateRing(int index)
 {
 }
 
-void engine::ParticleSystem::UpdateModel(int index)
+void ParticleSystem::UpdateModel(int index)
 {
 }
 
-void engine::ParticleSystem::Update(float deltaTime, int index)
+void ParticleSystem::Update(float deltaTime, int index)
 {
 	if (JudgeCurrentParticleLifeOver(index))
 	{
@@ -167,7 +169,7 @@ void engine::ParticleSystem::Update(float deltaTime, int index)
 	}
 }
 
-bool engine::ParticleSystem::UpdateActive(float deltaTime,int i)
+bool ParticleSystem::UpdateActive(float deltaTime, int i)
 {
 	if (!m_isActive[i])
 	{
@@ -186,7 +188,7 @@ bool engine::ParticleSystem::UpdateActive(float deltaTime,int i)
 	return true;
 }
 
-void engine::ParticleSystem::Init()
+void ParticleSystem::Init()
 {
 	m_pos.resize(m_particleMaxCount);
 	m_rotation.resize(m_particleMaxCount);
@@ -204,7 +206,7 @@ void engine::ParticleSystem::Init()
 
 
 
-void engine::ParticleSystem::SetMaxCount(int num)
+void ParticleSystem::SetMaxCount(int num)
 {
 	m_particleMaxCount = num;
 	//m_currentParticleCount = 0;
@@ -215,4 +217,6 @@ void engine::ParticleSystem::SetMaxCount(int num)
 	//{
 	//	Reset(i);
 	//}
+}
+
 }

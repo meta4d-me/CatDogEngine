@@ -636,7 +636,7 @@ void UpdateComponentWidget<engine::ParticleEmitterComponent>(engine::SceneWorld*
 	if (isOpen)
 	{
 		ImGuiUtils::ImGuiEnumProperty("Type", pParticleEmitterComponent->GetEmitterParticleType());
-		ImGuiUtils::ImGuiIntProperty("ParticleNum", pParticleEmitterComponent->GetParticleNum(),cd::Unit::None, 0, 300);
+		ImGuiUtils::ImGuiIntProperty("ParticleMaxCount", pParticleEmitterComponent->GetParticleMaxCount(),cd::Unit::None, 0, 300);
 		ImGuiUtils::ImGuiBoolProperty("RandomVelocity", pParticleEmitterComponent->GetRandomVelocityState());
 		if (pParticleEmitterComponent->GetRandomVelocityState())
 		{
@@ -647,7 +647,7 @@ void UpdateComponentWidget<engine::ParticleEmitterComponent>(engine::SceneWorld*
 		{
 			ImGuiUtils::ImGuiVectorProperty("Velocity", pParticleEmitterComponent->GetEmitterVelocity());
 		}
-		ImGuiUtils::ColorPickerProperty(" Color", pParticleEmitterComponent->GetEmitterColor());
+		ImGuiUtils::ColorPickerProperty("Color", pParticleEmitterComponent->GetEmitterColor());
 	}
 
 	ImGui::Separator();

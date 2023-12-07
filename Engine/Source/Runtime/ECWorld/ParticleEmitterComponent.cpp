@@ -1,7 +1,9 @@
 #include "ParticleEmitterComponent.h"
+
 #include "Rendering/Utility/VertexLayoutUtility.h"
 
 #include <limits>
+
 void engine::ParticleEmitterComponent::Build()
 {
 	//cd::VertexFormat	 vertexFormat;
