@@ -8,12 +8,6 @@
 namespace editor
 {
 
-enum class OutputType
-{
-	StdOut,
-	StdErr,
-};
-
 Process::Process(const char* pProcessName) :
 	m_processName(pProcessName)
 {
@@ -61,35 +55,6 @@ void Process::Run()
 		CD_ENGINE_TRACE("\tEnvironment {0}", environments[i]);
 	}
 
-	// Read logs from process.
-	using SubProcessReadLogFunction = unsigned (*)(struct subprocess_s* const, char* const, unsigned);
-	auto PrintSubProcessLog = [](OutputType outputType, subprocess_s* const pSubProcess, SubProcessReadLogFunction readMethod)
-	{
-		static char processOutputData[65536] = { 0 };
-		uint32_t processOutputDataIndex = 0U;
-		uint32_t processOutputDataReadBytes = 0U;
-
-		do
-		{
-			processOutputDataReadBytes = readMethod(pSubProcess, processOutputData + processOutputDataIndex, sizeof(processOutputData) - 1 - processOutputDataIndex);
-			processOutputDataIndex += processOutputDataReadBytes;
-		} while (processOutputDataReadBytes != 0U);
-
-		if (processOutputDataIndex > 0U)
-		{
-			// Logs from child process's stdout maybe error info because many tool authors will use stdout to print rather than stderr.
-			if (OutputType::StdOut == outputType)
-			{
-				CD_ENGINE_TRACE("{0}\n{1}", nameof::nameof_enum(OutputType::StdOut), processOutputData);
-			}
-			else if (OutputType::StdErr == outputType)
-			{
-				// TODO : Call delegate here
-				CD_ENGINE_ERROR("{0}\n{1}", nameof::nameof_enum(OutputType::StdErr), processOutputData);
-			}
-		}
-	};
-
 	if (m_printChildProcessLog)
 	{
 		PrintSubProcessLog(OutputType::StdOut, m_pProcess.get(), subprocess_read_stdout);
@@ -105,6 +70,35 @@ void Process::Run()
 		int processResult;
 		subprocess_join(m_pProcess.get(), &processResult);
 		CD_ENGINE_INFO("End process {0}", m_processName.c_str());
+	}
+}
+
+void Process::PrintSubProcessLog(OutputType outputType, subprocess_s* const pSubProcess, SubProcessReadLogFunction readMethod)
+{
+	static char processOutputData[65536] = { 0 };
+	uint32_t processOutputDataIndex = 0U;
+	uint32_t processOutputDataReadBytes = 0U;
+
+	do
+	{
+		processOutputDataReadBytes = readMethod(pSubProcess, processOutputData + processOutputDataIndex, sizeof(processOutputData) - 1 - processOutputDataIndex);
+		processOutputDataIndex += processOutputDataReadBytes;
+	}
+	while (processOutputDataReadBytes != 0U);
+
+	if (processOutputDataIndex > 0U)
+	{
+		// Logs from child process's stdout maybe error info because many tool authors will use stdout to print rather than stderr.
+		if (OutputType::StdOut == outputType)
+		{
+			CD_ENGINE_TRACE("{0}\n{1}", nameof::nameof_enum(OutputType::StdOut), processOutputData);
+			m_onOutput.Invoke(m_handle, processOutputData);
+		}
+		else if (OutputType::StdErr == outputType)
+		{
+			CD_ENGINE_ERROR("{0}\n{1}", nameof::nameof_enum(OutputType::StdErr), processOutputData);
+			m_onErrorOutput.Invoke(m_handle, processOutputData);
+		}
 	}
 }
 

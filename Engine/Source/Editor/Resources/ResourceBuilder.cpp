@@ -3,6 +3,7 @@
 #include "Base/Template.h"
 #include "Log/Log.h"
 #include "Path/Path.h"
+#include "Process/Process.h"
 #include "Time/Clock.h"
 
 #include <cassert>
@@ -168,6 +169,9 @@ TaskHandle ResourceBuilder::AddTask(Process* pProcess)
 	assert(m_numActiveTask >= 0 && m_numActiveTask < MaxTaskCount);
 	TaskHandle handle = m_handleList[m_numActiveTask++];
 
+	assert(nullptr != pProcess);
+	pProcess->SetHandle(handle);
+
 	assert(nullptr == m_tasks[handle]);
 	m_tasks[handle] = pProcess;
 
@@ -176,7 +180,7 @@ TaskHandle ResourceBuilder::AddTask(Process* pProcess)
 	return handle;
 }
 
-TaskHandle ResourceBuilder::AddShaderBuildTask(engine::ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pShaderFeatures)
+TaskHandle ResourceBuilder::AddShaderBuildTask(engine::ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pShaderFeatures, TaskOutputCallbacks callbacks)
 {
 	if (SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
 	{
@@ -259,10 +263,12 @@ TaskHandle ResourceBuilder::AddShaderBuildTask(engine::ShaderType shaderType, co
 	std::string cmftExePath = (std::filesystem::path(CDENGINE_TOOL_PATH) / "shaderc").generic_string();;
 	Process* pProcess = new Process(cmftExePath.c_str());
 	pProcess->SetCommandArguments(cd::MoveTemp(commandArguments));
+	pProcess->m_onOutput = cd::MoveTemp(callbacks.onOutput);
+	pProcess->m_onErrorOutput = cd::MoveTemp(callbacks.onErrorOutput);
 	return AddTask(pProcess);
 }
 
-TaskHandle ResourceBuilder::AddIrradianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath)
+TaskHandle ResourceBuilder::AddIrradianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath, TaskOutputCallbacks callbacks)
 {
 	if (SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
 	{
@@ -278,10 +284,12 @@ TaskHandle ResourceBuilder::AddIrradianceCubeMapBuildTask(const char* pInputFile
 	std::string cmftExePath = (std::filesystem::path(CDENGINE_TOOL_PATH) / "cmft").generic_string();
 	Process* pProcess = new Process(cmftExePath.c_str());
 	pProcess->SetCommandArguments(cd::MoveTemp(irradianceCommandArguments));
+	pProcess->m_onOutput = cd::MoveTemp(callbacks.onOutput);
+	pProcess->m_onErrorOutput = cd::MoveTemp(callbacks.onErrorOutput);
 	return AddTask(pProcess);
 }
 
-TaskHandle ResourceBuilder::AddRadianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath)
+TaskHandle ResourceBuilder::AddRadianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath, TaskOutputCallbacks callbacks)
 {
 	if (SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
 	{
@@ -297,14 +305,16 @@ TaskHandle ResourceBuilder::AddRadianceCubeMapBuildTask(const char* pInputFilePa
 	std::string cmftExePath = (std::filesystem::path(CDENGINE_TOOL_PATH) / "cmft").generic_string();
 	Process* pProcess = new Process(cmftExePath.c_str());
 	pProcess->SetCommandArguments(cd::MoveTemp(radianceCommandArguments));
+	pProcess->m_onOutput = cd::MoveTemp(callbacks.onOutput);
+	pProcess->m_onErrorOutput = cd::MoveTemp(callbacks.onErrorOutput);
 	return AddTask(pProcess);
 }
 
-TaskHandle ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath)
+TaskHandle ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath, TaskOutputCallbacks callbacks)
 {
 	if (SkipStatus & static_cast<uint8_t>(CheckFileStatus(pInputFilePath, pOutputFilePath)))
 	{
-		return false;
+		return INVALID_TASK_HANDLE;
 	}
 
 	// Document : https://bkaradzic.github.io/bgfx/tools.html#texture-compiler-texturec
@@ -322,9 +332,9 @@ TaskHandle ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureT
 		commandArguments.push_back("--linear");
 	}
 	pProcess->SetCommandArguments(cd::MoveTemp(commandArguments));
-	AddTask(pProcess);
-
-	return true;
+	pProcess->m_onOutput = cd::MoveTemp(callbacks.onOutput);
+	pProcess->m_onErrorOutput = cd::MoveTemp(callbacks.onErrorOutput);
+	return AddTask(pProcess);
 }
 
 void ResourceBuilder::Update(bool doPrintErrorLog, bool doPrintLog)

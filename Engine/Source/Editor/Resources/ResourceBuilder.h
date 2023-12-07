@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Process/Process.h"
+#include "Core/Delegates/Delegate.hpp"
 #include "Rendering/ShaderType.h"
 #include "Scene/MaterialTextureType.h"
 
@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <fstream>
 #include <queue>
+#include <span>
 #include <string>
 #include <unordered_map>
 
@@ -26,6 +27,12 @@ enum class ProcessStatus : uint8_t
 };
 
 class Process;
+
+struct TaskOutputCallbacks
+{
+	engine::Delegate<void(uint32_t handle, std::span<const char> str)> onOutput;
+	engine::Delegate<void(uint32_t handle, std::span<const char> str)> onErrorOutput;
+};
 
 using TaskHandle = uint32_t;
 
@@ -58,10 +65,10 @@ public:
 	}
 
 	TaskHandle AddTask(Process* process);
-	TaskHandle AddShaderBuildTask(engine::ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pShaderFeatures = "");
-	TaskHandle AddIrradianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
-	TaskHandle AddRadianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath);
-	TaskHandle AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath);
+	TaskHandle AddShaderBuildTask(engine::ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pShaderFeatures = "", TaskOutputCallbacks callbacks = {});
+	TaskHandle AddIrradianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath, TaskOutputCallbacks callbacks = {});
+	TaskHandle AddRadianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath, TaskOutputCallbacks callbacks = {});
+	TaskHandle AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath, TaskOutputCallbacks callbacks = {});
 
 	void Update(bool doPrintErrorLog = true, bool doPrintLog = false);
 	uint32_t GetCurrentTaskCount() const;
