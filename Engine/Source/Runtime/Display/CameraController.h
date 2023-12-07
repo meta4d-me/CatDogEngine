@@ -38,6 +38,8 @@ public:
 	void MoveRight(float amount);
 	void MoveUp(float amount);
 	void MoveDown(float amount);
+	void MoveFront(float amount);
+	void MoveBack(float amount);
 	void Rotate(const cd::Vec3f& axis, float angleDegrees);
 	void Rotate(float x, float y, float z, float angleDegrees);
 	void Yaw(float angleDegrees);
@@ -70,7 +72,9 @@ public:
 	void MoveToPosition(cd::Point position, cd::Vec3f lookAt);
 
 	// TODO : generic solution to process mouse / key input events for UI panels in different areas.
-	void SetIsInViewScene(bool isIn) { m_isInViewScene = isIn; }
+	void SetIsFirstClickInViewScene(bool isIn) { m_isFirstClickInViewScene = isIn; }
+
+	void SetIsMouseInViewScene(bool isIn) { m_isMouseInViewScene = isIn; }
 
 	bool GetViewIsMoved() { return m_isMouseMovedInView; }
 	
@@ -103,7 +107,8 @@ private:
 
 	bool m_isTracking = false;
 	bool m_isMoving = false;
-	bool m_isInViewScene = false;
+	bool m_isFirstClickInViewScene = false;
+	bool m_isMouseInViewScene = true;
 	bool m_isMouseMovedInView = false;
 };
 

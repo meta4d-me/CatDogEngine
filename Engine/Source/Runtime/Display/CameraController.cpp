@@ -163,13 +163,13 @@ void CameraController::Update(float deltaTime)
 				MoveRight(m_movementSpeed * deltaTime);
 			}
 
-			if (Input::Get().IsKeyPressed(KeyCode::e))
+			if (Input::Get().IsKeyPressed(KeyCode::q))
 			{
 				m_isTracking = false;
 				MoveDown(m_movementSpeed * deltaTime);
 			}
 
-			if (Input::Get().IsKeyPressed(KeyCode::q) && !m_isMoving)
+			if (Input::Get().IsKeyPressed(KeyCode::e) && !m_isMoving)
 			{
 				m_isTracking = false;
 				MoveUp(m_movementSpeed * deltaTime);
@@ -177,18 +177,25 @@ void CameraController::Update(float deltaTime)
 		}
 
 		
-		if (Input::Get().IsMouseRBPressed() && !m_isMoving)
+		if (Input::Get().IsMouseLBPressed() && !m_isMoving && m_isFirstClickInViewScene && !ImGuizmo::IsUsing())
 		{
 			m_isTracking = false;
+			MoveFront(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
 			Yaw(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
 		}
 
-		if (Input::Get().IsMouseLBPressed() && m_isInViewScene && !ImGuizmo::IsUsing())
+		if (Input::Get().IsMouseRBPressed() && !m_isMoving && m_isFirstClickInViewScene && !ImGuizmo::IsUsing())
 		{
 			m_isTracking = false;
 			PitchLocal(m_verticalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
 			Yaw(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
 		}
+		if (Input::Get().GetMouseScrollOffsetY() && !m_isMoving && m_isMouseInViewScene && !ImGuizmo::IsUsing())
+		{
+			m_isTracking = false;
+			MoveForward(m_movementSpeed * Input::Get().GetMouseScrollOffsetY() * deltaTime * 10.0f);
+		}
+
 	}
 }
 
@@ -259,6 +266,18 @@ void CameraController::MoveUp(float amount)
 void CameraController::MoveDown(float amount)
 {
 	MoveUp(-amount);
+}
+
+void CameraController::MoveFront(float amount)
+{
+	cd::Vec3f direction = cd::Vec3f(m_lookAt.x(), 0.0f, m_lookAt.z()).Normalize();
+	m_eye = m_eye - direction * amount;
+	ControllerToCamera();
+}
+
+void CameraController::MoveBack(float amount)
+{
+	MoveFront(-amount);
 }
 
 void CameraController::Rotate(const cd::Vec3f& axis, float angleDegrees)
