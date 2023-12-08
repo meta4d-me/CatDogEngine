@@ -64,7 +64,7 @@ public:
 		return s_instance;
 	}
 
-	TaskHandle AddTask(Process* process);
+	TaskHandle AddTask(std::unique_ptr<Process> pProcess);
 	TaskHandle AddShaderBuildTask(engine::ShaderType shaderType, const char* pInputFilePath, const char* pOutputFilePath, const char* pShaderFeatures = "", TaskOutputCallbacks callbacks = {});
 	TaskHandle AddIrradianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath, TaskOutputCallbacks callbacks = {});
 	TaskHandle AddRadianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath, TaskOutputCallbacks callbacks = {});
@@ -93,13 +93,13 @@ private:
 private:
 	uint32_t m_numActiveTask;
 	std::array<TaskHandle, MaxTaskCount> m_handleList;
-	std::array<Process*, MaxTaskCount> m_tasks;
+	std::array<std::unique_ptr<Process>, MaxTaskCount> m_tasks;
 	std::queue<TaskHandle> m_taskQueue;
 
-	std::unordered_map<std::string, long long> m_modifyTimeCache;
+	std::unordered_map<std::string, uint64_t> m_modifyTimeCache;
 	// We always access to fragment shader multiple times by using ubre options.
 	// So we can not update fragment shader's modify time every time we found it has been modified.
-	std::unordered_map<std::string, long long> m_newModifyTimeCache;
+	std::unordered_map<std::string, uint64_t> m_newModifyTimeCache;
 };
 
 }

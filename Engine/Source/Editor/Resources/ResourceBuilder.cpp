@@ -52,7 +52,7 @@ void ResourceBuilder::ReadModifyCacheFile()
 		{
 			std::string filePath = line.substr(0, pos);
 
-			long long timeStamp = std::stoll(line.substr(pos + 1));
+			uint64_t timeStamp = static_cast<uint64_t>(std::stoll(line.substr(pos + 1)));
 			m_modifyTimeCache[filePath] = timeStamp;
 		}
 	}
@@ -125,7 +125,7 @@ ProcessStatus ResourceBuilder::CheckFileStatus(const char* pInputFilePath, const
 		return ProcessStatus::InputNotExist;
 	}
 
-	auto crtTimeStamp = engine::Clock::FileTimePointToTimeStamp(std::filesystem::last_write_time(pInputFilePath));
+	uint64_t crtTimeStamp = static_cast<uint64_t>(engine::Clock::FileTimePointToTimeStamp(std::filesystem::last_write_time(pInputFilePath)));
 
 	if (m_modifyTimeCache.find(key) == m_modifyTimeCache.end())
 	{
@@ -143,7 +143,7 @@ ProcessStatus ResourceBuilder::CheckFileStatus(const char* pInputFilePath, const
 
 	if (!engine::Path::FileExists(pOutputFilePath))
 	{
-		CD_INFO("Output file path {0} dose not exists.", pOutputFilePath);
+		CD_INFO("Output file path {0} dose not exist.", pOutputFilePath);
 		return ProcessStatus::OutputNotExist;
 	}
 	else
@@ -158,7 +158,7 @@ ProcessStatus ResourceBuilder::CheckFileStatus(const char* pInputFilePath, const
 }
 
 
-TaskHandle ResourceBuilder::AddTask(Process* pProcess)
+TaskHandle ResourceBuilder::AddTask(std::unique_ptr<Process> pProcess)
 {
 	if (m_numActiveTask >= MaxTaskCount)
 	{
@@ -169,11 +169,11 @@ TaskHandle ResourceBuilder::AddTask(Process* pProcess)
 	assert(m_numActiveTask >= 0 && m_numActiveTask < MaxTaskCount);
 	TaskHandle handle = m_handleList[m_numActiveTask++];
 
-	assert(nullptr != pProcess);
+	assert(pProcess);
 	pProcess->SetHandle(handle);
 
-	assert(nullptr == m_tasks[handle]);
-	m_tasks[handle] = pProcess;
+	assert(!m_tasks[handle]);
+	m_tasks[handle] = std::move(pProcess);
 
 	m_taskQueue.emplace(handle);
 
@@ -260,12 +260,12 @@ TaskHandle ResourceBuilder::AddShaderBuildTask(engine::ShaderType shaderType, co
 		commandArguments.push_back(shaderLanguageDefine + ";" + pShaderFeatures);
 	}
 
-	std::string cmftExePath = (std::filesystem::path(CDENGINE_TOOL_PATH) / "shaderc").generic_string();;
-	Process* pProcess = new Process(cmftExePath.c_str());
+	std::string shadercPath = (std::filesystem::path(CDENGINE_TOOL_PATH) / "shaderc").generic_string();
+	std::unique_ptr<Process> pProcess = std::make_unique<Process>(shadercPath.c_str());
 	pProcess->SetCommandArguments(cd::MoveTemp(commandArguments));
 	pProcess->m_onOutput = cd::MoveTemp(callbacks.onOutput);
 	pProcess->m_onErrorOutput = cd::MoveTemp(callbacks.onErrorOutput);
-	return AddTask(pProcess);
+	return AddTask(std::move(pProcess));
 }
 
 TaskHandle ResourceBuilder::AddIrradianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath, TaskOutputCallbacks callbacks)
@@ -281,12 +281,12 @@ TaskHandle ResourceBuilder::AddIrradianceCubeMapBuildTask(const char* pInputFile
 		"--dstFaceSize", "256",
 		"--outputNum", "1", "--output0", cd::MoveTemp(pathWithoutExtension), "--output0params", "dds,rgba16f,cubemap"};
 
-	std::string cmftExePath = (std::filesystem::path(CDENGINE_TOOL_PATH) / "cmft").generic_string();
-	Process* pProcess = new Process(cmftExePath.c_str());
+	std::string cmftPath = (std::filesystem::path(CDENGINE_TOOL_PATH) / "cmft").generic_string();
+	std::unique_ptr<Process> pProcess = std::make_unique<Process>(cmftPath.c_str());
 	pProcess->SetCommandArguments(cd::MoveTemp(irradianceCommandArguments));
 	pProcess->m_onOutput = cd::MoveTemp(callbacks.onOutput);
 	pProcess->m_onErrorOutput = cd::MoveTemp(callbacks.onErrorOutput);
-	return AddTask(pProcess);
+	return AddTask(std::move(pProcess));
 }
 
 TaskHandle ResourceBuilder::AddRadianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath, TaskOutputCallbacks callbacks)
@@ -302,12 +302,12 @@ TaskHandle ResourceBuilder::AddRadianceCubeMapBuildTask(const char* pInputFilePa
 		"--dstFaceSize", "256",
 		"--outputNum", "1", "--output0", cd::MoveTemp(pathWithoutExtension), "--output0params", "dds,rgba16f,cubemap"};
 
-	std::string cmftExePath = (std::filesystem::path(CDENGINE_TOOL_PATH) / "cmft").generic_string();
-	Process* pProcess = new Process(cmftExePath.c_str());
+	std::string cmftPath = (std::filesystem::path(CDENGINE_TOOL_PATH) / "cmft").generic_string();
+	std::unique_ptr<Process> pProcess = std::make_unique<Process>(cmftPath.c_str());
 	pProcess->SetCommandArguments(cd::MoveTemp(radianceCommandArguments));
 	pProcess->m_onOutput = cd::MoveTemp(callbacks.onOutput);
 	pProcess->m_onErrorOutput = cd::MoveTemp(callbacks.onErrorOutput);
-	return AddTask(pProcess);
+	return AddTask(std::move(pProcess));
 }
 
 TaskHandle ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath, TaskOutputCallbacks callbacks)
@@ -318,10 +318,6 @@ TaskHandle ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureT
 	}
 
 	// Document : https://bkaradzic.github.io/bgfx/tools.html#texture-compiler-texturec
-	std::string texturecExePath = CDENGINE_TOOL_PATH;
-	texturecExePath += "/texturec";
-	Process* pProcess = new Process(texturecExePath.c_str());
-
 	std::vector<std::string> commandArguments{ "-f", pInputFilePath, "-o", pOutputFilePath, "-t", "BC3", "--mips", "-q", "highest", "--max", "1024"};
 	if (cd::MaterialTextureType::Normal == textureType)
 	{
@@ -331,10 +327,13 @@ TaskHandle ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureT
 	{
 		commandArguments.push_back("--linear");
 	}
+	
+	std::string texturecPath = (std::filesystem::path(CDENGINE_TOOL_PATH) / "texturec").generic_string();
+	std::unique_ptr<Process> pProcess = std::make_unique<Process>(texturecPath.c_str());
 	pProcess->SetCommandArguments(cd::MoveTemp(commandArguments));
 	pProcess->m_onOutput = cd::MoveTemp(callbacks.onOutput);
 	pProcess->m_onErrorOutput = cd::MoveTemp(callbacks.onErrorOutput);
-	return AddTask(pProcess);
+	return AddTask(std::move(pProcess));
 }
 
 void ResourceBuilder::Update(bool doPrintLog, bool doPrintErrorLog)
@@ -350,17 +349,15 @@ void ResourceBuilder::Update(bool doPrintLog, bool doPrintErrorLog)
 	while (!m_taskQueue.empty())
 	{
 		TaskHandle handle = m_taskQueue.front();
-
-		Process* pProcess = m_tasks[handle];
-		assert(nullptr != pProcess);
+		Process* pProcess = m_tasks[handle].get();
+		assert(pProcess);
 
 		pProcess->SetWaitUntilFinished(1 == m_taskQueue.size());
 		pProcess->SetPrintChildProcessLog(doPrintLog);
 		pProcess->SetPrintChildProcessErrorLog(doPrintErrorLog);
 		pProcess->Run();
 
-		delete pProcess;
-		m_tasks[handle] = nullptr;
+		m_tasks[handle].reset();
 		m_taskQueue.pop();
 
 		m_handleList[--m_numActiveTask] = handle;
