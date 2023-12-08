@@ -63,8 +63,10 @@ private:
 #else
 
 #include "Base/Template.h"
+#include "Core/Delegates/Delegate.hpp"
 
 #include <memory>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -89,6 +91,9 @@ public:
 	void SetCommandArguments(std::vector<std::string> arguments) {}
 	void SetEnvironments(std::vector<std::string> environments) {}
 	void Run() {}
+
+	engine::Delegate<void(uint32_t handle, std::span<const char> str)> m_onOutput;
+	engine::Delegate<void(uint32_t handle, std::span<const char> str)> m_onErrorOutput;
 };
 
 }
