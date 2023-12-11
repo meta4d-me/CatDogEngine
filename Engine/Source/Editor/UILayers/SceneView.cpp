@@ -340,10 +340,12 @@ void SceneView::Update()
 	if (ImGui::IsWindowHovered())
 	{
 		isMouseInsideSeneView = true;
+		m_pCameraController->SetIsMouseInViewScene(true);
 	}
 	else
 	{
 		isMouseInsideSeneView = false;
+		m_pCameraController->SetIsMouseInViewScene(false);
 	}
 	// Draw scene.
 	ImGui::Image(reinterpret_cast<ImTextureID>(m_pRenderTarget->GetTextureHandle(0).idx),
@@ -382,12 +384,12 @@ void SceneView::Update()
 		m_isMouseDownFirstTime = false;
 		if (isMouseInsideSeneView && !m_isTerrainEditMode)
 		{
-			m_pCameraController->SetIsInViewScene(true);
+			m_pCameraController->SetIsFirstClickInViewScene(true);
 			m_isMouseShow = false;
 		}
 		else
 		{
-			m_pCameraController->SetIsInViewScene(false);
+			m_pCameraController->SetIsFirstClickInViewScene(false);
 		}
 	}
 	else
