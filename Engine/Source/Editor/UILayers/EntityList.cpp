@@ -240,7 +240,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         //auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
         //meshComponent.SetMeshData(&mesh);
         particleEmitterComponent.SetRequiredVertexFormat(&pParticleMaterialType->GetRequiredVertexFormat());//to do : modify vertexFormat
-        particleEmitterComponent.GetParticleSystem().Init();
+       // particleEmitterComponent.GetParticleSystem().Init();
         particleEmitterComponent.Build();
     }
 }

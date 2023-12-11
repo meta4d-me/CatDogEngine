@@ -1,0 +1,36 @@
+#include "Particle.h"
+
+namespace engine
+{
+
+void Particle::Reset()
+{
+    m_particlePos = cd::Vec3f::Zero();
+    m_particleSpeed = cd::Vec3f::Zero();
+    m_particleSpeed = cd::Vec3f::Zero();
+
+    m_isActive = false;
+    m_currentTime = 0.0f;
+    m_lifeTime = 6.0f;
+
+    m_particleColor = cd::Vec4f::One();
+}
+
+void Particle::Update(float deltaTime)
+{
+    if (m_currentTime >= m_lifeTime)
+    {
+        m_isActive = false;
+        return;
+    }
+
+    m_particlePos.x() = m_particlePos.x() + m_particleSpeed.x() * deltaTime + 0.5f * m_particleAcceleration.x() * deltaTime * deltaTime;
+    m_particlePos.y() = m_particlePos.y() + m_particleSpeed.y() * deltaTime + 0.5f * m_particleAcceleration.y() * deltaTime * deltaTime;
+
+    m_particleSpeed.x() += m_particleAcceleration.x() * deltaTime;
+    m_particleSpeed.y() += m_particleAcceleration.y() * deltaTime;
+
+    m_currentTime += deltaTime;
+}
+
+}

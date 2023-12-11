@@ -385,30 +385,31 @@ void ECWorldConsumer::AddParticleEmitter(engine::Entity entity, const cd::Partic
 	auto& particleEmitterComponent = pWorld->CreateComponent<engine::ParticleEmitterComponent>(entity);
 	// TODO : Some initialization here.
 	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
-	cd::Vec3f pos = emitter.GetPosition();
-	cd::Vec3f rotation = emitter.GetFixedRotation();
-	cd::Vec3f scale = emitter.GetFixedScale();
-	auto fixedrotation = cd::Math::RadianToDegree(rotation);
-	cd::Quaternion rotationQuat = cd::Quaternion::FromPitchYawRoll(fixedrotation.x(), fixedrotation.y(), fixedrotation.z());
+	//cd::Vec3f pos = emitter.GetPosition();
+	//cd::Vec3f rotation = emitter.GetFixedRotation();
+	//cd::Vec3f scale = emitter.GetFixedScale();
+	//auto fixedrotation = cd::Math::RadianToDegree(rotation);
+	//cd::Quaternion rotationQuat = cd::Quaternion::FromPitchYawRoll(fixedrotation.x(), fixedrotation.y(), fixedrotation.z());
 	transformComponent.SetTransform(cd::Transform::Identity());
-	transformComponent.GetTransform().SetTranslation(pos);
-	transformComponent.GetTransform().SetRotation(rotationQuat);
-	transformComponent.GetTransform().SetScale(scale);
+	//transformComponent.GetTransform().SetTranslation(pos);
+	//transformComponent.GetTransform().SetRotation(rotationQuat);
+	//transformComponent.GetTransform().SetScale(scale);
 	transformComponent.Build();
 
 	engine::MaterialType* pMaterialType = m_pSceneWorld->GetParticleMaterialType();
 	particleEmitterComponent.SetRequiredVertexFormat(&pMaterialType->GetRequiredVertexFormat());
-	//const cd::VertexFormat *requriredVertexFormat = emitter.GetVertexFormat();
-	//particleEmitterComponent.SetRequiredVertexFormat(requriredVertexFormat);
-	particleEmitterComponent.GetParticleSystem().Init();
-	if (emitter.GetTypeName() == "Sprite") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Sprite); }
-	else if (emitter.GetTypeName() == "Ribbon") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Ribbon); }
-	else if (emitter.GetTypeName() == "Ring") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Ring); }
-	else if (emitter.GetTypeName() == "Model") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Model); }
-	else if (emitter.GetTypeName() == "Track") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Track); }
+	////const cd::VertexFormat *requriredVertexFormat = emitter.GetVertexFormat();
+	////particleEmitterComponent.SetRequiredVertexFormat(requriredVertexFormat);
+	////particleEmitterComponent.GetParticleSystem().Init();
+	//if (emitter.GetTypeName() == "Sprite") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Sprite); }
+	//else if (emitter.GetTypeName() == "Ribbon") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Ribbon); }
+	//else if (emitter.GetTypeName() == "Ring") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Ring); }
+	//else if (emitter.GetTypeName() == "Model") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Model); }
+	//else if (emitter.GetTypeName() == "Track") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Track); }
 
-	particleEmitterComponent.SetEmitterColor(emitter.GetColor()/255.0f);
-	particleEmitterComponent.SetEmitterVelocity(emitter.GetVelocity());
+	//particleEmitterComponent.SetEmitterColor(emitter.GetColor()/255.0f);
+	//particleEmitterComponent.SetEmitterVelocity(emitter.GetVelocity());
+	//particleEmitterComponent.SetEmitterAcceleration(emitter.GetAccelerate());
 	particleEmitterComponent.Build();
 }
 

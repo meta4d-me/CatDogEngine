@@ -4,6 +4,7 @@
 #include "ECWorld/TransformComponent.h"
 #include "Rendering/RenderContext.h"
 
+#include <Log/Log.h>
 namespace engine {
 
 void ParticleRenderer::Init()
@@ -31,36 +32,50 @@ void ParticleRenderer::Render(float deltaTime)
 {
 	for (Entity entity : m_pCurrentSceneWorld->GetParticleEmitterEntities())
 	{
-		engine::ParticleEmitterComponent* pEmitterComponent = m_pCurrentSceneWorld->GetParticleEmitterComponent(entity);
-		// Emitter Setting
 		const cd::Transform& particleTransform = m_pCurrentSceneWorld->GetTransformComponent(entity)->GetTransform();
 		const cd::Quaternion& particleRotation = m_pCurrentSceneWorld->GetTransformComponent(entity)->GetTransform().GetRotation();
-		pEmitterComponent->GetParticleSystem().SetMaxCount(pEmitterComponent->GetParticleMaxCount() * engine::ParticleTypeVertexCount::SpriteVertexCount);
-		auto particleMaxCount = pEmitterComponent->GetParticleSystem().GetMaxCount();
-		pEmitterComponent->GetParticleSystem().SetType(pEmitterComponent->GetEmitterParticleType());
-		pEmitterComponent->GetParticleSystem().SetRandomState(pEmitterComponent->GetRandomVelocityState());
-		pEmitterComponent->GetParticleSystem().SetTwoSideVelocity(pEmitterComponent->GetRandomVelocity());
+		ParticleEmitterComponent* pEmitterComponent = m_pCurrentSceneWorld->GetParticleEmitterComponent(entity);
+		int particleIndex = pEmitterComponent->GetParticlePool().AllocateParticleIndex();
+		if (particleIndex != -1)
+		{
+			Particle& particle = pEmitterComponent->GetParticlePool().GetParticle(particleIndex);
+			particle.SetPos(particleTransform.GetTranslation());
+			particle.SetSpeed(pEmitterComponent->GetEmitterVelocity());
+			particle.SetAcceleration(pEmitterComponent->GetEmitterAcceleration());
+			particle.SetColor(pEmitterComponent->GetEmitterColor());
+			particle.SetLifeTime(pEmitterComponent->GetLifeTime());
+		}
+
+		pEmitterComponent->GetParticlePool().Update(1.0f/60.0f);
+
+		//// Emitter Setting
+		//const cd::Transform& particleTransform = m_pCurrentSceneWorld->GetTransformComponent(entity)->GetTransform();
+		//const cd::Quaternion& particleRotation = m_pCurrentSceneWorld->GetTransformComponent(entity)->GetTransform().GetRotation();
+		//pEmitterComponent->GetParticleSystem().SetMaxCount(pEmitterComponent->GetParticleMaxCount() * engine::ParticleTypeVertexCount::SpriteVertexCount);
+		//auto particleMaxCount = pEmitterComponent->GetParticleSystem().GetMaxCount();
+		//pEmitterComponent->GetParticleSystem().SetType(pEmitterComponent->GetEmitterParticleType());
+		//pEmitterComponent->GetParticleSystem().SetRandomState(pEmitterComponent->GetRandomVelocityState());
+		//pEmitterComponent->GetParticleSystem().SetTwoSideVelocity(pEmitterComponent->GetRandomVelocity());
 	/*	float newAngle = particleTransform.GetRotation().Pitch();
-		auto a = cd::Math::DegreeToRadian(newAngle);
-		auto b = cd::Quaternion::RotateZ(a);
-		pEmitterComponent->GetParticleSystem().SetFront(b*pEmitterComponent->GetParticleSystem().GetFront());
+		//auto a = cd::Math::DegreeToRadian(newAngle);
+		//auto b = cd::Quaternion::RotateZ(a);
+		//pEmitterComponent->GetParticleSystem().SetFront(b*pEmitterComponent->GetParticleSystem().GetFront());
 		cd::Quaternion rotationQuat = cd::Quaternion::FromAxisAngle(pEmitterComponent->GetParticleSystem().GetFront(), particleTransform.GetRotation().Pitch());*/
 
 		//Every Pairticle Setting
-		for (int i = 0; i < particleMaxCount; ++i)
-		{
-			pEmitterComponent->GetParticleSystem().AllocateParticleIndex();
-			pEmitterComponent->GetParticleSystem().SetPos(particleTransform.GetTranslation());
-			pEmitterComponent->GetParticleSystem().SetVelocity(pEmitterComponent->GetEmitterVelocity());
-			pEmitterComponent->GetParticleSystem().SetScale(particleTransform.GetScale());
-		}
+		//for (int i = 0; i < particleMaxCount; ++i)
+		//{
+		//	pEmitterComponent->GetParticleSystem().AllocateParticleIndex();
+		//	pEmitterComponent->GetParticleSystem().SetEmitPos(particleTransform.GetTranslation());
+		//	pEmitterComponent->GetParticleSystem().SetVelocity(pEmitterComponent->GetEmitterVelocity());
+		//	pEmitterComponent->GetParticleSystem().SetScale(particleTransform.GetScale());
+		//}
 
 		//Update Particle Change
-		// One Tick Once     Every particle Once
-		for (int i = 0; i < particleMaxCount; ++i)
-		{
-			pEmitterComponent->GetParticleSystem().UpdateActive(deltaTime, i);
-		}
+		//for (int i = 0; i < particleMaxCount; ++i)
+		//{
+		//	pEmitterComponent->GetParticleSystem().UpdateActive(deltaTime, i);
+		//}
 
 		//Particle Data Submit
 		pEmitterComponent->PaddingVertexBuffer();
@@ -69,7 +84,7 @@ void ParticleRenderer::Render(float deltaTime)
 		//Particle Emitter Insta
 		const uint16_t instanceStride = 80;
 		// to total number of instances to draw
-		uint32_t totalSprites = pEmitterComponent->GetParticleSystem().GetMaxCount();
+		uint32_t totalSprites = 75;
 		uint32_t drawnSprites = bgfx::getAvailInstanceDataBuffer(totalSprites, instanceStride);
 
 		bgfx::InstanceDataBuffer idb;
@@ -83,9 +98,9 @@ void ParticleRenderer::Render(float deltaTime)
 			//bx::mtxRotateXY(mtx,0.0f, 0.0f);
 			bx::mtxRotateXYZ(mtx, particleRotation.Pitch(), particleRotation.Yaw(), particleRotation.Roll());
 			//bx::mtxRotateXYZ(mtx, 1.0f, 1.0f, 1.0f);
-			mtx[12] = pEmitterComponent->GetParticleSystem().GetPos(ii).x();
-			mtx[13] = pEmitterComponent->GetParticleSystem().GetPos(ii).y();
-			mtx[14] = pEmitterComponent->GetParticleSystem().GetPos(ii).z();
+			mtx[12] = pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().x();
+			mtx[13] = pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().y();
+			mtx[14] = pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().z();
 			float* color = (float*)&data[64];
 			color[0] = pEmitterComponent->GetEmitterColor().x();
 			color[1] = pEmitterComponent->GetEmitterColor().y();

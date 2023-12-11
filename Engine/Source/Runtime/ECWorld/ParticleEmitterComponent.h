@@ -4,7 +4,7 @@
 #include "Core/StringCrc.h"
 #include "Math/Vector.hpp"
 #include "Math/Transform.hpp"
-#include "ParticleSystem/ParticleSystem.h"
+#include "ParticleSystem/ParticlePool.h"
 #include "Scene/VertexFormat.h"
 
 namespace engine
@@ -26,25 +26,33 @@ public:
 	ParticleEmitterComponent& operator=(ParticleEmitterComponent&&) = default;
 	~ParticleEmitterComponent() = default;
 
-	engine::ParticleSystem &GetParticleSystem() { return m_particleSystem; }
+	//engine::ParticleSystem &GetParticleSystem() { return m_particleSystem; }
+	
+	ParticlePool& GetParticlePool() { return m_particlePool; }
 
 	int& GetParticleMaxCount() { return m_particleMaxCount; } // Sprite
 	void SetParticleMaxCount(int count) { m_particleMaxCount = count; } //Sprite
 
-	engine::ParticleType& GetEmitterParticleType() { return m_emitterparticletype; }
+	ParticleType& GetEmitterParticleType() { return m_emitterparticletype; }
 	void SetEmitterParticleType(engine::ParticleType type) { m_emitterparticletype = type; }
 
-	bool& GetRandomVelocityState() { return m_randomVelocityState; }
-	void SetRandomVelocityState(bool state) { m_randomVelocityState = state; }
+	//bool& GetRandomVelocityState() { return m_randomVelocityState; }
+	//void SetRandomVelocityState(bool state) { m_randomVelocityState = state; }
 
-	cd::Vec3f& GetRandomVelocity() { return m_randomVelocity; }
-	void SetRandomVelocity(cd::Vec3f velocity) { m_randomVelocity = velocity; }
+	//cd::Vec3f& GetRandomVelocity() { return m_randomVelocity; }
+	//void SetRandomVelocity(cd::Vec3f velocity) { m_randomVelocity = velocity; }
 
 	cd::Vec3f& GetEmitterVelocity() { return m_emitterVelocity; }
 	void SetEmitterVelocity(cd::Vec3f velocity) { m_emitterVelocity = velocity; }
+
+	cd::Vec3f& GetEmitterAcceleration() { return m_emitterAcceleration; }
+	void SetEmitterAcceleration(cd::Vec3f accleration) { m_emitterAcceleration = accleration; }
 	
 	cd::Vec4f& GetEmitterColor() { return m_emitterColor; }
 	void SetEmitterColor(cd::Vec4f fillcolor) { m_emitterColor = fillcolor; }
+
+	float& GetLifeTime() { return m_emitterLifeTime; }
+	void SetEmitterLifeTime(float lifetime) { m_emitterLifeTime = lifetime; }
 
 	uint16_t& GetParticleVertexBufferHandle(){ return m_particleVertexBufferHandle; }
 	uint16_t& GetParticleIndexBufferHandle() { return m_particleIndexBufferHandle; }
@@ -62,15 +70,23 @@ public:
 	void PaddingIndexBuffer();
 
 private:
-	ParticleSystem m_particleSystem;
+	//ParticleSystem m_particleSystem;
+	ParticlePool m_particlePool;
 
-	engine::ParticleType m_emitterparticletype = engine::ParticleType::Sprite;
+	engine::ParticleType m_emitterparticletype = ParticleType::Sprite;
 
-	int m_particleMaxCount = 10;
-	bool m_randomVelocityState;
-	cd::Vec3f m_randomVelocity;
-	cd::Vec3f m_emitterVelocity;
+	struct VertexData
+	{
+		cd::Vec3f pos;
+		cd::Vec4f color;
+		cd::UV     uv;
+	};
+
+	int m_particleMaxCount = 300;
+	cd::Vec3f m_emitterVelocity {20.0f,20.0f,0.0f};
+	cd::Vec3f m_emitterAcceleration;
 	cd::Vec4f m_emitterColor = cd::Vec4f::One();
+	float m_emitterLifeTime = 6.0f;
 
 	const cd::VertexFormat* m_pRequiredVertexFormat = nullptr;
 	std::vector<std::byte> m_particleVertexBuffer;
