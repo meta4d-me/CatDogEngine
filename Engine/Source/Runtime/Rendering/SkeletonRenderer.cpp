@@ -278,13 +278,16 @@ void CalculateTransform(std::vector<cd::Matrix4x4>& boneMatrices, const cd::Scen
 			{
 				float lastTrackTime = pTrack->GetTranslationKey(pTrack->GetTranslationKeyCount() - 1).GetTime();
 				cd::Matrix4x4 last = CalculateInterpolationTransform(pTrack, lastTrackTime);
-				cd::Matrix4x4 cur = CalculateInterpolationTransform(pTrack, time);
 				cd::Matrix4x4 first = CalculateInterpolationTransform(pTrack, 0.0f);
-				cd::Matrix4x4 deltaBoneTransform = first.Inverse() * curBoneLocalTransform * cur.Inverse() * last;
+				cd::Vec3f firstRoot = cd::Quaternion::FromMatrix(first.GetRotation()).ToEulerAngles();
+				cd::Vec3f lastRoot = cd::Quaternion::FromMatrix(last.GetRotation()).ToEulerAngles();
+				cd::Matrix4x4 deltaBoneTransform = first.Inverse() * curBoneLocalTransform;
 				curBoneGlobalMatrix = pSkinmeshConponent->GetRootMatrix() * deltaBoneTransform;
 			}
 				
 			time = animationTime;
+		/*	curBoneGlobalMatrix = curBoneLocalTransform;
+			pSkinmeshConponent->SetBoneGlobalMatrix(bone.GetID().Data(), curBoneGlobalMatrix);*/
 		}
 		else
 		{

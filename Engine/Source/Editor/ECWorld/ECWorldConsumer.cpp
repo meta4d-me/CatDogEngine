@@ -108,7 +108,7 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 	{
 		if (animationCount == 1)
 		{
-			return;
+			//return;
 		}
 		engine::Entity meshEntity = m_pSceneWorld->GetWorld()->CreateEntity();
 		AddTransform(meshEntity, tranform);
@@ -132,7 +132,7 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 			// TODO : Use a standalone .cdanim file to play animation.
 			// Currently, we assume that imported SkinMesh will play animation automatically for testing.
 			AddMaterial(meshEntity, nullptr, pMaterialType, pSceneDatabase);
-			AddAnimation(meshEntity, pSceneDatabase->GetAnimation(animationCount), pSceneDatabase);
+			AddAnimation(meshEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
 			animationCount++;
 			AddSkeleton(meshEntity, pSceneDatabase);
 		}
