@@ -23,7 +23,7 @@ ResourceBuilder::ResourceBuilder()
 	for (uint32_t index = 0; index < MaxTaskCount; ++index)
 	{
 		m_handleList[index] = TaskHandle{ index };
-		m_tasks[index] = nullptr;
+		m_tasks[index].reset();
 	}
 }
 
@@ -173,7 +173,7 @@ TaskHandle ResourceBuilder::AddTask(std::unique_ptr<Process> pProcess)
 	pProcess->SetHandle(handle);
 
 	assert(!m_tasks[handle]);
-	m_tasks[handle] = std::move(pProcess);
+	m_tasks[handle] = cd::MoveTemp(pProcess);
 
 	m_taskQueue.emplace(handle);
 
@@ -265,7 +265,7 @@ TaskHandle ResourceBuilder::AddShaderBuildTask(engine::ShaderType shaderType, co
 	pProcess->SetCommandArguments(cd::MoveTemp(commandArguments));
 	pProcess->m_onOutput = cd::MoveTemp(callbacks.onOutput);
 	pProcess->m_onErrorOutput = cd::MoveTemp(callbacks.onErrorOutput);
-	return AddTask(std::move(pProcess));
+	return AddTask(cd::MoveTemp(pProcess));
 }
 
 TaskHandle ResourceBuilder::AddIrradianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath, TaskOutputCallbacks callbacks)
@@ -286,7 +286,7 @@ TaskHandle ResourceBuilder::AddIrradianceCubeMapBuildTask(const char* pInputFile
 	pProcess->SetCommandArguments(cd::MoveTemp(irradianceCommandArguments));
 	pProcess->m_onOutput = cd::MoveTemp(callbacks.onOutput);
 	pProcess->m_onErrorOutput = cd::MoveTemp(callbacks.onErrorOutput);
-	return AddTask(std::move(pProcess));
+	return AddTask(cd::MoveTemp(pProcess));
 }
 
 TaskHandle ResourceBuilder::AddRadianceCubeMapBuildTask(const char* pInputFilePath, const char* pOutputFilePath, TaskOutputCallbacks callbacks)
@@ -307,7 +307,7 @@ TaskHandle ResourceBuilder::AddRadianceCubeMapBuildTask(const char* pInputFilePa
 	pProcess->SetCommandArguments(cd::MoveTemp(radianceCommandArguments));
 	pProcess->m_onOutput = cd::MoveTemp(callbacks.onOutput);
 	pProcess->m_onErrorOutput = cd::MoveTemp(callbacks.onErrorOutput);
-	return AddTask(std::move(pProcess));
+	return AddTask(cd::MoveTemp(pProcess));
 }
 
 TaskHandle ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureType, const char* pInputFilePath, const char* pOutputFilePath, TaskOutputCallbacks callbacks)
@@ -333,7 +333,7 @@ TaskHandle ResourceBuilder::AddTextureBuildTask(cd::MaterialTextureType textureT
 	pProcess->SetCommandArguments(cd::MoveTemp(commandArguments));
 	pProcess->m_onOutput = cd::MoveTemp(callbacks.onOutput);
 	pProcess->m_onErrorOutput = cd::MoveTemp(callbacks.onErrorOutput);
-	return AddTask(std::move(pProcess));
+	return AddTask(cd::MoveTemp(pProcess));
 }
 
 void ResourceBuilder::Update(bool doPrintLog, bool doPrintErrorLog)
