@@ -25,7 +25,7 @@ public:
 	static void CompileUberShaderAllVariants(engine::RenderContext* pRenderContext, engine::MaterialType* pMaterialType);
 
 	// Compile specified shader program/program variant.
-	static void BuildShader(engine::RenderContext* pRenderContext, const engine::ShaderCompileInfo& info);
+	static void BuildShaderInfos(engine::RenderContext* pRenderContext, TaskOutputCallbacks callbacks = {});
 };
 
 } // namespace editor
