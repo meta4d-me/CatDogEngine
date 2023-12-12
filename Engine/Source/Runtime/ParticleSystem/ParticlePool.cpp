@@ -20,7 +20,7 @@ int ParticlePool::AllocateParticleIndex()
 			m_currentParticleCount = 0;
 		}
 
-		if (m_partcles[m_currentParticleCount].isActive())
+		if (m_particles[m_currentParticleCount].isActive())
 		{
 			particleIndex = -1;
 		}
@@ -32,8 +32,8 @@ int ParticlePool::AllocateParticleIndex()
 
 	if (particleIndex != -1)
 	{
-		m_partcles[particleIndex].Reset();
-		m_partcles[particleIndex].Active();
+		m_particles[particleIndex].Reset();
+		m_particles[particleIndex].Active();
 	}
 
 	return particleIndex;
@@ -44,13 +44,13 @@ void ParticlePool::Update(float deltaTime)
 	m_currentActiveCount = 0;
 	for (int i = 0; i < m_maxParticleCount; ++i)
 	{
-		if (!m_partcles[i].isActive())
+		if (!m_particles[i].isActive())
 		{
 			continue;
 		}
 
-		m_partcles[i].Update(deltaTime);
-		if (!m_partcles[i].isActive())
+		m_particles[i].Update(deltaTime);
+		if (!m_particles[i].isActive())
 		{
 			m_freeParticleIndexes.push_back(i);
 		}

@@ -24,6 +24,7 @@ enum ParticleTypeVertexCount
     RingVertexCount,
     ModeVertexCountl
 };
+
 class Particle final
 {
 public:

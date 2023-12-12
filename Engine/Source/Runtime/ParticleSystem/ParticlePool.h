@@ -16,7 +16,6 @@ class ParticlePool final
 public:
 	ParticlePool() 
 	{
-		m_partcles = new Particle[m_maxParticleCount];
 		m_freeParticleIndexes.clear();
 		m_freeParticleIndexes.reserve(m_maxParticleCount);
 	}
@@ -24,10 +23,10 @@ public:
 	ParticlePool& operator=(const ParticlePool&) = default;
 	ParticlePool(ParticlePool&&) = default;
 	ParticlePool& operator=(ParticlePool&&) = default;
-	~ParticlePool() { delete[]  m_partcles; }
+	~ParticlePool() = default;
 
 	int AllocateParticleIndex();
-	Particle& GetParticle(int index) { return m_partcles[index]; }
+	Particle& GetParticle(int index) { return m_particles[index]; }
 	int& GetParticleCount() { return m_currentActiveCount; }
 	void Update(float deltaTime);
 
@@ -35,7 +34,7 @@ private:
 	int m_maxParticleCount = 75;
 	int m_currentActiveCount = 0;
 	int m_currentParticleCount = 0;
-	Particle* m_partcles;
+	Particle m_particles[75];
 	std::vector<int> m_freeParticleIndexes;
 };
 

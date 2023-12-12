@@ -4,7 +4,6 @@
 #include "ECWorld/TransformComponent.h"
 #include "Rendering/RenderContext.h"
 
-#include <Log/Log.h>
 namespace engine {
 
 void ParticleRenderer::Init()
