@@ -112,7 +112,7 @@ void engine::ParticleEmitterComponent::PaddingIndexBuffer()
 		const uint32_t indexTypeSize = useU16Index ? sizeof(uint16_t) : sizeof(uint32_t);
 		const int MAX_VERTEX_COUNT = 300;
 		int indexCount = MAX_VERTEX_COUNT;
-		const uint32_t indicesCount = MAX_VERTEX_COUNT * 6;
+		const uint32_t indicesCount = MAX_VERTEX_COUNT/engine::ParticleTypeVertexCount::SpriteVertexCount * 6;
 		m_particleIndexBuffer.resize(indicesCount * indexTypeSize);
 		///
 	/*	size_t indexTypeSize = sizeof(uint16_t);
