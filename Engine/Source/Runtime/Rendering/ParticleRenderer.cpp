@@ -1,3 +1,4 @@
+#include "Log/Log.h"
 #include "ParticleRenderer.h"
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/SceneWorld.h"
