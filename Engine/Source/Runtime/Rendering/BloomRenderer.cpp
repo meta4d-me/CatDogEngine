@@ -155,7 +155,7 @@ void BloomRenderer::Render(float deltaTime)
 	// capture
 	bgfx::setViewFrameBuffer(GetViewID(), m_sampleChainFB[0]);
 	bgfx::setViewRect(GetViewID(), 0, 0, m_width, m_height);
-	bgfx::setViewTransform(GetViewID(), nullptr, orthoMatrix.Begin());
+	bgfx::setViewTransform(GetViewID(), nullptr, orthoMatrix.begin());
 
 	constexpr StringCrc luminanceThresholdUniformName("u_luminanceThreshold");
 	bgfx::setUniform(GetRenderContext()->GetUniform(luminanceThresholdUniformName), &pCameraComponent->GetLuminanceThreshold());
@@ -190,7 +190,7 @@ void BloomRenderer::Render(float deltaTime)
 
 		bgfx::setViewFrameBuffer(m_startDowmSamplePassID + i, m_sampleChainFB[shift]);
 		bgfx::setViewRect(m_startDowmSamplePassID + i, 0, 0, m_width >> shift, m_height >> shift);
-		bgfx::setViewTransform(m_startDowmSamplePassID + i, nullptr, orthoMatrix.Begin());
+		bgfx::setViewTransform(m_startDowmSamplePassID + i, nullptr, orthoMatrix.begin());
 
 		constexpr StringCrc textureSizeUniformName("u_textureSize");
 		bgfx::setUniform(GetRenderContext()->GetUniform(textureSizeUniformName), pixelSize);
@@ -227,7 +227,7 @@ void BloomRenderer::Render(float deltaTime)
 
 		bgfx::setViewFrameBuffer(m_startUpSamplePassID + i, m_sampleChainFB[shift]);
 		bgfx::setViewRect(m_startUpSamplePassID + i, 0, 0, m_width >> shift, m_height >> shift);
-		bgfx::setViewTransform(m_startUpSamplePassID + i, nullptr, orthoMatrix.Begin());
+		bgfx::setViewTransform(m_startUpSamplePassID + i, nullptr, orthoMatrix.begin());
 
 		constexpr StringCrc textureSizeUniformName("u_textureSize");
 		bgfx::setUniform(GetRenderContext()->GetUniform(textureSizeUniformName), pixelSize);
@@ -253,7 +253,7 @@ void BloomRenderer::Render(float deltaTime)
 	// combine 
 	bgfx::setViewFrameBuffer(m_combinePassID, m_combineFB);
 	bgfx::setViewRect(m_combinePassID, 0, 0, m_width, m_height);
-	bgfx::setViewTransform(m_combinePassID, nullptr, orthoMatrix.Begin());
+	bgfx::setViewTransform(m_combinePassID, nullptr, orthoMatrix.begin());
 
 	constexpr StringCrc lightColorSampler("s_lightingColor");
 	bgfx::setTexture(0, GetRenderContext()->GetUniform(lightColorSampler), screenTextureHandle);
@@ -295,7 +295,7 @@ void BloomRenderer::Blur(uint16_t width, uint16_t height, int iteration, float b
 
 		bgfx::setViewFrameBuffer(verticalViewID, m_blurChainFB[0]);
 		bgfx::setViewRect(verticalViewID, 0, 0, width, height);
-		bgfx::setViewTransform(verticalViewID, nullptr, ortho.Begin());
+		bgfx::setViewTransform(verticalViewID, nullptr, ortho.begin());
 
 		constexpr StringCrc textureSizeUniformName("u_textureSize");
 		bgfx::setUniform(GetRenderContext()->GetUniform(textureSizeUniformName), pixelSize);
@@ -314,7 +314,7 @@ void BloomRenderer::Blur(uint16_t width, uint16_t height, int iteration, float b
 		// vertical
 		bgfx::setViewFrameBuffer(horizontalViewID, m_blurChainFB[1]);
 		bgfx::setViewRect(horizontalViewID, 0, 0, width, height);
-		bgfx::setViewTransform(horizontalViewID, nullptr, ortho.Begin());
+		bgfx::setViewTransform(horizontalViewID, nullptr, ortho.begin());
 
 		bgfx::setUniform(GetRenderContext()->GetUniform(textureSizeUniformName), pixelSize);
 

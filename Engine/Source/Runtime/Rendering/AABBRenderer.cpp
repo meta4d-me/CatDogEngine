@@ -42,7 +42,7 @@ void AABBRenderer::Render(float deltaTime)
 		if (auto* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 		{
 			pTransformComponent->Build();
-			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
+			bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 		}
 
 		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pCollisionMesh->GetVertexBuffer() });

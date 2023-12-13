@@ -918,14 +918,14 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 	{
 #ifdef ENABLE_GENERIC_PRODUCER
 		cdtools::GenericProducer genericProducer(pFilePath);
-		genericProducer.ActivateBoundingBoxService();
-		genericProducer.ActivateCleanUnusedService();
-		genericProducer.ActivateTangentsSpaceService();
-		genericProducer.ActivateTriangulateService();
-		genericProducer.ActivateSimpleAnimationService();
+		genericProducer.EnableOption(cdtools::GenericProducerOptions::GenerateBoundingBox);
+		genericProducer.EnableOption(cdtools::GenericProducerOptions::CleanUnusedObjects);
+		genericProducer.EnableOption(cdtools::GenericProducerOptions::GenerateTangentSpace);
+		genericProducer.EnableOption(cdtools::GenericProducerOptions::TriangulateModel);
+		genericProducer.EnableOption(cdtools::GenericProducerOptions::OnlyTransformAnimationKey);
 		if (!m_importOptions.ImportAnimation)
 		{
-			genericProducer.ActivateFlattenHierarchyService();
+			genericProducer.EnableOption(cdtools::GenericProducerOptions::FlattenTransformHierarchy);
 		}
 
 		cd::SceneDatabase newSceneDatabase;

@@ -194,7 +194,7 @@ void AnimationRenderer::Render(float deltaTime)
 		}
 
 		TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity);
-		bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
+		bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 
 		AnimationComponent* pAnimationComponent = m_pCurrentSceneWorld->GetAnimationComponent(entity);
 

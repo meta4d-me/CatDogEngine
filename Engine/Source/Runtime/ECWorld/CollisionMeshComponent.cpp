@@ -45,13 +45,13 @@ void CollisionMeshComponent::Build()
 		// position
 		const cd::Point& position = meshData.GetVertexPosition(vertexIndex);
 		constexpr uint32_t posDataSize = cd::Point::Size * sizeof(cd::Point::ValueType);
-		std::memcpy(&currentDataPtr[currentDataSize], position.Begin(), posDataSize);
+		std::memcpy(&currentDataPtr[currentDataSize], position.begin(), posDataSize);
 		currentDataSize += posDataSize;
 
 		// barycentric
 		//const cd::Vec4f& barycentricCoordinates = meshData.GetVertexColor(0U, vertexIndex);
 		//constexpr uint32_t bcDataSize = cd::Vec4f::Size * sizeof(cd::Vec4f::ValueType);
-		//std::memcpy(&currentDataPtr[currentDataSize], barycentricCoordinates.Begin(), bcDataSize);
+		//std::memcpy(&currentDataPtr[currentDataSize], barycentricCoordinates.begin(), bcDataSize);
 		//currentDataSize += bcDataSize;
 	}
 
