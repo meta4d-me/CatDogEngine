@@ -393,7 +393,7 @@ void ResourceBuilder::UpdateModifyTimeCache()
 {
 	for (auto& [filePath, fileTime] : m_newModifyTimeCache)
 	{
-		m_modifyTimeCache[cd::MoveTemp(filePath)] = cd::MoveTemp(fileTime);
+		m_modifyTimeCache[filePath] = fileTime;
 	}
 
 	m_newModifyTimeCache.clear();
