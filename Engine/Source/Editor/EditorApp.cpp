@@ -107,7 +107,7 @@ void EditorApp::Init(engine::EngineInitArgs initArgs)
 
 	std::thread resourceThread([]()
 	{
-		ResourceBuilder::Get().Update(true/*doPrintLog*/);
+		ResourceBuilder::Get().Update(false, true);
 	});
 	resourceThread.detach();
 
@@ -400,12 +400,12 @@ void EditorApp::UpdateMaterials()
 		const std::string& featuresCombine = pMaterialComponent->GetFeaturesCombine();
 
 		// New shader feature added, need to compile new variants.
-		m_pRenderContext->CheckShaderProgram(programName, featuresCombine);
+		m_pRenderContext->CheckShaderProgram(entity, programName, featuresCombine);
 
 		// Shader source files have been modified, need to re-compile existing variants.
 		if (m_crtInputFocus && !m_preInputFocus)
 		{
-			m_pRenderContext->OnShaderHotModified(programName, featuresCombine);
+			m_pRenderContext->OnShaderHotModified(entity, programName, featuresCombine);
 		}
 	}
 
@@ -418,22 +418,42 @@ void EditorApp::UpdateMaterials()
 void EditorApp::CompileAndLoadShaders()
 {
 	// 1. Compile
-	for (const auto& task : m_pRenderContext->GetShaderCompileTasks())
-	{
-		ShaderBuilder::BuildShader(m_pRenderContext.get(), task);
-	}
+	TaskOutputCallbacks cb;
+	cb.onErrorOutput.Bind<editor::EditorApp, &editor::EditorApp::OnShaderCompileFailed>(this);
+	ShaderBuilder::BuildShaderInfos(m_pRenderContext.get(), cd::MoveTemp(cb));
 
 	// 2. Load
-	if (!m_pRenderContext->GetShaderCompileTasks().empty())
+	if (!m_pRenderContext->GetShaderCompileInfos().empty())
 	{
-		ResourceBuilder::Get().Update(true);
+		ResourceBuilder::Get().Update(false, true);
 
-		for (auto& info : m_pRenderContext->GetShaderCompileTasks())
+		for (const auto& info : m_pRenderContext->GetShaderCompileInfos())
 		{
+			m_pRenderContext->DestroyShaderProgram(info.m_programName, info.m_featuresCombine);
 			m_pRenderContext->UploadShaderProgram(info.m_programName, info.m_featuresCombine);
 		}
 
-		m_pRenderContext->ClearShaderCompileTasks();
+		m_pRenderContext->ClearShaderCompileInfos();
+	}
+}
+
+void EditorApp::OnShaderCompileFailed(uint32_t handle, std::span<const char> str)
+{
+	auto& infos = m_pRenderContext->GetShaderCompileInfos();
+	auto it = infos.begin();
+
+	while (it != infos.end())
+	{
+		const auto& handles = it->m_taskHandles;
+		if (handles.find(handle) == handles.end())
+		{
+			// TODO : Change material color here.
+			it = infos.erase(it);
+		}
+		else
+		{
+			++it;
+		}
 	}
 }
 
@@ -705,8 +725,8 @@ bool EditorApp::Update(float deltaTime)
 		{
 			if (pRenderer->IsEnable())
 			{
-				const float* pViewMatrix = pMainCameraComponent->GetViewMatrix().Begin();
-				const float* pProjectionMatrix = pMainCameraComponent->GetProjectionMatrix().Begin();
+				const float* pViewMatrix = pMainCameraComponent->GetViewMatrix().begin();
+				const float* pProjectionMatrix = pMainCameraComponent->GetProjectionMatrix().begin();
 				pRenderer->UpdateView(pViewMatrix, pProjectionMatrix);
 				pRenderer->Render(deltaTime);
 			}

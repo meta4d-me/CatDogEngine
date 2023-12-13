@@ -49,8 +49,8 @@ void ImGuizmoView::Update()
 	ImGuiIO& io = ImGui::GetIO();
 	ImGuizmo::SetRect(0.0f, 0.0f, ImGui::GetIO().DisplaySize.x, io.DisplaySize.y);
 	cd::Matrix4x4 worldMatrix = pTransformComponent->GetWorldMatrix();
-	ImGuizmo::Manipulate(pCameraComponent->GetViewMatrix().Begin(), pCameraComponent->GetProjectionMatrix().Begin(),
-		operation, ImGuizmo::LOCAL, worldMatrix.Begin());
+	ImGuizmo::Manipulate(pCameraComponent->GetViewMatrix().begin(), pCameraComponent->GetProjectionMatrix().begin(),
+		operation, ImGuizmo::LOCAL, worldMatrix.begin());
 
 	if (ImGuizmo::IsUsing())
 	{

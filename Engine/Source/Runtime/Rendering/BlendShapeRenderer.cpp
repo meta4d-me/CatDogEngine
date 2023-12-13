@@ -150,7 +150,7 @@ void BlendShapeRenderer::Render(float deltaTime)
 		// Transform
 		if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 		{
-			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
+			bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 		}
 
 		uint16_t viewId = GetViewID();
@@ -259,14 +259,14 @@ void BlendShapeRenderer::Render(float deltaTime)
 
 		// Submit uniform values : material settings
 		constexpr StringCrc albedoColorCrc(albedoColor);
-		GetRenderContext()->FillUniform(albedoColorCrc, pMaterialComponent->GetAlbedoColor().Begin(), 1);
+		GetRenderContext()->FillUniform(albedoColorCrc, pMaterialComponent->GetAlbedoColor().begin(), 1);
 
 		constexpr StringCrc mrFactorCrc(metallicRoughnessFactor);
 		cd::Vec4f metallicRoughnessFactorData(pMaterialComponent->GetMetallicFactor(), pMaterialComponent->GetRoughnessFactor(), 1.0f, 1.0f);
-		GetRenderContext()->FillUniform(mrFactorCrc, metallicRoughnessFactorData.Begin(), 1);
+		GetRenderContext()->FillUniform(mrFactorCrc, metallicRoughnessFactorData.begin(), 1);
 
 		constexpr StringCrc emissiveColorCrc(emissiveColor);
-		GetRenderContext()->FillUniform(emissiveColorCrc, pMaterialComponent->GetEmissiveColor().Begin(), 1);
+		GetRenderContext()->FillUniform(emissiveColorCrc, pMaterialComponent->GetEmissiveColor().begin(), 1);
 
 		// Submit uniform values : light settings
 		auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();
@@ -274,7 +274,7 @@ void BlendShapeRenderer::Render(float deltaTime)
 		constexpr engine::StringCrc lightCountAndStrideCrc(lightCountAndStride);
 		static cd::Vec4f lightInfoData(0, LightUniform::LIGHT_STRIDE, 0.0f, 0.0f);
 		lightInfoData.x() = static_cast<float>(lightEntityCount);
-		GetRenderContext()->FillUniform(lightCountAndStrideCrc, lightInfoData.Begin(), 1);
+		GetRenderContext()->FillUniform(lightCountAndStrideCrc, lightInfoData.begin(), 1);
 		if (lightEntityCount > 0)
 		{
 			// Light component storage has continus memory address and layout.

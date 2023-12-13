@@ -145,21 +145,21 @@ static bool ImGuiVectorProperty(const char* pName, T& value, cd::Unit unit = cd:
 	float dragSpeed = (speed <= 0.0) ? (cd::Math::IsEqualToZero(delta) ? 1.0f : delta * 0.05f) : speed;
 	if constexpr (std::is_same<T, cd::Vec2f>())
 	{
-		if (ImGui::DragFloat2(pName, value.Begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
+		if (ImGui::DragFloat2(pName, value.begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
 		{
 			dirty = true;
 		}
 	}
 	else if constexpr (std::is_same<T, cd::Vec3f>())
 	{
-		if (ImGui::DragFloat3(pName, value.Begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
+		if (ImGui::DragFloat3(pName, value.begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
 		{
 			dirty = true;
 		}
 	}
 	else if constexpr (std::is_same<T, cd::Vec4f>())
 	{
-		if (ImGui::DragFloat4(pName, value.Begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
+		if (ImGui::DragFloat4(pName, value.begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
 		{
 			dirty = true;
 		}
@@ -201,7 +201,7 @@ static bool ImGuiTransformProperty(const char* pName, cd::Transform& value)
 	ImGui::NextColumn();
 	ImGui::PushItemWidth(-1);
 
-	if (ImGui::DragFloat3("##Scale", scale.Begin(), 0.1f, 0.001f, 999.0f))
+	if (ImGui::DragFloat3("##Scale", scale.begin(), 0.1f, 0.001f, 999.0f))
 	{
 		if (!cd::Math::IsEqualTo(scale.x(), originScale.x()))
 		{
@@ -263,8 +263,7 @@ static bool ImGuiTransformProperty(const char* pName, cd::Transform& value)
 	return dirty;
 }
 
-template<typename T>
-static void ColorPickerProperty(const char* Name, T& veccolor)
+static void ColorPickerProperty(const char* Name, cd::Vec3f& veccolor)
 {
 	static std::map<const char*, bool> showMap;
 	if (!showMap.count(Name))
@@ -283,19 +282,7 @@ static void ColorPickerProperty(const char* Name, T& veccolor)
 	ImGui::PushItemWidth(-1);
 	ImGui::SameLine();
 	ImGui::NextColumn();
-	if constexpr (std::is_same<T, cd::Vec3f>())
-	{
-		ImGui::DragFloat3("", veccolor.Begin(), 0, 0.0f, 1.0f);
-	}
-	else if (std::is_same<T, cd::Vec4f>())
-	{
-		ImGui::DragFloat4("", veccolor.Begin(), 0, 0.0f, 1.0f);
-	}
-	else
-	{
-		static_assert("Unsupported color data type for ImGuiColorPickerProperty.");
-	}
-	
+	ImGui::DragFloat3("", veccolor.begin(), 0, 0.0f, 1.0f);
 	ImGui::PopItemWidth();
 	if (showMap[Name])
 	{
@@ -307,14 +294,7 @@ static void ColorPickerProperty(const char* Name, T& veccolor)
 
 		ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
 		ImGui::Begin(Name, &showMap[Name], ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
-		if constexpr (std::is_same<T, cd::Vec3f>())
-		{
-			ImGui::ColorPicker3("Color Picker", veccolor.Begin());
-		}
-		else if constexpr (std::is_same<T, cd::Vec4f>())
-		{
-			ImGui::ColorPicker4("Color Picker",veccolor.Begin());
-		}
+		ImGui::ColorPicker3("Color Picker", veccolor.begin());
 		ImGui::End();
 	}
 	ImGui::Separator();
