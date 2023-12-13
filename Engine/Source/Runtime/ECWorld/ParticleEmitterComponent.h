@@ -30,8 +30,8 @@ public:
 	
 	ParticlePool& GetParticlePool() { return m_particlePool; }
 
-	int& GetParticleMaxCount() { return m_particleMaxCount; } // Sprite
-	void SetParticleMaxCount(int count) { m_particleMaxCount = count; } //Sprite
+	//int& GetParticleMaxCount() { return m_particleMaxCount; } // Sprite
+	//void SetParticleMaxCount(int count) { m_particleMaxCount = count; } //Sprite
 
 	ParticleType& GetEmitterParticleType() { return m_emitterparticletype; }
 	void SetEmitterParticleType(engine::ParticleType type) { m_emitterparticletype = type; }

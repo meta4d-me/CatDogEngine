@@ -61,4 +61,11 @@ void ParticlePool::Update(float deltaTime)
 	}
 }
 
+void ParticlePool::AllParticlesReset()
+{
+	m_particles.resize(m_maxParticleCount);
+	m_freeParticleIndexes.clear();
+	m_freeParticleIndexes.reserve(m_maxParticleCount);
+}
+
 }

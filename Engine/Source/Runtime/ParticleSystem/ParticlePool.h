@@ -14,11 +14,7 @@ namespace engine
 class ParticlePool final
 {
 public:
-	ParticlePool() 
-	{
-		m_freeParticleIndexes.clear();
-		m_freeParticleIndexes.reserve(m_maxParticleCount);
-	}
+	ParticlePool() = default;
 	ParticlePool(const ParticlePool&) = default;
 	ParticlePool& operator=(const ParticlePool&) = default;
 	ParticlePool(ParticlePool&&) = default;
@@ -27,14 +23,17 @@ public:
 
 	int AllocateParticleIndex();
 	Particle& GetParticle(int index) { return m_particles[index]; }
-	int& GetParticleCount() { return m_currentActiveCount; }
+	int GetParticleCount() { return m_currentActiveCount; }
+	int& GetParticleMaxCount() { return m_maxParticleCount; }
+
 	void Update(float deltaTime);
+	void AllParticlesReset();
 
 private:
 	int m_maxParticleCount = 75;
 	int m_currentActiveCount = 0;
 	int m_currentParticleCount = 0;
-	Particle m_particles[75];
+	std::vector<Particle> m_particles;
 	std::vector<int> m_freeParticleIndexes;
 };
 
