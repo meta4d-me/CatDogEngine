@@ -310,10 +310,30 @@ void TestQuaternion()
 	//}
 }
 
+void Test()
+{
+	cd::Vec3f m_up = cd::Vec3f(0.0f, 1.0f, 0.0f);
+	cd::Vec3f m_front = cd::Vec3f(0.0f, 0.0f, 1.0f);
+	//cd::Quaternion rot1 = cd::Quaternion::FromAxisAngle(m_up, cd::Math::DegreeToRadian<float>(30.0f));
+	cd::Quaternion rot1 = cd::Quaternion::FromPitchYawRoll(0.0f, 30.0f, 0.0f);
+	m_up = rot1 * m_up;
+	m_front = rot1 * m_front;
+	//cd::Quaternion rot2 = cd::Quaternion::FromAxisAngle(m_up, cd::Math::DegreeToRadian(30.0f));
+	cd::Quaternion rot2 = cd::Quaternion::FromPitchYawRoll(0.0f, 30.0f, 0.0f);
+	m_up = rot2 * m_up;
+	m_front = rot2 * m_front;
+	//cd::Quaternion rot3 = cd::Quaternion::FromAxisAngle(m_front, cd::Math::DegreeToRadian(90.0f));
+	cd::Quaternion rot3 = cd::Quaternion::FromPitchYawRoll(0.0f, 0.0f, 90.0f);
+	m_up = rot3 * m_up;
+	m_front = rot3 * m_front;
+	int a = 0;
+}
+
 int main()
 {
 	TestVector();
 	TestQuaternion();
+	Test();
 
 	return 0;
 }

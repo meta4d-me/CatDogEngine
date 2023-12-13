@@ -177,6 +177,7 @@ void EditorApp::InitEditorUILayers()
 	pSceneView->SetWhiteModelRenderer(m_pWhiteModelRenderer);
 	pSceneView->SetWireframeRenderer(m_pWireframeRenderer);
 	pSceneView->SetAABBRenderer(m_pAABBRenderer);
+	pSceneView->SetCelluloidRenderer(m_pCelluloidRenderer);
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
 
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<SkeletonView>("SkeletonView"));
@@ -480,6 +481,12 @@ void EditorApp::InitEngineRenderers()
 	m_pSceneRenderer = pSceneRenderer.get();
 	pSceneRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pSceneRenderer));
+
+	auto pCelluloidRenderer = std::make_unique<engine::CelluloidRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pCelluloidRenderer = pCelluloidRenderer.get();
+	pCelluloidRenderer->SetSceneWorld(m_pSceneWorld.get());
+	pCelluloidRenderer->SetEnable(true);
+	AddEngineRenderer(cd::MoveTemp(pCelluloidRenderer));
 
 	auto pBlendShapeRenderer = std::make_unique<engine::BlendShapeRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pBlendShapeRenderer->SetSceneWorld(m_pSceneWorld.get());
