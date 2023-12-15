@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/Types.h"
 #include "ECWorld/TransformComponent.h"
 #include "Math/Box.hpp"
 #include "Math/Transform.hpp"
