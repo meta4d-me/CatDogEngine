@@ -250,7 +250,7 @@ void ECWorldConsumer::AddAnimation(engine::Entity entity, const cd::Animation& a
 	animationComponent.SetAnimationData(&animation);
 	animationComponent.SetTrackData(pSceneDatabase->GetTracks().data());
 	animationComponent.SetDuration(animation.GetDuration());
-	animationComponent.SetTicksPerSecond(animation.GetTicksPerSecnod());
+	animationComponent.SetTicksPerSecond(animation.GetTicksPerSecond());
 
 	bgfx::UniformHandle boneMatricesUniform = bgfx::createUniform("u_boneMatrices", bgfx::UniformType::Mat4, 128);
 	animationComponent.SetBoneMatricesUniform(boneMatricesUniform.idx);
