@@ -65,6 +65,7 @@ public:
 	void SetWireframeRenderer(engine::Renderer* pWireframeRenderer) { m_pWireframeRenderer = pWireframeRenderer; }
 	void SetAABBRenderer(engine::Renderer* pAABBRenderer) { m_pAABBRenderer = pAABBRenderer; }
 	void SetCelluloidRenderer(engine::Renderer* pCelluloidRenderer) { m_pCelluloidRenderer = pCelluloidRenderer; }
+	void SetOutLineRenderer(engine::Renderer* pOutLineRenderer) { m_pOutLineRenderer = pOutLineRenderer; }
 	
 	bool IsTerrainEditMode() const { return m_isTerrainEditMode; }
 
@@ -103,6 +104,7 @@ private:
 	engine::Renderer* m_pWireframeRenderer = nullptr;
 	engine::Renderer* m_pAABBRenderer = nullptr;
 	engine::Renderer* m_pCelluloidRenderer = nullptr;
+	engine::Renderer* m_pOutLineRenderer = nullptr;
 
 	engine::RenderTarget* m_pRenderTarget = nullptr;
 	bool m_isMouseDownFirstTime = true;

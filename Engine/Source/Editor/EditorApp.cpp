@@ -30,6 +30,7 @@
 #include "Rendering/ShaderCollections.h"
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
+#include "Rendering/OutLineRenderer.h"
 #include "Rendering/ParticleRenderer.h"
 #include "Resources/FileWatcher.h"
 #include "Resources/ResourceBuilder.h"
@@ -178,6 +179,7 @@ void EditorApp::InitEditorUILayers()
 	pSceneView->SetWireframeRenderer(m_pWireframeRenderer);
 	pSceneView->SetAABBRenderer(m_pAABBRenderer);
 	pSceneView->SetCelluloidRenderer(m_pCelluloidRenderer);
+	pSceneView->SetOutLineRenderer(m_pOutLineRenderer);
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
 
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<SkeletonView>("SkeletonView"));
@@ -258,14 +260,17 @@ void EditorApp::InitMaterialType()
 	constexpr const char* WorldProgram = "WorldProgram";
 	constexpr const char* AnimationProgram = "AnimationProgram";
 	constexpr const char* TerrainProgram = "TerrainProgram";
+	constexpr const char* CelluloidProgram = "CelluloidProgram";
 
 	constexpr engine::StringCrc WorldProgramCrc{ WorldProgram };
 	constexpr engine::StringCrc AnimationProgramCrc{ AnimationProgram };
 	constexpr engine::StringCrc TerrainProgramCrc{ TerrainProgram };
+	constexpr engine::StringCrc CelluloidProgramCrc{ CelluloidProgram };
 
 	m_pRenderContext->RegisterShaderProgram(WorldProgramCrc, { "vs_PBR", "fs_PBR" });
 	m_pRenderContext->RegisterShaderProgram(AnimationProgramCrc, { "vs_animation", "fs_animation" });
 	m_pRenderContext->RegisterShaderProgram(TerrainProgramCrc, { "vs_terrain", "fs_terrain" });
+	m_pRenderContext->RegisterShaderProgram(CelluloidProgramCrc, { "vs_celluloid", "fs_celluloid" });
 
 	m_pSceneWorld = std::make_unique<engine::SceneWorld>();
 	m_pSceneWorld->CreatePBRMaterialType(WorldProgram, IsAtmosphericScatteringEnable());
@@ -482,10 +487,15 @@ void EditorApp::InitEngineRenderers()
 	pSceneRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pSceneRenderer));
 
+	auto pOutLineRenderer = std::make_unique<engine::OutLineRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pOutLineRenderer = pOutLineRenderer.get();
+	pOutLineRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pOutLineRenderer));
+
 	auto pCelluloidRenderer = std::make_unique<engine::CelluloidRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pCelluloidRenderer = pCelluloidRenderer.get();
 	pCelluloidRenderer->SetSceneWorld(m_pSceneWorld.get());
-	pCelluloidRenderer->SetEnable(true);
+	pCelluloidRenderer->SetEnable(false);
 	AddEngineRenderer(cd::MoveTemp(pCelluloidRenderer));
 
 	auto pBlendShapeRenderer = std::make_unique<engine::BlendShapeRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);

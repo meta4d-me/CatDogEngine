@@ -136,6 +136,7 @@ private:
 	std::unique_ptr<engine::MaterialType> m_pAnimationMaterialType;
 	std::unique_ptr<engine::MaterialType> m_pTerrainMaterialType;
 	std::unique_ptr<engine::MaterialType> m_pDDGIMaterialType;
+	std::unique_ptr<engine::MaterialType> m_pPRMaterialType;
 
 	// TODO : wrap them into another class?
 	engine::Entity m_selectedEntity = engine::INVALID_ENTITY;

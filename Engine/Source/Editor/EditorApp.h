@@ -114,6 +114,7 @@ private:
 	engine::Renderer* m_pTerrainRenderer = nullptr;
 	engine::Renderer* m_pAABBRenderer = nullptr;
 	engine::Renderer* m_pCelluloidRenderer = nullptr;
+	engine::Renderer* m_pOutLineRenderer = nullptr;
 
 	// Rendering
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;
