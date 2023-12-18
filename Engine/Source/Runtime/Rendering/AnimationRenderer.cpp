@@ -199,7 +199,7 @@ void AnimationRenderer::Render(float deltaTime)
 		AnimationComponent* pAnimationComponent = m_pCurrentSceneWorld->GetAnimationComponent(entity);
 
 		const cd::Animation* pAnimation = pAnimationComponent->GetAnimationData();
-		float ticksPerSecond = pAnimation->GetTicksPerSecnod();
+		float ticksPerSecond = pAnimation->GetTicksPerSecond();
 		assert(ticksPerSecond > 1.0f);
 		float animationTime = details::CustomFModf(animationRunningTime * ticksPerSecond, pAnimation->GetDuration());
 
