@@ -2,6 +2,7 @@
 #include "Base/Template.h"
 #include "Core/StringCrc.h"
 #include "Math/Vector.hpp"
+#include "Scene/Types.h"
 
 #include <vector>
 

@@ -5,6 +5,7 @@
 #include "Math/Vector.hpp"
 #include "Math/Transform.hpp"
 #include "ParticleSystem/ParticlePool.h"
+#include "Scene/Types.h"
 #include "Scene/VertexFormat.h"
 
 namespace engine
