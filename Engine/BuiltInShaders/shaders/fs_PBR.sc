@@ -36,7 +36,7 @@ void main()
 	vec3 envColor = GetEnvironment(material, v_worldPos, viewDir, v_normal);
 	
 	// Emissive
-	vec3 emiColor = material.emissive * u_emissiveColor.xyz;
+	vec3 emiColor = material.emissive * vec3_splat(u_emissiveColor.x);
 	
 	// Fragment Color
 	gl_FragData[0] = vec4(dirColor + envColor + emiColor, 1.0);

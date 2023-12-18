@@ -1063,13 +1063,13 @@ void AssetBrowser::ImportJson(const char* pFilePath)
 			float metallic = material["float@_Metallic"];
 			if (engine::MaterialComponent* pMaterialComponent = mapMaterialNameToMaterialData[name])
 			{
-				pMaterialComponent->SetAlbedoColor(GetVec3fFormString(color) / 255.0f);
-				pMaterialComponent->SetMetallicFactor(metallic);
-				pMaterialComponent->SetRoughnessFactor(1.0f - roughness);
-				if (pMaterialComponent->GetTextureInfo(cd::MaterialPropertyGroup::BaseColor))
+				pMaterialComponent->SetFactor(cd::MaterialPropertyGroup::BaseColor, GetVec3fFormString(color) / 255.0f);
+				pMaterialComponent->SetFactor(cd::MaterialPropertyGroup::Metallic, metallic);
+				pMaterialComponent->SetFactor(cd::MaterialPropertyGroup::Roughness, roughness);
+				if (auto pPropertyGroup = pMaterialComponent->GetPropertyGroup(cd::MaterialPropertyGroup::BaseColor); pPropertyGroup)
 				{
-					pMaterialComponent->GetTextureInfo(cd::MaterialPropertyGroup::BaseColor)->SetUVOffset(GetVec2fFormString(UVOffset));
-					pMaterialComponent->GetTextureInfo(cd::MaterialPropertyGroup::BaseColor)->SetUVScale(GetVec2fFormString(UVScale));
+					pPropertyGroup->textureInfo.SetUVOffset(GetVec2fFormString(UVOffset));
+					pPropertyGroup->textureInfo.SetUVScale(GetVec2fFormString(UVScale));
 				}
 			}
 			else

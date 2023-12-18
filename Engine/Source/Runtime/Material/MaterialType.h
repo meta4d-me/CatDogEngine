@@ -13,6 +13,16 @@
 namespace engine
 {
 
+inline const std::map<cd::MaterialTextureType, engine::ShaderFeature> MaterialTextureTypeToShaderFeature
+{
+	{ cd::MaterialTextureType::BaseColor, engine::ShaderFeature::ALBEDO_MAP },
+	{ cd::MaterialTextureType::Normal, engine::ShaderFeature::NORMAL_MAP },
+	{ cd::MaterialTextureType::Occlusion, engine::ShaderFeature::ORM_MAP },
+	{ cd::MaterialTextureType::Roughness, engine::ShaderFeature::ORM_MAP },
+	{ cd::MaterialTextureType::Metallic, engine::ShaderFeature::ORM_MAP },
+	{ cd::MaterialTextureType::Emissive, engine::ShaderFeature::EMISSIVE_MAP },
+};
+
 // Most used in the editor level to define different material types so that raw material asset data can
 // map to a specified MaterialType.
 class MaterialType

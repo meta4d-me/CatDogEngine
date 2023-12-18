@@ -3,6 +3,7 @@
 #include "Base/Platform.h"
 
 #include <cstdint>
+#include <map>
 #include <set>
 #include <vector>
 
