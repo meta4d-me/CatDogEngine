@@ -113,7 +113,6 @@ void SceneView::UpdateRenderModeCombo()
 	{
 		m_pSceneRenderer->SetEnable(RenderModeType::Rendered == m_renderMode);
 		m_pWhiteModelRenderer->SetEnable(RenderModeType::Solid == m_renderMode);
-		m_pCelluloidRenderer->SetEnable(RenderModeType::Celluloid == m_renderMode);
 
 		auto* pWireframeRenderer = static_cast<engine::WireframeRenderer*>(m_pWireframeRenderer);
 		pWireframeRenderer->SetEnableGlobalWireframe(RenderModeType::Wireframe == m_renderMode);

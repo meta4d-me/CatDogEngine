@@ -30,6 +30,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
     engine::MaterialType* pPBRMaterialType = pSceneWorld->GetPBRMaterialType();
     engine::MaterialType* pTerrainMaterialType = pSceneWorld->GetTerrainMaterialType();
+    engine::MaterialType* pCelluloidMaterialType = pSceneWorld->GetCelluloidMaterialType();
 
     auto AddNamedEntity = [&pWorld](std::string defaultName) -> engine::Entity
     {
@@ -101,6 +102,14 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Sphere(cd::Point(0.0f), 10.0f), 100U, 100U, pPBRMaterialType->GetRequiredVertexFormat());
         assert(optMesh.has_value());
         CreateShapeComponents(entity, cd::MoveTemp(optMesh.value()), pPBRMaterialType);
+    }
+
+    else if (ImGui::MenuItem("Add Celluloid Sphere Mesh"))
+    {
+        engine::Entity entity = AddNamedEntity("Celluloid Sphere");
+        std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Sphere(cd::Point(0.0f), 10.0f), 100U, 100U, pCelluloidMaterialType->GetRequiredVertexFormat());
+        assert(optMesh.has_value());
+        CreateShapeComponents(entity, cd::MoveTemp(optMesh.value()), pCelluloidMaterialType);
     }
     else if (ImGui::MenuItem("Add Terrain Mesh"))
     {

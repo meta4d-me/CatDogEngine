@@ -112,6 +112,35 @@ void SceneWorld::CreateTerrainMaterialType(std::string shaderProgramName)
 	m_pTerrainMaterialType->SetRequiredVertexFormat(cd::MoveTemp(terrainVertexFormat));
 }
 
+void SceneWorld::CreateCelluloidMaterialType(std::string shaderProgramName)
+{
+	m_pCelluloidMaterialType = std::make_unique<MaterialType>();
+	m_pCelluloidMaterialType->SetMaterialName("CD_Celluloid");
+
+	ShaderSchema shaderSchema;
+	shaderSchema.SetShaderProgramName(cd::MoveTemp(shaderProgramName));
+	shaderSchema.AddFeatureSet({ ShaderFeature::ALBEDO_MAP });
+	shaderSchema.AddFeatureSet({ ShaderFeature::NORMAL_MAP });
+	shaderSchema.AddFeatureSet({ ShaderFeature::ORM_MAP });
+	shaderSchema.AddFeatureSet({ ShaderFeature::EMISSIVE_MAP });
+	m_pCelluloidMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
+
+	cd::VertexFormat celluloidVertexFormat;
+	celluloidVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+	celluloidVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+	celluloidVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+	celluloidVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
+	m_pCelluloidMaterialType->SetRequiredVertexFormat(cd::MoveTemp(celluloidVertexFormat));
+
+	m_pCelluloidMaterialType->AddOptionalTextureType(cd::MaterialTextureType::BaseColor, ALBEDO_MAP_SLOT);
+	m_pCelluloidMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Normal, NORMAL_MAP_SLOT);
+	m_pCelluloidMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Occlusion, ORM_MAP_SLOT);
+	m_pCelluloidMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Roughness, ORM_MAP_SLOT);
+	m_pCelluloidMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Metallic, ORM_MAP_SLOT);
+	m_pCelluloidMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Emissive, EMISSIVE_MAP_SLOT);
+}
+
+
 #ifdef ENABLE_DDGI
 void SceneWorld::CreateDDGIMaterialType(std::string shaderProgramName)
 {

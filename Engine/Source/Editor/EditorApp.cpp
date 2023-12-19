@@ -15,6 +15,7 @@
 #include "Rendering/AnimationRenderer.h"
 #include "Rendering/BlendShapeRenderer.h"
 #include "Rendering/BlitRenderTargetPass.h"
+#include "Rendering/CelluloidRenderer.h"
 #ifdef ENABLE_DDGI
 #include "Rendering/DDGIRenderer.h"
 #endif
@@ -178,8 +179,6 @@ void EditorApp::InitEditorUILayers()
 	pSceneView->SetWhiteModelRenderer(m_pWhiteModelRenderer);
 	pSceneView->SetWireframeRenderer(m_pWireframeRenderer);
 	pSceneView->SetAABBRenderer(m_pAABBRenderer);
-	pSceneView->SetCelluloidRenderer(m_pCelluloidRenderer);
-	pSceneView->SetOutLineRenderer(m_pOutLineRenderer);
 	m_pEditorImGuiContext->AddDynamicLayer(cd::MoveTemp(pSceneView));
 
 	m_pEditorImGuiContext->AddDynamicLayer(std::make_unique<SkeletonView>("SkeletonView"));
@@ -276,6 +275,7 @@ void EditorApp::InitMaterialType()
 	m_pSceneWorld->CreatePBRMaterialType(WorldProgram, IsAtmosphericScatteringEnable());
 	m_pSceneWorld->CreateAnimationMaterialType(AnimationProgram);
 	m_pSceneWorld->CreateTerrainMaterialType(TerrainProgram);
+	m_pSceneWorld->CreateCelluloidMaterialType(CelluloidProgram);
 }
 
 void EditorApp::InitEditorCameraEntity()
@@ -495,7 +495,6 @@ void EditorApp::InitEngineRenderers()
 	auto pCelluloidRenderer = std::make_unique<engine::CelluloidRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pCelluloidRenderer = pCelluloidRenderer.get();
 	pCelluloidRenderer->SetSceneWorld(m_pSceneWorld.get());
-	pCelluloidRenderer->SetEnable(false);
 	AddEngineRenderer(cd::MoveTemp(pCelluloidRenderer));
 
 	auto pBlendShapeRenderer = std::make_unique<engine::BlendShapeRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);

@@ -33,7 +33,16 @@ U_Light GetLightParams(int pointer) {
 	light.lightAngleOffeset = u_lightParams[pointer + 4].w;
 	return light;
 }
+float GGX(float a2, float NdotH)
+{
+	float d = (NdotH * a2 - NdotH) * NdotH + 1.0;
+	return a2 / (CD_PI * d * d);
+}
 
+
+float Sigmoid(float x, float center, float sharp){
+	return 1 / (1 + pow(100000,(-3 * sharp * (x - center))));
+}
 // -------------------- Utils -------------------- //
 
 // Distance Attenuation
@@ -120,7 +129,6 @@ vec3 CalculatePointLight(U_Light light, Material material, vec3 worldPos, vec3 v
 	
 	vec3 KD = mix(1.0 - Fre, vec3_splat(0.0), material.metallic);
 	return (KD * diffuseBRDF + specularBRDF) * radiance * NdotL;
-	
 }
 
 // -------------------- Spot -------------------- //
@@ -157,18 +165,30 @@ vec3 CalculateDirectionalLight(U_Light light, Material material, vec3 worldPos, 
 	vec3 harfDir  = normalize(lightDir + viewDir);
 	
 	float NdotV = max(dot(material.normal, viewDir), 0.0);
-	float NdotL = max(dot(material.normal, lightDir), 0.0);
+	float NdotL = dot(material.normal, lightDir);
 	float NdotH = max(dot(material.normal, harfDir), 0.0);
 	float HdotV = max(dot(harfDir, viewDir), 0.0);
-	
-	vec3  Fre = FresnelSchlick(HdotV, material.F0);
-	float NDF = DistributionGGX(NdotH, material.roughness);
-	float Vis = Visibility(NdotV, NdotL, material.roughness);
-	vec3 specularBRDF = Fre * NDF * Vis;
-	
-	vec3 KD = mix(1.0 - Fre, vec3_splat(0.0), material.metallic);
-	vec3 irradiance = light.color * light.intensity;
-	return (KD * diffuseBRDF + specularBRDF) * irradiance * NdotL;
+
+	float boundSharp = 9.5 * pow(material.roughness - 1,2.0) + 0.5;
+	float highSig = Sigmoid(NdotL,0.6,boundSharp);
+	float lowSig = Sigmoid(NdotL,0.0,boundSharp);
+    //---------------------Specular--------------------//
+	float NdotF0 = GGX(material.roughness * material.roughness, 1);
+	float NdotFHBound = NdotF0 * 0.8;
+	float NdotF = GGX(material.roughness * material.roughness, clamp(0,1,NdotH));
+
+	float specularWindow = Sigmoid(NdotF,NdotFHBound,boundSharp);
+	float specular = specularWindow * (NdotF0 + NdotFHBound) / 2;
+
+	vec3 lightResult = specular * vec3(light.color);
+
+	float highWindow = highSig;
+	float lowWindow = lowSig - highSig;
+	float darkWindow = 1 - lowSig; 
+	float intensity = highWindow * 1.0 + lowWindow * 0.8 + darkWindow * 0.3;
+	vec3 color = material.albedo * vec3_splat(intensity) * vec3(light.color);
+	//vec3 color = material.albedo * vec3(light.color);
+	return color + specular;
 }
 
 // -------------------- Sphere -------------------- //
