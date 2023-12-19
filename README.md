@@ -27,7 +27,7 @@
 
 * Animation
   * BlendShape 
-  * Skeletion
+  * Skeleton
 * JobSystem
 * Modern RHI except bgfx
 * Particle System
@@ -85,9 +85,11 @@
 ## Learning Resources
 
 * [DiligentEngine](https://github.com/DiligentGraphics/DiligentEngine)
+* [ezEngine](https://github.com/ezEngine/ezEngine)
 * [GodotEngine](https://github.com/godotengine/godot)
 * [LumixEngine](https://github.com/nem0/LumixEngine)
 * [Lumos](https://github.com/jmorton06/Lumos)
+* [LunaSDK](https://github.com/JX-Master/LunaSDK)
 * [WickedEngine](https://github.com/turanszkij/WickedEngine)
 * [UnrealEngine](https://github.com/EpicGames/UnrealEngine)
 * [vulkan-engine](https://github.com/Division/vulkan-engine)
