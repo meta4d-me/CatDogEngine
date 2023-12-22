@@ -22,8 +22,8 @@ constexpr const char* cameraPos = "u_cameraPos";
 constexpr const char* lightCountAndStride = "u_lightCountAndStride";
 constexpr const char* lightParams = "u_lightParams";
 
-constexpr const char* LightDir = "u_LightDir";
-constexpr const char* HeightOffsetAndshadowLength = "u_HeightOffsetAndshadowLength";
+constexpr const char* lightDir = "u_LightDir";
+constexpr const char* heightOffsetAndshadowLength = "u_HeightOffsetAndshadowLength";
 
 constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;

@@ -26,4 +26,20 @@ void LightComponent::SetInnerAndOuter(float inner, float outer)
 	m_lightUniformData.lightAngleOffeset = -outerCos * scale;
 }
 
+bool LightComponent::IsShadowMapFBsValid()
+{
+	if (m_shadowMapFBs.size() != GetCascadedNum()) // Include empty FBs
+	{
+		return false; 
+	}
+	else 
+	{
+		for (const auto& fb : m_shadowMapFBs) 
+		{
+			if (!bgfx::isValid(fb)) return false;
+		}
+	}
+	return true;
+}
+
 }

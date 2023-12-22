@@ -39,8 +39,8 @@ constexpr const char* alphaCutOff = "u_alphaCutOff";
 constexpr const char* lightCountAndStride = "u_lightCountAndStride";
 constexpr const char* lightParams = "u_lightParams";
 
-constexpr const char* LightDir = "u_LightDir";
-constexpr const char* HeightOffsetAndshadowLength = "u_HeightOffsetAndshadowLength";
+constexpr const char* lightDir = "u_LightDir";
+constexpr const char* heightOffsetAndshadowLength = "u_HeightOffsetAndshadowLength";
 
 constexpr const char* morphCountVertexCount = "u_morphCount_vertexCount";
 constexpr const char* changedIndex = "u_changedIndex";
@@ -93,8 +93,8 @@ void BlendShapeRenderer::Warmup()
 	GetRenderContext()->CreateUniform(lightCountAndStride, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(lightParams, bgfx::UniformType::Vec4, LightUniform::VEC4_COUNT);
 
-	GetRenderContext()->CreateUniform(LightDir, bgfx::UniformType::Vec4, 1);
-	GetRenderContext()->CreateUniform(HeightOffsetAndshadowLength, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(lightDir, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(heightOffsetAndshadowLength, bgfx::UniformType::Vec4, 1);
 
 	GetRenderContext()->CreateUniform(morphCountVertexCount, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(changedWeight, bgfx::UniformType::Vec4, 1);
@@ -246,10 +246,10 @@ void BlendShapeRenderer::Render(float deltaTime)
 			bgfx::setImage(ATM_IRRADIANCE_SLOT, GetRenderContext()->GetTexture(pSkyComponent->GetATMIrradianceCrc()), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
 			bgfx::setImage(ATM_SCATTERING_SLOT, GetRenderContext()->GetTexture(pSkyComponent->GetATMScatteringCrc()), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
 
-			constexpr StringCrc LightDirCrc(LightDir);
+			constexpr StringCrc LightDirCrc(lightDir);
 			GetRenderContext()->FillUniform(LightDirCrc, &(pSkyComponent->GetSunDirection().x()), 1);
 
-			constexpr StringCrc HeightOffsetAndshadowLengthCrc(HeightOffsetAndshadowLength);
+			constexpr StringCrc HeightOffsetAndshadowLengthCrc(heightOffsetAndshadowLength);
 			cd::Vec4f tmpHeightOffsetAndshadowLength = cd::Vec4f(pSkyComponent->GetHeightOffset(), pSkyComponent->GetShadowLength(), 0.0f, 0.0f);
 			GetRenderContext()->FillUniform(HeightOffsetAndshadowLengthCrc, &(tmpHeightOffsetAndshadowLength.x()), 1);
 		}

@@ -35,7 +35,7 @@ constexpr const char* TextureDeltaMieScattering          = "TextureDeltaMieScatt
 constexpr const char* TextureDeltaScatteringDensity      = "TextureDeltaScatteringDensity";
 constexpr const char* TextureDeltaMultipleScattering     = "TextureDeltaMultipleScattering";
 
-constexpr const char* LightDir                           = "u_LightDir";
+constexpr const char* lightDir                           = "u_LightDir";
 constexpr const char* CameraPos                          = "u_cameraPos";
 constexpr const char* HeightOffset                       = "u_HeightOffset";
 constexpr const char* NumScatteringOrders                = "u_numScatteringOrders";
@@ -89,7 +89,7 @@ void PBRSkyRenderer::Warmup()
 	GetRenderContext()->CreateTexture(TextureDeltaMultipleScattering, SCATTERING_TEXTURE_WIDTH, SCATTERING_TEXTURE_HEIGHT, SCATTERING_TEXTURE_DEPTH,
 		bgfx::TextureFormat::RGBA32F, FlagTexture3D);
 
-	GetRenderContext()->CreateUniform(LightDir, bgfx::UniformType::Enum::Vec4, 1);
+	GetRenderContext()->CreateUniform(lightDir, bgfx::UniformType::Enum::Vec4, 1);
 	GetRenderContext()->CreateUniform(CameraPos, bgfx::UniformType::Enum::Vec4, 1);
 	GetRenderContext()->CreateUniform(HeightOffset, bgfx::UniformType::Enum::Vec4, 1);
 	GetRenderContext()->CreateUniform(NumScatteringOrders, bgfx::UniformType::Enum::Vec4, 1);
@@ -157,7 +157,7 @@ void PBRSkyRenderer::Render(float deltaTime)
 
 	auto skyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
-	constexpr StringCrc LightDirCrc(LightDir);
+	constexpr StringCrc LightDirCrc(lightDir);
 	GetRenderContext()->FillUniform(LightDirCrc, &(skyComponent->GetSunDirection().x()), 1);
 
 	constexpr StringCrc HeightOffsetCrc(HeightOffset);

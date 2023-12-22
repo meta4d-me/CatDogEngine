@@ -22,12 +22,8 @@ constexpr const char* cameraPos = "u_cameraPos";
 constexpr const char* lightCountAndStride = "u_lightCountAndStride";
 constexpr const char* lightParams = "u_lightParams";
 constexpr const char* lightPosAndFarPlane = "u_lightWorldPos_farPlane";
-constexpr const char* LightDir = "u_LightDir";
-constexpr const char* HeightOffsetAndshadowLength = "u_HeightOffsetAndshadowLength";
-
-// texture name
-constexpr const char* TextureShadowMap2D = "TextureShadowMap2D";
-constexpr const char* TextureShadowMapCube = "TextureShadowMapCube";
+constexpr const char* lightDir = "u_LightDir";
+constexpr const char* heightOffsetAndshadowLength = "u_HeightOffsetAndshadowLength";
 
 //
 constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
@@ -35,7 +31,7 @@ constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRI
 | BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 constexpr uint64_t depthBufferFlags = BGFX_TEXTURE_RT | BGFX_SAMPLER_COMPARE_LEQUAL;
 constexpr uint64_t linearDepthBufferFlags = BGFX_TEXTURE_RT | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
-constexpr uint64_t clearFrameBufferFlags = BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH;
+
 }
 
 void ShadowMapRenderer::Init()
@@ -77,14 +73,15 @@ void ShadowMapRenderer::Render(float deltaTime)
 
 	if (!lightEntities.empty())
 	{
-		//camera 
+		// camera 
 		CameraComponent* pMainCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(m_pCurrentSceneWorld->GetMainCameraEntity());
 		const cd::Matrix4x4 camView = pMainCameraComponent->GetViewMatrix();
 		const cd::Matrix4x4 camProj = pMainCameraComponent->GetProjectionMatrix();
 		const cd::Matrix4x4 invCamViewProj = (camProj * camView).Inverse();
 		bool ndcDepthMinusOneToOne = cd::NDCDepth::MinusOneToOne == pMainCameraComponent->GetNDCDepth();
 
-		auto UnProject = [&invCamViewProj](const cd::Vec4f ndcCorner)->cd::Vec3f
+		// lambda : unproject ndc sapce coordinates into world space 
+		auto UnProject = [&invCamViewProj](const cd::Vec4f ndcCorner)->cd::Point
 		{
 			cd::Vec4f worldPos = invCamViewProj * ndcCorner;
 			return worldPos.xyz() / worldPos.w();
@@ -95,140 +92,175 @@ void ShadowMapRenderer::Render(float deltaTime)
 		{
 			LightComponent* lightComponent = m_pCurrentSceneWorld->GetLightComponent(lightEntity);
 
-			// area light does not have shadowComponent
+			// Non-shadow-casting lights(include area lights) are excluded
 			if (false == lightComponent->GetIsCastShadow())
 			{
 				continue;
 			}
 
-			// render shadow map
+			// Render shadow map
 			switch (lightComponent->GetType())
 			{
 			case cd::LightType::Directional:
 			{
-				//fbo and texture init(if not initiated) and acquire
+				uint16_t cascadeNum = lightComponent->GetCascadedNum();
+				// Initialize(if not initialized) frame buffer
 				if (!lightComponent->IsShadowMapFBsValid())
 				{
-					bgfx::TextureHandle shadowMapTexture = GetRenderContext()->CreateTexture(TextureShadowMap2D, 
-						lightComponent->GetShadowMapSize(), lightComponent->GetShadowMapSize(), 
-						1, bgfx::TextureFormat::D32F, depthBufferFlags, nullptr, 0);
-					bgfx::FrameBufferHandle shadowMapFB = bgfx::createFrameBuffer(1U, &shadowMapTexture, true);
-					lightComponent->AddShadowMapTexture(shadowMapTexture);
-					lightComponent->AddShadowMapFB(shadowMapFB);
+					lightComponent->ClearShadowMapFBs();	
+					for (int i = 0; i < cascadeNum; ++i)
+					{
+						bgfx::FrameBufferHandle shadowMapFB = bgfx::createFrameBuffer(lightComponent->GetShadowMapSize(),
+							lightComponent->GetShadowMapSize(), bgfx::TextureFormat::D32F);
+						lightComponent->AddShadowMapFB(shadowMapFB);
+					}
 				}
 
-				// light view and orthographic pro
-				std::vector<cd::Vec3f> frustumCorners;
-				if (ndcDepthMinusOneToOne)
+				// Compute the split distances based on the partitioning mode
+				float CascadeSplits[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+				float MinDistance = 0.0f;		// if this changed, UnProjection need changed
+				float MaxDistance = 1.0f;	// if this changed, UnProjection need changed
+				
+				CascadePartitionMode cascadePatitionMode = lightComponent->GetCascadePartitionMode();
+				if (CascadePartitionMode::Manual == cascadePatitionMode)
 				{
-					const std::vector<cd::Vec3f> temp = {
-						UnProject(cd::Vec4f(-1, -1,  1, 1)),	// near
-						UnProject(cd::Vec4f(-1, -1, -1, 1)),	// far
-						UnProject(cd::Vec4f(-1,  1,  1, 1)),	// near
-						UnProject(cd::Vec4f(-1,  1, -1, 1)),	// far
-						UnProject(cd::Vec4f(1, -1,  1, 1)),	// near
-						UnProject(cd::Vec4f(1, -1, -1, 1)),	// far
-						UnProject(cd::Vec4f(1,  1,  1, 1)),	// near
-						UnProject(cd::Vec4f(1,  1, -1, 1))	// far
+					
+				}
+				else if (CascadePartitionMode::Logarithmic == cascadePatitionMode
+					|| CascadePartitionMode::PSSM == cascadePatitionMode)
+				{
+					float lambda = 1.0f;
+					if (CascadePartitionMode::PSSM == cascadePatitionMode){}
+						lambda = 0.5;// TODO : user edit
+
+					float nearClip = pMainCameraComponent->GetNearPlane();
+					float farClip = pMainCameraComponent->GetFarPlane();
+					float clipRange = farClip - nearClip;
+
+					float minZ = nearClip + MinDistance * clipRange;
+					float maxZ = nearClip + MaxDistance * clipRange;
+
+					float range = maxZ - minZ;
+					float ratio = maxZ / minZ;
+
+					for (uint16_t i = 0; i < cascadeNum; ++i)
+					{
+						float p = (i + 1) / static_cast<float>(cascadeNum);
+						float log = minZ * std::pow(ratio, p);
+						float uniform = minZ + range * p;
+						float d = lambda * (log - uniform) + uniform;
+						CascadeSplits[i] = (d - nearClip) / clipRange;
+					}
+				}
+
+				// Compute the frustum according to ndc depth of different graphic backends
+				cd::Direction lightDirection = lightComponent->GetDirection();
+				std::vector<cd::Point> frustumCorners = ndcDepthMinusOneToOne ? 
+					std::vector<cd::Point>{		 // Depth [-1, 1]
+						UnProject(cd::Vec4f(-1, -1,  -1, 1)),	UnProject(cd::Vec4f(-1, -1, 1, 1)),	// lower-left near and far 
+						UnProject(cd::Vec4f(-1,  1,  -1, 1)),	UnProject(cd::Vec4f(-1,  1, 1, 1)),	// upper-left near and far 
+						UnProject(cd::Vec4f( 1, -1,  -1, 1)),	UnProject(cd::Vec4f( 1, -1, 1, 1)),	//	lower-right near and far 
+						UnProject(cd::Vec4f( 1,  1,  -1, 1)),	UnProject(cd::Vec4f( 1,  1, 1, 1))		// upper-right near and far
+					} :
+					std::vector<cd::Point>{		// Depth [0, 1]
+						UnProject(cd::Vec4f(-1, -1,  0, 1)),	UnProject(cd::Vec4f(-1, -1, 1, 1)),	// lower-left near and far 
+						UnProject(cd::Vec4f(-1,  1,  0, 1)),	UnProject(cd::Vec4f(-1,  1, 1, 1)),	// upper-left near and far 
+						UnProject(cd::Vec4f( 1, -1,  0, 1)),	UnProject(cd::Vec4f( 1, -1, 1, 1)),	//	lower-right near and far 
+						UnProject(cd::Vec4f( 1,  1,  0, 1)),	UnProject(cd::Vec4f( 1,  1, 1, 1))		// upper-right near and far
 					};
-					frustumCorners = std::move(temp);
-				}
-				else
+
+				// Set cascade split dividing values for choosing cascade level in world renderer
+				lightComponent->SetComputedCascadeSplit(&CascadeSplits[0]);
+				
+				for (uint16_t cascadeIndex = 0; cascadeIndex < cascadeNum; ++cascadeIndex)
 				{
-					const std::vector<cd::Vec3f> temp = {
-						UnProject(cd::Vec4f(-1, -1, 1, 1)),	// near
-						UnProject(cd::Vec4f(-1, -1, 0, 1)),	// far
-						UnProject(cd::Vec4f(-1,  1, 1, 1)),	// near
-						UnProject(cd::Vec4f(-1,  1, 0, 1)),	// far
-						UnProject(cd::Vec4f(1, -1, 1, 1)),	// near
-						UnProject(cd::Vec4f(1, -1, 0, 1)),	// far
-						UnProject(cd::Vec4f(1,  1, 1, 1)),		// near
-						UnProject(cd::Vec4f(1,  1, 0, 1))		// far
-					};
-					frustumCorners = std::move(temp);
-				}
-				cd::Vec3f center = cd::Vec3f(0, 0, 0);
-				for (const auto& corner : frustumCorners)
-				{
-					center += corner;
-				}
-				center /= static_cast<float>(frustumCorners.size());
-
-				cd::Vec3f lightDirection = lightComponent->GetDirection();
-				cd::Matrix4x4 lightView = cd::Matrix4x4::LookAt<cd::Handedness::Left>(center, center + lightDirection, cd::Vec3f(0.0f, 1.0f, 0.0f));
-
-				float minX = std::numeric_limits<float>::max();
-				float maxX = std::numeric_limits<float>::lowest();
-				float minY = std::numeric_limits<float>::max();
-				float maxY = std::numeric_limits<float>::lowest();
-				float minZ = std::numeric_limits<float>::max();
-				float maxZ = std::numeric_limits<float>::lowest();
-				for (const auto& corner : frustumCorners)
-				{
-					const auto lightSpaceCorner = lightView * cd::Vec4f(corner.x(), corner.y(), corner.z(), 1.0);
-					minX = std::min(minX, lightSpaceCorner.x());
-					maxX = std::max(maxX, lightSpaceCorner.x());
-					minY = std::min(minY, lightSpaceCorner.y());
-					maxY = std::max(maxY, lightSpaceCorner.y());
-					minZ = std::min(minZ, lightSpaceCorner.z());
-					maxZ = std::max(maxZ, lightSpaceCorner.z());
-				}
-
-				cd::Matrix4x4 lightProjection = cd::Matrix4x4::Orthographic(minX, maxX, maxY, minY, minZ, maxZ, 0, ndcDepthMinusOneToOne);
-
-				uint64_t state = defaultRenderingState;
-				bgfx::setState(state);
-				uint16_t viewId = m_renderPassID[shadowNum * shadowTexturePassMaxNum + 0];
-				bgfx::setViewRect(viewId, 0, 0, lightComponent->GetShadowMapSize(), lightComponent->GetShadowMapSize());
-				bgfx::setViewFrameBuffer(viewId, lightComponent->GetShadowMapFBs().at(0));
-				bgfx::setViewClear(viewId, clearFrameBufferFlags, 0x303030ff, 1.0f, 0);
-				bgfx::setViewTransform(viewId, lightView.Begin(), lightProjection.Begin());
-
-				cd::Matrix4x4 lightViewProj = lightProjection * lightView;
-				lightComponent->SetLightViewProjMatrix(lightViewProj);
-
-				for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
-				{
-					// No mesh attached?
-					StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
-					if (!pMeshComponent)
+					// Compute every light view and every orthographic projection matrices for each cascade
+					cd::Point cascadeFrustum[8];
+					float nearSplit = cascadeIndex == 0 ? MinDistance : CascadeSplits[cascadeIndex - 1];
+					float farSplit = CascadeSplits[cascadeIndex];
+					for (uint16_t cornerPairIdx = 0; cornerPairIdx < 4; ++cornerPairIdx)
 					{
-						continue;
+						cascadeFrustum[2*cornerPairIdx]		=	frustumCorners[2*cornerPairIdx] * (1 - nearSplit) 
+							+ frustumCorners[2*cornerPairIdx+1] * nearSplit;
+						cascadeFrustum[2*cornerPairIdx+1]	=  frustumCorners[2*cornerPairIdx] * (1 - farSplit)		
+							+ frustumCorners[2*cornerPairIdx+1] * farSplit;
 					}
-					BlendShapeComponent* pBlendShapeComponent = m_pCurrentSceneWorld->GetBlendShapeComponent(entity);
-					if (pBlendShapeComponent)
+					
+					cd::Point cascadeFrustumCenter = cd::Point(0, 0, 0);
+					for (const auto& corner : cascadeFrustum)
 					{
-						continue;
+						cascadeFrustumCenter += corner;
 					}
-					// Transform
-					if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
-					{
-						bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
-					}
+					cascadeFrustumCenter /= 8.0;
+					
+					cd::Matrix4x4 lightView = cd::Matrix4x4::LookAt<cd::Handedness::Left>(cascadeFrustumCenter, 
+						cascadeFrustumCenter + lightDirection, cd::Vec3f(0.0f, 1.0f, 0.0f));
 
-					// Mesh
-					UpdateStaticMeshComponent(pMeshComponent);
-					GetRenderContext()->Submit(viewId, "ShadowMapProgram");
+					float minX = std::numeric_limits<float>::max();
+					float maxX = std::numeric_limits<float>::lowest();
+					float minY = std::numeric_limits<float>::max();
+					float maxY = std::numeric_limits<float>::lowest();
+					float minZ = std::numeric_limits<float>::max();
+					float maxZ = std::numeric_limits<float>::lowest();
+					for (const auto& corner : cascadeFrustum)
+					{
+						const auto lightSpaceCorner = lightView * cd::Vec4f(corner.x(), corner.y(), corner.z(), 1.0);
+						minX	= std::min(minX, lightSpaceCorner.x());
+						maxX = std::max(maxX, lightSpaceCorner.x());
+						minY = std::min(minY, lightSpaceCorner.y());
+						maxY = std::max(maxY, lightSpaceCorner.y());
+						minZ = std::min(minZ, lightSpaceCorner.z());
+						maxZ = std::max(maxZ, lightSpaceCorner.z());
+					}
+					cd::Matrix4x4 lightProjection = cd::Matrix4x4::Orthographic(minX, maxX, maxY, minY, minZ, maxZ,
+						0, ndcDepthMinusOneToOne);
+
+					// Settings
+					bgfx::setState(defaultRenderingState);
+
+					uint16_t viewId = m_renderPassID[shadowNum * shadowTexturePassMaxNum + cascadeIndex];
+					bgfx::setViewRect(viewId, 0, 0, lightComponent->GetShadowMapSize(), lightComponent->GetShadowMapSize());
+					bgfx::setViewFrameBuffer(viewId, lightComponent->GetShadowMapFBs().at(cascadeIndex));
+					bgfx::setViewClear(viewId, BGFX_CLEAR_DEPTH, 0xffffffff, 1.0f, 0);
+					bgfx::setViewTransform(viewId, lightView.Begin(), lightProjection.Begin());
+
+					// Set transform for projecting coordinates to light space in wolrd renderer 
+					cd::Matrix4x4 lightCSMViewProj = lightProjection * lightView;
+					lightComponent->AddLightViewProjMatrix(lightCSMViewProj);
+
+					// Submit draw call (TODO : one pass MRT 
+					for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
+					{
+						// No mesh attached?
+						StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
+						if (!pMeshComponent)
+						{
+							continue;
+						}
+						BlendShapeComponent* pBlendShapeComponent = m_pCurrentSceneWorld->GetBlendShapeComponent(entity);
+						if (pBlendShapeComponent)
+						{
+							continue;
+						}
+						// Transform
+						if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
+						{
+							bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
+						}
+
+						// Mesh
+						UpdateStaticMeshComponent(pMeshComponent);
+						GetRenderContext()->Submit(viewId, "ShadowMapProgram");
+					}
 				}
 			}
 			break;
 			case cd::LightType::Point:
 			{
-				//fbo and texture init(if not initiated) and acquire
+				// Initialize(if not initialized) frame buffer
 				if (!lightComponent->IsShadowMapFBsValid())
 				{
-					constexpr StringCrc fbtextureName("ShadowMapTexture");
-
-					auto fbtexture = GetRenderContext()->GetTexture(fbtextureName);
-					if (!bgfx::isValid(fbtexture))				
-					{
-						fbtexture = bgfx::createTextureCube(lightComponent->GetShadowMapSize(),
-							false, 1, bgfx::TextureFormat::R32F, depthBufferFlags);// linearDepthBufferFlags);
-						GetRenderContext()->SetTexture(fbtextureName, fbtexture);
-						//lightComponent->AddShadowMapTexture(fbtexture);
-					}
-
-					for (uint16_t i = 0U; i < 6; i++)
+					for (uint16_t i = 0U; i < 6U; ++i)
 					{
 						/*---------bgfx cube map----------
 						  0:+X 1:-X 2:+Y 3:-Y 4:+Z 5:-Z
@@ -236,38 +268,37 @@ void ShadowMapRenderer::Render(float deltaTime)
 							-X +Z +X -Z
 								 -Y
 						------------------------------------*/
-						//bgfx::Attachment fbAttachment;
-						//fbAttachment.init(fbtexture, bgfx::Access::ReadWrite, i);
-						bgfx::FrameBufferHandle shadowMapFB = bgfx::createFrameBuffer(1024, 1024, bgfx::TextureFormat::R32F);
-						lightComponent->AddShadowMapTexture(bgfx::getTexture(shadowMapFB));
+						bgfx::FrameBufferHandle shadowMapFB = bgfx::createFrameBuffer(lightComponent->GetShadowMapSize(),
+							lightComponent->GetShadowMapSize(), bgfx::TextureFormat::R32F);
 						lightComponent->AddShadowMapFB(shadowMapFB);
 					}
 				}
 
-				// light view * 6 and perspective pro
-				const cd::Vec3f lightPosition = lightComponent->GetPosition();
+				// Compute 6 light view and 1 perspective projection matrices according to ndc depth of different graphic backends
+				const cd::Point lightPosition = lightComponent->GetPosition();
 				float range = lightComponent->GetRange();
 
-				// TODO :check direction
 				cd::Matrix4x4 lightView[6] =
 				{
-					cd::Matrix4x4::LookAt<cd::Handedness::Left>(lightPosition, lightPosition + cd::Vec3f(1.0f, 0.0f, 0.0f),	cd::Vec3f(0.0f, 1.0f,  0.0f)),	//Right +X
-					cd::Matrix4x4::LookAt<cd::Handedness::Left>(lightPosition, lightPosition + cd::Vec3f(-1.0f, 0.0f, 0.0f),	cd::Vec3f(0.0f, 1.0f,  0.0f)),	//Left -X
-					cd::Matrix4x4::LookAt<cd::Handedness::Left>(lightPosition, lightPosition + cd::Vec3f(0.0f, 1.0f, 0.0f),	cd::Vec3f(0.0f, 0.0f, -1.0f)),	//Top +Y
-					cd::Matrix4x4::LookAt<cd::Handedness::Left>(lightPosition, lightPosition + cd::Vec3f(0.0f, -1.0f, 0.0f),	cd::Vec3f(0.0f, 0.0f,  1.0f)),	//Bottom -Y 
-					cd::Matrix4x4::LookAt<cd::Handedness::Left>(lightPosition, lightPosition + cd::Vec3f(0.0f, 0.0f, 1.0f),	cd::Vec3f(0.0f, 1.0f,  0.0f)),	//Front +Z
-					cd::Matrix4x4::LookAt<cd::Handedness::Left>(lightPosition, lightPosition + cd::Vec3f(0.0f, 0.0f, -1.0f),	cd::Vec3f(0.0f, 1.0f,  0.0f)),	//Back -Z
+					cd::Matrix4x4::LookAt<cd::Handedness::Left>(lightPosition, lightPosition + cd::Direction(1.0f, 0.0f, 0.0f),	cd::Direction(0.0f, 1.0f,  0.0f)),	//Right +X
+					cd::Matrix4x4::LookAt<cd::Handedness::Left>(lightPosition, lightPosition + cd::Direction(-1.0f, 0.0f, 0.0f),	cd::Direction(0.0f, 1.0f,  0.0f)),	//Left -X
+					cd::Matrix4x4::LookAt<cd::Handedness::Left>(lightPosition, lightPosition + cd::Direction(0.0f, 1.0f, 0.0f),	cd::Direction(0.0f, 0.0f, -1.0f)),	//Top +Y
+					cd::Matrix4x4::LookAt<cd::Handedness::Left>(lightPosition, lightPosition + cd::Direction(0.0f, -1.0f, 0.0f),	cd::Direction(0.0f, 0.0f,  1.0f)),	//Bottom -Y 
+					cd::Matrix4x4::LookAt<cd::Handedness::Left>(lightPosition, lightPosition + cd::Direction(0.0f, 0.0f, 1.0f),	cd::Direction(0.0f, 1.0f,  0.0f)),	//Front +Z
+					cd::Matrix4x4::LookAt<cd::Handedness::Left>(lightPosition, lightPosition + cd::Direction(0.0f, 0.0f, -1.0f),	cd::Direction(0.0f, 1.0f,  0.0f)),	//Back -Z
 				};
 				cd::Matrix4x4 lightProjection = cd::Matrix4x4::Perspective(90.0f, 1.0f, 0.01f, range, ndcDepthMinusOneToOne);
 
-				uint64_t state = defaultRenderingState;
-				bgfx::setState(state);
-				for (uint16_t i = 0U; i < shadowTexturePassMaxNum; i++)
+				// Settings
+				bgfx::setState(defaultRenderingState);
+				// 6 faces
+				for (uint16_t i = 0U; i < 6U; ++i)
 				{
+					// Settings
 					uint16_t viewId = m_renderPassID[shadowNum * shadowTexturePassMaxNum + i];
 					bgfx::setViewRect(viewId, 0, 0, lightComponent->GetShadowMapSize(), lightComponent->GetShadowMapSize());
 					bgfx::setViewFrameBuffer(viewId, lightComponent->GetShadowMapFBs().at(i));
-					bgfx::setViewClear(viewId, clearFrameBufferFlags, 0xffffffff, 1.0f, 0);
+					bgfx::setViewClear(viewId, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xffffffff, 1.0f, 0);
 					bgfx::setViewTransform(viewId, lightView[i].Begin(), lightProjection.Begin());
 
 					constexpr StringCrc lightPosAndFarPlaneCrc(lightPosAndFarPlane);
@@ -275,6 +306,7 @@ void ShadowMapRenderer::Render(float deltaTime)
 						lightComponent->GetPosition().z(), lightComponent->GetRange());
 					GetRenderContext()->FillUniform(lightPosAndFarPlaneCrc, &lightPosAndFarPlaneData, 1);
 
+					// Submit draw call
 					for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
 					{
 						// No mesh attached?
@@ -297,39 +329,37 @@ void ShadowMapRenderer::Render(float deltaTime)
 			break;
 			case cd::LightType::Spot:
 			{
-				//fbo and texture init(if not initiated) and acquire
+				// Initialize(if not initialized) frame buffer
 				if (!lightComponent->IsShadowMapFBsValid())
 				{
-					bgfx::TextureHandle fbtextures[] =
-					{
-						bgfx::createTexture2D(lightComponent->GetShadowMapSize(), lightComponent->GetShadowMapSize(),
-							false, 1, bgfx::TextureFormat::D32F, depthBufferFlags),
-					};
-					bgfx::FrameBufferHandle shadowMapFB = bgfx::createFrameBuffer(BX_COUNTOF(fbtextures), fbtextures, true);
-					lightComponent->AddShadowMapTexture(fbtextures[0]);
+					bgfx::FrameBufferHandle shadowMapFB = bgfx::createFrameBuffer(lightComponent->GetShadowMapSize(),
+						lightComponent->GetShadowMapSize(), bgfx::TextureFormat::D32F);
 					lightComponent->AddShadowMapFB(shadowMapFB);
 				}
 
-				// light view and perspective pro
-				const cd::Vec3f lightPosition = lightComponent->GetPosition();
-				const cd::Vec3f lightDirection = lightComponent->GetDirection();
+				// Compute 1 light view and 1 perspective projection matrices according to ndc depth of different graphic backends
+				const cd::Point lightPosition = lightComponent->GetPosition();
+				const cd::Point lightDirection = lightComponent->GetDirection();
 				float range = lightComponent->GetRange();
 
-				// TODO :check direction and determine the fov
-				cd::Matrix4x4 lightView = cd::Matrix4x4::LookAt<cd::Handedness::Left>(lightPosition, lightPosition + lightDirection, cd::Vec3f(0.0f, 1.0f, 0.0f));//up or right
+				cd::Direction upOrRight = cd::Direction(0.0f, 1.0f, 0.0f) == lightDirection ? cd::Direction(0.0f, 1.0f, 0.0f) : cd::Direction(1.0f, 0.0f, 0.0f);
+				cd::Matrix4x4 lightView = cd::Matrix4x4::LookAt<cd::Handedness::Left>(lightPosition, lightPosition + lightDirection, upOrRight);
 				cd::Matrix4x4 lightProjection = cd::Matrix4x4::Perspective(lightComponent->GetInnerAndOuter().y(), 1.0f, 0.1f, range, ndcDepthMinusOneToOne);
 
+				// Settings
 				uint64_t state = defaultRenderingState;
 				bgfx::setState(state);
 				uint16_t viewId = m_renderPassID[shadowNum * shadowTexturePassMaxNum + 0];
 				bgfx::setViewRect(viewId, 0, 0, lightComponent->GetShadowMapSize(), lightComponent->GetShadowMapSize());
 				bgfx::setViewFrameBuffer(viewId, lightComponent->GetShadowMapFBs().at(0));
-				bgfx::setViewClear(viewId, clearFrameBufferFlags, 0x303030ff, 1.0f, 0);
+				bgfx::setViewClear(viewId, BGFX_CLEAR_DEPTH, 0xffffffff, 1.0f, 0);
 				bgfx::setViewTransform(viewId, lightView.Begin(), lightProjection.Begin());
 
-				cd::Matrix4x4 lightViewProj = lightProjection * lightView;
-				lightComponent->SetLightViewProjMatrix(lightViewProj);
+				// Set transform for projecting coordinates to light space in wolrd renderer 
+				cd::Matrix4x4 lightCSMViewProj = lightProjection * lightView;
+				lightComponent->AddLightViewProjMatrix(lightCSMViewProj);
 
+				// Submit draw call
 				for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
 				{
 					// No mesh attached?
