@@ -261,6 +261,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 				}
 				else
 				{
+					// Draw a black square with text here.
 					ImVec2 currentPos = ImGui::GetCursorScreenPos();
 					ImGui::GetWindowDrawList()->AddRectFilled(currentPos, ImVec2{ currentPos.x + 64, currentPos.y + 64 }, IM_COL32(0, 0, 0, 255));
 					ImGui::SetCursorScreenPos(ImVec2{ currentPos.x, currentPos.y + 27});
@@ -273,6 +274,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 				ImGuiUtils::ImGuiVectorProperty("UV Offset", textureInfo.GetUVOffset(), cd::Unit::None, cd::Vec2f(0.0f), cd::Vec2f(1.0f), false, 0.01f);
 				ImGuiUtils::ImGuiVectorProperty("UV Scale", textureInfo.GetUVScale());
 				ImGuiUtils::ImGuiBoolProperty("Use texture", pPropertyGroup->useTexture);
+
 				if (pPropertyGroup->useTexture)
 				{
 					pMaterialComponent->ActivateShaderFeature(engine::MaterialTextureTypeToShaderFeature.at(textureType));

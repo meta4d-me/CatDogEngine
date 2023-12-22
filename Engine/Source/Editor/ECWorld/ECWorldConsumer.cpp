@@ -281,7 +281,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	// TODO : Need pMaterial->GetVec3fProperty
 	// if (auto optOcclusion = pMaterial->GetVec3fProperty(cd::MaterialPropertyGroup::BaseColor, cd::MaterialProperty::Factor); optOcclusion.has_value())
 	// {
-	// 	materialComponent.SetFactor(cd::MaterialPropertyGroup::BaseColor, optOcclusion.value());
+	//     materialComponent.SetFactor(cd::MaterialPropertyGroup::BaseColor, optOcclusion.value());
 	// }
 	
 	if (auto optOcclusion = pMaterial->GetFloatProperty(cd::MaterialPropertyGroup::Occlusion, cd::MaterialProperty::Factor); optOcclusion.has_value())
@@ -326,7 +326,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 		if (!textureFileBlob.empty())
 		{
 			// TODO : Store TextureFileBlob multiple times, a temporary solution here.
-			//        Should use something like TextureResource to store it.
+			//        Should use something like TextureResource to avoid duplicate storage.
 			materialComponent.AddTextureFileBlob(type, pMaterial, *pTexture, cd::MoveTemp(textureFileBlob));
 			if (auto pPropertyGroup = materialComponent.GetPropertyGroup(type); pPropertyGroup)
 			{
