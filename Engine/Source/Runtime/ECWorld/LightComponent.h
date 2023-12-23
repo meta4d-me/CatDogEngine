@@ -117,6 +117,7 @@ public:
 	void AddLightViewProjMatrix(cd::Matrix4x4 lightViewProjMatrix) { m_lightViewProjMatrices.push_back(lightViewProjMatrix); }
 	const std::vector<cd::Matrix4x4>& GetLightViewProjMatrix() { return m_lightViewProjMatrices; }
 	const std::vector<cd::Matrix4x4> GetLightViewProjMatrix() const { return m_lightViewProjMatrices; }
+	void ClearLightViewProjMatrix() { m_lightViewProjMatrices.clear(); }
 
 	bool IsShadowMapFBsValid();
 	void AddShadowMapFB(bgfx::FrameBufferHandle& shadowMapFB) { m_shadowMapFBs.push_back(std::move(shadowMapFB)); }

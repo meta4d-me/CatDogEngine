@@ -45,8 +45,10 @@ public:
 	const cd::Morph* GetMorphsData() { return  m_pMorphsData; }
 	const uint32_t GetMorphCount() const { return m_morphCount; }
 	const uint32_t GetActiveMorphCount() const { return m_activeMorphCount; }
+
+	float& GetOverallWeight() { return m_overallWeight; }
 	
-	std::vector<float>& GetWeights() { return m_weights; };
+	std::vector<float>& GetWeights() { return m_weights; }
 
 	bool IsDirty() { return m_isDirty; }
 	void SetDirty(bool isDirty) { m_isDirty = isDirty; }
@@ -61,6 +63,7 @@ public:
 	uint16_t GetAllMorphVertexIDIB() const { return m_allMorphVertexIDPosIBHandle; }
 	uint16_t GetActiveMorphOffestLengthWeightIB() const { return m_activeMorphOffestLengthWeightIBHandle; }
 	uint16_t GetChangedMorphIndexIB() const { return m_changedMorphIndexIBHandle; }
+	uint16_t GetFinalVB() const { return m_finalVBHandle; }
 
 	void Reset();
 	void Build();
@@ -68,9 +71,11 @@ public:
 	void UpdateChanged();
 
 private:
+
 	//input
 	const cd::Mesh* m_pMesh;
 	const cd::Morph* m_pMorphsData;
+	float m_overallWeight = 1.0f;
 	std::vector<float> m_weights;
 	
 	uint32_t m_meshVertexCount = 0U;
@@ -95,6 +100,7 @@ private:
 	uint16_t						m_activeMorphOffestLengthWeightIBHandle = UINT16_MAX;	//	Dynamic Index Buffer	| Compute Input
 	std::vector<std::byte>	m_changedMorphIndexIB;
 	uint16_t						m_changedMorphIndexIBHandle = UINT16_MAX;					//	Dynamic Index Buffer	| Compute Input
+	uint16_t						m_finalVBHandle = UINT16_MAX;										//	Dynamic Vertex Buffer| Compute Input
 };
 
 }

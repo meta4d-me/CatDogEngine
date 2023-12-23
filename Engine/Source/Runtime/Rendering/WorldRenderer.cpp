@@ -323,8 +323,7 @@ void WorldRenderer::Render(float deltaTime)
 				constexpr StringCrc shadowMapSamplerCrc(shadowMapSampler);
 				bgfx::setTexture(SHADOW_MAP_CUBE_SLOT, GetRenderContext()->GetUniform(shadowMapSamplerCrc), blitDstShadowMapTexture);
 				
-				constexpr StringCrc lightViewProjCrc[4] = { StringCrc(lightViewProj[0]), StringCrc(lightViewProj[1]),
-					StringCrc(lightViewProj[2]), StringCrc(lightViewProj[3]) };
+				constexpr StringCrc lightViewProjCrc[4] = {StringCrc(lightViewProj[0]), StringCrc(lightViewProj[1]), StringCrc(lightViewProj[2]), StringCrc(lightViewProj[3])};
 				for (uint16_t matricesIdx = 0U; matricesIdx < cascadeNum; ++matricesIdx)
 				{
 					GetRenderContext()->FillUniform(lightViewProjCrc[matricesIdx], lightComponent->GetLightViewProjMatrix().at(matricesIdx).Begin(), 1);

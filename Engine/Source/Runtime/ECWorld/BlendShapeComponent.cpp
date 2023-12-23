@@ -141,6 +141,11 @@ void BlendShapeComponent::Build()
 	assert(bgfx::isValid(changedMorphIndexIBHandle));
 	m_changedMorphIndexIBHandle = changedMorphIndexIBHandle.idx;
 
+	// 5. overall weight Vertex Buffer
+	bgfx::DynamicVertexBufferHandle alphaVBHandle = bgfx::createDynamicVertexBuffer(m_meshVertexCount, finalMorphAffectedVL, BGFX_BUFFER_COMPUTE_READ_WRITE);
+	assert(bgfx::isValid(alphaVBHandle));
+	m_finalVBHandle = alphaVBHandle.idx;
+
 	SetDirty(true);
 }
 

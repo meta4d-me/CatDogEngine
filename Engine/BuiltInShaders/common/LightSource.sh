@@ -29,38 +29,49 @@ float CalculateDirectionalShadow(vec3 fragPosWorldSpace, vec3 normal, vec3 light
     // Get depth of current fragment from light's view
     float currentDepth = projCoords.z;
     // Calculate bias (based on depth map resolution and slope)
-    float bias = 0.05;//max(0.02 * (1.0 - dot(normal, lightDir)), 0.002);
+    float bias = max(0.02 * (1.0 - dot(normal, lightDir)), 0.002);
 
 	// compute sample vector
+
+	//vec3 sampleVec = vec3(projCoords.xy, 1.0);
+	//sampleVec = mul(uvTransform, sampleVec);
+/*	float closestDepth = textureCube(s_texCubeShadowMap, sampleVec).r; 	
+	float shadow = step(closestDepth, currentDepth - bias); 
+*/
+	// PCF shadow | Filter Size : 3x3 
 	vec3 sampleVec;
 	if(num < 0.5) sampleVec = vec3(1.0, projCoords.y, -projCoords.x);
 	else if(num > 0.5 && num < 1.5) sampleVec = vec3(-1.0, projCoords.y, projCoords.x);
 	else if(num > 1.5 && num < 2.5) sampleVec = vec3(projCoords.x, 1.0, projCoords.y);
 	else if(num > 2.5 && num < 3.5) sampleVec = vec3(projCoords.x, -1.0, projCoords.y);
-	//vec3 sampleVec = vec3(projCoords.xy, 1.0);
-	//sampleVec = mul(uvTransform, sampleVec);
-	float closestDepth = textureCube(s_texCubeShadowMap, sampleVec).r; 	
-	float shadow = step(closestDepth, currentDepth - bias); 
-
-	// PCF shadow | Filter Size : 3x3 
-	/*
 	float shadow = 0.0;
 	float samples = 3.0;
-	float totalOffset = 0.03;
+	float totalOffset = 0.0015;
 	float stepOffset = totalOffset / ((samples-1) * 0.5);
-	for(float x = -totalOffset; x <= totalOffset; x += stepOffset)
+	if(num < 1.5)
 	{
-    	for(float y = -totalOffset; y <= totalOffset; y += stepOffset)
-    	{
-        	for(float z = -totalOffset; z <= totalOffset; z += stepOffset)
-        	{
-				float closestDepth = textureCube(s_texCubeShadowMap, sampleVec + vec3(x, y, z)).r; 
+		for(float x = -totalOffset; x <= totalOffset; x += stepOffset)
+		{
+    		for(float y = -totalOffset; y <= totalOffset; y += stepOffset)
+    		{
+				float closestDepth = textureCube(s_texCubeShadowMap, sampleVec + vec3(0, y, x)).r; 
 				shadow += step(closestDepth, currentDepth - bias); 
 			}
 		}
 	}
-	shadow /= (samples * samples * samples);
-	*/
+	else
+	{
+		for(float x = -totalOffset; x <= totalOffset; x += stepOffset)
+		{
+    		for(float y = -totalOffset; y <= totalOffset; y += stepOffset)
+    		{
+				float closestDepth = textureCube(s_texCubeShadowMap, sampleVec + vec3(x, 0, y)).r; 
+				shadow += step(closestDepth, currentDepth - bias); 
+			}
+		}
+	}
+	shadow /= (samples * samples);
+	
     return shadow;
 }
 

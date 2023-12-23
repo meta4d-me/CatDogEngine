@@ -171,7 +171,7 @@ void ShadowMapRenderer::Render(float deltaTime)
 
 				// Set cascade split dividing values for choosing cascade level in world renderer
 				lightComponent->SetComputedCascadeSplit(&CascadeSplits[0]);
-				
+				lightComponent->ClearLightViewProjMatrix();
 				for (uint16_t cascadeIndex = 0; cascadeIndex < cascadeNum; ++cascadeIndex)
 				{
 					// Compute every light view and every orthographic projection matrices for each cascade
@@ -356,6 +356,7 @@ void ShadowMapRenderer::Render(float deltaTime)
 				bgfx::setViewTransform(viewId, lightView.Begin(), lightProjection.Begin());
 
 				// Set transform for projecting coordinates to light space in wolrd renderer 
+				lightComponent->ClearLightViewProjMatrix();
 				cd::Matrix4x4 lightCSMViewProj = lightProjection * lightView;
 				lightComponent->AddLightViewProjMatrix(lightCSMViewProj);
 

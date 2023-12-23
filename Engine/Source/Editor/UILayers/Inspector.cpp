@@ -141,6 +141,8 @@ void UpdateComponentWidget<engine::BlendShapeComponent>(engine::SceneWorld* pSce
 		const cd::Morph* pMorphsData = pBlendShapeComponent->GetMorphsData();
 		uint32_t morphCount = pBlendShapeComponent->GetMorphCount();
 		std::vector<float>& weights = pBlendShapeComponent->GetWeights();
+		float& overallWeight = pBlendShapeComponent->GetOverallWeight();
+		ImGuiUtils::ImGuiFloatProperty("Overall Blendshape", overallWeight, cd::Unit::None, 0.0f, 1.0f);//, false, 0.1f
 		for (uint32_t i = 0; i < morphCount; i++)
 		{
 			float weightI = weights[i];
