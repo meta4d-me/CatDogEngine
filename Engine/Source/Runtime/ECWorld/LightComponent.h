@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/StringCrc.h"
+#include "Core/Types.h"
 #include "Rendering/LightUniforms.h"
 #include "Scene/LightType.h"
 #include <Rendering/RenderTarget.h>

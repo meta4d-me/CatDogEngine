@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <vector>
+#include <span>
 
 namespace engine
 {
@@ -70,6 +71,7 @@ public:
 	void RegisterImGuiUserData(engine::ImGuiContextInstance* pImGuiContext);
 
 	void InitECWorld();
+	void InitMaterialType();
 	void InitEditorController();
 
 	bool IsAtmosphericScatteringEnable() const;
@@ -87,6 +89,7 @@ private:
 
 	void UpdateMaterials();
 	void CompileAndLoadShaders();
+	void OnShaderCompileFailed(uint32_t handle, std::span<const char> str);
 
 	bool m_crtInputFocus = true;
 	bool m_preInputFocus = true;

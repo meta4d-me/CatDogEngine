@@ -85,11 +85,9 @@ function SetLanguageAndToolset(projectName)
 	
 	if USE_CLANG_TOOLSET then
 		toolset("clang")
-		cppdialect("C++17")
-	else
-		cppdialect("C++20")
 	end
-
+	
+	cppdialect("C++20")
 	location(path.join(IntermediatePath, projectName))
 	targetdir(BinariesPath)
 end

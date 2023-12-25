@@ -135,9 +135,6 @@ void CalculateBoneTransform(std::vector<cd::Matrix4x4>& boneMatrices, const cd::
 
 void AnimationRenderer::Init()
 {
-	constexpr StringCrc programCrc = StringCrc("AnimationProgram");
-	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_animation", "fs_animation" });
-
 	bgfx::setViewName(GetViewID(), "AnimationRenderer");
 }
 
@@ -146,8 +143,6 @@ void AnimationRenderer::Warmup()
 #ifdef VISUALIZE_BONE_WEIGHTS
 	m_pRenderContext->CreateUniform("u_debugBoneIndex", bgfx::UniformType::Vec4, 1);
 	m_pRenderContext->CreateProgram("AnimationProgram", "vs_visualize_bone_weight", "fs_visualize_bone_weight");
-#else
-	GetRenderContext()->UploadShaderProgram("AnimationProgram");
 #endif
 }
 
@@ -190,13 +185,21 @@ void AnimationRenderer::Render(float deltaTime)
 			continue;
 		}
 
+		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
+		if (!pMaterialComponent ||
+			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetAnimationMaterialType() ||
+			!GetRenderContext()->IsShaderProgramValid(pMaterialComponent->GetShaderProgramName(), pMaterialComponent->GetFeaturesCombine()))
+		{
+			continue;
+		}
+
 		TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity);
-		bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
+		bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 
 		AnimationComponent* pAnimationComponent = m_pCurrentSceneWorld->GetAnimationComponent(entity);
 
 		const cd::Animation* pAnimation = pAnimationComponent->GetAnimationData();
-		float ticksPerSecond = pAnimation->GetTicksPerSecnod();
+		float ticksPerSecond = pAnimation->GetTicksPerSecond();
 		assert(ticksPerSecond > 1.0f);
 		float animationTime = details::CustomFModf(animationRunningTime * ticksPerSecond, pAnimation->GetDuration());
 
@@ -217,7 +220,7 @@ void AnimationRenderer::Render(float deltaTime)
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);
 
-		GetRenderContext()->Submit(GetViewID(), "AnimationProgram");
+		GetRenderContext()->Submit(GetViewID(), pMaterialComponent->GetShaderProgramName());
 	}
 }
 

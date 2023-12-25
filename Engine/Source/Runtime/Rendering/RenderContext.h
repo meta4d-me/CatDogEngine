@@ -67,16 +67,16 @@ public:
 	void RegisterShaderProgram(StringCrc programNameCrc, std::initializer_list<std::string> names);
 	void AddShaderFeature(StringCrc programNameCrc, std::string combine);
 
-	bool CheckShaderProgram(const std::string& programName, const std::string& featuresCombine = "");
-	bool OnShaderHotModified(const std::string& programName, const std::string& featuresCombine = "");
+	bool CheckShaderProgram(Entity entity, const std::string& programName, const std::string& featuresCombine = "");
+	bool OnShaderHotModified(Entity entity, const std::string& programName, const std::string& featuresCombine = "");
 	void UploadShaderProgram(const std::string& programName, const std::string& featuresCombine = "");
 	void DestroyShaderProgram(const std::string& programName, const std::string& featuresCombine = "");
 
-	void AddShaderCompileTask(ShaderCompileInfo info);
-	void ClearShaderCompileTasks();
-	void SetShaderCompileTasks(std::set<ShaderCompileInfo> tasks);
-	std::set<ShaderCompileInfo>& GetShaderCompileTasks() { return m_shaderCompileTasks; }
-	const std::set<ShaderCompileInfo>& GetShaderCompileTasks() const { return m_shaderCompileTasks; }
+	void AddShaderCompileInfo(ShaderCompileInfo info);
+	void ClearShaderCompileInfos();
+	void SetShaderCompileInfos(std::set<ShaderCompileInfo> tasks);
+	std::set<ShaderCompileInfo>& GetShaderCompileInfos() { return m_shaderCompileInfos; }
+	const std::set<ShaderCompileInfo>& GetShaderCompileInfos() const { return m_shaderCompileInfos; }
 
 	void CheckModifiedProgram(std::string modifiedShaderName);
 	void ClearModifiedProgramNameCrcs();
@@ -92,6 +92,8 @@ public:
 	/////////////////////////////////////////////////////////////////////
 	// Resource related apis
 	/////////////////////////////////////////////////////////////////////
+
+	bool IsShaderProgramValid(const std::string& programName, const std::string& featuresCombine = "") const;
 
 	void SetShaderProgramHandle(const std::string& programName, bgfx::ProgramHandle handle, const std::string& featuresCombine = "");
 	bgfx::ProgramHandle GetShaderProgramHandle(const std::string& programName, const std::string& featuresCombine = "") const;
@@ -149,7 +151,7 @@ private:
 	// Key : StringCrc(Shader name), Value : Shader binary data
 	std::unordered_map<StringCrc, std::unique_ptr<ShaderBlob>> m_shaderBlobs;
 
-	std::set<ShaderCompileInfo> m_shaderCompileTasks;
+	std::set<ShaderCompileInfo> m_shaderCompileInfos;
 	std::set<StringCrc> m_modifiedProgramNameCrcs;
 };
 

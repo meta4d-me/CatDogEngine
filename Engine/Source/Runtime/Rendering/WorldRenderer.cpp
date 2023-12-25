@@ -66,9 +66,6 @@ constexpr uint64_t blitDstTextureFlags = BGFX_TEXTURE_BLIT_DST | BGFX_SAMPLER_U_
 
 void WorldRenderer::Init()
 {
-	constexpr StringCrc programCrc = StringCrc("WorldProgram");
-	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_PBR", "fs_PBR" });
-
 	bgfx::setViewName(GetViewID(), "WorldRenderer");
 }
 
@@ -188,7 +185,8 @@ void WorldRenderer::Render(float deltaTime)
 	{
 		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
 		if (!pMaterialComponent ||
-			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetPBRMaterialType())
+			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetPBRMaterialType() ||
+			!GetRenderContext()->IsShaderProgramValid(pMaterialComponent->GetShaderProgramName(), pMaterialComponent->GetFeaturesCombine()))
 		{
 			// TODO : improve this condition. As we want to skip some feature-specified entities to render.
 			// For example, terrain/particle/...
@@ -217,7 +215,7 @@ void WorldRenderer::Render(float deltaTime)
 		// Transform
 		if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 		{
-			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
+			bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 		}
 
 		// Mesh
@@ -255,14 +253,12 @@ void WorldRenderer::Render(float deltaTime)
 
 			constexpr StringCrc radSamplerCrc(cubeRadianceSampler);
 			GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), samplerFlags);
-			//bgfx::TextureHandle th1 = GetRenderContext()->GetTexture(StringCrc(pSkyComponent->GetRadianceTexturePath()));
 			bgfx::setTexture(IBL_RADIANCE_SLOT,
 				GetRenderContext()->GetUniform(radSamplerCrc),
 				GetRenderContext()->GetTexture(StringCrc(pSkyComponent->GetRadianceTexturePath())));
 
 			constexpr StringCrc lutsamplerCrc(lutSampler);
 			constexpr StringCrc luttextureCrc(lutTexture);
-			//bgfx::TextureHandle th2 = GetRenderContext()->GetTexture(luttextureCrc);
 			bgfx::setTexture(BRDF_LUT_SLOT, GetRenderContext()->GetUniform(lutsamplerCrc), GetRenderContext()->GetTexture(luttextureCrc));
 		}
 		else if (SkyType::AtmosphericScattering == crtSkyType)
@@ -285,20 +281,20 @@ void WorldRenderer::Render(float deltaTime)
 
 		// Submit uniform values : material settings
 		constexpr StringCrc albedoColorCrc(albedoColor);
-		GetRenderContext()->FillUniform(albedoColorCrc, pMaterialComponent->GetAlbedoColor().Begin(), 1);
+		GetRenderContext()->FillUniform(albedoColorCrc, pMaterialComponent->GetAlbedoColor().begin(), 1);
 
 		constexpr StringCrc mrFactorCrc(metallicRoughnessFactor);
 		cd::Vec4f metallicRoughnessFactorData(pMaterialComponent->GetMetallicFactor(), pMaterialComponent->GetRoughnessFactor(), 1.0f, 1.0f);
-		GetRenderContext()->FillUniform(mrFactorCrc, metallicRoughnessFactorData.Begin(), 1);
+		GetRenderContext()->FillUniform(mrFactorCrc, metallicRoughnessFactorData.begin(), 1);
 
 		constexpr StringCrc emissiveColorCrc(emissiveColor);
-		GetRenderContext()->FillUniform(emissiveColorCrc, pMaterialComponent->GetEmissiveColor().Begin(), 1);
+		GetRenderContext()->FillUniform(emissiveColorCrc, pMaterialComponent->GetEmissiveColor().begin(), 1);
 
 		// Submit uniform values : light settings
 		constexpr engine::StringCrc lightCountAndStrideCrc(lightCountAndStride);
 		static cd::Vec4f lightInfoData(0, LightUniform::LIGHT_STRIDE, 0.0f, 0.0f);
 		lightInfoData.x() = static_cast<float>(lightEntityCount);
-		GetRenderContext()->FillUniform(lightCountAndStrideCrc, lightInfoData.Begin(), 1);
+		GetRenderContext()->FillUniform(lightCountAndStrideCrc, lightInfoData.begin(), 1);
 		float lightData[20*6] = {0};
 		for (uint16_t i = 0U; i < lightEntityCount; ++i)
 		{
@@ -365,7 +361,6 @@ void WorldRenderer::Render(float deltaTime)
 		{
 			state |= BGFX_STATE_CULL_CCW;
 		}
-		bgfx::setState(state);
 
 		if (cd::BlendMode::Mask == pMaterialComponent->GetBlendMode())
 		{
@@ -373,7 +368,8 @@ void WorldRenderer::Render(float deltaTime)
 			GetRenderContext()->FillUniform(alphaCutOffCrc, &pMaterialComponent->GetAlphaCutOff(), 1);
 		}
 
-		GetRenderContext()->Submit(GetViewID(), "WorldProgram", pMaterialComponent->GetFeaturesCombine());
+		bgfx::setState(state);
+		GetRenderContext()->Submit(GetViewID(), pMaterialComponent->GetShaderProgramName(), pMaterialComponent->GetFeaturesCombine());
 	}
 }
 

@@ -45,7 +45,6 @@ public:
                 CD_TRACE("    Path : {0}", rootDir);
                 CD_TRACE("    Name : {0}", filePath);
 
-                // TODO : Dont assert when delegate dosent bind.
                 pFileWatcher->GetWatchInfo(watchID.id).m_onCreate.Invoke(rootDir, filePath);
 
                 break;
@@ -116,9 +115,16 @@ void FileWatcher::Deinit()
     m_fileWatchInfos.clear();
 }
 
-uint32_t FileWatcher::Watch(FileWatchInfo info)
+std::optional<uint32_t> FileWatcher::Watch(FileWatchInfo info)
 {
-    CD_INFO("Start watching {0}{1}", info.m_watchPath, (info.m_isrecursive ? " and its subpaths." : ""));
+    if (!engine::Path::DirectoryExists(info.m_watchPath.c_str()))
+    {
+        CD_WARN("Invalid watching path \"{0}\"", info.m_watchPath);
+
+        return std::nullopt;
+    }
+
+    CD_INFO("Start watching \"{0}\" {1}", info.m_watchPath, (info.m_isrecursive ? "with its subpaths." : "without its subpaths."));
 
     WatchID watchID = dmon_watch(info.m_watchPath.c_str(), CallbackWrapper::Callback, static_cast<uint32_t>(info.m_isrecursive), this);
     m_fileWatchInfos[watchID.id] = cd::MoveTemp(info);

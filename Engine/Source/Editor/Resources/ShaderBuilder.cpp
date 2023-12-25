@@ -64,7 +64,7 @@ void ShaderBuilder::CompileRegisteredNonUberShader(engine::RenderContext* pRende
 
 void ShaderBuilder::CompileRegisteredUberShader(engine::RenderContext* pRenderContext, engine::MaterialType* pMaterialType)
 {
-	const std::string& programName = pMaterialType->GetShaderSchema().GetProgramName();
+	const std::string& programName = pMaterialType->GetShaderSchema().GetShaderProgramName();
 	engine::StringCrc programNameCrc = engine::StringCrc(programName);
 
 	if (!pRenderContext->GetShaderCollections()->HasFeatureCombine(programNameCrc))
@@ -81,7 +81,7 @@ void ShaderBuilder::CompileRegisteredUberShader(engine::RenderContext* pRenderCo
 
 void ShaderBuilder::CompileUberShaderAllVariants(engine::RenderContext* pRenderContext, engine::MaterialType* pMaterialType)
 {
-	const std::string& programName = pMaterialType->GetShaderSchema().GetProgramName();
+	const std::string& programName = pMaterialType->GetShaderSchema().GetShaderProgramName();
 
 	const std::set<std::string>& shaders = pRenderContext->GetShaderCollections()->GetShaders(engine::StringCrc(programName));
 	const std::set<std::string>& combines = pMaterialType->GetShaderSchema().GetAllFeatureCombines();
@@ -92,28 +92,37 @@ void ShaderBuilder::CompileUberShaderAllVariants(engine::RenderContext* pRenderC
 	ResourceBuilder::Get().Update();
 }
 
-void ShaderBuilder::BuildShader(engine::RenderContext* pRenderContext, const engine::ShaderCompileInfo& info)
+void ShaderBuilder::BuildShaderInfos(engine::RenderContext* pRenderContext, TaskOutputCallbacks callbacks)
 {
-	const std::set<std::string>& shaders = pRenderContext->GetShaderCollections()->GetShaders(engine::StringCrc(info.m_programName));
-
-	for (const auto& shader : shaders)
+	for (auto info : pRenderContext->GetShaderCompileInfos())
 	{
-		engine::ShaderType shaderType = engine::GetShaderType(shader);
-		if (engine::ShaderType::Vertex == shaderType || engine::ShaderType::Compute == shaderType)
+		const std::set<std::string>& shaders = pRenderContext->GetShaderCollections()->GetShaders(engine::StringCrc(info.m_programName));
+
+		for (const auto& shader : shaders)
 		{
-			std::string inputVSFilePath = engine::Path::GetBuiltinShaderInputPath(shader.c_str());
-			std::string outputVSFilePath = engine::Path::GetShaderOutputPath(shader.c_str());
-			ResourceBuilder::Get().AddShaderBuildTask(shaderType, inputVSFilePath.c_str(), outputVSFilePath.c_str());
-		}
-		else if (engine::ShaderType::Fragment == shaderType)
-		{
-			std::string inputFSFilePath = engine::Path::GetBuiltinShaderInputPath(shader.c_str());
-			std::string outputFSFilePath = engine::Path::GetShaderOutputPath(shader.c_str(), info.m_featuresCombine);
-			ResourceBuilder::Get().AddShaderBuildTask(engine::ShaderType::Fragment, inputFSFilePath.c_str(), outputFSFilePath.c_str(), info.m_featuresCombine.c_str());
-		}
-		else
-		{
-			continue;
+			engine::ShaderType shaderType = engine::GetShaderType(shader);
+			if (engine::ShaderType::Vertex == shaderType || engine::ShaderType::Compute == shaderType)
+			{
+				std::string inputVSFilePath = engine::Path::GetBuiltinShaderInputPath(shader.c_str());
+				std::string outputVSFilePath = engine::Path::GetShaderOutputPath(shader.c_str());
+				// No uber shader support for VS and CS.
+				TaskHandle handle = ResourceBuilder::Get().AddShaderBuildTask(shaderType,
+					inputVSFilePath.c_str(), outputVSFilePath.c_str(), "", callbacks);
+				info.m_taskHandles.insert(handle);
+
+			}
+			else if (engine::ShaderType::Fragment == shaderType)
+			{
+				std::string inputFSFilePath = engine::Path::GetBuiltinShaderInputPath(shader.c_str());
+				std::string outputFSFilePath = engine::Path::GetShaderOutputPath(shader.c_str(), info.m_featuresCombine);
+				TaskHandle handle = ResourceBuilder::Get().AddShaderBuildTask(engine::ShaderType::Fragment,
+					inputFSFilePath.c_str(), outputFSFilePath.c_str(), info.m_featuresCombine.c_str(), callbacks);
+				info.m_taskHandles.insert(handle);
+			}
+			else
+			{
+				continue;
+			}
 		}
 	}
 }
