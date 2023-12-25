@@ -395,6 +395,7 @@ void EditorApp::UpdateMaterials()
 		const std::string& programName = pMaterialComponent->GetShaderProgramName();
 		const std::string& featuresCombine = pMaterialComponent->GetFeaturesCombine();
 
+
 		// New shader feature added, need to compile new variants.
 		m_pRenderContext->CheckShaderProgram(entity, programName, featuresCombine);
 

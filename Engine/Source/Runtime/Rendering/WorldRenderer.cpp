@@ -28,7 +28,7 @@ constexpr const char* lutTexture                  = "Textures/lut/ibl_brdf_lut.d
 											      
 constexpr const char* cameraPos                   = "u_cameraPos";
 constexpr const char* albedoColor                 = "u_albedoColor";
-constexpr const char* emissiveColor               = "u_emissiveColor";
+constexpr const char* emissiveColorAndFactor      = "u_emissiveColorAndFactor";
 constexpr const char* metallicRoughnessFactor     = "u_metallicRoughnessFactor";
 											      
 constexpr const char* albedoUVOffsetAndScale      = "u_albedoUVOffsetAndScale";
@@ -64,7 +64,7 @@ void WorldRenderer::Warmup()
 
 	GetRenderContext()->CreateUniform(cameraPos, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(albedoColor, bgfx::UniformType::Vec4, 1);
-	GetRenderContext()->CreateUniform(emissiveColor, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(emissiveColorAndFactor, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(metallicRoughnessFactor, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(albedoUVOffsetAndScale, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(alphaCutOff, bgfx::UniformType::Vec4, 1);
@@ -129,20 +129,24 @@ void WorldRenderer::Render(float deltaTime)
 		UpdateStaticMeshComponent(pMeshComponent);
 
 		// Material
-		for (const auto& [textureType, _] : pMaterialComponent->GetTextureResources())
+		for (const auto& [textureType, propertyGroup] : pMaterialComponent->GetPropertyGroups())
 		{
-			if (const MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(textureType))
-			{
-				if (cd::MaterialTextureType::BaseColor == textureType)
-				{
-					constexpr StringCrc albedoUVOffsetAndScaleCrc(albedoUVOffsetAndScale);
-					cd::Vec4f uvOffsetAndScaleData(pTextureInfo->GetUVOffset().x(), pTextureInfo->GetUVOffset().y(),
-						pTextureInfo->GetUVScale().x(), pTextureInfo->GetUVScale().y());
-					GetRenderContext()->FillUniform(albedoUVOffsetAndScaleCrc, &uvOffsetAndScaleData, 1);
-				}
+			const MaterialComponent::TextureInfo& textureInfo = propertyGroup.textureInfo;
 
-				bgfx::setTexture(pTextureInfo->slot, bgfx::UniformHandle{ pTextureInfo->samplerHandle }, bgfx::TextureHandle{ pTextureInfo->textureHandle });
+			if (!propertyGroup.useTexture || !bgfx::isValid(bgfx::TextureHandle{ textureInfo.textureHandle }))
+			{
+				continue;
 			}
+
+			if (cd::MaterialTextureType::BaseColor == textureType)
+			{
+				constexpr StringCrc albedoUVOffsetAndScaleCrc(albedoUVOffsetAndScale);
+				cd::Vec4f uvOffsetAndScaleData(textureInfo.GetUVOffset().x(), textureInfo.GetUVOffset().y(),
+					textureInfo.GetUVScale().x(), textureInfo.GetUVScale().y());
+				GetRenderContext()->FillUniform(albedoUVOffsetAndScaleCrc, &uvOffsetAndScaleData, 1);
+			}
+
+			bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle{ textureInfo.samplerHandle }, bgfx::TextureHandle{ textureInfo.textureHandle });
 		}
 
 		// Sky
@@ -188,14 +192,17 @@ void WorldRenderer::Render(float deltaTime)
 
 		// Submit uniform values : material settings
 		constexpr StringCrc albedoColorCrc(albedoColor);
-		GetRenderContext()->FillUniform(albedoColorCrc, pMaterialComponent->GetAlbedoColor().begin(), 1);
+		GetRenderContext()->FillUniform(albedoColorCrc, pMaterialComponent->GetFactor<cd::Vec3f>(cd::MaterialPropertyGroup::BaseColor), 1);
 
+		cd::Vec4f metallicRoughnessFactorData(
+			*(pMaterialComponent->GetFactor<float>(cd::MaterialPropertyGroup::Metallic)),
+			*(pMaterialComponent->GetFactor<float>(cd::MaterialPropertyGroup::Roughness)),
+			1.0f, 1.0f);
 		constexpr StringCrc mrFactorCrc(metallicRoughnessFactor);
-		cd::Vec4f metallicRoughnessFactorData(pMaterialComponent->GetMetallicFactor(), pMaterialComponent->GetRoughnessFactor(), 1.0f, 1.0f);
 		GetRenderContext()->FillUniform(mrFactorCrc, metallicRoughnessFactorData.begin(), 1);
 
-		constexpr StringCrc emissiveColorCrc(emissiveColor);
-		GetRenderContext()->FillUniform(emissiveColorCrc, pMaterialComponent->GetEmissiveColor().begin(), 1);
+		constexpr StringCrc emissiveColorCrc(emissiveColorAndFactor);
+		GetRenderContext()->FillUniform(emissiveColorCrc, pMaterialComponent->GetFactor<cd::Vec4f>(cd::MaterialPropertyGroup::Emissive), 1);
 
 		// Submit uniform values : light settings
 		auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();
