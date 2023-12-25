@@ -73,7 +73,7 @@ public:
 	{
 		TextureInfo textureInfo;
 		bool useTexture;
-		std::variant<cd::Vec3f, float> factor;
+		std::variant<float, cd::Vec3f, cd::Vec4f> factor;
 	};
 
 public:
@@ -127,7 +127,7 @@ public:
 			return;
 		}
 
-		if (auto pValue = std::get_if<T>(&(it->second.factor)))
+		if (auto pValue = std::get_if<T>(&(it->second.factor)); pValue)
 		{
 			*pValue = cd::MoveTemp(factor);
 		}

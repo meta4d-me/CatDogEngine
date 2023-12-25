@@ -271,7 +271,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 					ImGui::SetCursorScreenPos(ImVec2{ currentPos.x, currentPos.y + 66});
 				}
 
-				ImGuiUtils::ImGuiVectorProperty("UV Offset", textureInfo.GetUVOffset(), cd::Unit::None, cd::Vec2f(0.0f), cd::Vec2f(1.0f), false, 0.01f);
+				ImGuiUtils::ImGuiVectorProperty("UV Offset", textureInfo.GetUVOffset(), cd::Unit::None, cd::Vec2f::Zero(), cd::Vec2f::One(), false, 0.01f);
 				ImGuiUtils::ImGuiVectorProperty("UV Scale", textureInfo.GetUVScale());
 				ImGuiUtils::ImGuiBoolProperty("Use texture", pPropertyGroup->useTexture);
 
@@ -296,7 +296,12 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 				}
 				else if (cd::MaterialTextureType::Emissive == textureType)
 				{
-					ImGuiUtils::ImGuiFloatProperty("Factor", *(pMaterialComponent->GetFactor<float>(textureType)), cd::Unit::None, 0.0f, 10.0f, false, 0.1f);
+					cd::Vec4f& emissiveColorAndFactor = *(pMaterialComponent->GetFactor<cd::Vec4f>(textureType));
+					cd::Vec3f emissiveColor{ emissiveColorAndFactor.x(), emissiveColorAndFactor.y(), emissiveColorAndFactor.z() };
+					float emissiveFactor = emissiveColorAndFactor.w();
+					ImGuiUtils::ImGuiVectorProperty("Color", emissiveColor, cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One(), false, 0.01f);
+					ImGuiUtils::ImGuiFloatProperty("Factor", emissiveFactor, cd::Unit::None, 0.0f, 10.0f, false, 0.1f);
+					emissiveColorAndFactor = cd::Vec4f{ emissiveColor.x(), emissiveColor.y(), emissiveColor.z(), emissiveFactor };
 				}
 
 				ImGui::PopID();

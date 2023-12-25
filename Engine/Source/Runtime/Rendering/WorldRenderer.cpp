@@ -28,7 +28,7 @@ constexpr const char* lutTexture                  = "Textures/lut/ibl_brdf_lut.d
 											      
 constexpr const char* cameraPos                   = "u_cameraPos";
 constexpr const char* albedoColor                 = "u_albedoColor";
-constexpr const char* emissiveColor               = "u_emissiveColor";
+constexpr const char* emissiveColorAndFactor = "u_emissiveColorAndFactor";
 constexpr const char* metallicRoughnessFactor     = "u_metallicRoughnessFactor";
 											      
 constexpr const char* albedoUVOffsetAndScale      = "u_albedoUVOffsetAndScale";
@@ -64,7 +64,7 @@ void WorldRenderer::Warmup()
 
 	GetRenderContext()->CreateUniform(cameraPos, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(albedoColor, bgfx::UniformType::Vec4, 1);
-	GetRenderContext()->CreateUniform(emissiveColor, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(emissiveColorAndFactor, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(metallicRoughnessFactor, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(albedoUVOffsetAndScale, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(alphaCutOff, bgfx::UniformType::Vec4, 1);
@@ -201,8 +201,8 @@ void WorldRenderer::Render(float deltaTime)
 		constexpr StringCrc mrFactorCrc(metallicRoughnessFactor);
 		GetRenderContext()->FillUniform(mrFactorCrc, metallicRoughnessFactorData.begin(), 1);
 
-		constexpr StringCrc emissiveColorCrc(emissiveColor);
-		GetRenderContext()->FillUniform(emissiveColorCrc, pMaterialComponent->GetFactor<float>(cd::MaterialPropertyGroup::Emissive), 1);
+		constexpr StringCrc emissiveColorCrc(emissiveColorAndFactor);
+		GetRenderContext()->FillUniform(emissiveColorCrc, pMaterialComponent->GetFactor<cd::Vec4f>(cd::MaterialPropertyGroup::Emissive), 1);
 
 		// Submit uniform values : light settings
 		auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();

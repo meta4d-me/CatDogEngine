@@ -125,7 +125,7 @@ void MaterialComponent::Init()
 	m_propertyGroups[cd::MaterialPropertyGroup::Metallic] = cd::MoveTemp(propertyGroup);
 
 	propertyGroup.useTexture = false;
-	propertyGroup.factor = 1.0f;
+	propertyGroup.factor = cd::Vec4f{ 1.0f, 1.0f, 1.0f, 1.0f };
 	m_propertyGroups[cd::MaterialPropertyGroup::Emissive] = cd::MoveTemp(propertyGroup);
 }
 
