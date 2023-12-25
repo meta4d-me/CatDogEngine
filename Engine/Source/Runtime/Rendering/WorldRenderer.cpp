@@ -28,7 +28,7 @@ constexpr const char* lutTexture                  = "Textures/lut/ibl_brdf_lut.d
 											      
 constexpr const char* cameraPos                   = "u_cameraPos";
 constexpr const char* albedoColor                 = "u_albedoColor";
-constexpr const char* emissiveColorAndFactor = "u_emissiveColorAndFactor";
+constexpr const char* emissiveColorAndFactor      = "u_emissiveColorAndFactor";
 constexpr const char* metallicRoughnessFactor     = "u_metallicRoughnessFactor";
 											      
 constexpr const char* albedoUVOffsetAndScale      = "u_albedoUVOffsetAndScale";
