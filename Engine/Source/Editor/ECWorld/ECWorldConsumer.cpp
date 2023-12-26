@@ -129,6 +129,7 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 	// 3. Node hierarchy.
 	// Another case is that we want to skip Node/Mesh which alreay parsed previously.
 	std::set<uint32_t> parsedMeshIDs;
+	m_particleMinID = 0;
 	for (const auto& mesh : pSceneDatabase->GetMeshes())
 	{
 		if (m_meshMinID > mesh.GetID().Data())
