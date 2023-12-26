@@ -36,6 +36,8 @@ void ParticleRenderer::Render(float deltaTime)
 		const cd::Quaternion& particleRotation = m_pCurrentSceneWorld->GetTransformComponent(entity)->GetTransform().GetRotation();
 		ParticleEmitterComponent* pEmitterComponent = m_pCurrentSceneWorld->GetParticleEmitterComponent(entity);
 
+		//Not include particle attribute
+		pEmitterComponent->GetParticlePool().SetParticleMaxCount(pEmitterComponent->GetSpawnCount());
 		pEmitterComponent->GetParticlePool().AllParticlesReset();
 		int particleIndex = pEmitterComponent->GetParticlePool().AllocateParticleIndex();
 		if (particleIndex != -1)
@@ -51,13 +53,23 @@ void ParticleRenderer::Render(float deltaTime)
 		pEmitterComponent->GetParticlePool().Update(1.0f/60.0f);
 
 		//Particle Data Submit
-		pEmitterComponent->PaddingVertexBuffer();
-		pEmitterComponent->PaddingIndexBuffer();
+		auto k = pEmitterComponent->GetMeshData();
+		if (pEmitterComponent->GetMeshData() == nullptr)
+		{
+			pEmitterComponent->PaddingVertexBuffer();
+			pEmitterComponent->PaddingIndexBuffer();
+		}
+		else
+		{
+			pEmitterComponent->ParseMeshVertexBuffer();
+			pEmitterComponent->ParseMeshIndexBuffer();
+		}
 
 		//Particle Emitter Insta
 		const uint16_t instanceStride = 80;
 		// to total number of instances to draw
-		uint32_t totalSprites = pEmitterComponent->GetParticlePool().GetParticleMaxCount();
+		uint32_t totalSprites;
+		totalSprites = pEmitterComponent->GetParticlePool().GetParticleMaxCount();
 		uint32_t drawnSprites = bgfx::getAvailInstanceDataBuffer(totalSprites, instanceStride);
 
 		bgfx::InstanceDataBuffer idb;

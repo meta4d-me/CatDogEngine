@@ -25,6 +25,7 @@ public:
 	Particle& GetParticle(int index) { return m_particles[index]; }
 	int GetParticleCount() { return m_currentActiveCount; }
 	int& GetParticleMaxCount() { return m_maxParticleCount; }
+	void SetParticleMaxCount(int count) { m_maxParticleCount = count; }
 
 	void Update(float deltaTime);
 	void AllParticlesReset();

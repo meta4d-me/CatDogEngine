@@ -5,6 +5,7 @@
 #include "Math/Vector.hpp"
 #include "Math/Transform.hpp"
 #include "ParticleSystem/ParticlePool.h"
+#include "Scene/Mesh.h"
 #include "Scene/Types.h"
 #include "Scene/VertexFormat.h"
 
@@ -31,6 +32,8 @@ public:
 	
 	ParticlePool& GetParticlePool() { return m_particlePool; }
 
+	int& GetSpawnCount() { return m_spawnCount; }
+	void SetSpawnCount(int count) { m_spawnCount = count; }
 	//int& GetParticleMaxCount() { return m_particleMaxCount; } // Sprite
 	//void SetParticleMaxCount(int count) { m_particleMaxCount = count; } //Sprite
 
@@ -61,14 +64,19 @@ public:
 	std::vector<std::byte> &GetVertexBuffer() { return m_particleVertexBuffer; }
 	std::vector<std::byte> &GetIndexBuffer() { return m_particleIndexBuffer; }
 
+	const cd::Mesh* GetMeshData() const { return m_pMeshData; }
+	void SetMeshData(const cd::Mesh* pMeshData) { m_pMeshData = pMeshData; }
+
 	void Build();
 
 	void SetRequiredVertexFormat(const cd::VertexFormat* pVertexFormat) { m_pRequiredVertexFormat = pVertexFormat; }
+
 	//void UpdateBuffer();
-
 	void PaddingVertexBuffer();
-
 	void PaddingIndexBuffer();
+
+	void ParseMeshVertexBuffer();
+	void ParseMeshIndexBuffer();
 
 private:
 	//ParticleSystem m_particleSystem;
@@ -83,11 +91,13 @@ private:
 		cd::UV     uv;
 	};
 
-	int m_particleMaxCount = 300;
+	int m_spawnCount = 75;
 	cd::Vec3f m_emitterVelocity {20.0f,20.0f,0.0f};
 	cd::Vec3f m_emitterAcceleration;
 	cd::Vec4f m_emitterColor = cd::Vec4f::One();
 	float m_emitterLifeTime = 6.0f;
+
+	const cd::Mesh* m_pMeshData = nullptr;
 
 	const cd::VertexFormat* m_pRequiredVertexFormat = nullptr;
 	std::vector<std::byte> m_particleVertexBuffer;
