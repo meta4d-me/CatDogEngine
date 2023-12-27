@@ -37,8 +37,8 @@ public:
 	//int& GetParticleMaxCount() { return m_particleMaxCount; } // Sprite
 	//void SetParticleMaxCount(int count) { m_particleMaxCount = count; } //Sprite
 
-	ParticleType& GetEmitterParticleType() { return m_emitterparticletype; }
-	void SetEmitterParticleType(engine::ParticleType type) { m_emitterparticletype = type; }
+	ParticleType& GetEmitterParticleType() { return m_emitterParticleType; }
+	void SetEmitterParticleType(engine::ParticleType type) { m_emitterParticleType = type; }
 
 	//bool& GetRandomVelocityState() { return m_randomVelocityState; }
 	//void SetRandomVelocityState(bool state) { m_randomVelocityState = state; }
@@ -82,7 +82,7 @@ private:
 	//ParticleSystem m_particleSystem;
 	ParticlePool m_particlePool;
 
-	engine::ParticleType m_emitterparticletype = ParticleType::Sprite;
+	engine::ParticleType m_emitterParticleType;
 
 	struct VertexData
 	{

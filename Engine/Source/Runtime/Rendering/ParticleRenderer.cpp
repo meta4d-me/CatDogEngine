@@ -75,13 +75,12 @@ void ParticleRenderer::Render(float deltaTime)
 		bgfx::allocInstanceDataBuffer(&idb, drawnSprites, instanceStride);
 
 		uint8_t* data = idb.data;
-
 		for (uint32_t ii = 0; ii < drawnSprites; ++ii)
 		{
 			float* mtx = (float*)data;
 			bx::mtxSRT(mtx, particleTransform.GetScale().x(), particleTransform.GetScale().y(), particleTransform.GetScale().z(),
-				particleRotation.Pitch(), particleRotation.Yaw(), particleRotation.Roll(),
-				pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().x(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().y(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().z());
+									    particleRotation.Pitch(), particleRotation.Yaw(), particleRotation.Roll(),
+										pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().x(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().y(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().z());
 			float* color = (float*)&data[64];
 			color[0] = pEmitterComponent->GetEmitterColor().x();
 			color[1] = pEmitterComponent->GetEmitterColor().y();

@@ -28,12 +28,13 @@ void engine::ParticleEmitterComponent::PaddingVertexBuffer()
 {
 	//m_particleVertexBuffer.clear();
 	//m_particleVertexBuffer.insert(m_particleVertexBuffer.end(), m_particlePool.GetRenderDataBuffer().begin(), m_particlePool.GetRenderDataBuffer().end());
+	m_particleVertexBuffer.clear();
 
 	const bool containsPosition = m_pRequiredVertexFormat->Contains(cd::VertexAttributeType::Position);
 	const bool containsColor = m_pRequiredVertexFormat->Contains(cd::VertexAttributeType::Color);
 	const bool containsUV = m_pRequiredVertexFormat->Contains(cd::VertexAttributeType::UV);
 	//vertexbuffer
-	if (m_emitterparticletype == engine::ParticleType::Sprite)
+	if (m_emitterParticleType == engine::ParticleType::Sprite)
 	{
 		const int MAX_VERTEX_COUNT = m_particlePool.GetParticleMaxCount() * engine::ParticleTypeVertexCount::SpriteVertexCount;
 		size_t vertexCount = MAX_VERTEX_COUNT;
@@ -76,21 +77,21 @@ void engine::ParticleEmitterComponent::PaddingVertexBuffer()
 			}
 		}
 	}
-	else if (m_emitterparticletype == engine::ParticleType::Ribbon)
+	else if (m_emitterParticleType == engine::ParticleType::Ribbon)
 	{
-		m_particleVertexBuffer.clear();
+
 	}
-	else if (m_emitterparticletype == engine::ParticleType::Track)
+	else if (m_emitterParticleType == engine::ParticleType::Track)
 	{
-		m_particleVertexBuffer.clear();
+
 	}
-	else if (m_emitterparticletype == engine::ParticleType::Ring)
+	else if (m_emitterParticleType == engine::ParticleType::Ring)
 	{
-		m_particleVertexBuffer.clear();
+
 	}
-	else if (m_emitterparticletype == engine::ParticleType::Model)
+	else if (m_emitterParticleType == engine::ParticleType::Model)
 	{
-		m_particleVertexBuffer.clear();
+
 	}
 
 }
@@ -99,8 +100,9 @@ void engine::ParticleEmitterComponent::PaddingIndexBuffer()
 {
 	/*
 * indexBuffer
-*/
-	if (m_emitterparticletype == engine::ParticleType::Sprite)
+*/	
+	m_particleIndexBuffer.clear();
+	if (m_emitterParticleType == engine::ParticleType::Sprite)
 	{
 		const bool useU16Index = static_cast<uint32_t>(ParticleTypeVertexCount::SpriteVertexCount) <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()) + 1U;
 		const uint32_t indexTypeSize = useU16Index ? sizeof(uint16_t) : sizeof(uint32_t);
@@ -132,21 +134,21 @@ void engine::ParticleEmitterComponent::PaddingIndexBuffer()
 			currentDataSize += static_cast<uint32_t>(indexTypeSize);
 		}
 	}
-	else if (m_emitterparticletype == engine::ParticleType::Ribbon)
+	else if (m_emitterParticleType == engine::ParticleType::Ribbon)
 	{
-		m_particleIndexBuffer.clear();
+
 	}
-	else if (m_emitterparticletype == engine::ParticleType::Track)
+	else if (m_emitterParticleType == engine::ParticleType::Track)
 	{
-		m_particleIndexBuffer.clear();
+
 	}
-	else if (m_emitterparticletype == engine::ParticleType::Ring)
+	else if (m_emitterParticleType == engine::ParticleType::Ring)
 	{
-		m_particleIndexBuffer.clear();
+
 	}
-	else if (m_emitterparticletype == engine::ParticleType::Model)
+	else if (m_emitterParticleType == engine::ParticleType::Model)
 	{
-		m_particleIndexBuffer.clear();
+
 	}
 }
 
@@ -160,6 +162,7 @@ void engine::ParticleEmitterComponent::ParseMeshVertexBuffer()
 		return;
 	}
 	
+	m_particleVertexBuffer.clear();
 	//TODO: if particle is mesh , is there should be to change the mesh data?
 	m_spawnCount = m_pMeshData->GetPolygonCount()/2;
 
@@ -167,7 +170,7 @@ void engine::ParticleEmitterComponent::ParseMeshVertexBuffer()
 	const bool containsColor = m_pRequiredVertexFormat->Contains(cd::VertexAttributeType::Color);
 	const bool containsUV = m_pRequiredVertexFormat->Contains(cd::VertexAttributeType::UV);
 
-	if (m_emitterparticletype == engine::ParticleType::Sprite)
+	if (m_emitterParticleType == engine::ParticleType::Sprite)
 	{
 		const int MAX_VERTEX_COUNT = m_pMeshData->GetVertexCount();
 		size_t vertexCount = MAX_VERTEX_COUNT;
@@ -205,19 +208,19 @@ void engine::ParticleEmitterComponent::ParseMeshVertexBuffer()
 			}
 		}
 	}
-	else if (m_emitterparticletype == engine::ParticleType::Ribbon)
+	else if (m_emitterParticleType == engine::ParticleType::Ribbon)
 	{
 
 	}
-	else if (m_emitterparticletype == engine::ParticleType::Track)
+	else if (m_emitterParticleType == engine::ParticleType::Track)
 	{
 
 	}
-	else if (m_emitterparticletype == engine::ParticleType::Ring)
+	else if (m_emitterParticleType == engine::ParticleType::Ring)
 	{
 
 	}
-	else if (m_emitterparticletype == engine::ParticleType::Model)
+	else if (m_emitterParticleType == engine::ParticleType::Model)
 	{
 
 	}
@@ -225,7 +228,8 @@ void engine::ParticleEmitterComponent::ParseMeshVertexBuffer()
 
 void engine::ParticleEmitterComponent::ParseMeshIndexBuffer()
 {
-	if (m_emitterparticletype == engine::ParticleType::Sprite)
+	m_particleIndexBuffer.clear();
+	if (m_emitterParticleType == engine::ParticleType::Sprite)
 	{
 		const bool useU16Index = static_cast<uint32_t>(ParticleTypeVertexCount::SpriteVertexCount) <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()) + 1U;
 		const uint32_t indexTypeSize = useU16Index ? sizeof(uint16_t) : sizeof(uint32_t);
@@ -257,19 +261,19 @@ void engine::ParticleEmitterComponent::ParseMeshIndexBuffer()
 			}
 		}
 	}
-	else if (m_emitterparticletype == engine::ParticleType::Ribbon)
+	else if (m_emitterParticleType == engine::ParticleType::Ribbon)
 	{
 
 	}
-	else if (m_emitterparticletype == engine::ParticleType::Track)
+	else if (m_emitterParticleType == engine::ParticleType::Track)
 	{
 
 	}
-	else if (m_emitterparticletype == engine::ParticleType::Ring)
+	else if (m_emitterParticleType == engine::ParticleType::Ring)
 	{
 
 	}
-	else if (m_emitterparticletype == engine::ParticleType::Model)
+	else if (m_emitterParticleType == engine::ParticleType::Model)
 	{
 
 	}
