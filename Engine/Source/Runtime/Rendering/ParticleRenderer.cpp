@@ -80,9 +80,9 @@ void ParticleRenderer::Render(float deltaTime)
 		for (uint32_t ii = 0; ii < drawnSprites; ++ii)
 		{
 			float* mtx = (float*)data;
-			//bx::mtxRotateXY(mtx,0.0f, 0.0f);
 			bx::mtxRotateXYZ(mtx, particleRotation.Pitch(), particleRotation.Yaw(), particleRotation.Roll());
-			//bx::mtxRotateXYZ(mtx, 1.0f, 1.0f, 1.0f);
+			//Just one value can control all data
+			bx::mtxScale(mtx, particleTransform.GetScale().x());
 			mtx[12] = pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().x();
 			mtx[13] = pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().y();
 			mtx[14] = pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().z();
