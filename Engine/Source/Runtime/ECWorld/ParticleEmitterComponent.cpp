@@ -78,19 +78,19 @@ void engine::ParticleEmitterComponent::PaddingVertexBuffer()
 	}
 	else if (m_emitterparticletype == engine::ParticleType::Ribbon)
 	{
-
+		m_particleVertexBuffer.clear();
 	}
 	else if (m_emitterparticletype == engine::ParticleType::Track)
 	{
-
+		m_particleVertexBuffer.clear();
 	}
 	else if (m_emitterparticletype == engine::ParticleType::Ring)
 	{
-
+		m_particleVertexBuffer.clear();
 	}
 	else if (m_emitterparticletype == engine::ParticleType::Model)
 	{
-
+		m_particleVertexBuffer.clear();
 	}
 
 }
@@ -134,19 +134,19 @@ void engine::ParticleEmitterComponent::PaddingIndexBuffer()
 	}
 	else if (m_emitterparticletype == engine::ParticleType::Ribbon)
 	{
-
+		m_particleIndexBuffer.clear();
 	}
 	else if (m_emitterparticletype == engine::ParticleType::Track)
 	{
-
+		m_particleIndexBuffer.clear();
 	}
 	else if (m_emitterparticletype == engine::ParticleType::Ring)
 	{
-
+		m_particleIndexBuffer.clear();
 	}
 	else if (m_emitterparticletype == engine::ParticleType::Model)
 	{
-
+		m_particleIndexBuffer.clear();
 	}
 }
 

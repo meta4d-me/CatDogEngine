@@ -53,7 +53,6 @@ void ParticleRenderer::Render(float deltaTime)
 		pEmitterComponent->GetParticlePool().Update(1.0f/60.0f);
 
 		//Particle Data Submit
-		auto k = pEmitterComponent->GetMeshData();
 		if (pEmitterComponent->GetMeshData() == nullptr)
 		{
 			pEmitterComponent->PaddingVertexBuffer();
@@ -65,7 +64,7 @@ void ParticleRenderer::Render(float deltaTime)
 			pEmitterComponent->ParseMeshIndexBuffer();
 		}
 
-		//Particle Emitter Insta
+		//Particle Emitter Instance
 		const uint16_t instanceStride = 80;
 		// to total number of instances to draw
 		uint32_t totalSprites;
@@ -80,12 +79,9 @@ void ParticleRenderer::Render(float deltaTime)
 		for (uint32_t ii = 0; ii < drawnSprites; ++ii)
 		{
 			float* mtx = (float*)data;
-			bx::mtxRotateXYZ(mtx, particleRotation.Pitch(), particleRotation.Yaw(), particleRotation.Roll());
-			//Just one value can control all data
-			bx::mtxScale(mtx, particleTransform.GetScale().x());
-			mtx[12] = pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().x();
-			mtx[13] = pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().y();
-			mtx[14] = pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().z();
+			bx::mtxSRT(mtx, particleTransform.GetScale().x(), particleTransform.GetScale().y(), particleTransform.GetScale().z(),
+				particleRotation.Pitch(), particleRotation.Yaw(), particleRotation.Roll(),
+				pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().x(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().y(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().z());
 			float* color = (float*)&data[64];
 			color[0] = pEmitterComponent->GetEmitterColor().x();
 			color[1] = pEmitterComponent->GetEmitterColor().y();
