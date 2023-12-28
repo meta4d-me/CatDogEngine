@@ -71,12 +71,14 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         transformComponent.Build();
     };
 
-    auto CreateLightComponents = [&pWorld](engine::Entity entity, cd::LightType lightType, float intensity, cd::Vec3f color) -> engine::LightComponent&
+    auto CreateLightComponents = [&pWorld](engine::Entity entity, cd::LightType lightType, float intensity, cd::Vec3f color, bool isCastShadow = false) -> engine::LightComponent&
     {
         auto& lightComponent = pWorld->CreateComponent<engine::LightComponent>(entity);
         lightComponent.SetType(lightType);
         lightComponent.SetIntensity(intensity);
         lightComponent.SetColor(color);
+        lightComponent.SetShadowMapSize(1024U);
+        lightComponent.SetIsCastShadow(isCastShadow);
 
         auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
         transformComponent.SetTransform(cd::Transform::Identity());
@@ -158,14 +160,14 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     else if (ImGui::MenuItem("Add Point Light"))
     {
         engine::Entity entity = AddNamedEntity("PointLight");
-        auto& lightComponent = CreateLightComponents(entity, cd::LightType::Point, 1024.0f, cd::Vec3f(1.0f, 0.0f, 0.0f));
+        auto& lightComponent = CreateLightComponents(entity, cd::LightType::Point, 1024.0f, cd::Vec3f(1.0f, 0.0f, 0.0f), true);
         lightComponent.SetPosition(cd::Point(0.0f, 0.0f, -16.0f));
         lightComponent.SetRange(1024.0f);
     }
     else if (ImGui::MenuItem("Add Spot Light"))
     {
         engine::Entity entity = AddNamedEntity("SpotLight");
-        auto& lightComponent = CreateLightComponents(entity, cd::LightType::Spot, 1024.0f, cd::Vec3f(0.0f, 1.0f, 0.0f));
+        auto& lightComponent = CreateLightComponents(entity, cd::LightType::Spot, 1024.0f, cd::Vec3f(0.0f, 1.0f, 0.0f), true);
         lightComponent.SetPosition(cd::Point(0.0f, 0.0f, -16.0f));
         lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
         lightComponent.SetRange(1024.0f);
@@ -174,7 +176,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     else if (ImGui::MenuItem("Add Directional Light"))
     {
         engine::Entity entity = AddNamedEntity("DirectionalLight");
-        auto& lightComponent = CreateLightComponents(entity, cd::LightType::Directional, 4.0f, cd::Vec3f(1.0f, 1.0f, 1.0f));
+        auto& lightComponent = CreateLightComponents(entity, cd::LightType::Directional, 4.0f, cd::Vec3f(1.0f, 1.0f, 1.0f), true);
         lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
     }
 

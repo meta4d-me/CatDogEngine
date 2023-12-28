@@ -3,9 +3,19 @@
 #include "Core/Types.h"
 #include "Rendering/LightUniforms.h"
 #include "Scene/LightType.h"
+#include <bgfx/bgfx.h>
 
 namespace engine
 {
+
+enum class CascadePartitionMode
+{
+	Manual,
+	Logarithmic,
+	PSSM,
+
+	Count
+};
 
 class LightComponent final
 {
@@ -76,8 +86,65 @@ public:
 	cd::Direction& GetUp() { return m_lightUniformData.up; }
 	const cd::Direction& GetUp() const { return m_lightUniformData.up; }
 
+	U_Light* GetLightUniformData() { return &m_lightUniformData; }
+
+	void SetIsCastShadow(bool isCastShadow) { m_isCastShadow = isCastShadow; };
+	bool& GetIsCastShadow() { return m_isCastShadow; }
+	bool IsCastShadow() { return m_isCastShadow; }
+
+	bool& GetIsCastVolume() { return m_isCastVolume; }
+	bool IsCastVolume() { return m_isCastVolume; }
+
+	void SetShadowMapSize(uint16_t shadowMapSize) { m_shadowMapSize = shadowMapSize; }
+	uint16_t& GetShadowMapSize() { return m_shadowMapSize; }
+	uint16_t GetShadowMapSize() const { return m_shadowMapSize; }
+
+	void SetCascadedNum(uint16_t cascadedSize) { m_cascadedNum = cascadedSize; }
+	uint16_t& GetCascadedNum() { return m_cascadedNum; }
+	uint16_t GetCascadedNum() const { return m_cascadedNum; }
+
+	void SetCascadePartitionMode(CascadePartitionMode cascadePartitionMode) { m_cascadePartitionMode = cascadePartitionMode; }
+	CascadePartitionMode& GetCascadePartitionMode() { return m_cascadePartitionMode; }
+	CascadePartitionMode GetCascadePartitionMode() const { return m_cascadePartitionMode; }
+
+	void SetComputedCascadeSplit(float* cascadeSplit) { std::memcpy(&m_computedCascadeSplit[0], cascadeSplit, 16); }
+	const float* GetComputedCascadeSplit() { return &m_computedCascadeSplit[0]; }
+
+	float& GetManualCascadeSplitAt(uint16_t idx) { return m_manualCascadeSplit[idx]; }
+	const float* GetManualCascadeSplit() { return &m_manualCascadeSplit[0]; }
+
+	void AddLightViewProjMatrix(cd::Matrix4x4 lightViewProjMatrix) { m_lightViewProjMatrices.push_back(lightViewProjMatrix); }
+	const std::vector<cd::Matrix4x4>& GetLightViewProjMatrix() { return m_lightViewProjMatrices; }
+	const std::vector<cd::Matrix4x4> GetLightViewProjMatrix() const { return m_lightViewProjMatrices; }
+	void ClearLightViewProjMatrix() { m_lightViewProjMatrices.clear(); }
+
+	bool IsShadowMapFBsValid();
+	void AddShadowMapFB(bgfx::FrameBufferHandle& shadowMapFB) { m_shadowMapFBs.push_back(std::move(shadowMapFB)); }
+	const std::vector<bgfx::FrameBufferHandle>& GetShadowMapFBs() const { return m_shadowMapFBs; }
+	void ClearShadowMapFBs() { for (auto shadowMapFB : m_shadowMapFBs) bgfx::destroy(shadowMapFB); m_shadowMapFBs.clear(); }
+
+	bool IsShadowMapTextureValid() { return bgfx::isValid(m_shadowMapTexture); }
+	void SetShadowMapTexture(bgfx::TextureHandle shadowMapTexture) { m_shadowMapTexture = shadowMapTexture; }
+	const bgfx::TextureHandle& GetShadowMapTexture() { return m_shadowMapTexture; }
+	void ClearShadowMapTexture() { bgfx::destroy(m_shadowMapTexture); m_shadowMapTexture = BGFX_INVALID_HANDLE; }
+
 private:
 	U_Light m_lightUniformData;
+
+	bool m_isCastShadow;
+	bool m_isCastVolume;
+	uint16_t m_shadowMapSize;
+
+	uint16_t m_cascadedNum = 4U;    // dir between [1,4]
+	CascadePartitionMode m_cascadePartitionMode = CascadePartitionMode::PSSM;
+	float m_manualCascadeSplit[4] = { 0.0 }; // manual set
+	float m_computedCascadeSplit[4] = { 0.0 }; // computed
+
+	// uniform
+	bgfx::TextureHandle m_shadowMapTexture = BGFX_INVALID_HANDLE;
+	std::vector<cd::Matrix4x4> m_lightViewProjMatrices;
+	std::vector<bgfx::FrameBufferHandle> m_shadowMapFBs;
+
 	// Warning : We treat multiple light components as a complete and contiguous memory.
 	// any non-U_Light member of LightComponent will destroy this layout. --2023/6/21
 };

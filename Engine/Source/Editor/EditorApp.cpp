@@ -28,6 +28,7 @@
 #include "Rendering/SkeletonRenderer.h"
 #include "Rendering/SkyboxRenderer.h"
 #include "Rendering/ShaderCollections.h"
+#include "Rendering/ShadowMapRenderer.h"
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Rendering/ParticleRenderer.h"
@@ -483,6 +484,11 @@ void EditorApp::InitEngineRenderers()
 
 	// The init size doesn't make sense. It will resize by SceneView.
 	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->CreateRenderTarget(sceneViewRenderTargetName, 1, 1, std::move(attachmentDesc));
+
+	auto pShadowMapRenderer = std::make_unique<engine::ShadowMapRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pShadowMapRenderer = pShadowMapRenderer.get();
+	pShadowMapRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pShadowMapRenderer));
 
 	auto pSkyboxRenderer = std::make_unique<engine::SkyboxRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pIBLSkyRenderer = pSkyboxRenderer.get();
