@@ -38,7 +38,8 @@ vec3 SampleEnvRadiance(vec3 reflectDir, float mip) {
 }
 
 vec2 SampleIBLSpecularBRDFLUT(float NdotV, float roughness) {
-	return texture2D(s_texLUT, vec2(NdotV, 1.0 - roughness)).xy;
+	vec2 uv = clamp(vec2(NdotV, 1.0 - roughness), vec2_splat(0.05), vec2_splat(0.95));
+	return texture2D(s_texLUT, uv).xy;
 }
 #endif
 
@@ -97,7 +98,7 @@ vec3 GetATM(Material material, vec3 worldPos) {
 	vec3 sunIrradiance = GetSunAndSkyIrradiance(ATMOSPHERE, worldPosOnEarth, material.normal, sunDir, irradiance);
 	irradiance += sunIrradiance;
 	
-	vec3 radianceToCamera = material.albedo * vec3_splat(CD_INV_PI) * irradiance;
+	vec3 radianceToCamera = material.albedo * vec3_splat(CD_PI_INV) * irradiance;
 	
 	// Aerial perspective.
 	vec3 transmittance;

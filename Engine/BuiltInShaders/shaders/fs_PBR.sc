@@ -11,7 +11,7 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 uniform vec4 u_emissiveColorAndFactor;
 
 vec3 GetDirectional(Material material, vec3 worldPos, vec3 viewDir) {
-	vec3 diffuseBRDF = material.albedo * CD_INV_PI;
+	vec3 diffuseBRDF = material.albedo * CD_PI_INV;
 	return CalculateLights(material, worldPos, viewDir, diffuseBRDF);
 }
 

@@ -111,14 +111,14 @@ vec3 CalculatePointLight(U_Light light, Material material, vec3 worldPos, vec3 v
 	
 	float distance = length(light.position - worldPos);
 	float attenuation = GetDistanceAtt(distance * distance, 1.0 / (light.range * light.range));
-	vec3 radiance = light.color * light.intensity * 0.25 * CD_INV_PI * attenuation;
+	vec3 radiance = light.color * light.intensity * 0.25 * CD_PI_INV * attenuation;
 	
 	vec3  Fre = FresnelSchlick(HdotV, material.F0);
 	float NDF = DistributionGGX(NdotH, material.roughness);
 	float Vis = Visibility(NdotV, NdotL, material.roughness);
 	vec3 specularBRDF = Fre * NDF * Vis;
 	
-	vec3 KD = mix(1.0 - Fre, vec3_splat(0.0), material.metallic);
+	vec3 KD = mix(vec3_splat(1.0) - Fre, vec3_splat(0.0), material.metallic);
 	return (KD * diffuseBRDF + specularBRDF) * radiance * NdotL;
 }
 
@@ -137,7 +137,7 @@ vec3 CalculateSpotLight(U_Light light, Material material, vec3 worldPos, vec3 vi
 	float attenuation = GetDistanceAtt(distance * distance, 1.0 / (light.range * light.range));
 	// TODO : Remove this normalize in the future.
 	attenuation *= GetAngleAtt(lightDir, normalize(light.direction), light.lightAngleScale, light.lightAngleOffeset);
-	vec3 radiance = light.color * light.intensity * CD_INV_PI * attenuation;
+	vec3 radiance = light.color * light.intensity * CD_PI_INV * attenuation;
 	
 	vec3  Fre = FresnelSchlick(HdotV, material.F0);
 	float NDF = DistributionGGX(NdotH, material.roughness);
@@ -190,7 +190,7 @@ vec3 CalculateSphereDiffuse(U_Light light, Material material, vec3 worldPos, vec
 	else {
 		formFactor = (1.0 / (CD_PI * h * h)) *
 		(cos(beta) * acos(y) - x * sin(beta) * sqrt(1.0 - y * y)) +
-		CD_INV_PI * atan(sin(beta) * sqrt(1.0 - y * y) / x);
+		CD_PI_INV * atan(sin(beta) * sqrt(1.0 - y * y) / x);
 	}
 	formFactor = saturate(formFactor);
 	
@@ -255,7 +255,7 @@ vec3 CalculateDiskDiffuse(U_Light light, Material material, vec3 worldPos, vec3 
 	}
 	else {
 		formFactor = -H * X * sin(theta) / (CD_PI * (1.0 + H2)) +
-		CD_INV_PI * atan(X * sin(theta) / H) +
+		CD_PI_INV * atan(X * sin(theta) / H) +
 		cos(theta) * (CD_PI - acos(H * cot(theta))) / (CD_PI * (1.0 + H2));
 	}
 	formFactor = saturate(formFactor);
@@ -439,7 +439,7 @@ vec3 CalculateTubeDiffuse(U_Light light, Material material, vec3 worldPos, vec3 
 		saturate(dot(normalize(light.position - worldPos), material.normal)));
 	
 	vec3 diffuseColor = vec3_splat(0.0);
-	vec3 radiance = light.color * light.intensity * CD_INV_PI /
+	vec3 radiance = light.color * light.intensity * CD_PI_INV /
 		(2.0 * CD_PI * light.radius * light.width + 4.0 * CD_PI * light.radius * light.radius);
 	diffuseColor += diffuseBRDF * solidAngle * radiance * averageCosine;
 	
@@ -489,7 +489,7 @@ vec3 CalculateTubeSpecular(U_Light light, Material material, vec3 worldPos, vec3
 	KD = mix(1.0 - Fre, vec3_splat(0.0), material.metallic);
 	
 	float attenuation = GetDistanceAtt(distance * distance, 1.0 / (light.range * light.range));
-	vec3 radiance = light.color * light.intensity * CD_INV_PI /
+	vec3 radiance = light.color * light.intensity * CD_PI_INV /
 		(2.0 * CD_PI * light.radius * light.width + 4.0 * CD_PI * light.radius * light.radius) * attenuation;
 	
 	return specularBRDF * radiance * NdotL;

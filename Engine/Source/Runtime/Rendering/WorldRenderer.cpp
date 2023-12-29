@@ -58,7 +58,7 @@ void WorldRenderer::Warmup()
 	GetRenderContext()->CreateUniform(cubeIrradianceSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(cubeRadianceSampler, bgfx::UniformType::Sampler);
 
-	GetRenderContext()->CreateTexture(lutTexture);
+	GetRenderContext()->CreateTexture(lutTexture, samplerFlags);
 	GetRenderContext()->CreateTexture(pSkyComponent->GetIrradianceTexturePath().c_str(), samplerFlags);
 	GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), samplerFlags);
 
