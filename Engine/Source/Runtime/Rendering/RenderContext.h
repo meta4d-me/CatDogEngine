@@ -83,6 +83,11 @@ public:
 	std::set<StringCrc>& GetModifiedProgramNameCrcs() { return m_modifiedProgramNameCrcs; }
 	const std::set<StringCrc>& GetModifiedProgramNameCrcs() const { return m_modifiedProgramNameCrcs; }
 
+	void AddCompileFailedEntity(uint32_t entity);
+	void ClearCompileFailedEntity();
+	std::set<uint32_t>& GetCompileFailedEntities() { return m_compileFailedEntities; }
+	const std::set<uint32_t>& GetCompileFailedEntities() const { return m_compileFailedEntities; }
+
 	/////////////////////////////////////////////////////////////////////
 	// Shader blob apis
 	/////////////////////////////////////////////////////////////////////
@@ -153,6 +158,7 @@ private:
 
 	std::set<ShaderCompileInfo> m_shaderCompileInfos;
 	std::set<StringCrc> m_modifiedProgramNameCrcs;
+	std::set<uint32_t> m_compileFailedEntities;
 };
 
 }
