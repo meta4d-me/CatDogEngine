@@ -10,7 +10,6 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN, v_color0
 
 uniform vec4 u_emissiveColorAndFactor;
 uniform vec4 u_cameraNearFarPlane;
-uniform vec4 u_cameraLookAt;
 
 vec3 GetDirectional(Material material, vec3 worldPos, vec3 viewDir, float csmDepth) {
 	vec3 diffuseBRDF = material.albedo * CD_INV_PI;

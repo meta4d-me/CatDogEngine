@@ -86,6 +86,25 @@ public:
 	cd::Direction& GetUp() { return m_lightUniformData.up; }
 	const cd::Direction& GetUp() const { return m_lightUniformData.up; }
 
+	void SetShadowType(int shadowType) { m_lightUniformData.shadowType = shadowType; }
+	int& GetShadowType() { return m_lightUniformData.shadowType; }
+	int GetShadowType() const { return m_lightUniformData.shadowType; }
+
+	void SetLightViewProjOffset(int lightViewProjOffset) { m_lightUniformData.lightViewProjOffset = lightViewProjOffset; }
+	int GetLightViewProjOffset() const { return m_lightUniformData.lightViewProjOffset; }
+
+	void SetCascadeNum(int cascadeNum) { m_lightUniformData.cascadeNum = cascadeNum; }
+	int& GetCascadeNum() { return m_lightUniformData.cascadeNum; }
+	int GetCascadeNum() const { return m_lightUniformData.cascadeNum; }
+
+	void SetShadowBias(float shadowBias) { m_lightUniformData.shadowBias = shadowBias; }
+	float& GetShadowBias() { return m_lightUniformData.shadowBias; }
+	float GetShadowBias() const { return m_lightUniformData.shadowBias; }
+
+	void SetFrustumClips(cd::Vec4f frustumClips) { m_lightUniformData.frustumClips = frustumClips; }
+	cd::Vec4f& GetFrustumClips() { return m_lightUniformData.frustumClips; }
+	cd::Vec4f GetFrustumClips() const { return m_lightUniformData.frustumClips; }
+
 	U_Light* GetLightUniformData() { return &m_lightUniformData; }
 
 	void SetIsCastShadow(bool isCastShadow) { m_isCastShadow = isCastShadow; };
@@ -98,10 +117,6 @@ public:
 	void SetShadowMapSize(uint16_t shadowMapSize) { m_shadowMapSize = shadowMapSize; }
 	uint16_t& GetShadowMapSize() { return m_shadowMapSize; }
 	uint16_t GetShadowMapSize() const { return m_shadowMapSize; }
-
-	void SetCascadedNum(uint16_t cascadedSize) { m_cascadedNum = cascadedSize; }
-	uint16_t& GetCascadedNum() { return m_cascadedNum; }
-	uint16_t GetCascadedNum() const { return m_cascadedNum; }
 
 	void SetCascadePartitionMode(CascadePartitionMode cascadePartitionMode) { m_cascadePartitionMode = cascadePartitionMode; }
 	CascadePartitionMode& GetCascadePartitionMode() { return m_cascadePartitionMode; }
@@ -135,7 +150,6 @@ private:
 	bool m_isCastVolume;
 	uint16_t m_shadowMapSize;
 
-	uint16_t m_cascadedNum = 4U;    // dir between [1,4]
 	CascadePartitionMode m_cascadePartitionMode = CascadePartitionMode::PSSM;
 	float m_manualCascadeSplit[4] = { 0.0 }; // manual set
 	float m_computedCascadeSplit[4] = { 0.0 }; // computed

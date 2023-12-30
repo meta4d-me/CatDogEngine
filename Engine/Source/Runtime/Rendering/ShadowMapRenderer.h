@@ -6,7 +6,7 @@ namespace engine
 {
 namespace 
 {
-constexpr uint16_t shadowLightMaxNum = 1U;
+constexpr uint16_t shadowLightMaxNum = 3U;
 constexpr uint16_t shadowTexturePassMaxNum = 6U;
 }
 

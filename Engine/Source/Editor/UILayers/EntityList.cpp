@@ -79,6 +79,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         lightComponent.SetColor(color);
         lightComponent.SetShadowMapSize(1024U);
         lightComponent.SetIsCastShadow(isCastShadow);
+        lightComponent.SetShadowBias(0.0f);
 
         auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
         transformComponent.SetTransform(cd::Transform::Identity());
@@ -178,6 +179,8 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         engine::Entity entity = AddNamedEntity("DirectionalLight");
         auto& lightComponent = CreateLightComponents(entity, cd::LightType::Directional, 4.0f, cd::Vec3f(1.0f, 1.0f, 1.0f), true);
         lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
+        lightComponent.SetCascadeNum(4);
+        lightComponent.SetFrustumClips(cd::Vec4f(0.0f, 0.0f, 0.0f, 0.0f));
     }
 
     // ---------------------------------------- Add Area Light ---------------------------------------- //

@@ -13,7 +13,7 @@ class RenderContext;
 namespace
 {
 
-constexpr uint16_t MAX_LIGHT_COUNT = 64;
+constexpr uint16_t MAX_LIGHT_COUNT = 3;
 
 constexpr uint16_t ConstexprCeil(float x)
 {
@@ -51,6 +51,8 @@ private:
 		float range; vec3 direction;
 		float radius; vec3 up;
 		float width, height, lightAngleScale, lightAngleOffeset;
+		int shadowType, lightViewProjOffset, cascadeNum; float shadowBias;
+		vec4 frustumClips;
 	};
 
 	LightParameters m_lightParameters[MAX_LIGHT_COUNT];

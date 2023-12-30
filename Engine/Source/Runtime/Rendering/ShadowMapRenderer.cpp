@@ -103,7 +103,7 @@ void ShadowMapRenderer::Render(float deltaTime)
 			{
 			case cd::LightType::Directional:
 			{
-				uint16_t cascadeNum = lightComponent->GetCascadedNum();
+				uint16_t cascadeNum = lightComponent->GetCascadeNum();
 				// Initialize(if not initialized) frame buffer
 				if (!lightComponent->IsShadowMapFBsValid())
 				{
@@ -344,7 +344,7 @@ void ShadowMapRenderer::Render(float deltaTime)
 
 				cd::Direction upOrRight = cd::Direction(0.0f, 1.0f, 0.0f) == lightDirection ? cd::Direction(0.0f, 1.0f, 0.0f) : cd::Direction(1.0f, 0.0f, 0.0f);
 				cd::Matrix4x4 lightView = cd::Matrix4x4::LookAt<cd::Handedness::Left>(lightPosition, lightPosition + lightDirection, upOrRight);
-				cd::Matrix4x4 lightProjection = cd::Matrix4x4::Perspective(lightComponent->GetInnerAndOuter().y(), 1.0f, 0.1f, range, ndcDepthMinusOneToOne);
+				cd::Matrix4x4 lightProjection = cd::Matrix4x4::Perspective(2.0f*lightComponent->GetInnerAndOuter().y(), 1.0f, 0.1f, range, ndcDepthMinusOneToOne);
 
 				// Settings
 				uint64_t state = defaultRenderingState;
@@ -387,7 +387,7 @@ void ShadowMapRenderer::Render(float deltaTime)
 			break;
 			}
 
-			shadowNum++;
+			++shadowNum;
 			if (3 == shadowNum)
 			{
 				break;

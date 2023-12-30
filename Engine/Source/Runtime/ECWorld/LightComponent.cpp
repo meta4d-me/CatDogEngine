@@ -28,16 +28,17 @@ void LightComponent::SetInnerAndOuter(float inner, float outer)
 
 bool LightComponent::IsShadowMapFBsValid()
 {
-	if (m_shadowMapFBs.size() != GetCascadedNum()) // Include empty FBs
+	// Include empty FBs
+	if ((cd::LightType::Spot == GetType() && m_shadowMapFBs.size() != 1U) ||
+		(cd::LightType::Point == GetType() && m_shadowMapFBs.size() != 6U) ||
+		(cd::LightType::Directional == GetType() && m_shadowMapFBs.size() != GetCascadeNum()))
 	{
 		return false;
 	}
-	else
+
+	for (const auto& fb : m_shadowMapFBs)
 	{
-		for (const auto& fb : m_shadowMapFBs)
-		{
-			if (!bgfx::isValid(fb)) return false;
-		}
+		if (!bgfx::isValid(fb)) return false;
 	}
 	return true;
 }
