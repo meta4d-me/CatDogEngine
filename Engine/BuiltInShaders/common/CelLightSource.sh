@@ -35,14 +35,28 @@ U_Light GetLightParams(int pointer) {
 }
 float GGX(float a2, float NdotH)
 {
+	a2 = a2 * a2;
 	float d = (NdotH * a2 - NdotH) * NdotH + 1.0;
 	return a2 / (CD_PI * d * d);
 }
 
+vec3 FresnelExtend(float NdotV, vec3 F0) {
+	return F0 + (1 - F0) * pow(1 - NdotV , 5.0);
+}
 
 float Sigmoid(float x, float center, float sharp){
 	return 1 / (1 + pow(100000,(-3 * sharp * (x - center))));
 }
+
+float ndc2Normal(float x){
+	return x * 0.5 + 0.5;
+}
+
+float warp(float x, float w){
+	return (x + w) / (1 + w);
+}
+
+
 // -------------------- Utils -------------------- //
 
 // Distance Attenuation
@@ -160,35 +174,43 @@ vec3 CalculateSpotLight(U_Light light, Material material, vec3 worldPos, vec3 vi
 // -------------------- Directional -------------------- //
 
 vec3 CalculateDirectionalLight(U_Light light, Material material, vec3 worldPos, vec3 viewDir, vec3 diffuseBRDF) {
-	// TODO : Remove this normalize in the future.
+// TODO : Remove this normalize in the future.
 	vec3 lightDir = normalize(-light.direction);
 	vec3 harfDir  = normalize(lightDir + viewDir);
-	
+
 	float NdotV = max(dot(material.normal, viewDir), 0.0);
 	float NdotL = dot(material.normal, lightDir);
 	float NdotH = max(dot(material.normal, harfDir), 0.0);
 	float HdotV = max(dot(harfDir, viewDir), 0.0);
+	float VdotL = dot(lightDir,viewDir);
 
-	float boundSharp = 9.5 * pow(material.roughness - 1,2.0) + 0.5;
-	float highSig = Sigmoid(NdotL,0.6,boundSharp);
-	float lowSig = Sigmoid(NdotL,0.0,boundSharp);
+	float boundSharp = 10.0 * pow(material.roughness - 1,2.0) + 0.5;
+	float highSig = Sigmoid(NdotL, u_dividLine.y,boundSharp * u_dividLine.w);
+	float lowSig = Sigmoid(NdotL, u_dividLine.z,boundSharp * u_dividLine.w);
+
+	//---------------------Fresnel---------------------//
+	vec3 fresnel = FresnelExtend(NdotV, vec3_splat(0.1));
+	vec3 fresnelResult = 0.5 * fresnel * (1 - VdotL) / 2;
     //---------------------Specular--------------------//
 	float NdotF0 = GGX(material.roughness * material.roughness, 1);
-	float NdotFHBound = NdotF0 * 0.8;
-	float NdotF = GGX(material.roughness * material.roughness, clamp(0,1,NdotH));
+	float NdotFHBound = NdotF0 * u_dividLine.x;
+	float NdotF = GGX(material.roughness * material.roughness, NdotH);
 
-	float specularWindow = Sigmoid(NdotF,NdotFHBound,boundSharp);
-	float specular = specularWindow * (NdotF0 + NdotFHBound) / 2;
-
-	vec3 lightResult = specular * vec3(light.color);
+	float specularWindow = Sigmoid(NdotF,NdotFHBound,boundSharp * u_dividLine.w);
+	float specularWeight = specularWindow * (NdotF0 + NdotFHBound) / 2;
 
 	float highWindow = highSig;
 	float lowWindow = lowSig - highSig;
 	float darkWindow = 1 - lowSig; 
-	float intensity = highWindow * 1.0 + lowWindow * 0.8 + darkWindow * 0.3;
-	vec3 color = material.albedo * vec3_splat(intensity) * vec3(light.color);
-	//vec3 color = material.albedo * vec3(light.color);
-	return color + specular;
+
+	vec3 diffuseWeight = vec3_splat(highWindow * ( 1 + ndc2Normal(u_dividLine.y)) / 2);
+	diffuseWeight += vec3_splat(lowWindow * (ndc2Normal(u_dividLine.y) + ndc2Normal(u_dividLine.z)) / 2);
+	diffuseWeight += vec3_splat(darkWindow * (ndc2Normal(u_dividLine.z)));
+
+
+	vec3 lightResult = specularWeight * vec3(light.color) + (1 - specularWeight) * diffuseWeight * material.albedo * vec3(light.color);
+
+	return lightResult;
 }
 
 // -------------------- Sphere -------------------- //

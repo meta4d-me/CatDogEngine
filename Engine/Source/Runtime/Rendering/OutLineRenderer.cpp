@@ -49,6 +49,12 @@ namespace engine
 			{
 				continue;
 			}
+
+			MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
+			if (!pMaterialComponent->GetOutLine())
+			{
+				continue;
+			}
 			if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 			{
 				pTransformComponent->Build();

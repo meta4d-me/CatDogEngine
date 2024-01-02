@@ -329,11 +329,52 @@ void Test()
 	int a = 0;
 }
 
+float D_GGX_TR(float NdotH, float a)
+{
+	float a2 = a * a;
+	float NdotH2 = NdotH * NdotH;
+
+	float nom = a2;
+	float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+	denom = 3.1415 * denom * denom;
+
+	return nom / denom;
+}
+
+float G_SchlicksmithGGX(float dotNL, float dotNV, float roughness) {
+	float r = roughness + 1.0f;
+	float k = (r * r) / 8.0f;
+	float GL = dotNL / (dotNL * (1.0f - k) + k);
+	float GV = dotNV / (dotNV * (1.0f - k) + k);
+	return GL * GV;
+}
+
+float GeometrySchlickGGX(float NdotV, float k)
+{
+	float nom = NdotV;
+	float denom = NdotV * (1.0 - k) + k;
+
+	return nom / denom;
+}
+
+float GeometrySmith(float NdotV, float NdotL, float k)
+{
+	float ggx1 = GeometrySchlickGGX(NdotV, k);
+	float ggx2 = GeometrySchlickGGX(NdotL, k);
+	return ggx1 * ggx2;
+}
+
+cd::Vec3f fresnelSchlick(float cosTheta, cd::Vec3f F0)
+{
+	return F0 + cd::Vec3f(cd::Vec3f::One() - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
 int main()
 {
-	TestVector();
-	TestQuaternion();
-	Test();
-
-	return 0;
+	float deg = 3.1415926 / 180;
+	float r = 0.1;
+	float NdotV = std::cos(30 * deg);
+	float NdotL = std::cos(30 * deg);
+	float HdotV = NdotV;
+	float N = D_GGX_TR(r,)
 }

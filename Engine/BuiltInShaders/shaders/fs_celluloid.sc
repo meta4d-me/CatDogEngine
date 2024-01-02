@@ -13,12 +13,12 @@ uniform vec4 u_emissiveColor;
 vec3 GetDirectional(Material material, vec3 worldPos, vec3 viewDir) {
 	vec3 diffuseBRDF = material.albedo * CD_INV_PI;
 	return CalculateLights(material, worldPos, viewDir, diffuseBRDF);
-}
+} 
 
 vec3 GetEnvironment(Material material, vec3 worldPos, vec3 viewDir, vec3 normal) {
 	return GetIBL(material, normal, viewDir) + GetATM(material, worldPos);
 }
-
+ 
 // vec4 Lambert(vec3 viewDir, vec3 viewDir)
 
 void main()
@@ -32,7 +32,7 @@ void main()
 	vec3 viewDir = normalize(cameraPos - v_worldPos);
 	
 	// Directional Light
-	vec3 dirColor = GetDirectional(material, v_worldPos, viewDir);
+	vec3 dirColor = GetDirectional(material, v_worldPos, viewDir); 
 	
 	// Environment Light
 	vec3 envColor = GetEnvironment(material, v_worldPos, viewDir, v_normal);
@@ -43,6 +43,7 @@ void main()
 	// Fragment Color
 	gl_FragData[0] = vec4(dirColor, 1.0);
 	gl_FragData[1] = vec4(emiColor, 1.0);
-
+ 
 	// Post-processing will be used in the last pass.
 }
+

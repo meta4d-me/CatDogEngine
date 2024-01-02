@@ -224,6 +224,8 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 				// TODO : generic cull mode.
 				ImGuiUtils::ImGuiBoolProperty("TwoSided", pMaterialComponent->GetTwoSided());
 				ImGuiUtils::ImGuiEnumProperty("BlendMode", pMaterialComponent->GetBlendMode());
+				ImGuiUtils::ImGuiBoolProperty("OutLine", pMaterialComponent->GetOutLine());
+				//ImGuiUtils::ImGuiFloatProperty("OutLineSize", pMaterialComponent->GetOutLineFactor(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
 			}
 
 			ImGui::Separator();
@@ -267,7 +269,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 					}
 					else if (cd::MaterialTextureType::Roughness == textureType)
 					{
-						ImGuiUtils::ImGuiFloatProperty("Roughness", pMaterialComponent->GetRoughnessFactor(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+						ImGuiUtils::ImGuiFloatProperty("Roughness", pMaterialComponent->GetRoughnessFactor(), cd::Unit::None, 0.01f, 1.0f, false, 0.01f);
 					}
 					else if (cd::MaterialTextureType::Emissive == textureType)
 					{
@@ -296,7 +298,11 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 				ImGui::PopStyleVar();
 			}
 		}
-
+		const cd::Vec4f dividLine = pMaterialComponent->GetDividLine();
+		ImGuiUtils::ImGuiFloatProperty("SpecularLine", pMaterialComponent->GetDividLine().x(), cd::Unit::None, pMaterialComponent->GetDividLine().y(), 1.0f, false, 0.01f);
+		ImGuiUtils::ImGuiFloatProperty("DiffuseLine", pMaterialComponent->GetDividLine().y(), cd::Unit::None, pMaterialComponent->GetDividLine().z(), pMaterialComponent->GetDividLine().x(), false, 0.01f);
+		ImGuiUtils::ImGuiFloatProperty("DarkLine", pMaterialComponent->GetDividLine().z(), cd::Unit::None, -1.0f, pMaterialComponent->GetDividLine().y(), false, 0.01f);
+		ImGuiUtils::ImGuiFloatProperty("Line Sharpness", pMaterialComponent->GetDividLine().w(), cd::Unit::None, 0.01f, 5.0f, false, 0.01f);
 		// Shaders
 		{
 			bool isOpen = ImGui::CollapsingHeader("Shader", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);

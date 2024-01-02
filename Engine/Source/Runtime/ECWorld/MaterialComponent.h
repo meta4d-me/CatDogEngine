@@ -135,9 +135,18 @@ public:
 	cd::BlendMode& GetBlendMode() { return m_blendMode; }
 	cd::BlendMode GetBlendMode() const { return m_blendMode; }
 
+	//OutLine parameters
+	void SetOutLine(bool value) { m_outLine = value; }
+	bool& GetOutLine() { return m_outLine; }
+	bool GetOutLine() const { return m_outLine; }
+
 	void SetAlphaCutOff(float value) { m_alphaCutOff = value; }
 	float& GetAlphaCutOff() { return m_alphaCutOff; }
 	float GetAlphaCutOff() const { return m_alphaCutOff; }
+
+	void SetDividLine(cd::Vec4f line) { m_dividLine = line; }
+	cd::Vec4f& GetDividLine() { return m_dividLine; }
+	cd::Vec4f GetDividLine() const { return m_dividLine; }
 
 private:
 	// Input
@@ -149,7 +158,9 @@ private:
 	float m_metallicFactor;
 	float m_roughnessFactor;
 	cd::Vec3f m_emissiveColor;
+	cd::Vec4f m_dividLine =cd::Vec4f(0.5f,0.3f,0.0f,1.0f);
 	bool m_twoSided;
+	bool m_outLine;
 	cd::BlendMode m_blendMode;
 	float m_alphaCutOff;
 

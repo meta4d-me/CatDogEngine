@@ -38,6 +38,7 @@ namespace engine
 
 		constexpr const char* LightDir = "u_LightDir";
 		constexpr const char* HeightOffsetAndshadowLength = "u_HeightOffsetAndshadowLength";
+		constexpr const char* dividLine = "u_dividLine";
 
 		constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 		constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
@@ -73,6 +74,7 @@ namespace engine
 
 		GetRenderContext()->CreateUniform(lightCountAndStride, bgfx::UniformType::Vec4, 1);
 		GetRenderContext()->CreateUniform(lightParams, bgfx::UniformType::Vec4, LightUniform::VEC4_COUNT);
+		GetRenderContext()->CreateUniform(dividLine, bgfx::UniformType::Vec4, 1);
 
 		GetRenderContext()->CreateUniform(LightDir, bgfx::UniformType::Vec4, 1);
 		GetRenderContext()->CreateUniform(HeightOffsetAndshadowLength, bgfx::UniformType::Vec4, 1);
@@ -196,6 +198,9 @@ namespace engine
 
 			constexpr StringCrc emissiveColorCrc(emissiveColor);
 			GetRenderContext()->FillUniform(emissiveColorCrc, pMaterialComponent->GetEmissiveColor().Begin(), 1);
+
+			constexpr StringCrc dividLineCrc(dividLine);
+			GetRenderContext()->FillUniform(dividLineCrc, pMaterialComponent->GetDividLine().Begin(), 1);
 
 			// Submit uniform values : light settings
 			auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();
