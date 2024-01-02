@@ -27,6 +27,7 @@ public:
 private:
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
 	bgfx::TextureHandle m_particleTextureHandle;
+	ParticleType m_currentType = ParticleType::Sprite;
 
 };
 

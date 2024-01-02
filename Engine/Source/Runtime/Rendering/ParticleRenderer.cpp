@@ -52,16 +52,23 @@ void ParticleRenderer::Render(float deltaTime)
 
 		pEmitterComponent->GetParticlePool().Update(1.0f/60.0f);
 
-		//Particle Data Submit
-		if (pEmitterComponent->GetMeshData() == nullptr)
+		if (m_currentType != pEmitterComponent->GetEmitterParticleType())
 		{
-			pEmitterComponent->PaddingVertexBuffer();
-			pEmitterComponent->PaddingIndexBuffer();
-		}
-		else
-		{
-			pEmitterComponent->ParseMeshVertexBuffer();
-			pEmitterComponent->ParseMeshIndexBuffer();
+			m_currentType = pEmitterComponent->GetEmitterParticleType();
+			if (pEmitterComponent->GetMeshData() == nullptr)
+			{
+				pEmitterComponent->PaddingVertexBuffer();
+				pEmitterComponent->PaddingIndexBuffer();
+			}
+			else
+			{
+				pEmitterComponent->ParseMeshVertexBuffer();
+				pEmitterComponent->ParseMeshIndexBuffer();
+			}
+			const bgfx::Memory *pParticleVertexBuffer = bgfx::makeRef(pEmitterComponent->GetVertexBuffer().data(), static_cast<uint32_t>(pEmitterComponent->GetVertexBuffer().size()));
+			const bgfx::Memory *pParticleIndexBuffer = bgfx::makeRef(pEmitterComponent->GetIndexBuffer().data(), static_cast<uint32_t>(pEmitterComponent->GetIndexBuffer().size()));
+			bgfx::update(bgfx::DynamicVertexBufferHandle{ pEmitterComponent->GetParticleVertexBufferHandle()}, 0, pParticleVertexBuffer);
+			bgfx::update(bgfx::DynamicIndexBufferHandle{pEmitterComponent->GetParticleIndexBufferHandle()}, 0, pParticleIndexBuffer);
 		}
 
 		//Particle Emitter Instance
@@ -92,8 +99,8 @@ void ParticleRenderer::Render(float deltaTime)
 
 		constexpr StringCrc ParticleSampler("s_texColor");
 		bgfx::setTexture(0, GetRenderContext()->GetUniform(ParticleSampler), m_particleTextureHandle);
-		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pEmitterComponent->GetParticleVertexBufferHandle() });
-		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{  pEmitterComponent->GetParticleIndexBufferHandle() });
+		bgfx::setVertexBuffer(0, bgfx::DynamicVertexBufferHandle{ pEmitterComponent->GetParticleVertexBufferHandle() });
+		bgfx::setIndexBuffer(bgfx::DynamicIndexBufferHandle{  pEmitterComponent->GetParticleIndexBufferHandle() });
 
 		bgfx::setInstanceDataBuffer(&idb);
 
