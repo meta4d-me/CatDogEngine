@@ -2,7 +2,7 @@
 
 #include "Core/Delegates/MulticastDelegate.hpp"
 
-#include "bgfx/bgfx.h"
+#include <bgfx/bgfx.h>
 
 #include <cstdint>
 #include <memory>

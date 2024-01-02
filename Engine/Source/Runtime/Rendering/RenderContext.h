@@ -8,7 +8,7 @@
 #include "Scene/VertexAttribute.h"
 #include "Scene/VertexFormat.h"
 
-#include "bgfx/bgfx.h"
+#include <bgfx/bgfx.h>
 
 #include <cstdint>
 #include <map>

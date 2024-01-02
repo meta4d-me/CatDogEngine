@@ -4,7 +4,7 @@
 #include "Rendering/LightUniforms.h"
 #include "Scene/LightType.h"
 
-#include "bgfx/bgfx.h"
+#include <bgfx/bgfx.h>
 
 
 namespace engine
