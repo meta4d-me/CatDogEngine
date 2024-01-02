@@ -3,7 +3,9 @@
 #include "Core/Types.h"
 #include "Rendering/LightUniforms.h"
 #include "Scene/LightType.h"
-#include <bgfx/bgfx.h>
+
+#include "Rendering/RenderContext.h"// #include <bgfx/bgfx.h> can not be compiled at github
+
 
 namespace engine
 {
