@@ -4,9 +4,6 @@
 #include "Rendering/LightUniforms.h"
 #include "Scene/LightType.h"
 
-#include <bgfx/bgfx.h>
-
-
 namespace engine
 {
 
@@ -136,14 +133,14 @@ public:
 	void ClearLightViewProjMatrix() { m_lightViewProjMatrices.clear(); }
 
 	bool IsShadowMapFBsValid();
-	void AddShadowMapFB(bgfx::FrameBufferHandle& shadowMapFB) { m_shadowMapFBs.push_back(std::move(shadowMapFB)); }
-	const std::vector<bgfx::FrameBufferHandle>& GetShadowMapFBs() const { return m_shadowMapFBs; }
-	void ClearShadowMapFBs() { for (auto shadowMapFB : m_shadowMapFBs) bgfx::destroy(shadowMapFB); m_shadowMapFBs.clear(); }
+	void AddShadowMapFB(uint16_t& shadowMapFB) { m_shadowMapFBs.push_back(std::move(shadowMapFB)); }
+	const std::vector<uint16_t>& GetShadowMapFBs() const { return m_shadowMapFBs; }
+	void ClearShadowMapFBs();
 
-	bool IsShadowMapTextureValid() { return bgfx::isValid(m_shadowMapTexture); }
-	void SetShadowMapTexture(bgfx::TextureHandle shadowMapTexture) { m_shadowMapTexture = shadowMapTexture; }
-	const bgfx::TextureHandle& GetShadowMapTexture() { return m_shadowMapTexture; }
-	void ClearShadowMapTexture() { bgfx::destroy(m_shadowMapTexture); m_shadowMapTexture = BGFX_INVALID_HANDLE; }
+	bool IsShadowMapTextureValid();
+	void SetShadowMapTexture(uint16_t shadowMapTexture) { m_shadowMapTexture = shadowMapTexture; }
+	const uint16_t& GetShadowMapTexture() { return m_shadowMapTexture; }
+	void ClearShadowMapTexture();
 
 private:
 	U_Light m_lightUniformData;
@@ -157,9 +154,9 @@ private:
 	float m_computedCascadeSplit[4] = { 0.0 }; // computed
 
 	// uniform
-	bgfx::TextureHandle m_shadowMapTexture = BGFX_INVALID_HANDLE;
+	uint16_t m_shadowMapTexture;	// Texture Handle
 	std::vector<cd::Matrix4x4> m_lightViewProjMatrices;
-	std::vector<bgfx::FrameBufferHandle> m_shadowMapFBs;
+	std::vector<uint16_t> m_shadowMapFBs; // Framebuffer Handle
 
 	// Warning : We treat multiple light components as a complete and contiguous memory.
 	// any non-U_Light member of LightComponent will destroy this layout. --2023/6/21

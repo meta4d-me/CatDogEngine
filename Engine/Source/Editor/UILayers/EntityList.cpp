@@ -164,6 +164,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         auto& lightComponent = CreateLightComponents(entity, cd::LightType::Point, 1024.0f, cd::Vec3f(1.0f, 0.0f, 0.0f), true);
         lightComponent.SetPosition(cd::Point(0.0f, 0.0f, -16.0f));
         lightComponent.SetRange(1024.0f);
+        lightComponent.SetShadowMapTexture(BGFX_INVALID_HANDLE);
     }
     else if (ImGui::MenuItem("Add Spot Light"))
     {
@@ -173,6 +174,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
         lightComponent.SetRange(1024.0f);
         lightComponent.SetInnerAndOuter(24.0f, 40.0f);
+        lightComponent.SetShadowMapTexture(BGFX_INVALID_HANDLE);
     }
     else if (ImGui::MenuItem("Add Directional Light"))
     {
@@ -181,6 +183,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         lightComponent.SetDirection(cd::Direction(0.0f, 0.0f, 1.0f));
         lightComponent.SetCascadeNum(4);
         lightComponent.SetFrustumClips(cd::Vec4f(0.0f, 0.0f, 0.0f, 0.0f));
+        lightComponent.SetShadowMapTexture(BGFX_INVALID_HANDLE);
     }
 
     // ---------------------------------------- Add Area Light ---------------------------------------- //

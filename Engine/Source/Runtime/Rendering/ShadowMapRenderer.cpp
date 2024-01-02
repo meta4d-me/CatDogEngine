@@ -110,8 +110,8 @@ void ShadowMapRenderer::Render(float deltaTime)
 					lightComponent->ClearShadowMapFBs();	
 					for (int i = 0; i < cascadeNum; ++i)
 					{
-						bgfx::FrameBufferHandle shadowMapFB = bgfx::createFrameBuffer(lightComponent->GetShadowMapSize(),
-							lightComponent->GetShadowMapSize(), bgfx::TextureFormat::D32F);
+						uint16_t shadowMapFB = bgfx::createFrameBuffer(lightComponent->GetShadowMapSize(),
+							lightComponent->GetShadowMapSize(), bgfx::TextureFormat::D32F).idx;
 						lightComponent->AddShadowMapFB(shadowMapFB);
 					}
 				}
@@ -220,7 +220,7 @@ void ShadowMapRenderer::Render(float deltaTime)
 
 					uint16_t viewId = m_renderPassID[shadowNum * shadowTexturePassMaxNum + cascadeIndex];
 					bgfx::setViewRect(viewId, 0, 0, lightComponent->GetShadowMapSize(), lightComponent->GetShadowMapSize());
-					bgfx::setViewFrameBuffer(viewId, lightComponent->GetShadowMapFBs().at(cascadeIndex));
+					bgfx::setViewFrameBuffer(viewId, static_cast<bgfx::FrameBufferHandle>(lightComponent->GetShadowMapFBs().at(cascadeIndex)));
 					bgfx::setViewClear(viewId, BGFX_CLEAR_DEPTH, 0xffffffff, 1.0f, 0);
 					bgfx::setViewTransform(viewId, lightView.begin(), lightProjection.begin());
 
@@ -268,8 +268,8 @@ void ShadowMapRenderer::Render(float deltaTime)
 							-X +Z +X -Z
 								 -Y
 						------------------------------------*/
-						bgfx::FrameBufferHandle shadowMapFB = bgfx::createFrameBuffer(lightComponent->GetShadowMapSize(),
-							lightComponent->GetShadowMapSize(), bgfx::TextureFormat::R32F);
+						uint16_t shadowMapFB = bgfx::createFrameBuffer(lightComponent->GetShadowMapSize(),
+							lightComponent->GetShadowMapSize(), bgfx::TextureFormat::R32F).idx;
 						lightComponent->AddShadowMapFB(shadowMapFB);
 					}
 				}
@@ -297,7 +297,7 @@ void ShadowMapRenderer::Render(float deltaTime)
 					// Settings
 					uint16_t viewId = m_renderPassID[shadowNum * shadowTexturePassMaxNum + i];
 					bgfx::setViewRect(viewId, 0, 0, lightComponent->GetShadowMapSize(), lightComponent->GetShadowMapSize());
-					bgfx::setViewFrameBuffer(viewId, lightComponent->GetShadowMapFBs().at(i));
+					bgfx::setViewFrameBuffer(viewId, static_cast<bgfx::FrameBufferHandle>(lightComponent->GetShadowMapFBs().at(i)));
 					bgfx::setViewClear(viewId, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0xffffffff, 1.0f, 0);
 					bgfx::setViewTransform(viewId, lightView[i].begin(), lightProjection.begin());
 
@@ -332,8 +332,8 @@ void ShadowMapRenderer::Render(float deltaTime)
 				// Initialize(if not initialized) frame buffer
 				if (!lightComponent->IsShadowMapFBsValid())
 				{
-					bgfx::FrameBufferHandle shadowMapFB = bgfx::createFrameBuffer(lightComponent->GetShadowMapSize(),
-						lightComponent->GetShadowMapSize(), bgfx::TextureFormat::D32F);
+					uint16_t shadowMapFB = bgfx::createFrameBuffer(lightComponent->GetShadowMapSize(),
+						lightComponent->GetShadowMapSize(), bgfx::TextureFormat::D32F).idx;
 					lightComponent->AddShadowMapFB(shadowMapFB);
 				}
 
@@ -351,7 +351,7 @@ void ShadowMapRenderer::Render(float deltaTime)
 				bgfx::setState(state);
 				uint16_t viewId = m_renderPassID[shadowNum * shadowTexturePassMaxNum + 0];
 				bgfx::setViewRect(viewId, 0, 0, lightComponent->GetShadowMapSize(), lightComponent->GetShadowMapSize());
-				bgfx::setViewFrameBuffer(viewId, lightComponent->GetShadowMapFBs().at(0));
+				bgfx::setViewFrameBuffer(viewId, static_cast<bgfx::FrameBufferHandle>(lightComponent->GetShadowMapFBs().at(0)));
 				bgfx::setViewClear(viewId, BGFX_CLEAR_DEPTH, 0xffffffff, 1.0f, 0);
 				bgfx::setViewTransform(viewId, lightView.begin(), lightProjection.begin());
 

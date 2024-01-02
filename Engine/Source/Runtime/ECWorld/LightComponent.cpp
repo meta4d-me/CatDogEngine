@@ -1,5 +1,7 @@
 #include "LightComponent.h"
 
+#include <bgfx/bgfx.h>
+
 namespace engine
 {
 
@@ -38,9 +40,26 @@ bool LightComponent::IsShadowMapFBsValid()
 
 	for (const auto& fb : m_shadowMapFBs)
 	{
-		if (!bgfx::isValid(fb)) return false;
+		if (!bgfx::isValid(static_cast<bgfx::TextureHandle>(fb))) return false;
 	}
 	return true;
+}
+
+void LightComponent::ClearShadowMapTexture()
+{
+	bgfx::destroy(static_cast<bgfx::TextureHandle>(m_shadowMapTexture));
+	m_shadowMapTexture = BGFX_INVALID_HANDLE;
+}
+
+void LightComponent::ClearShadowMapFBs()
+{
+	for (auto shadowMapFB : m_shadowMapFBs) bgfx::destroy(static_cast<bgfx::FrameBufferHandle>(shadowMapFB));
+	m_shadowMapFBs.clear();
+}
+
+bool LightComponent::IsShadowMapTextureValid() 
+{ 
+	return bgfx::isValid(static_cast<bgfx::FrameBufferHandle>(m_shadowMapTexture));
 }
 
 }
