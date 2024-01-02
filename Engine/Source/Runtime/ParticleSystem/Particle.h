@@ -20,9 +20,9 @@ enum ParticleType
 enum ParticleTypeVertexCount
 {
     SpriteVertexCount = 4,
-    RibbonVertetxCount,
-    TrackVertexCount,
-    RingVertexCount,
+    RibbonVertetxCount = 2,
+    TrackVertexCount = 3,
+    RingVertexCount = 8,
     ModeVertexCountl
 };
 

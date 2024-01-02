@@ -142,6 +142,8 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 			ParseMeshWithMorphs(mesh.GetID(), cd::Transform::Identity(), pSceneDatabase->GetMorphs());
 			parsedMeshIDs.insert(mesh.GetID().Data());
 		}
+		//TODO: Change to " have a generic function to judge what is the purpose of mesh usage."
+		// The first case is your particle mesh. But in the future, there maybe lod meshes, imposter meshes, collision meshes... So pre-sort meshes by purpose is better.
 		else if (pSceneDatabase->GetParticleEmitterCount())
 		{
 			ParseMeshWithParticles(mesh.GetID(), pSceneDatabase->GetParticleEmitter(m_particleMinID));
