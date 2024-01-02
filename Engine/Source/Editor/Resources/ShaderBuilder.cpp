@@ -94,9 +94,12 @@ void ShaderBuilder::CompileUberShaderAllVariants(engine::RenderContext* pRenderC
 
 void ShaderBuilder::BuildShaderInfos(engine::RenderContext* pRenderContext, TaskOutputCallbacks callbacks)
 {
+	std::set<engine::ShaderCompileInfo> newInfos;
+
 	for (auto info : pRenderContext->GetShaderCompileInfos())
 	{
-		const std::set<std::string>& shaders = pRenderContext->GetShaderCollections()->GetShaders(engine::StringCrc(info.m_programName));
+		engine::ShaderCompileInfo newInfo{ info.m_entity, cd::MoveTemp(info.m_programName), cd::MoveTemp(info.m_featuresCombine) };
+		const std::set<std::string>& shaders = pRenderContext->GetShaderCollections()->GetShaders(engine::StringCrc(newInfo.m_programName));
 
 		for (const auto& shader : shaders)
 		{
@@ -108,23 +111,27 @@ void ShaderBuilder::BuildShaderInfos(engine::RenderContext* pRenderContext, Task
 				// No uber shader support for VS and CS.
 				TaskHandle handle = ResourceBuilder::Get().AddShaderBuildTask(shaderType,
 					inputVSFilePath.c_str(), outputVSFilePath.c_str(), "", callbacks);
-				info.m_taskHandles.insert(handle);
+				newInfo.m_taskHandles.insert(handle);
 
 			}
 			else if (engine::ShaderType::Fragment == shaderType)
 			{
 				std::string inputFSFilePath = engine::Path::GetBuiltinShaderInputPath(shader.c_str());
-				std::string outputFSFilePath = engine::Path::GetShaderOutputPath(shader.c_str(), info.m_featuresCombine);
+				std::string outputFSFilePath = engine::Path::GetShaderOutputPath(shader.c_str(), newInfo.m_featuresCombine);
 				TaskHandle handle = ResourceBuilder::Get().AddShaderBuildTask(engine::ShaderType::Fragment,
-					inputFSFilePath.c_str(), outputFSFilePath.c_str(), info.m_featuresCombine.c_str(), callbacks);
-				info.m_taskHandles.insert(handle);
+					inputFSFilePath.c_str(), outputFSFilePath.c_str(), newInfo.m_featuresCombine.c_str(), callbacks);
+				newInfo.m_taskHandles.insert(handle);
 			}
 			else
 			{
 				continue;
 			}
 		}
+
+		newInfos.emplace(cd::MoveTemp(newInfo));
 	}
+
+	pRenderContext->SetShaderCompileInfos(cd::MoveTemp(newInfos));
 }
 
 } // namespace editor
