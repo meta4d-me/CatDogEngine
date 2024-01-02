@@ -9,7 +9,7 @@
 #include "Rendering/Utility/VertexLayoutUtility.h"
 #include "Resources/ResourceLoader.h"
 
-#include <bgfx/bgfx.h>
+#include "bgfx/bgfx.h"
 #include <bgfx/platform.h>
 #include <bimg/decode.h>
 #include <bx/allocator.h>
