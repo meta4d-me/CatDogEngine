@@ -2,7 +2,7 @@
 
 #include "Core/Delegates/MulticastDelegate.hpp"
 
-#include <bgfx/bgfx.h>
+#include "Rendering/RenderContext.h"// #include <bgfx/bgfx.h> can not be compiled at github
 
 #include <cstdint>
 #include <memory>

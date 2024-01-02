@@ -8,7 +8,7 @@
 #include "Scene/VertexAttribute.h"
 #include "Scene/VertexFormat.h"
 
-#include "Rendering/RenderContext.h"// #include <bgfx/bgfx.h> can not be compiled at github
+#include <bgfx/bgfx.h>
 
 #include <cstdint>
 #include <map>
