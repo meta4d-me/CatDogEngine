@@ -30,12 +30,17 @@ void ParticleRenderer::UpdateView(const float* pViewMatrix, const float* pProjec
 
 void ParticleRenderer::Render(float deltaTime)
 {
+	Entity pMainCameraEntity = m_pCurrentSceneWorld->GetMainCameraEntity();
 	for (Entity entity : m_pCurrentSceneWorld->GetParticleEmitterEntities())
 	{
 		const cd::Transform& particleTransform = m_pCurrentSceneWorld->GetTransformComponent(entity)->GetTransform();
 		const cd::Quaternion& particleRotation = m_pCurrentSceneWorld->GetTransformComponent(entity)->GetTransform().GetRotation();
 		ParticleEmitterComponent* pEmitterComponent = m_pCurrentSceneWorld->GetParticleEmitterComponent(entity);
-
+		
+		const cd::Transform& pMainCameraTransform = m_pCurrentSceneWorld->GetTransformComponent(pMainCameraEntity)->GetTransform();
+		CameraComponent* pCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(pMainCameraEntity);
+		auto up = pCameraComponent->GetUp(pMainCameraTransform);
+		//const cd::Quaternion& cameraRotation = pMainCameraTransform.GetRotation();
 		//Not include particle attribute
 		pEmitterComponent->GetParticlePool().SetParticleMaxCount(pEmitterComponent->GetSpawnCount());
 		pEmitterComponent->GetParticlePool().AllParticlesReset();
@@ -52,24 +57,24 @@ void ParticleRenderer::Render(float deltaTime)
 
 		pEmitterComponent->GetParticlePool().Update(1.0f/60.0f);
 
-		if (m_currentType != pEmitterComponent->GetEmitterParticleType())
-		{
-			m_currentType = pEmitterComponent->GetEmitterParticleType();
-			if (pEmitterComponent->GetMeshData() == nullptr)
-			{
-				pEmitterComponent->PaddingVertexBuffer();
-				pEmitterComponent->PaddingIndexBuffer();
-			}
-			else
-			{
-				pEmitterComponent->ParseMeshVertexBuffer();
-				pEmitterComponent->ParseMeshIndexBuffer();
-			}
-			const bgfx::Memory *pParticleVertexBuffer = bgfx::makeRef(pEmitterComponent->GetVertexBuffer().data(), static_cast<uint32_t>(pEmitterComponent->GetVertexBuffer().size()));
-			const bgfx::Memory *pParticleIndexBuffer = bgfx::makeRef(pEmitterComponent->GetIndexBuffer().data(), static_cast<uint32_t>(pEmitterComponent->GetIndexBuffer().size()));
-			bgfx::update(bgfx::DynamicVertexBufferHandle{ pEmitterComponent->GetParticleVertexBufferHandle()}, 0, pParticleVertexBuffer);
-			bgfx::update(bgfx::DynamicIndexBufferHandle{pEmitterComponent->GetParticleIndexBufferHandle()}, 0, pParticleIndexBuffer);
-		}
+		//if (m_currentType != pEmitterComponent->GetEmitterParticleType())
+		//{
+		//	m_currentType = pEmitterComponent->GetEmitterParticleType();
+		//	if (pEmitterComponent->GetMeshData() == nullptr)
+		//	{
+		//		pEmitterComponent->PaddingVertexBuffer();
+		//		pEmitterComponent->PaddingIndexBuffer();
+		//	}
+		//	else
+		//	{
+		//		pEmitterComponent->ParseMeshVertexBuffer();
+		//		pEmitterComponent->ParseMeshIndexBuffer();
+		//	}
+		//	const bgfx::Memory *pParticleVertexBuffer = bgfx::makeRef(pEmitterComponent->GetVertexBuffer().data(), static_cast<uint32_t>(pEmitterComponent->GetVertexBuffer().size()));
+		//	const bgfx::Memory *pParticleIndexBuffer = bgfx::makeRef(pEmitterComponent->GetIndexBuffer().data(), static_cast<uint32_t>(pEmitterComponent->GetIndexBuffer().size()));
+		//	bgfx::update(bgfx::DynamicVertexBufferHandle{ pEmitterComponent->GetParticleVertexBufferHandle()}, 0, pParticleVertexBuffer);
+		//	bgfx::update(bgfx::DynamicIndexBufferHandle{pEmitterComponent->GetParticleIndexBufferHandle()}, 0, pParticleIndexBuffer);
+		//}
 
 		//Particle Emitter Instance
 		const uint16_t instanceStride = 80;
@@ -85,9 +90,24 @@ void ParticleRenderer::Render(float deltaTime)
 		for (uint32_t ii = 0; ii < drawnSprites; ++ii)
 		{
 			float* mtx = (float*)data;
-			bx::mtxSRT(mtx, particleTransform.GetScale().x(), particleTransform.GetScale().y(), particleTransform.GetScale().z(),
-									    particleRotation.Pitch(), particleRotation.Yaw(), particleRotation.Roll(),
-										pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().x(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().y(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().z());
+			if (pEmitterComponent->GetRenderMode() == engine::ParticleRenderMode::Mesh)
+			{
+				bx::mtxSRT(mtx, particleTransform.GetScale().x(), particleTransform.GetScale().y(), particleTransform.GetScale().z(),
+					particleRotation.Pitch(), particleRotation.Yaw(), particleRotation.Roll(),
+					pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().x(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().y(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().z());
+			}
+			else if(pEmitterComponent->GetRenderMode() == engine::ParticleRenderMode::Billboard)
+			{
+				auto vec =  pMainCameraTransform.GetTranslation()-pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos();
+				auto right = vec.Cross(up);
+				auto particleUp = vec.Cross(right);
+				float yaw = atan2f(right.z(), right.x());
+				float pitch = atan2f(-right.y(), sqrtf(right.x() * right.x() + right.z() * right.z()));
+				float roll = atan2f(-up.x(), up.y());
+				bx::mtxSRT(mtx, particleTransform.GetScale().x(), particleTransform.GetScale().y(), particleTransform.GetScale().z(),
+					pitch, yaw, roll,
+					pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().x(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().y(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().z());
+			}
 			float* color = (float*)&data[64];
 			color[0] = pEmitterComponent->GetEmitterColor().x();
 			color[1] = pEmitterComponent->GetEmitterColor().y();
@@ -99,15 +119,12 @@ void ParticleRenderer::Render(float deltaTime)
 
 		constexpr StringCrc ParticleSampler("s_texColor");
 		bgfx::setTexture(0, GetRenderContext()->GetUniform(ParticleSampler), m_particleTextureHandle);
-		bgfx::setVertexBuffer(0, bgfx::DynamicVertexBufferHandle{ pEmitterComponent->GetParticleVertexBufferHandle() });
-		bgfx::setIndexBuffer(bgfx::DynamicIndexBufferHandle{  pEmitterComponent->GetParticleIndexBufferHandle() });
+		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pEmitterComponent->GetParticleVertexBufferHandle() });
+		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{  pEmitterComponent->GetParticleIndexBufferHandle() });
 
 		bgfx::setInstanceDataBuffer(&idb);
 
 		 uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
-			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_TRISTRIP;
-		if(m_currentType == engine::ParticleType::Ribbon)
-			state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_TRISTRIP;
 		bgfx::setState(state);
 

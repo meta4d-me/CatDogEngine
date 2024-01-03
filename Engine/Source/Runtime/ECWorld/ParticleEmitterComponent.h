@@ -11,6 +11,11 @@
 
 namespace engine
 {
+enum ParticleRenderMode
+{
+	Billboard,
+	Mesh,
+};
 
 class ParticleEmitterComponent final
 {
@@ -34,8 +39,9 @@ public:
 
 	int& GetSpawnCount() { return m_spawnCount; }
 	void SetSpawnCount(int count) { m_spawnCount = count; }
-	//int& GetParticleMaxCount() { return m_particleMaxCount; } // Sprite
-	//void SetParticleMaxCount(int count) { m_particleMaxCount = count; } //Sprite
+
+	ParticleRenderMode& GetRenderMode() { return m_renderMode; }
+	void SetRenderMode(engine::ParticleRenderMode mode) { m_renderMode = mode; }
 
 	ParticleType& GetEmitterParticleType() { return m_emitterParticleType; }
 	void SetEmitterParticleType(engine::ParticleType type) { m_emitterParticleType = type; }
@@ -97,6 +103,7 @@ private:
 	cd::Vec4f m_emitterColor = cd::Vec4f::One();
 	float m_emitterLifeTime = 6.0f;
 
+	ParticleRenderMode m_renderMode = ParticleRenderMode::Mesh;
 	const cd::Mesh* m_pMeshData = nullptr;
 
 	const cd::VertexFormat* m_pRequiredVertexFormat = nullptr;
