@@ -47,7 +47,7 @@ void WhiteModelRenderer::Render(float deltaTime)
 		if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 		{
 			pTransformComponent->Build();
-			bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
+			bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 		}
 
 		// No mesh attached?

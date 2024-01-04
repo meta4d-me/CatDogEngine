@@ -44,8 +44,8 @@ private:
 
 public:
 	Delegate() = default;
-	Delegate(const Delegate&) = delete;
-	Delegate& operator=(const Delegate&) = delete;
+	Delegate(const Delegate&) = default;
+	Delegate& operator=(const Delegate&) = default;
 	Delegate(Delegate&&) = default;
 	Delegate& operator=(Delegate&&) = default;
 	~Delegate() = default;

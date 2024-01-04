@@ -8,7 +8,7 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 #include "../common/LightSource.sh"
 #include "../common/Envirnoment.sh"
 
-uniform vec4 u_emissiveColor;
+uniform vec4 u_emissiveColorAndFactor;
 
 vec3 GetDirectional(Material material, vec3 worldPos, vec3 viewDir) {
 	//vec3 diffuseBRDF = material.albedo * CD_INV_PI;
@@ -37,8 +37,8 @@ void main()
 	vec3 envColor = GetEnvironment(material, v_worldPos, viewDir, v_normal);
 	
 	// Emissive
-	vec3 emiColor = material.emissive * u_emissiveColor.xyz;
-
+	vec3 emiColor = material.emissive * u_emissiveColorAndFactor.xyz * vec3_splat(u_emissiveColorAndFactor.w);
+	
 	// Fragment Color
 	gl_FragData[0] = vec4(dirColor, 1.0);
 	gl_FragData[1] = vec4(emiColor, 1.0);

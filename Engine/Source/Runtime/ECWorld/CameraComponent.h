@@ -1,9 +1,8 @@
 #pragma once
 
-#include "Core/StringCrc.h"
+#include "Core/Types.h"
 #include "Math/Box.hpp"
 #include "Math/Ray.hpp"
-#include "Math/Transform.hpp"
 
 namespace cd
 {

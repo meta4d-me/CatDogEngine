@@ -1,8 +1,6 @@
 #pragma once
 
-#include "Base/Template.h"
-#include "Core/StringCrc.h"
-#include "Math/Vector.hpp"
+#include "Core/Types.h"
 #include "Rendering/SkyType.h"
 
 #include <string>

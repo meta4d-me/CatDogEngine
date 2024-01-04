@@ -241,58 +241,73 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 		for (int textureTypeValue = 0; textureTypeValue < nameof::enum_count<cd::MaterialTextureType>(); ++textureTypeValue)
 		{
 			auto textureType = static_cast<cd::MaterialTextureType>(textureTypeValue);
-			bool allowNoTextures = textureType == cd::MaterialTextureType::BaseColor ||
-				textureType == cd::MaterialTextureType::Emissive ||
-				textureType == cd::MaterialTextureType::Metallic ||
-				textureType == cd::MaterialTextureType::Roughness;
-
-			engine::MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(textureType);
-			bool canCreateTextureParameters = pTextureInfo || allowNoTextures;
-			if (canCreateTextureParameters)
+			auto pPropertyGroup = pMaterialComponent->GetPropertyGroup(textureType);
+			if (!pPropertyGroup)
 			{
-				const char* pTextureType = nameof::nameof_enum(static_cast<cd::MaterialTextureType>(textureTypeValue)).data();
-				bool isOpen = ImGui::CollapsingHeader(pTextureType, ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
-				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-				ImGui::Separator();
+				continue;
+			}
 
-				if (isOpen)
+			const char* pTextureType = nameof::nameof_enum(static_cast<cd::MaterialTextureType>(textureTypeValue)).data();
+			bool isOpen = ImGui::CollapsingHeader(pTextureType, ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Separator();
+
+			if (isOpen)
+			{
+				ImGui::PushID(textureTypeValue);
+
+				auto& textureInfo = pPropertyGroup->textureInfo;
+				if (bgfx::kInvalidHandle != textureInfo.textureHandle)
 				{
-					ImGui::PushID(textureTypeValue);
-
-					if (cd::MaterialTextureType::BaseColor == textureType)
-					{
-						ImGuiUtils::ColorPickerProperty("AlbedoColor", pMaterialComponent->GetAlbedoColor());
-					}
-					else if (cd::MaterialTextureType::Metallic == textureType)
-					{
-						ImGuiUtils::ImGuiFloatProperty("Metalness", pMaterialComponent->GetMetallicFactor(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
-					}
-					else if (cd::MaterialTextureType::Roughness == textureType)
-					{
-						ImGuiUtils::ImGuiFloatProperty("Roughness", pMaterialComponent->GetRoughnessFactor(), cd::Unit::None, 0.01f, 1.0f, false, 0.01f);
-					}
-					else if (cd::MaterialTextureType::Emissive == textureType)
-					{
-						float emissiveStrength = pMaterialComponent->GetEmissiveColor().x();
-						if (ImGuiUtils::ImGuiFloatProperty("Emissive Strength", emissiveStrength, cd::Unit::None, 0.0f, 1000.0f, false, 0.1f))
-						{
-							pMaterialComponent->SetEmissiveColor(cd::Vec3f(emissiveStrength));
-						}
-					}
-
-					if (pTextureInfo)
-					{
-						if (pTextureInfo->textureHandle != bgfx::kInvalidHandle)
-						{
-							ImGui::Image(reinterpret_cast<ImTextureID>(pTextureInfo->textureHandle), ImVec2(64, 64));
-						}
-
-						ImGuiUtils::ImGuiVectorProperty("UV Offset", pTextureInfo->GetUVOffset(), cd::Unit::None, cd::Vec2f(0.0f), cd::Vec2f(1.0f), false, 0.01f);
-						ImGuiUtils::ImGuiVectorProperty("UV Scale", pTextureInfo->GetUVScale());
-					}
-
-					ImGui::PopID();
+					ImGui::Image(reinterpret_cast<ImTextureID>(textureInfo.textureHandle), ImVec2(64, 64));
 				}
+				else
+				{
+					// Draw a black square with text here.
+					ImVec2 currentPos = ImGui::GetCursorScreenPos();
+					ImGui::GetWindowDrawList()->AddRectFilled(currentPos, ImVec2{ currentPos.x + 64, currentPos.y + 64 }, IM_COL32(0, 0, 0, 255));
+					ImGui::SetCursorScreenPos(ImVec2{ currentPos.x, currentPos.y + 27});
+					ImGui::SetWindowFontScale(0.55f);
+					ImGui::Text("No Resources");
+					ImGui::SetWindowFontScale(1.0f);
+					ImGui::SetCursorScreenPos(ImVec2{ currentPos.x, currentPos.y + 66});
+				}
+
+				ImGuiUtils::ImGuiVectorProperty("UV Offset", textureInfo.GetUVOffset(), cd::Unit::None, cd::Vec2f::Zero(), cd::Vec2f::One(), false, 0.01f);
+				ImGuiUtils::ImGuiVectorProperty("UV Scale", textureInfo.GetUVScale());
+				ImGuiUtils::ImGuiBoolProperty("Use texture", pPropertyGroup->useTexture);
+
+				if (pPropertyGroup->useTexture)
+				{
+					pMaterialComponent->ActivateShaderFeature(engine::MaterialTextureTypeToShaderFeature.at(textureType));
+				}
+				else
+				{
+					pMaterialComponent->DeactivateShaderFeature(engine::MaterialTextureTypeToShaderFeature.at(textureType));
+				}
+
+				if (cd::MaterialTextureType::BaseColor == textureType)
+				{
+					ImGuiUtils::ColorPickerProperty("Factor", *(pMaterialComponent->GetFactor<cd::Vec3f>(textureType)));
+				}
+				else if (cd::MaterialTextureType::Occlusion == textureType ||
+					cd::MaterialTextureType::Metallic == textureType ||
+					cd::MaterialTextureType::Roughness == textureType)
+				{
+					ImGuiUtils::ImGuiFloatProperty("Factor", *(pMaterialComponent->GetFactor<float>(textureType)), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+				}
+				else if (cd::MaterialTextureType::Emissive == textureType)
+				{
+					cd::Vec4f& emissiveColorAndFactor = *(pMaterialComponent->GetFactor<cd::Vec4f>(textureType));
+					cd::Vec3f emissiveColor{ emissiveColorAndFactor.x(), emissiveColorAndFactor.y(), emissiveColorAndFactor.z() };
+					float emissiveFactor = emissiveColorAndFactor.w();
+					ImGuiUtils::ImGuiVectorProperty("Color", emissiveColor, cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One(), false, 0.01f);
+					ImGuiUtils::ImGuiFloatProperty("Factor", emissiveFactor, cd::Unit::None, 0.0f, 10.0f, false, 0.1f);
+					emissiveColorAndFactor = cd::Vec4f{ emissiveColor.x(), emissiveColor.y(), emissiveColor.z(), emissiveFactor };
+				}
+
+				ImGui::PopID();
+			}
 
 				ImGui::Separator();
 				ImGui::PopStyleVar();
@@ -603,8 +618,8 @@ void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld
 
 				if (engine::SkyType::None == currentSkyType)
 				{
-					pMaterialComponent->DeactiveShaderFeature(engine::GetSkyTypeShaderFeature(engine::SkyType::AtmosphericScattering));
-					pMaterialComponent->DeactiveShaderFeature(engine::GetSkyTypeShaderFeature(engine::SkyType::SkyBox));
+					pMaterialComponent->DeactivateShaderFeature(engine::GetSkyTypeShaderFeature(engine::SkyType::AtmosphericScattering));
+					pMaterialComponent->DeactivateShaderFeature(engine::GetSkyTypeShaderFeature(engine::SkyType::SkyBox));
 				}
 				else
 				{

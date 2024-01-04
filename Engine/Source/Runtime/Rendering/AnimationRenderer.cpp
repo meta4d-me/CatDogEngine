@@ -186,18 +186,20 @@ void AnimationRenderer::Render(float deltaTime)
 		}
 
 		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
-		if (!pMaterialComponent || pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetAnimationMaterialType())
+		if (!pMaterialComponent ||
+			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetAnimationMaterialType() ||
+			!GetRenderContext()->IsShaderProgramValid(pMaterialComponent->GetShaderProgramName(), pMaterialComponent->GetFeaturesCombine()))
 		{
 			continue;
 		}
 
 		TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity);
-		bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
+		bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 
 		AnimationComponent* pAnimationComponent = m_pCurrentSceneWorld->GetAnimationComponent(entity);
 
 		const cd::Animation* pAnimation = pAnimationComponent->GetAnimationData();
-		float ticksPerSecond = pAnimation->GetTicksPerSecnod();
+		float ticksPerSecond = pAnimation->GetTicksPerSecond();
 		assert(ticksPerSecond > 1.0f);
 		float animationTime = details::CustomFModf(animationRunningTime * ticksPerSecond, pAnimation->GetDuration());
 

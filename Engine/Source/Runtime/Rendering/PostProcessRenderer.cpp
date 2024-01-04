@@ -33,7 +33,7 @@ void PostProcessRenderer::UpdateView(const float* pViewMatrix, const float* pPro
 	UpdateViewRenderTarget();
 
 	cd::Matrix4x4 orthoMatrix = cd::Matrix4x4::Orthographic(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1000.0f, 0.0f, bgfx::getCaps()->homogeneousDepth);
-	bgfx::setViewTransform(GetViewID(), nullptr, orthoMatrix.Begin());
+	bgfx::setViewTransform(GetViewID(), nullptr, orthoMatrix.begin());
 }
 
 void PostProcessRenderer::Render(float deltaTime)

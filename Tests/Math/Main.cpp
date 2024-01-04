@@ -77,9 +77,9 @@ void TestVector()
 	{
 		cd::TVector<int, 4> vec(1, 2, 3, 4);
 		int sum = 0;
-		for (auto it = vec.Begin(); it != vec.End(); ++it)
+		for (auto v : vec)
 		{
-			sum += *it;
+			sum += v;
 		}
 		assert(sum == 10);
 	}
