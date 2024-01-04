@@ -187,7 +187,7 @@ private:
 
 	std::string m_name;
 
-	cd::Vec4f m_dividLine =cd::Vec4f(0.5f,0.3f,0.0f,1.0f);
+	cd::Vec4f m_dividLine;
 	bool m_twoSided;
 	bool m_outLine;
 	cd::BlendMode m_blendMode;

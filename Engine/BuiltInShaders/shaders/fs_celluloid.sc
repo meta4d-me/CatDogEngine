@@ -46,4 +46,3 @@ void main()
  
 	// Post-processing will be used in the last pass.
 }
-

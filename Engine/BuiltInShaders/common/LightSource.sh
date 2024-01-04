@@ -168,7 +168,8 @@ vec3 CalculateDirectionalLight(U_Light light, Material material, vec3 worldPos, 
 	
 	vec3 KD = mix(1.0 - Fre, vec3_splat(0.0), material.metallic);
 	vec3 irradiance = light.color * light.intensity;
-	return (KD * diffuseBRDF + specularBRDF) * irradiance * NdotL;
+	//return (KD * diffuseBRDF + specularBRDF) * irradiance * NdotL;
+	return vec3_splat(NdotL);
 }
 
 // -------------------- Sphere -------------------- //

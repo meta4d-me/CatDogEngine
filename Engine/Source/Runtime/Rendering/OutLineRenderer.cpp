@@ -58,7 +58,7 @@ namespace engine
 			if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 			{
 				pTransformComponent->Build();
-				bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
+				bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 			}
 			UpdateStaticMeshComponent(pMeshComponent);
 			constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_CULL_CW;

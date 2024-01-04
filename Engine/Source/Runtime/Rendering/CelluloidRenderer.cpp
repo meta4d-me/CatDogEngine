@@ -18,7 +18,6 @@ namespace engine
 {
 	namespace
 	{
-
 		constexpr const char* lutSampler = "s_texLUT";
 		constexpr const char* cubeIrradianceSampler = "s_texCubeIrr";
 		constexpr const char* cubeRadianceSampler = "s_texCubeRad";
@@ -27,7 +26,7 @@ namespace engine
 
 		constexpr const char* cameraPos = "u_cameraPos";
 		constexpr const char* albedoColor = "u_albedoColor";
-		constexpr const char* emissiveColor = "u_emissiveColor";
+		constexpr const char* emissiveColorAndFactor = "u_emissiveColorAndFactor";
 		constexpr const char* metallicRoughnessFactor = "u_metallicRoughnessFactor";
 
 		constexpr const char* albedoUVOffsetAndScale = "u_albedoUVOffsetAndScale";
@@ -67,17 +66,18 @@ namespace engine
 
 		GetRenderContext()->CreateUniform(cameraPos, bgfx::UniformType::Vec4, 1);
 		GetRenderContext()->CreateUniform(albedoColor, bgfx::UniformType::Vec4, 1);
-		GetRenderContext()->CreateUniform(emissiveColor, bgfx::UniformType::Vec4, 1);
+		GetRenderContext()->CreateUniform(emissiveColorAndFactor, bgfx::UniformType::Vec4, 1);
 		GetRenderContext()->CreateUniform(metallicRoughnessFactor, bgfx::UniformType::Vec4, 1);
 		GetRenderContext()->CreateUniform(albedoUVOffsetAndScale, bgfx::UniformType::Vec4, 1);
 		GetRenderContext()->CreateUniform(alphaCutOff, bgfx::UniformType::Vec4, 1);
 
 		GetRenderContext()->CreateUniform(lightCountAndStride, bgfx::UniformType::Vec4, 1);
 		GetRenderContext()->CreateUniform(lightParams, bgfx::UniformType::Vec4, LightUniform::VEC4_COUNT);
-		GetRenderContext()->CreateUniform(dividLine, bgfx::UniformType::Vec4, 1);
 
 		GetRenderContext()->CreateUniform(LightDir, bgfx::UniformType::Vec4, 1);
 		GetRenderContext()->CreateUniform(HeightOffsetAndshadowLength, bgfx::UniformType::Vec4, 1);
+
+		GetRenderContext()->CreateUniform(dividLine, bgfx::UniformType::Vec4, 1);
 	}
 
 	void CelluloidRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -124,27 +124,31 @@ namespace engine
 			// Transform
 			if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 			{
-				bgfx::setTransform(pTransformComponent->GetWorldMatrix().Begin());
+				bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 			}
 
 			// Mesh
 			UpdateStaticMeshComponent(pMeshComponent);
 
 			// Material
-			for (const auto& [textureType, _] : pMaterialComponent->GetTextureResources())
+			for (const auto& [textureType, propertyGroup] : pMaterialComponent->GetPropertyGroups())
 			{
-				if (const MaterialComponent::TextureInfo* pTextureInfo = pMaterialComponent->GetTextureInfo(textureType))
-				{
-					if (cd::MaterialTextureType::BaseColor == textureType)
-					{
-						constexpr StringCrc albedoUVOffsetAndScaleCrc(albedoUVOffsetAndScale);
-						cd::Vec4f uvOffsetAndScaleData(pTextureInfo->GetUVOffset().x(), pTextureInfo->GetUVOffset().y(),
-							pTextureInfo->GetUVScale().x(), pTextureInfo->GetUVScale().y());
-						GetRenderContext()->FillUniform(albedoUVOffsetAndScaleCrc, &uvOffsetAndScaleData, 1);
-					}
+				const MaterialComponent::TextureInfo& textureInfo = propertyGroup.textureInfo;
 
-					bgfx::setTexture(pTextureInfo->slot, bgfx::UniformHandle{ pTextureInfo->samplerHandle }, bgfx::TextureHandle{ pTextureInfo->textureHandle });
+				if (!propertyGroup.useTexture || !bgfx::isValid(bgfx::TextureHandle{ textureInfo.textureHandle }))
+				{
+					continue;
 				}
+
+				if (cd::MaterialTextureType::BaseColor == textureType)
+				{
+					constexpr StringCrc albedoUVOffsetAndScaleCrc(albedoUVOffsetAndScale);
+					cd::Vec4f uvOffsetAndScaleData(textureInfo.GetUVOffset().x(), textureInfo.GetUVOffset().y(),
+						textureInfo.GetUVScale().x(), textureInfo.GetUVScale().y());
+					GetRenderContext()->FillUniform(albedoUVOffsetAndScaleCrc, &uvOffsetAndScaleData, 1);
+				}
+
+				bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle{ textureInfo.samplerHandle }, bgfx::TextureHandle{ textureInfo.textureHandle });
 			}
 
 			// Sky
@@ -188,19 +192,22 @@ namespace engine
 			constexpr StringCrc cameraPosCrc(cameraPos);
 			GetRenderContext()->FillUniform(cameraPosCrc, &cameraTransform.GetTranslation().x(), 1);
 
+			constexpr StringCrc dividLineCrc(dividLine);
+			GetRenderContext()->FillUniform(dividLineCrc, pMaterialComponent->GetDividLine().begin(), 1);
+
 			// Submit uniform values : material settings
 			constexpr StringCrc albedoColorCrc(albedoColor);
-			GetRenderContext()->FillUniform(albedoColorCrc, pMaterialComponent->GetAlbedoColor().Begin(), 1);
+			GetRenderContext()->FillUniform(albedoColorCrc, pMaterialComponent->GetFactor<cd::Vec3f>(cd::MaterialPropertyGroup::BaseColor), 1);
 
+			cd::Vec4f metallicRoughnessFactorData(
+				*(pMaterialComponent->GetFactor<float>(cd::MaterialPropertyGroup::Metallic)),
+				*(pMaterialComponent->GetFactor<float>(cd::MaterialPropertyGroup::Roughness)),
+				1.0f, 1.0f);
 			constexpr StringCrc mrFactorCrc(metallicRoughnessFactor);
-			cd::Vec4f metallicRoughnessFactorData(pMaterialComponent->GetMetallicFactor(), pMaterialComponent->GetRoughnessFactor(), 1.0f, 1.0f);
-			GetRenderContext()->FillUniform(mrFactorCrc, metallicRoughnessFactorData.Begin(), 1);
+			GetRenderContext()->FillUniform(mrFactorCrc, metallicRoughnessFactorData.begin(), 1);
 
-			constexpr StringCrc emissiveColorCrc(emissiveColor);
-			GetRenderContext()->FillUniform(emissiveColorCrc, pMaterialComponent->GetEmissiveColor().Begin(), 1);
-
-			constexpr StringCrc dividLineCrc(dividLine);
-			GetRenderContext()->FillUniform(dividLineCrc, pMaterialComponent->GetDividLine().Begin(), 1);
+			constexpr StringCrc emissiveColorCrc(emissiveColorAndFactor);
+			GetRenderContext()->FillUniform(emissiveColorCrc, pMaterialComponent->GetFactor<cd::Vec4f>(cd::MaterialPropertyGroup::Emissive), 1);
 
 			// Submit uniform values : light settings
 			auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();
@@ -208,7 +215,7 @@ namespace engine
 			constexpr engine::StringCrc lightCountAndStrideCrc(lightCountAndStride);
 			static cd::Vec4f lightInfoData(0, LightUniform::LIGHT_STRIDE, 0.0f, 0.0f);
 			lightInfoData.x() = static_cast<float>(lightEntityCount);
-			GetRenderContext()->FillUniform(lightCountAndStrideCrc, lightInfoData.Begin(), 1);
+			GetRenderContext()->FillUniform(lightCountAndStrideCrc, lightInfoData.begin(), 1);
 			if (lightEntityCount > 0)
 			{
 				// Light component storage has continus memory address and layout.

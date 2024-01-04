@@ -177,40 +177,23 @@ vec3 CalculateDirectionalLight(U_Light light, Material material, vec3 worldPos, 
 // TODO : Remove this normalize in the future.
 	vec3 lightDir = normalize(-light.direction);
 	vec3 harfDir  = normalize(lightDir + viewDir);
-
+	
 	float NdotV = max(dot(material.normal, viewDir), 0.0);
 	float NdotL = dot(material.normal, lightDir);
 	float NdotH = max(dot(material.normal, harfDir), 0.0);
 	float HdotV = max(dot(harfDir, viewDir), 0.0);
-	float VdotL = dot(lightDir,viewDir);
 
-	float boundSharp = 10.0 * pow(material.roughness - 1,2.0) + 0.5;
-	float highSig = Sigmoid(NdotL, u_dividLine.y,boundSharp * u_dividLine.w);
-	float lowSig = Sigmoid(NdotL, u_dividLine.z,boundSharp * u_dividLine.w);
+	float _HalfLambert_var = 0.5 * NdotL + 0.5; // Half Lambert
 
-	//---------------------Fresnel---------------------//
-	vec3 fresnel = FresnelExtend(NdotV, vec3_splat(0.1));
-	vec3 fresnelResult = 0.5 * fresnel * (1 - VdotL) / 2;
-    //---------------------Specular--------------------//
-	float NdotF0 = GGX(material.roughness * material.roughness, 1);
-	float NdotFHBound = NdotF0 * u_dividLine.x;
-	float NdotF = GGX(material.roughness * material.roughness, NdotH);
+	vec3 firstShadeColor = material.albedo * 0.8;
+	vec3 secondShadeColor = material.albedo * 0.5;
+	
+	float firstShadowMask = saturate( 1.0 - (_HalfLambert_var - (u_dividLine.x - u_dividLine.y)) / u_dividLine.y); // albedo and 1st shadow
+	vec3 baseColor = lerp (material.albedo, firstShadeColor, firstShadowMask);
 
-	float specularWindow = Sigmoid(NdotF,NdotFHBound,boundSharp * u_dividLine.w);
-	float specularWeight = specularWindow * (NdotF0 + NdotFHBound) / 2;
-
-	float highWindow = highSig;
-	float lowWindow = lowSig - highSig;
-	float darkWindow = 1 - lowSig; 
-
-	vec3 diffuseWeight = vec3_splat(highWindow * ( 1 + ndc2Normal(u_dividLine.y)) / 2);
-	diffuseWeight += vec3_splat(lowWindow * (ndc2Normal(u_dividLine.y) + ndc2Normal(u_dividLine.z)) / 2);
-	diffuseWeight += vec3_splat(darkWindow * (ndc2Normal(u_dividLine.z)));
-
-
-	vec3 lightResult = specularWeight * vec3(light.color) + (1 - specularWeight) * diffuseWeight * material.albedo * vec3(light.color);
-
-	return lightResult;
+	float secondShadowMask = saturate ( 1.0 - (_HalfLambert_var - (u_dividLine.z - u_dividLine.w)) / u_dividLine.w); // 1st shadow and 2st shadow
+	vec3 finalBaseColor = lerp (material.albedo,lerp(firstShadeColor, secondShadeColor,firstShadowMask),secondShadowMask);
+	return baseColor;
 }
 
 // -------------------- Sphere -------------------- //
