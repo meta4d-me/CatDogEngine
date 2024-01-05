@@ -38,8 +38,6 @@ void ParticleRenderer::Render(float deltaTime)
 		ParticleEmitterComponent* pEmitterComponent = m_pCurrentSceneWorld->GetParticleEmitterComponent(entity);
 		
 		const cd::Transform& pMainCameraTransform = m_pCurrentSceneWorld->GetTransformComponent(pMainCameraEntity)->GetTransform();
-		CameraComponent* pCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(pMainCameraEntity);
-		auto up = pCameraComponent->GetUp(pMainCameraTransform);
 		//const cd::Quaternion& cameraRotation = pMainCameraTransform.GetRotation();
 		//Not include particle attribute
 		pEmitterComponent->GetParticlePool().SetParticleMaxCount(pEmitterComponent->GetSpawnCount());
@@ -98,12 +96,13 @@ void ParticleRenderer::Render(float deltaTime)
 			}
 			else if(pEmitterComponent->GetRenderMode() == engine::ParticleRenderMode::Billboard)
 			{
+				auto up = particleTransform.GetRotation().ToMatrix3x3() * cd::Vec3f(0, 1, 0);
 				auto vec =  pMainCameraTransform.GetTranslation()-pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos();
-				auto right = vec.Cross(up);
+				auto right = up.Cross(vec);
 				auto particleUp = vec.Cross(right);
 				float yaw = atan2f(right.z(), right.x());
-				float pitch = atan2f(-right.y(), sqrtf(right.x() * right.x() + right.z() * right.z()));
-				float roll = atan2f(-up.x(), up.y());
+				float pitch = atan2f(vec.y(), sqrtf(vec.x() * vec.x() + vec.z() * vec.z())); 
+				float roll = atan2f(right.x(), -right.y()); 
 				bx::mtxSRT(mtx, particleTransform.GetScale().x(), particleTransform.GetScale().y(), particleTransform.GetScale().z(),
 					pitch, yaw, roll,
 					pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().x(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().y(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().z());
