@@ -162,7 +162,7 @@ namespace details
 		{
 			return;
 		}
-
+		const char* name = pMaterialComponent->GetMaterialType()->GetMaterialName();
 		bool isOpen = ImGui::CollapsingHeader("Material Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 		ImGui::Separator();
@@ -313,10 +313,17 @@ namespace details
 			}
 
 			const cd::Vec4f dividLine = pMaterialComponent->GetDividLine();
-			ImGuiUtils::ImGuiFloatProperty("SpecularLine", pMaterialComponent->GetDividLine().x(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
-			ImGuiUtils::ImGuiFloatProperty("DiffuseLine", pMaterialComponent->GetDividLine().y(), cd::Unit::None, 0.0001f, 1.0f, false, 0.01f);
-			ImGuiUtils::ImGuiFloatProperty("DarkLine", pMaterialComponent->GetDividLine().z(), cd::Unit::None, -.0f, 1.0f, false, 0.01f);
-			ImGuiUtils::ImGuiFloatProperty("Line Sharpness", pMaterialComponent->GetDividLine().w(), cd::Unit::None, 0.01f, 1.0f, false, 0.01f);
+			ImGuiUtils::ColorPickerProperty("Base Color", pMaterialComponent->GetBaseColor());
+			ImGuiUtils::ColorPickerProperty("First Shadow Color", pMaterialComponent->GetFirstShadowColor());
+			ImGuiUtils::ColorPickerProperty("Second Color", pMaterialComponent->GetSecondShadowColor());
+			ImGuiUtils::ImGuiFloatProperty("FirsrShadow", pMaterialComponent->GetDividLine().x(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+			ImGuiUtils::ImGuiFloatProperty("FirstShadow Feather", pMaterialComponent->GetDividLine().y(), cd::Unit::None, 0.0001f, 1.0f, false, 0.01f);
+			ImGuiUtils::ImGuiFloatProperty("SecondShadow", pMaterialComponent->GetDividLine().z(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+			ImGuiUtils::ImGuiFloatProperty("SecondShadow Feather", pMaterialComponent->GetDividLine().w(), cd::Unit::None, 0.01f, 1.0f, false, 0.01f);
+			ImGuiUtils::ImGuiFloatProperty("Specular Size", pMaterialComponent->GetSpecular().x(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+			ImGuiUtils::ImGuiFloatProperty("Specular Power", pMaterialComponent->GetSpecular().y(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+			ImGuiUtils::ImGuiFloatProperty("Specular Mask", pMaterialComponent->GetSpecular().z(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+			ImGuiUtils::ImGuiFloatProperty("Is High Light", pMaterialComponent->GetSpecular().w(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
 
 			// Shaders
 			{

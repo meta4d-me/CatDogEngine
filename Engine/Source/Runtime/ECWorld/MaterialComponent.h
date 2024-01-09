@@ -176,10 +176,15 @@ public:
 	float& GetAlphaCutOff() { return m_alphaCutOff; }
 	float GetAlphaCutOff() const { return m_alphaCutOff; }
 
-	void SetDividLine(cd::Vec4f line) { m_dividLine = line; }
 	cd::Vec4f& GetDividLine() { return m_dividLine; }
 	cd::Vec4f GetDividLine() const { return m_dividLine; }
 
+	cd::Vec4f& GetSpecular() { return m_specular; }
+	cd::Vec4f GetSpecular() const { return m_specular; }
+
+	cd::Vec3f& GetBaseColor() { return m_baseColor; }
+	cd::Vec3f& GetFirstShadowColor() { return m_firstShadowColor; }
+	cd::Vec3f& GetSecondShadowColor() { return m_SecondShadowColor; }
 private:
 	// Input
 	const cd::Material* m_pMaterialData = nullptr;
@@ -188,6 +193,10 @@ private:
 	std::string m_name;
 
 	cd::Vec4f m_dividLine;
+	cd::Vec4f m_specular;
+	cd::Vec3f m_baseColor;
+	cd::Vec3f m_firstShadowColor;
+	cd::Vec3f m_SecondShadowColor;
 	bool m_twoSided;
 	bool m_outLine;
 	cd::BlendMode m_blendMode;

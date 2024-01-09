@@ -121,7 +121,6 @@ void SceneWorld::CreateCelluloidMaterialType(std::string shaderProgramName)
 	shaderSchema.SetShaderProgramName(cd::MoveTemp(shaderProgramName));
 	shaderSchema.AddFeatureSet({ ShaderFeature::ALBEDO_MAP });
 	shaderSchema.AddFeatureSet({ ShaderFeature::NORMAL_MAP });
-	shaderSchema.AddFeatureSet({ ShaderFeature::ORM_MAP });
 	shaderSchema.AddFeatureSet({ ShaderFeature::EMISSIVE_MAP });
 	m_pCelluloidMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
@@ -134,9 +133,6 @@ void SceneWorld::CreateCelluloidMaterialType(std::string shaderProgramName)
 
 	m_pCelluloidMaterialType->AddOptionalTextureType(cd::MaterialTextureType::BaseColor, ALBEDO_MAP_SLOT);
 	m_pCelluloidMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Normal, NORMAL_MAP_SLOT);
-	m_pCelluloidMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Occlusion, ORM_MAP_SLOT);
-	m_pCelluloidMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Roughness, ORM_MAP_SLOT);
-	m_pCelluloidMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Metallic, ORM_MAP_SLOT);
 	m_pCelluloidMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Emissive, EMISSIVE_MAP_SLOT);
 }
 

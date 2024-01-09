@@ -38,6 +38,12 @@ namespace engine
 		constexpr const char* LightDir = "u_LightDir";
 		constexpr const char* HeightOffsetAndshadowLength = "u_HeightOffsetAndshadowLength";
 		constexpr const char* dividLine = "u_dividLine";
+		constexpr const char* specular = "u_specular";
+		constexpr const char* rimLight = "u_rimLight";
+
+		constexpr const char* baseColor = "u_baseColor";
+		constexpr const char* firstShadowColor = "u_firstShadowColor";
+		constexpr const char* secondShadowColor = "u_secondShadowColor";
 
 		constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 		constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
@@ -78,6 +84,10 @@ namespace engine
 		GetRenderContext()->CreateUniform(HeightOffsetAndshadowLength, bgfx::UniformType::Vec4, 1);
 
 		GetRenderContext()->CreateUniform(dividLine, bgfx::UniformType::Vec4, 1);
+		GetRenderContext()->CreateUniform(specular, bgfx::UniformType::Vec4, 1);
+		GetRenderContext()->CreateUniform(baseColor, bgfx::UniformType::Vec4, 1);
+		GetRenderContext()->CreateUniform(firstShadowColor, bgfx::UniformType::Vec4, 1);
+		GetRenderContext()->CreateUniform(secondShadowColor, bgfx::UniformType:: Vec4, 1);
 	}
 
 	void CelluloidRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -194,6 +204,18 @@ namespace engine
 
 			constexpr StringCrc dividLineCrc(dividLine);
 			GetRenderContext()->FillUniform(dividLineCrc, pMaterialComponent->GetDividLine().begin(), 1);
+
+			constexpr StringCrc specularCrc(specular);
+			GetRenderContext()->FillUniform(specularCrc, pMaterialComponent->GetSpecular().begin(), 1);
+
+			constexpr StringCrc baseColorCrc(baseColor);
+			GetRenderContext()->FillUniform(baseColorCrc, pMaterialComponent->GetBaseColor().begin(), 1);
+
+			constexpr StringCrc firstShadowColorCrc(firstShadowColor);
+			GetRenderContext()->FillUniform(firstShadowColorCrc, pMaterialComponent->GetFirstShadowColor().begin(), 1);
+
+			constexpr StringCrc secondShadowColorCrc(secondShadowColor);
+			GetRenderContext()->FillUniform(secondShadowColorCrc, pMaterialComponent->GetSecondShadowColor().begin(), 1);
 
 			// Submit uniform values : material settings
 			constexpr StringCrc albedoColorCrc(albedoColor);

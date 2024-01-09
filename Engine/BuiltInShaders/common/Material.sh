@@ -25,6 +25,10 @@ uniform vec4 u_metallicRoughnessFactor;
 uniform vec4 u_albedoUVOffsetAndScale;
 uniform vec4 u_alphaCutOff;
 uniform vec4 u_dividLine;
+uniform vec4 u_specular;
+uniform vec4 u_baseColor;
+uniform vec4 u_firstShadowColor;
+uniform vec4 u_secondShadowColor;
 
 #if defined(ALBEDOMAP)
 SAMPLER2D(s_texBaseColor, ALBEDO_MAP_SLOT);
