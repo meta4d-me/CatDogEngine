@@ -31,6 +31,7 @@
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Rendering/ParticleRenderer.h"
+#include "Rendering/ParticleEmitterShapeRenderer.h"
 #include "Resources/FileWatcher.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ShaderBuilder.h"
@@ -531,6 +532,10 @@ void EditorApp::InitEngineRenderers()
 	auto pParticlerenderer = std::make_unique<engine::ParticleRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pParticlerenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pParticlerenderer));
+
+	auto pParticleShapeRenderer = std::make_unique<engine::ParticleEmitterShapeRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pParticleShapeRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pParticleShapeRenderer));
 
 #ifdef ENABLE_DDGI
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);

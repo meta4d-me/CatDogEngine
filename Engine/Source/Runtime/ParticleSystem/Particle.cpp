@@ -26,9 +26,12 @@ void Particle::Update(float deltaTime)
 
     m_particlePos.x() = m_particlePos.x() + m_particleSpeed.x() * deltaTime + 0.5f * m_particleAcceleration.x() * deltaTime * deltaTime;
     m_particlePos.y() = m_particlePos.y() + m_particleSpeed.y() * deltaTime + 0.5f * m_particleAcceleration.y() * deltaTime * deltaTime;
+    m_particlePos.z() = m_particlePos.z() + m_particleSpeed.z() * deltaTime + 0.5f * m_particleAcceleration.z() * deltaTime * deltaTime;
+
     
     m_particleSpeed.x() += m_particleAcceleration.x() * deltaTime;
     m_particleSpeed.y() += m_particleAcceleration.y() * deltaTime;
+    m_particleSpeed.z() += m_particleAcceleration.z() * deltaTime;
 
     //cd::Vec3f zForward{0.0f, 0.0f, 1.0f};
     //cd::Vec3f CentripetalV = zForward.Cross(m_particleSpeed);

@@ -5,12 +5,7 @@
 #include "ECWorld/TransformComponent.h"
 #include "Rendering/RenderContext.h"
 
-//#include <cstdlib>
 namespace engine {
-//float getRandomValue(float min, float max)
-//{
-//	return min + static_cast<float>(rand()) / (RAND_MAX / (max - min));
-//}
 
 namespace
 {
@@ -71,8 +66,10 @@ void ParticleRenderer::Render(float deltaTime)
 		if (particleIndex != -1)
 		{
 			Particle& particle = pEmitterComponent->GetParticlePool().GetParticle(particleIndex);
-			//cd::Vec3f random(getRandomValue(-20.0f, 20.0f), getRandomValue(-20.0f, 20.0f), getRandomValue(-20.0f, 20.0f));
-			particle.SetPos(particleTransform.GetTranslation());
+			cd::Vec3f random(getRandomValue(-pEmitterComponent->GetEmitterShapeRange().x(), pEmitterComponent->GetEmitterShapeRange().x()),
+										getRandomValue(-pEmitterComponent->GetEmitterShapeRange().y(), pEmitterComponent->GetEmitterShapeRange().y()),
+										getRandomValue(-pEmitterComponent->GetEmitterShapeRange().z(), pEmitterComponent->GetEmitterShapeRange().z()));
+			particle.SetPos(particleTransform.GetTranslation()+random);
 			particle.SetSpeed(pEmitterComponent->GetEmitterVelocity());
 			particle.SetAcceleration(pEmitterComponent->GetEmitterAcceleration());
 			particle.SetColor(pEmitterComponent->GetEmitterColor());
@@ -80,25 +77,6 @@ void ParticleRenderer::Render(float deltaTime)
 		}
 
 		pEmitterComponent->GetParticlePool().Update(1.0f/60.0f);
-
-		//if (m_currentType != pEmitterComponent->GetEmitterParticleType())
-		//{
-		//	m_currentType = pEmitterComponent->GetEmitterParticleType();
-		//	if (pEmitterComponent->GetMeshData() == nullptr)
-		//	{
-		//		pEmitterComponent->PaddingVertexBuffer();
-		//		pEmitterComponent->PaddingIndexBuffer();
-		//	}
-		//	else
-		//	{
-		//		pEmitterComponent->ParseMeshVertexBuffer();
-		//		pEmitterComponent->ParseMeshIndexBuffer();
-		//	}
-		//	const bgfx::Memory *pParticleVertexBuffer = bgfx::makeRef(pEmitterComponent->GetVertexBuffer().data(), static_cast<uint32_t>(pEmitterComponent->GetVertexBuffer().size()));
-		//	const bgfx::Memory *pParticleIndexBuffer = bgfx::makeRef(pEmitterComponent->GetIndexBuffer().data(), static_cast<uint32_t>(pEmitterComponent->GetIndexBuffer().size()));
-		//	bgfx::update(bgfx::DynamicVertexBufferHandle{ pEmitterComponent->GetParticleVertexBufferHandle()}, 0, pParticleVertexBuffer);
-		//	bgfx::update(bgfx::DynamicIndexBufferHandle{pEmitterComponent->GetParticleIndexBufferHandle()}, 0, pParticleIndexBuffer);
-		//}
 
 		//Particle Emitter Instance
 		const uint16_t instanceStride = 80;

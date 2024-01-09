@@ -18,6 +18,8 @@ void engine::ParticleEmitterComponent::Build()
 		ParseMeshIndexBuffer();
 	}
 
+	BuildParticleShape();
+
 	bgfx::VertexLayout vertexLayout;
 	VertexLayoutUtility::CreateVertexLayout(vertexLayout, m_pRequiredVertexFormat->GetVertexLayout());
 	m_particleVertexBufferHandle = bgfx::createVertexBuffer(bgfx::makeRef(m_particleVertexBuffer.data(), static_cast<uint32_t>(m_particleVertexBuffer.size())), vertexLayout).idx;
@@ -48,6 +50,7 @@ void engine::ParticleEmitterComponent::PaddingVertexBuffer()
 		std::vector<VertexData> vertexDataBuffer;
 		vertexDataBuffer.resize(MAX_VERTEX_COUNT);
 		// pos color uv
+		// only a picture now
 		for (int i = 0; i < MAX_VERTEX_COUNT; i += engine::ParticleTypeVertexCount::SpriteVertexCount)
 		{
 			vertexDataBuffer[i] = { cd::Vec3f(-1.0f,-1.0f,0.0f),cd::Vec4f(1.0f,1.0f,1.0f,1.0f),cd::Vec2f(1.0f,1.0f) };
@@ -278,3 +281,133 @@ void engine::ParticleEmitterComponent::ParseMeshIndexBuffer()
 
 	}
 }
+
+void engine::ParticleEmitterComponent::BuildParticleShape()
+{
+	if (m_emitterShape == ParticleEmitterShape::Box)
+	{
+		cd::VertexFormat vertexFormat;
+		vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
+
+		const uint32_t vertexCount = 8;
+		std::vector<cd::Point> vertexArray
+		{
+			cd::Point{-m_emitterShapeRange.x(), -m_emitterShapeRange.y(), m_emitterShapeRange.z()},
+				cd::Point{m_emitterShapeRange.x(), -m_emitterShapeRange.y(), m_emitterShapeRange.z()},
+				cd::Point{m_emitterShapeRange.x(), m_emitterShapeRange.y(), m_emitterShapeRange.z()},
+				cd::Point{-m_emitterShapeRange.x(), m_emitterShapeRange.y(), m_emitterShapeRange.z()},
+				cd::Point{-m_emitterShapeRange.x(), -m_emitterShapeRange.y(), -m_emitterShapeRange.z()},
+				cd::Point{m_emitterShapeRange.x(), -m_emitterShapeRange.y(), -m_emitterShapeRange.z()},
+				cd::Point{m_emitterShapeRange.x(), m_emitterShapeRange.y(), -m_emitterShapeRange.z()},
+				cd::Point{-m_emitterShapeRange.x(), m_emitterShapeRange.y(), -m_emitterShapeRange.z()},
+		};
+		m_emitterShapeVertexBuffer.resize(vertexCount * vertexFormat.GetStride());
+		uint32_t currentDataSize = 0U;
+		auto currentDataPtr = m_emitterShapeVertexBuffer.data();
+		for (uint32_t vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex)
+		{
+			//position
+			const cd::Point& position = vertexArray[vertexIndex];
+			constexpr uint32_t posDataSize = cd::Point::Size * sizeof(cd::Point::ValueType);
+			std::memcpy(&currentDataPtr[currentDataSize], position.begin(), posDataSize);
+			currentDataSize += posDataSize;
+		}
+
+		size_t indexTypeSize = sizeof(uint16_t);
+		m_emitterShapeIndexBuffer.resize(24 * indexTypeSize);
+		currentDataSize = 0U;
+		currentDataPtr = m_emitterShapeIndexBuffer.data();
+
+		std::vector<uint16_t> indexes =
+		{
+			0, 1,
+			1, 2,
+			2, 3,
+			3, 0,
+
+			4, 5,
+			5, 6,
+			6, 7,
+			7, 4,
+
+			0, 4,
+			1, 5,
+			2, 6,
+			3, 7
+		};
+
+		for (const auto& index : indexes)
+		{
+			std::memcpy(&currentDataPtr[currentDataSize], &index, indexTypeSize);
+			currentDataSize += static_cast<uint32_t>(indexTypeSize);
+		}
+
+		bgfx::VertexLayout vertexLayout;
+		VertexLayoutUtility::CreateVertexLayout(vertexLayout, vertexFormat.GetVertexLayout());
+		m_emitterShapeVertexBufferHandle = bgfx::createDynamicVertexBuffer(bgfx::makeRef(m_emitterShapeVertexBuffer.data(), static_cast<uint32_t>(m_emitterShapeVertexBuffer.size())), vertexLayout).idx;
+		m_emitterShapeIndexBufferHandle = bgfx::createDynamicIndexBuffer(bgfx::makeRef(m_emitterShapeIndexBuffer.data(), static_cast<uint32_t>(m_emitterShapeIndexBuffer.size())), 0U).idx;
+	}
+}
+
+void engine::ParticleEmitterComponent::RePaddingShapeBuffer()
+{
+	if (m_emitterShape == ParticleEmitterShape::Box)
+	{
+		cd::VertexFormat vertexFormat;
+		vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
+
+		const uint32_t vertexCount = 8;
+		std::vector<cd::Point> vertexArray
+		{
+			cd::Point{-m_emitterShapeRange.x(), -m_emitterShapeRange.y(), m_emitterShapeRange.z()},
+				cd::Point{m_emitterShapeRange.x(), -m_emitterShapeRange.y(), m_emitterShapeRange.z()},
+				cd::Point{m_emitterShapeRange.x(), m_emitterShapeRange.y(), m_emitterShapeRange.z()},
+				cd::Point{-m_emitterShapeRange.x(), m_emitterShapeRange.y(), m_emitterShapeRange.z()},
+				cd::Point{-m_emitterShapeRange.x(), -m_emitterShapeRange.y(), -m_emitterShapeRange.z()},
+				cd::Point{m_emitterShapeRange.x(), -m_emitterShapeRange.y(), -m_emitterShapeRange.z()},
+				cd::Point{m_emitterShapeRange.x(), m_emitterShapeRange.y(), -m_emitterShapeRange.z()},
+				cd::Point{-m_emitterShapeRange.x(), m_emitterShapeRange.y(), -m_emitterShapeRange.z()},
+		};
+		m_emitterShapeVertexBuffer.resize(vertexCount * vertexFormat.GetStride());
+		uint32_t currentDataSize = 0U;
+		auto currentDataPtr = m_emitterShapeVertexBuffer.data();
+		for (uint32_t vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex)
+		{
+			//position
+			const cd::Point& position = vertexArray[vertexIndex];
+			constexpr uint32_t posDataSize = cd::Point::Size * sizeof(cd::Point::ValueType);
+			std::memcpy(&currentDataPtr[currentDataSize], position.begin(), posDataSize);
+			currentDataSize += posDataSize;
+		}
+
+		size_t indexTypeSize = sizeof(uint16_t);
+		m_emitterShapeIndexBuffer.resize(24 * indexTypeSize);
+		currentDataSize = 0U;
+		currentDataPtr = m_emitterShapeIndexBuffer.data();
+
+		std::vector<uint16_t> indexes =
+		{
+			0, 1,
+			1, 2,
+			2, 3,
+			3, 0,
+
+			4, 5,
+			5, 6,
+			6, 7,
+			7, 4,
+
+			0, 4,
+			1, 5,
+			2, 6,
+			3, 7
+		};
+
+		for (const auto& index : indexes)
+		{
+			std::memcpy(&currentDataPtr[currentDataSize], &index, indexTypeSize);
+			currentDataSize += static_cast<uint32_t>(indexTypeSize);
+		}
+	}
+}
+

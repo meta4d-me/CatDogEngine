@@ -17,6 +17,13 @@ enum ParticleRenderMode
 	Mesh,
 };
 
+enum ParticleEmitterShape
+{
+	Sphere,
+	Hemisphere,
+	Box
+};
+
 class ParticleEmitterComponent final
 {
 public:
@@ -34,11 +41,14 @@ public:
 	~ParticleEmitterComponent() = default;
 
 	//engine::ParticleSystem &GetParticleSystem() { return m_particleSystem; }
-	
+
 	ParticlePool& GetParticlePool() { return m_particlePool; }
 
 	int& GetSpawnCount() { return m_spawnCount; }
 	void SetSpawnCount(int count) { m_spawnCount = count; }
+
+	cd::Vec3f& GetEmitterShapeRange() { return m_emitterShapeRange; }
+	void SetEmitterShapeRange(cd::Vec3f range) { m_emitterShapeRange = range; }
 
 	ParticleRenderMode& GetRenderMode() { return m_renderMode; }
 	void SetRenderMode(engine::ParticleRenderMode mode) { m_renderMode = mode; }
@@ -57,18 +67,24 @@ public:
 
 	cd::Vec3f& GetEmitterAcceleration() { return m_emitterAcceleration; }
 	void SetEmitterAcceleration(cd::Vec3f accleration) { m_emitterAcceleration = accleration; }
-	
+
 	cd::Vec4f& GetEmitterColor() { return m_emitterColor; }
 	void SetEmitterColor(cd::Vec4f fillcolor) { m_emitterColor = fillcolor; }
 
 	float& GetLifeTime() { return m_emitterLifeTime; }
 	void SetEmitterLifeTime(float lifetime) { m_emitterLifeTime = lifetime; }
 
-	uint16_t& GetParticleVertexBufferHandle(){ return m_particleVertexBufferHandle; }
+	uint16_t& GetParticleVertexBufferHandle() { return m_particleVertexBufferHandle; }
 	uint16_t& GetParticleIndexBufferHandle() { return m_particleIndexBufferHandle; }
 
-	std::vector<std::byte> &GetVertexBuffer() { return m_particleVertexBuffer; }
-	std::vector<std::byte> &GetIndexBuffer() { return m_particleIndexBuffer; }
+	std::vector<std::byte>& GetVertexBuffer() { return m_particleVertexBuffer; }
+	std::vector<std::byte>& GetIndexBuffer() { return m_particleIndexBuffer; }
+
+	uint16_t& GetEmitterShapeVertexBufferHandle() { return m_emitterShapeVertexBufferHandle; }
+	uint16_t& GetEmitterShapeIndexBufferHandle() { return m_emitterShapeIndexBufferHandle; }
+
+	std::vector<std::byte>& GetEmitterShapeVertexBuffer() { return m_emitterShapeVertexBuffer; }
+	std::vector<std::byte>& GetEmitterShapeIndexBuffer() { return m_emitterShapeIndexBuffer; }
 
 	const cd::Mesh* GetMeshData() const { return m_pMeshData; }
 	void SetMeshData(const cd::Mesh* pMeshData) { m_pMeshData = pMeshData; }
@@ -84,6 +100,9 @@ public:
 	void ParseMeshVertexBuffer();
 	void ParseMeshIndexBuffer();
 
+	void BuildParticleShape();
+	void RePaddingShapeBuffer();
+
 private:
 	//ParticleSystem m_particleSystem;
 	ParticlePool m_particlePool;
@@ -98,7 +117,7 @@ private:
 	};
 
 	int m_spawnCount = 75;
-	cd::Vec3f m_emitterVelocity {20.0f,20.0f,0.0f};
+	cd::Vec3f m_emitterVelocity {20.0f, 20.0f, 0.0f};
 	cd::Vec3f m_emitterAcceleration;
 	cd::Vec4f m_emitterColor = cd::Vec4f::One();
 	float m_emitterLifeTime = 6.0f;
@@ -111,6 +130,13 @@ private:
 	std::vector<std::byte> m_particleIndexBuffer;
 	uint16_t m_particleVertexBufferHandle = UINT16_MAX;
 	uint16_t m_particleIndexBufferHandle = UINT16_MAX;
+
+	cd::Vec3f m_emitterShapeRange {10.0f ,5.0f ,10.0f};
+	ParticleEmitterShape m_emitterShape = ParticleEmitterShape::Box;
+	std::vector<std::byte> m_emitterShapeVertexBuffer;
+	std::vector<std::byte> m_emitterShapeIndexBuffer;
+	uint16_t m_emitterShapeVertexBufferHandle = UINT16_MAX;
+	uint16_t m_emitterShapeIndexBufferHandle = UINT16_MAX;
 };
 
 }
