@@ -38,8 +38,7 @@ vec3 SampleEnvRadiance(vec3 reflectDir, float mip) {
 }
 
 vec2 SampleIBLSpecularBRDFLUT(float NdotV, float roughness) {
-	vec2 uv = clamp(vec2(NdotV, 1.0 - roughness), vec2_splat(0.05), vec2_splat(0.95));
-	return texture2D(s_texLUT, uv).xy;
+	return texture2D(s_texLUT, vec2(NdotV, 1.0 - roughness)).xy;
 }
 #endif
 
