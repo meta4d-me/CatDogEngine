@@ -10,6 +10,7 @@
 #include <map>
 #include <optional>
 #include <unordered_set>
+#include <variant>
 #include <vector>
 
 namespace bgfx
@@ -44,17 +45,18 @@ public:
 	using TextureBlob = std::vector<std::byte>;
 	struct TextureInfo
 	{
-	public:
+		static constexpr uint16_t BGFXInvalidHandle = (1 << 16) - 1;
+
 		const bgfx::Memory* data;
 		uint64_t flag;
 		uint32_t width;
 		uint32_t height;
 		uint32_t depth;
 		cd::TextureFormat format;
-		cd::Vec2f uvOffset;
-		cd::Vec2f uvScale;
-		uint16_t samplerHandle;
-		uint16_t textureHandle;
+		cd::Vec2f uvOffset = cd::Vec2f::Zero();
+		cd::Vec2f uvScale = cd::Vec2f::One();
+		uint16_t samplerHandle = BGFXInvalidHandle;
+		uint16_t textureHandle = BGFXInvalidHandle;
 		uint8_t slot;
 		uint8_t mipCount;
 
@@ -65,6 +67,13 @@ public:
 		const cd::Vec2f& GetUVScale() const  { return uvScale; }
 		void SetUVOffset(const cd::Vec2f& offset) { uvOffset = offset; }
 		void SetUVScale(const cd::Vec2f& scale) { uvScale = scale; }
+	};
+
+	struct PropertyGroup
+	{
+		TextureInfo textureInfo;
+		bool useTexture;
+		std::variant<float, cd::Vec3f, cd::Vec4f> factor;
 	};
 
 public:
@@ -95,7 +104,7 @@ public:
 
 	// Uber shader data.
 	void ActivateShaderFeature(ShaderFeature feature);
-	void DeactiveShaderFeature(ShaderFeature feature);
+	void DeactivateShaderFeature(ShaderFeature feature);
 	void SetShaderFeatures(std::set<ShaderFeature> options) { m_shaderFeatures = cd::MoveTemp(m_shaderFeatures); }
 	std::set<ShaderFeature>& GetShaderFeatures() { return m_shaderFeatures; }
 	const std::set<ShaderFeature>& GetShaderFeatures() const { return m_shaderFeatures; }
@@ -105,25 +114,48 @@ public:
 	void AddTextureBlob(cd::MaterialTextureType textureType, cd::TextureFormat textureFormat, cd::TextureMapMode uMapMode, cd::TextureMapMode vMapMode, TextureBlob textureBlob, uint32_t width, uint32_t height, uint32_t depth = 1);
 	void AddTextureFileBlob(cd::MaterialTextureType textureType, const cd::Material* pMaterial, const cd::Texture& texture, TextureBlob textureBlob);
 
-	const std::map<cd::MaterialTextureType, TextureInfo>& GetTextureResources() const { return m_textureResources; }
-	TextureInfo* GetTextureInfo(cd::MaterialTextureType textureType);
-	const TextureInfo* GetTextureInfo(cd::MaterialTextureType textureType) const;
+	const std::map<cd::MaterialPropertyGroup, PropertyGroup>& GetPropertyGroups() const { return m_propertyGroups; }
+	PropertyGroup* GetPropertyGroup(cd::MaterialPropertyGroup propertyGroup);
+	const PropertyGroup* GetPropertyGroup(cd::MaterialPropertyGroup propertyGroup) const;
 
-	void SetAlbedoColor(cd::Vec3f color) { m_albedoColor = cd::MoveTemp(color); }
-	cd::Vec3f& GetAlbedoColor() { return m_albedoColor; }
-	const cd::Vec3f& GetAlbedoColor() const { return m_albedoColor; }
+	template<class T>
+	void SetFactor(cd::MaterialPropertyGroup propertyGroup, T factor)
+	{
+		auto it = m_propertyGroups.find(propertyGroup);
+		if (m_propertyGroups.end() == it)
+		{
+			return;
+		}
 
-	void SetMetallicFactor(float factor) { m_metallicFactor = factor; }
-	float& GetMetallicFactor() { return m_metallicFactor; }
-	float GetMetallicFactor() const { return m_metallicFactor; }
+		if (auto pValue = std::get_if<T>(&(it->second.factor)); pValue)
+		{
+			*pValue = cd::MoveTemp(factor);
+		}
+	}
 
-	void SetRoughnessFactor(float factor) { m_roughnessFactor = factor; }
-	float& GetRoughnessFactor() { return m_roughnessFactor; }
-	float GetRoughnessFactor() const { return m_roughnessFactor; }
+	template<class T>
+	T* GetFactor(cd::MaterialPropertyGroup propertyGroup)
+	{
+		auto it = m_propertyGroups.find(propertyGroup);
+		if (m_propertyGroups.end() == it)
+		{
+			return nullptr;
+		}
 
-	void SetEmissiveColor(cd::Vec3f color) { m_emissiveColor = cd::MoveTemp(color); }
-	cd::Vec3f& GetEmissiveColor() { return m_emissiveColor; }
-	const cd::Vec3f& GetEmissiveColor() const { return m_emissiveColor; }
+		return std::get_if<T>(&(it->second.factor));
+	}
+
+	template<class T>
+	const T* GetFactor(cd::MaterialPropertyGroup propertyGroup) const
+	{
+		auto it = m_propertyGroups.find(propertyGroup);
+		if (m_propertyGroups.end() == it)
+		{
+			return nullptr;
+		}
+
+		return std::get_if<T>(&(it->second.factor));
+	}
 
 	// Cull parameters. 
 	void SetTwoSided(bool value) { m_twoSided = value; }
@@ -145,10 +177,6 @@ private:
 	const engine::MaterialType* m_pMaterialType = nullptr;
 
 	std::string m_name;
-	cd::Vec3f m_albedoColor;
-	float m_metallicFactor;
-	float m_roughnessFactor;
-	cd::Vec3f m_emissiveColor;
 	bool m_twoSided;
 	cd::BlendMode m_blendMode;
 	float m_alphaCutOff;
@@ -160,7 +188,7 @@ private:
 	std::vector<TextureBlob> m_cacheTextureBlobs;
 
 	// Output
-	std::map<cd::MaterialTextureType, TextureInfo> m_textureResources;
+	std::map<cd::MaterialTextureType, PropertyGroup> m_propertyGroups;
 };
 
 }

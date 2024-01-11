@@ -180,14 +180,17 @@ void TerrainRenderer::Render(float deltaTime)
 
 		// Submit  uniform values : material settings
 		constexpr StringCrc albedoColorCrc(albedoColor);
-		GetRenderContext()->FillUniform(albedoColorCrc, pMaterialComponent->GetAlbedoColor().begin(), 1);
+		GetRenderContext()->FillUniform(albedoColorCrc, pMaterialComponent->GetFactor<cd::Vec3f>(cd::MaterialPropertyGroup::BaseColor), 1);
 
+		cd::Vec4f metallicRoughnessFactorData(
+			*(pMaterialComponent->GetFactor<float>(cd::MaterialPropertyGroup::Metallic)),
+			*(pMaterialComponent->GetFactor<float>(cd::MaterialPropertyGroup::Roughness)),
+			1.0f, 1.0f);
 		constexpr StringCrc mrFactorCrc(metallicRoughnessFactor);
-		cd::Vec4f metallicRoughnessFactorData(pMaterialComponent->GetMetallicFactor(), pMaterialComponent->GetRoughnessFactor(), 1.0f, 1.0f);
 		GetRenderContext()->FillUniform(mrFactorCrc, metallicRoughnessFactorData.begin(), 1);
 
 		constexpr StringCrc emissiveColorCrc(emissiveColor);
-		GetRenderContext()->FillUniform(emissiveColorCrc, pMaterialComponent->GetEmissiveColor().begin(), 1);
+		GetRenderContext()->FillUniform(emissiveColorCrc, pMaterialComponent->GetFactor<float>(cd::MaterialPropertyGroup::Emissive), 1);
 
 		// Submit  uniform values : light settings
 		auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();

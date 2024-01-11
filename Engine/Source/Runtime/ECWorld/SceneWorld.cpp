@@ -255,16 +255,18 @@ void SceneWorld::AddMaterialToSceneDatabase(engine::Entity entity)
 		return;
 	}
 
-	pMaterialData->SetFloatProperty(cd::MaterialPropertyGroup::Metallic, cd::MaterialProperty::Factor, pMaterialComponent->GetMetallicFactor());
-	pMaterialData->SetFloatProperty(cd::MaterialPropertyGroup::Roughness, cd::MaterialProperty::Factor, pMaterialComponent->GetRoughnessFactor());
+	pMaterialData->SetVec3fProperty(cd::MaterialPropertyGroup::BaseColor, cd::MaterialProperty::Color, *(pMaterialComponent->GetFactor<cd::Vec3f>(cd::MaterialPropertyGroup::BaseColor)));
+	pMaterialData->SetFloatProperty(cd::MaterialPropertyGroup::Metallic, cd::MaterialProperty::Factor, *(pMaterialComponent->GetFactor<float>(cd::MaterialPropertyGroup::Metallic)));
+	pMaterialData->SetFloatProperty(cd::MaterialPropertyGroup::Roughness, cd::MaterialProperty::Factor, *(pMaterialComponent->GetFactor<float>(cd::MaterialPropertyGroup::Roughness)));
 	pMaterialData->SetBoolProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::TwoSided, pMaterialComponent->GetTwoSided());
 
-	for (int textureTypeValue = 0; textureTypeValue < nameof::enum_count<cd::MaterialTextureType>(); ++textureTypeValue)
+	for (size_t textureTypeValue = 0; textureTypeValue < nameof::enum_count<cd::MaterialTextureType>(); ++textureTypeValue)
 	{
-		if (MaterialComponent::TextureInfo* textureInfo = pMaterialComponent->GetTextureInfo(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)))
+		if (auto pPropertyGroup = pMaterialComponent->GetPropertyGroup(static_cast<cd::MaterialPropertyGroup>(textureTypeValue)); pPropertyGroup)
 		{
-			pMaterialData->SetVec2fProperty(static_cast<cd::MaterialPropertyGroup>(textureTypeValue), cd::MaterialProperty::UVOffset, textureInfo->GetUVOffset());
-			pMaterialData->SetVec2fProperty(static_cast<cd::MaterialPropertyGroup>(textureTypeValue), cd::MaterialProperty::UVScale, textureInfo->GetUVScale());
+			const MaterialComponent::TextureInfo& textureInfo = pPropertyGroup->textureInfo;
+			pMaterialData->SetVec2fProperty(static_cast<cd::MaterialPropertyGroup>(textureTypeValue), cd::MaterialProperty::UVOffset, textureInfo.GetUVOffset());
+			pMaterialData->SetVec2fProperty(static_cast<cd::MaterialPropertyGroup>(textureTypeValue), cd::MaterialProperty::UVScale, textureInfo.GetUVScale());
 		}
 	}
 }

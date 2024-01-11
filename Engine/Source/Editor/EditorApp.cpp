@@ -431,6 +431,16 @@ void EditorApp::CompileAndLoadShaders()
 
 		for (const auto& info : m_pRenderContext->GetShaderCompileInfos())
 		{
+			// Info still in RenderContext::m_shaderCompileInfos means compiling is successful.
+			const uint32_t entity = info.m_entity;
+			auto& failedEntities = m_pRenderContext->GetCompileFailedEntities();
+			if (failedEntities.find(entity) != failedEntities.end())
+			{
+				engine::MaterialComponent* pMaterialComponent = m_pSceneWorld->GetMaterialComponent(entity);
+				pMaterialComponent->SetFactor(cd::MaterialPropertyGroup::BaseColor, cd::Vec3f{ 1.0f, 1.0f, 1.0f });
+				failedEntities.erase(entity);
+			}
+
 			m_pRenderContext->DestroyShaderProgram(info.m_programName, info.m_featuresCombine);
 			m_pRenderContext->UploadShaderProgram(info.m_programName, info.m_featuresCombine);
 		}
@@ -447,9 +457,12 @@ void EditorApp::OnShaderCompileFailed(uint32_t handle, std::span<const char> str
 	while (it != infos.end())
 	{
 		const auto& handles = it->m_taskHandles;
-		if (handles.find(handle) == handles.end())
+		if (handles.find(handle) != handles.end())
 		{
-			// TODO : Change material color here.
+			const uint32_t entity = it->m_entity;
+			m_pRenderContext->AddCompileFailedEntity(entity);
+			engine::MaterialComponent* pMaterialComponent = m_pSceneWorld->GetMaterialComponent(entity);
+			pMaterialComponent->SetFactor(cd::MaterialPropertyGroup::BaseColor, cd::Vec3f{ 1.0f, 0.0f, 1.0f });
 			it = infos.erase(it);
 		}
 		else

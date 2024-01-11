@@ -64,7 +64,6 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
         materialComponent.Init();
         materialComponent.SetMaterialType(pMaterialType);
-        materialComponent.SetAlbedoColor(cd::Vec3f(0.2f));
         materialComponent.ActivateShaderFeature(engine::GetSkyTypeShaderFeature(pSceneWorld->GetSkyComponent(pSceneWorld->GetSkyEntity())->GetSkyType()));
         materialComponent.Build();
 
@@ -127,7 +126,6 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
         materialComponent.Init();
         materialComponent.SetMaterialType(pTerrainMaterialType);
-        materialComponent.SetAlbedoColor(cd::Vec3f(0.2f));
         materialComponent.SetTwoSided(true);
         materialComponent.ActivateShaderFeature(engine::GetSkyTypeShaderFeature(pSceneWorld->GetSkyComponent(pSceneWorld->GetSkyEntity())->GetSkyType()));
         materialComponent.Build();

@@ -103,28 +103,52 @@ namespace engine
 void MaterialComponent::Init()
 {
 	Reset();
+	PropertyGroup propertyGroup;
+
+	propertyGroup.useTexture = false;
+	propertyGroup.factor = cd::Vec3f{ 1.0f, 1.0f, 1.0f };
+	m_propertyGroups[cd::MaterialPropertyGroup::BaseColor] = cd::MoveTemp(propertyGroup);
+
+	propertyGroup.useTexture = false;
+	m_propertyGroups[cd::MaterialPropertyGroup::Normal] = cd::MoveTemp(propertyGroup);
+
+	propertyGroup.useTexture = false;
+	propertyGroup.factor = 1.0f;
+	m_propertyGroups[cd::MaterialPropertyGroup::Occlusion] = cd::MoveTemp(propertyGroup);
+
+	propertyGroup.useTexture = false;
+	propertyGroup.factor = 0.9f;
+	m_propertyGroups[cd::MaterialPropertyGroup::Roughness] = cd::MoveTemp(propertyGroup);
+
+	propertyGroup.useTexture = false;
+	propertyGroup.factor = 0.1f;
+	m_propertyGroups[cd::MaterialPropertyGroup::Metallic] = cd::MoveTemp(propertyGroup);
+
+	propertyGroup.useTexture = false;
+	propertyGroup.factor = cd::Vec4f{ 1.0f, 1.0f, 1.0f, 1.0f };
+	m_propertyGroups[cd::MaterialPropertyGroup::Emissive] = cd::MoveTemp(propertyGroup);
 }
 
-MaterialComponent::TextureInfo* MaterialComponent::GetTextureInfo(cd::MaterialTextureType textureType)
+MaterialComponent::PropertyGroup* MaterialComponent::GetPropertyGroup(cd::MaterialPropertyGroup propertyGroup)
 {
-	auto itTextureInfo = m_textureResources.find(textureType);
-	if (itTextureInfo == m_textureResources.end())
+	auto it = m_propertyGroups.find(propertyGroup);
+	if (m_propertyGroups.end() == it)
 	{
 		return nullptr;
 	}
 
-	return &itTextureInfo->second;
+	return &(it->second);
 }
 
-const MaterialComponent::TextureInfo* MaterialComponent::GetTextureInfo(cd::MaterialTextureType textureType) const
+const MaterialComponent::PropertyGroup* MaterialComponent::GetPropertyGroup(cd::MaterialPropertyGroup propertyGroup) const
 {
-	auto itTextureInfo = m_textureResources.find(textureType);
-	if (itTextureInfo == m_textureResources.cend())
+	auto it = m_propertyGroups.find(propertyGroup);
+	if (m_propertyGroups.end() == it)
 	{
 		return nullptr;
 	}
 
-	return &itTextureInfo->second;
+	return &(it->second);
 }
 
 const std::string& MaterialComponent::GetShaderProgramName() const
@@ -149,7 +173,7 @@ void MaterialComponent::ActivateShaderFeature(ShaderFeature feature)
 	m_isShaderFeatureDirty = true;
 }
 
-void MaterialComponent::DeactiveShaderFeature(ShaderFeature feature)
+void MaterialComponent::DeactivateShaderFeature(ShaderFeature feature)
 {
 	m_shaderFeatures.erase(feature);
 
@@ -173,12 +197,7 @@ void MaterialComponent::Reset()
 {
 	m_pMaterialData = nullptr;
 	m_pMaterialType = nullptr;
-	m_shaderFeatures.clear();
 	m_name.clear();
-	m_albedoColor = cd::Vec3f::One();
-	m_emissiveColor = cd::Vec3f::One();
-	m_metallicFactor = 0.1f;
-	m_roughnessFactor = 0.9f;
 	m_twoSided = false;
 	m_blendMode = cd::BlendMode::Opaque;
 	m_alphaCutOff = 1.0f;
@@ -186,7 +205,7 @@ void MaterialComponent::Reset()
 	m_shaderFeatures.clear();
 	m_featureCombine.clear();
 	m_cacheTextureBlobs.clear();
-	m_textureResources.clear();
+	m_propertyGroups.clear();
 }
 
 void MaterialComponent::AddTextureBlob(cd::MaterialTextureType textureType, cd::TextureFormat textureFormat, cd::TextureMapMode uMapMode, cd::TextureMapMode vMapMode,
@@ -197,8 +216,11 @@ void MaterialComponent::AddTextureBlob(cd::MaterialTextureType textureType, cd::
 	{
 		return;
 	}
+	
+	PropertyGroup& propertyGroup = m_propertyGroups[textureType];
+	propertyGroup.useTexture = true;
 
-	TextureInfo textureInfo = m_textureResources[textureType];
+	TextureInfo& textureInfo = propertyGroup.textureInfo;
 	textureInfo.slot = optTextureSlot.value();
 	textureInfo.width = width;
 	textureInfo.height = height;
@@ -209,7 +231,6 @@ void MaterialComponent::AddTextureBlob(cd::MaterialTextureType textureType, cd::
 	textureInfo.flag = GetBGFXTextureFlag(textureType, uMapMode, vMapMode);
 	textureInfo.uvOffset = cd::Vec2f::Zero();
 	textureInfo.uvScale = cd::Vec2f::One();
-	m_textureResources[textureType] = cd::MoveTemp(textureInfo);
 	
 	// TODO : generic CPU/GPU resource manager.
 	m_cacheTextureBlobs.emplace_back(cd::MoveTemp(textureBlob));
@@ -223,8 +244,11 @@ void MaterialComponent::AddTextureFileBlob(cd::MaterialTextureType textureType, 
 		return;
 	}
 
+	PropertyGroup& propertyGroup = m_propertyGroups[textureType];
+	propertyGroup.useTexture = true;
+
 	bimg::ImageContainer* pImageContainer = bimg::imageParse(GetResourceAllocator(), textureBlob.data(), static_cast<uint32_t>(textureBlob.size()));
-	TextureInfo textureInfo = m_textureResources[textureType];
+	TextureInfo& textureInfo = propertyGroup.textureInfo;
 	textureInfo.slot = optTextureSlot.value();
 	textureInfo.width = pImageContainer->m_width;
 	textureInfo.height = pImageContainer->m_height;
@@ -241,7 +265,6 @@ void MaterialComponent::AddTextureFileBlob(cd::MaterialTextureType textureType, 
 	{
 		textureInfo.uvOffset = optUVOffset.value();
 	}
-	m_textureResources[textureType] = cd::MoveTemp(textureInfo);
 }
 
 void MaterialComponent::Build()
@@ -251,8 +274,14 @@ void MaterialComponent::Build()
 		m_name = m_pMaterialData->GetName();
 	}
 	
-	for (auto& [textureType, textureInfo] : m_textureResources)
+	for (auto& [textureType, propertyGroup] : m_propertyGroups)
 	{
+		if (!propertyGroup.useTexture)
+		{
+			continue;
+		}
+
+		TextureInfo& textureInfo = propertyGroup.textureInfo;
 		textureInfo.textureHandle = BGFXCreateTexture(textureInfo.width, textureInfo.height, textureInfo.depth, false, textureInfo.mipCount > 1,
 			1, static_cast<bgfx::TextureFormat::Enum>(textureInfo.format), textureInfo.flag, textureInfo.data).idx;
 
