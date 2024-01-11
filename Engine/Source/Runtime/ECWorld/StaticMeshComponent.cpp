@@ -207,35 +207,35 @@ void StaticMeshComponent::Build()
 			FillVertexBuffer(m_pMeshData->GetVertexColor(0)[vertexIndex].begin(), dataSize);
 		}
 
-		if (containsBoneIndex && containsBoneWeight)
-		{
-			std::vector<uint16_t> vertexBoneIDs;
-			std::vector<cd::VertexWeight> vertexBoneWeights;
-
-			for(uint32_t vertexBoneIndex = 0U; vertexBoneIndex < 4; ++vertexBoneIndex)
-			{
-				cd::BoneID boneID;
-				if (vertexBoneIndex < m_pMeshData->GetVertexInfluenceCount())
-				{
-					boneID = m_pMeshData->GetVertexBoneID(vertexBoneIndex, vertexIndex);
-				}
-
-				if (boneID.IsValid())
-				{
-					vertexBoneIDs.push_back(static_cast<uint16_t>(boneID.Data()));
-					vertexBoneWeights.push_back(m_pMeshData->GetVertexWeight(vertexBoneIndex, vertexIndex));
-				}
-				else
-				{
-					vertexBoneIDs.push_back(127);
-					vertexBoneWeights.push_back(0.0f);
-				}
-			}
-
-			// TODO : Change storage to a TVector<uint16_t, InfluenceCount> and TVector<float, InfluenceCount> ?
-			FillVertexBuffer(vertexBoneIDs.data(), static_cast<uint32_t>(vertexBoneIDs.size() * sizeof(uint16_t)));
-			FillVertexBuffer(vertexBoneWeights.data(), static_cast<uint32_t>(vertexBoneWeights.size() * sizeof(cd::VertexWeight)));
-		}
+		//if (containsBoneIndex && containsBoneWeight)
+		//{
+		//	std::vector<uint16_t> vertexBoneIDs;
+		//	std::vector<cd::VertexWeight> vertexBoneWeights;
+		//
+		//	for(uint32_t vertexBoneIndex = 0U; vertexBoneIndex < 4; ++vertexBoneIndex)
+		//	{
+		//		cd::BoneID boneID;
+		//		if (vertexBoneIndex < m_pMeshData->GetVertexInfluenceCount())
+		//		{
+		//			boneID = m_pMeshData->GetVertexBoneID(vertexBoneIndex, vertexIndex);
+		//		}
+		//
+		//		if (boneID.IsValid())
+		//		{
+		//			vertexBoneIDs.push_back(static_cast<uint16_t>(boneID.Data()));
+		//			vertexBoneWeights.push_back(m_pMeshData->GetVertexWeight(vertexBoneIndex, vertexIndex));
+		//		}
+		//		else
+		//		{
+		//			vertexBoneIDs.push_back(127);
+		//			vertexBoneWeights.push_back(0.0f);
+		//		}
+		//	}
+		//
+		//	// TODO : Change storage to a TVector<uint16_t, InfluenceCount> and TVector<float, InfluenceCount> ?
+		//	FillVertexBuffer(vertexBoneIDs.data(), static_cast<uint32_t>(vertexBoneIDs.size() * sizeof(uint16_t)));
+		//	FillVertexBuffer(vertexBoneWeights.data(), static_cast<uint32_t>(vertexBoneWeights.size() * sizeof(cd::VertexWeight)));
+		//}
 	}
 
 	// Fill index buffer data.
@@ -252,7 +252,7 @@ void StaticMeshComponent::Build()
 		ibDataSize += dataSize;
 	};
 
-	for (const auto& polygon : m_pMeshData->GetPolygons())
+	for (const auto& polygon : m_pMeshData->GetPolygonGroup(0))
 	{
 		if (useU16Index)
 		{
