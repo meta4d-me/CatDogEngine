@@ -11,4 +11,8 @@ rem Enable Clang toolsets
 Set USE_CLANG_TOOLSET=1
 Set CMAKE_TOOLSET_OPTION=-T ClangCL
 
+Set CD_BUILD_TYPE=Debug
+call ./Engine/Auto/MakeThirdParty_Windows.bat
+
+Set CD_BUILD_TYPE=Release
 call ./Engine/Auto/MakeThirdParty_Windows.bat

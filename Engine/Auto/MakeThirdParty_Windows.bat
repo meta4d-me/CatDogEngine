@@ -25,9 +25,9 @@ echo [ SDL ] Start making project...
 cd sdl
 if not exist build mkdir build
 cd build
-%CMAKE_EXE% .. -G %CMAKE_IDE_FULL_NAME% %CMAKE_TOOLSET_OPTION% -DSDL_FORCE_STATIC_VCRT=ON -D CMAKE_CONFIGURATION_TYPES="Debug;Release"
-start /b %CMAKE_EXE% --build . --config Debug
-start /b %CMAKE_EXE% --build . --config Release
+%CMAKE_EXE% .. -G %CMAKE_IDE_FULL_NAME% %CMAKE_TOOLSET_OPTION% -DSDL_FORCE_STATIC_VCRT=ON -D CMAKE_CONFIGURATION_TYPES="%CD_BUILD_TYPE%"
+if "%CD_BUILD_TYPE%" EQU "Debug" start /b %CMAKE_EXE% --build . --config Debug
+if "%CD_BUILD_TYPE%" EQU "Release" start /b %CMAKE_EXE% --build . --config Release
 cd %ThirdPartyProjectsPath%
 echo\
 
@@ -36,8 +36,8 @@ cd freetype
 if not exist build mkdir build
 cd build
 %CMAKE_EXE% .. -G %CMAKE_IDE_FULL_NAME% %CMAKE_TOOLSET_OPTION% -DCMAKE_CXX_FLAGS="/MT"
-start /b %CMAKE_EXE% --build . --config Debug
-start /b %CMAKE_EXE% --build . --config Release
+if "%CD_BUILD_TYPE%" EQU "Debug" start /b %CMAKE_EXE% --build . --config Debug
+if "%CD_BUILD_TYPE%" EQU "Release" start /b %CMAKE_EXE% --build . --config Release
 cd %ThirdPartyProjectsPath%
 echo\
 
@@ -53,8 +53,8 @@ if "%VS_VERSION%" EQU "vs2022" (
 )
 
 cd %MSBUILD_FOLDER%
-"%MSBUILD_PATH%" -m %ThirdPartyProjectsPath%/AssetPipeline/AssetPipeline.sln /p:Configuration=Debug /p:Platform=x64
-"%MSBUILD_PATH%" -m %ThirdPartyProjectsPath%/AssetPipeline/AssetPipeline.sln /p:Configuration=Release /p:Platform=x64
+if "%CD_BUILD_TYPE%" EQU "Debug" "%MSBUILD_PATH%" -m %ThirdPartyProjectsPath%/AssetPipeline/AssetPipeline.sln /p:Configuration=Debug /p:Platform=x64
+if "%CD_BUILD_TYPE%" EQU "Release" "%MSBUILD_PATH%" -m %ThirdPartyProjectsPath%/AssetPipeline/AssetPipeline.sln /p:Configuration=Release /p:Platform=x64
 cd %ThirdPartyProjectsPath%
 echo\
 
