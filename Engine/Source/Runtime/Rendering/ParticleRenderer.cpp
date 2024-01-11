@@ -2,6 +2,7 @@
 #include "ParticleRenderer.h"
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/SceneWorld.h"
+#include "ECWorld/ParticleForceFieldComponent.h"
 #include "ECWorld/TransformComponent.h"
 #include "Rendering/RenderContext.h"
 
@@ -50,6 +51,12 @@ void ParticleRenderer::UpdateView(const float* pViewMatrix, const float* pProjec
 
 void ParticleRenderer::Render(float deltaTime)
 {
+	for (Entity entity : m_pCurrentSceneWorld->GetParticleForceFieldEntities())
+	{
+		ParticleForceFieldComponent* pForceFieldComponent = m_pCurrentSceneWorld->GetParticleForceFieldComponent(entity);
+		SetForceFieldRotationForce(pForceFieldComponent);
+	}
+
 	Entity pMainCameraEntity = m_pCurrentSceneWorld->GetMainCameraEntity();
 	for (Entity entity : m_pCurrentSceneWorld->GetParticleEmitterEntities())
 	{
@@ -71,6 +78,7 @@ void ParticleRenderer::Render(float deltaTime)
 										getRandomValue(-pEmitterComponent->GetEmitterShapeRange().z(), pEmitterComponent->GetEmitterShapeRange().z()));
 			particle.SetPos(particleTransform.GetTranslation()+random);
 			particle.SetSpeed(pEmitterComponent->GetEmitterVelocity());
+			particle.SetRotationForceField(m_forcefieldRotationFoce);
 			particle.SetAcceleration(pEmitterComponent->GetEmitterAcceleration());
 			particle.SetColor(pEmitterComponent->GetEmitterColor());
 			particle.SetLifeTime(pEmitterComponent->GetLifeTime());

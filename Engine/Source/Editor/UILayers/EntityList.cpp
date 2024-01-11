@@ -232,16 +232,21 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
         transformComponent.SetTransform(cd::Transform::Identity());
         transformComponent.Build();
-
-        //std::optional<cd::Mesh> optMesh = engine::GenerateTerrainMesh(particleEmitterComponent.GetMeshWidth(), particleEmitterComponent.GetMeshDepth(), pTerrainMaterialType->GetRequiredVertexFormat());
-        //assert(optMesh.has_value());
-        //cd::Mesh& mesh = optMesh.value();
-
-        //auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
-        //meshComponent.SetMeshData(&mesh);
         particleEmitterComponent.SetRequiredVertexFormat(&pParticleMaterialType->GetRequiredVertexFormat());//to do : modify vertexFormat
-       // particleEmitterComponent.GetParticleSystem().Init();
         particleEmitterComponent.Build();
+        //auto& particleForceFieldComponent = pWorld->CreateComponent<engine::ParticleForceFieldComponent>(entity);
+        //particleForceFieldComponent.Build();
+    }
+    else if (ImGui::MenuItem("Add Particle ForceField"))
+    {
+        engine::Entity entity = AddNamedEntity("ParticleForceField");
+        auto& particleForceFieldComponent = pWorld->CreateComponent<engine::ParticleForceFieldComponent>(entity);
+        // TODO : Some initialization here.
+        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+        transformComponent.SetTransform(cd::Transform::Identity());
+        transformComponent.Build();
+
+        particleForceFieldComponent.Build();
     }
 }
 

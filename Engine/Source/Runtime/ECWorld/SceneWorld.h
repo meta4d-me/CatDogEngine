@@ -41,6 +41,7 @@ class SceneWorld
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Sky);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(StaticMesh);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(ParticleEmitter);
+	DEFINE_COMPONENT_STORAGE_WITH_APIS(ParticleForceField);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Terrain);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Transform);
 
@@ -98,6 +99,7 @@ public:
 		DeleteSkyComponent(entity);
 		DeleteStaticMeshComponent(entity);
 		DeleteParticleEmitterComponent(entity);
+		DeleteParticleForceFieldComponent(entity);
 		DeleteTerrainComponent(entity);
 		DeleteTransformComponent(entity);
 	}

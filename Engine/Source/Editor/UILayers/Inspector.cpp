@@ -649,6 +649,29 @@ void UpdateComponentWidget<engine::ParticleEmitterComponent>(engine::SceneWorld*
 	ImGui::PopStyleVar();
 }
 
+template<>
+void UpdateComponentWidget<engine::ParticleForceFieldComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+{
+	auto* pParticleForceFieldComponent = pSceneWorld->GetParticleForceFieldComponent(entity);
+	if (!pParticleForceFieldComponent)
+	{
+		return;
+	}
+
+	bool isOpen = ImGui::CollapsingHeader("ParticleForceField Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+	ImGui::Separator();
+
+	if (isOpen)
+	{
+		ImGuiUtils::ImGuiVectorProperty("ForceFieldRange", pParticleForceFieldComponent->GetForceFieldRange());
+		ImGuiUtils::ImGuiBoolProperty("RotationForceValue", pParticleForceFieldComponent->GetRotationForce());
+	}
+
+	ImGui::Separator();
+	ImGui::PopStyleVar();
+}
+
 }
 
 namespace editor
@@ -696,6 +719,7 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::StaticMeshComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::ParticleEmitterComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::ParticleForceFieldComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::CollisionMeshComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::BlendShapeComponent>(pSceneWorld, m_lastSelectedEntity);
 

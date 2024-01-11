@@ -38,11 +38,17 @@ public:
 
     cd::Vec3f& GetPos() { return m_particlePos; }
     void SetPos(cd::Vec3f pos) { m_particlePos = pos; }
+
+    cd::Vec3f GetSpeed() { return m_particleSpeed; }
     void SetSpeed(cd::Vec3f speed) { m_particleSpeed = speed; }
+
     void SetAcceleration(cd::Vec3f acceleration) { m_particleAcceleration = acceleration; }
     void SetColor(cd::Vec4f color) { m_particleColor = color; }
     
     void SetLifeTime(float lifeTime) { m_lifeTime = lifeTime; }
+
+    void SetRotationForceField(bool value) { m_rotationForceField = value; }
+
     void Active() { m_isActive = true; }
     bool isActive() const { return m_isActive; }
 
@@ -55,6 +61,7 @@ private:
     cd::Vec3f m_particleSpeed;
     cd::Vec3f m_particleAcceleration;
 
+    bool m_rotationForceField = false;
 
     bool m_isActive;
     float m_currentTime;

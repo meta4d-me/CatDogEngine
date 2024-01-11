@@ -33,9 +33,12 @@ void Particle::Update(float deltaTime)
     m_particleSpeed.y() += m_particleAcceleration.y() * deltaTime;
     m_particleSpeed.z() += m_particleAcceleration.z() * deltaTime;
 
-    //cd::Vec3f zForward{0.0f, 0.0f, 1.0f};
-    //cd::Vec3f CentripetalV = zForward.Cross(m_particleSpeed);
-    //m_particleAcceleration = CentripetalV*5;
+    if (m_rotationForceField)
+    {
+        cd::Vec3f zForward{0.0f, 0.0f, 1.0f};
+        cd::Vec3f CentripetalV = zForward.Cross(m_particleSpeed);
+        m_particleAcceleration = CentripetalV*5;
+    }
 
     m_currentTime += deltaTime;
 }
