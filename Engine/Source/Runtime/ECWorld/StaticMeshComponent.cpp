@@ -6,6 +6,7 @@
 #include "ProgressiveMesh/ProgressiveMesh.h"
 #include "Rendering/Utility/VertexLayoutUtility.h"
 #include "Scene/VertexFormat.h"
+#include "Utilities/MeshUtils.hpp"
 
 #include <bgfx/bgfx.h>
 
@@ -147,127 +148,23 @@ void StaticMeshComponent::Build()
 	m_currentVertexCount = m_pMeshData->GetVertexCount();
 	m_currentPolygonCount = m_pMeshData->GetPolygonCount();
 
-	const bool containsPosition = m_pRequiredVertexFormat->Contains(cd::VertexAttributeType::Position);
-	const bool containsNormal = m_pRequiredVertexFormat->Contains(cd::VertexAttributeType::Normal);
-	const bool containsTangent = m_pRequiredVertexFormat->Contains(cd::VertexAttributeType::Tangent);
-	const bool containsBiTangent = m_pRequiredVertexFormat->Contains(cd::VertexAttributeType::Bitangent);
-	const bool containsUV = m_pRequiredVertexFormat->Contains(cd::VertexAttributeType::UV);
-	const bool containsColor = m_pRequiredVertexFormat->Contains(cd::VertexAttributeType::Color);
 
-	// TODO : Store animation here temporarily to test.
-	const bool containsBoneIndex = m_pRequiredVertexFormat->Contains(cd::VertexAttributeType::BoneIndex);
-	const bool containsBoneWeight = m_pRequiredVertexFormat->Contains(cd::VertexAttributeType::BoneWeight);
-
-	const uint32_t vertexFormatStride = m_pRequiredVertexFormat->GetStride();
-	m_vertexBuffer.resize(m_currentVertexCount * vertexFormatStride);
-
-	uint32_t vbDataSize = 0U;
-	auto vbDataPtr = m_vertexBuffer.data();
-	auto FillVertexBuffer = [&vbDataPtr, &vbDataSize](const void* pData, uint32_t dataSize)
+	std::optional<cd::VertexBuffer> optVertexBuffer = cd::BuildVertexBufferForStaticMesh(*m_pMeshData, *m_pRequiredVertexFormat);
+	if (!optVertexBuffer.has_value())
 	{
-		std::memcpy(&vbDataPtr[vbDataSize], pData, dataSize);
-		vbDataSize += dataSize;
-	};
-
-	for (uint32_t vertexIndex = 0; vertexIndex < m_currentVertexCount; ++vertexIndex)
-	{
-		if (containsPosition)
-		{
-			constexpr uint32_t dataSize = cd::Point::Size * sizeof(cd::Point::ValueType);
-			FillVertexBuffer(m_pMeshData->GetVertexPosition(vertexIndex).begin(), dataSize);
-		}
-
-		if (containsNormal)
-		{
-			constexpr uint32_t dataSize = cd::Direction::Size * sizeof(cd::Direction::ValueType);
-			FillVertexBuffer(m_pMeshData->GetVertexNormal(vertexIndex).begin(), dataSize);
-		}
-
-		if (containsTangent)
-		{
-			constexpr uint32_t dataSize = cd::Direction::Size * sizeof(cd::Direction::ValueType);
-			FillVertexBuffer(m_pMeshData->GetVertexTangent(vertexIndex).begin(), dataSize);
-		}
-		
-		if (containsBiTangent)
-		{
-			constexpr uint32_t dataSize = cd::Direction::Size * sizeof(cd::Direction::ValueType);
-			FillVertexBuffer(m_pMeshData->GetVertexBiTangent(vertexIndex).begin(), dataSize);
-		}
-		
-		if (containsUV)
-		{
-			constexpr uint32_t dataSize = cd::UV::Size * sizeof(cd::UV::ValueType);
-			FillVertexBuffer(m_pMeshData->GetVertexUV(0)[vertexIndex].begin(), dataSize);
-		}
-
-		if (containsColor)
-		{
-			constexpr uint32_t dataSize = cd::Color::Size * sizeof(cd::Color::ValueType);
-			FillVertexBuffer(m_pMeshData->GetVertexColor(0)[vertexIndex].begin(), dataSize);
-		}
-
-		//if (containsBoneIndex && containsBoneWeight)
-		//{
-		//	std::vector<uint16_t> vertexBoneIDs;
-		//	std::vector<cd::VertexWeight> vertexBoneWeights;
-		//
-		//	for(uint32_t vertexBoneIndex = 0U; vertexBoneIndex < 4; ++vertexBoneIndex)
-		//	{
-		//		cd::BoneID boneID;
-		//		if (vertexBoneIndex < m_pMeshData->GetVertexInfluenceCount())
-		//		{
-		//			boneID = m_pMeshData->GetVertexBoneID(vertexBoneIndex, vertexIndex);
-		//		}
-		//
-		//		if (boneID.IsValid())
-		//		{
-		//			vertexBoneIDs.push_back(static_cast<uint16_t>(boneID.Data()));
-		//			vertexBoneWeights.push_back(m_pMeshData->GetVertexWeight(vertexBoneIndex, vertexIndex));
-		//		}
-		//		else
-		//		{
-		//			vertexBoneIDs.push_back(127);
-		//			vertexBoneWeights.push_back(0.0f);
-		//		}
-		//	}
-		//
-		//	// TODO : Change storage to a TVector<uint16_t, InfluenceCount> and TVector<float, InfluenceCount> ?
-		//	FillVertexBuffer(vertexBoneIDs.data(), static_cast<uint32_t>(vertexBoneIDs.size() * sizeof(uint16_t)));
-		//	FillVertexBuffer(vertexBoneWeights.data(), static_cast<uint32_t>(vertexBoneWeights.size() * sizeof(cd::VertexWeight)));
-		//}
+		CD_ERROR("Failed to build mesh vertex buffer.");
+		return;
 	}
+	m_vertexBuffer = cd::MoveTemp(optVertexBuffer.value());
 
 	// Fill index buffer data.
-	const bool useU16Index = m_currentVertexCount <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()) + 1U;
-	const uint32_t indexTypeSize = useU16Index ? sizeof(uint16_t) : sizeof(uint32_t);
-	const uint32_t indicesCount = m_currentPolygonCount * 3U;
-	m_indexBuffer.resize(indicesCount* indexTypeSize);
-
-	uint32_t ibDataSize = 0U;
-	auto ibDataPtr = m_indexBuffer.data();
-	auto FillIndexBuffer = [&ibDataPtr, &ibDataSize](const void* pData, uint32_t dataSize)
+	std::optional<cd::IndexBuffer> optIndexBuffer = cd::BuildIndexBufferesForPolygonGroup(*m_pMeshData, 0U);
+	if (!optIndexBuffer.has_value())
 	{
-		std::memcpy(&ibDataPtr[ibDataSize], pData, dataSize);
-		ibDataSize += dataSize;
-	};
-
-	for (const auto& polygon : m_pMeshData->GetPolygonGroup(0))
-	{
-		if (useU16Index)
-		{
-			// cd::Mesh always uses uint32_t to store index so it is not convenient to copy servals elements at the same time.
-			for (auto vertexID : polygon)
-			{
-				uint16_t vertexIndex = static_cast<uint16_t>(vertexID.Data());
-				FillIndexBuffer(&vertexIndex, indexTypeSize);
-			}
-		}
-		else
-		{
-			FillIndexBuffer(polygon.data(), static_cast<uint32_t>(polygon.size() * indexTypeSize));
-		}
+		CD_ERROR("Failed to build mesh index buffer.");
+		return;
 	}
+	m_indexBuffer = cd::MoveTemp(optIndexBuffer.value());
 
 #ifdef EDITOR_MODE
 	BuildWireframeData();
