@@ -16,3 +16,5 @@ call "./Engine/Auto/MakeThirdParty_Windows.bat"
 
 Set CD_BUILD_TYPE=Release
 call "./Engine/Auto/MakeThirdParty_Windows.bat"
+
+pause

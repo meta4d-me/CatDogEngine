@@ -58,4 +58,5 @@ if "%CD_BUILD_TYPE%" EQU "Release" "%MSBUILD_PATH%" -m %ThirdPartyProjectsPath%/
 cd %ThirdPartyProjectsPath%
 echo\
 
-pause
+cd ..
+cd ..
