@@ -44,13 +44,11 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 
 		const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
 
-		// TODO : Or the user doesn't want to import animation data.
-		const bool isStaticMesh = 0U == mesh.GetVertexInfluenceCount();
-		if(isStaticMesh)
+		if (mesh.GetSkinIDCount() == 0U)
 		{
 			AddStaticMesh(meshEntity, mesh, m_pDefaultMaterialType->GetRequiredVertexFormat());
 
-			cd::MaterialID meshMaterialID = mesh.GetMaterialID();
+			cd::MaterialID meshMaterialID = mesh.GetMaterialID(0U);
 			AddMaterial(meshEntity, meshMaterialID.IsValid() ? &pSceneDatabase->GetMaterial(meshMaterialID.Data()) : nullptr, m_pDefaultMaterialType, pSceneDatabase);
 		}
 		else
@@ -72,13 +70,11 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 
 		const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
 
-		// TODO : Or the user doesn't want to import animation data.
-		const bool isStaticMesh = 0U == mesh.GetVertexInfluenceCount();
-		if (isStaticMesh)
+		if (mesh.GetBlendShapeIDCount() == 0U)
 		{
 			AddStaticMesh(meshEntity, mesh, m_pDefaultMaterialType->GetRequiredVertexFormat());
 			AddMorphs(meshEntity, morphs, &mesh);
-			cd::MaterialID meshMaterialID = mesh.GetMaterialID();
+			cd::MaterialID meshMaterialID = mesh.GetMaterialID(0U);
 			AddMaterial(meshEntity, meshMaterialID.IsValid() ? &pSceneDatabase->GetMaterial(meshMaterialID.Data()) : nullptr, m_pDefaultMaterialType, pSceneDatabase);
 		}
 		else
@@ -106,7 +102,7 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 			continue;
 		}
 		
-		if(pSceneDatabase->GetMorphCount())
+		if (pSceneDatabase->GetMorphCount())
 		{
 			ParseMeshWithMorphs(mesh.GetID(), cd::Transform::Identity(), pSceneDatabase->GetMorphs());
 			parsedMeshIDs.insert(mesh.GetID().Data());
