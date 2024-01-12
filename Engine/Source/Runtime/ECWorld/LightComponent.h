@@ -150,8 +150,8 @@ private:
 	uint16_t m_shadowMapSize;
 
 	CascadePartitionMode m_cascadePartitionMode = CascadePartitionMode::PSSM;
-	float m_manualCascadeSplit[4] = { 0.0 }; // manual set
-	float m_computedCascadeSplit[4] = { 0.0 }; // computed
+	float m_manualCascadeSplit[4] = { 0.0 }; // manual set split
+	float m_computedCascadeSplit[4] = { 0.0 }; // computed split
 
 	// uniform
 	uint16_t m_shadowMapTexture;	// Texture Handle
