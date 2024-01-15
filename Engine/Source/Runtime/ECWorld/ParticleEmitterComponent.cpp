@@ -248,7 +248,8 @@ void engine::ParticleEmitterComponent::ParseMeshIndexBuffer()
 			currentDataSize += dataSize;
 		};
 
-		for (const auto& polygon : m_pMeshData->GetPolygons())
+		uint32_t polygonGroupIndex = 0U;
+		for (const auto& polygon : m_pMeshData->GetPolygonGroup(polygonGroupIndex))
 		{
 			if (useU16Index)
 			{
