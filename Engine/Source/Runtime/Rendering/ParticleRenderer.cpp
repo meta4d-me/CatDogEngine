@@ -13,19 +13,25 @@ namespace
 constexpr const char* cameraPos = "u_cameraPos";
 constexpr const char* particleUp = "u_particleUp";
 
-uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
+uint64_t state_tristrip = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
 BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_TRISTRIP;
 
+uint64_t state_lines = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
+BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_LINES;
+
 constexpr const char* ParticleProgram = "ParticleProgram";
+constexpr const char* ParticleEmitterShapeProgram = "ParticleEmitterShapeProgram";
 constexpr const char* WO_BillboardParticleProgram = "WO_BillboardParticleProgram";
 
 constexpr StringCrc ParticleProgramCrc = StringCrc{ "ParticleProgram" };
+constexpr StringCrc ParticleEmitterShapeProgramCrc = StringCrc{ "ParticleEmitterShapeProgram" };
 constexpr StringCrc WO_BillboardParticleProgramCrc = StringCrc{ "WO_BillboardParticleProgram" };
 }
 
 void ParticleRenderer::Init()
 {
 	GetRenderContext()->RegisterShaderProgram(ParticleProgramCrc, { "vs_particle", "fs_particle" });
+	GetRenderContext()->RegisterShaderProgram(ParticleEmitterShapeProgramCrc, {"vs_particleEmitterShape", "fs_particleEmitterShape"});
 	GetRenderContext()->RegisterShaderProgram(WO_BillboardParticleProgramCrc, { "vs_wo_billboardparticle","fs_wo_billboardparticle" });
 
 	bgfx::setViewName(GetViewID(), "ParticleRenderer");
@@ -40,6 +46,7 @@ void ParticleRenderer::Warmup()
 	GetRenderContext()->CreateUniform(particleUp, bgfx::UniformType::Vec4, 1);
 
 	GetRenderContext()->UploadShaderProgram(ParticleProgram);
+	GetRenderContext()->UploadShaderProgram(ParticleEmitterShapeProgram);
 	GetRenderContext()->UploadShaderProgram(WO_BillboardParticleProgram);
 }
 
@@ -137,7 +144,7 @@ void ParticleRenderer::Render(float deltaTime)
 
 		bgfx::setInstanceDataBuffer(&idb);
 
-		bgfx::setState(state);
+		bgfx::setState(state_tristrip);
 
 		if (pEmitterComponent->GetRenderMode() == engine::ParticleRenderMode::Mesh)
 		{
@@ -147,6 +154,17 @@ void ParticleRenderer::Render(float deltaTime)
 		{
 			GetRenderContext()->Submit(GetViewID(), WO_BillboardParticleProgram);
 		}
+
+		pEmitterComponent->RePaddingShapeBuffer();
+		const bgfx::Memory* pParticleVertexBuffer = bgfx::makeRef(pEmitterComponent->GetEmitterShapeVertexBuffer().data(), static_cast<uint32_t>(pEmitterComponent->GetEmitterShapeVertexBuffer().size()));
+		const bgfx::Memory* pParticleIndexBuffer = bgfx::makeRef(pEmitterComponent->GetEmitterShapeIndexBuffer().data(), static_cast<uint32_t>(pEmitterComponent->GetEmitterShapeIndexBuffer().size()));
+		bgfx::update(bgfx::DynamicVertexBufferHandle{ pEmitterComponent->GetEmitterShapeVertexBufferHandle()}, 0, pParticleVertexBuffer);
+		bgfx::update(bgfx::DynamicIndexBufferHandle{pEmitterComponent->GetEmitterShapeIndexBufferHandle()}, 0, pParticleIndexBuffer);
+		bgfx::setVertexBuffer(1, bgfx::DynamicVertexBufferHandle{ pEmitterComponent->GetEmitterShapeVertexBufferHandle() });
+		bgfx::setIndexBuffer(bgfx::DynamicIndexBufferHandle{ pEmitterComponent->GetEmitterShapeIndexBufferHandle() });
+		bgfx::setState(state_lines);
+
+		GetRenderContext()->Submit(GetViewID(), ParticleEmitterShapeProgram);
 	}
 }
 

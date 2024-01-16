@@ -547,9 +547,9 @@ void EditorApp::InitEngineRenderers()
 	pParticlerenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pParticlerenderer));
 
-	auto pParticleShapeRenderer = std::make_unique<engine::ParticleEmitterShapeRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-	pParticleShapeRenderer->SetSceneWorld(m_pSceneWorld.get());
-	AddEngineRenderer(cd::MoveTemp(pParticleShapeRenderer));
+	//auto pParticleShapeRenderer = std::make_unique<engine::ParticleEmitterShapeRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	//pParticleShapeRenderer->SetSceneWorld(m_pSceneWorld.get());
+	//AddEngineRenderer(cd::MoveTemp(pParticleShapeRenderer));
 
 	auto pParticleForceFieldRenderer = std::make_unique<engine::ParticleForceFieldRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pParticleForceFieldRenderer->SetSceneWorld(m_pSceneWorld.get());
