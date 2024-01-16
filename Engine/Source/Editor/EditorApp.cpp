@@ -31,7 +31,6 @@
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Rendering/ParticleRenderer.h"
-#include "Rendering/ParticleEmitterShapeRenderer.h"
 #include "Rendering/ParticleForceFieldRenderer.h"
 #include "Resources/FileWatcher.h"
 #include "Resources/ResourceBuilder.h"
