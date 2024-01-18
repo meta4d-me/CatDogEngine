@@ -293,14 +293,14 @@ void engine::ParticleEmitterComponent::BuildParticleShape()
 		const uint32_t vertexCount = 8;
 		std::vector<cd::Point> vertexArray
 		{
-			cd::Point{-m_emitterShapeRange.x(), -m_emitterShapeRange.y(), m_emitterShapeRange.z()},
-				cd::Point{m_emitterShapeRange.x(), -m_emitterShapeRange.y(), m_emitterShapeRange.z()},
-				cd::Point{m_emitterShapeRange.x(), m_emitterShapeRange.y(), m_emitterShapeRange.z()},
-				cd::Point{-m_emitterShapeRange.x(), m_emitterShapeRange.y(), m_emitterShapeRange.z()},
-				cd::Point{-m_emitterShapeRange.x(), -m_emitterShapeRange.y(), -m_emitterShapeRange.z()},
-				cd::Point{m_emitterShapeRange.x(), -m_emitterShapeRange.y(), -m_emitterShapeRange.z()},
-				cd::Point{m_emitterShapeRange.x(), m_emitterShapeRange.y(), -m_emitterShapeRange.z()},
-				cd::Point{-m_emitterShapeRange.x(), m_emitterShapeRange.y(), -m_emitterShapeRange.z()},
+			cd::Point{-1.0f, -1.0f, 1.0f},
+				cd::Point{1.0f, -1.0f, 1.0f},
+				cd::Point{1.0f, 1.0f, 1.0f},
+				cd::Point{-1.0f, 1.0f, 1.0f},
+				cd::Point{-1.0f, -1.0f, -1.0f},
+				cd::Point{1.0f, -1.0f, -1.0f},
+				cd::Point{1.0f, 1.0f, -1.0f},
+				cd::Point{-1.0f, 1.0f, -1.0f},
 		};
 		m_emitterShapeVertexBuffer.resize(vertexCount * vertexFormat.GetStride());
 		uint32_t currentDataSize = 0U;
@@ -345,8 +345,8 @@ void engine::ParticleEmitterComponent::BuildParticleShape()
 
 		bgfx::VertexLayout vertexLayout;
 		VertexLayoutUtility::CreateVertexLayout(vertexLayout, vertexFormat.GetVertexLayout());
-		m_emitterShapeVertexBufferHandle = bgfx::createDynamicVertexBuffer(bgfx::makeRef(m_emitterShapeVertexBuffer.data(), static_cast<uint32_t>(m_emitterShapeVertexBuffer.size())), vertexLayout).idx;
-		m_emitterShapeIndexBufferHandle = bgfx::createDynamicIndexBuffer(bgfx::makeRef(m_emitterShapeIndexBuffer.data(), static_cast<uint32_t>(m_emitterShapeIndexBuffer.size())), 0U).idx;
+		m_emitterShapeVertexBufferHandle = bgfx::createVertexBuffer(bgfx::makeRef(m_emitterShapeVertexBuffer.data(), static_cast<uint32_t>(m_emitterShapeVertexBuffer.size())), vertexLayout).idx;
+		m_emitterShapeIndexBufferHandle = bgfx::createIndexBuffer(bgfx::makeRef(m_emitterShapeIndexBuffer.data(), static_cast<uint32_t>(m_emitterShapeIndexBuffer.size())), 0U).idx;
 	}
 }
 

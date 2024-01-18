@@ -12,6 +12,7 @@ namespace
 {
 constexpr const char* cameraPos = "u_cameraPos";
 constexpr const char* particleUp = "u_particleUp";
+constexpr const char* shapeRange = "u_shapeRange";
 
 uint64_t state_tristrip = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
 BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_TRISTRIP;
@@ -44,6 +45,7 @@ void ParticleRenderer::Warmup()
 	GetRenderContext()->CreateUniform("s_texColor", bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(cameraPos, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(particleUp, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(shapeRange, bgfx::UniformType::Vec4, 1);
 
 	GetRenderContext()->UploadShaderProgram(ParticleProgram);
 	GetRenderContext()->UploadShaderProgram(ParticleEmitterShapeProgram);
@@ -110,7 +112,9 @@ void ParticleRenderer::Render(float deltaTime)
 			bx::mtxSRT(mtx, particleTransform.GetScale().x(), particleTransform.GetScale().y(), particleTransform.GetScale().z(),
 				particleRotation.Pitch(), particleRotation.Yaw(), particleRotation.Roll(),
 				pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().x(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().y(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().z());
-
+				
+				//TODO: This is billboard code not in shader sofar away shader billboard have problem if you fixed it you can remove these code.
+				// 
 				//auto up = particleTransform.GetRotation().ToMatrix3x3() * cd::Vec3f(0, 1, 0);
 				//auto vec =  pMainCameraTransform.GetTranslation() - pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos();
 				//auto right = up.Cross(vec);
@@ -155,13 +159,16 @@ void ParticleRenderer::Render(float deltaTime)
 			GetRenderContext()->Submit(GetViewID(), WO_BillboardParticleProgram);
 		}
 
-		pEmitterComponent->RePaddingShapeBuffer();
-		const bgfx::Memory* pParticleVertexBuffer = bgfx::makeRef(pEmitterComponent->GetEmitterShapeVertexBuffer().data(), static_cast<uint32_t>(pEmitterComponent->GetEmitterShapeVertexBuffer().size()));
-		const bgfx::Memory* pParticleIndexBuffer = bgfx::makeRef(pEmitterComponent->GetEmitterShapeIndexBuffer().data(), static_cast<uint32_t>(pEmitterComponent->GetEmitterShapeIndexBuffer().size()));
-		bgfx::update(bgfx::DynamicVertexBufferHandle{ pEmitterComponent->GetEmitterShapeVertexBufferHandle()}, 0, pParticleVertexBuffer);
-		bgfx::update(bgfx::DynamicIndexBufferHandle{pEmitterComponent->GetEmitterShapeIndexBufferHandle()}, 0, pParticleIndexBuffer);
-		bgfx::setVertexBuffer(1, bgfx::DynamicVertexBufferHandle{ pEmitterComponent->GetEmitterShapeVertexBufferHandle() });
-		bgfx::setIndexBuffer(bgfx::DynamicIndexBufferHandle{ pEmitterComponent->GetEmitterShapeIndexBufferHandle() });
+		//pEmitterComponent->RePaddingShapeBuffer();
+		//const bgfx::Memory* pParticleVertexBuffer = bgfx::makeRef(pEmitterComponent->GetEmitterShapeVertexBuffer().data(), static_cast<uint32_t>(pEmitterComponent->GetEmitterShapeVertexBuffer().size()));
+		//const bgfx::Memory* pParticleIndexBuffer = bgfx::makeRef(pEmitterComponent->GetEmitterShapeIndexBuffer().data(), static_cast<uint32_t>(pEmitterComponent->GetEmitterShapeIndexBuffer().size()));
+		//bgfx::update(bgfx::DynamicVertexBufferHandle{ pEmitterComponent->GetEmitterShapeVertexBufferHandle()}, 0, pParticleVertexBuffer);
+		//bgfx::update(bgfx::DynamicIndexBufferHandle{pEmitterComponent->GetEmitterShapeIndexBufferHandle()}, 0, pParticleIndexBuffer);
+		constexpr StringCrc emitShapeRangeCrc(shapeRange);
+		bgfx::setUniform(GetRenderContext()->GetUniform(emitShapeRangeCrc), &pEmitterComponent->GetEmitterShapeRange(), 1);
+		bgfx::setTransform(m_pCurrentSceneWorld->GetTransformComponent(entity)->GetWorldMatrix().begin());
+		bgfx::setVertexBuffer(1, bgfx::VertexBufferHandle{ pEmitterComponent->GetEmitterShapeVertexBufferHandle() });
+		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pEmitterComponent->GetEmitterShapeIndexBufferHandle() });
 		bgfx::setState(state_lines);
 
 		GetRenderContext()->Submit(GetViewID(), ParticleEmitterShapeProgram);
