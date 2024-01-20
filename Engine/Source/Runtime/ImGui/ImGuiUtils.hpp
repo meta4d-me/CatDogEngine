@@ -133,11 +133,14 @@ static bool ImGuiVectorProperty(const char* pName, T& value, cd::Unit unit = cd:
 		value.Normalize();
 	}
 
-	ImGui::Columns(2);
-	ImGui::TextUnformatted(pName);
-	ImGui::NextColumn();
-	ImGui::PushItemWidth(-1);
+	const float label_indetation = 10.0f;
 
+	ImGui::Indent(label_indetation);
+	ImGui::Text(pName);
+	ImGui::Unindent(label_indetation);
+	ImGui::PushItemWidth(350);
+	ImGui::SameLine(100.0f);
+	
 	//std::string metricName = std::format("%.2f{}", cd::GetUnitName(unit));
 	std::string metricName = "%.2f";
 	metricName += cd::GetUnitName(unit);
@@ -145,30 +148,27 @@ static bool ImGuiVectorProperty(const char* pName, T& value, cd::Unit unit = cd:
 	float dragSpeed = (speed <= 0.0) ? (cd::Math::IsEqualToZero(delta) ? 1.0f : delta * 0.05f) : speed;
 	if constexpr (std::is_same<T, cd::Vec2f>())
 	{
-		if (ImGui::DragFloat2(pName, value.begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
+		if (ImGui::DragFloat2("##no_label", value.begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
 		{
 			dirty = true;
 		}
 	}
 	else if constexpr (std::is_same<T, cd::Vec3f>())
 	{
-		if (ImGui::DragFloat3(pName, value.begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
+		if (ImGui::DragFloat3("##no_label", value.begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
 		{
 			dirty = true;
 		}
 	}
 	else if constexpr (std::is_same<T, cd::Vec4f>())
 	{
-		if (ImGui::DragFloat4(pName, value.begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
+		if (ImGui::DragFloat4("##no_label", value.begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
 		{
 			dirty = true;
 		}
 	}
 
 	ImGui::PopItemWidth();
-	ImGui::NextColumn();
-	ImGui::Columns(1);
-
 	return dirty;
 }
 
@@ -189,18 +189,18 @@ static bool ImGuiTransformProperty(const char* pName, cd::Transform& value)
 		value.SetRotation(cd::Quaternion::FromPitchYawRoll(pitch, eularAngles.y(), eularAngles.z()));
 		dirty = true;
 	}
+	const float label_indetation = 10.0f;
 
 	cd::Vec3f originScale = value.GetScale();
 	cd::Vec3f scale = originScale;
-	ImGui::TextUnformatted("Scale");
-	ImGui::SameLine();
+	ImGui::Indent(label_indetation);
+	ImGui::Text("Scale");
+	ImGui::Unindent(label_indetation);
 	bool UniformScaleEnabled = engine::TransformComponent::DoUseUniformScale();
-	ImGui::Checkbox("Uniform", &UniformScaleEnabled);
-	engine::TransformComponent::SetUseUniformScale(UniformScaleEnabled);
 
 	ImGui::NextColumn();
-	ImGui::PushItemWidth(-1);
-
+	ImGui::PushItemWidth(350);
+	ImGui::SameLine(100.0f);
 	if (ImGui::DragFloat3("##Scale", scale.begin(), 0.1f, 0.001f, 999.0f))
 	{
 		if (!cd::Math::IsEqualTo(scale.x(), originScale.x()))
@@ -258,6 +258,9 @@ static bool ImGuiTransformProperty(const char* pName, cd::Transform& value)
 
 	ImGui::PopItemWidth();
 	ImGui::NextColumn();
+	ImGui::SameLine();
+	ImGui::Checkbox("Uniform", &UniformScaleEnabled);
+	engine::TransformComponent::SetUseUniformScale(UniformScaleEnabled);
 	ImGui::Columns(1);
 
 	return dirty;
