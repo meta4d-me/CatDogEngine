@@ -264,7 +264,7 @@ static bool ImGuiTransformProperty(const char* pName, cd::Transform& value)
 }
 
 template<typename T>
-static void ColorPickerProperty(const char* Name, T& veccolor)
+static void ColorPickerProperty(const char* Name, T& color)
 {
 	static std::map<const char*, bool> showMap;
 	if (!showMap.count(Name))
