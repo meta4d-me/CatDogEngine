@@ -287,7 +287,7 @@ static void ColorPickerProperty(const char* Name, T& veccolor)
 	{
 		ImGui::DragFloat3("", veccolor.begin(), 0, 0.0f, 1.0f);
 	}
-	else if (std::is_same<T, cd::Vec4f>())
+	else if constexpr (std::is_same<T, cd::Vec4f>())
 	{
 		ImGui::DragFloat4("", veccolor.begin(), 0, 0.0f, 1.0f);
 	}
