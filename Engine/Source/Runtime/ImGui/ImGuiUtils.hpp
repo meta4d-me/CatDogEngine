@@ -263,28 +263,41 @@ static bool ImGuiTransformProperty(const char* pName, cd::Transform& value)
 	return dirty;
 }
 
-static void ColorPickerProperty(const char* Name, cd::Vec3f& veccolor)
+template<typename T>
+static void ColorPickerProperty(const char* pName, T& color)
 {
 	static std::map<const char*, bool> showMap;
-	if (!showMap.count(Name))
+	if (!showMap.count(pName))
 	{
-		showMap[Name] = false;
+		showMap[pName] = false;
 	}
-	ImGui::TextUnformatted(Name);
+	ImGui::TextUnformatted(pName);
 	ImGui::SameLine();
 	ImGui::NextColumn();
-	ImGui::PushID(Name);
+	ImGui::PushID(pName);
 	if (ImGui::Button("..."))
 	{
-		showMap[Name] = true;
+		showMap[pName] = true;
 	}
 	ImGui::PopID();
 	ImGui::PushItemWidth(-1);
 	ImGui::SameLine();
 	ImGui::NextColumn();
-	ImGui::DragFloat3("", veccolor.begin(), 0, 0.0f, 1.0f);
+	if constexpr (std::is_same<T, cd::Vec3f>())
+	{
+		ImGui::DragFloat3("", color.begin(), 0, 0.0f, 1.0f);
+	}
+	else if constexpr (std::is_same<T, cd::Vec4f>())
+	{
+		ImGui::DragFloat4("", color.begin(), 0, 0.0f, 1.0f);
+	}
+	else
+	{
+		static_assert("Unsupported color data type for ImGuiColorPickerProperty.");
+	}
+
 	ImGui::PopItemWidth();
-	if (showMap[Name])
+	if (showMap[pName])
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		ImVec2 mainWindowSize = io.DisplaySize;
@@ -293,8 +306,15 @@ static void ColorPickerProperty(const char* Name, cd::Vec3f& veccolor)
 		ImVec2 windowPos(mainWindowSize.x - offsetX, mainWindowSize.y - offsetY);
 
 		ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
-		ImGui::Begin(Name, &showMap[Name], ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
-		ImGui::ColorPicker3("Color Picker", veccolor.begin());
+		ImGui::Begin(pName, &showMap[pName], ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
+		if constexpr (std::is_same<T, cd::Vec3f>())
+		{
+			ImGui::ColorPicker3("Color Picker", color.begin());
+		}
+		else if constexpr (std::is_same<T, cd::Vec4f>())
+		{
+			ImGui::ColorPicker4("Color Picker", color.begin());
+		}
 		ImGui::End();
 	}
 	ImGui::Separator();
