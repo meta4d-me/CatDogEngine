@@ -16,6 +16,15 @@ static bool ImGuiBoolProperty(const char* pName, bool& value)
 	return ImGui::Checkbox(pName, &value);
 }
 
+static void Text(const char* text, float size) {
+	float old_size = ImGui::GetFont()->Scale;
+	ImGui::GetFont()->Scale *= size;
+	ImGui::PushFont(ImGui::GetFont());
+	ImGui::Text(text);
+	ImGui::GetFont()->Scale = old_size;
+	ImGui::PopFont();
+}
+
 template<typename EnumType>
 static bool ImGuiEnumProperty(const char* pName, EnumType& value)
 {
@@ -136,7 +145,7 @@ static bool ImGuiVectorProperty(const char* pName, T& value, cd::Unit unit = cd:
 	const float label_indetation = 10.0f;
 
 	ImGui::Indent(label_indetation);
-	ImGui::Text(pName);
+	ImGuiUtils::Text(pName, 0.8f);
 	ImGui::Unindent(label_indetation);
 	ImGui::PushItemWidth(350);
 	ImGui::SameLine(100.0f);
@@ -194,7 +203,7 @@ static bool ImGuiTransformProperty(const char* pName, cd::Transform& value)
 	cd::Vec3f originScale = value.GetScale();
 	cd::Vec3f scale = originScale;
 	ImGui::Indent(label_indetation);
-	ImGui::Text("Scale");
+	ImGuiUtils::Text("Scale", 0.8f);
 	ImGui::Unindent(label_indetation);
 	bool UniformScaleEnabled = engine::TransformComponent::DoUseUniformScale();
 
