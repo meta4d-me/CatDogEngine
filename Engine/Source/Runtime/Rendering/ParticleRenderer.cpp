@@ -40,7 +40,7 @@ void ParticleRenderer::Init()
 
 void ParticleRenderer::Warmup()
 {
-	constexpr const char* particleTexture = "Textures/Particle.png";
+	constexpr const char* particleTexture = "Textures/textures/Particle.png";
 	m_particleTextureHandle = GetRenderContext()->CreateTexture(particleTexture);
 	GetRenderContext()->CreateUniform("s_texColor", bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(cameraPos, bgfx::UniformType::Vec4, 1);
