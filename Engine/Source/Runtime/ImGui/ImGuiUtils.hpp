@@ -26,7 +26,7 @@ static bool ImGuiEnumProperty(const char* pName, EnumType& value)
 	ImGui::NextColumn();
 	ImGui::PushItemWidth(-1);
 
-	if (ImGui::BeginCombo(pName, nameof::nameof_enum(value).data()))
+	if (ImGui::BeginCombo("##combo", nameof::nameof_enum(value).data()))
 	{
 		auto enumCount = nameof::enum_count<EnumType>();
 		for (uint32_t enumIndex = 0U; enumIndex < enumCount; ++enumIndex)
