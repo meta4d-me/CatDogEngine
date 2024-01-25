@@ -93,7 +93,7 @@ void ShadowMapRenderer::Render(float deltaTime)
 			LightComponent* lightComponent = m_pCurrentSceneWorld->GetLightComponent(lightEntity);
 
 			// Non-shadow-casting lights(include area lights) are excluded
-			if (false == lightComponent->GetIsCastShadow())
+			if (!lightComponent->IsCastShadow())
 			{
 				continue;
 			}

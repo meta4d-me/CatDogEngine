@@ -107,11 +107,11 @@ public:
 	U_Light* GetLightUniformData() { return &m_lightUniformData; }
 
 	void SetIsCastShadow(bool isCastShadow) { m_isCastShadow = isCastShadow; };
-	bool& GetIsCastShadow() { return m_isCastShadow; }
-	bool IsCastShadow() { return m_isCastShadow; }
+	bool& IsCastShadow() { return m_isCastShadow; }
+	bool IsCastShadow() const { return m_isCastShadow; }
 
 	bool& GetIsCastVolume() { return m_isCastVolume; }
-	bool IsCastVolume() { return m_isCastVolume; }
+	bool IsCastVolume() const { return m_isCastVolume; }
 
 	void SetShadowMapSize(uint16_t shadowMapSize) { m_shadowMapSize = shadowMapSize; }
 	uint16_t& GetShadowMapSize() { return m_shadowMapSize; }
@@ -128,8 +128,8 @@ public:
 	const float* GetManualCascadeSplit() { return &m_manualCascadeSplit[0]; }
 
 	void AddLightViewProjMatrix(cd::Matrix4x4 lightViewProjMatrix) { m_lightViewProjMatrices.push_back(lightViewProjMatrix); }
-	const std::vector<cd::Matrix4x4>& GetLightViewProjMatrix() { return m_lightViewProjMatrices; }
-	const std::vector<cd::Matrix4x4> GetLightViewProjMatrix() const { return m_lightViewProjMatrices; }
+	std::vector<cd::Matrix4x4>& GetLightViewProjMatrix() { return m_lightViewProjMatrices; }
+	const std::vector<cd::Matrix4x4>& GetLightViewProjMatrix() const { return m_lightViewProjMatrices; }
 	void ClearLightViewProjMatrix() { m_lightViewProjMatrices.clear(); }
 
 	bool IsShadowMapFBsValid();

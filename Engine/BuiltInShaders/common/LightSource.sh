@@ -141,10 +141,10 @@ float CalculatePointShadow(vec3 fragPosWorldSpace, vec3 lightPosWorldSpace, floa
 	float stepOffset = totalOffset / ((samples-1) * 0.5);
 	for(float x = -totalOffset; x <= totalOffset; x += stepOffset)
 	{
-    	for(float y = -totalOffset; y <= totalOffset; y += stepOffset)
-    	{
-        	for(float z = -totalOffset; z <= totalOffset; z += stepOffset)
-        	{
+		for(float y = -totalOffset; y <= totalOffset; y += stepOffset)
+		{
+			for(float z = -totalOffset; z <= totalOffset; z += stepOffset)
+			{
 				float closestDepth = textureIndex(lightIndex, lightToFrag + vec3(x, y, z)); 
 				closestDepth *= far_plane;
 				shadow += step(closestDepth, currentDepth - bias); 
