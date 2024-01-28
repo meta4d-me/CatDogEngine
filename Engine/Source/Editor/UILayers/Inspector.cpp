@@ -438,6 +438,7 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 		std::string lightTypeName(nameof::nameof_enum(lightType));
 
 		ImGuiUtils::ImGuiStringProperty("Type", lightTypeName);
+		ImGuiUtils::ImGuiBoolProperty("Cast Shadow", pLightComponent->IsCastShadow());
 		ImGuiUtils::ColorPickerProperty("Color", pLightComponent->GetColor());
 
 		float s_spotInnerAngle = 8.0f;
@@ -467,8 +468,8 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 			s_spotInnerAngle = innerAndOuter.x();
 			s_spotOuterAngle = innerAndOuter.y();
 
-			spotInnerDirty = ImGuiUtils::ImGuiFloatProperty("InnerAngle", s_spotInnerAngle, cd::Unit::Degree, 0.1f, 90.0f);
-			spotOuterDirty = ImGuiUtils::ImGuiFloatProperty("OuterAngle", s_spotOuterAngle, cd::Unit::Degree, 0.1f, 90.0f);
+			spotInnerDirty = ImGuiUtils::ImGuiFloatProperty("Inner Angle", s_spotInnerAngle, cd::Unit::Degree, 0.1f, 90.0f);
+			spotOuterDirty = ImGuiUtils::ImGuiFloatProperty("Outer Angle", s_spotOuterAngle, cd::Unit::Degree, 0.1f, 90.0f);
 			if (spotInnerDirty || spotOuterDirty)
 			{
 				pLightComponent->SetInnerAndOuter(s_spotInnerAngle, s_spotOuterAngle);
