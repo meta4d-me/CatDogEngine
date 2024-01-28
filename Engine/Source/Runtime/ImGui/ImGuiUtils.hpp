@@ -16,7 +16,7 @@ static bool ImGuiBoolProperty(const char* pName, bool& value)
 	return ImGui::Checkbox(pName, &value);
 }
 
-static void Text(const char *pText, float fontScale)
+static void Text(const char *pText, float fontScale = 1.0f)
 {
     float old_fontScale = ImGui::GetFont()->Scale;
     ImGui::GetFont()->Scale *= fontScale;
@@ -145,9 +145,9 @@ static bool ImGuiVectorProperty(const char* pName, T& value, cd::Unit unit = cd:
 
 	constexpr float labelIndetation = 10.0f;
 
-	ImGui::Indent(label_indetation);
+	ImGui::Indent(labelIndetation);
 	ImGuiUtils::Text(pName, 0.8f);
-	ImGui::Unindent(label_indetation);
+	ImGui::Unindent(labelIndetation);
 	ImGui::PushItemWidth(350);
 	ImGui::SameLine(100.0f);
 	
@@ -199,13 +199,13 @@ static bool ImGuiTransformProperty(const char* pName, cd::Transform& value)
 		value.SetRotation(cd::Quaternion::FromPitchYawRoll(pitch, eularAngles.y(), eularAngles.z()));
 		dirty = true;
 	}
-	constexpr float label_indetation = 10.0f;
+	constexpr float labelIndetation = 10.0f;
 
 	cd::Vec3f originScale = value.GetScale();
 	cd::Vec3f scale = originScale;
-	ImGui::Indent(label_indetation);
+	ImGui::Indent(labelIndetation);
 	ImGuiUtils::Text("Scale", 0.8f);
-	ImGui::Unindent(label_indetation);
+	ImGui::Unindent(labelIndetation);
 	bool UniformScaleEnabled = engine::TransformComponent::DoUseUniformScale();
 
 	ImGui::NextColumn();
