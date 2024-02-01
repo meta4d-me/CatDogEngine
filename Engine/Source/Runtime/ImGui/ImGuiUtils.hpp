@@ -148,7 +148,7 @@ static bool ImGuiVectorProperty(const char* pName, T& value, cd::Unit unit = cd:
 	ImGui::Indent(labelIndetation);
 	ImGuiUtils::Text(pName, 0.8f);
 	ImGui::Unindent(labelIndetation);
-	ImGui::PushItemWidth(350);
+	ImGui::PushItemWidth(-1);
 	ImGui::SameLine(100.0f);
 	
 	//std::string metricName = std::format("%.2f{}", cd::GetUnitName(unit));
@@ -207,9 +207,11 @@ static bool ImGuiTransformProperty(const char* pName, cd::Transform& value)
 	ImGuiUtils::Text("Scale", 0.8f);
 	ImGui::Unindent(labelIndetation);
 	bool UniformScaleEnabled = engine::TransformComponent::DoUseUniformScale();
-
+	ImGui::SameLine();
+	ImGui::Checkbox("Uniform", &UniformScaleEnabled);
+	engine::TransformComponent::SetUseUniformScale(UniformScaleEnabled);
 	ImGui::NextColumn();
-	ImGui::PushItemWidth(350);
+	ImGui::PushItemWidth(-1);
 	ImGui::SameLine(100.0f);
 	if (ImGui::DragFloat3("##Scale", scale.begin(), 0.1f, 0.001f, 999.0f))
 	{
@@ -267,11 +269,9 @@ static bool ImGuiTransformProperty(const char* pName, cd::Transform& value)
 	}
 
 	ImGui::PopItemWidth();
-	ImGui::NextColumn();
-	ImGui::SameLine();
-	ImGui::Checkbox("Uniform", &UniformScaleEnabled);
-	engine::TransformComponent::SetUseUniformScale(UniformScaleEnabled);
+	ImGui::NextColumn();	
 	ImGui::Columns(1);
+	
 
 	return dirty;
 }
