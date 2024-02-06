@@ -300,7 +300,7 @@ void EditorApp::InitEditorCameraEntity()
 	cameraComponent.SetExposure(1.0f);
 	cameraComponent.SetGammaCorrection(0.45f);
 	cameraComponent.SetToneMappingMode(cd::ToneMappingMode::ACES);
-	cameraComponent.SetBloomDownSampleTImes(4);
+	cameraComponent.SetBloomDownSampleTimes(4);
 	cameraComponent.SetBloomIntensity(1.0f);
 	cameraComponent.SetLuminanceThreshold(1.0f);
 	cameraComponent.SetBlurTimes(0);

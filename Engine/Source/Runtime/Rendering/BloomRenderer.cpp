@@ -106,6 +106,9 @@ void BloomRenderer::UpdateView(const float* pViewMatrix, const float* pProjectio
 		m_width = tempW;
 		m_height = tempH;
 
+		Entity entity = m_pCurrentSceneWorld->GetMainCameraEntity();
+		CameraComponent* pCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(entity);
+
 		constexpr uint64_t tsFlags = 0 | BGFX_TEXTURE_RT | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
 		for (int ii = 0; ii < TEX_CHAIN_LEN; ++ii)
 		{
@@ -113,11 +116,16 @@ void BloomRenderer::UpdateView(const float* pViewMatrix, const float* pProjectio
 			{
 				bgfx::destroy(m_sampleChainFB[ii]);
 			}
-			if ((m_height >> ii) < 2 || (m_width >> ii) < 2)
+
+			int viewWidth = m_height >> ii;
+			int viewHeight = m_width >> ii;
+			if (viewWidth < 2 || viewHeight < 2)
 			{
+				pCameraComponent->SetBloomDownSampleMaxTimes(std::max(ii - 1, 0));
 				break;
 			}
-			m_sampleChainFB[ii] = bgfx::createFrameBuffer(m_width >> ii, m_height >> ii, bgfx::TextureFormat::RGBA32F, tsFlags);
+
+			m_sampleChainFB[ii] = bgfx::createFrameBuffer(viewWidth, viewHeight, bgfx::TextureFormat::RGBA32F, tsFlags);
 		}
 
 		m_combineFB = bgfx::createFrameBuffer(m_width, m_height, bgfx::TextureFormat::RGBA32F, tsFlags);
@@ -169,16 +177,11 @@ void BloomRenderer::Render(float deltaTime)
 	GetRenderContext()->Submit(GetViewID(), "CapTureBrightnessProgram");
 
 	// downsample
-	int sampleTimes = int(pCameraComponent->GetBloomDownSampleTimes());
+	int sampleTimes = std::min(pCameraComponent->GetBloomDownSampleTimes(), pCameraComponent->GetBloomDownSampleMaxTimes());
 	int tempshift = 0;
 	for (int i = 0; i < sampleTimes; ++i)
 	{
 		int shift = i + 1;
-		if ((m_width >> shift) < 2 || (m_height >> shift) < 2)
-		{
-			break;
-		}
-
 		tempshift = shift;
 		const float pixelSize[4] =
 		{
@@ -212,11 +215,6 @@ void BloomRenderer::Render(float deltaTime)
 	for (int i = 0; i < sampleTimes; ++i)
 	{
 		int shift = sampleTimes - i - 1;
-		if ((m_width >> shift) < 2 || (m_height >> shift) < 2)
-		{
-			continue;
-		}
-
 		const float pixelSize[4] =
 		{
 			1.0f / static_cast<float>(m_width >> shift),
