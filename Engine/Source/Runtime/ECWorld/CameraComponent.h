@@ -122,9 +122,13 @@ public:
 	float GetIsBlurEnable() const { return m_enableBlur; }
 	void SetBlurEnable(bool blur) { m_enableBloom = blur; }
 
-	int& GetBloomDownSampleTimes() { return m_blomDownSampleTimes; }
-	int GetBloomDownSampleTimes() const { return m_blomDownSampleTimes; }
-	void SetBloomDownSampleTImes(int downsampletimes) { m_blomDownSampleTimes = downsampletimes; }
+	int& GetBloomDownSampleTimes() { return m_bloomDownSampleTimes; }
+	int GetBloomDownSampleTimes() const { return m_bloomDownSampleTimes; }
+	void SetBloomDownSampleTimes(int times) { m_bloomDownSampleTimes = times; }
+
+	int& GetBloomDownSampleMaxTimes() { return m_bloomDownSampleMaxTimes; }
+	int GetBloomDownSampleMaxTimes() const { return m_bloomDownSampleMaxTimes; }
+	void SetBloomDownSampleMaxTimes(int maxTimes) { m_bloomDownSampleMaxTimes = maxTimes; }
 
 	float& GetBloomIntensity() { return m_bloomIntensity; }
 	float GetBloomIntensity() const { return m_bloomIntensity; }
@@ -137,6 +141,10 @@ public:
 	int& GetBlurTimes() { return m_blurTimes; }
 	int GetBlurTimes() const { return m_blurTimes; }
 	void SetBlurTimes(int blurtimes) { m_blurTimes = blurtimes; }
+
+	int& GetBlurMaxTimes() { return m_blurMaxTimes; }
+	int GetBlurMaxTimes() const { return m_blurMaxTimes; }
+	void SetBlurMaxTimes(int maxTimes) { m_blurMaxTimes = maxTimes; }
 
 	float& GetBlurSize() { return m_blurSize; }
 	float GetBlurSize() const { return m_blurSize; }
@@ -172,10 +180,12 @@ private:
 	bool m_doConstainAspectRatio;
 	bool m_enableBloom;
 	bool m_enableBlur;
-	int m_blomDownSampleTimes;
+	int m_bloomDownSampleTimes;
+	int m_bloomDownSampleMaxTimes;
 	float m_bloomIntensity;
 	float m_luminanceThreshold;
 	int m_blurTimes;
+	int m_blurMaxTimes = 20;
 	float m_blurSize;
 	int m_blurScaling;
 #endif

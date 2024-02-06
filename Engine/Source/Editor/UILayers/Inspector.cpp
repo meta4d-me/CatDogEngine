@@ -300,7 +300,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 					cd::Vec3f emissiveColor{ emissiveColorAndFactor.x(), emissiveColorAndFactor.y(), emissiveColorAndFactor.z() };
 					float emissiveFactor = emissiveColorAndFactor.w();
 					ImGuiUtils::ImGuiVectorProperty("Color", emissiveColor, cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One(), false, 0.01f);
-					ImGuiUtils::ImGuiFloatProperty("Factor", emissiveFactor, cd::Unit::None, 0.0f, 10.0f, false, 0.1f);
+					ImGuiUtils::ImGuiFloatProperty("Factor", emissiveFactor, cd::Unit::None, 0.0f, 10000.0f, false, 0.1f);
 					emissiveColorAndFactor = cd::Vec4f{ emissiveColor.x(), emissiveColor.y(), emissiveColor.z(), emissiveFactor };
 				}
 
@@ -402,7 +402,7 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 					ImGuiUtils::ImGuiBoolProperty("Open Blur", pCameraComponent->GetIsBlurEnable());
 					if (pCameraComponent->GetIsBlurEnable())
 					{
-						ImGuiUtils::ImGuiIntProperty("Blur Iteration", pCameraComponent->GetBlurTimes(), cd::Unit::None, 0, 20, false, 1.0f);
+						ImGuiUtils::ImGuiIntProperty("Blur Iteration", pCameraComponent->GetBlurTimes(), cd::Unit::None, 0, pCameraComponent->GetBlurMaxTimes(), false, 1.0f);
 						ImGuiUtils::ImGuiFloatProperty("Blur Size", pCameraComponent->GetBlurSize(), cd::Unit::None, 0.0f, 3.0f);
 						ImGuiUtils::ImGuiIntProperty("Blur Scaling", pCameraComponent->GetBlurScaling(), cd::Unit::None, 1, 4, false, 1.0f);
 					}

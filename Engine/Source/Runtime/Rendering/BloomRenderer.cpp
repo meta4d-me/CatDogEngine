@@ -24,10 +24,16 @@ void BloomRenderer::Init()
 	GetRenderContext()->RegisterShaderProgram(CombineProgramCrc, { "vs_fullscreen", "fs_bloom" });
 
 	bgfx::setViewName(GetViewID(), "BloomRenderer");
+
+	AllocateViewIDs();
 }
 
-void BloomRenderer::Warmup()
+void BloomRenderer::AllocateViewIDs()
 {
+	Entity entity = m_pCurrentSceneWorld->GetMainCameraEntity();
+	CameraComponent* pCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(entity);
+	assert(pCameraComponent);
+
 	for (int i = 0; i < TEX_CHAIN_LEN; i++)
 	{
 		m_sampleChainFB[i] = BGFX_INVALID_HANDLE;
@@ -44,10 +50,13 @@ void BloomRenderer::Warmup()
 	}
 	m_startVerticalBlurPassID = GetRenderContext()->CreateView();
 	m_startHorizontalBlurPassID = GetRenderContext()->CreateView();
-	for (int i = 0; i < 40 - 2; i++)
+
+	int totalBlurTimes = pCameraComponent->GetBlurMaxTimes() * 2;
+	for (int i = 0; i < totalBlurTimes - 2; i++)
 	{
 		GetRenderContext()->CreateView();
 	}
+
 	m_startUpSamplePassID = GetRenderContext()->CreateView();
 	for (int i = 0; i < TEX_CHAIN_LEN - 2; i++)
 	{
@@ -55,7 +64,10 @@ void BloomRenderer::Warmup()
 	}
 	m_combinePassID = GetRenderContext()->CreateView();
 	m_blitColorPassID = GetRenderContext()->CreateView();
+}
 
+void BloomRenderer::Warmup()
+{
 	GetRenderContext()->CreateUniform("s_texture", bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform("s_bloom", bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
@@ -106,6 +118,9 @@ void BloomRenderer::UpdateView(const float* pViewMatrix, const float* pProjectio
 		m_width = tempW;
 		m_height = tempH;
 
+		Entity entity = m_pCurrentSceneWorld->GetMainCameraEntity();
+		CameraComponent* pCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(entity);
+
 		constexpr uint64_t tsFlags = 0 | BGFX_TEXTURE_RT | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
 		for (int ii = 0; ii < TEX_CHAIN_LEN; ++ii)
 		{
@@ -113,11 +128,16 @@ void BloomRenderer::UpdateView(const float* pViewMatrix, const float* pProjectio
 			{
 				bgfx::destroy(m_sampleChainFB[ii]);
 			}
-			if ((m_height >> ii) < 2 || (m_width >> ii) < 2)
+
+			int viewWidth = m_width >> ii;
+			int viewHeight = m_height >> ii;
+			if (viewWidth < 2 || viewHeight < 2)
 			{
+				pCameraComponent->SetBloomDownSampleMaxTimes(std::max(ii - 1, 0));
 				break;
 			}
-			m_sampleChainFB[ii] = bgfx::createFrameBuffer(m_width >> ii, m_height >> ii, bgfx::TextureFormat::RGBA32F, tsFlags);
+
+			m_sampleChainFB[ii] = bgfx::createFrameBuffer(viewWidth, viewHeight, bgfx::TextureFormat::RGBA32F, tsFlags);
 		}
 
 		m_combineFB = bgfx::createFrameBuffer(m_width, m_height, bgfx::TextureFormat::RGBA32F, tsFlags);
@@ -169,16 +189,11 @@ void BloomRenderer::Render(float deltaTime)
 	GetRenderContext()->Submit(GetViewID(), "CapTureBrightnessProgram");
 
 	// downsample
-	int sampleTimes = int(pCameraComponent->GetBloomDownSampleTimes());
+	int sampleTimes = std::min(pCameraComponent->GetBloomDownSampleTimes(), pCameraComponent->GetBloomDownSampleMaxTimes());
 	int tempshift = 0;
-	for (int i = 0; i < sampleTimes; ++i)
+	for (int sampleIndex = 0; sampleIndex < sampleTimes; ++sampleIndex)
 	{
-		int shift = i + 1;
-		if ((m_width >> shift) < 2 || (m_height >> shift) < 2)
-		{
-			break;
-		}
-
+		int shift = sampleIndex + 1;
 		tempshift = shift;
 		const float pixelSize[4] =
 		{
@@ -188,19 +203,20 @@ void BloomRenderer::Render(float deltaTime)
 			0.0f,
 		};
 
-		bgfx::setViewFrameBuffer(m_startDowmSamplePassID + i, m_sampleChainFB[shift]);
-		bgfx::setViewRect(m_startDowmSamplePassID + i, 0, 0, m_width >> shift, m_height >> shift);
-		bgfx::setViewTransform(m_startDowmSamplePassID + i, nullptr, orthoMatrix.begin());
+		bgfx::setViewFrameBuffer(m_startDowmSamplePassID + sampleIndex, m_sampleChainFB[shift]);
+		bgfx::setViewName(m_startDowmSamplePassID + sampleIndex, std::format("Downsample_{}", sampleIndex).c_str());
+		bgfx::setViewRect(m_startDowmSamplePassID + sampleIndex, 0, 0, m_width >> shift, m_height >> shift);
+		bgfx::setViewTransform(m_startDowmSamplePassID + sampleIndex, nullptr, orthoMatrix.begin());
 
 		constexpr StringCrc textureSizeUniformName("u_textureSize");
 		bgfx::setUniform(GetRenderContext()->GetUniform(textureSizeUniformName), pixelSize);
 
-		bgfx::setTexture(0, GetRenderContext()->GetUniform(textureSampler), bgfx::getTexture(m_sampleChainFB[shift - 1]));
+		bgfx::setTexture(0, GetRenderContext()->GetUniform(textureSampler), bgfx::getTexture(m_sampleChainFB[sampleIndex]));
 
 		bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 		Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
-		GetRenderContext()->Submit(m_startDowmSamplePassID + i, "DownSampleProgram");
+		GetRenderContext()->Submit(m_startDowmSamplePassID + sampleIndex, "DownSampleProgram");
 	}
 
 	if (pCameraComponent->GetIsBlurEnable() && pCameraComponent->GetBlurTimes() != 0)
@@ -209,14 +225,9 @@ void BloomRenderer::Render(float deltaTime)
 	}
 
 	// upsample
-	for (int i = 0; i < sampleTimes; ++i)
+	for (int sampleIndex = 0; sampleIndex < sampleTimes; ++sampleIndex)
 	{
-		int shift = sampleTimes - i - 1;
-		if ((m_width >> shift) < 2 || (m_height >> shift) < 2)
-		{
-			continue;
-		}
-
+		int shift = sampleTimes - sampleIndex - 1;
 		const float pixelSize[4] =
 		{
 			1.0f / static_cast<float>(m_width >> shift),
@@ -225,9 +236,10 @@ void BloomRenderer::Render(float deltaTime)
 			0.0f,
 		};
 
-		bgfx::setViewFrameBuffer(m_startUpSamplePassID + i, m_sampleChainFB[shift]);
-		bgfx::setViewRect(m_startUpSamplePassID + i, 0, 0, m_width >> shift, m_height >> shift);
-		bgfx::setViewTransform(m_startUpSamplePassID + i, nullptr, orthoMatrix.begin());
+		bgfx::setViewFrameBuffer(m_startUpSamplePassID + sampleIndex, m_sampleChainFB[shift]);
+		bgfx::setViewName(m_startUpSamplePassID + sampleIndex, std::format("Upsample_{}", sampleIndex).c_str());
+		bgfx::setViewRect(m_startUpSamplePassID + sampleIndex, 0, 0, m_width >> shift, m_height >> shift);
+		bgfx::setViewTransform(m_startUpSamplePassID + sampleIndex, nullptr, orthoMatrix.begin());
 
 		constexpr StringCrc textureSizeUniformName("u_textureSize");
 		bgfx::setUniform(GetRenderContext()->GetUniform(textureSizeUniformName), pixelSize);
@@ -235,7 +247,7 @@ void BloomRenderer::Render(float deltaTime)
 		constexpr StringCrc bloomIntensityUniformName("u_bloomIntensity");
 		bgfx::setUniform(GetRenderContext()->GetUniform(bloomIntensityUniformName), &pCameraComponent->GetBloomIntensity());
 
-		if (pCameraComponent->GetIsBlurEnable() && pCameraComponent->GetBlurTimes() != 0 && 0 == i)
+		if (pCameraComponent->GetIsBlurEnable() && pCameraComponent->GetBlurTimes() != 0 && 0 == sampleIndex)
 		{
 			bgfx::setTexture(0, GetRenderContext()->GetUniform(textureSampler), bgfx::getTexture(m_blurChainFB[1]));
 		}
@@ -247,11 +259,12 @@ void BloomRenderer::Render(float deltaTime)
 		bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_BLEND_ADD);
 		Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
-		GetRenderContext()->Submit(m_startUpSamplePassID + i, "UpSampleProgram");
+		GetRenderContext()->Submit(m_startUpSamplePassID + sampleIndex, "UpSampleProgram");
 	}
 
 	// combine 
 	bgfx::setViewFrameBuffer(m_combinePassID, m_combineFB);
+	bgfx::setViewName(m_combinePassID, "CombineBloom");
 	bgfx::setViewRect(m_combinePassID, 0, 0, m_width, m_height);
 	bgfx::setViewTransform(m_combinePassID, nullptr, orthoMatrix.begin());
 
@@ -294,6 +307,7 @@ void BloomRenderer::Blur(uint16_t width, uint16_t height, int iteration, float b
 		};
 
 		bgfx::setViewFrameBuffer(verticalViewID, m_blurChainFB[0]);
+		bgfx::setViewName(verticalViewID, "BlurVertical");
 		bgfx::setViewRect(verticalViewID, 0, 0, width, height);
 		bgfx::setViewTransform(verticalViewID, nullptr, ortho.begin());
 
@@ -313,6 +327,7 @@ void BloomRenderer::Blur(uint16_t width, uint16_t height, int iteration, float b
 
 		// vertical
 		bgfx::setViewFrameBuffer(horizontalViewID, m_blurChainFB[1]);
+		bgfx::setViewName(horizontalViewID, "BlurHorizontal");
 		bgfx::setViewRect(horizontalViewID, 0, 0, width, height);
 		bgfx::setViewTransform(horizontalViewID, nullptr, ortho.begin());
 
