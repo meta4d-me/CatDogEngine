@@ -43,7 +43,7 @@ constexpr const char* LightDir = "u_LightDir";
 constexpr const char* HeightOffsetAndshadowLength = "u_HeightOffsetAndshadowLength";
 
 constexpr const char* morphCountVertexCount = "u_morphCount_vertexCount";
-constexpr const char* changedIndex = "u_changedIndex";
+//constexpr const char* changedIndex = "u_changedIndex";
 constexpr const char* changedWeight = "u_changedWeight";
 
 constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
