@@ -145,12 +145,13 @@ static bool ImGuiVectorProperty(const char* pName, T& value, cd::Unit unit = cd:
 
 	constexpr float labelIndetation = 10.0f;
 
+	ImGui::PushID(pName);
 	ImGui::Indent(labelIndetation);
 	ImGuiUtils::Text(pName, 0.8f);
 	ImGui::Unindent(labelIndetation);
 	ImGui::PushItemWidth(350);
 	ImGui::SameLine(100.0f);
-	
+
 	//std::string metricName = std::format("%.2f{}", cd::GetUnitName(unit));
 	std::string metricName = "%.2f";
 	metricName += cd::GetUnitName(unit);
@@ -179,11 +180,15 @@ static bool ImGuiVectorProperty(const char* pName, T& value, cd::Unit unit = cd:
 	}
 
 	ImGui::PopItemWidth();
+	ImGui::PopID();
+
 	return dirty;
 }
 
 static bool ImGuiTransformProperty(const char* pName, cd::Transform& value)
 {
+	ImGui::PushID(pName);
+
 	bool dirty = false;
 	if (ImGuiVectorProperty("Translation", value.GetTranslation()))
 	{
@@ -272,6 +277,7 @@ static bool ImGuiTransformProperty(const char* pName, cd::Transform& value)
 	ImGui::Checkbox("Uniform", &UniformScaleEnabled);
 	engine::TransformComponent::SetUseUniformScale(UniformScaleEnabled);
 	ImGui::Columns(1);
+	ImGui::PopID();
 
 	return dirty;
 }
@@ -284,15 +290,15 @@ static void ColorPickerProperty(const char* pName, T& color)
 	{
 		showMap[pName] = false;
 	}
+
+	ImGui::PushID(pName);
 	ImGui::TextUnformatted(pName);
 	ImGui::SameLine();
 	ImGui::NextColumn();
-	ImGui::PushID(pName);
 	if (ImGui::Button("..."))
 	{
 		showMap[pName] = true;
 	}
-	ImGui::PopID();
 	ImGui::PushItemWidth(-1);
 	ImGui::SameLine();
 	ImGui::NextColumn();
@@ -331,6 +337,7 @@ static void ColorPickerProperty(const char* pName, T& color)
 		ImGui::End();
 	}
 	ImGui::Separator();
+	ImGui::PopID();
 }
 
 }
