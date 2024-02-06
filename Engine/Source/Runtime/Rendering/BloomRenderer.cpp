@@ -129,8 +129,8 @@ void BloomRenderer::UpdateView(const float* pViewMatrix, const float* pProjectio
 				bgfx::destroy(m_sampleChainFB[ii]);
 			}
 
-			int viewWidth = m_height >> ii;
-			int viewHeight = m_width >> ii;
+			int viewWidth = m_width >> ii;
+			int viewHeight = m_height >> ii;
 			if (viewWidth < 2 || viewHeight < 2)
 			{
 				pCameraComponent->SetBloomDownSampleMaxTimes(std::max(ii - 1, 0));
@@ -211,7 +211,7 @@ void BloomRenderer::Render(float deltaTime)
 		constexpr StringCrc textureSizeUniformName("u_textureSize");
 		bgfx::setUniform(GetRenderContext()->GetUniform(textureSizeUniformName), pixelSize);
 
-		bgfx::setTexture(0, GetRenderContext()->GetUniform(textureSampler), bgfx::getTexture(m_sampleChainFB[shift - 1]));
+		bgfx::setTexture(0, GetRenderContext()->GetUniform(textureSampler), bgfx::getTexture(m_sampleChainFB[sampleIndex]));
 
 		bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 		Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
