@@ -2,10 +2,11 @@
 
 #include "ECWorld/CameraComponent.h"
 #include "ECWorld/SceneWorld.h"
-#include "ImGui/imgui.h"
-#include "ImGuizmo/ImGuizmo.h"
 #include "Math/Quaternion.hpp"
 #include "Window/Input.h"
+
+#include <ImGui/imgui.h>
+#include <ImGuizmo/ImGuizmo.h>
 
 #include <cassert>
 #include <cmath>
@@ -30,7 +31,6 @@ CameraController::CameraController(
 	, m_horizontalSensitivity(horizontal_sensitivity)
 	, m_verticalSensitivity(vertical_sensitivity)
 	, m_movementSpeed(movement_speed)
-	, m_initialMovemenSpeed(movement_speed)
 {
 	assert(pSceneWorld);
 }
@@ -58,12 +58,6 @@ void CameraController::ControllerToCamera()
 		lookAt = cd::Vec3f(-cosPhi * sinTheta, -sinPhi, -cosPhi * cosTheta);
 		cd::Vec3f cross = cd::Vec3f(cosTheta, 0.0f, -sinTheta);
 		up = cross.Cross(lookAt);
-
-		float lookAtOffset = 0.0f;
-		if (m_distanceFromLookAt < m_dollyThreshold)
-		{
-			lookAtOffset = m_distanceFromLookAt - m_dollyThreshold;
-		}
 
 		float eyeOffset = m_distanceFromLookAt;
 		eye = m_lookAtPoint - (lookAt * eyeOffset);

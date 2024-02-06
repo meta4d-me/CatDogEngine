@@ -10,8 +10,8 @@ void TerrainComponent::InitElevationRawData()
     SetElevationRawData(optMap.value());
 }
 
-void TerrainComponent::SetElevationRawDataAt(uint16_t x, uint16_t z, float data) {
-	float temp = 30.0f;
+void TerrainComponent::SetElevationRawDataAt(uint16_t x, uint16_t z, float data)
+{
 	std::byte* bytePtr = reinterpret_cast<std::byte*>(&data);
 	for (uint16_t i = 0U; i < sizeof(float); ++i)
 	{

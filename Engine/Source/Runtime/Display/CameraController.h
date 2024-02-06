@@ -96,8 +96,6 @@ private:
 	float m_horizontalSensitivity = 0.0f;
 	float m_verticalSensitivity = 0.0f;
 	float m_movementSpeed = 0.0f;
-	float m_initialMovemenSpeed = 0.0f;
-	float m_mouseScroll = 0.0f;
 
 	cd::Vec3f m_lookAtPoint = cd::Vec3f::Zero();
 	cd::Vec3f m_lookAt = cd::Vec3f(0.0f, 1.0f, 0.0f);

@@ -2,6 +2,8 @@
 
 #include "Rendering/RenderContext.h"
 
+#include <format>
+
 namespace engine
 {
 
