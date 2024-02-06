@@ -543,9 +543,9 @@ void EditorApp::InitEngineRenderers()
 	pWhiteModelRenderer->SetEnable(false);
 	AddEngineRenderer(cd::MoveTemp(pWhiteModelRenderer));
 
-	auto pParticlerenderer = std::make_unique<engine::ParticleRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-	pParticlerenderer->SetSceneWorld(m_pSceneWorld.get());
-	AddEngineRenderer(cd::MoveTemp(pParticlerenderer));
+	auto pParticleRenderer = std::make_unique<engine::ParticleRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pParticleRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pParticleRenderer));
 
 #ifdef ENABLE_DDGI
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);

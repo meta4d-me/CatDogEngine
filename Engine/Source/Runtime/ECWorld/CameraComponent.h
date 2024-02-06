@@ -142,6 +142,10 @@ public:
 	int GetBlurTimes() const { return m_blurTimes; }
 	void SetBlurTimes(int blurtimes) { m_blurTimes = blurtimes; }
 
+	int& GetBlurMaxTimes() { return m_blurMaxTimes; }
+	int GetBlurMaxTimes() const { return m_blurMaxTimes; }
+	void SetBlurMaxTimes(int maxTimes) { m_blurMaxTimes = maxTimes; }
+
 	float& GetBlurSize() { return m_blurSize; }
 	float GetBlurSize() const { return m_blurSize; }
 	void SetBlurSize(float blursize) { m_blurSize = blursize; }
@@ -181,6 +185,7 @@ private:
 	float m_bloomIntensity;
 	float m_luminanceThreshold;
 	int m_blurTimes;
+	int m_blurMaxTimes = 20;
 	float m_blurSize;
 	int m_blurScaling;
 #endif
