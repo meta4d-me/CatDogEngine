@@ -8,6 +8,7 @@
 ![image](https://github.com/CatDogEngine/CatDogEngine/assets/75730859/6a383b35-a1cd-45fd-98bb-a1d14709cc3e)
 ![image](https://github.com/CatDogEngine/CatDogEngine/assets/75730859/bdeb4f25-fe78-4aca-92ca-8cd39022e194)
 ![image](https://github.com/CatDogEngine/CatDogEngine/assets/75730859/22da0826-baaa-47e2-b1b2-e49954345fbe)
+![BlendShape](https://github.com/CatDogEngine/CatDogEngine/assets/75730859/a98ea4b6-d901-45c0-932f-39e7b7deb251)
 
 ## Features
 
@@ -21,16 +22,16 @@
    * Tone Mapping
 * Basic Scene Graph SDK
 * Standard Atmospheric Scattering
+* Toy Animation
+   * BlendShape
 
 ## Developing Features
 
 * Animation
-  * BlendShape 
   * Skeleton
 * JobSystem
 * Modern RHI except bgfx
 * Particle System
-* Procedural Generated Terrain
 * RenderGraph
 
 ## TODO List

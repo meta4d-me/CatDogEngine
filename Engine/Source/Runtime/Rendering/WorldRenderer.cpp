@@ -191,10 +191,6 @@ void WorldRenderer::Render(float deltaTime)
 		}
 
 		BlendShapeComponent* pBlendShapeComponent = m_pCurrentSceneWorld->GetBlendShapeComponent(entity);
-		if (pBlendShapeComponent)
-		{
-			continue;
-		}
 
 		// SkinMesh
 		if(m_pCurrentSceneWorld->GetAnimationComponent(entity))
@@ -209,8 +205,17 @@ void WorldRenderer::Render(float deltaTime)
 		}
 
 		// Mesh
-		UpdateStaticMeshComponent(pMeshComponent);
-
+		if (pBlendShapeComponent)
+		{
+			bgfx::setVertexBuffer(0, bgfx::DynamicVertexBufferHandle{ pBlendShapeComponent->GetFinalMorphAffectedVB() });
+			bgfx::setVertexBuffer(1, bgfx::VertexBufferHandle{ pBlendShapeComponent->GetNonMorphAffectedVB() });
+			bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pMeshComponent->GetIndexBuffer() });
+		}
+		else
+		{
+			UpdateStaticMeshComponent(pMeshComponent);
+		}
+		
 		// Material
 		for (const auto& [textureType, propertyGroup] : pMaterialComponent->GetPropertyGroups())
 		{
