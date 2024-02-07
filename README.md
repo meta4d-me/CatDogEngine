@@ -21,16 +21,16 @@
    * Tone Mapping
 * Basic Scene Graph SDK
 * Standard Atmospheric Scattering
+* Toy Animation
+   * BlendShape
 
 ## Developing Features
 
 * Animation
-  * BlendShape 
   * Skeleton
 * JobSystem
 * Modern RHI except bgfx
 * Particle System
-* Procedural Generated Terrain
 * RenderGraph
 
 ## TODO List

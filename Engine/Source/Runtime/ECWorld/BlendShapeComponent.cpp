@@ -21,7 +21,7 @@ void BlendShapeComponent::Reset()
 
 void BlendShapeComponent::Build()
 {
-	m_weights.resize(GetMorphCount(), 0.2f);
+	m_weights.resize(GetMorphCount(), 0.0f);
 
 	uint32_t positionSize = cd::Point::Size * sizeof(cd::Point::ValueType);
 	uint32_t normalSize = cd::Direction::Size * sizeof(cd::Direction::ValueType);
