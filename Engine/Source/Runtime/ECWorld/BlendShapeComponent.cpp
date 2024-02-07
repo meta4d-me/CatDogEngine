@@ -21,7 +21,7 @@ void BlendShapeComponent::Reset()
 
 void BlendShapeComponent::Build()
 {
-	m_weights.resize(m_morphCount, 0.2f);
+	m_weights.resize(GetMorphCount(), 0.2f);
 
 	uint32_t positionSize = cd::Point::Size * sizeof(cd::Point::ValueType);
 	uint32_t normalSize = cd::Direction::Size * sizeof(cd::Direction::ValueType);
@@ -87,14 +87,14 @@ void BlendShapeComponent::Build()
 	m_finalMorphAffectedVBHandle = finalMorphAffectedVBHandle.idx;
 
 	//3. Active Morph Offest(Index)+Length(Index)+Weight(Index)
-	m_activeMorphOffestLengthWeightIB.resize(m_morphCount * sizeof(uint32_t) * 3);
+	m_activeMorphOffestLengthWeightIB.resize(GetMorphCount() * sizeof(uint32_t) * 3);
 	auto activeMorphOffestLengthIBDataPtr = m_activeMorphOffestLengthWeightIB.data();
 	uint32_t activeMorphOffestLengthIBDataSize = 0U;
 
 	uint32_t offset = 0U;
-	for (uint32_t morphIndex = 0; morphIndex < m_morphCount; ++morphIndex)
+	for (uint32_t morphIndex = 0; morphIndex < GetMorphCount(); ++morphIndex)
 	{
-		uint32_t vertexCount = m_pMorphsData[morphIndex].GetVertexCount();
+		uint32_t vertexCount = m_pMorphsData[morphIndex]->GetVertexCount();
 		uint32_t length = vertexCount;
 		m_morphVertexCountSum += vertexCount;
 		if (m_weights[morphIndex] > 0)
@@ -120,15 +120,16 @@ void BlendShapeComponent::Build()
 	auto allMorphVertexIDDataPtr = m_allMorphVertexIDPosIB.data();
 	auto allMorphVertexIDDataSize = 0U;
 
-	for (uint32_t morphIndex = 0; morphIndex < m_morphCount; ++morphIndex)
+	for (uint32_t morphIndex = 0; morphIndex < GetMorphCount(); ++morphIndex)
 	{
-		uint32_t morphVertexCount = m_pMorphsData[morphIndex].GetVertexCount();
+		const auto* pMorphData = GetMorphData(morphIndex);
+		uint32_t morphVertexCount = pMorphData->GetVertexCount();
 		for (uint32_t vertexIndex = 0U; vertexIndex < morphVertexCount; vertexIndex++)
 		{
-			uint32_t vertexIDData= m_pMorphsData[morphIndex].GetVertexSourceID(vertexIndex).Data();
+			uint32_t vertexIDData= pMorphData->GetVertexSourceID(vertexIndex).Data();
 			std::memcpy(&allMorphVertexIDDataPtr[allMorphVertexIDDataSize], &vertexIDData, sizeof(vertexIDData));
 			allMorphVertexIDDataSize += sizeof(vertexIDData);
-			std::memcpy(&allMorphVertexIDDataPtr[allMorphVertexIDDataSize], m_pMorphsData[morphIndex].GetVertexPosition(vertexIndex).begin(), positionSize);
+			std::memcpy(&allMorphVertexIDDataPtr[allMorphVertexIDDataSize], pMorphData->GetVertexPosition(vertexIndex).begin(), positionSize);
 			allMorphVertexIDDataSize += positionSize;
 		}
 	}
@@ -137,7 +138,7 @@ void BlendShapeComponent::Build()
 	assert(bgfx::isValid(allMorphVertexIDIBHandle));
 	m_allMorphVertexIDPosIBHandle = allMorphVertexIDIBHandle.idx;
 
-	bgfx::DynamicIndexBufferHandle changedMorphIndexIBHandle = bgfx::createDynamicIndexBuffer(1+4*m_morphCount, BGFX_BUFFER_COMPUTE_READ | BGFX_BUFFER_INDEX32);
+	bgfx::DynamicIndexBufferHandle changedMorphIndexIBHandle = bgfx::createDynamicIndexBuffer(1 + 4 * GetMorphCount(), BGFX_BUFFER_COMPUTE_READ | BGFX_BUFFER_INDEX32);
 	assert(bgfx::isValid(changedMorphIndexIBHandle));
 	m_changedMorphIndexIBHandle = changedMorphIndexIBHandle.idx;
 
@@ -146,7 +147,6 @@ void BlendShapeComponent::Build()
 
 void BlendShapeComponent::Update()
 {
-
 
 }
 
@@ -166,7 +166,7 @@ void BlendShapeComponent::UpdateChanged()
 	float changedWeights[2] = {0.0f, 0.0f};// 0: before changed 1: after changed
 	for (auto iter = m_needUpdates.begin(); iter != m_needUpdates.end(); )
 	{
-		uint32_t morphVertexCount = m_pMorphsData[morphIndex].GetVertexCount();
+		uint32_t morphVertexCount = m_pMorphsData[morphIndex]->GetVertexCount();
 		if (morphIndex == iter->first)
 		{
 			offsetAndLength[1] = morphVertexCount;
