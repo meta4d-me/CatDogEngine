@@ -174,7 +174,7 @@ void CameraController::Update(float deltaTime)
 		if (Input::Get().IsMouseLBPressed() && !m_isMoving && m_isFirstClickInViewScene && !ImGuizmo::IsUsing())
 		{
 			m_isTracking = false;
-			MoveFront(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetY() * deltaTime);
+			//MoveFront(m_movementSpeed * Input::Get().GetMousePositionOffsetY() * deltaTime);
 			Yaw(m_horizontalSensitivity * Input::Get().GetMousePositionOffsetX() * deltaTime);
 		}
 
@@ -189,7 +189,6 @@ void CameraController::Update(float deltaTime)
 			m_isTracking = false;
 			MoveForward(m_movementSpeed * Input::Get().GetMouseScrollOffsetY() * deltaTime * 10.0f);
 		}
-
 	}
 }
 
