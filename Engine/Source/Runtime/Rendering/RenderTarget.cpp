@@ -52,12 +52,18 @@ void RenderTarget::Resize(uint16_t width, uint16_t height)
 		textureHandles.reserve(m_attachmentDescriptors.size());
 		for (const auto& attachmentDescriptor : m_attachmentDescriptors)
 		{
-			const uint64_t tsFlags = BGFX_TEXTURE_RT | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
+			const uint64_t tsFlags = BGFX_TEXTURE_RT | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT | BGFX_SAMPLER_MIP_POINT | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
 			bgfx::TextureFormat::Enum textureFormat;
 			switch (attachmentDescriptor.textureFormat)
 			{
 			case TextureFormat::D32F:
 				textureFormat = bgfx::TextureFormat::D32F;
+				break;
+			case TextureFormat::RGBA8:
+				textureFormat = bgfx::TextureFormat::RGBA8;
+				break;
+			case TextureFormat::RGBA16F:
+				textureFormat = bgfx::TextureFormat::RGBA16F;
 				break;
 			case TextureFormat::RGBA32F:
 			default:

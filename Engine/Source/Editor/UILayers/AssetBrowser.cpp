@@ -976,9 +976,9 @@ void AssetBrowser::ImportJson(const char* pFilePath)
 	engine::World* pWorld = pSceneWorld->GetWorld();
 	cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
 
-	auto AddNamedEntity = [&pWorld](std::string defaultName) -> engine::Entity
+	auto AddNamedEntity = [&pSceneWorld, &pWorld](std::string defaultName) -> engine::Entity
 	{
-		engine::Entity entity = pWorld->CreateEntity();
+		engine::Entity entity = pSceneWorld->CreateEntity();
 		auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
 		nameComponent.SetName(defaultName + std::to_string(entity));
 

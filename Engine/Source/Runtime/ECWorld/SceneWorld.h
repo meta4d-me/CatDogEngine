@@ -57,6 +57,10 @@ public:
 	CD_FORCEINLINE engine::World* GetWorld() { return m_pWorld.get(); }
 	CD_FORCEINLINE const engine::World* GetWorld() const { return m_pWorld.get(); }
 
+	engine::Entity CreateEntity();
+	const cd::Vec3f& GetEntityPickID(engine::Entity entity) const;
+	void DeleteEntity(engine::Entity entity);
+
 	void SetSelectedEntity(engine::Entity entity);
 	CD_FORCEINLINE engine::Entity GetSelectedEntity() const { return m_selectedEntity; }
 
@@ -70,39 +74,6 @@ public:
 
 	void SetSkyEntity(engine::Entity entity);
 	CD_FORCEINLINE engine::Entity GetSkyEntity() const { return m_skyEntity; }
-
-	void DeleteEntity(engine::Entity entity)
-	{
-		if (entity == m_mainCameraEntity)
-		{
-			CD_WARN("You can't delete main camera entity.");
-			return;
-		}
-
-		if (entity == m_selectedEntity)
-		{
-			m_selectedEntity = engine::INVALID_ENTITY;
-		}
-
-		// To add a new component : 3. Delete component here when removing an entity.
-		DeleteAnimationComponent(entity);
-		DeleteBlendShapeComponent(entity);
-		DeleteCameraComponent(entity);
-		DeleteCollisionMeshComponent(entity);
-#ifdef ENABLE_DDGI
-		DeleteDDGIComponent(entity);
-#endif
-		DeleteHierarchyComponent(entity);
-		DeleteLightComponent(entity);
-		DeleteMaterialComponent(entity);
-		DeleteNameComponent(entity);
-		DeleteSkyComponent(entity);
-		DeleteStaticMeshComponent(entity);
-		DeleteParticleComponent(entity);
-		DeleteParticleEmitterComponent(entity);
-		DeleteTerrainComponent(entity);
-		DeleteTransformComponent(entity);
-	}
 
 	void CreatePBRMaterialType(std::string shaderProgramName, bool isAtmosphericScatteringEnable = false);
 	CD_FORCEINLINE engine::MaterialType* GetPBRMaterialType() const { return m_pPBRMaterialType.get(); }
@@ -136,6 +107,8 @@ private:
 	std::unique_ptr<engine::MaterialType> m_pAnimationMaterialType;
 	std::unique_ptr<engine::MaterialType> m_pTerrainMaterialType;
 	std::unique_ptr<engine::MaterialType> m_pDDGIMaterialType;
+
+	std::map<engine::Entity, cd::Vec3f> m_mapEntityPickID;
 
 	// TODO : wrap them into another class?
 	engine::Entity m_selectedEntity = engine::INVALID_ENTITY;

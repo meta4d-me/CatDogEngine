@@ -269,6 +269,56 @@ void SceneWorld::InitDDGISDK()
 }
 #endif
 
+engine::Entity SceneWorld::CreateEntity()
+{
+	auto entity = GetWorld()->CreateEntity();
+	auto* pU8Values = reinterpret_cast<uint8_t*>(&entity);
+	m_mapEntityPickID[entity] = cd::Vec3f(static_cast<float>(pU8Values[0]), static_cast<float>(pU8Values[1]), static_cast<float>(pU8Values[2]));
+	return entity;
+}
+
+const cd::Vec3f& SceneWorld::GetEntityPickID(engine::Entity entity) const
+{
+	auto itPickID = m_mapEntityPickID.find(entity);
+	assert(itPickID != m_mapEntityPickID.end());
+	return itPickID->second;
+}
+
+void SceneWorld::DeleteEntity(engine::Entity entity)
+{
+	if (entity == m_mainCameraEntity)
+	{
+		CD_WARN("You can't delete main camera entity.");
+		return;
+	}
+
+	if (entity == m_selectedEntity)
+	{
+		m_selectedEntity = engine::INVALID_ENTITY;
+	}
+
+	// To add a new component : 3. Delete component here when removing an entity.
+	DeleteAnimationComponent(entity);
+	DeleteBlendShapeComponent(entity);
+	DeleteCameraComponent(entity);
+	DeleteCollisionMeshComponent(entity);
+#ifdef ENABLE_DDGI
+	DeleteDDGIComponent(entity);
+#endif
+	DeleteHierarchyComponent(entity);
+	DeleteLightComponent(entity);
+	DeleteMaterialComponent(entity);
+	DeleteNameComponent(entity);
+	DeleteSkyComponent(entity);
+	DeleteStaticMeshComponent(entity);
+	DeleteParticleComponent(entity);
+	DeleteParticleEmitterComponent(entity);
+	DeleteTerrainComponent(entity);
+	DeleteTransformComponent(entity);
+
+	m_mapEntityPickID.erase(entity);
+}
+
 void SceneWorld::Update()
 {
 #ifdef ENABLE_DDGI

@@ -20,6 +20,8 @@ namespace engine
 
 enum class TextureFormat
 {
+	RGBA8,
+	RGBA16F,
 	RGBA32F,
 	D32F
 };

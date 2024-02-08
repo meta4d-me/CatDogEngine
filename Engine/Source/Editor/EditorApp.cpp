@@ -277,7 +277,7 @@ void EditorApp::InitEditorCameraEntity()
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
 
-	engine::Entity cameraEntity = pWorld->CreateEntity();
+	engine::Entity cameraEntity = m_pSceneWorld->CreateEntity();
 	m_pSceneWorld->SetMainCameraEntity(cameraEntity);
 	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(cameraEntity);
 	nameComponent.SetName("MainCamera");
@@ -316,7 +316,7 @@ void EditorApp::InitSkyEntity()
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
 
-	engine::Entity skyEntity = pWorld->CreateEntity();
+	engine::Entity skyEntity = m_pSceneWorld->CreateEntity();
 	m_pSceneWorld->SetSkyEntity(skyEntity);
 
 	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(skyEntity);
@@ -351,7 +351,7 @@ void EditorApp::InitDDGIEntity()
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
 
-	engine::Entity ddgiEntity = pWorld->CreateEntity();
+	engine::Entity ddgiEntity = m_pSceneWorld->CreateEntity();
 	m_pSceneWorld->SetDDGIEntity(ddgiEntity);
 
 	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(ddgiEntity);

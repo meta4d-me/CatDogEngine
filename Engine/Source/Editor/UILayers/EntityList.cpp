@@ -31,9 +31,9 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     engine::MaterialType* pPBRMaterialType = pSceneWorld->GetPBRMaterialType();
     engine::MaterialType* pTerrainMaterialType = pSceneWorld->GetTerrainMaterialType();
 
-    auto AddNamedEntity = [&pWorld](std::string defaultName) -> engine::Entity
+    auto AddNamedEntity = [&pSceneWorld, &pWorld](std::string defaultName) -> engine::Entity
     {
-        engine::Entity entity = pWorld->CreateEntity();
+        engine::Entity entity = pSceneWorld->CreateEntity();
         auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
         nameComponent.SetName(defaultName + std::to_string(entity));
 

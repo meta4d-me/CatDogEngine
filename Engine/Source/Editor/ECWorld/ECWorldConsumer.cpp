@@ -39,7 +39,7 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 
 	auto ParseMesh = [&](cd::MeshID meshID, const cd::Transform& tranform)
 	{
-		engine::Entity meshEntity = m_pSceneWorld->GetWorld()->CreateEntity();
+		engine::Entity meshEntity = m_pSceneWorld->CreateEntity();
 		AddTransform(meshEntity, tranform);
 
 		const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
@@ -108,13 +108,13 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 
 	for (const auto& camera : pSceneDatabase->GetCameras())
 	{
-		engine::Entity cameraEntity = m_pSceneWorld->GetWorld()->CreateEntity();
+		engine::Entity cameraEntity = m_pSceneWorld->CreateEntity();
 		AddCamera(cameraEntity, camera);
 	}
 
 	for (const auto& light : pSceneDatabase->GetLights())
 	{
-		engine::Entity lightEntity = m_pSceneWorld->GetWorld()->CreateEntity();
+		engine::Entity lightEntity = m_pSceneWorld->CreateEntity();
 		AddLight(lightEntity, light);
 	}
 }
