@@ -52,6 +52,7 @@ public:
 
 	engine::MulticastDelegate<void(uint16_t, uint16_t)> OnResize;
 
+	void InitPickData();
 	void PickSceneMesh(float regionWidth, float regionHeight);
 
 	ImGuizmo::OPERATION GetImGuizmoOperation() const { return m_currentOperation; }
@@ -98,6 +99,11 @@ private:
 	engine::Renderer* m_pWhiteModelRenderer = nullptr;
 	engine::Renderer* m_pWireframeRenderer = nullptr;
 	engine::Renderer* m_pAABBRenderer = nullptr;
+
+	// Pick
+	constexpr int PickRange = 8;
+	uint8_t m_pickReadbackData[PickRange * PickRange * 4];
+	engine::RenderTarget* m_pPickIDRenderTarget = nullptr;
 
 	engine::RenderTarget* m_pRenderTarget = nullptr;
 	bool m_isMouseDownFirstTime = true;

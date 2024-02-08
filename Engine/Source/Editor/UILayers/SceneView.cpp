@@ -59,6 +59,8 @@ void SceneView::Init()
 	OnResize.Bind<engine::RenderTarget, &engine::RenderTarget::Resize>(pRenderTarget);
 
 	m_currentOperation = SelectOperation;
+
+	InitPickData();
 }
 
 void SceneView::UpdateOperationButtons()
@@ -230,6 +232,10 @@ void SceneView::UpdateToolMenuButtons()
 	UpdateSwitchTerrainButton();
 
 	ImGui::PopStyleColor();
+}
+
+void SceneView::InitPickData()
+{
 }
 
 void SceneView::PickSceneMesh(float regionWidth, float regionHeight)
