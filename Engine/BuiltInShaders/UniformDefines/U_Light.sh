@@ -7,10 +7,15 @@
 #define RECTANGLE_LIGHT 5
 #define TUBE_LIGHT 6
 
-#define LIGHT_LENGTH 320
+#define LIGHT_LENGTH 21	
+#define LIGHT_TRANSFORM_LENGTH 12 
 
+/*
+LIGHT_LENGTH = num of lights(3) * num of total vec4 in one light(7)
+LIGHT_TRANSFORM_LENGTH  = num of lights(3) * max num of total mat4 of light transform for different kind of light(4)
+*/
 struct U_Light {
-	// vec4 * 5
+	// vec4 * 7
 	float type;
 	vec3 position;           // 1
 	float intensity;
@@ -23,4 +28,9 @@ struct U_Light {
 	float height;
 	float lightAngleScale;
 	float lightAngleOffeset; // 5
+	int shadowType; 
+	int lightViewProjOffset;
+	int cascadeNum;
+	float shadowBias;		 // 6
+	vec4 frustumClips;		 // 7
 };

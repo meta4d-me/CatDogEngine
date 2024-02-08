@@ -28,6 +28,7 @@
 #include "Rendering/SkeletonRenderer.h"
 #include "Rendering/SkyboxRenderer.h"
 #include "Rendering/ShaderCollections.h"
+#include "Rendering/ShadowMapRenderer.h"
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Rendering/ParticleRenderer.h"
@@ -299,7 +300,7 @@ void EditorApp::InitEditorCameraEntity()
 	cameraComponent.SetExposure(1.0f);
 	cameraComponent.SetGammaCorrection(0.45f);
 	cameraComponent.SetToneMappingMode(cd::ToneMappingMode::ACES);
-	cameraComponent.SetBloomDownSampleTImes(4);
+	cameraComponent.SetBloomDownSampleTimes(4);
 	cameraComponent.SetBloomIntensity(1.0f);
 	cameraComponent.SetLuminanceThreshold(1.0f);
 	cameraComponent.SetBlurTimes(0);
@@ -395,7 +396,6 @@ void EditorApp::UpdateMaterials()
 		const std::string& programName = pMaterialComponent->GetShaderProgramName();
 		const std::string& featuresCombine = pMaterialComponent->GetFeaturesCombine();
 
-
 		// New shader feature added, need to compile new variants.
 		m_pRenderContext->CheckShaderProgram(entity, programName, featuresCombine);
 
@@ -426,6 +426,16 @@ void EditorApp::CompileAndLoadShaders()
 
 		for (const auto& info : m_pRenderContext->GetShaderCompileInfos())
 		{
+			// Info still in RenderContext::m_shaderCompileInfos means compiling is successful.
+			const uint32_t entity = info.m_entity;
+			auto& failedEntities = m_pRenderContext->GetCompileFailedEntities();
+			if (failedEntities.find(entity) != failedEntities.end())
+			{
+				engine::MaterialComponent* pMaterialComponent = m_pSceneWorld->GetMaterialComponent(entity);
+				pMaterialComponent->SetFactor(cd::MaterialPropertyGroup::BaseColor, cd::Vec3f{ 1.0f, 1.0f, 1.0f });
+				failedEntities.erase(entity);
+			}
+
 			m_pRenderContext->DestroyShaderProgram(info.m_programName, info.m_featuresCombine);
 			m_pRenderContext->UploadShaderProgram(info.m_programName, info.m_featuresCombine);
 		}
@@ -442,9 +452,12 @@ void EditorApp::OnShaderCompileFailed(uint32_t handle, std::span<const char> str
 	while (it != infos.end())
 	{
 		const auto& handles = it->m_taskHandles;
-		if (handles.find(handle) == handles.end())
+		if (handles.find(handle) != handles.end())
 		{
-			// TODO : Change material color here.
+			const uint32_t entity = it->m_entity;
+			m_pRenderContext->AddCompileFailedEntity(entity);
+			engine::MaterialComponent* pMaterialComponent = m_pSceneWorld->GetMaterialComponent(entity);
+			pMaterialComponent->SetFactor(cd::MaterialPropertyGroup::BaseColor, cd::Vec3f{ 1.0f, 0.0f, 1.0f });
 			it = infos.erase(it);
 		}
 		else
@@ -483,6 +496,11 @@ void EditorApp::InitEngineRenderers()
 
 	// The init size doesn't make sense. It will resize by SceneView.
 	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->CreateRenderTarget(sceneViewRenderTargetName, 1, 1, std::move(attachmentDesc));
+
+	auto pShadowMapRenderer = std::make_unique<engine::ShadowMapRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pShadowMapRenderer = pShadowMapRenderer.get();
+	pShadowMapRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pShadowMapRenderer));
 
 	auto pSkyboxRenderer = std::make_unique<engine::SkyboxRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pIBLSkyRenderer = pSkyboxRenderer.get();
@@ -525,9 +543,9 @@ void EditorApp::InitEngineRenderers()
 	pWhiteModelRenderer->SetEnable(false);
 	AddEngineRenderer(cd::MoveTemp(pWhiteModelRenderer));
 
-	auto pParticlerenderer = std::make_unique<engine::ParticleRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-	pParticlerenderer->SetSceneWorld(m_pSceneWorld.get());
-	AddEngineRenderer(cd::MoveTemp(pParticlerenderer));
+	auto pParticleRenderer = std::make_unique<engine::ParticleRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pParticleRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pParticleRenderer));
 
 #ifdef ENABLE_DDGI
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);

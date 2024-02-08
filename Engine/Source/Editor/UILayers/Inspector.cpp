@@ -137,15 +137,15 @@ void UpdateComponentWidget<engine::BlendShapeComponent>(engine::SceneWorld* pSce
 	if (isOpen)
 	{
 		// Parameters
-		const cd::Morph* pMorphsData = pBlendShapeComponent->GetMorphsData();
 		uint32_t morphCount = pBlendShapeComponent->GetMorphCount();
 		std::vector<float>& weights = pBlendShapeComponent->GetWeights();
-		for (uint32_t i = 0; i < morphCount; i++)
+		for (uint32_t morphIndex = 0; morphIndex < morphCount; ++morphIndex)
 		{
-			float weightI = weights[i];
-			if (ImGuiUtils::ImGuiFloatProperty(pMorphsData[i].GetName(), weights[i], cd::Unit::None, 0.0f, 1.0f))//, false, 0.1f
+			const auto* pMorph = pBlendShapeComponent->GetMorphData(morphIndex);
+			float weightI = weights[morphIndex];
+			if (ImGuiUtils::ImGuiFloatProperty(pMorph->GetName(), weights[morphIndex], cd::Unit::None, 0.0f, 1.0f))//, false, 0.1f
 			{
-				pBlendShapeComponent->AddNeedUpdate(i, weightI);
+				pBlendShapeComponent->AddNeedUpdate(morphIndex, weightI);
 			}
 		}
 	}
@@ -300,7 +300,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 					cd::Vec3f emissiveColor{ emissiveColorAndFactor.x(), emissiveColorAndFactor.y(), emissiveColorAndFactor.z() };
 					float emissiveFactor = emissiveColorAndFactor.w();
 					ImGuiUtils::ImGuiVectorProperty("Color", emissiveColor, cd::Unit::None, cd::Vec3f::Zero(), cd::Vec3f::One(), false, 0.01f);
-					ImGuiUtils::ImGuiFloatProperty("Factor", emissiveFactor, cd::Unit::None, 0.0f, 10.0f, false, 0.1f);
+					ImGuiUtils::ImGuiFloatProperty("Factor", emissiveFactor, cd::Unit::None, 0.0f, 10000.0f, false, 0.1f);
 					emissiveColorAndFactor = cd::Vec4f{ emissiveColor.x(), emissiveColor.y(), emissiveColor.z(), emissiveFactor };
 				}
 
@@ -402,7 +402,7 @@ void UpdateComponentWidget<engine::CameraComponent>(engine::SceneWorld* pSceneWo
 					ImGuiUtils::ImGuiBoolProperty("Open Blur", pCameraComponent->GetIsBlurEnable());
 					if (pCameraComponent->GetIsBlurEnable())
 					{
-						ImGuiUtils::ImGuiIntProperty("Blur Iteration", pCameraComponent->GetBlurTimes(), cd::Unit::None, 0, 20, false, 1.0f);
+						ImGuiUtils::ImGuiIntProperty("Blur Iteration", pCameraComponent->GetBlurTimes(), cd::Unit::None, 0, pCameraComponent->GetBlurMaxTimes(), false, 1.0f);
 						ImGuiUtils::ImGuiFloatProperty("Blur Size", pCameraComponent->GetBlurSize(), cd::Unit::None, 0.0f, 3.0f);
 						ImGuiUtils::ImGuiIntProperty("Blur Scaling", pCameraComponent->GetBlurScaling(), cd::Unit::None, 1, 4, false, 1.0f);
 					}
@@ -438,6 +438,7 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 		std::string lightTypeName(nameof::nameof_enum(lightType));
 
 		ImGuiUtils::ImGuiStringProperty("Type", lightTypeName);
+		ImGuiUtils::ImGuiBoolProperty("Cast Shadow", pLightComponent->IsCastShadow());
 		ImGuiUtils::ColorPickerProperty("Color", pLightComponent->GetColor());
 
 		float s_spotInnerAngle = 8.0f;
@@ -467,8 +468,8 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 			s_spotInnerAngle = innerAndOuter.x();
 			s_spotOuterAngle = innerAndOuter.y();
 
-			spotInnerDirty = ImGuiUtils::ImGuiFloatProperty("InnerAngle", s_spotInnerAngle, cd::Unit::Degree, 0.1f, 90.0f);
-			spotOuterDirty = ImGuiUtils::ImGuiFloatProperty("OuterAngle", s_spotOuterAngle, cd::Unit::Degree, 0.1f, 90.0f);
+			spotInnerDirty = ImGuiUtils::ImGuiFloatProperty("Inner Angle", s_spotInnerAngle, cd::Unit::Degree, 0.1f, 90.0f);
+			spotOuterDirty = ImGuiUtils::ImGuiFloatProperty("Outer Angle", s_spotOuterAngle, cd::Unit::Degree, 0.1f, 90.0f);
 			if (spotInnerDirty || spotOuterDirty)
 			{
 				pLightComponent->SetInnerAndOuter(s_spotInnerAngle, s_spotOuterAngle);

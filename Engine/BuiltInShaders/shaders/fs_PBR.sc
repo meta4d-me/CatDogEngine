@@ -1,4 +1,4 @@
-$input v_worldPos, v_normal, v_texcoord0, v_TBN
+$input v_worldPos, v_normal, v_texcoord0, v_TBN, v_color0
 
 #include "../common/common.sh"
 #include "../common/BRDF.sh"
@@ -9,10 +9,11 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 #include "../common/Envirnoment.sh"
 
 uniform vec4 u_emissiveColorAndFactor;
+uniform vec4 u_cameraNearFarPlane;
 
-vec3 GetDirectional(Material material, vec3 worldPos, vec3 viewDir) {
+vec3 GetDirectional(Material material, vec3 worldPos, vec3 viewDir, float csmDepth) {
 	vec3 diffuseBRDF = material.albedo * CD_PI_INV;
-	return CalculateLights(material, worldPos, viewDir, diffuseBRDF);
+	return CalculateLights(material, worldPos, viewDir, diffuseBRDF, csmDepth);
 }
 
 vec3 GetEnvironment(Material material, vec3 worldPos, vec3 viewDir, vec3 normal) {
@@ -29,8 +30,9 @@ void main()
 	vec3 cameraPos = GetCamera().position.xyz;
 	vec3 viewDir = normalize(cameraPos - v_worldPos);
 	
-	// Directional Light
-	vec3 dirColor = GetDirectional(material, v_worldPos, viewDir);
+	// Directional Light	
+	float csmDepth = (v_color0.z - u_cameraNearFarPlane.x)/(u_cameraNearFarPlane.y - u_cameraNearFarPlane.x);
+	vec3 dirColor = GetDirectional(material, v_worldPos, viewDir, csmDepth);
 	
 	// Environment Light
 	vec3 envColor = GetEnvironment(material, v_worldPos, viewDir, v_normal);

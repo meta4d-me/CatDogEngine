@@ -316,6 +316,16 @@ void RenderContext::ClearModifiedProgramNameCrcs()
 	m_modifiedProgramNameCrcs.clear();
 }
 
+void RenderContext::AddCompileFailedEntity(uint32_t entity)
+{
+	m_compileFailedEntities.insert(entity);
+}
+
+void RenderContext::ClearCompileFailedEntity()
+{
+	m_compileFailedEntities.clear();
+}
+
 const RenderContext::ShaderBlob& RenderContext::AddShaderBlob(StringCrc shaderNameCrc, ShaderBlob blob)
 {
 	const auto& it = m_shaderBlobs.find(shaderNameCrc);

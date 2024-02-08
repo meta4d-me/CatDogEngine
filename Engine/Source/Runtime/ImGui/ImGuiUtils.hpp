@@ -16,6 +16,16 @@ static bool ImGuiBoolProperty(const char* pName, bool& value)
 	return ImGui::Checkbox(pName, &value);
 }
 
+static void Text(const char *pText, float fontScale = 1.0f)
+{
+    float old_fontScale = ImGui::GetFont()->Scale;
+    ImGui::GetFont()->Scale *= fontScale;
+    ImGui::PushFont(ImGui::GetFont());
+    ImGui::Text(pText);
+    ImGui::GetFont()->Scale = old_fontScale;
+    ImGui::PopFont();
+}
+
 template<typename EnumType>
 static bool ImGuiEnumProperty(const char* pName, EnumType& value)
 {
@@ -26,7 +36,7 @@ static bool ImGuiEnumProperty(const char* pName, EnumType& value)
 	ImGui::NextColumn();
 	ImGui::PushItemWidth(-1);
 
-	if (ImGui::BeginCombo("##combo", nameof::nameof_enum(value).data()))
+	if (ImGui::BeginCombo(pName, nameof::nameof_enum(value).data()))
 	{
 		auto enumCount = nameof::enum_count<EnumType>();
 		for (uint32_t enumIndex = 0U; enumIndex < enumCount; ++enumIndex)
@@ -133,10 +143,14 @@ static bool ImGuiVectorProperty(const char* pName, T& value, cd::Unit unit = cd:
 		value.Normalize();
 	}
 
-	ImGui::Columns(2);
-	ImGui::TextUnformatted(pName);
-	ImGui::NextColumn();
-	ImGui::PushItemWidth(-1);
+	constexpr float labelIndetation = 10.0f;
+
+	ImGui::PushID(pName);
+	ImGui::Indent(labelIndetation);
+	ImGuiUtils::Text(pName, 0.8f);
+	ImGui::Unindent(labelIndetation);
+	ImGui::PushItemWidth(350);
+	ImGui::SameLine(100.0f);
 
 	//std::string metricName = std::format("%.2f{}", cd::GetUnitName(unit));
 	std::string metricName = "%.2f";
@@ -145,35 +159,36 @@ static bool ImGuiVectorProperty(const char* pName, T& value, cd::Unit unit = cd:
 	float dragSpeed = (speed <= 0.0) ? (cd::Math::IsEqualToZero(delta) ? 1.0f : delta * 0.05f) : speed;
 	if constexpr (std::is_same<T, cd::Vec2f>())
 	{
-		if (ImGui::DragFloat2(pName, value.begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
+		if (ImGui::DragFloat2("##no_label", value.begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
 		{
 			dirty = true;
 		}
 	}
 	else if constexpr (std::is_same<T, cd::Vec3f>())
 	{
-		if (ImGui::DragFloat3(pName, value.begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
+		if (ImGui::DragFloat3("##no_label", value.begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
 		{
 			dirty = true;
 		}
 	}
 	else if constexpr (std::is_same<T, cd::Vec4f>())
 	{
-		if (ImGui::DragFloat4(pName, value.begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
+		if (ImGui::DragFloat4("##no_label", value.begin(), dragSpeed, minValue.x(), maxValue.x(), metricName.c_str()))
 		{
 			dirty = true;
 		}
 	}
 
 	ImGui::PopItemWidth();
-	ImGui::NextColumn();
-	ImGui::Columns(1);
+	ImGui::PopID();
 
 	return dirty;
 }
 
 static bool ImGuiTransformProperty(const char* pName, cd::Transform& value)
 {
+	ImGui::PushID(pName);
+
 	bool dirty = false;
 	if (ImGuiVectorProperty("Translation", value.GetTranslation()))
 	{
@@ -189,18 +204,18 @@ static bool ImGuiTransformProperty(const char* pName, cd::Transform& value)
 		value.SetRotation(cd::Quaternion::FromPitchYawRoll(pitch, eularAngles.y(), eularAngles.z()));
 		dirty = true;
 	}
+	constexpr float labelIndetation = 10.0f;
 
 	cd::Vec3f originScale = value.GetScale();
 	cd::Vec3f scale = originScale;
-	ImGui::TextUnformatted("Scale");
-	ImGui::SameLine();
+	ImGui::Indent(labelIndetation);
+	ImGuiUtils::Text("Scale", 0.8f);
+	ImGui::Unindent(labelIndetation);
 	bool UniformScaleEnabled = engine::TransformComponent::DoUseUniformScale();
-	ImGui::Checkbox("Uniform", &UniformScaleEnabled);
-	engine::TransformComponent::SetUseUniformScale(UniformScaleEnabled);
 
 	ImGui::NextColumn();
-	ImGui::PushItemWidth(-1);
-
+	ImGui::PushItemWidth(350);
+	ImGui::SameLine(100.0f);
 	if (ImGui::DragFloat3("##Scale", scale.begin(), 0.1f, 0.001f, 999.0f))
 	{
 		if (!cd::Math::IsEqualTo(scale.x(), originScale.x()))
@@ -258,33 +273,50 @@ static bool ImGuiTransformProperty(const char* pName, cd::Transform& value)
 
 	ImGui::PopItemWidth();
 	ImGui::NextColumn();
+	ImGui::SameLine();
+	ImGui::Checkbox("Uniform", &UniformScaleEnabled);
+	engine::TransformComponent::SetUseUniformScale(UniformScaleEnabled);
 	ImGui::Columns(1);
+	ImGui::PopID();
 
 	return dirty;
 }
 
-static void ColorPickerProperty(const char* Name, cd::Vec3f& veccolor)
+template<typename T>
+static void ColorPickerProperty(const char* pName, T& color)
 {
 	static std::map<const char*, bool> showMap;
-	if (!showMap.count(Name))
+	if (!showMap.count(pName))
 	{
-		showMap[Name] = false;
+		showMap[pName] = false;
 	}
-	ImGui::TextUnformatted(Name);
+
+	ImGui::PushID(pName);
+	ImGui::TextUnformatted(pName);
 	ImGui::SameLine();
 	ImGui::NextColumn();
-	ImGui::PushID(Name);
 	if (ImGui::Button("..."))
 	{
-		showMap[Name] = true;
+		showMap[pName] = true;
 	}
-	ImGui::PopID();
 	ImGui::PushItemWidth(-1);
 	ImGui::SameLine();
 	ImGui::NextColumn();
-	ImGui::DragFloat3("", veccolor.begin(), 0, 0.0f, 1.0f);
+	if constexpr (std::is_same<T, cd::Vec3f>())
+	{
+		ImGui::DragFloat3("", color.begin(), 0, 0.0f, 1.0f);
+	}
+	else if constexpr (std::is_same<T, cd::Vec4f>())
+	{
+		ImGui::DragFloat4("", color.begin(), 0, 0.0f, 1.0f);
+	}
+	else
+	{
+		static_assert("Unsupported color data type for ImGuiColorPickerProperty.");
+	}
+
 	ImGui::PopItemWidth();
-	if (showMap[Name])
+	if (showMap[pName])
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		ImVec2 mainWindowSize = io.DisplaySize;
@@ -293,11 +325,19 @@ static void ColorPickerProperty(const char* Name, cd::Vec3f& veccolor)
 		ImVec2 windowPos(mainWindowSize.x - offsetX, mainWindowSize.y - offsetY);
 
 		ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
-		ImGui::Begin(Name, &showMap[Name], ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
-		ImGui::ColorPicker3("Color Picker", veccolor.begin());
+		ImGui::Begin(pName, &showMap[pName], ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
+		if constexpr (std::is_same<T, cd::Vec3f>())
+		{
+			ImGui::ColorPicker3("Color Picker", color.begin());
+		}
+		else if constexpr (std::is_same<T, cd::Vec4f>())
+		{
+			ImGui::ColorPicker4("Color Picker", color.begin());
+		}
 		ImGui::End();
 	}
 	ImGui::Separator();
+	ImGui::PopID();
 }
 
 }
