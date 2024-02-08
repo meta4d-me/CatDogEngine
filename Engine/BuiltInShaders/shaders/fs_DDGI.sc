@@ -12,13 +12,13 @@ $input v_worldPos, v_normal, v_texcoord0, v_TBN
 #include "../common/LightSource.sh"
 
 vec3 GetDirectional(Material material, vec3 worldPos, vec3 viewDir) {
-	vec3 diffuseBRDF = material.albedo * CD_INV_PI;
+	vec3 diffuseBRDF = material.albedo * CD_PI_INV;
 	return CalculateLights(material, worldPos, viewDir, diffuseBRDF);
 }
 
 vec3 GetEnvironment(Material material, vec3 worldPos, vec3 viewDir, vec3 normal) {
 	vec3 envDiffuseIrradiance = GetDDGIIrradiance(worldPos, normal, viewDir);
-	vec3 ddgiRadiance = material.albedo * vec3_splat(CD_INV_PI) * envDiffuseIrradiance;
+	vec3 ddgiRadiance = material.albedo * vec3_splat(CD_PI_INV) * envDiffuseIrradiance;
 	vec3 iblRadiance = GetIBL(material, normal, viewDir);
 	return material.metallic * iblRadiance + (1.0 - material.metallic) * ddgiRadiance;
 }

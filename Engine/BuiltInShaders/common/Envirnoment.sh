@@ -97,7 +97,7 @@ vec3 GetATM(Material material, vec3 worldPos) {
 	vec3 sunIrradiance = GetSunAndSkyIrradiance(ATMOSPHERE, worldPosOnEarth, material.normal, sunDir, irradiance);
 	irradiance += sunIrradiance;
 	
-	vec3 radianceToCamera = material.albedo * vec3_splat(CD_INV_PI) * irradiance;
+	vec3 radianceToCamera = material.albedo * vec3_splat(CD_PI_INV) * irradiance;
 	
 	// Aerial perspective.
 	vec3 transmittance;

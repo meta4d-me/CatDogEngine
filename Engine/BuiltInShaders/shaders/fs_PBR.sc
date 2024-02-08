@@ -12,7 +12,7 @@ uniform vec4 u_emissiveColorAndFactor;
 uniform vec4 u_cameraNearFarPlane;
 
 vec3 GetDirectional(Material material, vec3 worldPos, vec3 viewDir, float csmDepth) {
-	vec3 diffuseBRDF = material.albedo * CD_INV_PI;
+	vec3 diffuseBRDF = material.albedo * CD_PI_INV;
 	return CalculateLights(material, worldPos, viewDir, diffuseBRDF, csmDepth);
 }
 
