@@ -159,14 +159,14 @@ function CopyDllAutomatically()
 	filter { "configurations:Debug" }
 		if IsAndroidPlatform() then
 			postbuildcommands {
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Debug/SDL2d.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Debug/SDL3.*").."\" \""..BinariesPath.."\"",
 				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/ARM64/Debug/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
 				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/ARM64/Debug/CDProducer.*").."\" \""..BinariesPath.."\"",
 				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/ARM64/Debug/CDConsumer.*").."\" \""..BinariesPath.."\"",
 			}
 		else
 			postbuildcommands {
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Debug/SDL2d.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Debug/SDL3.*").."\" \""..BinariesPath.."\"",
 				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
 				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDProducer.*").."\" \""..BinariesPath.."\"",
 				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDConsumer.*").."\" \""..BinariesPath.."\"",
@@ -182,14 +182,14 @@ function CopyDllAutomatically()
 	filter { "configurations:Release" }
 		if IsAndroidPlatform() then
 			postbuildcommands {
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Release/SDL2.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Release/SDL3.*").."\" \""..BinariesPath.."\"",
 				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/ARM64/Release/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
 				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/ARM64/Release/CDProducer.*").."\" \""..BinariesPath.."\"",
 				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/ARM64/Release/CDConsumer.*").."\" \""..BinariesPath.."\"",
 			}
 		else
 			postbuildcommands {
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Release/SDL2.*").."\" \""..BinariesPath.."\"",
+				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Release/SDL3.*").."\" \""..BinariesPath.."\"",
 				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
 				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CDProducer.*").."\" \""..BinariesPath.."\"",
 				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CDConsumer.*").."\" \""..BinariesPath.."\"",
