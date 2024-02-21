@@ -679,7 +679,7 @@ void UpdateComponentWidget<engine::ParticleForceFieldComponent>(engine::SceneWor
 
 	if (isOpen)
 	{
-		ImGuiUtils::ImGuiVectorProperty("ForceFieldRange", pParticleForceFieldComponent->GetForceFieldRange());
+		//ImGuiUtils::ImGuiVectorProperty("ForceFieldRange", pParticleForceFieldComponent->GetForceFieldRange());
 		ImGuiUtils::ImGuiBoolProperty("RotationForceValue", pParticleForceFieldComponent->GetRotationForce());
 	}
 

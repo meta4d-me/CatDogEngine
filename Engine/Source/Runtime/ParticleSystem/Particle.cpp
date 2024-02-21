@@ -35,9 +35,14 @@ void Particle::Update(float deltaTime)
 
     if (m_rotationForceField)
     {
-        cd::Vec3f zForward{0.0f, 0.0f, 1.0f};
-        cd::Vec3f CentripetalV = zForward.Cross(m_particleSpeed);
-        m_particleAcceleration = CentripetalV*5;
+        if ((m_particlePos.x() < m_rotationForceFieldRange.x() && m_particlePos.x() > -m_rotationForceFieldRange.x()) &&
+            (m_particlePos.y() < m_rotationForceFieldRange.y() && m_particlePos.y() > -m_rotationForceFieldRange.y()) &&
+            (m_particlePos.z() < m_rotationForceFieldRange.z() && m_particlePos.z() > -m_rotationForceFieldRange.z()))
+        {
+            cd::Vec3f zForward{0.0f, 0.0f, 1.0f};
+            cd::Vec3f CentripetalV = zForward.Cross(m_particleSpeed);
+            m_particleAcceleration -= CentripetalV*0.5;
+        }
     }
 
     m_currentTime += deltaTime;

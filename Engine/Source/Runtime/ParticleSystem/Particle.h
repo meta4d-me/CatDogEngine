@@ -48,6 +48,7 @@ public:
     void SetLifeTime(float lifeTime) { m_lifeTime = lifeTime; }
 
     void SetRotationForceField(bool value) { m_rotationForceField = value; }
+    void SetRotationForceFieldRange(cd::Vec3f range) { m_rotationForceFieldRange = range; }
 
     void Active() { m_isActive = true; }
     bool isActive() const { return m_isActive; }
@@ -62,6 +63,7 @@ private:
     cd::Vec3f m_particleAcceleration;
 
     bool m_rotationForceField = false;
+    cd::Vec3f m_rotationForceFieldRange;
 
     bool m_isActive;
     float m_currentTime;

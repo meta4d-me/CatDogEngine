@@ -63,7 +63,9 @@ void ParticleRenderer::Render(float deltaTime)
 	for (Entity entity : m_pCurrentSceneWorld->GetParticleForceFieldEntities())
 	{
 		ParticleForceFieldComponent* pForceFieldComponent = m_pCurrentSceneWorld->GetParticleForceFieldComponent(entity);
+		const cd::Transform& forcefieldTransform = m_pCurrentSceneWorld->GetTransformComponent(entity)->GetTransform();
 		SetForceFieldRotationForce(pForceFieldComponent);
+		SetForceFieldRange(pForceFieldComponent,  forcefieldTransform.GetScale());
 	}
 
 	Entity pMainCameraEntity = m_pCurrentSceneWorld->GetMainCameraEntity();
@@ -88,6 +90,7 @@ void ParticleRenderer::Render(float deltaTime)
 			particle.SetPos(particleTransform.GetTranslation()+random);
 			particle.SetSpeed(pEmitterComponent->GetEmitterVelocity());
 			particle.SetRotationForceField(m_forcefieldRotationFoce);
+			particle.SetRotationForceFieldRange(m_forcefieldRange);
 			particle.SetAcceleration(pEmitterComponent->GetEmitterAcceleration());
 			particle.SetColor(pEmitterComponent->GetEmitterColor());
 			particle.SetLifeTime(pEmitterComponent->GetLifeTime());

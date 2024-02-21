@@ -25,11 +25,14 @@ public:
 	void SetSceneWorld(SceneWorld* pSceneWorld) { m_pCurrentSceneWorld = pSceneWorld; }
 	float getRandomValue(float min, float max) { return min + static_cast<float>(rand()) / (RAND_MAX / (max - min)); }
 	void SetForceFieldRotationForce(ParticleForceFieldComponent* forcefield) { m_forcefieldRotationFoce = forcefield->GetRotationForce(); }
+	void SetForceFieldRange(ParticleForceFieldComponent* forcefield ,cd::Vec3f scale) { m_forcefieldRange = forcefield->GetForceFieldRange()*scale; }
 private:
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
 	bgfx::TextureHandle m_particleTextureHandle;
 	ParticleType m_currentType = ParticleType::Sprite;
+
 	bool m_forcefieldRotationFoce = false;
+	cd::Vec3f m_forcefieldRange;
 };
 
 }
