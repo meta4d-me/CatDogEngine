@@ -10,8 +10,8 @@ namespace engine {
 
 namespace
 {
-constexpr const char* cameraPos = "u_cameraPos";
-constexpr const char* particleUp = "u_particleUp";
+constexpr const char* particlePos = "u_particlePos";
+constexpr const char* particleScale = "u_particleScale";
 constexpr const char* shapeRange = "u_shapeRange";
 
 uint64_t state_tristrip = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
@@ -43,8 +43,8 @@ void ParticleRenderer::Warmup()
 	constexpr const char* particleTexture = "Textures/textures/Particle.png";
 	m_particleTextureHandle = GetRenderContext()->CreateTexture(particleTexture);
 	GetRenderContext()->CreateUniform("s_texColor", bgfx::UniformType::Sampler);
-	GetRenderContext()->CreateUniform(cameraPos, bgfx::UniformType::Vec4, 1);
-	GetRenderContext()->CreateUniform(particleUp, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(particlePos, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(particleScale, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(shapeRange, bgfx::UniformType::Vec4, 1);
 
 	GetRenderContext()->UploadShaderProgram(ParticleProgram);
@@ -113,18 +113,6 @@ void ParticleRenderer::Render(float deltaTime)
 				particleRotation.Pitch(), particleRotation.Yaw(), particleRotation.Roll(),
 				pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().x(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().y(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().z());
 				
-				//TODO: This is billboard code not in shader sofar away shader billboard have problem if you fixed it you can remove these code.
-				// 
-				//auto up = particleTransform.GetRotation().ToMatrix3x3() * cd::Vec3f(0, 1, 0);
-				//auto vec =  pMainCameraTransform.GetTranslation() - pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos();
-				//auto right = up.Cross(vec);
-				//float yaw = atan2f(right.z(), right.x());
-				//float pitch = atan2f(vec.y(), sqrtf(vec.x() * vec.x() + vec.z() * vec.z())); 
-				//float roll = atan2f(right.x(), -right.y()); 
-				//bx::mtxSRT(mtx, particleTransform.GetScale().x(), particleTransform.GetScale().y(), particleTransform.GetScale().z(),
-				//	pitch, yaw, roll,
-				//	pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().x(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().y(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().z());
-
 			float* color = (float*)&data[64];
 			color[0] = pEmitterComponent->GetEmitterColor().x();
 			color[1] = pEmitterComponent->GetEmitterColor().y();
@@ -133,12 +121,12 @@ void ParticleRenderer::Render(float deltaTime)
 
 			data += instanceStride;
 		}
-		constexpr StringCrc cameraPosCrc(cameraPos);
-		bgfx::setUniform(GetRenderContext()->GetUniform(cameraPosCrc), &pMainCameraTransform.GetTranslation(), 1);
 
-		constexpr StringCrc particleUpCrc(particleUp);
-		auto up = particleTransform.GetRotation().ToMatrix3x3() * cd::Vec3f(0, 1, 0);
-		bgfx::setUniform(GetRenderContext()->GetUniform(particleUpCrc), &up, 1);
+		//Billboard particlePos particleScale
+		constexpr StringCrc particlePosCrc(particlePos);
+		bgfx::setUniform(GetRenderContext()->GetUniform(particlePosCrc), &particleTransform.GetTranslation(), 1);
+		constexpr StringCrc ParticleScaleCrc(particleScale);
+		bgfx::setUniform(GetRenderContext()->GetUniform(ParticleScaleCrc), &particleTransform.GetScale(), 1);
 
 		constexpr StringCrc ParticleSampler("s_texColor");
 		bgfx::setTexture(0, GetRenderContext()->GetUniform(ParticleSampler), m_particleTextureHandle);
