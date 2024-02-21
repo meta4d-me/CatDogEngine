@@ -71,21 +71,41 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 		}
 	};
 
+	auto ParseMeshWithParticles= [&](cd::MeshID meshID,  const cd::ParticleEmitter& emitter)
+	{
+		engine::Entity meshEntity = m_pSceneWorld->GetWorld()->CreateEntity();
+
+		engine::MaterialType* pMaterialType = m_pSceneWorld->GetParticleMaterialType();
+
+		const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
+		AddParticleEmitter(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat(),emitter);
+	};
+
 	// There are multiple kinds of cases in the SceneDatabase:
 	// 1. No nodes but have meshes in the SceneDatabase.
 	// 2. Only a root node with multiple meshes.
 	// 3. Node hierarchy.
 	// Another case is that we want to skip Node/Mesh which alreay parsed previously.
 	std::set<uint32_t> parsedMeshIDs;
+	m_particleMinID = 0;
 	for (const auto& mesh : pSceneDatabase->GetMeshes())
 	{
 		if (m_meshMinID > mesh.GetID().Data())
 		{
 			continue;
 		}
-		
-		ParseMesh(mesh.GetID(), cd::Transform::Identity());
-		parsedMeshIDs.insert(mesh.GetID().Data());
+
+		if (pSceneDatabase->GetParticleEmitterCount())
+		{
+			ParseMeshWithParticles(mesh.GetID(), pSceneDatabase->GetParticleEmitter(m_particleMinID));
+			parsedMeshIDs.insert(mesh.GetID().Data());
+			++m_particleMinID;
+		}
+		else
+		{
+			ParseMesh(mesh.GetID(), cd::Transform::Identity());
+			parsedMeshIDs.insert(mesh.GetID().Data());
+		}
 	}
 
 	for (const auto& node : pSceneDatabase->GetNodes())
@@ -382,6 +402,42 @@ void ECWorldConsumer::AddBlendShape(engine::Entity entity, const cd::Mesh* pMesh
 	}
 
 	blendShapeComponent.Build();
+}
+
+void ECWorldConsumer::AddParticleEmitter(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat, const cd::ParticleEmitter& emitter)
+{
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+	engine::NameComponent& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
+	nameComponent.SetName(emitter.GetName());
+	auto& particleEmitterComponent = pWorld->CreateComponent<engine::ParticleEmitterComponent>(entity);
+	// TODO : Some initialization here.
+	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+	cd::Vec3f pos = emitter.GetPosition();
+	cd::Vec3f rotation = emitter.GetFixedRotation();
+	cd::Vec3f scale = emitter.GetFixedScale();
+	auto fixedrotation = cd::Math::RadianToDegree(rotation);
+	cd::Quaternion rotationQuat = cd::Quaternion::FromPitchYawRoll(fixedrotation.x(), fixedrotation.y(), fixedrotation.z());
+	transformComponent.GetTransform().SetTranslation(pos);
+	transformComponent.GetTransform().SetRotation(rotationQuat);
+	transformComponent.GetTransform().SetScale(scale);
+	transformComponent.Build();
+
+	particleEmitterComponent.SetRequiredVertexFormat(&vertexFormat);
+	////const cd::VertexFormat *requriredVertexFormat = emitter.GetVertexFormat();
+	////particleEmitterComponent.SetRequiredVertexFormat(requriredVertexFormat);
+	////particleEmitterComponent.GetParticleSystem().Init();
+	if (nameof::nameof_enum(emitter.GetType()) == "Sprite") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Sprite); }
+	else if (nameof::nameof_enum(emitter.GetType()) == "Ribbon") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Ribbon); }
+	else if (nameof::nameof_enum(emitter.GetType()) == "Ring") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Ring); }
+	else if (nameof::nameof_enum(emitter.GetType()) == "Model") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Model); }
+	else if (nameof::nameof_enum(emitter.GetType()) == "Track") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Track); }
+
+	particleEmitterComponent.SetSpawnCount(emitter.GetMaxCount());
+	particleEmitterComponent.SetEmitterColor(emitter.GetColor()/255.0f);
+	particleEmitterComponent.SetEmitterVelocity(emitter.GetVelocity());
+	particleEmitterComponent.SetEmitterAcceleration(emitter.GetAccelerate());
+	particleEmitterComponent.SetMeshData(&mesh);
+	particleEmitterComponent.Build();
 }
 
 }
