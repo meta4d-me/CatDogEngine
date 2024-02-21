@@ -44,40 +44,15 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 
 		const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
 
-		if (mesh.GetSkinIDCount() == 0U)
+		bool hasBlendShape = mesh.GetBlendShapeIDCount() > 0U;
+		if (hasBlendShape)
 		{
-			AddStaticMesh(meshEntity, mesh, m_pDefaultMaterialType->GetRequiredVertexFormat());
-
-			cd::MaterialID meshMaterialID = mesh.GetMaterialID(0U);
-			AddMaterial(meshEntity, meshMaterialID.IsValid() ? &pSceneDatabase->GetMaterial(meshMaterialID.Data()) : nullptr, m_pDefaultMaterialType, pSceneDatabase);
+			assert(mesh.GetBlendShapeIDCount() == 1U);
+			AddBlendShape(meshEntity, &mesh, pSceneDatabase->GetBlendShape(mesh.GetBlendShapeID(0U).Data()), pSceneDatabase);
 		}
-		else
-		{
-			engine::MaterialType* pMaterialType = m_pSceneWorld->GetAnimationMaterialType();
-			AddSkinMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
 
-			// TODO : Use a standalone .cdanim file to play animation.
-			// Currently, we assume that imported SkinMesh will play animation automatically for testing.
-			AddAnimation(meshEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
-			AddMaterial(meshEntity, nullptr, pMaterialType, pSceneDatabase);
-		}
-	};
-
-	auto ParseMeshWithMorphs = [&](cd::MeshID meshID, const cd::Transform& tranform, const std::vector<cd::Morph>& morphs)
-	{
-		engine::Entity meshEntity = m_pSceneWorld->GetWorld()->CreateEntity();
-		AddTransform(meshEntity, tranform);
-
-		const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
-
-		if (mesh.GetBlendShapeIDCount() == 0U)
-		{
-			AddStaticMesh(meshEntity, mesh, m_pDefaultMaterialType->GetRequiredVertexFormat());
-			AddMorphs(meshEntity, morphs, &mesh);
-			cd::MaterialID meshMaterialID = mesh.GetMaterialID(0U);
-			AddMaterial(meshEntity, meshMaterialID.IsValid() ? &pSceneDatabase->GetMaterial(meshMaterialID.Data()) : nullptr, m_pDefaultMaterialType, pSceneDatabase);
-		}
-		else
+		bool hasSkin = mesh.GetSkinIDCount() > 0U;
+		if (hasSkin)
 		{
 			engine::MaterialType* pMaterialType = m_pSceneWorld->GetAnimationMaterialType();
 			AddSkinMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
@@ -87,16 +62,13 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 			AddAnimation(meshEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
 			AddMaterial(meshEntity, nullptr, pMaterialType, pSceneDatabase);
 		}
-	};
+		else
+		{
+			AddStaticMesh(meshEntity, mesh, m_pDefaultMaterialType->GetRequiredVertexFormat());
 
-	auto ParseMeshWithParticles= [&](cd::MeshID meshID,  const cd::ParticleEmitter& emitter)
-	{
-		engine::Entity meshEntity = m_pSceneWorld->GetWorld()->CreateEntity();
-
-		engine::MaterialType* pMaterialType = m_pSceneWorld->GetParticleMaterialType();
-
-		const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
-		AddParticleEmitter(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat(),emitter);
+			cd::MaterialID meshMaterialID = mesh.GetMaterialID(0U);
+			AddMaterial(meshEntity, meshMaterialID.IsValid() ? &pSceneDatabase->GetMaterial(meshMaterialID.Data()) : nullptr, m_pDefaultMaterialType, pSceneDatabase);
+		}
 	};
 
 	// There are multiple kinds of cases in the SceneDatabase:
@@ -105,7 +77,6 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 	// 3. Node hierarchy.
 	// Another case is that we want to skip Node/Mesh which alreay parsed previously.
 	std::set<uint32_t> parsedMeshIDs;
-	m_particleMinID = 0;
 	for (const auto& mesh : pSceneDatabase->GetMeshes())
 	{
 		if (m_meshMinID > mesh.GetID().Data())
@@ -113,24 +84,8 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 			continue;
 		}
 		
-		if (pSceneDatabase->GetMorphCount())
-		{
-			ParseMeshWithMorphs(mesh.GetID(), cd::Transform::Identity(), pSceneDatabase->GetMorphs());
-			parsedMeshIDs.insert(mesh.GetID().Data());
-		}
-		//TODO: Change to " have a generic function to judge what is the purpose of mesh usage."
-		// The first case is your particle mesh. But in the future, there maybe lod meshes, imposter meshes, collision meshes... So pre-sort meshes by purpose is better.
-		else if (pSceneDatabase->GetParticleEmitterCount())
-		{
-			ParseMeshWithParticles(mesh.GetID(), pSceneDatabase->GetParticleEmitter(m_particleMinID));
-			parsedMeshIDs.insert(mesh.GetID().Data());
-			++m_particleMinID;
-		}
-		else 
-		{
-			ParseMesh(mesh.GetID(), cd::Transform::Identity());
-			parsedMeshIDs.insert(mesh.GetID().Data());
-		}
+		ParseMesh(mesh.GetID(), cd::Transform::Identity());
+		parsedMeshIDs.insert(mesh.GetID().Data());
 	}
 
 	for (const auto& node : pSceneDatabase->GetNodes())
@@ -354,50 +309,79 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	materialComponent.Build();
 }
 
-void ECWorldConsumer::AddMorphs(engine::Entity entity, const std::vector<cd::Morph>& morphs, const cd::Mesh* pMesh)
+void ECWorldConsumer::AddBlendShape(engine::Entity entity, const cd::Mesh* pMesh, const cd::BlendShape& blendShape, const cd::SceneDatabase* pSceneDatabase)
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
 
 	auto& blendShapeComponent = pWorld->CreateComponent<engine::BlendShapeComponent>(entity);
-	blendShapeComponent.SetMorphs(morphs);
-	blendShapeComponent.SetMesh(pMesh);
+
+	uint32_t vertexInstanceCount = pMesh->GetVertexInstanceToIDCount();
+	bool mappingSurfaceAttributes = vertexInstanceCount > 0U;
+	if (mappingSurfaceAttributes)
+	{
+		// Hack : Clear instance data and copy vertex count.
+		cd::Mesh* pModifiedMesh = const_cast<cd::Mesh*>(pMesh);
+
+		std::map<uint32_t, std::vector<uint32_t>> vertexIDToInstances;
+		std::vector<cd::Point> vertexPositions;
+		vertexPositions.reserve(vertexInstanceCount);
+		for (uint32_t vertexInstance = 0U; vertexInstance < vertexInstanceCount; ++vertexInstance)
+		{
+			uint32_t vertexID = pModifiedMesh->GetVertexInstanceToID(vertexInstance).Data();
+			vertexIDToInstances[vertexID].push_back(vertexInstance);
+			vertexPositions.emplace_back(pModifiedMesh->GetVertexPosition(vertexID));
+		}
+		
+		for (cd::MorphID morphID : blendShape.GetMorphIDs())
+		{
+			const auto& morph = pSceneDatabase->GetMorph(morphID.Data());
+			if (morph.GetVertexSourceIDCount() == 0U || morph.GetVertexPositionCount() == 0U)
+			{
+				continue;
+			}
+
+			std::vector<cd::VertexID> vertexSourceIDs;
+			std::vector<cd::Point> morphedPositions;
+			for (uint32_t vertexIndex = 0U; vertexIndex < morph.GetVertexSourceIDCount(); ++vertexIndex)
+			{
+				cd::VertexID sourceID = morph.GetVertexSourceID(vertexIndex);
+				auto itInstanceIDs = vertexIDToInstances.find(sourceID.Data());
+				assert(itInstanceIDs != vertexIDToInstances.end());
+				const cd::Point& modifiedPosition = morph.GetVertexPosition(vertexIndex);
+				for (uint32_t vertexInstance : itInstanceIDs->second)
+				{
+					vertexSourceIDs.push_back(vertexInstance);
+					morphedPositions.push_back(modifiedPosition);
+				}
+			}
+
+			auto& modifiedMorph = const_cast<cd::Morph&>(morph);
+			modifiedMorph.SetVertexSourceIDs(cd::MoveTemp(vertexSourceIDs));
+			modifiedMorph.SetVertexPositions(cd::MoveTemp(morphedPositions));
+			blendShapeComponent.AddMorph(&modifiedMorph);
+		}
+
+		pModifiedMesh->SetVertexPositions(cd::MoveTemp(vertexPositions));
+		pModifiedMesh->ClearVertexInstanceToIDs();
+		blendShapeComponent.SetMesh(pModifiedMesh);
+	}
+	else
+	{
+		// Normal workflow.
+		blendShapeComponent.SetMesh(pMesh);
+		for (cd::MorphID morphID : blendShape.GetMorphIDs())
+		{
+			const auto& morph = pSceneDatabase->GetMorph(morphID.Data());
+			if (morph.GetVertexSourceIDCount() == 0U || morph.GetVertexPositionCount() == 0U)
+			{
+				continue;
+			}
+
+			blendShapeComponent.AddMorph(&morph);
+		}
+	}
+
 	blendShapeComponent.Build();
-}
-
-void ECWorldConsumer::AddParticleEmitter(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat, const cd::ParticleEmitter& emitter)
-{
-	engine::World* pWorld = m_pSceneWorld->GetWorld();
-	engine::NameComponent& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
-	nameComponent.SetName(emitter.GetName());
-	auto& particleEmitterComponent = pWorld->CreateComponent<engine::ParticleEmitterComponent>(entity);
-	// TODO : Some initialization here.
-	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
-	cd::Vec3f pos = emitter.GetPosition();
-	cd::Vec3f rotation = emitter.GetFixedRotation();
-	cd::Vec3f scale = emitter.GetFixedScale();
-	auto fixedrotation = cd::Math::RadianToDegree(rotation);
-	cd::Quaternion rotationQuat = cd::Quaternion::FromPitchYawRoll(fixedrotation.x(), fixedrotation.y(), fixedrotation.z());
-	transformComponent.GetTransform().SetTranslation(pos);
-	transformComponent.GetTransform().SetRotation(rotationQuat);
-	transformComponent.GetTransform().SetScale(scale);
-	transformComponent.Build();
-
-	particleEmitterComponent.SetRequiredVertexFormat(&vertexFormat);
-	////const cd::VertexFormat *requriredVertexFormat = emitter.GetVertexFormat();
-	////particleEmitterComponent.SetRequiredVertexFormat(requriredVertexFormat);
-	////particleEmitterComponent.GetParticleSystem().Init();
-	if (nameof::nameof_enum(emitter.GetType()) == "Sprite") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Sprite); }
-	else if (nameof::nameof_enum(emitter.GetType()) == "Ribbon") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Ribbon); }
-	else if (nameof::nameof_enum(emitter.GetType()) == "Ring") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Ring); }
-	else if (nameof::nameof_enum(emitter.GetType()) == "Model") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Model); }
-	else if (nameof::nameof_enum(emitter.GetType()) == "Track") { particleEmitterComponent.SetEmitterParticleType(engine::ParticleType::Track); }
-
-	particleEmitterComponent.SetSpawnCount(emitter.GetMaxCount());
-	particleEmitterComponent.SetEmitterColor(emitter.GetColor()/255.0f);
-	particleEmitterComponent.SetEmitterVelocity(emitter.GetVelocity());
-	particleEmitterComponent.SetEmitterAcceleration(emitter.GetAccelerate());
-	particleEmitterComponent.SetMeshData(&mesh);
-	particleEmitterComponent.Build();
 }
 
 }

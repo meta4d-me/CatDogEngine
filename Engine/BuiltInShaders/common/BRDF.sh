@@ -7,10 +7,10 @@ vec3 FresnelSchlick(float cosTheta, vec3 F0) {
 
 // Distribution
 float DistributionGGX(float NdotH, float rough) {
-	float a  = rough * rough;
-	float a2 = a * a;
-	float denom = NdotH * NdotH * (a2 - 1.0) + 1.0;
-	return a2 / CD_PI * denom * denom;
+	// a = rough^2
+	float a2 = pow(rough, 4);
+	float denom_inv = 1.0 / (NdotH * NdotH * (a2 - 1.0) + 1.0);
+	return a2 * CD_PI_INV * denom_inv * denom_inv;
 }
 
 // Geometry

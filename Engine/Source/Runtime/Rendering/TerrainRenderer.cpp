@@ -190,7 +190,7 @@ void TerrainRenderer::Render(float deltaTime)
 		GetRenderContext()->FillUniform(mrFactorCrc, metallicRoughnessFactorData.begin(), 1);
 
 		constexpr StringCrc emissiveColorCrc(emissiveColor);
-		GetRenderContext()->FillUniform(emissiveColorCrc, pMaterialComponent->GetFactor<float>(cd::MaterialPropertyGroup::Emissive), 1);
+		GetRenderContext()->FillUniform(emissiveColorCrc, pMaterialComponent->GetFactor<cd::Vec4f>(cd::MaterialPropertyGroup::Emissive), 1);
 
 		// Submit  uniform values : light settings
 		auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();

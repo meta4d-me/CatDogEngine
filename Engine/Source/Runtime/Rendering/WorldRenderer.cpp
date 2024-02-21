@@ -13,6 +13,7 @@
 #include "Scene/Texture.h"
 #include "U_IBL.sh"
 #include "U_AtmophericScattering.sh"
+#include "U_Shadow.sh"
 
 namespace engine
 {
@@ -40,8 +41,20 @@ constexpr const char* lightParams                 = "u_lightParams";
 constexpr const char* LightDir                    = "u_LightDir";
 constexpr const char* HeightOffsetAndshadowLength = "u_HeightOffsetAndshadowLength";
 
+constexpr const char* lightViewProjs= "u_lightViewProjs";
+constexpr const char* cubeShadowMapSamplers[3] = { "s_texCubeShadowMap_1", "s_texCubeShadowMap_2" ,  "s_texCubeShadowMap_3" };
+
+constexpr const char* cameraNearFarPlane = "u_cameraNearFarPlane";
+constexpr const char* cameraLookAt = "u_cameraLookAt";
+constexpr const char* clipFrustumDepth = "u_clipFrustumDepth";
+
+constexpr const char* directionShadowMapTexture = "DirectionShadowMapTexture";
+constexpr const char* pointShadowMapTexture = "PointShadowMapTexture";
+constexpr const char* spotShadowMapTexture = "SpotShadowMapTexture";
+
 constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
+constexpr uint64_t blitDstTextureFlags = BGFX_TEXTURE_BLIT_DST | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
 
 }
 
@@ -58,7 +71,7 @@ void WorldRenderer::Warmup()
 	GetRenderContext()->CreateUniform(cubeIrradianceSampler, bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(cubeRadianceSampler, bgfx::UniformType::Sampler);
 
-	GetRenderContext()->CreateTexture(lutTexture);
+	GetRenderContext()->CreateTexture(lutTexture, samplerFlags);
 	GetRenderContext()->CreateTexture(pSkyComponent->GetIrradianceTexturePath().c_str(), samplerFlags);
 	GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), samplerFlags);
 
@@ -74,6 +87,14 @@ void WorldRenderer::Warmup()
 
 	GetRenderContext()->CreateUniform(LightDir, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(HeightOffsetAndshadowLength, bgfx::UniformType::Vec4, 1);
+
+	GetRenderContext()->CreateUniform(lightViewProjs, bgfx::UniformType::Mat4, 12); // 
+	GetRenderContext()->CreateUniform(cubeShadowMapSamplers[0], bgfx::UniformType::Sampler);
+	GetRenderContext()->CreateUniform(cubeShadowMapSamplers[1], bgfx::UniformType::Sampler);
+	GetRenderContext()->CreateUniform(cubeShadowMapSamplers[2], bgfx::UniformType::Sampler);
+
+	GetRenderContext()->CreateUniform(cameraNearFarPlane, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(clipFrustumDepth, bgfx::UniformType::Vec4, 1);
 }
 
 void WorldRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -87,6 +108,68 @@ void WorldRenderer::Render(float deltaTime)
 	// TODO : Remove it. If every renderer need to submit camera related uniform, it should be done not inside Renderer class.
 	const cd::Transform& cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetTransform();
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+
+	auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();
+	size_t lightEntityCount = lightEntities.size();
+
+	// Blit RTV to SRV to update light shadow map
+	for (int i = 0; i < lightEntityCount; i++)
+	{
+		auto lightComponent = m_pCurrentSceneWorld->GetLightComponent(lightEntities[i]);
+		cd::LightType lightType = lightComponent->GetType();
+		if (cd::LightType::Directional == lightType)
+		{
+			uint16_t cascadeNum = lightComponent->GetCascadeNum();
+			// Create textureCube if not valid
+			if (!lightComponent->IsShadowMapTextureValid())
+			{
+				bgfx::TextureHandle blitDstShadowMapTexture = bgfx::createTextureCube(lightComponent->GetShadowMapSize(),
+					false, 1, bgfx::TextureFormat::D32F, blitDstTextureFlags);
+				GetRenderContext()->SetTexture(engine::StringCrc(directionShadowMapTexture), blitDstShadowMapTexture);
+				lightComponent->SetShadowMapTexture(blitDstShadowMapTexture.idx);
+			}
+			// Blit RTV(FrameBuffer Texture) to SRV(Texture)
+			bgfx::TextureHandle blitDstShadowMapTexture = static_cast<bgfx::TextureHandle>(lightComponent->GetShadowMapTexture());
+			for (uint16_t cascadeIdx = 0; cascadeIdx < cascadeNum; ++cascadeIdx)
+			{
+				bgfx::TextureHandle blitSrcShadowMapTexture = bgfx::getTexture(static_cast<bgfx::FrameBufferHandle>(lightComponent->GetShadowMapFBs().at(cascadeIdx)));
+				bgfx::blit(GetViewID(), blitDstShadowMapTexture, 0, 0, 0, cascadeIdx, blitSrcShadowMapTexture, 0, 0, 0, 0);
+			}
+		}
+		else if (cd::LightType::Point == lightType)
+		{
+			// Create textureCube if not valid
+			if (!lightComponent->IsShadowMapTextureValid())
+			{
+				StringCrc blitDstShadowMapTextureName = StringCrc(pointShadowMapTexture);
+				bgfx::TextureHandle blitDstShadowMapTexture = bgfx::createTextureCube(lightComponent->GetShadowMapSize(),
+					false, 1, bgfx::TextureFormat::R32F, blitDstTextureFlags);
+				GetRenderContext()->SetTexture(blitDstShadowMapTextureName, blitDstShadowMapTexture);
+				lightComponent->SetShadowMapTexture(blitDstShadowMapTexture.idx);
+			}
+			// Blit RTV(FrameBuffer Texture) to SRV(Texture)
+			bgfx::TextureHandle blitDstShadowMapTexture = static_cast<bgfx::TextureHandle>(lightComponent->GetShadowMapTexture());
+			for (uint16_t i = 0; i < 6; ++i)
+			{
+				bgfx::TextureHandle blitSrcShadowMapTexture = bgfx::getTexture(static_cast<bgfx::FrameBufferHandle>(lightComponent->GetShadowMapFBs().at(i)));
+				bgfx::blit(GetViewID(), blitDstShadowMapTexture, 0, 0, 0, i, blitSrcShadowMapTexture, 0, 0, 0, 0);
+			}
+		}
+		else if (cd::LightType::Spot == lightType)
+		{
+			// Create texture2D if not valid
+			if (!lightComponent->IsShadowMapTextureValid())
+			{
+				bgfx::TextureHandle blitDstShadowMapTexture = bgfx::createTextureCube(lightComponent->GetShadowMapSize(),
+					false, 1, bgfx::TextureFormat::D32F, blitDstTextureFlags);
+				lightComponent->SetShadowMapTexture(blitDstShadowMapTexture.idx);
+			}
+			// Blit RTV(FrameBuffer Texture) to SRV(Texture)
+			bgfx::TextureHandle blitDstShadowMapTexture = static_cast<bgfx::TextureHandle>(lightComponent->GetShadowMapTexture());
+			bgfx::TextureHandle blitSrcShadowMapTexture = bgfx::getTexture(static_cast<bgfx::FrameBufferHandle>(lightComponent->GetShadowMapFBs().at(0)));
+			bgfx::blit(GetViewID(), blitDstShadowMapTexture, 0, 0, 0, 0, blitSrcShadowMapTexture, 0, 0, 0, 0);
+		}
+	}
 
 	for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
 	{
@@ -108,10 +191,6 @@ void WorldRenderer::Render(float deltaTime)
 		}
 
 		BlendShapeComponent* pBlendShapeComponent = m_pCurrentSceneWorld->GetBlendShapeComponent(entity);
-		if (pBlendShapeComponent)
-		{
-			continue;
-		}
 
 		// SkinMesh
 		if(m_pCurrentSceneWorld->GetAnimationComponent(entity))
@@ -126,8 +205,17 @@ void WorldRenderer::Render(float deltaTime)
 		}
 
 		// Mesh
-		UpdateStaticMeshComponent(pMeshComponent);
-
+		if (pBlendShapeComponent)
+		{
+			bgfx::setVertexBuffer(0, bgfx::DynamicVertexBufferHandle{ pBlendShapeComponent->GetFinalMorphAffectedVB() });
+			bgfx::setVertexBuffer(1, bgfx::VertexBufferHandle{ pBlendShapeComponent->GetNonMorphAffectedVB() });
+			bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pMeshComponent->GetIndexBuffer() });
+		}
+		else
+		{
+			UpdateStaticMeshComponent(pMeshComponent);
+		}
+		
 		// Material
 		for (const auto& [textureType, propertyGroup] : pMaterialComponent->GetPropertyGroups())
 		{
@@ -204,19 +292,76 @@ void WorldRenderer::Render(float deltaTime)
 		constexpr StringCrc emissiveColorCrc(emissiveColorAndFactor);
 		GetRenderContext()->FillUniform(emissiveColorCrc, pMaterialComponent->GetFactor<cd::Vec4f>(cd::MaterialPropertyGroup::Emissive), 1);
 
-		// Submit uniform values : light settings
-		auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();
-		size_t lightEntityCount = lightEntities.size();
+		// Submit light data
 		constexpr engine::StringCrc lightCountAndStrideCrc(lightCountAndStride);
 		static cd::Vec4f lightInfoData(0, LightUniform::LIGHT_STRIDE, 0.0f, 0.0f);
 		lightInfoData.x() = static_cast<float>(lightEntityCount);
 		GetRenderContext()->FillUniform(lightCountAndStrideCrc, lightInfoData.begin(), 1);
-		if (lightEntityCount > 0)
+		int totalLightViewProjOffset = 0;
+		float lightData[4 *7 * 3] = { 0 };
+		for (uint16_t i = 0U; i < lightEntityCount; ++i)
 		{
-			// Light component storage has continus memory address and layout.
-			float* pLightDataBegin = reinterpret_cast<float*>(m_pCurrentSceneWorld->GetLightComponent(lightEntities[0]));
-			constexpr engine::StringCrc lightParamsCrc(lightParams);
-			GetRenderContext()->FillUniform(lightParamsCrc, pLightDataBegin, static_cast<uint16_t>(lightEntityCount * LightUniform::LIGHT_STRIDE));
+			LightComponent* lightComponent = m_pCurrentSceneWorld->GetLightComponent(lightEntities[i]);
+			if (cd::LightType::Directional == lightComponent->GetType())
+			{
+				lightComponent->SetLightViewProjOffset(totalLightViewProjOffset);
+				totalLightViewProjOffset += 4;
+			}
+			else if (cd::LightType::Spot == lightComponent->GetType())
+			{
+				lightComponent->SetLightViewProjOffset(totalLightViewProjOffset);
+				totalLightViewProjOffset++;
+			}
+			memcpy(&lightData[4 * 7 * i], lightComponent->GetLightUniformData(), sizeof(U_Light));
+		}
+		constexpr engine::StringCrc lightParamsCrc(lightParams);
+		GetRenderContext()->FillUniform(lightParamsCrc, lightData, static_cast<uint16_t>(lightEntityCount * LightUniform::LIGHT_STRIDE));
+
+		// Submit light view&projection transform
+		std::vector<cd::Matrix4x4> lightViewProjsData;
+		for (uint16_t i = 0U; i < lightEntityCount; ++i)
+		{
+			LightComponent* lightComponent = m_pCurrentSceneWorld->GetLightComponent(lightEntities[i]);
+			const std::vector<cd::Matrix4x4>& lightViewProjs = lightComponent->GetLightViewProjMatrix();
+			for (auto lightViewProj : lightViewProjs)
+			{
+				lightViewProjsData.push_back(lightViewProj);
+			}
+		}
+		constexpr engine::StringCrc lightViewProjsCrc(lightViewProjs);
+		GetRenderContext()->FillUniform(lightViewProjsCrc, lightViewProjsData.data(), totalLightViewProjOffset);
+
+		// Submit shared uniform (related to camera) 
+		constexpr StringCrc cameraNearFarPlaneCrc(cameraNearFarPlane);
+		CameraComponent* pMainCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(m_pCurrentSceneWorld->GetMainCameraEntity());
+		float cameraNearFarPlanedata[2] = { pMainCameraComponent->GetNearPlane(), pMainCameraComponent->GetFarPlane() };
+		GetRenderContext()->FillUniform(cameraNearFarPlaneCrc, &cameraNearFarPlanedata[0], 1);
+
+		// Submit shadow map and settings of each light
+		constexpr StringCrc shadowMapSamplerCrcs[3] = { StringCrc(cubeShadowMapSamplers[0]), StringCrc(cubeShadowMapSamplers[1]), StringCrc(cubeShadowMapSamplers[2]) };
+		for (int lightIndex = 0; lightIndex < lightEntityCount; lightIndex++)
+		{
+			auto lightComponent = m_pCurrentSceneWorld->GetLightComponent(lightEntities[lightIndex]);
+			cd::LightType lightType = lightComponent->GetType();
+			if (cd::LightType::Directional == lightType)
+			{
+				bgfx::TextureHandle blitDstShadowMapTexture = static_cast<bgfx::TextureHandle>(lightComponent->GetShadowMapTexture());
+				bgfx::setTexture(SHADOW_MAP_CUBE_FIRST_SLOT+lightIndex, GetRenderContext()->GetUniform(shadowMapSamplerCrcs[lightIndex]), blitDstShadowMapTexture);
+				// TODO : manual 
+				constexpr StringCrc clipFrustumDepthCrc(clipFrustumDepth);
+				GetRenderContext()->FillUniform(clipFrustumDepthCrc, lightComponent->GetComputedCascadeSplit(), 1);
+			}
+			else if (cd::LightType::Point == lightType)
+			{
+				bgfx::TextureHandle blitDstShadowMapTexture = static_cast<bgfx::TextureHandle>(lightComponent->GetShadowMapTexture());
+				bgfx::setTexture(SHADOW_MAP_CUBE_FIRST_SLOT+lightIndex, GetRenderContext()->GetUniform(shadowMapSamplerCrcs[lightIndex]), blitDstShadowMapTexture);
+			}
+			else if (cd::LightType::Spot == lightType)
+			{
+				// Blit RTV(FrameBuffer Texture) to SRV(Texture)
+				bgfx::TextureHandle blitDstShadowMapTexture = static_cast<bgfx::TextureHandle>(lightComponent->GetShadowMapTexture());
+				bgfx::setTexture(SHADOW_MAP_CUBE_FIRST_SLOT+lightIndex, GetRenderContext()->GetUniform(shadowMapSamplerCrcs[lightIndex]), blitDstShadowMapTexture);
+			}
 		}
 
 		uint64_t state = defaultRenderingState;

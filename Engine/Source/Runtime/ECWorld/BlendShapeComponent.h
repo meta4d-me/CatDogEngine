@@ -41,10 +41,10 @@ public:
 	void SetMesh(const cd::Mesh* mesh) { m_pMesh = mesh; m_meshVertexCount = m_pMesh->GetVertexCount();}
 	const uint32_t GetMeshVertexCount() { return m_meshVertexCount; }
 
-	void SetMorphs(const std::vector<cd::Morph>& morphs) { m_pMorphsData = morphs.data(); m_morphCount = static_cast<uint32_t>(morphs.size()); }
-	const cd::Morph* GetMorphsData() { return  m_pMorphsData; }
-	const uint32_t GetMorphCount() const { return m_morphCount; }
-	const uint32_t GetActiveMorphCount() const { return m_activeMorphCount; }
+	void AddMorph(const cd::Morph* pMorph) { m_pMorphsData.push_back(pMorph); }
+	const cd::Morph* GetMorphData(uint32_t index) { return m_pMorphsData[index]; }
+	uint32_t GetMorphCount() const { return static_cast<uint32_t>(m_pMorphsData.size()); }
+	uint32_t GetActiveMorphCount() const { return m_activeMorphCount; }
 	
 	std::vector<float>& GetWeights() { return m_weights; };
 
@@ -70,11 +70,10 @@ public:
 private:
 	//input
 	const cd::Mesh* m_pMesh;
-	const cd::Morph* m_pMorphsData;
+	std::vector<const cd::Morph*> m_pMorphsData;
 	std::vector<float> m_weights;
 	
 	uint32_t m_meshVertexCount = 0U;
-	uint32_t m_morphCount = 0U;
 	uint32_t m_activeMorphCount = 0U;
 	uint32_t m_morphVertexCountSum = 0U;
 

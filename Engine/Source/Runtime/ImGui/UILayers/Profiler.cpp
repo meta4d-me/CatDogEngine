@@ -65,7 +65,6 @@ void Profiler::Update()
     ImGui::Begin(GetName(), &m_isEnable, flags);
 
     const float overlayWidth = 150.0f;
-    const ImVec2 padding = { 5.0f, 5.0f };
 
     float deltaTime = ImGui::GetIO().DeltaTime;
     static bool showFPS = true;

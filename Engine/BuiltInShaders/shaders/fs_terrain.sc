@@ -18,7 +18,7 @@ SAMPLER2D(s_texRock, TERRAIN_MEDIUM_ALBEDO_MAP_SLOT);
 SAMPLER2D(s_texGrass, TERRAIN_BOTTOM_ALBEDO_MAP_SLOT);
 
 vec3 GetDirectional(Material material, vec3 worldPos, vec3 viewDir) {
-	vec3 diffuseBRDF = material.albedo * CD_INV_PI;
+	vec3 diffuseBRDF = material.albedo * CD_PI_INV;
 	return CalculateLights(material, worldPos, viewDir, diffuseBRDF);
 }
 

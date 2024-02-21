@@ -49,14 +49,14 @@ constexpr uint16_t ScatteringOrders                      = 6;
 
 void PBRSkyRenderer::Init()
 {
-	constexpr StringCrc ProgramAtmosphericScatteringLUTCrc = StringCrc(ProgramAtmosphericScatteringLUT);
-	constexpr StringCrc ProgramSingleScatteringRayMarchingCrc = StringCrc(ProgramSingleScatteringRayMarching);
-	constexpr StringCrc ProgramComputeTransmittanceCrc = StringCrc(ProgramComputeTransmittance);
-	constexpr StringCrc ProgramComputeDirectIrradianceCrc = StringCrc(ProgramComputeDirectIrradiance);
-	constexpr StringCrc ProgramComputeSingleScatteringCrc = StringCrc(ProgramComputeSingleScattering);
-	constexpr StringCrc ProgramComputeScatteringDensityCrc = StringCrc(ProgramComputeScatteringDensity);
-	constexpr StringCrc ProgramComputeIndirectIrradianceCrc = StringCrc(ProgramComputeIndirectIrradiance);
-	constexpr StringCrc ProgramComputeMultipleScatteringCrc = StringCrc(ProgramComputeMultipleScattering);
+	constexpr StringCrc ProgramAtmosphericScatteringLUTCrc(ProgramAtmosphericScatteringLUT);
+	constexpr StringCrc ProgramSingleScatteringRayMarchingCrc(ProgramSingleScatteringRayMarching);
+	constexpr StringCrc ProgramComputeTransmittanceCrc(ProgramComputeTransmittance);
+	constexpr StringCrc ProgramComputeDirectIrradianceCrc(ProgramComputeDirectIrradiance);
+	constexpr StringCrc ProgramComputeSingleScatteringCrc(ProgramComputeSingleScattering);
+	constexpr StringCrc ProgramComputeScatteringDensityCrc(ProgramComputeScatteringDensity);
+	constexpr StringCrc ProgramComputeIndirectIrradianceCrc(ProgramComputeIndirectIrradiance);
+	constexpr StringCrc ProgramComputeMultipleScatteringCrc(ProgramComputeMultipleScattering);
 
 	GetRenderContext()->RegisterShaderProgram(ProgramAtmosphericScatteringLUTCrc, { "vs_atmSkyBox", "fs_PrecomputedAtmosphericScattering_LUT" });
 	GetRenderContext()->RegisterShaderProgram(ProgramSingleScatteringRayMarchingCrc, { "vs_atmSkyBox", "fs_SingleScattering_RayMarching" });

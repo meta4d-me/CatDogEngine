@@ -7,6 +7,15 @@
 namespace engine
 {
 
+enum class CascadePartitionMode
+{
+	Manual,
+	Logarithmic,
+	PSSM,
+
+	Count
+};
+
 class LightComponent final
 {
 public:
@@ -76,8 +85,79 @@ public:
 	cd::Direction& GetUp() { return m_lightUniformData.up; }
 	const cd::Direction& GetUp() const { return m_lightUniformData.up; }
 
+	void SetShadowType(int shadowType) { m_lightUniformData.shadowType = shadowType; }
+	int& GetShadowType() { return m_lightUniformData.shadowType; }
+	int GetShadowType() const { return m_lightUniformData.shadowType; }
+
+	void SetLightViewProjOffset(int lightViewProjOffset) { m_lightUniformData.lightViewProjOffset = lightViewProjOffset; }
+	int GetLightViewProjOffset() const { return m_lightUniformData.lightViewProjOffset; }
+
+	void SetCascadeNum(int cascadeNum) { m_lightUniformData.cascadeNum = cascadeNum; }
+	int& GetCascadeNum() { return m_lightUniformData.cascadeNum; }
+	int GetCascadeNum() const { return m_lightUniformData.cascadeNum; }
+
+	void SetShadowBias(float shadowBias) { m_lightUniformData.shadowBias = shadowBias; }
+	float& GetShadowBias() { return m_lightUniformData.shadowBias; }
+	float GetShadowBias() const { return m_lightUniformData.shadowBias; }
+
+	void SetFrustumClips(cd::Vec4f frustumClips) { m_lightUniformData.frustumClips = frustumClips; }
+	cd::Vec4f& GetFrustumClips() { return m_lightUniformData.frustumClips; }
+	cd::Vec4f GetFrustumClips() const { return m_lightUniformData.frustumClips; }
+
+	U_Light* GetLightUniformData() { return &m_lightUniformData; }
+
+	void SetIsCastShadow(bool isCastShadow) { m_isCastShadow = isCastShadow; };
+	bool& IsCastShadow() { return m_isCastShadow; }
+	bool IsCastShadow() const { return m_isCastShadow; }
+
+	bool& GetIsCastVolume() { return m_isCastVolume; }
+	bool IsCastVolume() const { return m_isCastVolume; }
+
+	void SetShadowMapSize(uint16_t shadowMapSize) { m_shadowMapSize = shadowMapSize; }
+	uint16_t& GetShadowMapSize() { return m_shadowMapSize; }
+	uint16_t GetShadowMapSize() const { return m_shadowMapSize; }
+
+	void SetCascadePartitionMode(CascadePartitionMode cascadePartitionMode) { m_cascadePartitionMode = cascadePartitionMode; }
+	CascadePartitionMode& GetCascadePartitionMode() { return m_cascadePartitionMode; }
+	CascadePartitionMode GetCascadePartitionMode() const { return m_cascadePartitionMode; }
+
+	void SetComputedCascadeSplit(float* cascadeSplit) { std::memcpy(&m_computedCascadeSplit[0], cascadeSplit, 16); }
+	const float* GetComputedCascadeSplit() { return &m_computedCascadeSplit[0]; }
+
+	float& GetManualCascadeSplitAt(uint16_t idx) { return m_manualCascadeSplit[idx]; }
+	const float* GetManualCascadeSplit() { return &m_manualCascadeSplit[0]; }
+
+	void AddLightViewProjMatrix(cd::Matrix4x4 lightViewProjMatrix) { m_lightViewProjMatrices.push_back(lightViewProjMatrix); }
+	std::vector<cd::Matrix4x4>& GetLightViewProjMatrix() { return m_lightViewProjMatrices; }
+	const std::vector<cd::Matrix4x4>& GetLightViewProjMatrix() const { return m_lightViewProjMatrices; }
+	void ClearLightViewProjMatrix() { m_lightViewProjMatrices.clear(); }
+
+	bool IsShadowMapFBsValid();
+	void AddShadowMapFB(uint16_t& shadowMapFB) { m_shadowMapFBs.push_back(std::move(shadowMapFB)); }
+	const std::vector<uint16_t>& GetShadowMapFBs() const { return m_shadowMapFBs; }
+	void ClearShadowMapFBs();
+
+	bool IsShadowMapTextureValid();
+	void SetShadowMapTexture(uint16_t shadowMapTexture) { m_shadowMapTexture = shadowMapTexture; }
+	const uint16_t& GetShadowMapTexture() { return m_shadowMapTexture; }
+	void ClearShadowMapTexture();
+
 private:
 	U_Light m_lightUniformData;
+
+	bool m_isCastShadow;
+	bool m_isCastVolume;
+	uint16_t m_shadowMapSize;
+
+	CascadePartitionMode m_cascadePartitionMode = CascadePartitionMode::PSSM;
+	float m_manualCascadeSplit[4] = { 0.0 }; // manual set split
+	float m_computedCascadeSplit[4] = { 0.0 }; // computed split
+
+	// uniform
+	uint16_t m_shadowMapTexture;	// Texture Handle
+	std::vector<cd::Matrix4x4> m_lightViewProjMatrices;
+	std::vector<uint16_t> m_shadowMapFBs; // Framebuffer Handle
+
 	// Warning : We treat multiple light components as a complete and contiguous memory.
 	// any non-U_Light member of LightComponent will destroy this layout. --2023/6/21
 };
