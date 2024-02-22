@@ -220,14 +220,20 @@ void MaterialComponent::AddTextureBlob(cd::MaterialTextureType textureType, cd::
 	PropertyGroup& propertyGroup = m_propertyGroups[textureType];
 	propertyGroup.useTexture = true;
 
+	bimg::ImageContainer* pImageContainer = bimg::imageParse(GetResourceAllocator(), textureBlob.data(), static_cast<uint32_t>(textureBlob.size()));
+	const bgfx::Memory* mem = bgfx::makeRef(
+	pImageContainer->m_data
+	,pImageContainer->m_size
+	);
+
 	TextureInfo& textureInfo = propertyGroup.textureInfo;
 	textureInfo.slot = optTextureSlot.value();
-	textureInfo.width = width;
-	textureInfo.height = height;
-	textureInfo.depth = depth;
-	textureInfo.mipCount = 0;
+	textureInfo.width = pImageContainer->m_width;
+	textureInfo.height = pImageContainer->m_height;
+	textureInfo.depth = pImageContainer->m_depth;
+	textureInfo.mipCount = pImageContainer->m_numMips;
 	textureInfo.format = textureFormat;
-	textureInfo.data = bgfx::makeRef(textureBlob.data(), static_cast<uint32_t>(textureBlob.size()));
+	textureInfo.data = mem;
 	textureInfo.flag = GetBGFXTextureFlag(textureType, uMapMode, vMapMode);
 	textureInfo.uvOffset = cd::Vec2f::Zero();
 	textureInfo.uvScale = cd::Vec2f::One();

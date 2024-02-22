@@ -171,6 +171,14 @@ public:
 	float& GetAlphaCutOff() { return m_alphaCutOff; }
 	float GetAlphaCutOff() const { return m_alphaCutOff; }
 
+	void SetSelectTexture(int selectTexturetype) { m_pSelectTexture = selectTexturetype; }
+	int &GetSelectTexture() { return m_pSelectTexture; }
+	int GetSelectTexture() const { return m_pSelectTexture; }
+
+	void SetIsOpenBrowser(bool isOpenBrowser) { m_isOpenBrowser = isOpenBrowser; }
+	bool& GetIsOpenBrowser() { return m_isOpenBrowser; }
+	bool GetIsOpenBrowser() const { return m_isOpenBrowser; }
+
 private:
 	// Input
 	const cd::Material* m_pMaterialData = nullptr;
@@ -182,6 +190,8 @@ private:
 	float m_alphaCutOff;
 
 	bool m_isShaderFeatureDirty = false;
+	int m_pSelectTexture = -1;
+	bool m_isOpenBrowser = false;
 	std::set<ShaderFeature> m_shaderFeatures;
 	std::string m_featureCombine;
 

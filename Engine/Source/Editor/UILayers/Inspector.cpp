@@ -2,9 +2,13 @@
 
 #include "Rendering/RenderContext.h"
 #include "Rendering/ShaderCollections.h"
+#include "Resources/ResourceBuilder.h"
+#include "Resources/ResourceLoader.h"
 #include "Graphics/GraphicsBackend.h"
 #include "ImGui/ImGuiUtils.hpp"
 #include "Path/Path.h"
+
+#include "ImGui/imfilebrowser.h"
 
 namespace details
 {
@@ -269,6 +273,14 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 					ImGui::Text("No Resources");
 					ImGui::SetWindowFontScale(1.0f);
 					ImGui::SetCursorScreenPos(ImVec2{ currentPos.x, currentPos.y + 66});
+				}
+
+				ImGui::SameLine();
+
+				if (ImGui::Button("Select"))
+				{
+					pMaterialComponent->SetSelectTexture(textureTypeValue);
+					pMaterialComponent->SetIsOpenBrowser(true);
 				}
 
 				ImGuiUtils::ImGuiVectorProperty("UV Offset", textureInfo.GetUVOffset(), cd::Unit::None, cd::Vec2f::Zero(), cd::Vec2f::One(), false, 0.01f);
@@ -669,7 +681,13 @@ Inspector::~Inspector()
 
 void Inspector::Init()
 {
+	m_pImportFileBrowser = std::make_unique<ImGui::FileBrowser>();
+}
 
+void Inspector::SelectTexture()
+{
+	m_texturePath = m_pImportFileBrowser->GetSelected().string().c_str();
+	m_pImportFileBrowser->ClearSelected();
 }
 
 void Inspector::Update()
@@ -708,6 +726,17 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::CollisionMeshComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::BlendShapeComponent>(pSceneWorld, m_lastSelectedEntity);
 
+	auto* pMaterialComponent = pSceneWorld->GetMaterialComponent(m_lastSelectedEntity);
+	if (pMaterialComponent)
+	{
+		if (pMaterialComponent->GetIsOpenBrowser())
+		{
+			m_pImportFileBrowser->SetTitle("Select Texture");
+			m_pImportFileBrowser->Open();
+			pMaterialComponent->SetIsOpenBrowser(false);
+		}
+	}
+
 #ifdef ENABLE_DDGI
 	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, m_lastSelectedEntity);
 #endif
@@ -715,6 +744,36 @@ void Inspector::Update()
 	ImGui::EndChild();
 
 	ImGui::End();
+
+	m_pImportFileBrowser->Display();
+
+
+	if (m_pImportFileBrowser->HasSelected())
+	{
+		m_texturePath = m_pImportFileBrowser->GetSelected().string();
+		std::filesystem::path outputSelectTexturePath = CDPROJECT_RESOURCES_ROOT_PATH;
+		outputSelectTexturePath += m_texturePath.filename().replace_extension(".dds").string();
+		auto selectTextureType = static_cast<cd::MaterialTextureType>(pMaterialComponent->GetSelectTexture());
+		ResourceBuilder::Get().AddTextureBuildTask(selectTextureType, m_texturePath.string().c_str(), outputSelectTexturePath.string().c_str());
+		ResourceBuilder::Get().Update();
+
+		std::string textureName = outputSelectTexturePath.filename().string();
+		
+		bgfx::TextureHandle textutrHandle = pRenderContext->CreateTexture(textureName.c_str());
+		engine::StringCrc textureCrc(textureName);
+		pRenderContext->SetTexture(textureCrc, textutrHandle);
+
+		auto textureType = static_cast<cd::MaterialTextureType>(pMaterialComponent->GetSelectTexture());
+		auto textureFileBlob = engine::ResourceLoader::LoadFile(outputSelectTexturePath.string().c_str());
+		pMaterialComponent->AddTextureBlob(textureType, cd::TextureFormat::BC3, cd::TextureMapMode::Clamp, cd::TextureMapMode::Clamp,
+			textureFileBlob, 1024U, 1024U, 1U);
+		pMaterialComponent->ActivateShaderFeature(engine::MaterialTextureTypeToShaderFeature.at(textureType));
+		pMaterialComponent->Build();
+
+		//When selected texture should close the file browser
+		m_pImportFileBrowser->ClearSelected();
+	}
+
 }
 
 }
