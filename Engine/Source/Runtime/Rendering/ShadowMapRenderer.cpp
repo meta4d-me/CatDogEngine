@@ -249,8 +249,7 @@ void ShadowMapRenderer::Render(float deltaTime)
 						}
 
 						// Mesh
-						UpdateStaticMeshComponent(pMeshComponent);
-						GetRenderContext()->Submit(viewId, "ShadowMapProgram");
+						SubmitStaticMeshDrawCall(pMeshComponent, viewId, "ShadowMapProgram");
 					}
 				}
 			}
@@ -321,8 +320,8 @@ void ShadowMapRenderer::Render(float deltaTime)
 						{
 							bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 						}
-						UpdateStaticMeshComponent(pMeshComponent);
-						GetRenderContext()->Submit(viewId, "LinearShadowMapProgram");
+
+						SubmitStaticMeshDrawCall(pMeshComponent, viewId, "LinearShadowMapProgram");
 					}
 				}
 			}
@@ -369,19 +368,21 @@ void ShadowMapRenderer::Render(float deltaTime)
 					{
 						continue;
 					}
+
 					BlendShapeComponent* pBlendShapeComponent = m_pCurrentSceneWorld->GetBlendShapeComponent(entity);
 					if (pBlendShapeComponent)
 					{
 						continue;
 					}
+
 					// Transform
 					if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 					{
 						bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 					}
+
 					// Mesh
-					UpdateStaticMeshComponent(pMeshComponent);
-					GetRenderContext()->Submit(viewId, "ShadowMapProgram");
+					SubmitStaticMeshDrawCall(pMeshComponent, viewId, "ShadowMapProgram");
 				}
 			}
 			break;

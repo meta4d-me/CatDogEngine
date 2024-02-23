@@ -50,19 +50,17 @@ void WhiteModelRenderer::Render(float deltaTime)
 			bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 		}
 
-		// No mesh attached?
 		StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
 		if (!pMeshComponent)
 		{
 			continue;
 		}
-		UpdateStaticMeshComponent(pMeshComponent);
-
+		
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
 		bgfx::setState(state);
 
-		GetRenderContext()->Submit(GetViewID(), "WhiteModelProgram");
+		SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), "WhiteModelProgram");
 	}
 }
 

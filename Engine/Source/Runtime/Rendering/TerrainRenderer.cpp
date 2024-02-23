@@ -123,10 +123,6 @@ void TerrainRenderer::Render(float deltaTime)
 			bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 		}
 
-		// Mesh
-		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()});
-		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
-
 		// Material
 		bgfx::setTexture(TERRAIN_TOP_ALBEDO_MAP_SLOT,
 			GetRenderContext()->GetUniform(StringCrc(snowSampler)),
@@ -215,7 +211,7 @@ void TerrainRenderer::Render(float deltaTime)
 
 		bgfx::setState(state);
 
-		GetRenderContext()->Submit(GetViewID(), pMaterialComponent->GetShaderProgramName());
+		SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), pMaterialComponent->GetShaderProgramName());
 	}
 }
 
