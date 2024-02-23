@@ -273,6 +273,27 @@ void MaterialComponent::AddTextureFileBlob(cd::MaterialTextureType textureType, 
 	}
 }
 
+void MaterialComponent::SelectBuild(int textureType)
+{
+	if (m_pMaterialData)
+	{
+		m_name = m_pMaterialData->GetName();
+	}
+	cd::MaterialTextureType materialTextureType = static_cast<cd::MaterialTextureType>(textureType);
+	PropertyGroup& propertyGroup = m_propertyGroups[materialTextureType];
+
+	TextureInfo& textureInfo = propertyGroup.textureInfo;
+	textureInfo.textureHandle = BGFXCreateTexture(textureInfo.width, textureInfo.height, textureInfo.depth, false, textureInfo.mipCount > 1,
+		1, static_cast<bgfx::TextureFormat::Enum>(textureInfo.format), textureInfo.flag, textureInfo.data).idx;
+
+	std::string samplerUniformName = "s_textureSampler";
+	samplerUniformName += std::to_string(textureIndex++);
+	textureInfo.samplerHandle = bgfx::createUniform(samplerUniformName.c_str(), bgfx::UniformType::Sampler).idx;
+
+	assert(textureInfo.textureHandle != bgfx::kInvalidHandle);
+	assert(textureInfo.samplerHandle != bgfx::kInvalidHandle);
+}
+
 void MaterialComponent::Build()
 {
 	if (m_pMaterialData)

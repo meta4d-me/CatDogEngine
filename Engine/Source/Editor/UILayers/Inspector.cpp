@@ -759,16 +759,17 @@ void Inspector::Update()
 
 		std::string textureName = outputSelectTexturePath.filename().string();
 		
-		bgfx::TextureHandle textutrHandle = pRenderContext->CreateTexture(textureName.c_str());
+		/*bgfx::TextureHandle textutrHandle = pRenderContext->CreateTexture(textureName.c_str());
 		engine::StringCrc textureCrc(textureName);
-		pRenderContext->SetTexture(textureCrc, textutrHandle);
+		pRenderContext->SetTexture(textureCrc, textutrHandle);*/
 
 		auto textureType = static_cast<cd::MaterialTextureType>(pMaterialComponent->GetSelectTexture());
 		auto textureFileBlob = engine::ResourceLoader::LoadFile(outputSelectTexturePath.string().c_str());
 		pMaterialComponent->AddTextureBlob(textureType, cd::TextureFormat::BC3, cd::TextureMapMode::Clamp, cd::TextureMapMode::Clamp,
 			textureFileBlob, 1024U, 1024U, 1U);
 		pMaterialComponent->ActivateShaderFeature(engine::MaterialTextureTypeToShaderFeature.at(textureType));
-		pMaterialComponent->Build();
+		pMaterialComponent->SelectBuild(pMaterialComponent->GetSelectTexture());
+		//pMaterialComponent->Build();
 
 		//When selected texture should close the file browser
 		m_pImportFileBrowser->ClearSelected();

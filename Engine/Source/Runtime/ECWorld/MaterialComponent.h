@@ -94,6 +94,7 @@ public:
 	const engine::MaterialType* GetMaterialType() const { return m_pMaterialType; }
 
 	void Reset();
+	void SelectBuild(int textureType);
 	void Build();
 
 	// Basic data.
