@@ -766,10 +766,9 @@ void Inspector::Update()
 		auto textureType = static_cast<cd::MaterialTextureType>(pMaterialComponent->GetSelectTexture());
 		auto textureFileBlob = engine::ResourceLoader::LoadFile(outputSelectTexturePath.string().c_str());
 		pMaterialComponent->AddTextureBlob(textureType, cd::TextureFormat::BC3, cd::TextureMapMode::Clamp, cd::TextureMapMode::Clamp,
-			textureFileBlob, 1024U, 1024U, 1U);
+			textureFileBlob);
 		pMaterialComponent->ActivateShaderFeature(engine::MaterialTextureTypeToShaderFeature.at(textureType));
 		pMaterialComponent->SelectBuild(pMaterialComponent->GetSelectTexture());
-		//pMaterialComponent->Build();
 
 		//When selected texture should close the file browser
 		m_pImportFileBrowser->ClearSelected();

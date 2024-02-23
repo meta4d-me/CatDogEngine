@@ -209,7 +209,7 @@ void MaterialComponent::Reset()
 }
 
 void MaterialComponent::AddTextureBlob(cd::MaterialTextureType textureType, cd::TextureFormat textureFormat, cd::TextureMapMode uMapMode, cd::TextureMapMode vMapMode,
-	TextureBlob textureBlob, uint32_t width, uint32_t height, uint32_t depth /* = 1 */)
+	TextureBlob textureBlob)
 {
 	std::optional<uint8_t> optTextureSlot = m_pMaterialType->GetTextureSlot(textureType);
 	if (!optTextureSlot.has_value())
