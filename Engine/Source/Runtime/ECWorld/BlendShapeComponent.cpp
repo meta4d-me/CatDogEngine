@@ -32,16 +32,16 @@ void BlendShapeComponent::Build()
 
 	//1. Morph Affected : position ,  Morph Non-Affected : normal tangent uv
 	cd::VertexFormat morphAffectedVF;//Morph Affected Vertex Format
-	morphAffectedVF.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+	morphAffectedVF.AddVertexAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
 	const uint32_t morphAffectedVFStride = morphAffectedVF.GetStride();
 	m_morphAffectedVB.resize(m_meshVertexCount * 16);
 	auto morphAffectedVBDataPtr = m_morphAffectedVB.data();
 	uint32_t morphAffectedVBDataSize = 0U;
 
 	cd::VertexFormat nonMorphAffectedVF;//Morph Non-Affected Vertex Format
-	nonMorphAffectedVF.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
-	nonMorphAffectedVF.AddAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
-	nonMorphAffectedVF.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
+	nonMorphAffectedVF.AddVertexAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+	nonMorphAffectedVF.AddVertexAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+	nonMorphAffectedVF.AddVertexAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
 	const uint32_t nonMorphAffectedVFStride = nonMorphAffectedVF.GetStride();
 	m_nonMorphAffectedVB.resize(m_meshVertexCount * nonMorphAffectedVFStride);
 	auto nonMorphAffectedDataPtr = m_nonMorphAffectedVB.data();
@@ -62,14 +62,14 @@ void BlendShapeComponent::Build()
 	}
 
 	bgfx::VertexLayout morphAffectedVL;
-	VertexLayoutUtility::CreateVertexLayout(morphAffectedVL, morphAffectedVF.GetVertexLayout());
+	VertexLayoutUtility::CreateVertexLayout(morphAffectedVL, morphAffectedVF.GetVertexAttributeLayouts());
 	const bgfx::Memory* pMorphAffectedVBRef = bgfx::makeRef(m_morphAffectedVB.data(), static_cast<uint32_t>(m_morphAffectedVB.size()));
 	bgfx::VertexBufferHandle morphAffectedVBHandle = bgfx::createVertexBuffer(pMorphAffectedVBRef, morphAffectedVL, BGFX_BUFFER_COMPUTE_READ);
 	assert(bgfx::isValid(morphAffectedVBHandle));
 	m_morphAffectedVBHandle = morphAffectedVBHandle.idx;
 
 	bgfx::VertexLayout nonMorphAffectedVL;
-	VertexLayoutUtility::CreateVertexLayout(nonMorphAffectedVL, nonMorphAffectedVF.GetVertexLayout());
+	VertexLayoutUtility::CreateVertexLayout(nonMorphAffectedVL, nonMorphAffectedVF.GetVertexAttributeLayouts());
 	const bgfx::Memory* pNonMorphAffectedVBRef = bgfx::makeRef(m_nonMorphAffectedVB.data(), static_cast<uint32_t>(m_nonMorphAffectedVB.size()));
 	bgfx::VertexBufferHandle nonMorphAffectedVBHandle = bgfx::createVertexBuffer(pNonMorphAffectedVBRef, nonMorphAffectedVL);
 	assert(bgfx::isValid(nonMorphAffectedVBHandle));
@@ -77,11 +77,11 @@ void BlendShapeComponent::Build()
 	
 	//2. Final Morph Affected
 	cd::VertexFormat finalMorphAffectedVF;
-	finalMorphAffectedVF.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
-	finalMorphAffectedVF.AddAttributeLayout(cd::VertexAttributeType::BoneWeight, cd::AttributeValueType::Float, 1U);
+	finalMorphAffectedVF.AddVertexAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+	finalMorphAffectedVF.AddVertexAttributeLayout(cd::VertexAttributeType::BoneWeight, cd::AttributeValueType::Float, 1U);
 	
 	bgfx::VertexLayout finalMorphAffectedVL;
-	VertexLayoutUtility::CreateVertexLayout(finalMorphAffectedVL, finalMorphAffectedVF.GetVertexLayout());
+	VertexLayoutUtility::CreateVertexLayout(finalMorphAffectedVL, finalMorphAffectedVF.GetVertexAttributeLayouts());
 	bgfx::DynamicVertexBufferHandle finalMorphAffectedVBHandle = bgfx::createDynamicVertexBuffer(m_meshVertexCount, finalMorphAffectedVL, BGFX_BUFFER_COMPUTE_READ_WRITE);
 	assert(bgfx::isValid(finalMorphAffectedVBHandle));
 	m_finalMorphAffectedVBHandle = finalMorphAffectedVBHandle.idx;

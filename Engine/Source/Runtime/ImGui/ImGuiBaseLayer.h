@@ -5,6 +5,7 @@ namespace engine
 
 class ImGuiContextInstance;
 class RenderContext;
+class ResourceContext;
 class SceneWorld;
 
 class ImGuiBaseLayer
@@ -29,6 +30,7 @@ public:
 	bool IsEnable() const { return m_isEnable; }
 
 	ImGuiContextInstance* GetImGuiContextInstance() const;
+	ResourceContext* GetResourceContext() const;
 	RenderContext* GetRenderContext() const;
 	SceneWorld* GetSceneWorld() const;
 

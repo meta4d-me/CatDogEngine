@@ -7,6 +7,8 @@
 #include "Math/Transform.hpp"
 #include "Path/Path.h"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/MeshResource.h"
+#include "Rendering/Resources/ResourceContext.h"
 #include "Rendering/ShaderFeature.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ResourceLoader.h"
@@ -174,7 +176,9 @@ void ECWorldConsumer::AddStaticMesh(engine::Entity entity, const cd::Mesh& mesh,
 
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
 	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
-	nameComponent.SetName(mesh.GetName());
+	std::string meshName(mesh.GetName());
+	engine::StringCrc meshNameCrc(meshName);
+	nameComponent.SetName(cd::MoveTemp(meshName));
 
 	auto& collisionMeshComponent = pWorld->CreateComponent<engine::CollisionMeshComponent>(entity);
 	collisionMeshComponent.SetType(engine::CollisonMeshType::AABB);
@@ -182,10 +186,10 @@ void ECWorldConsumer::AddStaticMesh(engine::Entity entity, const cd::Mesh& mesh,
 	collisionMeshComponent.Build();
 
 	auto& staticMeshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
-	staticMeshComponent.SetMeshData(&mesh);
-	staticMeshComponent.SetRequiredVertexFormat(&vertexFormat);
-	staticMeshComponent.Build();
-	staticMeshComponent.Submit();
+	engine::MeshResource* pMeshResource = m_pResourceContext->AddMeshResource(meshNameCrc);
+	pMeshResource->SetMeshAsset(&mesh);
+	pMeshResource->UpdateVertexFormat(vertexFormat);
+	staticMeshComponent.SetMeshResource(pMeshResource);
 }
 
 void ECWorldConsumer::AddSkinMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat)

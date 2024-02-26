@@ -19,7 +19,7 @@ void ImGuiRenderer::Init()
 void ImGuiRenderer::Warmup()
 {
 	constexpr StringCrc imguiVertexLayoutName("imgui_vertex_layout");
-	if (0 == GetRenderContext()->GetVertexLayout(imguiVertexLayoutName).m_stride)
+	if (0 == GetRenderContext()->GetVertexAttributeLayouts(imguiVertexLayoutName).m_stride)
 	{
 		bgfx::VertexLayout imguiVertexLayout;
 		imguiVertexLayout.begin()
@@ -93,7 +93,7 @@ void ImGuiRenderer::Render(float deltaTime)
 		uint32_t numVertices = static_cast<uint32_t>(pDrawList->VtxBuffer.size());
 		uint32_t numIndices = static_cast<uint32_t>(pDrawList->IdxBuffer.size());
 		constexpr StringCrc imguiVertexLayoutName("imgui_vertex_layout");
-		const bool vertexBufferAvaiable = (numVertices == bgfx::getAvailTransientVertexBuffer(numVertices, GetRenderContext()->GetVertexLayout(imguiVertexLayoutName)));
+		const bool vertexBufferAvaiable = (numVertices == bgfx::getAvailTransientVertexBuffer(numVertices, GetRenderContext()->GetVertexAttributeLayouts(imguiVertexLayoutName)));
 		const bool indexBufferAvaiable = (0 == numIndices || numIndices == bgfx::getAvailTransientIndexBuffer(numIndices));
 		if (!vertexBufferAvaiable || !indexBufferAvaiable)
 		{
@@ -103,7 +103,7 @@ void ImGuiRenderer::Render(float deltaTime)
 
 		bgfx::TransientVertexBuffer vertexBuffer;
 		bgfx::TransientIndexBuffer indexBuffer;
-		bgfx::allocTransientVertexBuffer(&vertexBuffer, numVertices, GetRenderContext()->GetVertexLayout(imguiVertexLayoutName));
+		bgfx::allocTransientVertexBuffer(&vertexBuffer, numVertices, GetRenderContext()->GetVertexAttributeLayouts(imguiVertexLayoutName));
 		bgfx::allocTransientIndexBuffer(&indexBuffer, numIndices, std::is_same<uint32_t, ImDrawIdx>());
 
 		ImDrawVert* pVertices = reinterpret_cast<ImDrawVert*>(vertexBuffer.data);

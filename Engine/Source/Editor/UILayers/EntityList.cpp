@@ -8,6 +8,8 @@
 #include "Math/MeshGenerator.h"
 #include "Math/Sphere.hpp"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/MeshResource.h"
+#include "Rendering/Resources/ResourceContext.h"
 
 #include <bgfx/bgfx.h>
 #include <imgui/imgui_internal.h>
@@ -30,6 +32,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
     engine::MaterialType* pPBRMaterialType = pSceneWorld->GetPBRMaterialType();
     engine::MaterialType* pTerrainMaterialType = pSceneWorld->GetTerrainMaterialType();
+    engine::ResourceContext* pResourceContext = GetRenderContext()->GetResourceContext();
 
     auto AddNamedEntity = [&pWorld](std::string defaultName) -> engine::Entity
     {
@@ -40,8 +43,10 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         return entity;
     };
 
-    auto CreateShapeComponents = [&pSceneWorld, &pWorld, &pSceneDatabase](engine::Entity entity, cd::Mesh&& mesh, engine::MaterialType* pMaterialType)
+    auto CreateShapeComponents = [&pSceneWorld, &pWorld, &pSceneDatabase, &pResourceContext](engine::Entity entity, cd::Mesh&& mesh, engine::MaterialType* pMaterialType)
     {
+        std::string meshOriginName(mesh.GetName());
+        engine::StringCrc meshOriginNameCrc(meshOriginName);
         mesh.SetName(pSceneWorld->GetNameComponent(entity)->GetName());
         mesh.SetID(cd::MeshID(pSceneDatabase->GetMeshCount()));
 
@@ -55,10 +60,10 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         collisionMeshComponent.Build();
 
         auto& staticMeshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
-        staticMeshComponent.SetMeshData(&newAddedShape);
-        staticMeshComponent.SetRequiredVertexFormat(&pMaterialType->GetRequiredVertexFormat());
-        staticMeshComponent.Build();
-        staticMeshComponent.Submit();
+        engine::MeshResource* pMeshResource = pResourceContext->AddMeshResource(meshOriginNameCrc);
+        pMeshResource->SetMeshAsset(&newAddedShape);
+        pMeshResource->UpdateVertexFormat(pMaterialType->GetRequiredVertexFormat());
+        staticMeshComponent.SetMeshResource(pMeshResource);
 
         auto& materialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
         materialComponent.Init();
@@ -93,14 +98,16 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     if (ImGui::MenuItem("Add Cube Mesh"))
     {
         engine::Entity entity = AddNamedEntity("CubeMesh");
-        std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Box(cd::Point(-10.0f), cd::Point(10.0f)), pPBRMaterialType->GetRequiredVertexFormat());
+        // TODO : manage temp asset.
+        static std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Box(cd::Point(-10.0f), cd::Point(10.0f)), pPBRMaterialType->GetRequiredVertexFormat());
         assert(optMesh.has_value());
         CreateShapeComponents(entity, cd::MoveTemp(optMesh.value()), pPBRMaterialType);
     }
     else if (ImGui::MenuItem("Add Sphere Mesh"))
     {
         engine::Entity entity = AddNamedEntity("Sphere");
-        std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Sphere(cd::Point(0.0f), 10.0f), 100U, 100U, pPBRMaterialType->GetRequiredVertexFormat());
+        // TODO : manage temp asset.
+        static std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Sphere(cd::Point(0.0f), 10.0f), 100U, 100U, pPBRMaterialType->GetRequiredVertexFormat());
         assert(optMesh.has_value());
         CreateShapeComponents(entity, cd::MoveTemp(optMesh.value()), pPBRMaterialType);
     }
@@ -111,15 +118,17 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         auto& terrainComponent = pWorld->CreateComponent<engine::TerrainComponent>(entity);
         terrainComponent.InitElevationRawData();
 
-        std::optional<cd::Mesh> optMesh = engine::GenerateTerrainMesh(terrainComponent.GetMeshWidth(), terrainComponent.GetMeshDepth(), pTerrainMaterialType->GetRequiredVertexFormat());
+        // As terrain is still a prototype featrue, we just reuse one MeshResource to build data.
+        static std::optional<cd::Mesh> optMesh = engine::GenerateTerrainMesh(terrainComponent.GetMeshWidth(), terrainComponent.GetMeshDepth(), pTerrainMaterialType->GetRequiredVertexFormat());
         assert(optMesh.has_value());
         cd::Mesh& mesh = optMesh.value();
 
         auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
-        meshComponent.SetMeshData(&mesh);
-        meshComponent.SetRequiredVertexFormat(&pTerrainMaterialType->GetRequiredVertexFormat());//to do : modify vertexFormat
-        meshComponent.Build();
-        meshComponent.Submit();
+        constexpr engine::StringCrc nameCrc("TerrainMesh");
+        engine::MeshResource* pMeshResource = pResourceContext->AddMeshResource(nameCrc);
+        pMeshResource->SetMeshAsset(&mesh);
+        pMeshResource->UpdateVertexFormat(pTerrainMaterialType->GetRequiredVertexFormat());
+        meshComponent.SetMeshResource(pMeshResource);
 
         mesh.SetName(pSceneWorld->GetNameComponent(entity)->GetName());
         mesh.SetID(cd::MeshID(pSceneDatabase->GetMeshCount()));
