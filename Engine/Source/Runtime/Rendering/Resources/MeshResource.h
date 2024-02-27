@@ -31,7 +31,7 @@ public:
 
 	virtual void Update() override;
 
-	const cd::Mesh* GetMeshAsset() { return m_pMeshAsset; }
+	const cd::Mesh* GetMeshAsset() const { return m_pMeshAsset; }
 	void SetMeshAsset(const cd::Mesh* pMeshAsset);
 	
 	void UpdateVertexFormat(const cd::VertexFormat& vertexFormat);

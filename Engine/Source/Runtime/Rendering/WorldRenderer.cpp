@@ -11,6 +11,7 @@
 #include "Math/Transform.hpp"
 #include "Rendering/RenderContext.h"
 #include "Rendering/Resources/MeshResource.h"
+#include "Rendering/Resources/TextureResource.h"
 #include "Scene/Texture.h"
 #include "U_IBL.sh"
 #include "U_AtmophericScattering.sh"
@@ -207,11 +208,23 @@ void WorldRenderer::Render(float deltaTime)
 		}
 
 		// Material
+		// TODO : need to check if one texture binds twice to different slot. Or will get bgfx assert about duplicated uniform set.
+		// So please have a research about same texture handle binds to different slots multiple times.
+		// The factor is to build slot -> texture handle maps before update.
+		bool textureSlotBindTable[32] = { false };
 		for (const auto& [textureType, propertyGroup] : pMaterialComponent->GetPropertyGroups())
 		{
 			const MaterialComponent::TextureInfo& textureInfo = propertyGroup.textureInfo;
+			if (textureSlotBindTable[textureInfo.slot])
+			{
+				// already bind.
+				continue;
+			}
 
-			if (!propertyGroup.useTexture || !bgfx::isValid(bgfx::TextureHandle{ textureInfo.textureHandle }))
+			TextureResource* pTextureResource = textureInfo.pTextureResource;
+			if (!propertyGroup.useTexture ||
+				pTextureResource == nullptr ||
+				(pTextureResource->GetStatus() != ResourceStatus::Ready && pTextureResource->GetStatus() != ResourceStatus::Optimized))
 			{
 				continue;
 			}
@@ -224,7 +237,8 @@ void WorldRenderer::Render(float deltaTime)
 				GetRenderContext()->FillUniform(albedoUVOffsetAndScaleCrc, &uvOffsetAndScaleData, 1);
 			}
 
-			bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle{ textureInfo.samplerHandle }, bgfx::TextureHandle{ textureInfo.textureHandle });
+			textureSlotBindTable[textureInfo.slot] = true;
+			bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle{ pTextureResource->GetSamplerHandle() }, bgfx::TextureHandle{ pTextureResource->GetTextureHandle() });
 		}
 
 		// Sky

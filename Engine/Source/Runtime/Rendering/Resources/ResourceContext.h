@@ -11,6 +11,7 @@ namespace engine
 enum class ResourceType;
 class IResource;
 class MeshResource;
+class TextureResource;
 
 class ResourceContext
 {
@@ -25,7 +26,18 @@ public:
 	void Update();
 
 	StringCrc GetResourceCrc(ResourceType resourceType, StringCrc nameCrc);
+
 	MeshResource* AddMeshResource(StringCrc nameCrc);
+	TextureResource* AddTextureResource(StringCrc nameCrc);
+	MeshResource* GetMeshResource(StringCrc nameCrc);
+	TextureResource* GetTextureResource(StringCrc nameCrc);
+
+private:
+	template<ResourceType RT>
+	IResource* AddResourceImpl(StringCrc nameCrc);
+
+	template<ResourceType RT>
+	IResource* GetResourceImpl(StringCrc nameCrc);
 
 private:
 	std::map<StringCrc, std::unique_ptr<IResource>> m_resources;

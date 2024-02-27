@@ -2,6 +2,7 @@
 
 #include "Rendering/RenderContext.h"
 #include "Rendering/ShaderCollections.h"
+#include "Rendering/Resources/TextureResource.h"
 #include "Graphics/GraphicsBackend.h"
 #include "ImGui/ImGuiUtils.hpp"
 #include "Path/Path.h"
@@ -239,9 +240,11 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 				ImGui::PushID(textureTypeValue);
 
 				auto& textureInfo = pPropertyGroup->textureInfo;
-				if (bgfx::kInvalidHandle != textureInfo.textureHandle)
+				engine::TextureResource* pTextureResource = textureInfo.pTextureResource;
+				if (pTextureResource &&
+					(pTextureResource->GetStatus() == engine::ResourceStatus::Ready || pTextureResource->GetStatus() == engine::ResourceStatus::Optimized))
 				{
-					ImGui::Image(reinterpret_cast<ImTextureID>(textureInfo.textureHandle), ImVec2(64, 64));
+					ImGui::Image(reinterpret_cast<ImTextureID>(pTextureResource->GetTextureHandle()), ImVec2(64, 64));
 				}
 				else
 				{

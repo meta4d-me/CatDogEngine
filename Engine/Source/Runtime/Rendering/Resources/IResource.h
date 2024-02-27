@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/StringCrc.h"
+
 namespace engine
 {
 
@@ -32,10 +34,15 @@ public:
 	virtual ~IResource() = default;
 
 	virtual void Update() = 0;
+
+	StringCrc GetName() const { return m_nameCrc; }
+	void SetName(StringCrc crc) { m_nameCrc = crc; }
+
 	ResourceStatus GetStatus() const { return m_status; }
 	void SetStatus(ResourceStatus status) { m_status = status; }
 
 private:
+	StringCrc m_nameCrc;
 	ResourceStatus m_status = ResourceStatus::Loading;
 };
 

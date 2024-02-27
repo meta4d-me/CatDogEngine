@@ -71,33 +71,13 @@ uint16_t MeshResource::GetIndexBufferHandle(uint32_t index) const
 
 void MeshResource::SetMeshAsset(const cd::Mesh* pMeshAsset)
 {
-	if (pMeshAsset)
-	{
-		if (ResourceStatus::Loading == GetStatus())
-		{
-			m_pMeshAsset = pMeshAsset;
-			m_vertexCount = pMeshAsset->GetVertexCount();
-			m_polygonCount = pMeshAsset->GetPolygonCount();
-			m_polygonGroupCount = pMeshAsset->GetPolygonGroupCount();
-			SetStatus(ResourceStatus::Loaded);
-		}
-	}
-	else
-	{
-		if (ResourceStatus::Building != GetStatus())
-		{
-			// Cleanup asset reference. Can't rebuild data such as UpdateVertexFormat after this operation.
-			m_pMeshAsset = nullptr;
-		}
-	}
+	m_pMeshAsset = pMeshAsset;
 }
 
 void MeshResource::UpdateVertexFormat(const cd::VertexFormat& vertexFormat)
 {
-	if (!m_pMeshAsset)
-	{
-		return;
-	}
+	// Set mesh asset at first so that MeshResource can analyze if it is suitable.
+	assert(m_pMeshAsset);
 
 	for (const auto& targetLayout : vertexFormat.GetVertexAttributeLayouts())
 	{
@@ -112,10 +92,7 @@ void MeshResource::UpdateVertexFormat(const cd::VertexFormat& vertexFormat)
 		{
 			if (m_pMeshAsset->GetVertexFormat().Contains(targetLayout.vertexAttributeType))
 			{
-				// CPU data needs to rebuild and send to gpu again.
-				SetStatus(ResourceStatus::Building);
 				m_currentVertexFormat.AddVertexAttributeLayout(targetLayout);
-				DestroyVertexBufferHandle();
 			}
 			else
 			{
@@ -129,6 +106,25 @@ void MeshResource::Update()
 {
 	switch (GetStatus())
 	{
+	case ResourceStatus::Loading:
+	{
+		if (m_pMeshAsset)
+		{
+			m_vertexCount = m_pMeshAsset->GetVertexCount();
+			m_polygonCount = m_pMeshAsset->GetPolygonCount();
+			m_polygonGroupCount = m_pMeshAsset->GetPolygonGroupCount();
+			SetStatus(ResourceStatus::Loaded);
+		}
+		break;
+	}
+	case ResourceStatus::Loaded:
+	{
+		if (m_vertexCount >= 3U && m_polygonCount > 0U)
+		{
+			SetStatus(ResourceStatus::Building);
+		}
+		break;
+	}
 	case ResourceStatus::Building:
 	{
 		BuildVertexBuffer();
@@ -140,8 +136,8 @@ void MeshResource::Update()
 	{
 		SubmitVertexBuffer();
 		SubmitIndexBuffer();
-		SetStatus(ResourceStatus::Ready);
 		m_recycleCount = 0U;
+		SetStatus(ResourceStatus::Ready);
 		break;
 	}
 	case ResourceStatus::Ready:
@@ -153,7 +149,6 @@ void MeshResource::Update()
 			m_vertexBuffer.clear();
 			m_indexBuffers.clear();
 			SetStatus(ResourceStatus::Optimized);
-			m_recycleCount = 0U;
 		}
 		break;
 	}
@@ -172,7 +167,7 @@ void MeshResource::Update()
 
 bool MeshResource::BuildVertexBuffer()
 {
-	assert(m_pMeshAsset && m_vertexCount > 0U);
+	assert(m_pMeshAsset && m_vertexCount > 3U);
 
 	std::optional<cd::VertexBuffer> optVertexBuffer = cd::BuildVertexBufferForStaticMesh(*m_pMeshAsset, m_currentVertexFormat);
 	if (!optVertexBuffer.has_value())

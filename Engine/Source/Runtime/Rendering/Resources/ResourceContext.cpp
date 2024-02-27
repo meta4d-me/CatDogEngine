@@ -2,13 +2,13 @@
 
 #include "Base/NameOf.h"
 #include "MeshResource.h"
+#include "TextureResource.h"
 
 namespace engine
 {
 
 ResourceContext::~ResourceContext()
 {
-	// TODO
 }
 
 void ResourceContext::Update()
@@ -28,18 +28,54 @@ StringCrc ResourceContext::GetResourceCrc(ResourceType resourceType, StringCrc n
 
 MeshResource* ResourceContext::AddMeshResource(StringCrc nameCrc)
 {
-	StringCrc resourceCrc = GetResourceCrc(ResourceType::Mesh, nameCrc);
+	return static_cast<MeshResource*>(AddResourceImpl<ResourceType::Mesh>(nameCrc));
+}
+
+TextureResource* ResourceContext::AddTextureResource(StringCrc nameCrc)
+{
+	return static_cast<TextureResource*>(AddResourceImpl<ResourceType::Texture>(nameCrc));
+}
+
+MeshResource* ResourceContext::GetMeshResource(StringCrc nameCrc)
+{
+	return static_cast<MeshResource*>(GetResourceImpl<ResourceType::Mesh>(nameCrc));
+}
+
+TextureResource* ResourceContext::GetTextureResource(StringCrc nameCrc)
+{
+	return static_cast<TextureResource*>(GetResourceImpl<ResourceType::Texture>(nameCrc));
+}
+
+template<ResourceType RT>
+IResource* ResourceContext::AddResourceImpl(StringCrc nameCrc)
+{
+	StringCrc resourceCrc = GetResourceCrc(RT, nameCrc);
 	auto itResource = m_resources.find(resourceCrc);
 	if (itResource != m_resources.end())
 	{
-		// It is confident to convert as we query Mesh type crc explicitly.
-		return static_cast<MeshResource*>(itResource->second.get());
+		return itResource->second.get();
 	}
-	
-	auto meshResource = std::make_unique<MeshResource>();
-	auto* pMeshResource = meshResource.get();
-	m_resources[resourceCrc] = cd::MoveTemp(meshResource);
-	return pMeshResource;
+
+	if constexpr (ResourceType::Mesh == RT)
+	{
+		m_resources[resourceCrc] = std::make_unique<MeshResource>();
+	}
+	else if constexpr (ResourceType::Texture == RT)
+	{
+		m_resources[resourceCrc] = std::make_unique<TextureResource>();
+	}
+
+	auto* pResource = m_resources[resourceCrc].get();
+	pResource->SetName(nameCrc);
+	return pResource;
+}
+
+template<ResourceType RT>
+IResource* ResourceContext::GetResourceImpl(StringCrc nameCrc)
+{
+	StringCrc resourceCrc = GetResourceCrc(RT, nameCrc);
+	auto itResource = m_resources.find(resourceCrc);
+	return itResource != m_resources.end() ? itResource->second.get() : nullptr;
 }
 
 }
