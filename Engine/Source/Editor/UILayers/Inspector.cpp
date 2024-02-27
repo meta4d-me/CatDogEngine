@@ -4,6 +4,7 @@
 #include "Rendering/ShaderCollections.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ResourceLoader.h"
+#include "Rendering/Resources/TextureResource.h"
 #include "Graphics/GraphicsBackend.h"
 #include "ImGui/ImGuiUtils.hpp"
 #include "Path/Path.h"
@@ -101,24 +102,8 @@ void UpdateComponentWidget<engine::StaticMeshComponent>(engine::SceneWorld* pSce
 
 	if (isOpen)
 	{
-		ImGuiUtils::ImGuiStringProperty("Vertex Count", std::to_string(pStaticMeshComponent->GetVertexCount()));
-		ImGuiUtils::ImGuiStringProperty("Triangle Count", std::to_string(static_cast<uint32_t>(pStaticMeshComponent->GetPolygonCount())));
-
-		if (!pStaticMeshComponent->IsProgressiveMeshValid())
-		{
-			if (ImGui::Button(reinterpret_cast<const char*>("Build ProgressiveMesh")))
-			{
-				pStaticMeshComponent->BuildProgressiveMeshData();
-
-			}
-		}
-		else
-		{
-			ImGuiUtils::ImGuiFloatProperty("LOD Percent", pStaticMeshComponent->GetProgressiveMeshReductionPercent(),
-				cd::Unit::None, 0.001f, 1.0f, false, 0.001f);
-			ImGuiUtils::ImGuiIntProperty("Target VertexCount", reinterpret_cast<int&>(pStaticMeshComponent->GetProgressiveMeshTargetVertexCount()),
-				cd::Unit::None, 0, static_cast<int>(pStaticMeshComponent->GetOriginVertexCount()), false, 1);
-		}
+		//ImGuiUtils::ImGuiStringProperty("Vertex Count", std::to_string(pStaticMeshComponent->GetVertexCount()));
+		//ImGuiUtils::ImGuiStringProperty("Triangle Count", std::to_string(static_cast<uint32_t>(pStaticMeshComponent->GetPolygonCount())));
 	}
 
 	ImGui::Separator();
@@ -259,9 +244,11 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 				ImGui::PushID(textureTypeValue);
 
 				auto& textureInfo = pPropertyGroup->textureInfo;
-				if (bgfx::kInvalidHandle != textureInfo.textureHandle)
+				engine::TextureResource* pTextureResource = textureInfo.pTextureResource;
+				if (pTextureResource &&
+					(pTextureResource->GetStatus() == engine::ResourceStatus::Ready || pTextureResource->GetStatus() == engine::ResourceStatus::Optimized))
 				{
-					ImGui::Image(reinterpret_cast<ImTextureID>(textureInfo.textureHandle), ImVec2(64, 64));
+					ImGui::Image(reinterpret_cast<ImTextureID>(pTextureResource->GetTextureHandle()), ImVec2(64, 64));
 				}
 				else
 				{
@@ -681,13 +668,7 @@ Inspector::~Inspector()
 
 void Inspector::Init()
 {
-	m_pImportFileBrowser = std::make_unique<ImGui::FileBrowser>();
-}
-
-void Inspector::SelectTexture()
-{
-	m_texturePath = m_pImportFileBrowser->GetSelected().string().c_str();
-	m_pImportFileBrowser->ClearSelected();
+	m_pSelectFileBrowser = std::make_unique<ImGui::FileBrowser>();
 }
 
 void Inspector::Update()
@@ -729,10 +710,10 @@ void Inspector::Update()
 	auto* pMaterialComponent = pSceneWorld->GetMaterialComponent(m_lastSelectedEntity);
 	if (pMaterialComponent)
 	{
-		if (pMaterialComponent->GetIsOpenBrowser())
+		if (pMaterialComponent->IsOpenBrowser())
 		{
-			m_pImportFileBrowser->SetTitle("Select Texture");
-			m_pImportFileBrowser->Open();
+			m_pSelectFileBrowser->SetTitle("Select Texture");
+			m_pSelectFileBrowser->Open();
 			pMaterialComponent->SetIsOpenBrowser(false);
 		}
 	}
@@ -745,16 +726,14 @@ void Inspector::Update()
 
 	ImGui::End();
 
-	m_pImportFileBrowser->Display();
-
-
-	if (m_pImportFileBrowser->HasSelected())
+	m_pSelectFileBrowser->Display();
+	if (m_pSelectFileBrowser->HasSelected())
 	{
-		m_texturePath = m_pImportFileBrowser->GetSelected().string();
+		m_lastSelectedFilePath = m_pSelectFileBrowser->GetSelected().string();
 		std::filesystem::path outputSelectTexturePath = CDPROJECT_RESOURCES_ROOT_PATH;
-		outputSelectTexturePath += m_texturePath.filename().replace_extension(".dds").string();
+		outputSelectTexturePath += m_lastSelectedFilePath.filename().replace_extension(".dds").string();
 		auto selectTextureType = static_cast<cd::MaterialTextureType>(pMaterialComponent->GetSelectTexture());
-		ResourceBuilder::Get().AddTextureBuildTask(selectTextureType, m_texturePath.string().c_str(), outputSelectTexturePath.string().c_str());
+		ResourceBuilder::Get().AddTextureBuildTask(selectTextureType, m_lastSelectedFilePath.string().c_str(), outputSelectTexturePath.string().c_str());
 		ResourceBuilder::Get().Update();
 
 		std::string textureName = outputSelectTexturePath.filename().string();
@@ -773,7 +752,6 @@ void Inspector::Update()
 		//When selected texture should close the file browser
 		m_pImportFileBrowser->ClearSelected();
 	}
-
 }
 
 }

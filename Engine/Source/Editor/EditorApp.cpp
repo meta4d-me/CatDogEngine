@@ -25,6 +25,8 @@
 #include "Rendering/BloomRenderer.h"
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/MeshResource.h"
+#include "Rendering/Resources/ResourceContext.h"
 #include "Rendering/SkeletonRenderer.h"
 #include "Rendering/SkyboxRenderer.h"
 #include "Rendering/ShaderCollections.h"
@@ -332,18 +334,20 @@ void EditorApp::InitSkyEntity()
 	}
 
 	cd::VertexFormat vertexFormat;
-	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
-	m_pRenderContext->CreateVertexLayout(engine::StringCrc("PosistionOnly"), vertexFormat.GetVertexLayout());
+	vertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
+	m_pRenderContext->CreateVertexLayout(engine::StringCrc("PosistionOnly"), vertexFormat.GetVertexAttributeLayouts());
 
+	// TODO : manage temp asset.
 	cd::Box skyBox(cd::Point(-1.0f), cd::Point(1.0f));
-	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(skyBox, vertexFormat, false);
+	static std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(skyBox, vertexFormat, false);
 	assert(optMesh.has_value());
 
 	auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(skyEntity);
-	meshComponent.SetMeshData(&optMesh.value());
-	meshComponent.SetRequiredVertexFormat(&vertexFormat);
-	meshComponent.Build();
-	meshComponent.Submit();
+	constexpr engine::StringCrc skyboxMeshCrc("SkyboxMesh");
+	engine::MeshResource* pMeshResource = m_pResourceContext->AddMeshResource(skyboxMeshCrc);
+	pMeshResource->SetMeshAsset(&optMesh.value());
+	pMeshResource->UpdateVertexFormat(vertexFormat);
+	meshComponent.SetMeshResource(pMeshResource);
 }
 
 #ifdef ENABLE_DDGI
@@ -475,6 +479,9 @@ void EditorApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
 	m_pRenderContext = std::make_unique<engine::RenderContext>();
 	m_pRenderContext->Init(backend, hwnd);
 	engine::Renderer::SetRenderContext(m_pRenderContext.get());
+
+	m_pResourceContext = std::make_unique<engine::ResourceContext>();
+	m_pRenderContext->SetResourceContext(m_pResourceContext.get());
 
 	m_pShaderCollections = std::make_unique<engine::ShaderCollections>();
 	m_pRenderContext->SetShaderCollections(m_pShaderCollections.get());
@@ -696,6 +703,7 @@ bool EditorApp::Update(float deltaTime)
 	assert(pMainCameraComponent);
 	pMainCameraComponent->BuildProjectMatrix();
 
+	m_pResourceContext->Update();
 	m_pRenderContext->BeginFrame();
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEditorRenderers)
 	{

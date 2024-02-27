@@ -214,8 +214,6 @@ void AnimationRenderer::Render(float deltaTime)
 		details::CalculateBoneTransform(boneMatrices, pSceneDatabase, animationTime, rootBone,
 			cd::Matrix4x4::Identity(), pTransformComponent->GetWorldMatrix().Inverse());
 		bgfx::setUniform(bgfx::UniformHandle{pAnimationComponent->GetBoneMatrixsUniform()}, boneMatrices.data(), static_cast<uint16_t>(boneMatrices.size()));
-		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()});
-		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()});
 
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);

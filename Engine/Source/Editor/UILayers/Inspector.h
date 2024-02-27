@@ -22,17 +22,16 @@ public:
 	virtual void Init() override;
 	virtual void Update() override;
 
-	void SelectTexture();
-
 	void SetIsOpenBrowser(bool isOpenBrowser) { m_isOpenBrowser = isOpenBrowser; }
-	bool& GetIsOpenBrowser() { return m_isOpenBrowser; }
-	bool GetIsOpenBrowser() const { return m_isOpenBrowser; }
+	bool IsOpenBrowser() const { return m_isOpenBrowser; }
 
 private:
-	bool m_isOpenBrowser = false;
-	std::filesystem::path m_texturePath;
 	engine::Entity m_lastSelectedEntity = engine::INVALID_ENTITY;
-	std::unique_ptr<ImGui::FileBrowser> m_pImportFileBrowser;
+
+	// Select file
+	bool m_isOpenBrowser = false;
+	std::filesystem::path m_lastSelectedFilePath;
+	std::unique_ptr<ImGui::FileBrowser> m_pSelectFileBrowser;
 };
 
 }

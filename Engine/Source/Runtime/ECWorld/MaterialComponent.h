@@ -32,6 +32,7 @@ namespace engine
 
 class MaterialType;
 class RenderContext;
+class TextureResource;
 
 class MaterialComponent final
 {
@@ -45,20 +46,10 @@ public:
 	using TextureBlob = std::vector<std::byte>;
 	struct TextureInfo
 	{
-		static constexpr uint16_t BGFXInvalidHandle = (1 << 16) - 1;
-
-		const bgfx::Memory* data;
-		uint64_t flag;
-		uint32_t width;
-		uint32_t height;
-		uint32_t depth;
-		cd::TextureFormat format;
 		cd::Vec2f uvOffset = cd::Vec2f::Zero();
 		cd::Vec2f uvScale = cd::Vec2f::One();
-		uint16_t samplerHandle = BGFXInvalidHandle;
-		uint16_t textureHandle = BGFXInvalidHandle;
 		uint8_t slot;
-		uint8_t mipCount;
+		TextureResource* pTextureResource = nullptr;
 
 		// TODO : Improve TextureInfo 
 		cd::Vec2f& GetUVOffset() { return uvOffset; }
@@ -86,7 +77,7 @@ public:
 
 	void Init();
 
-	void SetMaterialData(const cd::Material* pMaterialData) { m_pMaterialData = pMaterialData; }
+	void SetMaterialData(const cd::Material* pMaterialData);
 	cd::Material* GetMaterialData() { return const_cast<cd::Material*>(m_pMaterialData); }
 	const cd::Material* GetMaterialData() const { return m_pMaterialData; }
 
@@ -94,8 +85,6 @@ public:
 	const engine::MaterialType* GetMaterialType() const { return m_pMaterialType; }
 
 	void Reset();
-	void SelectBuild(int textureType);
-	void Build();
 
 	// Basic data.
 	void SetName(std::string name) { m_name = cd::MoveTemp(name); }
@@ -112,8 +101,7 @@ public:
 	const std::string& GetFeaturesCombine();
 
 	// Texture data.
-	void AddTextureBlob(cd::MaterialTextureType textureType, cd::TextureFormat textureFormat, cd::TextureMapMode uMapMode, cd::TextureMapMode vMapMode, TextureBlob textureBlob);
-	void AddTextureFileBlob(cd::MaterialTextureType textureType, const cd::Material* pMaterial, const cd::Texture& texture, TextureBlob textureBlob);
+	void SetTextureResource(cd::MaterialTextureType textureType, const cd::Material* pMaterial, TextureResource* pTextureResource);
 
 	const std::map<cd::MaterialPropertyGroup, PropertyGroup>& GetPropertyGroups() const { return m_propertyGroups; }
 	PropertyGroup* GetPropertyGroup(cd::MaterialPropertyGroup propertyGroup);
@@ -172,14 +160,6 @@ public:
 	float& GetAlphaCutOff() { return m_alphaCutOff; }
 	float GetAlphaCutOff() const { return m_alphaCutOff; }
 
-	void SetSelectTexture(int selectTexturetype) { m_pSelectTexture = selectTexturetype; }
-	int &GetSelectTexture() { return m_pSelectTexture; }
-	int GetSelectTexture() const { return m_pSelectTexture; }
-
-	void SetIsOpenBrowser(bool isOpenBrowser) { m_isOpenBrowser = isOpenBrowser; }
-	bool& GetIsOpenBrowser() { return m_isOpenBrowser; }
-	bool GetIsOpenBrowser() const { return m_isOpenBrowser; }
-
 private:
 	// Input
 	const cd::Material* m_pMaterialData = nullptr;
@@ -191,8 +171,6 @@ private:
 	float m_alphaCutOff;
 
 	bool m_isShaderFeatureDirty = false;
-	int m_pSelectTexture = -1;
-	bool m_isOpenBrowser = false;
 	std::set<ShaderFeature> m_shaderFeatures;
 	std::string m_featureCombine;
 

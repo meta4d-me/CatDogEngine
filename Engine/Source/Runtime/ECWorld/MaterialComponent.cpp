@@ -3,99 +3,9 @@
 #include "Log/Log.h"
 #include "Material/MaterialType.h"
 #include "Scene/Material.h"
-#include "Scene/Texture.h"
-
-#include <bgfx/bgfx.h>
-#include <bimg/decode.h>
-#include <bx/allocator.h>
 
 #include <cassert>
-#include <filesystem>
 #include <unordered_map>
-
-namespace
-{
-
-static uint32_t textureIndex = 0;
-
-static bx::AllocatorI* GetResourceAllocator()
-{
-	static bx::DefaultAllocator s_allocator;
-	return &s_allocator;
-}
-
-bgfx::TextureHandle BGFXCreateTexture(
-	uint16_t width, 
-	uint16_t height, 
-	uint16_t depth, 
-	bool isCubeMap,
-	bool hasMips, 
-	uint16_t numLayers, 
-	bgfx::TextureFormat::Enum textureFormat, 
-	uint64_t textureFlags, 
-	const bgfx::Memory* pMemory)
-{
-	bgfx::TextureHandle textureHandle = BGFX_INVALID_HANDLE;
-	if (isCubeMap)
-	{
-		textureHandle = bgfx::createTextureCube(width, hasMips, numLayers, textureFormat, textureFlags, pMemory);
-	}
-	else if (depth > 1)
-	{
-		textureHandle = bgfx::createTexture3D(width, height, depth, hasMips, textureFormat, textureFlags, pMemory);
-	}
-	else if (bgfx::isTextureValid(0, false, numLayers, textureFormat, textureFlags))
-	{
-		textureHandle = bgfx::createTexture2D(width, height, hasMips, numLayers, textureFormat, textureFlags, pMemory);
-	}
-	return textureHandle;
-}
-
-uint64_t GetBGFXTextureFlag(cd::MaterialTextureType textureType, cd::TextureMapMode uMapMode, cd::TextureMapMode vMapMode)
-{
-	uint64_t textureFlag = 0;
-	if (cd::MaterialTextureType::BaseColor == textureType ||
-		cd::MaterialTextureType::Emissive == textureType)
-	{
-		textureFlag |= BGFX_TEXTURE_SRGB;
-	}
-
-	switch (uMapMode)
-	{
-	case cd::TextureMapMode::Clamp:
-		textureFlag |= BGFX_SAMPLER_U_CLAMP;
-		break;
-	case cd::TextureMapMode::Mirror:
-		textureFlag |= BGFX_SAMPLER_U_MIRROR;
-		break;
-	case cd::TextureMapMode::Border:
-		textureFlag |= BGFX_SAMPLER_U_BORDER;
-		break;
-	case cd::TextureMapMode::Wrap:
-	default:
-		break;
-	}
-
-	switch (vMapMode)
-	{
-	case cd::TextureMapMode::Clamp:
-		textureFlag |= BGFX_SAMPLER_V_CLAMP;
-		break;
-	case cd::TextureMapMode::Mirror:
-		textureFlag |= BGFX_SAMPLER_V_MIRROR;
-		break;
-	case cd::TextureMapMode::Border:
-		textureFlag |= BGFX_SAMPLER_V_BORDER;
-		break;
-	case cd::TextureMapMode::Wrap:
-	default:
-		break;
-	}
-
-	return textureFlag;
-}
-
-}
 
 namespace engine
 {
@@ -127,6 +37,15 @@ void MaterialComponent::Init()
 	propertyGroup.useTexture = false;
 	propertyGroup.factor = cd::Vec4f{ 1.0f, 1.0f, 1.0f, 1.0f };
 	m_propertyGroups[cd::MaterialPropertyGroup::Emissive] = cd::MoveTemp(propertyGroup);
+}
+
+void MaterialComponent::SetMaterialData(const cd::Material* pMaterialData)
+{
+	m_pMaterialData = pMaterialData;
+	if (m_pMaterialData)
+	{
+		m_name = m_pMaterialData->GetName();
+	}
 }
 
 MaterialComponent::PropertyGroup* MaterialComponent::GetPropertyGroup(cd::MaterialPropertyGroup propertyGroup)
@@ -208,41 +127,7 @@ void MaterialComponent::Reset()
 	m_propertyGroups.clear();
 }
 
-void MaterialComponent::AddTextureBlob(cd::MaterialTextureType textureType, cd::TextureFormat textureFormat, cd::TextureMapMode uMapMode, cd::TextureMapMode vMapMode,
-	TextureBlob textureBlob)
-{
-	std::optional<uint8_t> optTextureSlot = m_pMaterialType->GetTextureSlot(textureType);
-	if (!optTextureSlot.has_value())
-	{
-		return;
-	}
-	
-	PropertyGroup& propertyGroup = m_propertyGroups[textureType];
-	propertyGroup.useTexture = true;
-
-	bimg::ImageContainer* pImageContainer = bimg::imageParse(GetResourceAllocator(), textureBlob.data(), static_cast<uint32_t>(textureBlob.size()));
-	const bgfx::Memory* mem = bgfx::makeRef(
-	pImageContainer->m_data
-	,pImageContainer->m_size
-	);
-
-	TextureInfo& textureInfo = propertyGroup.textureInfo;
-	textureInfo.slot = optTextureSlot.value();
-	textureInfo.width = pImageContainer->m_width;
-	textureInfo.height = pImageContainer->m_height;
-	textureInfo.depth = pImageContainer->m_depth;
-	textureInfo.mipCount = pImageContainer->m_numMips;
-	textureInfo.format = textureFormat;
-	textureInfo.data = mem;
-	textureInfo.flag = GetBGFXTextureFlag(textureType, uMapMode, vMapMode);
-	textureInfo.uvOffset = cd::Vec2f::Zero();
-	textureInfo.uvScale = cd::Vec2f::One();
-	
-	// TODO : generic CPU/GPU resource manager.
-	m_cacheTextureBlobs.emplace_back(cd::MoveTemp(textureBlob));
-}
-
-void MaterialComponent::AddTextureFileBlob(cd::MaterialTextureType textureType, const cd::Material* pMaterial, const cd::Texture& texture, TextureBlob textureBlob)
+void MaterialComponent::SetTextureResource(cd::MaterialTextureType textureType, const cd::Material* pMaterial, TextureResource* pTextureResource)
 {
 	std::optional<uint8_t> optTextureSlot = m_pMaterialType->GetTextureSlot(textureType);
 	if (!optTextureSlot.has_value())
@@ -253,16 +138,9 @@ void MaterialComponent::AddTextureFileBlob(cd::MaterialTextureType textureType, 
 	PropertyGroup& propertyGroup = m_propertyGroups[textureType];
 	propertyGroup.useTexture = true;
 
-	bimg::ImageContainer* pImageContainer = bimg::imageParse(GetResourceAllocator(), textureBlob.data(), static_cast<uint32_t>(textureBlob.size()));
 	TextureInfo& textureInfo = propertyGroup.textureInfo;
 	textureInfo.slot = optTextureSlot.value();
-	textureInfo.width = pImageContainer->m_width;
-	textureInfo.height = pImageContainer->m_height;
-	textureInfo.depth = pImageContainer->m_depth;
-	textureInfo.mipCount = pImageContainer->m_numMips;
-	textureInfo.format = static_cast<cd::TextureFormat>(pImageContainer->m_format);
-	textureInfo.data = bgfx::makeRef(pImageContainer->m_data, pImageContainer->m_size);
-	textureInfo.flag = GetBGFXTextureFlag(textureType, texture.GetUMapMode(), texture.GetVMapMode());
+	textureInfo.pTextureResource = pTextureResource;
 	if (auto optUVScale = pMaterial->GetVec2fProperty(textureType, cd::MaterialProperty::UVScale); optUVScale.has_value())
 	{
 		textureInfo.uvScale = optUVScale.value();
@@ -270,54 +148,6 @@ void MaterialComponent::AddTextureFileBlob(cd::MaterialTextureType textureType, 
 	if (auto optUVOffset = pMaterial->GetVec2fProperty(textureType, cd::MaterialProperty::UVOffset); optUVOffset.has_value())
 	{
 		textureInfo.uvOffset = optUVOffset.value();
-	}
-}
-
-void MaterialComponent::SelectBuild(int textureType)
-{
-	if (m_pMaterialData)
-	{
-		m_name = m_pMaterialData->GetName();
-	}
-	cd::MaterialTextureType materialTextureType = static_cast<cd::MaterialTextureType>(textureType);
-	PropertyGroup& propertyGroup = m_propertyGroups[materialTextureType];
-
-	TextureInfo& textureInfo = propertyGroup.textureInfo;
-	textureInfo.textureHandle = BGFXCreateTexture(textureInfo.width, textureInfo.height, textureInfo.depth, false, textureInfo.mipCount > 1,
-		1, static_cast<bgfx::TextureFormat::Enum>(textureInfo.format), textureInfo.flag, textureInfo.data).idx;
-
-	std::string samplerUniformName = "s_textureSampler";
-	samplerUniformName += std::to_string(textureIndex++);
-	textureInfo.samplerHandle = bgfx::createUniform(samplerUniformName.c_str(), bgfx::UniformType::Sampler).idx;
-
-	assert(textureInfo.textureHandle != bgfx::kInvalidHandle);
-	assert(textureInfo.samplerHandle != bgfx::kInvalidHandle);
-}
-
-void MaterialComponent::Build()
-{
-	if (m_pMaterialData)
-	{
-		m_name = m_pMaterialData->GetName();
-	}
-	
-	for (auto& [textureType, propertyGroup] : m_propertyGroups)
-	{
-		if (!propertyGroup.useTexture)
-		{
-			continue;
-		}
-
-		TextureInfo& textureInfo = propertyGroup.textureInfo;
-		textureInfo.textureHandle = BGFXCreateTexture(textureInfo.width, textureInfo.height, textureInfo.depth, false, textureInfo.mipCount > 1,
-			1, static_cast<bgfx::TextureFormat::Enum>(textureInfo.format), textureInfo.flag, textureInfo.data).idx;
-
-		std::string samplerUniformName = "s_textureSampler";
-		samplerUniformName += std::to_string(textureIndex++);
-		textureInfo.samplerHandle = bgfx::createUniform(samplerUniformName.c_str(), bgfx::UniformType::Sampler).idx;
-
-		assert(textureInfo.textureHandle != bgfx::kInvalidHandle);
-		assert(textureInfo.samplerHandle != bgfx::kInvalidHandle);
 	}
 }
 
