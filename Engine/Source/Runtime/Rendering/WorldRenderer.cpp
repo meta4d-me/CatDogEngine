@@ -90,7 +90,7 @@ void WorldRenderer::Warmup()
 	GetRenderContext()->CreateUniform(LightDir, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(HeightOffsetAndshadowLength, bgfx::UniformType::Vec4, 1);
 
-	GetRenderContext()->CreateUniform(lightViewProjs, bgfx::UniformType::Mat4, 12); // 
+	GetRenderContext()->CreateUniform(lightViewProjs, bgfx::UniformType::Mat4, 12);
 	GetRenderContext()->CreateUniform(cubeShadowMapSamplers[0], bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(cubeShadowMapSamplers[1], bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(cubeShadowMapSamplers[2], bgfx::UniformType::Sampler);
@@ -108,6 +108,7 @@ void WorldRenderer::UpdateView(const float* pViewMatrix, const float* pProjectio
 void WorldRenderer::Render(float deltaTime)
 {
 	// TODO : Remove it. If every renderer need to submit camera related uniform, it should be done not inside Renderer class.
+	const CameraComponent* pMainCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(m_pCurrentSceneWorld->GetMainCameraEntity());
 	const cd::Transform& cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetTransform();
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
@@ -245,7 +246,7 @@ void WorldRenderer::Render(float deltaTime)
 		if (SkyType::SkyBox == crtSkyType)
 		{
 			// Create a new TextureHandle each frame if the skybox texture path has been updated,
-			// otherwise RenderContext::CreateTexture will automatically skip it.
+			// otherwise RenderContext::CreateTexture will skip it automatically.
 
 			constexpr StringCrc irrSamplerCrc(cubeIrradianceSampler);
 			GetRenderContext()->CreateTexture(pSkyComponent->GetIrradianceTexturePath().c_str(), samplerFlags);
@@ -280,6 +281,10 @@ void WorldRenderer::Render(float deltaTime)
 		// Submit uniform values : camera settings
 		constexpr StringCrc cameraPosCrc(cameraPos);
 		GetRenderContext()->FillUniform(cameraPosCrc, &cameraTransform.GetTranslation().x(), 1);
+
+		constexpr StringCrc cameraNearFarPlaneCrc(cameraNearFarPlane);
+		float cameraNearFarPlanedata[2]{ pMainCameraComponent->GetNearPlane(), pMainCameraComponent->GetFarPlane() };
+		GetRenderContext()->FillUniform(cameraNearFarPlaneCrc, cameraNearFarPlanedata, 1);
 
 		// Submit uniform values : material settings
 		constexpr StringCrc albedoColorCrc(albedoColor);
@@ -333,12 +338,6 @@ void WorldRenderer::Render(float deltaTime)
 		}
 		constexpr engine::StringCrc lightViewProjsCrc(lightViewProjs);
 		GetRenderContext()->FillUniform(lightViewProjsCrc, lightViewProjsData.data(), totalLightViewProjOffset);
-
-		// Submit shared uniform (related to camera) 
-		constexpr StringCrc cameraNearFarPlaneCrc(cameraNearFarPlane);
-		CameraComponent* pMainCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(m_pCurrentSceneWorld->GetMainCameraEntity());
-		float cameraNearFarPlanedata[2] = { pMainCameraComponent->GetNearPlane(), pMainCameraComponent->GetFarPlane() };
-		GetRenderContext()->FillUniform(cameraNearFarPlaneCrc, &cameraNearFarPlanedata[0], 1);
 
 		// Submit shadow map and settings of each light
 		constexpr StringCrc shadowMapSamplerCrcs[3] = { StringCrc(cubeShadowMapSamplers[0]), StringCrc(cubeShadowMapSamplers[1]), StringCrc(cubeShadowMapSamplers[2]) };
