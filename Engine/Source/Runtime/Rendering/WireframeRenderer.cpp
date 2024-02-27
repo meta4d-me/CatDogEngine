@@ -5,6 +5,7 @@
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/MeshResource.h"
 #include "Scene/Texture.h"
 
 #undef EDITOR_MODE
@@ -51,16 +52,23 @@ void WireframeRenderer::Render(float deltaTime)
 			continue;
 		}
 
-		if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
-		{
-			pTransformComponent->Build();
-			bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
-		}
-
 		StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
 		if (!pMeshComponent)
 		{
 			continue;
+		}
+
+		const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
+		if (ResourceStatus::Ready != pMeshResource->GetStatus() &&
+			ResourceStatus::Optimized != pMeshResource->GetStatus())
+		{
+			continue;
+		}
+
+		if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
+		{
+			pTransformComponent->Build();
+			bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 		}
 
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LEQUAL |

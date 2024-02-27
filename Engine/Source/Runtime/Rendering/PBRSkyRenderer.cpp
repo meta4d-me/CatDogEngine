@@ -5,6 +5,7 @@
 #include "Log/Log.h"
 #include "Math/Box.hpp"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/MeshResource.h"
 #include "Scene/Mesh.h"
 #include "Scene/VertexFormat.h"
 #include "U_AtmophericScattering.sh"
@@ -141,6 +142,13 @@ void PBRSkyRenderer::Render(float deltaTime)
 
 	StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(m_pCurrentSceneWorld->GetSkyEntity());
 	if (!pMeshComponent)
+	{
+		return;
+	}
+
+	const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
+	if (ResourceStatus::Ready != pMeshResource->GetStatus() &&
+		ResourceStatus::Optimized != pMeshResource->GetStatus())
 	{
 		return;
 	}

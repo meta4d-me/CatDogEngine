@@ -4,6 +4,7 @@
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/SkyComponent.h"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/MeshResource.h"
 
 namespace engine
 {
@@ -67,6 +68,13 @@ void SkyboxRenderer::Render(float deltaTime)
 
 	StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(m_pCurrentSceneWorld->GetSkyEntity());
 	if (!pMeshComponent)
+	{
+		return;
+	}
+
+	const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
+	if (ResourceStatus::Ready != pMeshResource->GetStatus() &&
+		ResourceStatus::Optimized != pMeshResource->GetStatus())
 	{
 		return;
 	}

@@ -144,12 +144,7 @@ void Renderer::ScreenSpaceQuad(const RenderTarget* pRenderTarget, bool _originBo
 void Renderer::SubmitStaticMeshDrawCall(StaticMeshComponent* pMeshComponent, uint16_t viewID, const std::string& programName, const std::string& featuresCombine)
 {
 	const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
-	if (ResourceStatus::Ready != pMeshResource->GetStatus() &&
-		ResourceStatus::Optimized != pMeshResource->GetStatus())
-	{
-		return;
-	}
-
+	assert(ResourceStatus::Ready == pMeshResource->GetStatus() || ResourceStatus::Optimized == pMeshResource->GetStatus());
 	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pMeshResource->GetVertexBufferHandle() }, pMeshComponent->GetStartVertex(), pMeshComponent->GetVertexCount());
 	for (uint32_t indexBufferIndex = 0U, indexBufferCount = pMeshResource->GetIndexBufferCount(); indexBufferIndex < indexBufferCount; ++indexBufferIndex)
 	{

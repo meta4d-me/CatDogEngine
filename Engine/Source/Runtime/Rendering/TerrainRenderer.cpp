@@ -10,6 +10,7 @@
 #include "Material/ShaderSchema.h"
 #include "Math/Transform.hpp"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/MeshResource.h"
 #include "Scene/Texture.h"
 #include "U_IBL.sh"
 #include "U_Terrain.sh"
@@ -119,6 +120,13 @@ void TerrainRenderer::Render(float deltaTime)
 		// No mesh attached?
 		StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
 		if (!pMeshComponent)
+		{
+			continue;
+		}
+
+		const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
+		if (ResourceStatus::Ready != pMeshResource->GetStatus() &&
+			ResourceStatus::Optimized != pMeshResource->GetStatus())
 		{
 			continue;
 		}
