@@ -11,6 +11,7 @@
 #include "Math/Transform.hpp"
 #include "Rendering/RenderContext.h"
 #include "Rendering/Resources/MeshResource.h"
+#include "Rendering/Resources/TextureResource.h"
 #include "Scene/Texture.h"
 #include "U_IBL.sh"
 #include "U_AtmophericScattering.sh"
@@ -209,8 +210,10 @@ void WorldRenderer::Render(float deltaTime)
 		for (const auto& [textureType, propertyGroup] : pMaterialComponent->GetPropertyGroups())
 		{
 			const MaterialComponent::TextureInfo& textureInfo = propertyGroup.textureInfo;
-
-			if (!propertyGroup.useTexture || !bgfx::isValid(bgfx::TextureHandle{ textureInfo.textureHandle }))
+			TextureResource* pTextureResource = textureInfo.pTextureResource;
+			if (!propertyGroup.useTexture ||
+				pTextureResource == nullptr ||
+				(pTextureResource->GetStatus() != ResourceStatus::Ready && pTextureResource->GetStatus() != ResourceStatus::Optimized))
 			{
 				continue;
 			}
@@ -223,7 +226,7 @@ void WorldRenderer::Render(float deltaTime)
 				GetRenderContext()->FillUniform(albedoUVOffsetAndScaleCrc, &uvOffsetAndScaleData, 1);
 			}
 
-			bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle{ textureInfo.samplerHandle }, bgfx::TextureHandle{ textureInfo.textureHandle });
+			bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle{ pTextureResource->GetSamplerHandle() }, bgfx::TextureHandle{ pTextureResource->GetTextureHandle() });
 		}
 
 		// Sky

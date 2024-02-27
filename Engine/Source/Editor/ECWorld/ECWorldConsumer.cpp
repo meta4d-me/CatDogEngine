@@ -9,6 +9,7 @@
 #include "Rendering/RenderContext.h"
 #include "Rendering/Resources/MeshResource.h"
 #include "Rendering/Resources/ResourceContext.h"
+#include "Rendering/Resources/TextureResource.h"
 #include "Rendering/ShaderFeature.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ResourceLoader.h"
@@ -22,7 +23,7 @@ namespace editor
 {
 
 ECWorldConsumer::ECWorldConsumer(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext) :
-	m_pSceneWorld(pSceneWorld), m_pRenderContext(pRenderContext)
+	m_pSceneWorld(pSceneWorld), m_pRenderContext(pRenderContext), m_pResourceContext(pRenderContext->GetResourceContext())
 {
 }
 
@@ -296,21 +297,18 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	// Textures.
 	for (const auto& [type, path, pTexture] : outputTypeToData)
 	{
-		auto textureFileBlob = engine::ResourceLoader::LoadFile(path.c_str());
-		if (!textureFileBlob.empty())
+		engine::TextureResource* pTextureResource = m_pResourceContext->AddTextureResource(engine::StringCrc(path));
+		pTextureResource->SetTextureAsset(pTexture);
+		pTextureResource->UpdateTextureType(type);
+		pTextureResource->UpdateUVMapMode(pTexture->GetUMapMode(), pTexture->GetVMapMode());
+		materialComponent.SetTextureResource(type, pMaterial, pTextureResource);
+
+		if (auto pPropertyGroup = materialComponent.GetPropertyGroup(type); pPropertyGroup)
 		{
-			// TODO : Store TextureFileBlob multiple times, a temporary solution here.
-			//        Should use something like TextureResource to avoid duplicate storage.
-			materialComponent.AddTextureFileBlob(type, pMaterial, *pTexture, cd::MoveTemp(textureFileBlob));
-			if (auto pPropertyGroup = materialComponent.GetPropertyGroup(type); pPropertyGroup)
-			{
-				pPropertyGroup->useTexture = true;
-				materialComponent.ActivateShaderFeature(engine::MaterialTextureTypeToShaderFeature.at(type));
-			}
+			pPropertyGroup->useTexture = true;
+			materialComponent.ActivateShaderFeature(engine::MaterialTextureTypeToShaderFeature.at(type));
 		}
 	}
-
-	materialComponent.Build();
 }
 
 void ECWorldConsumer::AddBlendShape(engine::Entity entity, const cd::Mesh* pMesh, const cd::BlendShape& blendShape, const cd::SceneDatabase* pSceneDatabase)

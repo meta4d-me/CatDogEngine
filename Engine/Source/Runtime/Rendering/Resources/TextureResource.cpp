@@ -8,6 +8,8 @@
 #include <bimg/decode.h>
 #include <bx/allocator.h>
 
+#include <format>
+
 namespace details
 {
 
@@ -105,6 +107,7 @@ void TextureResource::Update()
 	{
 		if (m_textureImageData != nullptr)
 		{
+			BuildSamplerHandle();
 			BuildTextureHandle();
 			m_recycleCount = 0U;
 			SetStatus(ResourceStatus::Ready);
@@ -131,6 +134,7 @@ void TextureResource::Update()
 	}
 	case ResourceStatus::Garbage:
 	{
+		DestroySamplerHandle();
 		DestroyTextureHandle();
 		// CPU data will destroy after deconstructor.
 		SetStatus(ResourceStatus::Destroyed);
@@ -179,6 +183,15 @@ uint64_t TextureResource::GetTextureFlags() const
 	return textureFlags;
 }
 
+void TextureResource::BuildSamplerHandle()
+{
+	assert(m_samplerHandle == UINT16_MAX);
+	static int textureIndex = 0;
+	std::string samplerUniformName = std::format("s_textureSampler{}", textureIndex++);
+	m_samplerHandle = bgfx::createUniform(samplerUniformName.c_str(), bgfx::UniformType::Sampler).idx;
+	assert(m_samplerHandle != UINT16_MAX);
+}
+
 void TextureResource::BuildTextureHandle()
 {
 	assert(m_textureHandle == UINT16_MAX);
@@ -186,6 +199,16 @@ void TextureResource::BuildTextureHandle()
 	const bgfx::Memory* pImageContent = bgfx::makeRef(pImageContainer->m_data, pImageContainer->m_size);
 	m_textureHandle = details::BGFXCreateTexture(pImageContainer->m_width, pImageContainer->m_height, pImageContainer->m_depth, false, pImageContainer->m_numMips > 1,
 		1, static_cast<bgfx::TextureFormat::Enum>(pImageContainer->m_format), GetTextureFlags(), pImageContent).idx;
+	assert(m_textureHandle != UINT16_MAX);
+}
+
+void TextureResource::DestroySamplerHandle()
+{
+	if (m_samplerHandle != UINT16_MAX)
+	{
+		bgfx::destroy(bgfx::UniformHandle{ m_samplerHandle });
+		m_samplerHandle = UINT16_MAX;
+	}
 }
 
 void TextureResource::DestroyTextureHandle()

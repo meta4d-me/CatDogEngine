@@ -29,18 +29,24 @@ public:
 	TextureResource& operator=(TextureResource&&) = default;
 	virtual ~TextureResource();
 
+	virtual void Update() override;
+
 	void UpdateTextureType(cd::MaterialPropertyGroup textureType);
 	void UpdateUVMapMode(cd::TextureMapMode u, cd::TextureMapMode v);
-	virtual void Update() override;
 
 	const cd::Texture* GetTextureAsset() const { return m_pTextureAsset; }
 	void SetTextureAsset(const cd::Texture* pTextureAsset);
 
+	uint16_t GetSamplerHandle() const { return m_samplerHandle; }
 	uint16_t GetTextureHandle() const { return m_textureHandle; }
 
 private:
 	uint64_t GetTextureFlags() const;
+
+	void BuildSamplerHandle();
 	void BuildTextureHandle();
+
+	void DestroySamplerHandle();
 	void DestroyTextureHandle();
 
 private:
@@ -57,6 +63,7 @@ private:
 	uint32_t m_recycleCount = 0;
 
 	// GPU
+	uint16_t m_samplerHandle = UINT16_MAX;
 	uint16_t m_textureHandle = UINT16_MAX;
 };
 

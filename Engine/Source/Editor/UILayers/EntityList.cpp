@@ -69,7 +69,6 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         materialComponent.Init();
         materialComponent.SetMaterialType(pMaterialType);
         materialComponent.ActivateShaderFeature(engine::GetSkyTypeShaderFeature(pSceneWorld->GetSkyComponent(pSceneWorld->GetSkyEntity())->GetSkyType()));
-        materialComponent.Build();
 
         auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
         transformComponent.SetTransform(cd::Transform::Identity());
@@ -139,7 +138,6 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         materialComponent.SetMaterialType(pTerrainMaterialType);
         materialComponent.SetTwoSided(true);
         materialComponent.ActivateShaderFeature(engine::GetSkyTypeShaderFeature(pSceneWorld->GetSkyComponent(pSceneWorld->GetSkyEntity())->GetSkyType()));
-        materialComponent.Build();
 
         auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
         transformComponent.SetTransform(cd::Transform::Identity());
