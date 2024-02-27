@@ -3,6 +3,7 @@
 #include "IResource.h"
 
 #include <vector>
+#include <string>
 
 namespace cd
 {
@@ -31,6 +32,9 @@ public:
 
 	virtual void Update() override;
 
+	// TODO : Move resource builder to engine and aync build not to block main thread.
+	void SetDDSBuiltTexturePath(std::string ddsFilePath);
+
 	void UpdateTextureType(cd::MaterialPropertyGroup textureType);
 	void UpdateUVMapMode(cd::TextureMapMode u, cd::TextureMapMode v);
 
@@ -52,6 +56,7 @@ private:
 private:
 	// Asset
 	const cd::Texture* m_pTextureAsset = nullptr;
+	std::string m_ddsFilePath;
 
 	// Runtime
 	bool m_enableSRGB = false;

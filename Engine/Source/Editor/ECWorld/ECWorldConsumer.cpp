@@ -299,6 +299,7 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	{
 		engine::TextureResource* pTextureResource = m_pResourceContext->AddTextureResource(engine::StringCrc(path));
 		pTextureResource->SetTextureAsset(pTexture);
+		pTextureResource->SetDDSBuiltTexturePath(path);
 		pTextureResource->UpdateTextureType(type);
 		pTextureResource->UpdateUVMapMode(pTexture->GetUMapMode(), pTexture->GetVMapMode());
 		materialComponent.SetTextureResource(type, pMaterial, pTextureResource);

@@ -65,6 +65,11 @@ void TextureResource::SetTextureAsset(const cd::Texture* pTextureAsset)
 	m_pTextureAsset = pTextureAsset;
 }
 
+void TextureResource::SetDDSBuiltTexturePath(std::string ddsFilePath)
+{
+	m_ddsFilePath = cd::MoveTemp(ddsFilePath);
+}
+
 void TextureResource::UpdateTextureType(cd::MaterialPropertyGroup textureType)
 {
 	m_enableSRGB = cd::MaterialPropertyGroup::BaseColor == textureType || cd::MaterialPropertyGroup::Emissive == textureType;
@@ -84,7 +89,9 @@ void TextureResource::Update()
 	{
 		if (m_pTextureAsset)
 		{
-			m_textureRawData = engine::ResourceLoader::LoadFile(m_pTextureAsset->GetPath());
+			// TODO : build texture
+			//m_textureRawData = engine::ResourceLoader::LoadFile(m_pTextureAsset->GetPath());
+			m_textureRawData = engine::ResourceLoader::LoadFile(m_ddsFilePath.c_str());
 			SetStatus(ResourceStatus::Loaded);
 		}
 		break;
