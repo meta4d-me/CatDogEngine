@@ -22,7 +22,7 @@ namespace editor
 {
 
 ECWorldConsumer::ECWorldConsumer(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext) :
-	m_pSceneWorld(pSceneWorld), m_pRenderContext(pRenderContext)
+	m_pSceneWorld(pSceneWorld), m_pRenderContext(pRenderContext), m_pResourceContext(m_pRenderContext->GetResourceContext())
 {
 }
 
