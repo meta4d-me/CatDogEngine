@@ -146,8 +146,7 @@ void MeshResource::Update()
 		constexpr uint32_t recycleDelayFrames = 30U;
 		if (m_recycleCount++ >= recycleDelayFrames)
 		{
-			m_vertexBuffer.clear();
-			m_indexBuffers.clear();
+			FreeMeshData();
 			SetStatus(ResourceStatus::Optimized);
 		}
 		break;
@@ -163,6 +162,14 @@ void MeshResource::Update()
 	default:
 		break;
 	}
+}
+
+void MeshResource::Reset()
+{
+	DestroyVertexBufferHandle();
+	DestroyIndexBufferHandle();
+	FreeMeshData();
+	SetStatus(ResourceStatus::Loading);
 }
 
 bool MeshResource::BuildVertexBuffer()
@@ -267,6 +274,12 @@ void MeshResource::SubmitIndexBuffer()
 		assert(!indexBuffer.empty());
 		m_indexBufferHandles[bufferIndex] = details::SubmitIndexBuffer(indexBuffer, useU16Index);
 	}
+}
+
+void MeshResource::FreeMeshData()
+{
+	m_vertexBuffer.clear();
+	m_indexBuffers.clear();
 }
 
 void MeshResource::DestroyVertexBufferHandle()

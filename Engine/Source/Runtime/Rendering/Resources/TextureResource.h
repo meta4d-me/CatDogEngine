@@ -31,6 +31,7 @@ public:
 	virtual ~TextureResource();
 
 	virtual void Update() override;
+	virtual void Reset() override;
 
 	// TODO : Move resource builder to engine and aync build not to block main thread.
 	void SetDDSBuiltTexturePath(std::string ddsFilePath);
@@ -49,6 +50,8 @@ private:
 
 	void BuildSamplerHandle();
 	void BuildTextureHandle();
+
+	void FreeTextureData();
 
 	void DestroySamplerHandle();
 	void DestroyTextureHandle();

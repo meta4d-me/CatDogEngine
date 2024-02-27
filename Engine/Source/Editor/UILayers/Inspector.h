@@ -1,7 +1,9 @@
 #include "ImGui/ImGuiBaseLayer.h"
 #include "ImGui/ImGuiUtils.hpp"
+#include "Scene/MaterialTextureType.h"
 
 #include <filesystem>
+#include <optional>
 
 namespace ImGui
 {
@@ -22,15 +24,17 @@ public:
 	virtual void Init() override;
 	virtual void Update() override;
 
-	void SetIsOpenBrowser(bool isOpenBrowser) { m_isOpenBrowser = isOpenBrowser; }
-	bool IsOpenBrowser() const { return m_isOpenBrowser; }
+	void SetSelectMaterialTextureType(cd::MaterialTextureType textureType) { m_optSelectMaterialTextureType = textureType; }
+
+	void SetIsOpenFileBrowser(bool flag) { m_isOpenFileBrowser = flag; }
+	bool IsOpenFileBrowser() const { return m_isOpenFileBrowser; }
 
 private:
 	engine::Entity m_lastSelectedEntity = engine::INVALID_ENTITY;
 
 	// Select file
-	bool m_isOpenBrowser = false;
-	std::filesystem::path m_lastSelectedFilePath;
+	std::optional<cd::MaterialTextureType> m_optSelectMaterialTextureType;
+	bool m_isOpenFileBrowser = false;
 	std::unique_ptr<ImGui::FileBrowser> m_pSelectFileBrowser;
 };
 

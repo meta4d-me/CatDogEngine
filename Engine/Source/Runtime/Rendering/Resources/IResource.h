@@ -34,6 +34,7 @@ public:
 	virtual ~IResource() = default;
 
 	virtual void Update() = 0;
+	virtual void Reset() = 0;
 
 	StringCrc GetName() const { return m_nameCrc; }
 	void SetName(StringCrc crc) { m_nameCrc = crc; }

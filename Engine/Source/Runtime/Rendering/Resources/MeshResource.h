@@ -30,6 +30,7 @@ public:
 	virtual ~MeshResource();
 
 	virtual void Update() override;
+	virtual void Reset() override;
 
 	const cd::Mesh* GetMeshAsset() const { return m_pMeshAsset; }
 	void SetMeshAsset(const cd::Mesh* pMeshAsset);
@@ -48,6 +49,7 @@ private:
 	bool BuildIndexBuffer();
 	void SubmitVertexBuffer();
 	void SubmitIndexBuffer();
+	void FreeMeshData();
 	void DestroyVertexBufferHandle();
 	void DestroyIndexBufferHandle();
 

@@ -87,7 +87,8 @@ void TextureResource::Update()
 	{
 	case ResourceStatus::Loading:
 	{
-		if (m_pTextureAsset)
+		// TODO : Texture seems not to need to get data from cd::Texture now.
+		if (!m_ddsFilePath.empty())
 		{
 			// TODO : build texture
 			//m_textureRawData = engine::ResourceLoader::LoadFile(m_pTextureAsset->GetPath());
@@ -127,12 +128,7 @@ void TextureResource::Update()
 		constexpr uint32_t recycleDelayFrames = 30U;
 		if (m_recycleCount++ >= recycleDelayFrames)
 		{
-			if (m_textureImageData)
-			{
-				auto* pImageContainer = reinterpret_cast<bimg::ImageContainer*>(m_textureImageData);
-				bimg::imageFree(pImageContainer);
-				m_textureImageData = nullptr;
-			}
+			FreeTextureData();
 
 			m_recycleCount = 0U;
 			SetStatus(ResourceStatus::Optimized);
@@ -150,6 +146,14 @@ void TextureResource::Update()
 	default:
 		break;
 	}
+}
+
+void TextureResource::Reset()
+{
+	DestroySamplerHandle();
+	DestroyTextureHandle();
+	FreeTextureData();
+	SetStatus(ResourceStatus::Loading);
 }
 
 uint64_t TextureResource::GetTextureFlags() const
@@ -207,6 +211,18 @@ void TextureResource::BuildTextureHandle()
 	m_textureHandle = details::BGFXCreateTexture(pImageContainer->m_width, pImageContainer->m_height, pImageContainer->m_depth, false, pImageContainer->m_numMips > 1,
 		1, static_cast<bgfx::TextureFormat::Enum>(pImageContainer->m_format), GetTextureFlags(), pImageContent).idx;
 	assert(m_textureHandle != UINT16_MAX);
+}
+
+void TextureResource::FreeTextureData()
+{
+	m_textureRawData.clear();
+
+	if (m_textureImageData)
+	{
+		auto* pImageContainer = reinterpret_cast<bimg::ImageContainer*>(m_textureImageData);
+		bimg::imageFree(pImageContainer);
+		m_textureImageData = nullptr;
+	}
 }
 
 void TextureResource::DestroySamplerHandle()

@@ -101,7 +101,8 @@ public:
 	const std::string& GetFeaturesCombine();
 
 	// Texture data.
-	void SetTextureResource(cd::MaterialTextureType textureType, const cd::Material* pMaterial, TextureResource* pTextureResource);
+	TextureResource* GetTextureResource(cd::MaterialTextureType textureType) const;
+	void SetTextureResource(cd::MaterialTextureType textureType, cd::Vec2f uvOffset, cd::Vec2f uvScale, TextureResource* pTextureResource);
 
 	const std::map<cd::MaterialPropertyGroup, PropertyGroup>& GetPropertyGroups() const { return m_propertyGroups; }
 	PropertyGroup* GetPropertyGroup(cd::MaterialPropertyGroup propertyGroup);

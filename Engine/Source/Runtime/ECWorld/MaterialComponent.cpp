@@ -127,7 +127,13 @@ void MaterialComponent::Reset()
 	m_propertyGroups.clear();
 }
 
-void MaterialComponent::SetTextureResource(cd::MaterialTextureType textureType, const cd::Material* pMaterial, TextureResource* pTextureResource)
+TextureResource* MaterialComponent::GetTextureResource(cd::MaterialTextureType textureType) const
+{
+	auto itPropertyGroup = m_propertyGroups.find(textureType);
+	return itPropertyGroup != m_propertyGroups.end() ? itPropertyGroup->second.textureInfo.pTextureResource : nullptr;
+}
+
+void MaterialComponent::SetTextureResource(cd::MaterialTextureType textureType, cd::Vec2f uvOffset, cd::Vec2f uvScale, TextureResource* pTextureResource)
 {
 	std::optional<uint8_t> optTextureSlot = m_pMaterialType->GetTextureSlot(textureType);
 	if (!optTextureSlot.has_value())
@@ -141,14 +147,8 @@ void MaterialComponent::SetTextureResource(cd::MaterialTextureType textureType, 
 	TextureInfo& textureInfo = propertyGroup.textureInfo;
 	textureInfo.slot = optTextureSlot.value();
 	textureInfo.pTextureResource = pTextureResource;
-	if (auto optUVScale = pMaterial->GetVec2fProperty(textureType, cd::MaterialProperty::UVScale); optUVScale.has_value())
-	{
-		textureInfo.uvScale = optUVScale.value();
-	}
-	if (auto optUVOffset = pMaterial->GetVec2fProperty(textureType, cd::MaterialProperty::UVOffset); optUVOffset.has_value())
-	{
-		textureInfo.uvOffset = optUVOffset.value();
-	}
+	textureInfo.uvScale = uvOffset;
+	textureInfo.uvOffset = uvScale;
 }
 
 }
