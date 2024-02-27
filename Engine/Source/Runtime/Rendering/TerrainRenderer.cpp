@@ -37,6 +37,7 @@ constexpr const char* cubeRadianceSampler = "s_texCubeRad";
 constexpr const char* lutTexture = "Textures/lut/ibl_brdf_lut.dds";
 
 constexpr const char* cameraPos = "u_cameraPos";
+constexpr const char* cameraNearFarPlane = "u_cameraNearFarPlane";
 
 constexpr const char* albedoColor = "u_albedoColor";
 constexpr const char* metallicRoughnessFactor = "u_metallicRoughnessFactor";
@@ -76,6 +77,8 @@ void TerrainRenderer::Warmup()
 	GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), samplerFlags);
 
 	GetRenderContext()->CreateUniform(cameraPos, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(cameraNearFarPlane, bgfx::UniformType::Vec4, 1);
+
 	GetRenderContext()->CreateUniform(albedoColor, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(emissiveColor, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(metallicRoughnessFactor, bgfx::UniformType::Vec4, 1);
@@ -97,7 +100,10 @@ void TerrainRenderer::UpdateView(const float* pViewMatrix, const float* pProject
 void TerrainRenderer::Render(float deltaTime)
 {
 	// TODO : Remove it. If every renderer need to submit camera related uniform, it should be done not inside Renderer class.
+	const CameraComponent* pMainCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(m_pCurrentSceneWorld->GetMainCameraEntity());
 	const cd::Transform& cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetTransform();
+	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+
 	for (Entity entity : m_pCurrentSceneWorld->GetTerrainEntities())
 	{		
 		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
@@ -145,14 +151,9 @@ void TerrainRenderer::Render(float deltaTime)
 			GetRenderContext()->GetTexture(StringCrc(elevationTexture)));
 
 		// Sky
-		SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 		SkyType crtSkyType = pSkyComponent->GetSkyType();
-
 		if (crtSkyType == SkyType::SkyBox)
 		{
-			// Create a new TextureHandle each frame if the skybox texture path has been updated,
-			// otherwise RenderContext::CreateTexture will automatically skip it.
-
 			constexpr StringCrc irrSamplerCrc(cubeIrradianceSampler);
 			GetRenderContext()->CreateTexture(pSkyComponent->GetIrradianceTexturePath().c_str(), samplerFlags);
 			bgfx::setTexture(IBL_IRRADIANCE_SLOT,
@@ -173,6 +174,10 @@ void TerrainRenderer::Render(float deltaTime)
 		// Submit uniform values : camera settings
 		constexpr StringCrc cameraPosCrc(cameraPos);
 		GetRenderContext()->FillUniform(cameraPosCrc, &cameraTransform.GetTranslation().x(), 1);
+
+		constexpr StringCrc cameraNearFarPlaneCrc(cameraNearFarPlane);
+		float cameraNearFarPlanedata[2] { pMainCameraComponent->GetNearPlane(), pMainCameraComponent->GetFarPlane() };
+		GetRenderContext()->FillUniform(cameraNearFarPlaneCrc, cameraNearFarPlanedata, 1);
 
 		// Submit  uniform values : material settings
 		constexpr StringCrc albedoColorCrc(albedoColor);

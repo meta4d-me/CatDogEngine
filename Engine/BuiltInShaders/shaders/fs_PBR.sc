@@ -30,8 +30,8 @@ void main()
 	vec3 cameraPos = GetCamera().position.xyz;
 	vec3 viewDir = normalize(cameraPos - v_worldPos);
 	
-	// Directional Light	
-	float csmDepth = (v_color0.z - u_cameraNearFarPlane.x)/(u_cameraNearFarPlane.y - u_cameraNearFarPlane.x);
+	// Directional Light
+	float csmDepth = (v_color0.z - u_cameraNearFarPlane.x) / (u_cameraNearFarPlane.y - u_cameraNearFarPlane.x);
 	vec3 dirColor = GetDirectional(material, v_worldPos, viewDir, csmDepth);
 	
 	// Environment Light
