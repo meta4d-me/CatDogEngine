@@ -193,6 +193,13 @@ void WorldRenderer::Render(float deltaTime)
 			continue;
 		}
 
+		const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
+		if (ResourceStatus::Ready != pMeshResource->GetStatus() &&
+			ResourceStatus::Optimized != pMeshResource->GetStatus())
+		{
+			continue;
+		}
+
 		BlendShapeComponent* pBlendShapeComponent = m_pCurrentSceneWorld->GetBlendShapeComponent(entity);
 
 		// SkinMesh
