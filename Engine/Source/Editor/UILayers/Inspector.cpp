@@ -207,18 +207,20 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 			{
 				ImGui::PushID(textureTypeValue);
 
+				constexpr float textureWidth = 64.0f;
+				constexpr float textureHeight = 64.0f;
 				auto& textureInfo = pPropertyGroup->textureInfo;
 				engine::TextureResource* pTextureResource = textureInfo.pTextureResource;
 				if (pTextureResource &&
 					(pTextureResource->GetStatus() == engine::ResourceStatus::Ready || pTextureResource->GetStatus() == engine::ResourceStatus::Optimized))
 				{
-					ImGui::Image(reinterpret_cast<ImTextureID>(pTextureResource->GetTextureHandle()), ImVec2(64, 64));
+					ImGui::Image(reinterpret_cast<ImTextureID>(pTextureResource->GetTextureHandle()), ImVec2(textureWidth, textureHeight));
 				}
 				else
 				{
 					// Draw a black square with text here.
 					ImVec2 currentPos = ImGui::GetCursorScreenPos();
-					ImGui::GetWindowDrawList()->AddRectFilled(currentPos, ImVec2{ currentPos.x + 64, currentPos.y + 64 }, IM_COL32(0, 0, 0, 255));
+					ImGui::GetWindowDrawList()->AddRectFilled(currentPos, ImVec2{ currentPos.x + textureWidth, currentPos.y + textureHeight }, IM_COL32(0, 0, 0, 255));
 					ImGui::SetCursorScreenPos(ImVec2{ currentPos.x, currentPos.y + 27});
 					ImGui::SetWindowFontScale(0.55f);
 					ImGui::Text("No Resources");
@@ -226,9 +228,9 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 					ImGui::SetCursorScreenPos(ImVec2{ currentPos.x, currentPos.y + 66});
 				}
 
-				ImGui::SameLine();
-
-				if (ImGui::Button("Select"))
+				ImGuiUtils::ImGuiBoolProperty("Use texture", pPropertyGroup->useTexture);
+				ImGui::SameLine(130.0f);
+				if (ImGui::Button("Select..."))
 				{
 					s_pInspector->SetSelectMaterialTextureType(static_cast<cd::MaterialTextureType>(textureTypeValue));
 					s_pInspector->SetIsOpenFileBrowser(true);
@@ -236,7 +238,6 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 
 				ImGuiUtils::ImGuiVectorProperty("UV Offset", textureInfo.GetUVOffset(), cd::Unit::None, cd::Vec2f::Zero(), cd::Vec2f::One(), false, 0.01f);
 				ImGuiUtils::ImGuiVectorProperty("UV Scale", textureInfo.GetUVScale());
-				ImGuiUtils::ImGuiBoolProperty("Use texture", pPropertyGroup->useTexture);
 
 				if (pPropertyGroup->useTexture)
 				{
