@@ -147,8 +147,8 @@ void MaterialComponent::SetTextureResource(cd::MaterialTextureType textureType, 
 	TextureInfo& textureInfo = propertyGroup.textureInfo;
 	textureInfo.slot = optTextureSlot.value();
 	textureInfo.pTextureResource = pTextureResource;
-	textureInfo.uvScale = uvOffset;
-	textureInfo.uvOffset = uvScale;
+	textureInfo.uvScale = uvScale;
+	textureInfo.uvOffset = uvOffset;
 }
 
 }
