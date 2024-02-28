@@ -8,7 +8,8 @@
 #include "LightUniforms.h"
 #include "Material/ShaderSchema.h"
 #include "Math/Transform.hpp"
-#include "RenderContext.h"
+#include "Rendering/RenderContext.h"
+#include "Rendering/Resources/MeshResource.h"
 
 #include <string>
 
@@ -237,11 +238,19 @@ void ShadowMapRenderer::Render(float deltaTime)
 						{
 							continue;
 						}
+						const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
+						if (ResourceStatus::Ready != pMeshResource->GetStatus() &&
+							ResourceStatus::Optimized != pMeshResource->GetStatus())
+						{
+							continue;
+						}
+
 						BlendShapeComponent* pBlendShapeComponent = m_pCurrentSceneWorld->GetBlendShapeComponent(entity);
 						if (pBlendShapeComponent)
 						{
 							continue;
 						}
+
 						// Transform
 						if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 						{
@@ -314,6 +323,12 @@ void ShadowMapRenderer::Render(float deltaTime)
 						{
 							continue;
 						}
+						const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
+						if (ResourceStatus::Ready != pMeshResource->GetStatus() &&
+							ResourceStatus::Optimized != pMeshResource->GetStatus())
+						{
+							continue;
+						}
 
 						// Transform
 						if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
@@ -365,6 +380,12 @@ void ShadowMapRenderer::Render(float deltaTime)
 					// No mesh attached?
 					StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
 					if (!pMeshComponent)
+					{
+						continue;
+					}
+					const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
+					if (ResourceStatus::Ready != pMeshResource->GetStatus() &&
+						ResourceStatus::Optimized != pMeshResource->GetStatus())
 					{
 						continue;
 					}
