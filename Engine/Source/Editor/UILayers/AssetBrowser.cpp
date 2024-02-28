@@ -239,10 +239,10 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 				 }
 
 			 }
-			 if (0 == strcmp(".dds", extension.c_str()))
+			/* if (0 == strcmp(".dds", extension.c_str()))
 			 {
 				 ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_DELTA), ImVec2(m_gridSize, m_gridSize));
-			 }
+			 }*/
 	
 						
 		}

@@ -2,13 +2,20 @@
 
 #include "Rendering/RenderContext.h"
 #include "Rendering/ShaderCollections.h"
+#include "Resources/ResourceBuilder.h"
+#include "Resources/ResourceLoader.h"
+#include "Rendering/Resources/ResourceContext.h"
 #include "Rendering/Resources/TextureResource.h"
 #include "Graphics/GraphicsBackend.h"
 #include "ImGui/ImGuiUtils.hpp"
 #include "Path/Path.h"
 
+#include "ImGui/imfilebrowser.h"
+
 namespace details
 {
+
+static editor::Inspector* s_pInspector = nullptr;
 
 template<typename Component>
 void UpdateComponentWidget(engine::SceneWorld* pSceneWorld, engine::Entity entity) {}
@@ -154,45 +161,6 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 
 	if (isOpen)
 	{
-		/*
-		std::vector<std::string> fileNames;
-		std::filesystem::path dirPath{ CDPROJECT_RESOURCES_ROOT_PATH };
-		dirPath /= "test";
-		std::filesystem::path frontPath{ "test" };
-		engine::RenderContext* pRenderContext = engine::ImGuiBaseLayer::GetRenderContext();
-
-		std::vector<std::string> texturePaths;
-		for (const auto& it : std::filesystem::directory_iterator(dirPath))
-		{
-			std::string fileName = it.path().filename().string();
-			std::string fullpath = (frontPath / fileName).string();
-			pRenderContext->CreateTexture(fullpath.c_str());
-
-			fileNames.emplace_back(cd::MoveTemp(fileName));
-			texturePaths.emplace_back(cd::MoveTemp(fullpath));
-		}
-
-
-		static int currentItem = 0;
-		if (ImGui::BeginCombo("Select Texture", fileNames[currentItem].c_str()))
-		{
-			for (int i = 0; i < fileNames.size(); ++i)
-			{
-				bool isSelected = (currentItem == i);
-				if (ImGui::Selectable(fileNames[i].c_str(), isSelected))
-				{
-					currentItem = i;
-					ImGui::SetItemDefaultFocus();
-				}
-			}
-			ImGui::EndCombo();
-		}
-
-		bgfx::TextureHandle textureHandle = pRenderContext->GetTexture(engine::StringCrc(texturePaths[currentItem].c_str()));
-		//sparater
-		ImGui::Separator();
-		ImGui::Image(ImTextureID(textureHandle.idx), ImVec2(64, 64));
-		*/
 		ImGui::Separator();
 		ImGuiUtils::ImGuiStringProperty("Name", pMaterialComponent->GetName());
 
@@ -239,18 +207,20 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 			{
 				ImGui::PushID(textureTypeValue);
 
+				constexpr float textureWidth = 64.0f;
+				constexpr float textureHeight = 64.0f;
 				auto& textureInfo = pPropertyGroup->textureInfo;
 				engine::TextureResource* pTextureResource = textureInfo.pTextureResource;
 				if (pTextureResource &&
 					(pTextureResource->GetStatus() == engine::ResourceStatus::Ready || pTextureResource->GetStatus() == engine::ResourceStatus::Optimized))
 				{
-					ImGui::Image(reinterpret_cast<ImTextureID>(pTextureResource->GetTextureHandle()), ImVec2(64, 64));
+					ImGui::Image(reinterpret_cast<ImTextureID>(pTextureResource->GetTextureHandle()), ImVec2(textureWidth, textureHeight));
 				}
 				else
 				{
 					// Draw a black square with text here.
 					ImVec2 currentPos = ImGui::GetCursorScreenPos();
-					ImGui::GetWindowDrawList()->AddRectFilled(currentPos, ImVec2{ currentPos.x + 64, currentPos.y + 64 }, IM_COL32(0, 0, 0, 255));
+					ImGui::GetWindowDrawList()->AddRectFilled(currentPos, ImVec2{ currentPos.x + textureWidth, currentPos.y + textureHeight }, IM_COL32(0, 0, 0, 255));
 					ImGui::SetCursorScreenPos(ImVec2{ currentPos.x, currentPos.y + 27});
 					ImGui::SetWindowFontScale(0.55f);
 					ImGui::Text("No Resources");
@@ -258,9 +228,16 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 					ImGui::SetCursorScreenPos(ImVec2{ currentPos.x, currentPos.y + 66});
 				}
 
+				ImGuiUtils::ImGuiBoolProperty("Use texture", pPropertyGroup->useTexture);
+				ImGui::SameLine(130.0f);
+				if (ImGui::Button("Select..."))
+				{
+					s_pInspector->SetSelectMaterialTextureType(static_cast<cd::MaterialTextureType>(textureTypeValue));
+					s_pInspector->SetIsOpenFileBrowser(true);
+				}
+
 				ImGuiUtils::ImGuiVectorProperty("UV Offset", textureInfo.GetUVOffset(), cd::Unit::None, cd::Vec2f::Zero(), cd::Vec2f::One(), false, 0.01f);
 				ImGuiUtils::ImGuiVectorProperty("UV Scale", textureInfo.GetUVScale());
-				ImGuiUtils::ImGuiBoolProperty("Use texture", pPropertyGroup->useTexture);
 
 				if (pPropertyGroup->useTexture)
 				{
@@ -656,7 +633,8 @@ Inspector::~Inspector()
 
 void Inspector::Init()
 {
-
+	details::s_pInspector = this;
+	m_pSelectFileBrowser = std::make_unique<ImGui::FileBrowser>();
 }
 
 void Inspector::Update()
@@ -695,6 +673,13 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::CollisionMeshComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::BlendShapeComponent>(pSceneWorld, m_lastSelectedEntity);
 
+	if (IsOpenFileBrowser())
+	{
+		m_pSelectFileBrowser->SetTitle("Select Texture");
+		m_pSelectFileBrowser->Open();
+		SetIsOpenFileBrowser(false);
+	}
+
 #ifdef ENABLE_DDGI
 	details::UpdateComponentWidget<engine::DDGIComponent>(pSceneWorld, m_lastSelectedEntity);
 #endif
@@ -702,6 +687,38 @@ void Inspector::Update()
 	ImGui::EndChild();
 
 	ImGui::End();
+
+	m_pSelectFileBrowser->Display();
+	if (m_pSelectFileBrowser->HasSelected() && m_optSelectMaterialTextureType.has_value())
+	{
+		auto selectTextureType = m_optSelectMaterialTextureType.value();
+
+		// Build dds texture.
+		std::string selectTextureFilePath = m_pSelectFileBrowser->GetSelected().string();
+		std::filesystem::path outputSelectTexturePath = CDPROJECT_RESOURCES_ROOT_PATH;
+		outputSelectTexturePath += m_pSelectFileBrowser->GetSelected().filename().replace_extension(".dds").string();
+		ResourceBuilder::Get().AddTextureBuildTask(selectTextureType, selectTextureFilePath.c_str(), outputSelectTexturePath.string().c_str());
+		ResourceBuilder::Get().Update();
+
+		auto* pMaterialComponent = pSceneWorld->GetMaterialComponent(m_lastSelectedEntity);
+		engine::TextureResource* pTextureResource = pMaterialComponent->GetTextureResource(selectTextureType);
+		if (!pTextureResource)
+		{
+			pTextureResource = GetRenderContext()->GetResourceContext()->AddTextureResource(engine::StringCrc(selectTextureFilePath));
+			pTextureResource->UpdateTextureType(selectTextureType);
+			pTextureResource->UpdateUVMapMode(cd::TextureMapMode::Wrap, cd::TextureMapMode::Wrap);
+			pMaterialComponent->SetTextureResource(selectTextureType, cd::Vec2f(0.0f, 0.0f), cd::Vec2f(1.0f, 1.0f), pTextureResource);
+		}
+		else
+		{
+			pTextureResource->Reset();
+		}
+		pTextureResource->SetDDSBuiltTexturePath(outputSelectTexturePath.string());
+		pMaterialComponent->ActivateShaderFeature(engine::MaterialTextureTypeToShaderFeature.at(selectTextureType));
+
+		m_pSelectFileBrowser->ClearSelected();
+		m_optSelectMaterialTextureType.reset();
+	}
 }
 
 }

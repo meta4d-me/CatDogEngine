@@ -302,7 +302,18 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 		pTextureResource->SetDDSBuiltTexturePath(path);
 		pTextureResource->UpdateTextureType(type);
 		pTextureResource->UpdateUVMapMode(pTexture->GetUMapMode(), pTexture->GetVMapMode());
-		materialComponent.SetTextureResource(type, pMaterial, pTextureResource);
+
+		cd::Vec2f uvOffset;
+		cd::Vec2f uvScale;
+		if (auto optUVOffset = pMaterial->GetVec2fProperty(type, cd::MaterialProperty::UVOffset); optUVOffset.has_value())
+		{
+			uvOffset = optUVOffset.value();
+		}
+		if (auto optUVScale = pMaterial->GetVec2fProperty(type, cd::MaterialProperty::UVScale); optUVScale.has_value())
+		{
+			uvScale = optUVScale.value();
+		}
+		materialComponent.SetTextureResource(type, uvOffset, uvScale, pTextureResource);
 
 		if (auto pPropertyGroup = materialComponent.GetPropertyGroup(type); pPropertyGroup)
 		{
