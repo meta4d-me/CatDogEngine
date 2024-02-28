@@ -11,6 +11,36 @@
 namespace ImGuiUtils
 {
 
+static cd::Matrix3x3 RotateX(float rad)
+{
+	cd::Matrix3x3 matrixRot = cd::Matrix3x3::Identity();
+	matrixRot.Data(4) = std::cos(rad);
+	matrixRot.Data(5) = -std::sin(rad);
+	matrixRot.Data(7) = std::sin(rad);
+	matrixRot.Data(8) = std::cos(rad);
+	return matrixRot;
+}
+
+static cd::Matrix3x3 RotateY(float rad)
+{
+	cd::Matrix3x3 matrixRot = cd::Matrix3x3::Identity();
+	matrixRot.Data(0) = std::cos(rad);
+	matrixRot.Data(2) = std::sin(rad);
+	matrixRot.Data(6) = -std::sin(rad);
+	matrixRot.Data(8) = std::cos(rad);
+	return matrixRot;
+}
+
+static cd::Matrix3x3 RotateZ(float rad)
+{
+	cd::Matrix3x3 matrixRot = cd::Matrix3x3::Identity();
+	matrixRot.Data(0) = std::cos(rad);
+	matrixRot.Data(1) = -std::sin(rad);
+	matrixRot.Data(3) = std::sin(rad);
+	matrixRot.Data(4) = std::cos(rad);
+	return matrixRot;
+}
+
 static bool ImGuiBoolProperty(const char* pName, bool& value)
 {
 	return ImGui::Checkbox(pName, &value);
@@ -185,7 +215,7 @@ static bool ImGuiVectorProperty(const char* pName, T& value, cd::Unit unit = cd:
 	return dirty;
 }
 
-static bool ImGuiTransformProperty(const char* pName, cd::Transform& value)
+static bool ImGuiTransformProperty(const char* pName, cd::Transform& value, cd::Vec3f& inspectorEular)
 {
 	ImGui::PushID(pName);
 
@@ -195,13 +225,11 @@ static bool ImGuiTransformProperty(const char* pName, cd::Transform& value)
 		dirty = true;
 	}
 
-	cd::Vec3f eularAngles = value.GetRotation().ToEulerAngles();
-	if (ImGuiVectorProperty("Rotation", eularAngles, cd::Unit::Degree, cd::Vec3f::Zero(), cd::Vec3f(360.0f)))
+	if (ImGuiVectorProperty("Rotation", inspectorEular, cd::Unit::Degree, cd::Vec3f(-360.0f), cd::Vec3f(360.0f), false, 0.2f))
 	{
-		float pitch = std::min(eularAngles.x(), 89.9f);
-		pitch = std::max(pitch, -89.9f);
-
-		value.SetRotation(cd::Quaternion::FromPitchYawRoll(pitch, eularAngles.y(), eularAngles.z()));
+		// XYZ Rotate
+		cd::Matrix3x3 matrix = RotateX(cd::Math::DegreeToRadian(inspectorEular.x())) * RotateY(cd::Math::DegreeToRadian(inspectorEular.y())) * RotateZ(cd::Math::DegreeToRadian(inspectorEular.z()));
+		value.SetRotation(cd::Quaternion::FromMatrix(matrix));
 		dirty = true;
 	}
 	constexpr float labelIndetation = 10.0f;
