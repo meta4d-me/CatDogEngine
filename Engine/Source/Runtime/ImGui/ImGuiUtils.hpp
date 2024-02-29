@@ -11,33 +11,44 @@
 namespace ImGuiUtils
 {
 
-static cd::Matrix3x3 RotateX(float rad)
+enum class AxisDirection
 {
-	cd::Matrix3x3 matrixRot = cd::Matrix3x3::Identity();
-	matrixRot.Data(4) = std::cos(rad);
-	matrixRot.Data(5) = -std::sin(rad);
-	matrixRot.Data(7) = std::sin(rad);
-	matrixRot.Data(8) = std::cos(rad);
-	return matrixRot;
-}
+	X,
+	Y,
+	Z
+};
 
-static cd::Matrix3x3 RotateY(float rad)
+template<AxisDirection AD>
+static cd::Matrix3x3 Rotate(float rad)
 {
 	cd::Matrix3x3 matrixRot = cd::Matrix3x3::Identity();
-	matrixRot.Data(0) = std::cos(rad);
-	matrixRot.Data(2) = std::sin(rad);
-	matrixRot.Data(6) = -std::sin(rad);
-	matrixRot.Data(8) = std::cos(rad);
-	return matrixRot;
-}
-
-static cd::Matrix3x3 RotateZ(float rad)
-{
-	cd::Matrix3x3 matrixRot = cd::Matrix3x3::Identity();
-	matrixRot.Data(0) = std::cos(rad);
-	matrixRot.Data(1) = -std::sin(rad);
-	matrixRot.Data(3) = std::sin(rad);
-	matrixRot.Data(4) = std::cos(rad);
+	float cosRad = std::cos(rad);
+	float sinRad = std::sin(rad);
+	if constexpr (AD == AxisDirection::X)
+	{
+		matrixRot.Data(4) = cosRad;
+		matrixRot.Data(5) = -sinRad;
+		matrixRot.Data(7) = sinRad;
+		matrixRot.Data(8) = cosRad;
+	}
+	else if constexpr (AD == AxisDirection::Y)
+	{
+		matrixRot.Data(0) = cosRad;
+		matrixRot.Data(2) = sinRad;
+		matrixRot.Data(6) = -sinRad;
+		matrixRot.Data(8) = cosRad;
+	}
+	else if constexpr (AD == AxisDirection::Z)
+	{
+		matrixRot.Data(0) = cosRad;
+		matrixRot.Data(1) = -sinRad;
+		matrixRot.Data(3) = sinRad;
+		matrixRot.Data(4) = cosRad;
+	}
+	else
+	{
+		static_assert("Unsupported axis direction.");
+	}
 	return matrixRot;
 }
 
@@ -227,8 +238,7 @@ static bool ImGuiTransformProperty(const char* pName, cd::Transform& value, cd::
 
 	if (ImGuiVectorProperty("Rotation", inspectorEular, cd::Unit::Degree, cd::Vec3f(-360.0f), cd::Vec3f(360.0f), false, 0.2f))
 	{
-		// XYZ Rotate
-		cd::Matrix3x3 matrix = RotateX(cd::Math::DegreeToRadian(inspectorEular.x())) * RotateY(cd::Math::DegreeToRadian(inspectorEular.y())) * RotateZ(cd::Math::DegreeToRadian(inspectorEular.z()));
+		cd::Matrix3x3 matrix = Rotate<AxisDirection::X>(cd::Math::DegreeToRadian(inspectorEular.x())) * Rotate<AxisDirection::Y>(cd::Math::DegreeToRadian(inspectorEular.y())) * Rotate<AxisDirection::Z>(cd::Math::DegreeToRadian(inspectorEular.z()));
 		value.SetRotation(cd::Quaternion::FromMatrix(matrix));
 		dirty = true;
 	}

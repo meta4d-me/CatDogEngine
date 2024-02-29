@@ -79,7 +79,7 @@ void UpdateComponentWidget<engine::TransformComponent>(engine::SceneWorld* pScen
 
 	if (isHeaderOpen)
 	{
-		if (ImGuiUtils::ImGuiTransformProperty("Transform", pTransformComponent->GetTransform(), pTransformComponent->GetInspectorEular()))
+		if (ImGuiUtils::ImGuiTransformProperty("Transform", pTransformComponent->GetTransform(), pTransformComponent->GetRotateEular()))
 		{
 			pTransformComponent->Dirty();
 			pTransformComponent->Build();
