@@ -3,6 +3,7 @@
 #include "ECWorld/StaticMeshComponent.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/RenderTarget.h"
+#include "Rendering/Resources/MeshResource.h"
 
 #include <bgfx/bgfx.h>
 
@@ -140,22 +141,18 @@ void Renderer::ScreenSpaceQuad(const RenderTarget* pRenderTarget, bool _originBo
 	}
 }
 
-void Renderer::UpdateStaticMeshComponent(StaticMeshComponent* pMeshComponent)
+void Renderer::SubmitStaticMeshDrawCall(StaticMeshComponent* pMeshComponent, uint16_t viewID, const std::string& programName, const std::string& featuresCombine)
 {
-	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{pMeshComponent->GetVertexBuffer()}, pMeshComponent->GetStartVertex(), pMeshComponent->GetVertexCount());
-#ifdef EDITOR_MODE
-	if (pMeshComponent->IsProgressiveMeshValid())
+	const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
+	assert(ResourceStatus::Ready == pMeshResource->GetStatus() || ResourceStatus::Optimized == pMeshResource->GetStatus());
+	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pMeshResource->GetVertexBufferHandle() }, pMeshComponent->GetStartVertex(), pMeshComponent->GetVertexCount());
+	for (uint32_t indexBufferIndex = 0U, indexBufferCount = pMeshResource->GetIndexBufferCount(); indexBufferIndex < indexBufferCount; ++indexBufferIndex)
 	{
-		pMeshComponent->UpdateProgressiveMeshData();
-		bgfx::setIndexBuffer(bgfx::DynamicIndexBufferHandle{pMeshComponent->GetIndexBuffer()}, pMeshComponent->GetStartIndex(), pMeshComponent->GetIndexCount());
+		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pMeshResource->GetIndexBufferHandle(indexBufferIndex) }, pMeshComponent->GetStartIndex(), pMeshComponent->GetIndexCount());
+
+		// TODO : Submit interface requires runtime string construction which may hurt performance.
+		GetRenderContext()->Submit(viewID, programName, featuresCombine);
 	}
-	else
-	{
-		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()}, pMeshComponent->GetStartIndex(), pMeshComponent->GetIndexCount());
-	}
-#else
-	bgfx::setIndexBuffer(bgfx::IndexBufferHandle{pMeshComponent->GetIndexBuffer()}, pMeshComponent->GetStartIndex(), pMeshComponent->GetIndexCount());
-#endif
 }
 
 }

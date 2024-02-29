@@ -92,7 +92,7 @@ void SkeletonRenderer::Build()
 
 	bgfx::setTransform(cd::Matrix4x4::Identity().begin());
 	cd::VertexFormat vertexFormat;
-	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
+	vertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
 
 	constexpr size_t indexTypeSize = sizeof(uint16_t);
 	m_indexBuffer.resize((vertexCount - 1) * 2 * indexTypeSize);
@@ -106,7 +106,7 @@ void SkeletonRenderer::Build()
 
 	details::TraverseBone(firstBone, pSceneDatabase, m_vertexBuffer.data(), m_indexBuffer.data(), currentVertexOffset, currentIndexOffset);
 	bgfx::VertexLayout vertexLayout;
-	VertexLayoutUtility::CreateVertexLayout(vertexLayout, vertexFormat.GetVertexLayout());
+	VertexLayoutUtility::CreateVertexLayout(vertexLayout, vertexFormat.GetVertexAttributeLayouts());
 	m_boneVBH = bgfx::createVertexBuffer(bgfx::makeRef(m_vertexBuffer.data(), static_cast<uint32_t>(m_vertexBuffer.size())), vertexLayout).idx;
 	m_boneIBH = bgfx::createIndexBuffer(bgfx::makeRef(m_indexBuffer.data(), static_cast<uint32_t>(m_indexBuffer.size())), 0U).idx;
 

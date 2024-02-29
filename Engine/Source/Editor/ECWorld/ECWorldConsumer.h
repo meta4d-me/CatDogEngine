@@ -38,6 +38,7 @@ namespace engine
 class MaterialComponent;
 class MaterialType;
 class RenderContext;
+class ResourceContext;
 class SceneWorld;
 
 }
@@ -74,6 +75,7 @@ private:
 	engine::MaterialType* m_pDefaultMaterialType = nullptr;
 	engine::SceneWorld* m_pSceneWorld = nullptr;
 	engine::RenderContext* m_pRenderContext = nullptr;
+	engine::ResourceContext* m_pResourceContext = nullptr;
 
 	uint32_t m_nodeMinID;
 	uint32_t m_meshMinID;

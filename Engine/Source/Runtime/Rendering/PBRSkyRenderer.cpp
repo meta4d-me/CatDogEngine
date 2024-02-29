@@ -5,6 +5,7 @@
 #include "Log/Log.h"
 #include "Math/Box.hpp"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/MeshResource.h"
 #include "Scene/Mesh.h"
 #include "Scene/VertexFormat.h"
 #include "U_AtmophericScattering.sh"
@@ -145,8 +146,12 @@ void PBRSkyRenderer::Render(float deltaTime)
 		return;
 	}
 
-	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pMeshComponent->GetVertexBuffer() });
-	bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pMeshComponent->GetIndexBuffer() });
+	const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
+	if (ResourceStatus::Ready != pMeshResource->GetStatus() &&
+		ResourceStatus::Optimized != pMeshResource->GetStatus())
+	{
+		return;
+	}
 
 	bgfx::setImage(ATM_TRANSMITTANCE_SLOT, GetRenderContext()->GetTexture(StringCrc(TextureTransmittance)), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
 	bgfx::setImage(ATM_IRRADIANCE_SLOT, GetRenderContext()->GetTexture(StringCrc(TextureIrradiance)), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
@@ -165,7 +170,8 @@ void PBRSkyRenderer::Render(float deltaTime)
 	GetRenderContext()->FillUniform(HeightOffsetCrc, &(tmpHeightOffset.x()), 1);
 
 	bgfx::setState(StateRendering);
-	GetRenderContext()->Submit(GetViewID(), ProgramAtmosphericScatteringLUT);
+
+	SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), ProgramAtmosphericScatteringLUT);
 }
 
 bool PBRSkyRenderer::IsEnable() const

@@ -5,6 +5,7 @@
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/MeshResource.h"
 #include "Scene/Texture.h"
 
 namespace engine
@@ -44,25 +45,30 @@ void WhiteModelRenderer::Render(float deltaTime)
 			continue;
 		}
 
+		StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
+		if (!pMeshComponent)
+		{
+			continue;
+		}
+		
+		const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
+		if (ResourceStatus::Ready != pMeshResource->GetStatus() &&
+			ResourceStatus::Optimized != pMeshResource->GetStatus())
+		{
+			continue;
+		}
+
 		if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 		{
 			pTransformComponent->Build();
 			bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 		}
 
-		// No mesh attached?
-		StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
-		if (!pMeshComponent)
-		{
-			continue;
-		}
-		UpdateStaticMeshComponent(pMeshComponent);
-
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
 		bgfx::setState(state);
 
-		GetRenderContext()->Submit(GetViewID(), "WhiteModelProgram");
+		SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), "WhiteModelProgram");
 	}
 }
 

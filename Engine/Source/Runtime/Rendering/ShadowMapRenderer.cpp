@@ -8,7 +8,8 @@
 #include "LightUniforms.h"
 #include "Material/ShaderSchema.h"
 #include "Math/Transform.hpp"
-#include "RenderContext.h"
+#include "Rendering/RenderContext.h"
+#include "Rendering/Resources/MeshResource.h"
 
 #include <string>
 
@@ -237,11 +238,19 @@ void ShadowMapRenderer::Render(float deltaTime)
 						{
 							continue;
 						}
+						const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
+						if (ResourceStatus::Ready != pMeshResource->GetStatus() &&
+							ResourceStatus::Optimized != pMeshResource->GetStatus())
+						{
+							continue;
+						}
+
 						BlendShapeComponent* pBlendShapeComponent = m_pCurrentSceneWorld->GetBlendShapeComponent(entity);
 						if (pBlendShapeComponent)
 						{
 							continue;
 						}
+
 						// Transform
 						if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 						{
@@ -249,8 +258,7 @@ void ShadowMapRenderer::Render(float deltaTime)
 						}
 
 						// Mesh
-						UpdateStaticMeshComponent(pMeshComponent);
-						GetRenderContext()->Submit(viewId, "ShadowMapProgram");
+						SubmitStaticMeshDrawCall(pMeshComponent, viewId, "ShadowMapProgram");
 					}
 				}
 			}
@@ -315,14 +323,20 @@ void ShadowMapRenderer::Render(float deltaTime)
 						{
 							continue;
 						}
+						const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
+						if (ResourceStatus::Ready != pMeshResource->GetStatus() &&
+							ResourceStatus::Optimized != pMeshResource->GetStatus())
+						{
+							continue;
+						}
 
 						// Transform
 						if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 						{
 							bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 						}
-						UpdateStaticMeshComponent(pMeshComponent);
-						GetRenderContext()->Submit(viewId, "LinearShadowMapProgram");
+
+						SubmitStaticMeshDrawCall(pMeshComponent, viewId, "LinearShadowMapProgram");
 					}
 				}
 			}
@@ -369,19 +383,27 @@ void ShadowMapRenderer::Render(float deltaTime)
 					{
 						continue;
 					}
+					const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
+					if (ResourceStatus::Ready != pMeshResource->GetStatus() &&
+						ResourceStatus::Optimized != pMeshResource->GetStatus())
+					{
+						continue;
+					}
+
 					BlendShapeComponent* pBlendShapeComponent = m_pCurrentSceneWorld->GetBlendShapeComponent(entity);
 					if (pBlendShapeComponent)
 					{
 						continue;
 					}
+
 					// Transform
 					if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
 					{
 						bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 					}
+
 					// Mesh
-					UpdateStaticMeshComponent(pMeshComponent);
-					GetRenderContext()->Submit(viewId, "ShadowMapProgram");
+					SubmitStaticMeshDrawCall(pMeshComponent, viewId, "ShadowMapProgram");
 				}
 			}
 			break;

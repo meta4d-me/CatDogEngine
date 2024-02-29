@@ -22,6 +22,7 @@ namespace engine
 
 class Camera;
 class Renderer;
+class ResourceContext;
 class ShaderCollections;
 
 static constexpr uint8_t MaxViewCount = 255;
@@ -49,6 +50,9 @@ public:
 	void Dispatch(uint16_t viewID, const std::string& programName, uint32_t numX, uint32_t numY, uint32_t numZ);
 	void EndFrame();
 	void Shutdown();
+
+	void SetResourceContext(ResourceContext* pContext) { m_pResourceContext = pContext; }
+	ResourceContext* GetResourceContext() const { return m_pResourceContext; }
 
 	uint16_t GetBackBufferWidth() const { return m_backBufferWidth; }
 	uint16_t GetBackBufferHeight() const { return m_backBufferHeight; }
@@ -125,7 +129,7 @@ public:
 	void FillUniform(StringCrc resourceCrc, const void *pData, uint16_t vec4Count = 1) const;
 
 	RenderTarget* GetRenderTarget(StringCrc resourceCrc) const;
-	const bgfx::VertexLayout& GetVertexLayout(StringCrc resourceCrc) const;
+	const bgfx::VertexLayout& GetVertexAttributeLayouts(StringCrc resourceCrc) const;
 	bgfx::ShaderHandle GetShader(StringCrc resourceCrc) const;
 	bgfx::TextureHandle GetTexture(StringCrc resourceCrc) const;
 	bgfx::UniformHandle GetUniform(StringCrc resourceCrc) const;
@@ -137,6 +141,8 @@ public:
 	void DestoryProgram(StringCrc resourceCrc);
 
 private:
+	ResourceContext* m_pResourceContext = nullptr;
+
 	uint8_t m_currentViewCount = 0;
 	uint16_t m_backBufferWidth;
 	uint16_t m_backBufferHeight;

@@ -16,6 +16,7 @@ class ImGuiContextInstance;
 class Window;
 class RenderContext;
 class Renderer;
+class ResourceContext;
 class AABBRenderer;
 class RenderTarget;
 class SceneWorld;
@@ -120,6 +121,7 @@ private:
 
 	// Rendering
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;
+	std::unique_ptr<engine::ResourceContext> m_pResourceContext;
 	std::unique_ptr<engine::ShaderCollections> m_pShaderCollections;
 
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEditorRenderers;

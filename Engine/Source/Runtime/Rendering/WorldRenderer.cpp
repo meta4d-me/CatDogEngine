@@ -10,6 +10,8 @@
 #include "Material/ShaderSchema.h"
 #include "Math/Transform.hpp"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/MeshResource.h"
+#include "Rendering/Resources/TextureResource.h"
 #include "Scene/Texture.h"
 #include "U_IBL.sh"
 #include "U_AtmophericScattering.sh"
@@ -88,7 +90,7 @@ void WorldRenderer::Warmup()
 	GetRenderContext()->CreateUniform(LightDir, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(HeightOffsetAndshadowLength, bgfx::UniformType::Vec4, 1);
 
-	GetRenderContext()->CreateUniform(lightViewProjs, bgfx::UniformType::Mat4, 12); // 
+	GetRenderContext()->CreateUniform(lightViewProjs, bgfx::UniformType::Mat4, 12);
 	GetRenderContext()->CreateUniform(cubeShadowMapSamplers[0], bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(cubeShadowMapSamplers[1], bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(cubeShadowMapSamplers[2], bgfx::UniformType::Sampler);
@@ -106,6 +108,7 @@ void WorldRenderer::UpdateView(const float* pViewMatrix, const float* pProjectio
 void WorldRenderer::Render(float deltaTime)
 {
 	// TODO : Remove it. If every renderer need to submit camera related uniform, it should be done not inside Renderer class.
+	const CameraComponent* pMainCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(m_pCurrentSceneWorld->GetMainCameraEntity());
 	const cd::Transform& cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetTransform();
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
@@ -190,7 +193,12 @@ void WorldRenderer::Render(float deltaTime)
 			continue;
 		}
 
-		BlendShapeComponent* pBlendShapeComponent = m_pCurrentSceneWorld->GetBlendShapeComponent(entity);
+		const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
+		if (ResourceStatus::Ready != pMeshResource->GetStatus() &&
+			ResourceStatus::Optimized != pMeshResource->GetStatus())
+		{
+			continue;
+		}
 
 		// SkinMesh
 		if(m_pCurrentSceneWorld->GetAnimationComponent(entity))
@@ -204,24 +212,24 @@ void WorldRenderer::Render(float deltaTime)
 			bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 		}
 
-		// Mesh
-		if (pBlendShapeComponent)
-		{
-			bgfx::setVertexBuffer(0, bgfx::DynamicVertexBufferHandle{ pBlendShapeComponent->GetFinalMorphAffectedVB() });
-			bgfx::setVertexBuffer(1, bgfx::VertexBufferHandle{ pBlendShapeComponent->GetNonMorphAffectedVB() });
-			bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pMeshComponent->GetIndexBuffer() });
-		}
-		else
-		{
-			UpdateStaticMeshComponent(pMeshComponent);
-		}
-		
 		// Material
+		// TODO : need to check if one texture binds twice to different slot. Or will get bgfx assert about duplicated uniform set.
+		// So please have a research about same texture handle binds to different slots multiple times.
+		// The factor is to build slot -> texture handle maps before update.
+		bool textureSlotBindTable[32] = { false };
 		for (const auto& [textureType, propertyGroup] : pMaterialComponent->GetPropertyGroups())
 		{
 			const MaterialComponent::TextureInfo& textureInfo = propertyGroup.textureInfo;
+			if (textureSlotBindTable[textureInfo.slot])
+			{
+				// already bind.
+				continue;
+			}
 
-			if (!propertyGroup.useTexture || !bgfx::isValid(bgfx::TextureHandle{ textureInfo.textureHandle }))
+			TextureResource* pTextureResource = textureInfo.pTextureResource;
+			if (!propertyGroup.useTexture ||
+				pTextureResource == nullptr ||
+				(pTextureResource->GetStatus() != ResourceStatus::Ready && pTextureResource->GetStatus() != ResourceStatus::Optimized))
 			{
 				continue;
 			}
@@ -234,7 +242,8 @@ void WorldRenderer::Render(float deltaTime)
 				GetRenderContext()->FillUniform(albedoUVOffsetAndScaleCrc, &uvOffsetAndScaleData, 1);
 			}
 
-			bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle{ textureInfo.samplerHandle }, bgfx::TextureHandle{ textureInfo.textureHandle });
+			textureSlotBindTable[textureInfo.slot] = true;
+			bgfx::setTexture(textureInfo.slot, bgfx::UniformHandle{ pTextureResource->GetSamplerHandle() }, bgfx::TextureHandle{ pTextureResource->GetTextureHandle() });
 		}
 
 		// Sky
@@ -242,7 +251,7 @@ void WorldRenderer::Render(float deltaTime)
 		if (SkyType::SkyBox == crtSkyType)
 		{
 			// Create a new TextureHandle each frame if the skybox texture path has been updated,
-			// otherwise RenderContext::CreateTexture will automatically skip it.
+			// otherwise RenderContext::CreateTexture will skip it automatically.
 
 			constexpr StringCrc irrSamplerCrc(cubeIrradianceSampler);
 			GetRenderContext()->CreateTexture(pSkyComponent->GetIrradianceTexturePath().c_str(), samplerFlags);
@@ -277,6 +286,10 @@ void WorldRenderer::Render(float deltaTime)
 		// Submit uniform values : camera settings
 		constexpr StringCrc cameraPosCrc(cameraPos);
 		GetRenderContext()->FillUniform(cameraPosCrc, &cameraTransform.GetTranslation().x(), 1);
+
+		constexpr StringCrc cameraNearFarPlaneCrc(cameraNearFarPlane);
+		float cameraNearFarPlanedata[2]{ pMainCameraComponent->GetNearPlane(), pMainCameraComponent->GetFarPlane() };
+		GetRenderContext()->FillUniform(cameraNearFarPlaneCrc, cameraNearFarPlanedata, 1);
 
 		// Submit uniform values : material settings
 		constexpr StringCrc albedoColorCrc(albedoColor);
@@ -331,12 +344,6 @@ void WorldRenderer::Render(float deltaTime)
 		constexpr engine::StringCrc lightViewProjsCrc(lightViewProjs);
 		GetRenderContext()->FillUniform(lightViewProjsCrc, lightViewProjsData.data(), totalLightViewProjOffset);
 
-		// Submit shared uniform (related to camera) 
-		constexpr StringCrc cameraNearFarPlaneCrc(cameraNearFarPlane);
-		CameraComponent* pMainCameraComponent = m_pCurrentSceneWorld->GetCameraComponent(m_pCurrentSceneWorld->GetMainCameraEntity());
-		float cameraNearFarPlanedata[2] = { pMainCameraComponent->GetNearPlane(), pMainCameraComponent->GetFarPlane() };
-		GetRenderContext()->FillUniform(cameraNearFarPlaneCrc, &cameraNearFarPlanedata[0], 1);
-
 		// Submit shadow map and settings of each light
 		constexpr StringCrc shadowMapSamplerCrcs[3] = { StringCrc(cubeShadowMapSamplers[0]), StringCrc(cubeShadowMapSamplers[1]), StringCrc(cubeShadowMapSamplers[2]) };
 		for (int lightIndex = 0; lightIndex < lightEntityCount; lightIndex++)
@@ -378,7 +385,19 @@ void WorldRenderer::Render(float deltaTime)
 
 		bgfx::setState(state);
 
-		GetRenderContext()->Submit(GetViewID(), pMaterialComponent->GetShaderProgramName(), pMaterialComponent->GetFeaturesCombine());
+		// Mesh
+		if (BlendShapeComponent* pBlendShapeComponent = m_pCurrentSceneWorld->GetBlendShapeComponent(entity))
+		{
+			bgfx::setVertexBuffer(0, bgfx::DynamicVertexBufferHandle{ pBlendShapeComponent->GetFinalMorphAffectedVB() });
+			bgfx::setVertexBuffer(1, bgfx::VertexBufferHandle{ pBlendShapeComponent->GetNonMorphAffectedVB() });
+			// TODO : BlendShape + multiple index buffers.
+			bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pMeshComponent->GetMeshResource()->GetIndexBufferHandle(0U) });
+			GetRenderContext()->Submit(GetViewID(), pMaterialComponent->GetShaderProgramName(), pMaterialComponent->GetFeaturesCombine());
+		}
+		else
+		{
+			SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), pMaterialComponent->GetShaderProgramName(), pMaterialComponent->GetFeaturesCombine());
+		}
 	}
 }
 
