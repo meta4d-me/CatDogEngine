@@ -239,6 +239,8 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         transformComponent.SetTransform(cd::Transform::Identity());
         transformComponent.Build();
         particleEmitterComponent.SetRequiredVertexFormat(&pParticleMaterialType->GetRequiredVertexFormat());//to do : modify vertexFormat
+        particleEmitterComponent.SetMaterialType(pParticleMaterialType);
+        particleEmitterComponent.ActivateShaderFeature(engine::ShaderFeature::PARTICLE_INSTANCE);
         particleEmitterComponent.Build();
         //auto& particleForceFieldComponent = pWorld->CreateComponent<engine::ParticleForceFieldComponent>(entity);
         //particleForceFieldComponent.Build();

@@ -412,3 +412,47 @@ void engine::ParticleEmitterComponent::RePaddingShapeBuffer()
 	}
 }
 
+const std::string& engine::ParticleEmitterComponent::GetShaderProgramName() const
+{
+	return m_pParticleMaterialType->GetShaderSchema().GetShaderProgramName();
+}
+
+void engine::ParticleEmitterComponent::ActivateShaderFeature(ShaderFeature feature)
+{
+	if (ShaderFeature::DEFAULT == feature)
+	{
+		return;
+	}
+
+	for (const auto& conflict : m_pParticleMaterialType->GetShaderSchema().GetConflictFeatureSet(feature))
+	{
+		m_shaderFeatures.erase(conflict);
+	}
+
+	m_shaderFeatures.insert(cd::MoveTemp(feature));
+
+	m_isShaderFeatureDirty = true;
+}
+
+void engine::ParticleEmitterComponent::DeactivateShaderFeature(ShaderFeature feature)
+{
+	m_shaderFeatures.erase(feature);
+
+	m_isShaderFeatureDirty = true;
+}
+
+const std::string& engine::ParticleEmitterComponent::GetFeaturesCombine()
+{
+	if (m_isShaderFeatureDirty == false)
+	{
+		return m_featureCombine;
+	}
+
+	m_featureCombine = m_pParticleMaterialType->GetShaderSchema().GetFeaturesCombine(m_shaderFeatures);
+	m_isShaderFeatureDirty = false;
+
+	return m_featureCombine;
+}
+
+
+

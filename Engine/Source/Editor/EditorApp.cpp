@@ -417,6 +417,30 @@ void EditorApp::UpdateMaterials()
 	}
 }
 
+void EditorApp::UpdatePatricleInstanceState()
+{
+	for (engine::Entity entity : m_pSceneWorld->GetParticleEmitterEntities())
+	{
+		engine::ParticleEmitterComponent* pParticleEmitterComponent = m_pSceneWorld->GetParticleEmitterComponent(entity);
+		const std::string& programName = pParticleEmitterComponent->GetShaderProgramName();
+		const std::string& featuresCombine = pParticleEmitterComponent->GetFeaturesCombine();
+
+		// New shader feature added, need to compile new variants.
+		m_pRenderContext->CheckShaderProgram(entity, programName, featuresCombine);
+
+		// Shader source files have been modified, need to re-compile existing variants.
+		if (m_crtInputFocus && !m_preInputFocus)
+		{
+			m_pRenderContext->OnShaderHotModified(entity, programName, featuresCombine);
+		}
+	}
+
+	if (m_crtInputFocus && !m_preInputFocus)
+	{
+		m_pRenderContext->ClearModifiedProgramNameCrcs();
+	}
+}
+
 void EditorApp::CompileAndLoadShaders()
 {
 	// 1. Compile
@@ -551,10 +575,6 @@ void EditorApp::InitEngineRenderers()
 	auto pParticleRenderer = std::make_unique<engine::ParticleRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pParticleRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pParticleRenderer));
-
-	//auto pParticleShapeRenderer = std::make_unique<engine::ParticleEmitterShapeRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-	//pParticleShapeRenderer->SetSceneWorld(m_pSceneWorld.get());
-	//AddEngineRenderer(cd::MoveTemp(pParticleShapeRenderer));
 
 	auto pParticleForceFieldRenderer = std::make_unique<engine::ParticleForceFieldRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pParticleForceFieldRenderer->SetSceneWorld(m_pSceneWorld.get());
@@ -747,6 +767,7 @@ bool EditorApp::Update(float deltaTime)
 		m_pEngineImGuiContext->Update(deltaTime);
 
 		UpdateMaterials();
+		UpdatePatricleInstanceState();
 		CompileAndLoadShaders();
 
 		for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)

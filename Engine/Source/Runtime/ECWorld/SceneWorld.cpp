@@ -119,6 +119,8 @@ void SceneWorld::CreateParticleMaterialType(std::string shaderProgramName)
 
 	ShaderSchema shaderSchema;
 	shaderSchema.SetShaderProgramName(cd::MoveTemp(shaderProgramName));
+	shaderSchema.AddFeatureSet({ ShaderFeature::PARTICLE_INSTANCE });
+	shaderSchema.Build();
 	m_pParticleMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
 
 	cd::VertexFormat particleVertexFormat;

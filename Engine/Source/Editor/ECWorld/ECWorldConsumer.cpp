@@ -407,6 +407,7 @@ void ECWorldConsumer::AddBlendShape(engine::Entity entity, const cd::Mesh* pMesh
 void ECWorldConsumer::AddParticleEmitter(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat, const cd::ParticleEmitter& emitter)
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
+	engine::MaterialType* pMaterialType = m_pSceneWorld->GetParticleMaterialType();
 	engine::NameComponent& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
 	nameComponent.SetName(emitter.GetName());
 	auto& particleEmitterComponent = pWorld->CreateComponent<engine::ParticleEmitterComponent>(entity);
@@ -436,7 +437,9 @@ void ECWorldConsumer::AddParticleEmitter(engine::Entity entity, const cd::Mesh& 
 	particleEmitterComponent.SetEmitterColor(emitter.GetColor()/255.0f);
 	particleEmitterComponent.SetEmitterVelocity(emitter.GetVelocity());
 	particleEmitterComponent.SetEmitterAcceleration(emitter.GetAccelerate());
-	particleEmitterComponent.SetMeshData(&mesh);
+	particleEmitterComponent.SetMeshData(&mesh); 
+	particleEmitterComponent.SetMaterialType(pMaterialType);
+	particleEmitterComponent.ActivateShaderFeature(engine::ShaderFeature::PARTICLE_INSTANCE);
 	particleEmitterComponent.Build();
 }
 

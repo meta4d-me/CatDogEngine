@@ -13,6 +13,7 @@ namespace
 constexpr const char* particlePos = "u_particlePos";
 constexpr const char* particleScale = "u_particleScale";
 constexpr const char* shapeRange = "u_shapeRange";
+constexpr const char* particleColor = "u_particleColor";
 
 uint64_t state_tristrip = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS |
 BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_TRISTRIP;
@@ -46,6 +47,7 @@ void ParticleRenderer::Warmup()
 	GetRenderContext()->CreateUniform(particlePos, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(particleScale, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(shapeRange, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(particleColor, bgfx::UniformType::Vec4, 1);
 
 	GetRenderContext()->UploadShaderProgram(ParticleProgram);
 	GetRenderContext()->UploadShaderProgram(ParticleEmitterShapeProgram);
@@ -98,56 +100,106 @@ void ParticleRenderer::Render(float deltaTime)
 
 		pEmitterComponent->GetParticlePool().Update(1.0f/60.0f);
 
-		//Particle Emitter Instance
-		const uint16_t instanceStride = 80;
-		// to total number of instances to draw
-		uint32_t totalSprites;
-		totalSprites = pEmitterComponent->GetParticlePool().GetParticleMaxCount();
-		uint32_t drawnSprites = bgfx::getAvailInstanceDataBuffer(totalSprites, instanceStride);
-
-		bgfx::InstanceDataBuffer idb;
-		bgfx::allocInstanceDataBuffer(&idb, drawnSprites, instanceStride);
-
-		uint8_t* data = idb.data;
-		for (uint32_t ii = 0; ii < drawnSprites; ++ii)
+		if (pEmitterComponent->GetInstanceState())
 		{
-			float* mtx = (float*)data;
-			bx::mtxSRT(mtx, particleTransform.GetScale().x(), particleTransform.GetScale().y(), particleTransform.GetScale().z(),
-				particleRotation.Pitch(), particleRotation.Yaw(), particleRotation.Roll(),
-				pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().x(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().y(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().z());
+			//Particle Emitter Instance
+			const uint16_t instanceStride = 80;
+			// to total number of instances to draw
+			uint32_t totalSprites;
+			totalSprites = pEmitterComponent->GetParticlePool().GetParticleMaxCount();
+			uint32_t drawnSprites = bgfx::getAvailInstanceDataBuffer(totalSprites, instanceStride);
+
+			bgfx::InstanceDataBuffer idb;
+			bgfx::allocInstanceDataBuffer(&idb, drawnSprites, instanceStride);
+
+			uint8_t* data = idb.data;
+			for (uint32_t ii = 0; ii < drawnSprites; ++ii)
+			{
+				float* mtx = (float*)data;
+				bx::mtxSRT(mtx, particleTransform.GetScale().x(), particleTransform.GetScale().y(), particleTransform.GetScale().z(),
+					particleRotation.Pitch(), particleRotation.Yaw(), particleRotation.Roll(),
+					pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().x(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().y(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().z());
 				
-			float* color = (float*)&data[64];
-			color[0] = pEmitterComponent->GetEmitterColor().x();
-			color[1] = pEmitterComponent->GetEmitterColor().y();
-			color[2] = pEmitterComponent->GetEmitterColor().z();
-			color[3] = pEmitterComponent->GetEmitterColor().w();
+				float* color = (float*)&data[64];
+				color[0] = pEmitterComponent->GetEmitterColor().x();
+				color[1] = pEmitterComponent->GetEmitterColor().y();
+				color[2] = pEmitterComponent->GetEmitterColor().z();
+				color[3] = pEmitterComponent->GetEmitterColor().w();
 
-			data += instanceStride;
+				data += instanceStride;
+			}
+
+			//Billboard particlePos particleScale
+			constexpr StringCrc particlePosCrc(particlePos);
+			bgfx::setUniform(GetRenderContext()->GetUniform(particlePosCrc), &particleTransform.GetTranslation(), 1);
+			constexpr StringCrc ParticleScaleCrc(particleScale);
+			bgfx::setUniform(GetRenderContext()->GetUniform(ParticleScaleCrc), &particleTransform.GetScale(), 1);
+
+			constexpr StringCrc ParticleSampler("s_texColor");
+			bgfx::setTexture(0, GetRenderContext()->GetUniform(ParticleSampler), m_particleTextureHandle);
+			bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pEmitterComponent->GetParticleVertexBufferHandle() });
+			bgfx::setIndexBuffer(bgfx::IndexBufferHandle{  pEmitterComponent->GetParticleIndexBufferHandle() });
+
+
+			bgfx::setInstanceDataBuffer(&idb);
+
+			bgfx::setState(state_tristrip);
+
+			if (pEmitterComponent->GetRenderMode() == engine::ParticleRenderMode::Mesh)
+			{
+				GetRenderContext()->Submit(GetViewID(), ParticleProgram);
+			}
+			else if (pEmitterComponent->GetRenderMode() == engine::ParticleRenderMode::Billboard)
+			{
+				GetRenderContext()->Submit(GetViewID(), WO_BillboardParticleProgram);
+			}
 		}
-
-		//Billboard particlePos particleScale
-		constexpr StringCrc particlePosCrc(particlePos);
-		bgfx::setUniform(GetRenderContext()->GetUniform(particlePosCrc), &particleTransform.GetTranslation(), 1);
-		constexpr StringCrc ParticleScaleCrc(particleScale);
-		bgfx::setUniform(GetRenderContext()->GetUniform(ParticleScaleCrc), &particleTransform.GetScale(), 1);
-
-		constexpr StringCrc ParticleSampler("s_texColor");
-		bgfx::setTexture(0, GetRenderContext()->GetUniform(ParticleSampler), m_particleTextureHandle);
-		bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pEmitterComponent->GetParticleVertexBufferHandle() });
-		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{  pEmitterComponent->GetParticleIndexBufferHandle() });
-
-
-		bgfx::setInstanceDataBuffer(&idb);
-
-		bgfx::setState(state_tristrip);
-
-		if (pEmitterComponent->GetRenderMode() == engine::ParticleRenderMode::Mesh)
+		else
 		{
-			GetRenderContext()->Submit(GetViewID(), ParticleProgram);
-		}
-		else if (pEmitterComponent->GetRenderMode() == engine::ParticleRenderMode::Billboard)
-		{
-			GetRenderContext()->Submit(GetViewID(), WO_BillboardParticleProgram);
+			constexpr StringCrc particleColorCrc(particleColor);
+			bgfx::setUniform(GetRenderContext()->GetUniform(particleColorCrc), &pEmitterComponent->GetEmitterColor(), 1);
+
+			uint32_t drawnSprites = pEmitterComponent->GetParticlePool().GetParticleMaxCount();
+			for (uint32_t ii = 0; ii < drawnSprites; ++ii)
+			{
+				float mtx[16];
+				if (pEmitterComponent->GetRenderMode() == engine::ParticleRenderMode::Mesh)
+				{
+					bx::mtxSRT(mtx, particleTransform.GetScale().x(), particleTransform.GetScale().y(), particleTransform.GetScale().z(),
+						particleRotation.Pitch(), particleRotation.Yaw(), particleRotation.Roll(),
+						pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().x(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().y(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().z());
+				}
+				else if (pEmitterComponent->GetRenderMode() == engine::ParticleRenderMode::Billboard)
+				{
+					auto up = particleTransform.GetRotation().ToMatrix3x3() * cd::Vec3f(0, 1, 0);
+					auto vec =  pMainCameraTransform.GetTranslation() - pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos();
+					auto right = up.Cross(vec);
+					float yaw = atan2f(right.z(), right.x());
+					float pitch = atan2f(vec.y(), sqrtf(vec.x() * vec.x() + vec.z() * vec.z())); 
+					float roll = atan2f(right.x(), -right.y()); 
+					bx::mtxSRT(mtx, particleTransform.GetScale().x(), particleTransform.GetScale().y(), particleTransform.GetScale().z(),
+						pitch, yaw, roll,
+						pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().x(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().y(), pEmitterComponent->GetParticlePool().GetParticle(ii).GetPos().z());
+				}
+		
+				bgfx::setTransform(mtx);
+
+				constexpr StringCrc ParticleSampler("s_texColor");
+				bgfx::setTexture(0, GetRenderContext()->GetUniform(ParticleSampler), m_particleTextureHandle);
+				bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pEmitterComponent->GetParticleVertexBufferHandle() });
+				bgfx::setIndexBuffer(bgfx::IndexBufferHandle{  pEmitterComponent->GetParticleIndexBufferHandle() });
+
+				bgfx::setState(state_tristrip);
+
+				if (pEmitterComponent->GetRenderMode() == engine::ParticleRenderMode::Mesh)
+				{
+					GetRenderContext()->Submit(GetViewID(), ParticleProgram);
+				}
+				else if (pEmitterComponent->GetRenderMode() == engine::ParticleRenderMode::Billboard)
+				{
+					GetRenderContext()->Submit(GetViewID(), WO_BillboardParticleProgram);
+				}
+			}
 		}
 
 		//pEmitterComponent->RePaddingShapeBuffer();
