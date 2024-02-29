@@ -32,6 +32,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
     engine::MaterialType* pPBRMaterialType = pSceneWorld->GetPBRMaterialType();
     engine::MaterialType* pTerrainMaterialType = pSceneWorld->GetTerrainMaterialType();
+    engine::MaterialType* pParticleMaterialType = pSceneWorld->GetParticleMaterialType();
     engine::ResourceContext* pResourceContext = GetRenderContext()->GetResourceContext();
 
     auto AddNamedEntity = [&pWorld](std::string defaultName) -> engine::Entity

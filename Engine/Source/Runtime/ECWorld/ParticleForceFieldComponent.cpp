@@ -8,7 +8,7 @@ namespace engine
 void ParticleForceFieldComponent::Build()
 {
 	cd::VertexFormat vertexFormat;
-	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
+	vertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
 
 	const uint32_t vertexCount = 8;
 	std::vector<cd::Point> vertexArray
@@ -64,7 +64,7 @@ void ParticleForceFieldComponent::Build()
 	}
 
 	bgfx::VertexLayout vertexLayout;
-	VertexLayoutUtility::CreateVertexLayout(vertexLayout, vertexFormat.GetVertexLayout());
+	VertexLayoutUtility::CreateVertexLayout(vertexLayout, vertexFormat.GetVertexAttributeLayouts());
 	m_vertexBufferHandle = bgfx::createVertexBuffer(bgfx::makeRef(m_vertexBuffer.data(), static_cast<uint32_t>(m_vertexBuffer.size())), vertexLayout).idx;
 	m_indexBufferHandle = bgfx::createIndexBuffer(bgfx::makeRef(m_indexBuffer.data(), static_cast<uint32_t>(m_indexBuffer.size())), 0U).idx;
 }

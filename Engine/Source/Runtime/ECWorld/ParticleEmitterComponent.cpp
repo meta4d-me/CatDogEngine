@@ -21,7 +21,7 @@ void engine::ParticleEmitterComponent::Build()
 	BuildParticleShape();
 
 	bgfx::VertexLayout vertexLayout;
-	VertexLayoutUtility::CreateVertexLayout(vertexLayout, m_pRequiredVertexFormat->GetVertexLayout());
+	VertexLayoutUtility::CreateVertexLayout(vertexLayout, m_pRequiredVertexFormat->GetVertexAttributeLayouts());
 	m_particleVertexBufferHandle = bgfx::createVertexBuffer(bgfx::makeRef(m_particleVertexBuffer.data(), static_cast<uint32_t>(m_particleVertexBuffer.size())), vertexLayout).idx;
 	m_particleIndexBufferHandle = bgfx::createIndexBuffer(bgfx::makeRef(m_particleIndexBuffer.data(), static_cast<uint32_t>(m_particleIndexBuffer.size())), 0U).idx;
 }
@@ -288,7 +288,7 @@ void engine::ParticleEmitterComponent::BuildParticleShape()
 	if (m_emitterShape == ParticleEmitterShape::Box)
 	{
 		cd::VertexFormat vertexFormat;
-		vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
+		vertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
 
 		const uint32_t vertexCount = 8;
 		std::vector<cd::Point> vertexArray
@@ -344,7 +344,7 @@ void engine::ParticleEmitterComponent::BuildParticleShape()
 		}
 
 		bgfx::VertexLayout vertexLayout;
-		VertexLayoutUtility::CreateVertexLayout(vertexLayout, vertexFormat.GetVertexLayout());
+		VertexLayoutUtility::CreateVertexLayout(vertexLayout, vertexFormat.GetVertexAttributeLayouts());
 		m_emitterShapeVertexBufferHandle = bgfx::createVertexBuffer(bgfx::makeRef(m_emitterShapeVertexBuffer.data(), static_cast<uint32_t>(m_emitterShapeVertexBuffer.size())), vertexLayout).idx;
 		m_emitterShapeIndexBufferHandle = bgfx::createIndexBuffer(bgfx::makeRef(m_emitterShapeIndexBuffer.data(), static_cast<uint32_t>(m_emitterShapeIndexBuffer.size())), 0U).idx;
 	}
@@ -355,7 +355,7 @@ void engine::ParticleEmitterComponent::RePaddingShapeBuffer()
 	if (m_emitterShape == ParticleEmitterShape::Box)
 	{
 		cd::VertexFormat vertexFormat;
-		vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
+		vertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
 
 		const uint32_t vertexCount = 8;
 		std::vector<cd::Point> vertexArray
