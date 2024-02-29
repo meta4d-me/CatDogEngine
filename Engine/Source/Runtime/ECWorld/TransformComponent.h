@@ -37,6 +37,10 @@ public:
 #ifdef EDITOR_MODE
 	static bool DoUseUniformScale() { return m_doUseUniformScale; }
 	static void SetUseUniformScale(bool use) { m_doUseUniformScale = use; }
+
+	cd::Vec3f& GetRotateEular() { return m_rotateEular; }
+	const cd::Vec3f& GetRotateEular() const { return m_rotateEular; }
+	void SetRotateEular(cd::Vec3f eular) { m_rotateEular = cd::MoveTemp(eular); }
 #endif
 
 private:
@@ -51,6 +55,7 @@ private:
 
 #ifdef EDITOR_MODE
 	static bool m_doUseUniformScale;
+	cd::Vec3f m_rotateEular = cd::Vec3f::Zero();
 #endif
 };
 
