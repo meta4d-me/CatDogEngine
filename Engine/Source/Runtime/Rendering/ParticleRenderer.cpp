@@ -83,14 +83,36 @@ void ParticleRenderer::Render(float deltaTime)
 		pEmitterComponent->GetParticlePool().SetParticleMaxCount(pEmitterComponent->GetSpawnCount());
 		pEmitterComponent->GetParticlePool().AllParticlesReset();
 		int particleIndex = pEmitterComponent->GetParticlePool().AllocateParticleIndex();
+
+		//Random value
+		cd::Vec3f randomPos(getRandomValue(-pEmitterComponent->GetEmitterShapeRange().x(), pEmitterComponent->GetEmitterShapeRange().x()),
+									getRandomValue(-pEmitterComponent->GetEmitterShapeRange().y(), pEmitterComponent->GetEmitterShapeRange().y()),
+									getRandomValue(-pEmitterComponent->GetEmitterShapeRange().z(), pEmitterComponent->GetEmitterShapeRange().z()));	
+		cd::Vec3f randomVelocity(getRandomValue(-pEmitterComponent->GetRandomVelocity().x(), pEmitterComponent->GetRandomVelocity().x()),
+									getRandomValue(-pEmitterComponent->GetRandomVelocity().y(), pEmitterComponent->GetRandomVelocity().y()),
+									getRandomValue(-pEmitterComponent->GetRandomVelocity().z(), pEmitterComponent->GetRandomVelocity().z()));
+		pEmitterComponent->SetRandomPos(randomPos);
+
+		//particle
 		if (particleIndex != -1)
 		{
 			Particle& particle = pEmitterComponent->GetParticlePool().GetParticle(particleIndex);
-			cd::Vec3f random(getRandomValue(-pEmitterComponent->GetEmitterShapeRange().x(), pEmitterComponent->GetEmitterShapeRange().x()),
-										getRandomValue(-pEmitterComponent->GetEmitterShapeRange().y(), pEmitterComponent->GetEmitterShapeRange().y()),
-										getRandomValue(-pEmitterComponent->GetEmitterShapeRange().z(), pEmitterComponent->GetEmitterShapeRange().z()));
-			particle.SetPos(particleTransform.GetTranslation()+random);
-			particle.SetSpeed(pEmitterComponent->GetEmitterVelocity());
+			if (pEmitterComponent->GetRandomPosState())
+			{
+				particle.SetPos(particleTransform.GetTranslation()+ pEmitterComponent->GetRandormPos());
+			}
+			else
+			{
+				particle.SetPos(particleTransform.GetTranslation());
+			}
+			if (pEmitterComponent->GetRandomVelocityState())
+			{
+				particle.SetSpeed(pEmitterComponent->GetEmitterVelocity()+ randomVelocity);
+			}
+			else
+			{
+				particle.SetSpeed(pEmitterComponent->GetEmitterVelocity());
+			}
 			particle.SetRotationForceField(m_forcefieldRotationFoce);
 			particle.SetRotationForceFieldRange(m_forcefieldRange);
 			particle.SetAcceleration(pEmitterComponent->GetEmitterAcceleration());

@@ -42,8 +42,6 @@ public:
 	ParticleEmitterComponent& operator=(ParticleEmitterComponent&&) = default;
 	~ParticleEmitterComponent() = default;
 
-	//engine::ParticleSystem &GetParticleSystem() { return m_particleSystem; }
-
 	ParticlePool& GetParticlePool() { return m_particlePool; }
 
 	int& GetSpawnCount() { return m_spawnCount; }
@@ -67,12 +65,16 @@ public:
 	ParticleType& GetEmitterParticleType() { return m_emitterParticleType; }
 	void SetEmitterParticleType(engine::ParticleType type) { m_emitterParticleType = type; }
 
-	//bool& GetRandomVelocityState() { return m_randomVelocityState; }
-	//void SetRandomVelocityState(bool state) { m_randomVelocityState = state; }
+	//random
+	bool& GetRandomPosState() { return m_randomPosState; }
+	cd::Vec3f& GetRandormPos() { return m_randomPos; }
+	void SetRandomPos(cd::Vec3f randomPos) { m_randomPos = randomPos; }
 
-	//cd::Vec3f& GetRandomVelocity() { return m_randomVelocity; }
-	//void SetRandomVelocity(cd::Vec3f velocity) { m_randomVelocity = velocity; }
+	bool& GetRandomVelocityState() { return m_randomVelocityState; }
+	cd::Vec3f& GetRandomVelocity() { return m_randomVelocity; }
+	void SetRandomVelocity(cd::Vec3f randomVelocity) { m_randomVelocity = randomVelocity; }
 
+	//particle data
 	cd::Vec3f& GetEmitterVelocity() { return m_emitterVelocity; }
 	void SetEmitterVelocity(cd::Vec3f velocity) { m_emitterVelocity = velocity; }
 
@@ -129,19 +131,18 @@ private:
 
 	engine::ParticleType m_emitterParticleType;
 
-	struct VertexData
-	{
-		cd::Vec3f pos;
-		cd::Vec4f color;
-		cd::UV     uv;
-	};
-
 	//emitter  data
 	int m_spawnCount = 75;
 	cd::Vec3f m_emitterVelocity {20.0f, 20.0f, 0.0f};
 	cd::Vec3f m_emitterAcceleration;
 	cd::Vec4f m_emitterColor = cd::Vec4f::One();
 	float m_emitterLifeTime = 6.0f;
+
+	// random emitter data
+	bool m_randomPosState;
+	cd::Vec3f m_randomPos;
+	bool m_randomVelocityState;
+	cd::Vec3f m_randomVelocity;
 
 	//instancing
 	bool m_useInstance = false;
@@ -157,6 +158,12 @@ private:
 	const cd::Mesh* m_pMeshData = nullptr;
 
 	//particle vertex/index
+	struct VertexData
+	{
+		cd::Vec3f pos;
+		cd::Vec4f color;
+		cd::UV     uv;
+	};
 	const cd::VertexFormat* m_pRequiredVertexFormat = nullptr;
 	std::vector<std::byte> m_particleVertexBuffer;
 	std::vector<std::byte> m_particleIndexBuffer;

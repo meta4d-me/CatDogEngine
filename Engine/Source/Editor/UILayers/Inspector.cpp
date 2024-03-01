@@ -618,8 +618,11 @@ void UpdateComponentWidget<engine::ParticleEmitterComponent>(engine::SceneWorld*
 		ImGuiUtils::ImGuiEnumProperty("Particle Type", pParticleEmitterComponent->GetEmitterParticleType());
 		//ImGuiUtils::ImGuiEnumProperty("Emitter Shape", pParticleEmitterComponent->GetEmitterShape());
 		ImGuiUtils::ImGuiVectorProperty("Emitter Range", pParticleEmitterComponent->GetEmitterShapeRange());
+		ImGuiUtils::ImGuiBoolProperty("Random Emit Pos", pParticleEmitterComponent->GetRandomPosState());
 		ImGuiUtils::ImGuiIntProperty("Max Count", pParticleEmitterComponent->GetSpawnCount(), cd::Unit::None, 1, 300);
 		ImGuiUtils::ImGuiVectorProperty("Velocity", pParticleEmitterComponent->GetEmitterVelocity());
+		ImGuiUtils::ImGuiVectorProperty("Random Velocity", pParticleEmitterComponent->GetRandomVelocity());
+		ImGuiUtils::ImGuiBoolProperty("RandomVelocity", pParticleEmitterComponent->GetRandomVelocityState());
 		ImGuiUtils::ImGuiVectorProperty("Acceleration", pParticleEmitterComponent->GetEmitterAcceleration());
 		ImGuiUtils::ColorPickerProperty("Color", pParticleEmitterComponent->GetEmitterColor());
 		ImGuiUtils::ImGuiFloatProperty("LifeTime", pParticleEmitterComponent->GetLifeTime());
