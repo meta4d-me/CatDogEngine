@@ -79,7 +79,6 @@ private:
 
 	uint32_t m_nodeMinID;
 	uint32_t m_meshMinID;
-	uint32_t m_particleMinID = 0;
 };
 
 }

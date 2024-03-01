@@ -76,12 +76,11 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 
 	auto ParseMeshWithParticles= [&](cd::MeshID meshID,  const cd::ParticleEmitter& emitter)
 	{
-		engine::Entity meshEntity = m_pSceneWorld->GetWorld()->CreateEntity();
-
+		engine::Entity emitterEntity = m_pSceneWorld->GetWorld()->CreateEntity();
 		engine::MaterialType* pMaterialType = m_pSceneWorld->GetParticleMaterialType();
 
 		const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
-		AddParticleEmitter(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat(),emitter);
+		AddParticleEmitter(emitterEntity, mesh, pMaterialType->GetRequiredVertexFormat(), emitter);
 	};
 
 	// There are multiple kinds of cases in the SceneDatabase:
@@ -90,22 +89,23 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 	// 3. Node hierarchy.
 	// Another case is that we want to skip Node/Mesh which alreay parsed previously.
 	std::set<uint32_t> parsedMeshIDs;
-	m_particleMinID = 0;
-	for (const auto& mesh : pSceneDatabase->GetMeshes())
+	if (pSceneDatabase->GetParticleEmitterCount())
 	{
-		if (m_meshMinID > mesh.GetID().Data())
+		for (auto& particleEmitter : pSceneDatabase->GetParticleEmitters())
 		{
-			continue;
+			ParseMeshWithParticles(particleEmitter.GetMeshID(), particleEmitter);
+			parsedMeshIDs.insert(particleEmitter.GetID().Data());
 		}
+	}
+	else
+	{
+		for (const auto& mesh : pSceneDatabase->GetMeshes())
+		{
+			if (m_meshMinID > mesh.GetID().Data())
+			{
+				continue;
+			}
 
-		if (pSceneDatabase->GetParticleEmitterCount())
-		{
-			ParseMeshWithParticles(mesh.GetID(), pSceneDatabase->GetParticleEmitter(m_particleMinID));
-			parsedMeshIDs.insert(mesh.GetID().Data());
-			++m_particleMinID;
-		}
-		else
-		{
 			ParseMesh(mesh.GetID(), cd::Transform::Identity());
 			parsedMeshIDs.insert(mesh.GetID().Data());
 		}
