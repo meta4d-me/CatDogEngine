@@ -421,30 +421,6 @@ void EditorApp::UpdateMaterials()
 	}
 }
 
-void EditorApp::UpdatePatricleInstanceState()
-{
-	for (engine::Entity entity : m_pSceneWorld->GetParticleEmitterEntities())
-	{
-		engine::ParticleEmitterComponent* pParticleEmitterComponent = m_pSceneWorld->GetParticleEmitterComponent(entity);
-		const std::string& programName = pParticleEmitterComponent->GetShaderProgramName();
-		const std::string& featuresCombine = pParticleEmitterComponent->GetFeaturesCombine();
-
-		// New shader feature added, need to compile new variants.
-		m_pRenderContext->CheckShaderProgram(entity, programName, featuresCombine);
-
-		// Shader source files have been modified, need to re-compile existing variants.
-		if (m_crtInputFocus && !m_preInputFocus)
-		{
-			m_pRenderContext->OnShaderHotModified(entity, programName, featuresCombine);
-		}
-	}
-
-	if (m_crtInputFocus && !m_preInputFocus)
-	{
-		m_pRenderContext->ClearModifiedProgramNameCrcs();
-	}
-}
-
 void EditorApp::CompileAndLoadShaders()
 {
 	// 1. Compile
@@ -775,7 +751,6 @@ bool EditorApp::Update(float deltaTime)
 		m_pEngineImGuiContext->Update(deltaTime);
 
 		UpdateMaterials();
-		UpdatePatricleInstanceState();
 		CompileAndLoadShaders();
 
 		for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEngineRenderers)

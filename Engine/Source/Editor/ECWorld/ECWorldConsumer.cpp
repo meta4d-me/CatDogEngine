@@ -430,8 +430,8 @@ void ECWorldConsumer::AddParticleEmitter(engine::Entity entity, const cd::Mesh& 
 	cd::Vec3f pos = emitter.GetPosition();
 	cd::Vec3f rotation = emitter.GetFixedRotation();
 	cd::Vec3f scale = emitter.GetFixedScale();
-	auto fixedrotation = cd::Math::RadianToDegree(rotation);
-	cd::Quaternion rotationQuat = cd::Quaternion::FromPitchYawRoll(fixedrotation.x(), fixedrotation.y(), fixedrotation.z());
+	auto fixedRotation = cd::Math::RadianToDegree(rotation);
+	cd::Quaternion rotationQuat = cd::Quaternion::FromPitchYawRoll(fixedRotation.x(), fixedRotation.y(), fixedRotation.z());
 	transformComponent.GetTransform().SetTranslation(pos);
 	transformComponent.GetTransform().SetRotation(rotationQuat);
 	transformComponent.GetTransform().SetScale(scale);

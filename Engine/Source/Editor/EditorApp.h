@@ -89,7 +89,6 @@ private:
 	void OnShaderHotModifiedCallback(const char* rootDir, const char* filePath);
 
 	void UpdateMaterials();
-	void UpdatePatricleInstanceState();
 	void CompileAndLoadShaders();
 	void OnShaderCompileFailed(uint32_t handle, std::span<const char> str);
 

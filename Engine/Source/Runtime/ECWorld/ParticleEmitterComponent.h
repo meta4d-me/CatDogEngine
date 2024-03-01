@@ -13,13 +13,13 @@
 
 namespace engine
 {
-enum ParticleRenderMode
+enum class ParticleRenderMode
 {
 	Billboard,
 	Mesh,
 };
 
-enum ParticleEmitterShape
+enum class ParticleEmitterShape
 {
 	Sphere,
 	Hemisphere,
