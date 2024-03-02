@@ -173,13 +173,13 @@ vec3 CalculateSpotLight(U_Light light, Material material, vec3 worldPos, vec3 vi
 
 // -------------------- Directional -------------------- //
 
-vec3 CalculateDirectionalLight(U_Light light, Material material, vec3 worldPos, vec3 viewDir, vec3 diffuseBRDF) {
+vec3 CalculateDirectionalLight(U_Light light, Material material, vec3 worldNormal, vec3 viewDir, vec3 diffuseBRDF) {
 // TODO : Remove this normalize in the future.
 	vec3 lightDir = normalize(-light.direction);
 	vec3 harfDir  = normalize(lightDir + viewDir);
 	
-	float NdotV = max(dot(material.normal, viewDir), 0.0);
-	float NdotL = dot(material.normal, lightDir);
+	float NdotV = dot(worldNormal, viewDir);
+	float NdotL = dot(worldNormal, lightDir);
 	float NdotH = max(dot(material.normal, harfDir), 0.0);
 	float HdotV = max(dot(harfDir, viewDir), 0.0);
 
@@ -189,19 +189,29 @@ vec3 CalculateDirectionalLight(U_Light light, Material material, vec3 worldPos, 
 	vec3 secondShadeColor = u_secondShadowColor.xyz;
 	
 	float firstShadowMask = saturate( 1.0 - (halfLambert - (u_dividLine.x - u_dividLine.y)) / u_dividLine.y); // albedo and 1st shadow
-	vec3 baseColor = lerp (material.albedo, firstShadeColor, firstShadowMask);
+	vec3 baseColor = lerp (u_baseColor.xyz, firstShadeColor, firstShadowMask);
 
 	float secondShadowMask = saturate ( 1.0 - (halfLambert - (u_dividLine.z - u_dividLine.w)) / u_dividLine.w); // 1st shadow and 2st shadow
-	vec3 finalBaseColor = lerp (material.albedo,lerp(firstShadeColor, secondShadeColor,secondShadowMask),firstShadowMask);
+	vec3 finalBaseColor = lerp (u_baseColor.xyz,lerp(firstShadeColor, secondShadeColor,secondShadowMask),firstShadowMask);
 	// Specular
 	float halfSpecular = 0.5 * NdotH + 0.5;
-	vec3 specularMask = saturate(u_specular.y) * lerp (1.0 - step(halfSpecular, (1.0 - pow(u_specular.x, 5.0))), pow(halfSpecular, exp2(lerp(11, 1, u_specular.x))), u_specular.w);
+	vec3 specularMask = u_specular.y * lerp (1.0 - step(halfSpecular, (1.0 - pow(u_specular.x, 5.0))), pow(halfSpecular, exp2(lerp(11, 1, u_specular.x))), u_specular.w);
 	vec3 specularColor = light.color * specularMask;
 	vec3 specular = finalBaseColor + specularColor * ((1.0 - firstShadowMask) + (firstShadowMask * u_specular.z)) * light.intensity;
 
-	// SS Rim
+	// Rim
+	//float halfRim = 1 - (0.5 * NdotV + 0.5);
+	//float halfNdotL = 0.5 * NdotL + 0.5;
+	//float NdotLMask = step(u_rimLight.x , halfNdotL);
+	//float rimMask = step(u_rimLight.y, halfRim);
+	//vec3 rim = u_rimLightColor.xyz * rimMask * u_rimLight.z * 2.0;
 
-	return (specular.xyz) ;
+	float f = 1.0 - saturate(NdotV);
+	f = smoothstep(1.0 - u_rimLight.x,1.0,f);
+	f = smoothstep(0,u_rimLight.y,f);
+	vec3 rim = f *  u_rimLightColor.xyz * u_rimLight.z * ((u_rimLight.w + 0.5) * 2.0 - firstShadowMask);
+
+	return (rim + specular);
 }
 
 // -------------------- Sphere -------------------- //

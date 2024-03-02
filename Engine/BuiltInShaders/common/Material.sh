@@ -20,6 +20,8 @@ struct Material {
 	vec3 emissive;
 };
 
+uniform vec4 u_outLineColor;
+uniform vec4 u_outLineSize;
 uniform vec4 u_albedoColor;
 uniform vec4 u_metallicRoughnessFactor;
 uniform vec4 u_albedoUVOffsetAndScale;
@@ -29,6 +31,8 @@ uniform vec4 u_specular;
 uniform vec4 u_baseColor;
 uniform vec4 u_firstShadowColor;
 uniform vec4 u_secondShadowColor;
+uniform vec4 u_rimLightColor;
+uniform vec4 u_rimLight;
 
 #if defined(ALBEDOMAP)
 SAMPLER2D(s_texBaseColor, ALBEDO_MAP_SLOT);

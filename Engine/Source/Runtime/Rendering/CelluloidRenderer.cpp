@@ -44,6 +44,7 @@ namespace engine
 		constexpr const char* baseColor = "u_baseColor";
 		constexpr const char* firstShadowColor = "u_firstShadowColor";
 		constexpr const char* secondShadowColor = "u_secondShadowColor";
+		constexpr const char* rimLightColor = "u_rimLightColor";
 
 		constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 		constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
@@ -88,6 +89,8 @@ namespace engine
 		GetRenderContext()->CreateUniform(baseColor, bgfx::UniformType::Vec4, 1);
 		GetRenderContext()->CreateUniform(firstShadowColor, bgfx::UniformType::Vec4, 1);
 		GetRenderContext()->CreateUniform(secondShadowColor, bgfx::UniformType:: Vec4, 1);
+		GetRenderContext()->CreateUniform(rimLight, bgfx::UniformType::Vec4, 1);
+		GetRenderContext()->CreateUniform(rimLightColor, bgfx::UniformType::Vec4, 1);
 	}
 
 	void CelluloidRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -216,6 +219,12 @@ namespace engine
 
 			constexpr StringCrc secondShadowColorCrc(secondShadowColor);
 			GetRenderContext()->FillUniform(secondShadowColorCrc, pMaterialComponent->GetSecondShadowColor().begin(), 1);
+
+			constexpr StringCrc rimLightColorCrc(rimLightColor);
+			GetRenderContext()->FillUniform(rimLightColorCrc, pMaterialComponent->GetRimColor().begin(), 1);
+
+			constexpr StringCrc rimLightCrc(rimLight);
+			GetRenderContext()->FillUniform(rimLightCrc, pMaterialComponent->GetRimLight().begin(), 1);
 
 			// Submit uniform values : material settings
 			constexpr StringCrc albedoColorCrc(albedoColor);

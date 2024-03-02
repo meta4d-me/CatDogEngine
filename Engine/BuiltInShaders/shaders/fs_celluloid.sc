@@ -1,4 +1,4 @@
-$input v_worldPos, v_normal, v_texcoord0, v_TBN
+$input v_worldPos, v_normal, v_texcoord0, v_TBN,v_color0
 
 #include "../common/common.sh"
 #include "../common/BRDF.sh"
@@ -32,7 +32,7 @@ void main()
 	vec3 viewDir = normalize(cameraPos - v_worldPos);
 	
 	// Directional Light
-	vec3 dirColor = GetDirectional(material, v_worldPos, viewDir); 
+	vec3 dirColor = GetDirectional(material, v_normal, viewDir); 
 	
 	// Environment Light
 	vec3 envColor = GetEnvironment(material, v_worldPos, viewDir, v_normal);

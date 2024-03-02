@@ -520,15 +520,15 @@ void EditorApp::InitEngineRenderers()
 	pSceneRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pSceneRenderer));
 
-	auto pOutLineRenderer = std::make_unique<engine::OutLineRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-	m_pOutLineRenderer = pOutLineRenderer.get();
-	pOutLineRenderer->SetSceneWorld(m_pSceneWorld.get());
-	AddEngineRenderer(cd::MoveTemp(pOutLineRenderer));
-
 	auto pCelluloidRenderer = std::make_unique<engine::CelluloidRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pCelluloidRenderer = pCelluloidRenderer.get();
 	pCelluloidRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pCelluloidRenderer));
+
+	auto pOutLineRenderer = std::make_unique<engine::OutLineRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pOutLineRenderer = pOutLineRenderer.get();
+	pOutLineRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pOutLineRenderer));
 
 	auto pBlendShapeRenderer = std::make_unique<engine::BlendShapeRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pBlendShapeRenderer->SetSceneWorld(m_pSceneWorld.get());
@@ -583,9 +583,9 @@ void EditorApp::InitEngineRenderers()
 
 	// We can debug vertex/material/texture information by just output that to screen as fragmentColor.
 	// But postprocess will bring unnecessary confusion. 
-	auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-	pPostProcessRenderer->SetSceneWorld(m_pSceneWorld.get());
-	AddEngineRenderer(cd::MoveTemp(pPostProcessRenderer));
+	//auto pPostProcessRenderer = std::make_unique<engine::PostProcessRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	//pPostProcessRenderer->SetSceneWorld(m_pSceneWorld.get());
+	//AddEngineRenderer(cd::MoveTemp(pPostProcessRenderer));
 
 	// Note that if you don't want to use ImGuiRenderer for engine, you should also disable EngineImGuiContext.
 	AddEngineRenderer(std::make_unique<engine::ImGuiRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget));

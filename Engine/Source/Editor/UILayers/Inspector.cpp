@@ -224,7 +224,9 @@ namespace details
 					// TODO : generic cull mode.
 					ImGuiUtils::ImGuiBoolProperty("TwoSided", pMaterialComponent->GetTwoSided());
 					ImGuiUtils::ImGuiEnumProperty("BlendMode", pMaterialComponent->GetBlendMode());
-					ImGuiUtils::ImGuiBoolProperty("OutLine", pMaterialComponent->GetOutLine());
+					ImGuiUtils::ImGuiBoolProperty("OutLine", pMaterialComponent->GetIsOpenOutLine());
+					ImGuiUtils::ColorPickerProperty("OutLineColor", pMaterialComponent->GetOutLineColor());
+					ImGuiUtils::ImGuiFloatProperty("OutLineSize", pMaterialComponent->GetOutLineSize(), cd::Unit::None, 0.0f,100.0f,false,0.1f);
 				}
 
 				ImGui::Separator();
@@ -323,7 +325,13 @@ namespace details
 			ImGuiUtils::ImGuiFloatProperty("Specular Size", pMaterialComponent->GetSpecular().x(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
 			ImGuiUtils::ImGuiFloatProperty("Specular Power", pMaterialComponent->GetSpecular().y(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
 			ImGuiUtils::ImGuiFloatProperty("Specular Mask", pMaterialComponent->GetSpecular().z(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
-			ImGuiUtils::ImGuiFloatProperty("Is High Light", pMaterialComponent->GetSpecular().w(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+			ImGuiUtils::ImGuiFloatProperty("High Light Halo", pMaterialComponent->GetSpecular().w(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+			ImGuiUtils::ColorPickerProperty("Rim Light Color", pMaterialComponent->GetRimColor());
+			ImGuiUtils::ImGuiFloatProperty("Rim Light Range", pMaterialComponent->GetRimLight().x(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+			ImGuiUtils::ImGuiFloatProperty("Rim Light Feather", pMaterialComponent->GetRimLight().y(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+			ImGuiUtils::ImGuiFloatProperty("Rim Light Itensity", pMaterialComponent->GetRimLight().z(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+			ImGuiUtils::ImGuiFloatProperty("Rim Light Mask", pMaterialComponent->GetRimLight().w(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+
 
 			// Shaders
 			{

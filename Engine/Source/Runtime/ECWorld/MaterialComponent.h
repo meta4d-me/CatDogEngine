@@ -168,9 +168,12 @@ public:
 	cd::BlendMode GetBlendMode() const { return m_blendMode; }
 
 	//OutLine parameters
-	void SetOutLine(bool value) { m_outLine = value; }
-	bool& GetOutLine() { return m_outLine; }
-	bool GetOutLine() const { return m_outLine; }
+	void SetIsOpenOutLine(bool value) { m_isOpenOutLine = value; }
+	bool& GetIsOpenOutLine() { return m_isOpenOutLine; }
+	bool GetIsOpenOutLine() const { return m_isOpenOutLine; }
+
+	cd::Vec3f& GetOutLineColor() { return m_outLineColor; }
+	float& GetOutLineSize() { return m_outLineSize; }
 
 	void SetAlphaCutOff(float value) { m_alphaCutOff = value; }
 	float& GetAlphaCutOff() { return m_alphaCutOff; }
@@ -185,6 +188,9 @@ public:
 	cd::Vec3f& GetBaseColor() { return m_baseColor; }
 	cd::Vec3f& GetFirstShadowColor() { return m_firstShadowColor; }
 	cd::Vec3f& GetSecondShadowColor() { return m_SecondShadowColor; }
+
+	cd::Vec3f& GetRimColor() { return m_rimLightColor; }
+	cd::Vec4f& GetRimLight() { return m_rimLight; }
 private:
 	// Input
 	const cd::Material* m_pMaterialData = nullptr;
@@ -192,13 +198,18 @@ private:
 
 	std::string m_name;
 
+	//cd::Vec4f m_outLine = cd::Vec4f(0.0f,0.0f,0.0f,0.5f);
+	cd::Vec3f m_outLineColor = cd::Vec3f::Zero();
+	float m_outLineSize = 0.5f;
+	cd::Vec4f m_rimLight;
 	cd::Vec4f m_dividLine;
 	cd::Vec4f m_specular;
 	cd::Vec3f m_baseColor;
 	cd::Vec3f m_firstShadowColor;
 	cd::Vec3f m_SecondShadowColor;
+	cd::Vec3f m_rimLightColor;
 	bool m_twoSided;
-	bool m_outLine;
+	bool m_isOpenOutLine;
 	cd::BlendMode m_blendMode;
 	float m_alphaCutOff;
 

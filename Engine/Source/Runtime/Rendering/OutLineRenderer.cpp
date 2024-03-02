@@ -9,6 +9,11 @@
 
 namespace engine
 {
+	namespace
+	{
+		constexpr const char* outLineColor = "u_outLineColor";
+		constexpr const char* outLineSize = "u_outLineSize";
+	}
 
 	void OutLineRenderer::Init()
 	{
@@ -20,6 +25,8 @@ namespace engine
 
 	void OutLineRenderer::Warmup()
 	{
+		GetRenderContext()->CreateUniform(outLineColor, bgfx::UniformType::Vec4, 1);
+		GetRenderContext()->CreateUniform(outLineSize, bgfx::UniformType::Vec4, 1);
 		GetRenderContext()->UploadShaderProgram("OutLineProgram");
 	}
 
@@ -51,7 +58,7 @@ namespace engine
 			}
 
 			MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
-			if (!pMaterialComponent->GetOutLine())
+			if (!pMaterialComponent->GetIsOpenOutLine())
 			{
 				continue;
 			}
@@ -60,7 +67,15 @@ namespace engine
 				pTransformComponent->Build();
 				bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 			}
+
+			constexpr StringCrc outLineColorCrc(outLineColor);
+			GetRenderContext()->FillUniform(outLineColorCrc, pMaterialComponent->GetOutLineColor().begin(), 1);
+
+			constexpr StringCrc outLineSizeCrc(outLineSize);
+			GetRenderContext()->FillUniform(outLineSizeCrc, &pMaterialComponent->GetOutLineSize(), 1);
+
 			UpdateStaticMeshComponent(pMeshComponent);
+
 			constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_CULL_CW;
 			bgfx::setState(state);
 
