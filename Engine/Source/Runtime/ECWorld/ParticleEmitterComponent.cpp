@@ -1,11 +1,14 @@
 #include "Log/Log.h"
 #include "ParticleEmitterComponent.h"
-
 #include "Rendering/Utility/VertexLayoutUtility.h"
+#include "Utilities/MeshUtils.hpp"
 
 #include <limits>
 
-void engine::ParticleEmitterComponent::Build()
+namespace engine
+{
+
+void ParticleEmitterComponent::Build()
 {
 	if (m_pMeshData == nullptr)
 	{
@@ -26,7 +29,7 @@ void engine::ParticleEmitterComponent::Build()
 	m_particleIndexBufferHandle = bgfx::createIndexBuffer(bgfx::makeRef(m_particleIndexBuffer.data(), static_cast<uint32_t>(m_particleIndexBuffer.size())), 0U).idx;
 }
 
-void engine::ParticleEmitterComponent::PaddingVertexBuffer()
+void ParticleEmitterComponent::PaddingVertexBuffer()
 {
 	//m_particleVertexBuffer.clear();
 	//m_particleVertexBuffer.insert(m_particleVertexBuffer.end(), m_particlePool.GetRenderDataBuffer().begin(), m_particlePool.GetRenderDataBuffer().end());
@@ -36,9 +39,10 @@ void engine::ParticleEmitterComponent::PaddingVertexBuffer()
 	const bool containsColor = m_pRequiredVertexFormat->Contains(cd::VertexAttributeType::Color);
 	const bool containsUV = m_pRequiredVertexFormat->Contains(cd::VertexAttributeType::UV);
 	//vertexbuffer
-	if (m_emitterParticleType == engine::ParticleType::Sprite)
+	if (m_emitterParticleType == ParticleType::Sprite)
 	{
-		const int MAX_VERTEX_COUNT = m_particlePool.GetParticleMaxCount() * engine::ParticleTypeVertexCount::SpriteVertexCount;
+		constexpr int meshVertexCount = Particle::GetMeshVertexCount<ParticleType::Sprite>();
+		const int MAX_VERTEX_COUNT = m_particlePool.GetParticleMaxCount() * meshVertexCount;
 		size_t vertexCount = MAX_VERTEX_COUNT;
 		const uint32_t vertexFormatStride = m_pRequiredVertexFormat->GetStride();
 
@@ -51,7 +55,7 @@ void engine::ParticleEmitterComponent::PaddingVertexBuffer()
 		vertexDataBuffer.resize(MAX_VERTEX_COUNT);
 		// pos color uv
 		// only a picture now
-		for (int i = 0; i < MAX_VERTEX_COUNT; i += engine::ParticleTypeVertexCount::SpriteVertexCount)
+		for (int i = 0; i < MAX_VERTEX_COUNT; i += meshVertexCount)
 		{
 			vertexDataBuffer[i] = { cd::Vec3f(-1.0f,-1.0f,0.0f),cd::Vec4f(1.0f,1.0f,1.0f,1.0f),cd::Vec2f(1.0f,1.0f) };
 			vertexDataBuffer[i + 1] = { cd::Vec3f(1.0f,-1.0f,0.0f),cd::Vec4f(1.0f,1.0f,1.0f,1.0f),cd::Vec2f(0.0f,1.0f) };
@@ -96,22 +100,19 @@ void engine::ParticleEmitterComponent::PaddingVertexBuffer()
 	{
 
 	}
-
 }
 
-void engine::ParticleEmitterComponent::PaddingIndexBuffer()
+void ParticleEmitterComponent::PaddingIndexBuffer()
 {
-	/*
-* indexBuffer
-*/	
 	m_particleIndexBuffer.clear();
 	if (m_emitterParticleType == engine::ParticleType::Sprite)
 	{
-		const bool useU16Index = static_cast<uint32_t>(ParticleTypeVertexCount::SpriteVertexCount) <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()) + 1U;
+		constexpr int meshVertexCount = Particle::GetMeshVertexCount<ParticleType::Sprite>();
+		const bool useU16Index = meshVertexCount <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()) + 1U;
 		const uint32_t indexTypeSize = useU16Index ? sizeof(uint16_t) : sizeof(uint32_t);
-		const int MAX_VERTEX_COUNT = m_particlePool.GetParticleMaxCount() * engine::ParticleTypeVertexCount::SpriteVertexCount;
+		const int MAX_VERTEX_COUNT = m_particlePool.GetParticleMaxCount() * meshVertexCount;
 		int indexCountForOneSprite = 6;
-		const uint32_t indicesCount = MAX_VERTEX_COUNT / engine::ParticleTypeVertexCount::SpriteVertexCount * indexCountForOneSprite;
+		const uint32_t indicesCount = MAX_VERTEX_COUNT / meshVertexCount * indexCountForOneSprite;
 		m_particleIndexBuffer.resize(indicesCount * indexTypeSize);
 		///
 	/*	size_t indexTypeSize = sizeof(uint16_t);
@@ -120,7 +121,7 @@ void engine::ParticleEmitterComponent::PaddingIndexBuffer()
 		auto currentDataPtr = m_particleIndexBuffer.data();
 
 		std::vector<uint16_t> indexes;
-		for (uint16_t i = 0; i < MAX_VERTEX_COUNT; i += ParticleTypeVertexCount::SpriteVertexCount)
+		for (uint16_t i = 0; i < MAX_VERTEX_COUNT; i += meshVertexCount)
 		{
 			uint16_t vertexIndex = static_cast<uint16_t>(i);
 			indexes.push_back(vertexIndex);
@@ -155,7 +156,7 @@ void engine::ParticleEmitterComponent::PaddingIndexBuffer()
 	}
 }
 
-void engine::ParticleEmitterComponent::ParseMeshVertexBuffer()
+void ParticleEmitterComponent::ParseMeshVertexBuffer()
 {
 	CD_ASSERT(m_pMeshData && m_pRequiredVertexFormat, "Input data is not ready.");
 		
@@ -229,12 +230,13 @@ void engine::ParticleEmitterComponent::ParseMeshVertexBuffer()
 	}
 }
 
-void engine::ParticleEmitterComponent::ParseMeshIndexBuffer()
+void ParticleEmitterComponent::ParseMeshIndexBuffer()
 {
 	m_particleIndexBuffer.clear();
 	if (m_emitterParticleType == engine::ParticleType::Sprite)
 	{
-		const bool useU16Index = static_cast<uint32_t>(ParticleTypeVertexCount::SpriteVertexCount) <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()) + 1U;
+		constexpr int meshVertexCount = Particle::GetMeshVertexCount<ParticleType::Sprite>();
+		const bool useU16Index = meshVertexCount <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()) + 1U;
 		const uint32_t indexTypeSize = useU16Index ? sizeof(uint16_t) : sizeof(uint32_t);
 		const uint32_t indicesCount = m_pMeshData->GetPolygonCount()*3U;
 		m_particleIndexBuffer.resize(indicesCount * indexTypeSize);
@@ -283,7 +285,7 @@ void engine::ParticleEmitterComponent::ParseMeshIndexBuffer()
 	}
 }
 
-void engine::ParticleEmitterComponent::BuildParticleShape()
+void ParticleEmitterComponent::BuildParticleShape()
 {
 	if (m_emitterShape == ParticleEmitterShape::Box)
 	{
@@ -294,13 +296,13 @@ void engine::ParticleEmitterComponent::BuildParticleShape()
 		std::vector<cd::Point> vertexArray
 		{
 			cd::Point{-1.0f, -1.0f, 1.0f},
-				cd::Point{1.0f, -1.0f, 1.0f},
-				cd::Point{1.0f, 1.0f, 1.0f},
-				cd::Point{-1.0f, 1.0f, 1.0f},
-				cd::Point{-1.0f, -1.0f, -1.0f},
-				cd::Point{1.0f, -1.0f, -1.0f},
-				cd::Point{1.0f, 1.0f, -1.0f},
-				cd::Point{-1.0f, 1.0f, -1.0f},
+			cd::Point{1.0f, -1.0f, 1.0f},
+			cd::Point{1.0f, 1.0f, 1.0f},
+			cd::Point{-1.0f, 1.0f, 1.0f},
+			cd::Point{-1.0f, -1.0f, -1.0f},
+			cd::Point{1.0f, -1.0f, -1.0f},
+			cd::Point{1.0f, 1.0f, -1.0f},
+			cd::Point{-1.0f, 1.0f, -1.0f},
 		};
 		m_emitterShapeVertexBuffer.resize(vertexCount * vertexFormat.GetStride());
 		uint32_t currentDataSize = 0U;
@@ -350,7 +352,7 @@ void engine::ParticleEmitterComponent::BuildParticleShape()
 	}
 }
 
-void engine::ParticleEmitterComponent::RePaddingShapeBuffer()
+void ParticleEmitterComponent::RePaddingShapeBuffer()
 {
 	if (m_emitterShape == ParticleEmitterShape::Box)
 	{
@@ -412,12 +414,12 @@ void engine::ParticleEmitterComponent::RePaddingShapeBuffer()
 	}
 }
 
-const std::string& engine::ParticleEmitterComponent::GetShaderProgramName() const
+const std::string& ParticleEmitterComponent::GetShaderProgramName() const
 {
 	return m_pParticleMaterialType->GetShaderSchema().GetShaderProgramName();
 }
 
-void engine::ParticleEmitterComponent::ActivateShaderFeature(ShaderFeature feature)
+void ParticleEmitterComponent::ActivateShaderFeature(ShaderFeature feature)
 {
 	if (ShaderFeature::DEFAULT == feature)
 	{
@@ -434,14 +436,14 @@ void engine::ParticleEmitterComponent::ActivateShaderFeature(ShaderFeature featu
 	m_isShaderFeatureDirty = true;
 }
 
-void engine::ParticleEmitterComponent::DeactivateShaderFeature(ShaderFeature feature)
+void ParticleEmitterComponent::DeactivateShaderFeature(ShaderFeature feature)
 {
 	m_shaderFeatures.erase(feature);
 
 	m_isShaderFeatureDirty = true;
 }
 
-const std::string& engine::ParticleEmitterComponent::GetFeaturesCombine()
+const std::string& ParticleEmitterComponent::GetFeaturesCombine()
 {
 	if (m_isShaderFeatureDirty == false)
 	{
@@ -454,5 +456,4 @@ const std::string& engine::ParticleEmitterComponent::GetFeaturesCombine()
 	return m_featureCombine;
 }
 
-
-
+}

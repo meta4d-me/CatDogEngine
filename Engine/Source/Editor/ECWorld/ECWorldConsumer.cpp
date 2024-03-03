@@ -74,59 +74,31 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 		}
 	};
 
-	auto ParseMeshWithParticles= [&](cd::MeshID meshID,  const cd::ParticleEmitter& emitter)
+	// Parse particle emitter and skip its mesh shapes.
+	std::set<cd::MeshID> parsedMeshIDs;
+	for (auto& particleEmitter : pSceneDatabase->GetParticleEmitters())
 	{
 		engine::Entity emitterEntity = m_pSceneWorld->GetWorld()->CreateEntity();
-		engine::MaterialType* pMaterialType = m_pSceneWorld->GetParticleMaterialType();
-
-		const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
-		AddParticleEmitter(emitterEntity, mesh, pMaterialType->GetRequiredVertexFormat(), emitter);
-	};
-
-	// There are multiple kinds of cases in the SceneDatabase:
-	// 1. No nodes but have meshes in the SceneDatabase.
-	// 2. Only a root node with multiple meshes.
-	// 3. Node hierarchy.
-	// Another case is that we want to skip Node/Mesh which alreay parsed previously.
-	std::set<uint32_t> parsedMeshIDs;
-	if (pSceneDatabase->GetParticleEmitterCount())
-	{
-		for (auto& particleEmitter : pSceneDatabase->GetParticleEmitters())
-		{
-			ParseMeshWithParticles(particleEmitter.GetMeshID(), particleEmitter);
-			parsedMeshIDs.insert(particleEmitter.GetID().Data());
-		}
-	}
-	else
-	{
-		for (const auto& mesh : pSceneDatabase->GetMeshes())
-		{
-			if (m_meshMinID > mesh.GetID().Data())
-			{
-				continue;
-			}
-
-			ParseMesh(mesh.GetID(), cd::Transform::Identity());
-			parsedMeshIDs.insert(mesh.GetID().Data());
-		}
+		const auto& mesh = pSceneDatabase->GetMesh(particleEmitter.GetMeshID().Data());
+		AddParticleEmitter(emitterEntity, mesh, m_pSceneWorld->GetParticleMaterialType()->GetRequiredVertexFormat(), particleEmitter);
+		parsedMeshIDs.insert(mesh.GetID());
 	}
 
-	for (const auto& node : pSceneDatabase->GetNodes())
+	// Parse meshes in normal usage.
+	for (const auto& mesh : pSceneDatabase->GetMeshes())
 	{
-		if (m_nodeMinID > node.GetID().Data())
+		if (m_meshMinID > mesh.GetID().Data())
 		{
 			continue;
 		}
 
-		for (cd::MeshID meshID : node.GetMeshIDs())
+		if (parsedMeshIDs.contains(mesh.GetID()))
 		{
-			if (parsedMeshIDs.find(meshID.Data()) != parsedMeshIDs.end())
-			{
-				continue;
-			}
-
-			ParseMesh(meshID, node.GetTransform());
+			continue;
 		}
+
+		ParseMesh(mesh.GetID(), cd::Transform::Identity());
+		parsedMeshIDs.insert(mesh.GetID().Data());
 	}
 
 	for (const auto& camera : pSceneDatabase->GetCameras())

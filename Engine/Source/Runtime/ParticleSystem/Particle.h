@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Base/Template.h"
 #include "Core/StringCrc.h"
 #include "Math/Vector.hpp"
@@ -8,7 +9,8 @@
 
 namespace engine
 {
-enum ParticleType
+
+enum class ParticleType
 {
     Sprite,
     Ribbon,
@@ -17,17 +19,32 @@ enum ParticleType
     Model
 };
 
-enum ParticleTypeVertexCount
-{
-    SpriteVertexCount = 4,
-    RibbonVertetxCount = 2,
-    TrackVertexCount = 3,
-    RingVertexCount = 8,
-    ModeVertexCountl
-};
-
 class Particle final
 {
+public:
+    template<ParticleType PT>
+    static constexpr int GetMeshVertexCount()
+    {
+        if constexpr (ParticleType::Sprite == PT)
+        {
+            return 4;
+        }
+        else if constexpr (ParticleType::Ribbon == PT)
+        {
+            return 2;
+        }
+        else if constexpr (ParticleType::Track == PT)
+        {
+            return 3;
+        }
+        else if constexpr (ParticleType::Ring == PT)
+        {
+            return 8;
+        }
+
+        return 3;
+    }
+
 public:
 	Particle() { Reset(); }
 	Particle(const Particle&) = default;
