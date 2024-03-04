@@ -35,8 +35,8 @@ SceneWorld::SceneWorld()
 	m_pNameComponentStorage = m_pWorld->Register<engine::NameComponent>();
 	m_pSkyComponentStorage = m_pWorld->Register<engine::SkyComponent>();
 	m_pStaticMeshComponentStorage = m_pWorld->Register<engine::StaticMeshComponent>();
-	m_pParticleComponentStorage = m_pWorld->Register<engine::ParticleComponent>();
 	m_pParticleEmitterComponentStorage = m_pWorld->Register<engine::ParticleEmitterComponent>();
+	m_pParticleForceFieldComponentStorage = m_pWorld->Register<engine::ParticleForceFieldComponent>();
 	m_pTerrainComponentStorage = m_pWorld->Register<engine::TerrainComponent>();
 	m_pTransformComponentStorage = m_pWorld->Register<engine::TransformComponent>();
 	
@@ -110,6 +110,24 @@ void SceneWorld::CreateTerrainMaterialType(std::string shaderProgramName)
 	terrainVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
 	terrainVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
 	m_pTerrainMaterialType->SetRequiredVertexFormat(cd::MoveTemp(terrainVertexFormat));
+}
+
+void SceneWorld::CreateParticleMaterialType(std::string shaderProgramName)
+{
+	m_pParticleMaterialType = std::make_unique<MaterialType>();
+	m_pParticleMaterialType->SetMaterialName("CD_Particle");
+
+	ShaderSchema shaderSchema;
+	shaderSchema.SetShaderProgramName(cd::MoveTemp(shaderProgramName));
+	shaderSchema.AddFeatureSet({ ShaderFeature::PARTICLE_INSTANCE });
+	shaderSchema.Build();
+	m_pParticleMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
+
+	cd::VertexFormat particleVertexFormat;
+	particleVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+	particleVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Color, cd::GetAttributeValueType<cd::Color::ValueType>(), cd::Color::Size);
+	particleVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
+	m_pParticleMaterialType->SetRequiredVertexFormat(cd::MoveTemp(particleVertexFormat));
 }
 
 #ifdef ENABLE_DDGI
