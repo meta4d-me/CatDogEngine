@@ -53,9 +53,6 @@ namespace engine
 
 	void CelluloidRenderer::Init()
 	{
-		/*constexpr StringCrc programCrc = StringCrc("CelluloidProgram");
-		GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_celluloid", "fs_celluloid" });*/
-
 		bgfx::setViewName(GetViewID(), "CelluloidRenderer");
 	}
 

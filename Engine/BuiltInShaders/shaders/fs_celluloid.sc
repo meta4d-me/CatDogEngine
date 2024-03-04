@@ -34,9 +34,6 @@ void main()
 	// Directional Light
 	vec3 dirColor = GetDirectional(material, v_normal, viewDir); 
 	
-	// Environment Light
-	vec3 envColor = GetEnvironment(material, v_worldPos, viewDir, v_normal);
-	
 	// Emissive
 	vec3 emiColor = material.emissive * u_emissiveColor.xyz;
 	
