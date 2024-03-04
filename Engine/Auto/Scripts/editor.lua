@@ -112,17 +112,14 @@ project("Editor")
 	staticruntime "on"
 	filter { "configurations:Debug" }
 		runtime "Debug" -- /MTd
-		libdirs {
-			BinariesPath,
-			path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug"),
-		}
 	filter { "configurations:Release" }
 		runtime "Release" -- /MT
-		libdirs {
-			BinariesPath,
-			path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release"),
-		}
 	filter {}
+
+	libdirs {
+		BinariesPath,
+		path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/%{cfg.buildcfg}"),
+	}
 
 	links {
 		"Engine",
@@ -138,6 +135,18 @@ project("Editor")
 
 		defines {
 			"ENABLE_GENERIC_PRODUCER",
+		}
+	end
+
+	if ENABLE_FBX_WORKFLOW then
+		links {
+			"FbxConsumer",
+			"FbxProducer",
+		}
+
+		defines {
+			"ENABLE_FBX_CONSUMER",
+			"ENABLE_FBX_PRODUCER",
 		}
 	end
 
