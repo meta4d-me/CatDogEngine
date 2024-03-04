@@ -110,9 +110,6 @@ public:
 	void PaddingVertexBuffer();
 	void PaddingIndexBuffer();
 
-	void ParseMeshVertexBuffer();
-	void ParseMeshIndexBuffer();
-
 	void BuildParticleShape();
 	void RePaddingShapeBuffer();
 
