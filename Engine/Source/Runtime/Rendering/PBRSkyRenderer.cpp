@@ -5,6 +5,7 @@
 #include "Log/Log.h"
 #include "Math/Box.hpp"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/MeshResource.h"
 #include "Scene/Mesh.h"
 #include "Scene/VertexFormat.h"
 #include "U_AtmophericScattering.sh"
@@ -49,14 +50,14 @@ constexpr uint16_t ScatteringOrders                      = 6;
 
 void PBRSkyRenderer::Init()
 {
-	constexpr StringCrc ProgramAtmosphericScatteringLUTCrc = StringCrc(ProgramAtmosphericScatteringLUT);
-	constexpr StringCrc ProgramSingleScatteringRayMarchingCrc = StringCrc(ProgramSingleScatteringRayMarching);
-	constexpr StringCrc ProgramComputeTransmittanceCrc = StringCrc(ProgramComputeTransmittance);
-	constexpr StringCrc ProgramComputeDirectIrradianceCrc = StringCrc(ProgramComputeDirectIrradiance);
-	constexpr StringCrc ProgramComputeSingleScatteringCrc = StringCrc(ProgramComputeSingleScattering);
-	constexpr StringCrc ProgramComputeScatteringDensityCrc = StringCrc(ProgramComputeScatteringDensity);
-	constexpr StringCrc ProgramComputeIndirectIrradianceCrc = StringCrc(ProgramComputeIndirectIrradiance);
-	constexpr StringCrc ProgramComputeMultipleScatteringCrc = StringCrc(ProgramComputeMultipleScattering);
+	constexpr StringCrc ProgramAtmosphericScatteringLUTCrc(ProgramAtmosphericScatteringLUT);
+	constexpr StringCrc ProgramSingleScatteringRayMarchingCrc(ProgramSingleScatteringRayMarching);
+	constexpr StringCrc ProgramComputeTransmittanceCrc(ProgramComputeTransmittance);
+	constexpr StringCrc ProgramComputeDirectIrradianceCrc(ProgramComputeDirectIrradiance);
+	constexpr StringCrc ProgramComputeSingleScatteringCrc(ProgramComputeSingleScattering);
+	constexpr StringCrc ProgramComputeScatteringDensityCrc(ProgramComputeScatteringDensity);
+	constexpr StringCrc ProgramComputeIndirectIrradianceCrc(ProgramComputeIndirectIrradiance);
+	constexpr StringCrc ProgramComputeMultipleScatteringCrc(ProgramComputeMultipleScattering);
 
 	GetRenderContext()->RegisterShaderProgram(ProgramAtmosphericScatteringLUTCrc, { "vs_atmSkyBox", "fs_PrecomputedAtmosphericScattering_LUT" });
 	GetRenderContext()->RegisterShaderProgram(ProgramSingleScatteringRayMarchingCrc, { "vs_atmSkyBox", "fs_SingleScattering_RayMarching" });
@@ -145,8 +146,12 @@ void PBRSkyRenderer::Render(float deltaTime)
 		return;
 	}
 
-	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pMeshComponent->GetVertexBuffer() });
-	bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pMeshComponent->GetIndexBuffer() });
+	const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
+	if (ResourceStatus::Ready != pMeshResource->GetStatus() &&
+		ResourceStatus::Optimized != pMeshResource->GetStatus())
+	{
+		return;
+	}
 
 	bgfx::setImage(ATM_TRANSMITTANCE_SLOT, GetRenderContext()->GetTexture(StringCrc(TextureTransmittance)), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
 	bgfx::setImage(ATM_IRRADIANCE_SLOT, GetRenderContext()->GetTexture(StringCrc(TextureIrradiance)), 0, bgfx::Access::Read, bgfx::TextureFormat::RGBA32F);
@@ -165,7 +170,8 @@ void PBRSkyRenderer::Render(float deltaTime)
 	GetRenderContext()->FillUniform(HeightOffsetCrc, &(tmpHeightOffset.x()), 1);
 
 	bgfx::setState(StateRendering);
-	GetRenderContext()->Submit(GetViewID(), ProgramAtmosphericScatteringLUT);
+
+	SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), ProgramAtmosphericScatteringLUT);
 }
 
 bool PBRSkyRenderer::IsEnable() const

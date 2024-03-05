@@ -4,6 +4,7 @@
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/SkyComponent.h"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/MeshResource.h"
 
 namespace engine
 {
@@ -71,8 +72,12 @@ void SkyboxRenderer::Render(float deltaTime)
 		return;
 	}
 
-	bgfx::setVertexBuffer(0, bgfx::VertexBufferHandle{ pMeshComponent->GetVertexBuffer() });
-	bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pMeshComponent->GetIndexBuffer() });
+	const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
+	if (ResourceStatus::Ready != pMeshResource->GetStatus() &&
+		ResourceStatus::Optimized != pMeshResource->GetStatus())
+	{
+		return;
+	}
 
 	// Create a new TextureHandle each frame if the skybox texture path has been updated,
 	// otherwise RenderContext::CreateTexture will automatically skip it.
@@ -87,7 +92,7 @@ void SkyboxRenderer::Render(float deltaTime)
 
 	bgfx::setState(renderState);
 
-	GetRenderContext()->Submit(GetViewID(), skyboxProgram);
+	SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), skyboxProgram);
 }
 
 bool SkyboxRenderer::IsEnable() const

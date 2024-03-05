@@ -18,7 +18,9 @@ public:
 	TStringCrc& operator=(TStringCrc&&) = default;
 	~TStringCrc() = default;
 
+	void Set(T v) { m_hashValue = v; }
 	constexpr T Value() const { return m_hashValue; }
+
 	bool operator<(const TStringCrc& other) const { return m_hashValue < other.m_hashValue; }
 	bool operator>(const TStringCrc& other) const { return m_hashValue > other.m_hashValue; }
 	bool operator==(const TStringCrc& other) const { return m_hashValue == other.m_hashValue; }

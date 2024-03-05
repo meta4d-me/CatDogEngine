@@ -692,7 +692,7 @@ RenderTarget* RenderContext::GetRenderTarget(StringCrc resourceCrc) const
 	return nullptr;
 }
 
-const bgfx::VertexLayout& RenderContext::GetVertexLayout(StringCrc resourceCrc) const
+const bgfx::VertexLayout& RenderContext::GetVertexAttributeLayouts(StringCrc resourceCrc) const
 {
 	auto itResource = m_vertexLayoutCaches.find(resourceCrc);
 	if (itResource != m_vertexLayoutCaches.end())

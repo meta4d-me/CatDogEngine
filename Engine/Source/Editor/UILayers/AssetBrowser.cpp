@@ -239,10 +239,10 @@ bool AssetBrowser::RenderFile(int dirIndex, bool folder, int shownIndex, bool gr
 				 }
 
 			 }
-			 if (0 == strcmp(".dds", extension.c_str()))
+			/* if (0 == strcmp(".dds", extension.c_str()))
 			 {
 				 ImGui::Button(reinterpret_cast<const char*>(ICON_MDI_DELTA), ImVec2(m_gridSize, m_gridSize));
-			 }
+			 }*/
 	
 						
 		}
@@ -875,7 +875,10 @@ void AssetBrowser::ProcessSceneDatabase(cd::SceneDatabase* pSceneDatabase, bool 
 		pSceneDatabase->GetMaterials().clear();
 		for (auto& mesh : pSceneDatabase->GetMeshes())
 		{
-			mesh.SetMaterialID(cd::MaterialID::InvalidID);
+			for (auto& materialID : mesh.GetMaterialIDs())
+			{
+				materialID.Set(cd::MaterialID::InvalidID);
+			}
 		}
 	}
 
@@ -931,7 +934,6 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 		genericProducer.EnableOption(cdtools::GenericProducerOptions::CleanUnusedObjects);
 		genericProducer.EnableOption(cdtools::GenericProducerOptions::GenerateTangentSpace);
 		genericProducer.EnableOption(cdtools::GenericProducerOptions::TriangulateModel);
-		genericProducer.EnableOption(cdtools::GenericProducerOptions::OnlyTransformAnimationKey);
 		if (!m_importOptions.ImportAnimation)
 		{
 			genericProducer.EnableOption(cdtools::GenericProducerOptions::FlattenTransformHierarchy);
@@ -939,8 +941,7 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 
 		cd::SceneDatabase newSceneDatabase;
 		cdtools::Processor processor(&genericProducer, nullptr, &newSceneDatabase);
-		processor.SetDumpSceneDatabaseEnable(false);
-		//processor.SetFlattenSceneDatabaseEnable(true);
+		processor.EnableOption(cdtools::ProcessorOptions::Dump);
 		processor.Run();
 		pSceneDatabase->Merge(cd::MoveTemp(newSceneDatabase));
 #else
@@ -964,7 +965,7 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 		}
 #endif
 		cdtools::Processor processor(nullptr, &ecConsumer, pSceneDatabase);
-		processor.SetDumpSceneDatabaseEnable(true);
+		processor.EnableOption(cdtools::ProcessorOptions::Dump);
 		processor.Run();
 	}
 
@@ -973,7 +974,7 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 		cdtools::CDConsumer cdConsumer(m_currentDirectory->FilePath.string().c_str());
 		cdConsumer.SetExportMode(cdtools::ExportMode::XmlBinary);
 		cdtools::Processor processor(nullptr, &cdConsumer, pSceneDatabase);
-		processor.SetDumpSceneDatabaseEnable(false);
+		processor.DisableOption(cdtools::ProcessorOptions::Dump);
 		processor.Run();
 	}
 }

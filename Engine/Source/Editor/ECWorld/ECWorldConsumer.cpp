@@ -7,6 +7,9 @@
 #include "Math/Transform.hpp"
 #include "Path/Path.h"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/MeshResource.h"
+#include "Rendering/Resources/ResourceContext.h"
+#include "Rendering/Resources/TextureResource.h"
 #include "Rendering/ShaderFeature.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ResourceLoader.h"
@@ -20,7 +23,7 @@ namespace editor
 {
 
 ECWorldConsumer::ECWorldConsumer(engine::SceneWorld* pSceneWorld, engine::RenderContext* pRenderContext) :
-	m_pSceneWorld(pSceneWorld), m_pRenderContext(pRenderContext)
+	m_pSceneWorld(pSceneWorld), m_pRenderContext(pRenderContext), m_pResourceContext(pRenderContext->GetResourceContext())
 {
 }
 
@@ -44,16 +47,15 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 
 		const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
 
-		// TODO : Or the user doesn't want to import animation data.
-		const bool isStaticMesh = 0U == mesh.GetVertexInfluenceCount();
-		if(isStaticMesh)
+		bool hasBlendShape = mesh.GetBlendShapeIDCount() > 0U;
+		if (hasBlendShape)
 		{
-			AddStaticMesh(meshEntity, mesh, m_pDefaultMaterialType->GetRequiredVertexFormat());
-
-			cd::MaterialID meshMaterialID = mesh.GetMaterialID();
-			AddMaterial(meshEntity, meshMaterialID.IsValid() ? &pSceneDatabase->GetMaterial(meshMaterialID.Data()) : nullptr, m_pDefaultMaterialType, pSceneDatabase);
+			assert(mesh.GetBlendShapeIDCount() == 1U);
+			AddBlendShape(meshEntity, &mesh, pSceneDatabase->GetBlendShape(mesh.GetBlendShapeID(0U).Data()), pSceneDatabase);
 		}
-		else
+
+		bool hasSkin = mesh.GetSkinIDCount() > 0U;
+		if (hasSkin)
 		{
 			engine::MaterialType* pMaterialType = m_pSceneWorld->GetAnimationMaterialType();
 			AddSkinMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
@@ -63,33 +65,12 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 			AddAnimation(meshEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
 			AddMaterial(meshEntity, nullptr, pMaterialType, pSceneDatabase);
 		}
-	};
-
-	auto ParseMeshWithMorphs = [&](cd::MeshID meshID, const cd::Transform& tranform, const std::vector<cd::Morph>& morphs)
-	{
-		engine::Entity meshEntity = m_pSceneWorld->GetWorld()->CreateEntity();
-		AddTransform(meshEntity, tranform);
-
-		const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
-
-		// TODO : Or the user doesn't want to import animation data.
-		const bool isStaticMesh = 0U == mesh.GetVertexInfluenceCount();
-		if (isStaticMesh)
-		{
-			AddStaticMesh(meshEntity, mesh, m_pDefaultMaterialType->GetRequiredVertexFormat());
-			AddMorphs(meshEntity, morphs, &mesh);
-			cd::MaterialID meshMaterialID = mesh.GetMaterialID();
-			AddMaterial(meshEntity, meshMaterialID.IsValid() ? &pSceneDatabase->GetMaterial(meshMaterialID.Data()) : nullptr, m_pDefaultMaterialType, pSceneDatabase);
-		}
 		else
 		{
-			engine::MaterialType* pMaterialType = m_pSceneWorld->GetAnimationMaterialType();
-			AddSkinMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
+			AddStaticMesh(meshEntity, mesh, m_pDefaultMaterialType->GetRequiredVertexFormat());
 
-			// TODO : Use a standalone .cdanim file to play animation.
-			// Currently, we assume that imported SkinMesh will play animation automatically for testing.
-			AddAnimation(meshEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
-			AddMaterial(meshEntity, nullptr, pMaterialType, pSceneDatabase);
+			cd::MaterialID meshMaterialID = mesh.GetMaterialID(0U);
+			AddMaterial(meshEntity, meshMaterialID.IsValid() ? &pSceneDatabase->GetMaterial(meshMaterialID.Data()) : nullptr, m_pDefaultMaterialType, pSceneDatabase);
 		}
 	};
 
@@ -106,16 +87,8 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 			continue;
 		}
 		
-		if(pSceneDatabase->GetMorphCount())
-		{
-			ParseMeshWithMorphs(mesh.GetID(), cd::Transform::Identity(), pSceneDatabase->GetMorphs());
-			parsedMeshIDs.insert(mesh.GetID().Data());
-		}
-		else 
-		{
-			ParseMesh(mesh.GetID(), cd::Transform::Identity());
-			parsedMeshIDs.insert(mesh.GetID().Data());
-		}
+		ParseMesh(mesh.GetID(), cd::Transform::Identity());
+		parsedMeshIDs.insert(mesh.GetID().Data());
 	}
 
 	for (const auto& node : pSceneDatabase->GetNodes())
@@ -204,7 +177,9 @@ void ECWorldConsumer::AddStaticMesh(engine::Entity entity, const cd::Mesh& mesh,
 
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
 	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
-	nameComponent.SetName(mesh.GetName());
+	std::string meshName(mesh.GetName());
+	engine::StringCrc meshNameCrc(meshName);
+	nameComponent.SetName(cd::MoveTemp(meshName));
 
 	auto& collisionMeshComponent = pWorld->CreateComponent<engine::CollisionMeshComponent>(entity);
 	collisionMeshComponent.SetType(engine::CollisonMeshType::AABB);
@@ -212,10 +187,10 @@ void ECWorldConsumer::AddStaticMesh(engine::Entity entity, const cd::Mesh& mesh,
 	collisionMeshComponent.Build();
 
 	auto& staticMeshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
-	staticMeshComponent.SetMeshData(&mesh);
-	staticMeshComponent.SetRequiredVertexFormat(&vertexFormat);
-	staticMeshComponent.Build();
-	staticMeshComponent.Submit();
+	engine::MeshResource* pMeshResource = m_pResourceContext->AddMeshResource(meshNameCrc);
+	pMeshResource->SetMeshAsset(&mesh);
+	pMeshResource->UpdateVertexFormat(vertexFormat);
+	staticMeshComponent.SetMeshResource(pMeshResource);
 }
 
 void ECWorldConsumer::AddSkinMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat)
@@ -322,30 +297,104 @@ void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMa
 	// Textures.
 	for (const auto& [type, path, pTexture] : outputTypeToData)
 	{
-		auto textureFileBlob = engine::ResourceLoader::LoadFile(path.c_str());
-		if (!textureFileBlob.empty())
+		engine::TextureResource* pTextureResource = m_pResourceContext->AddTextureResource(engine::StringCrc(path));
+		pTextureResource->SetTextureAsset(pTexture);
+		pTextureResource->SetDDSBuiltTexturePath(path);
+		pTextureResource->UpdateTextureType(type);
+		pTextureResource->UpdateUVMapMode(pTexture->GetUMapMode(), pTexture->GetVMapMode());
+
+		cd::Vec2f uvOffset;
+		cd::Vec2f uvScale;
+		if (auto optUVOffset = pMaterial->GetVec2fProperty(type, cd::MaterialProperty::UVOffset); optUVOffset.has_value())
 		{
-			// TODO : Store TextureFileBlob multiple times, a temporary solution here.
-			//        Should use something like TextureResource to avoid duplicate storage.
-			materialComponent.AddTextureFileBlob(type, pMaterial, *pTexture, cd::MoveTemp(textureFileBlob));
-			if (auto pPropertyGroup = materialComponent.GetPropertyGroup(type); pPropertyGroup)
-			{
-				pPropertyGroup->useTexture = true;
-				materialComponent.ActivateShaderFeature(engine::MaterialTextureTypeToShaderFeature.at(type));
-			}
+			uvOffset = optUVOffset.value();
+		}
+		if (auto optUVScale = pMaterial->GetVec2fProperty(type, cd::MaterialProperty::UVScale); optUVScale.has_value())
+		{
+			uvScale = optUVScale.value();
+		}
+		materialComponent.SetTextureResource(type, uvOffset, uvScale, pTextureResource);
+
+		if (auto pPropertyGroup = materialComponent.GetPropertyGroup(type); pPropertyGroup)
+		{
+			pPropertyGroup->useTexture = true;
+			materialComponent.ActivateShaderFeature(engine::MaterialTextureTypeToShaderFeature.at(type));
 		}
 	}
-
-	materialComponent.Build();
 }
 
-void ECWorldConsumer::AddMorphs(engine::Entity entity, const std::vector<cd::Morph>& morphs, const cd::Mesh* pMesh)
+void ECWorldConsumer::AddBlendShape(engine::Entity entity, const cd::Mesh* pMesh, const cd::BlendShape& blendShape, const cd::SceneDatabase* pSceneDatabase)
 {
 	engine::World* pWorld = m_pSceneWorld->GetWorld();
 
 	auto& blendShapeComponent = pWorld->CreateComponent<engine::BlendShapeComponent>(entity);
-	blendShapeComponent.SetMorphs(morphs);
-	blendShapeComponent.SetMesh(pMesh);
+
+	uint32_t vertexInstanceCount = pMesh->GetVertexInstanceToIDCount();
+	bool mappingSurfaceAttributes = vertexInstanceCount > 0U;
+	if (mappingSurfaceAttributes)
+	{
+		// Hack : Clear instance data and copy vertex count.
+		cd::Mesh* pModifiedMesh = const_cast<cd::Mesh*>(pMesh);
+
+		std::map<uint32_t, std::vector<uint32_t>> vertexIDToInstances;
+		std::vector<cd::Point> vertexPositions;
+		vertexPositions.reserve(vertexInstanceCount);
+		for (uint32_t vertexInstance = 0U; vertexInstance < vertexInstanceCount; ++vertexInstance)
+		{
+			uint32_t vertexID = pModifiedMesh->GetVertexInstanceToID(vertexInstance).Data();
+			vertexIDToInstances[vertexID].push_back(vertexInstance);
+			vertexPositions.emplace_back(pModifiedMesh->GetVertexPosition(vertexID));
+		}
+		
+		for (cd::MorphID morphID : blendShape.GetMorphIDs())
+		{
+			const auto& morph = pSceneDatabase->GetMorph(morphID.Data());
+			if (morph.GetVertexSourceIDCount() == 0U || morph.GetVertexPositionCount() == 0U)
+			{
+				continue;
+			}
+
+			std::vector<cd::VertexID> vertexSourceIDs;
+			std::vector<cd::Point> morphedPositions;
+			for (uint32_t vertexIndex = 0U; vertexIndex < morph.GetVertexSourceIDCount(); ++vertexIndex)
+			{
+				cd::VertexID sourceID = morph.GetVertexSourceID(vertexIndex);
+				auto itInstanceIDs = vertexIDToInstances.find(sourceID.Data());
+				assert(itInstanceIDs != vertexIDToInstances.end());
+				const cd::Point& modifiedPosition = morph.GetVertexPosition(vertexIndex);
+				for (uint32_t vertexInstance : itInstanceIDs->second)
+				{
+					vertexSourceIDs.push_back(vertexInstance);
+					morphedPositions.push_back(modifiedPosition);
+				}
+			}
+
+			auto& modifiedMorph = const_cast<cd::Morph&>(morph);
+			modifiedMorph.SetVertexSourceIDs(cd::MoveTemp(vertexSourceIDs));
+			modifiedMorph.SetVertexPositions(cd::MoveTemp(morphedPositions));
+			blendShapeComponent.AddMorph(&modifiedMorph);
+		}
+
+		pModifiedMesh->SetVertexPositions(cd::MoveTemp(vertexPositions));
+		pModifiedMesh->ClearVertexInstanceToIDs();
+		blendShapeComponent.SetMesh(pModifiedMesh);
+	}
+	else
+	{
+		// Normal workflow.
+		blendShapeComponent.SetMesh(pMesh);
+		for (cd::MorphID morphID : blendShape.GetMorphIDs())
+		{
+			const auto& morph = pSceneDatabase->GetMorph(morphID.Data());
+			if (morph.GetVertexSourceIDCount() == 0U || morph.GetVertexPositionCount() == 0U)
+			{
+				continue;
+			}
+
+			blendShapeComponent.AddMorph(&morph);
+		}
+	}
+
 	blendShapeComponent.Build();
 }
 

@@ -26,9 +26,12 @@
 #include "Rendering/BloomRenderer.h"
 #include "Rendering/PostProcessRenderer.h"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/MeshResource.h"
+#include "Rendering/Resources/ResourceContext.h"
 #include "Rendering/SkeletonRenderer.h"
 #include "Rendering/SkyboxRenderer.h"
 #include "Rendering/ShaderCollections.h"
+#include "Rendering/ShadowMapRenderer.h"
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Rendering/OutLineRenderer.h"
@@ -305,7 +308,7 @@ void EditorApp::InitEditorCameraEntity()
 	cameraComponent.SetExposure(1.0f);
 	cameraComponent.SetGammaCorrection(0.45f);
 	cameraComponent.SetToneMappingMode(cd::ToneMappingMode::ACES);
-	cameraComponent.SetBloomDownSampleTImes(4);
+	cameraComponent.SetBloomDownSampleTimes(4);
 	cameraComponent.SetBloomIntensity(1.0f);
 	cameraComponent.SetLuminanceThreshold(1.0f);
 	cameraComponent.SetBlurTimes(0);
@@ -337,18 +340,20 @@ void EditorApp::InitSkyEntity()
 	}
 
 	cd::VertexFormat vertexFormat;
-	vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
-	m_pRenderContext->CreateVertexLayout(engine::StringCrc("PosistionOnly"), vertexFormat.GetVertexLayout());
+	vertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
+	m_pRenderContext->CreateVertexLayout(engine::StringCrc("PosistionOnly"), vertexFormat.GetVertexAttributeLayouts());
 
+	// TODO : manage temp asset.
 	cd::Box skyBox(cd::Point(-1.0f), cd::Point(1.0f));
-	std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(skyBox, vertexFormat, false);
+	static std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(skyBox, vertexFormat, false);
 	assert(optMesh.has_value());
 
 	auto& meshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(skyEntity);
-	meshComponent.SetMeshData(&optMesh.value());
-	meshComponent.SetRequiredVertexFormat(&vertexFormat);
-	meshComponent.Build();
-	meshComponent.Submit();
+	constexpr engine::StringCrc skyboxMeshCrc("SkyboxMesh");
+	engine::MeshResource* pMeshResource = m_pResourceContext->AddMeshResource(skyboxMeshCrc);
+	pMeshResource->SetMeshAsset(&optMesh.value());
+	pMeshResource->UpdateVertexFormat(vertexFormat);
+	meshComponent.SetMeshResource(pMeshResource);
 }
 
 #ifdef ENABLE_DDGI
@@ -481,6 +486,9 @@ void EditorApp::InitRenderContext(engine::GraphicsBackend backend, void* hwnd)
 	m_pRenderContext->Init(backend, hwnd);
 	engine::Renderer::SetRenderContext(m_pRenderContext.get());
 
+	m_pResourceContext = std::make_unique<engine::ResourceContext>();
+	m_pRenderContext->SetResourceContext(m_pResourceContext.get());
+
 	m_pShaderCollections = std::make_unique<engine::ShaderCollections>();
 	m_pRenderContext->SetShaderCollections(m_pShaderCollections.get());
 }
@@ -501,6 +509,11 @@ void EditorApp::InitEngineRenderers()
 
 	// The init size doesn't make sense. It will resize by SceneView.
 	engine::RenderTarget* pSceneRenderTarget = m_pRenderContext->CreateRenderTarget(sceneViewRenderTargetName, 1, 1, std::move(attachmentDesc));
+
+	auto pShadowMapRenderer = std::make_unique<engine::ShadowMapRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	m_pShadowMapRenderer = pShadowMapRenderer.get();
+	pShadowMapRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pShadowMapRenderer));
 
 	auto pSkyboxRenderer = std::make_unique<engine::SkyboxRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	m_pIBLSkyRenderer = pSkyboxRenderer.get();
@@ -553,9 +566,9 @@ void EditorApp::InitEngineRenderers()
 	pWhiteModelRenderer->SetEnable(false);
 	AddEngineRenderer(cd::MoveTemp(pWhiteModelRenderer));
 
-	auto pParticlerenderer = std::make_unique<engine::ParticleRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
-	pParticlerenderer->SetSceneWorld(m_pSceneWorld.get());
-	AddEngineRenderer(cd::MoveTemp(pParticlerenderer));
+	auto pParticleRenderer = std::make_unique<engine::ParticleRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pParticleRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pParticleRenderer));
 
 #ifdef ENABLE_DDGI
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
@@ -706,6 +719,7 @@ bool EditorApp::Update(float deltaTime)
 	assert(pMainCameraComponent);
 	pMainCameraComponent->BuildProjectMatrix();
 
+	m_pResourceContext->Update();
 	m_pRenderContext->BeginFrame();
 	for (std::unique_ptr<engine::Renderer>& pRenderer : m_pEditorRenderers)
 	{

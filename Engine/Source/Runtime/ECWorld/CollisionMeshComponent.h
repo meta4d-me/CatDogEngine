@@ -44,7 +44,7 @@ public:
 	void Build();
 
 #ifdef EDITOR_MODE
-	bool SetEnableDebugDraw(bool enable) { m_enableDebugDraw = enable; }
+	void SetEnableDebugDraw(bool enable) { m_enableDebugDraw = enable; }
 	bool& IsDebugDrawEnable() { return m_enableDebugDraw; }
 	bool IsDebugDrawEnable() const { return m_enableDebugDraw; }
 #endif

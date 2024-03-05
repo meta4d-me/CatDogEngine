@@ -58,25 +58,26 @@ std::optional<cd::Mesh> GenerateTerrainMesh(uint16_t width, uint16_t depth, cons
         }
     }
 
-    cd::Mesh mesh(static_cast<uint32_t>(positions.size()), static_cast<uint32_t>(polygons.size()));
-
-    for (uint32_t i = 0U; i < positions.size(); ++i)
+    cd::Mesh mesh;
+    uint32_t vertexCount = static_cast<uint32_t>(positions.size());
+    mesh.Init(vertexCount);
+    for (uint32_t i = 0U; i < vertexCount; ++i)
     {
         mesh.SetVertexPosition(i, positions[i]);
     }
 
-    for (uint32_t i = 0U; i < polygons.size(); ++i)
-    {
-        mesh.SetPolygon(i, polygons[i]);
-    }
+    uint32_t polygonCount = static_cast<uint32_t>(polygons.size());
+    mesh.SetPolygonGroupCount(1);
+    auto& polygonGroup = mesh.GetPolygonGroup(0);
+    polygonGroup = cd::MoveTemp(polygons);
 
     cd::VertexFormat meshVertexFormat;
-    meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+    meshVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
 
     if (vertexFormat.Contains(cd::VertexAttributeType::Normal))
     {
         mesh.ComputeVertexNormals();
-        meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+        meshVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
     }
 
     if (vertexFormat.Contains(cd::VertexAttributeType::UV))
@@ -85,28 +86,28 @@ std::optional<cd::Mesh> GenerateTerrainMesh(uint16_t width, uint16_t depth, cons
         for (uint32_t vertexIndex = 0U; vertexIndex < mesh.GetVertexCount(); ++vertexIndex)
         {
             const auto& position = mesh.GetVertexPosition(vertexIndex);
-            mesh.SetVertexUV(0U, vertexIndex, cd::UV(position.x() / 4, position.z() / 4));
+            mesh.SetVertexUV(0U, vertexIndex, cd::UV(position.x() / 4.0f, position.z() / 4.0f));
         }
 
-        meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
+        meshVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
     }
 
     if (vertexFormat.Contains(cd::VertexAttributeType::Tangent) || vertexFormat.Contains(cd::VertexAttributeType::Bitangent))
     {
         mesh.ComputeVertexTangents();
-        meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
-        meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Bitangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+        meshVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+        meshVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Bitangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
     }
 
     // Use VertexColor0 to present braycentric coordinates.
     if (vertexFormat.Contains(cd::VertexAttributeType::Color))
     {
         mesh.SetVertexColorSetCount(1U);
-        meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Color, cd::GetAttributeValueType<cd::Vec4f::ValueType>(), cd::Vec4f::Size);
+        meshVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Color, cd::GetAttributeValueType<cd::Vec4f::ValueType>(), cd::Vec4f::Size);
     }
 
     mesh.SetVertexFormat(MoveTemp(meshVertexFormat));
-    mesh.SetAABB(cd::AABB(cd::Point(0, 0, 0), cd::Point(width, 0, depth)));
+    mesh.SetAABB(cd::AABB(cd::Point(0.0f), cd::Point(width, 0, depth)));
 
     return mesh;
 }

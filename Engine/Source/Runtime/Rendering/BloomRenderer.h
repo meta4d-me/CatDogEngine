@@ -26,6 +26,7 @@ namespace engine
 		void SetSceneWorld(SceneWorld* pSceneWorld) { m_pCurrentSceneWorld = pSceneWorld; }
 
 	private:
+		void AllocateViewIDs();
 		void Blur(uint16_t width , uint16_t height,int iteration, float blursize, int blurscaling,cd::Matrix4x4 ortho, bgfx::TextureHandle texture);
 
 		SceneWorld* m_pCurrentSceneWorld = nullptr;
