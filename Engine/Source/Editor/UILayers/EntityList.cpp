@@ -33,6 +33,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     engine::MaterialType* pPBRMaterialType = pSceneWorld->GetPBRMaterialType();
     engine::MaterialType* pTerrainMaterialType = pSceneWorld->GetTerrainMaterialType();
     engine::MaterialType* pCelluloidMaterialType = pSceneWorld->GetCelluloidMaterialType();
+    engine::MaterialType* pParticleMaterialType = pSceneWorld->GetParticleMaterialType();
     engine::ResourceContext* pResourceContext = GetRenderContext()->GetResourceContext();
 
     auto AddNamedEntity = [&pWorld](std::string defaultName) -> engine::Entity
@@ -259,6 +260,26 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         engine::Entity entity = AddNamedEntity("ParticleEmitter");
         auto& particleEmitterComponent = pWorld->CreateComponent<engine::ParticleEmitterComponent>(entity);
         // TODO : Some initialization here.
+        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+        transformComponent.SetTransform(cd::Transform::Identity());
+        transformComponent.Build();
+        particleEmitterComponent.SetRequiredVertexFormat(&pParticleMaterialType->GetRequiredVertexFormat());//to do : modify vertexFormat
+        particleEmitterComponent.SetMaterialType(pParticleMaterialType);
+        particleEmitterComponent.ActivateShaderFeature(engine::ShaderFeature::PARTICLE_INSTANCE);
+        particleEmitterComponent.Build();
+        //auto& particleForceFieldComponent = pWorld->CreateComponent<engine::ParticleForceFieldComponent>(entity);
+        //particleForceFieldComponent.Build();
+    }
+    else if (ImGui::MenuItem("Add Particle ForceField"))
+    {
+        engine::Entity entity = AddNamedEntity("ParticleForceField");
+        auto& particleForceFieldComponent = pWorld->CreateComponent<engine::ParticleForceFieldComponent>(entity);
+        // TODO : Some initialization here.
+        auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
+        transformComponent.SetTransform(cd::Transform::Identity());
+        transformComponent.Build();
+
+        particleForceFieldComponent.Build();
     }
 }
 

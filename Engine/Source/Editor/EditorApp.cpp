@@ -34,6 +34,7 @@
 #include "Rendering/ShadowMapRenderer.h"
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
+#include "Rendering/ParticleForceFieldRenderer.h"
 #include "Rendering/OutLineRenderer.h"
 #include "Rendering/ParticleRenderer.h"
 #include "Resources/FileWatcher.h"
@@ -262,22 +263,26 @@ void EditorApp::InitMaterialType()
 	constexpr const char* WorldProgram = "WorldProgram";
 	constexpr const char* AnimationProgram = "AnimationProgram";
 	constexpr const char* TerrainProgram = "TerrainProgram";
+	constexpr const char* ParticleProgram = "ParticleProgram";
 	constexpr const char* CelluloidProgram = "CelluloidProgram";
 
 	constexpr engine::StringCrc WorldProgramCrc{ WorldProgram };
 	constexpr engine::StringCrc AnimationProgramCrc{ AnimationProgram };
 	constexpr engine::StringCrc TerrainProgramCrc{ TerrainProgram };
+	constexpr engine::StringCrc ParticleProgramCrc{ ParticleProgram};
 	constexpr engine::StringCrc CelluloidProgramCrc{ CelluloidProgram };
 
 	m_pRenderContext->RegisterShaderProgram(WorldProgramCrc, { "vs_PBR", "fs_PBR" });
 	m_pRenderContext->RegisterShaderProgram(AnimationProgramCrc, { "vs_animation", "fs_animation" });
 	m_pRenderContext->RegisterShaderProgram(TerrainProgramCrc, { "vs_terrain", "fs_terrain" });
+	m_pRenderContext->RegisterShaderProgram(ParticleProgramCrc, { "vs_particle","fs_particle" });
 	m_pRenderContext->RegisterShaderProgram(CelluloidProgramCrc, { "vs_celluloid", "fs_celluloid" });
 
 	m_pSceneWorld = std::make_unique<engine::SceneWorld>();
 	m_pSceneWorld->CreatePBRMaterialType(WorldProgram, IsAtmosphericScatteringEnable());
 	m_pSceneWorld->CreateAnimationMaterialType(AnimationProgram);
 	m_pSceneWorld->CreateTerrainMaterialType(TerrainProgram);
+	m_pSceneWorld->CreateParticleMaterialType(ParticleProgram);
 	m_pSceneWorld->CreateCelluloidMaterialType(CelluloidProgram);
 }
 
@@ -569,6 +574,10 @@ void EditorApp::InitEngineRenderers()
 	auto pParticleRenderer = std::make_unique<engine::ParticleRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pParticleRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pParticleRenderer));
+
+	auto pParticleForceFieldRenderer = std::make_unique<engine::ParticleForceFieldRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pParticleForceFieldRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pParticleForceFieldRenderer));
 
 #ifdef ENABLE_DDGI
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
