@@ -54,10 +54,10 @@ vec3 CalculateDirectionalLight(U_Light light, Material material, vec3 worldNorma
 	vec3 secondShadeColor = u_secondShadowColor.xyz;
 	
 	float firstShadowMask = saturate( 1.0 - (halfLambert - (u_dividLine.x - u_dividLine.y)) / u_dividLine.y); // albedo and 1st shadow
-	vec3 baseColor = lerp (u_baseColor.xyz, firstShadeColor, firstShadowMask);
+	vec3 baseColor = lerp (material.albedo, firstShadeColor, firstShadowMask);
 
 	float secondShadowMask = saturate ( 1.0 - (halfLambert - (u_dividLine.z - u_dividLine.w)) / u_dividLine.w); // 1st shadow and 2st shadow
-	vec3 finalBaseColor = lerp (u_baseColor.xyz,lerp(firstShadeColor, secondShadeColor,secondShadowMask),firstShadowMask);
+	vec3 finalBaseColor = lerp (material.albedo,lerp(firstShadeColor, secondShadeColor,secondShadowMask),firstShadowMask);
 
 	// Specular
 	float halfSpecular = 0.5 * NdotH + 0.5;

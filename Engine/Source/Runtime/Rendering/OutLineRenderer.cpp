@@ -9,78 +9,75 @@
 
 namespace engine
 {
-	namespace
-	{
-		constexpr const char* outLineColor = "u_outLineColor";
-		constexpr const char* outLineSize = "u_outLineSize";
-	}
+namespace
+{
+constexpr const char* outLineColor = "u_outLineColor";
+constexpr const char* outLineSize = "u_outLineSize";
+}
 
-	void OutLineRenderer::Init()
-	{
-		constexpr StringCrc programCrc = StringCrc("OutLineProgram");
-		GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_outline", "fs_outline" });
+void OutLineRenderer::Init()
+{
+	constexpr StringCrc programCrc = StringCrc("OutLineProgram");
+	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_outline", "fs_outline" });
+	bgfx::setViewName(GetViewID(), "OutLineRenderer");
+}
 
-		bgfx::setViewName(GetViewID(), "OutLineRenderer");
-	}
+void OutLineRenderer::Warmup()
+{
+	GetRenderContext()->CreateUniform(outLineColor, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(outLineSize, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->UploadShaderProgram("OutLineProgram");
+}
 
-	void OutLineRenderer::Warmup()
-	{
-		GetRenderContext()->CreateUniform(outLineColor, bgfx::UniformType::Vec4, 1);
-		GetRenderContext()->CreateUniform(outLineSize, bgfx::UniformType::Vec4, 1);
-		GetRenderContext()->UploadShaderProgram("OutLineProgram");
-	}
+void OutLineRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
+{
+	UpdateViewRenderTarget();
+	bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
+}
 
-	void OutLineRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
+void OutLineRenderer::Render(float deltaTime)
+{
+	for (Entity entity : m_pCurrentSceneWorld->GetStaticMeshEntities())
 	{
-		UpdateViewRenderTarget();
-		bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
-	}
+		StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
 
-	void OutLineRenderer::Render(float deltaTime)
-	{
-		for (Entity entity : m_pCurrentSceneWorld->GetStaticMeshEntities())
+		if (m_pCurrentSceneWorld->GetSkyEntity() == entity)
 		{
-			StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
-
-			if (m_pCurrentSceneWorld->GetSkyEntity() == entity)
-			{
-				continue;
-			}
-
-			TerrainComponent* pTerrainComponent = m_pCurrentSceneWorld->GetTerrainComponent(entity);
-			if (pTerrainComponent)
-			{
-				continue;
-			}
-			if (!pMeshComponent)
-			{
-				continue;
-			}
-
-			MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
-			if (!pMaterialComponent->GetIsOpenOutLine())
-			{
-				continue;
-			}
-			if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
-			{
-				pTransformComponent->Build();
-				bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
-			}
-
-			constexpr StringCrc outLineColorCrc(outLineColor);
-			GetRenderContext()->FillUniform(outLineColorCrc, pMaterialComponent->GetOutLineColor().begin(), 1);
-
-			constexpr StringCrc outLineSizeCrc(outLineSize);
-			GetRenderContext()->FillUniform(outLineSizeCrc, &pMaterialComponent->GetOutLineSize(), 1);
-
-			UpdateStaticMeshComponent(pMeshComponent);
-
-			constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_CULL_CW;
-			bgfx::setState(state);
-
-			GetRenderContext()->Submit(GetViewID(), "OutLineProgram");
+			continue;
 		}
+
+		TerrainComponent* pTerrainComponent = m_pCurrentSceneWorld->GetTerrainComponent(entity);
+		if (pTerrainComponent)
+		{
+			continue;
+		}
+		if (!pMeshComponent)
+		{
+			continue;
+		}
+
+		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
+		if (!pMaterialComponent->GetIsOpenOutLine())
+		{
+			continue;
+		}
+		if (TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
+		{
+			pTransformComponent->Build();
+			bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
+		}
+
+		constexpr StringCrc outLineColorCrc(outLineColor);
+		GetRenderContext()->FillUniform(outLineColorCrc, pMaterialComponent->GetOutLineColor().begin(), 1);
+
+		constexpr StringCrc outLineSizeCrc(outLineSize);
+		GetRenderContext()->FillUniform(outLineSizeCrc, &pMaterialComponent->GetOutLineSize(), 1);
+
+		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_CULL_CW;
+		bgfx::setState(state);
+
+		SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), "OutLineProgram", pMaterialComponent->GetFeaturesCombine());
 	}
+}
 
 }

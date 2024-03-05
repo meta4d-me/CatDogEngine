@@ -275,8 +275,9 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 			ImGui::PopStyleVar();
 		}
 
-			const cd::Vec4f dividLine = pMaterialComponent->GetDividLine();
-			ImGuiUtils::ColorPickerProperty("Base Color", pMaterialComponent->GetBaseColor());
+			ImGuiUtils::ImGuiBoolProperty("OutLine", pMaterialComponent->GetIsOpenOutLine());
+			ImGuiUtils::ColorPickerProperty("OutLineColor", pMaterialComponent->GetOutLineColor());
+			ImGuiUtils::ImGuiFloatProperty("OutLineSize", pMaterialComponent->GetOutLineSize(), cd::Unit::None, 0.0f, 100.0f, false, 0.1f);
 			ImGuiUtils::ColorPickerProperty("First Shadow Color", pMaterialComponent->GetFirstShadowColor());
 			ImGuiUtils::ColorPickerProperty("Second Color", pMaterialComponent->GetSecondShadowColor());
 			ImGuiUtils::ImGuiFloatProperty("FirsrShadow", pMaterialComponent->GetDividLine().x(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);

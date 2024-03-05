@@ -188,7 +188,6 @@ private:
 
 	std::string m_name;
 
-	//cd::Vec4f m_outLine = cd::Vec4f(0.0f,0.0f,0.0f,0.5f);
 	cd::Vec3f m_outLineColor = cd::Vec3f::Zero();
 	float m_outLineSize = 0.5f;
 	cd::Vec4f m_rimLight;
