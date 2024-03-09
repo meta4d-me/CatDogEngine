@@ -67,6 +67,19 @@ public:
 		std::variant<float, cd::Vec3f, cd::Vec4f> factor;
 	};
 
+	struct ToonParameters
+	{
+		bool isOpenOutLine = false;
+		cd::Vec3f outLineColor = cd::Vec3f::Zero();
+		float outLineSize = 0.5f;
+		cd::Vec3f firstShadowColor = cd::Vec3f::Zero();
+		cd::Vec3f secondShadowColor = cd::Vec3f::Zero();
+		cd::Vec4f rimLight = cd::Vec4f::Zero();
+		cd::Vec4f dividLine = cd::Vec4f::Zero();
+		cd::Vec4f specular = cd::Vec4f::Zero();
+		cd::Vec3f rimLightColor = cd::Vec3f::Zero();
+	};
+
 public:
 	MaterialComponent() = default;
 	MaterialComponent(const MaterialComponent&) = default;
@@ -161,13 +174,27 @@ public:
 	float& GetAlphaCutOff() { return m_alphaCutOff; }
 	float GetAlphaCutOff() const { return m_alphaCutOff; }
 
+	void SetToonParameters(ToonParameters toonParameters) { m_toonParameters = toonParameters; }
+	ToonParameters& GetToonParameters() { return m_toonParameters; }
+	ToonParameters GetToonParameters() const { return m_toonParameters; }
 private:
 	// Input
 	const cd::Material* m_pMaterialData = nullptr;
 	const engine::MaterialType* m_pMaterialType = nullptr;
 
 	std::string m_name;
+
+	cd::Vec3f m_outLineColor = cd::Vec3f::Zero();
+	float m_outLineSize = 0.5f;
+	cd::Vec4f m_rimLight;
+	cd::Vec4f m_dividLine;
+	cd::Vec4f m_specular;
+	cd::Vec3f m_baseColor;
+	cd::Vec3f m_firstShadowColor;
+	cd::Vec3f m_SecondShadowColor;
+	cd::Vec3f m_rimLightColor;
 	bool m_twoSided;
+	bool m_isOpenOutLine;
 	cd::BlendMode m_blendMode;
 	float m_alphaCutOff;
 
@@ -179,6 +206,7 @@ private:
 
 	// Output
 	std::map<cd::MaterialTextureType, PropertyGroup> m_propertyGroups;
+	ToonParameters m_toonParameters;
 };
 
 }

@@ -385,6 +385,15 @@ void AssetBrowser::UpdateAssetFolderTree()
 
 			CD_INFO("Import asset type: {}", nameof::nameof_enum(m_importOptions.AssetType));
 		}
+		else if (ImGui::Selectable("Celluloid Model"))
+		{
+			m_importOptions.AssetType = IOAssetType::Model;
+			m_pImportFileBrowser->SetTitle("ImportAssets - Celluloid Model");
+			//m_pImportFileBrowser->SetTypeFilters({ ".fbx", ".gltf" }); // ".obj", ".dae", ".ogex"
+			m_pImportFileBrowser->Open();
+
+			CD_INFO("Import asset type: {}", nameof::nameof_enum(m_importOptions.AssetType));
+		}
 
 #ifdef ENABLE_DDGI
 		else if (ImGui::Selectable("DDGI Model"))
@@ -971,7 +980,7 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 	// Step 3 : Convert cd::SceneDatabase to entities and components
 	{
 		ECWorldConsumer ecConsumer(pSceneWorld, pCurrentRenderContext);
-		ecConsumer.SetDefaultMaterialType(pSceneWorld->GetPBRMaterialType());
+		ecConsumer.SetDefaultMaterialType(pSceneWorld->GetCelluloidMaterialType());
 		ecConsumer.SetSceneDatabaseIDs(oldNodeCount, oldMeshCount);
 #ifdef ENABLE_DDGI
 		if (m_importOptions.AssetType == IOAssetType::DDGIModel)

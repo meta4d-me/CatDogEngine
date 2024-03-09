@@ -178,7 +178,7 @@ void WorldRenderer::Render(float deltaTime)
 	{
 		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
 		if (!pMaterialComponent ||
-			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetPBRMaterialType() ||
+			(pMaterialComponent->GetMaterialType() == m_pCurrentSceneWorld->GetPBRMaterialType() && pMaterialComponent->GetMaterialType() == m_pCurrentSceneWorld->GetCelluloidMaterialType()) ||
 			!GetRenderContext()->IsShaderProgramValid(pMaterialComponent->GetShaderProgramName(), pMaterialComponent->GetFeaturesCombine()))
 		{
 			// TODO : improve this condition. As we want to skip some feature-specified entities to render.

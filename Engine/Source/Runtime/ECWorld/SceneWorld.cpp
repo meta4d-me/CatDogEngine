@@ -112,6 +112,31 @@ void SceneWorld::CreateTerrainMaterialType(std::string shaderProgramName)
 	m_pTerrainMaterialType->SetRequiredVertexFormat(cd::MoveTemp(terrainVertexFormat));
 }
 
+void SceneWorld::CreateCelluloidMaterialType(std::string shaderProgramName)
+{
+	m_pCelluloidMaterialType = std::make_unique<MaterialType>();
+	m_pCelluloidMaterialType->SetMaterialName("CD_Celluloid");
+
+	ShaderSchema shaderSchema;
+	shaderSchema.SetShaderProgramName(cd::MoveTemp(shaderProgramName));
+	shaderSchema.AddFeatureSet({ ShaderFeature::ALBEDO_MAP });
+	shaderSchema.AddFeatureSet({ ShaderFeature::NORMAL_MAP });
+	shaderSchema.AddFeatureSet({ ShaderFeature::EMISSIVE_MAP });
+	m_pCelluloidMaterialType->SetShaderSchema(cd::MoveTemp(shaderSchema));
+
+	cd::VertexFormat celluloidVertexFormat;
+	celluloidVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+	celluloidVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+	celluloidVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+	celluloidVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
+	m_pCelluloidMaterialType->SetRequiredVertexFormat(cd::MoveTemp(celluloidVertexFormat));
+
+	m_pCelluloidMaterialType->AddOptionalTextureType(cd::MaterialTextureType::BaseColor, ALBEDO_MAP_SLOT);
+	m_pCelluloidMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Normal, NORMAL_MAP_SLOT);
+	m_pCelluloidMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Emissive, EMISSIVE_MAP_SLOT);
+}
+
+
 void SceneWorld::CreateParticleMaterialType(std::string shaderProgramName)
 {
 	m_pParticleMaterialType = std::make_unique<MaterialType>();

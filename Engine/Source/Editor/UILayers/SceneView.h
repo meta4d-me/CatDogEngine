@@ -3,6 +3,7 @@
 #include "ECWorld/Entity.h"
 #include "ImGui/ImGuiBaseLayer.h"
 #include "Rendering/AABBRenderer.h"
+#include "Rendering/CelluloidRenderer.h"
 #include "Rendering/WhiteModelRenderer.h"
 
 #include <imgui/imgui.h>

@@ -304,6 +304,43 @@ vec3 CalculateDirectionalLight(U_Light light, Material material, vec3 worldPos, 
 	return (1.0 - shadow) * (KD * diffuseBRDF + specularBRDF) * irradiance * NdotL;
 }
 
+vec3 CalculateCelDirectionalLight(U_Light light, Material material, vec3 worldPos, vec3 viewDir, float csmDepth, int lightIndex) {
+// TODO : Remove this normalize in the future. and and shadow in cartoon renderer
+	vec3 lightDir = normalize(-light.direction);
+	vec3 harfDir  = normalize(lightDir + viewDir);
+	
+	float NdotV = dot(material.normal, viewDir);
+	float NdotL = dot(material.normal, lightDir);
+	float NdotH = max(dot(material.normal, harfDir), 0.0);
+
+	float halfLambert = 0.5 * NdotL + 0.5; // Half Lambert
+    //Diffuse
+	vec3 firstShadeColor = u_firstShadowColor.xyz;
+	vec3 secondShadeColor = u_secondShadowColor.xyz;
+	
+	float firstShadowMask = saturate( 1.0 - (halfLambert - (u_dividLine.x - u_dividLine.y)) / u_dividLine.y); // albedo and 1st shadow
+	vec3 baseColor = lerp (material.albedo, firstShadeColor, firstShadowMask);
+
+	float secondShadowMask = saturate ( 1.0 - (halfLambert - (u_dividLine.z - u_dividLine.w)) / u_dividLine.w); // 1st shadow and 2st shadow
+	vec3 finalBaseColor = lerp (material.albedo,lerp(firstShadeColor, secondShadeColor,secondShadowMask),firstShadowMask);
+
+	// Specular
+	float halfSpecular = 0.5 * NdotH + 0.5;
+	vec3 specularMask = u_specular.y * lerp (1.0 - step(halfSpecular, (1.0 - pow(u_specular.x, 5.0))), pow(halfSpecular, exp2(lerp(11, 1, u_specular.x))), u_specular.w);
+	vec3 specularColor = light.color * specularMask;
+	vec3 specular = specularColor * ((1.0 - firstShadowMask) + (firstShadowMask * u_specular.z)) * light.intensity;
+
+	// Rim
+	//TODO Screen Space rim
+	float f = 1.0 - saturate(NdotV);
+	f = smoothstep(1.0 - u_rimLight.x,1.0,f);
+	f = smoothstep(0,u_rimLight.y,f);
+	vec3 rim = f *  u_rimLightColor.xyz * u_rimLight.z;
+
+	return (rim + specular + finalBaseColor);
+}
+
+
 // -------------------- Sphere -------------------- //
 
 vec3 CalculateSphereDiffuse(U_Light light, Material material, vec3 worldPos, vec3 diffuseBRDF) {
@@ -676,12 +713,43 @@ vec3 CalculateLight(U_Light light, Material material, vec3 worldPos, vec3 viewDi
 	return color;
 }
 
+vec3 CalculateCelLight(U_Light light, Material material, vec3 normal, vec3 viewDir, float csmDepth, int lightIndex) {
+	vec3 color = vec3_splat(0.0);
+	if (light.type == POINT_LIGHT)
+	{
+		color = vec3_splat(0.0); //add cartoon point light
+	}
+	else if (light.type == SPOT_LIGHT)
+	{
+		color = vec3_splat(0.0); //add cartoon spot light
+	}
+	else if (light.type == DIRECTIONAL_LIGHT)
+	{
+		color = CalculateCelDirectionalLight(light, material, normal, viewDir, csmDepth, lightIndex);
+	}
+	else
+	{
+		color = vec3_splat(0.0);
+	}
+	return color;
+}
+
 vec3 CalculateLights(Material material, vec3 worldPos, vec3 viewDir, vec3 diffuseBRDF, float csmDepth) {
 	vec3 color = vec3_splat(0.0);
 	for(int lightIndex = 0; lightIndex < int(u_lightCountAndStride.x); ++lightIndex) {
 		int pointer = int(lightIndex * u_lightCountAndStride.y);
 		U_Light light = GetLightParams(pointer);
 		color += CalculateLight(light, material, worldPos, viewDir, diffuseBRDF, csmDepth, lightIndex);
+	}
+	return color;
+}
+
+vec3 CalculateCelLights(Material material, vec3 worldPos, vec3 viewDir, float csmDepth) {
+	vec3 color = vec3_splat(0.0);
+		for(int lightIndex = 0; lightIndex < int(u_lightCountAndStride.x); ++lightIndex) {
+		int pointer = int(lightIndex * u_lightCountAndStride.y);
+		U_Light light = GetLightParams(pointer);
+		color += CalculateCelLight(light, material, worldPos, viewDir, csmDepth, lightIndex);
 	}
 	return color;
 }
