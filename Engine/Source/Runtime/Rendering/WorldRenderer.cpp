@@ -30,6 +30,7 @@ constexpr const char* cubeRadianceSampler         = "s_texCubeRad";
 constexpr const char* lutTexture                  = "Textures/lut/ibl_brdf_lut.dds";
 											      
 constexpr const char* cameraPos                   = "u_cameraPos";
+constexpr const char* iblStrength                 = "u_iblStrength";
 constexpr const char* albedoColor                 = "u_albedoColor";
 constexpr const char* emissiveColorAndFactor      = "u_emissiveColorAndFactor";
 constexpr const char* metallicRoughnessFactor     = "u_metallicRoughnessFactor";
@@ -78,6 +79,7 @@ void WorldRenderer::Warmup()
 	GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), samplerFlags);
 
 	GetRenderContext()->CreateUniform(cameraPos, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(iblStrength, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(albedoColor, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(emissiveColorAndFactor, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(metallicRoughnessFactor, bgfx::UniformType::Vec4, 1);
@@ -265,8 +267,11 @@ void WorldRenderer::Render(float deltaTime)
 				GetRenderContext()->GetUniform(radSamplerCrc),
 				GetRenderContext()->GetTexture(StringCrc(pSkyComponent->GetRadianceTexturePath())));
 
-			constexpr StringCrc lutsamplerCrc(lutSampler);
-			constexpr StringCrc luttextureCrc(lutTexture);
+			constexpr StringCrc iblStrengthCrc{ iblStrength };
+			GetRenderContext()->FillUniform(iblStrengthCrc, &(pMaterialComponent->GetIblStrengeth()));
+
+			constexpr StringCrc lutsamplerCrc{ lutSampler };
+			constexpr StringCrc luttextureCrc{ lutTexture };
 			bgfx::setTexture(BRDF_LUT_SLOT, GetRenderContext()->GetUniform(lutsamplerCrc), GetRenderContext()->GetTexture(luttextureCrc));
 		}
 		else if (SkyType::AtmosphericScattering == crtSkyType)

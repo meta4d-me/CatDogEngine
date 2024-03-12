@@ -25,6 +25,8 @@ SAMPLERCUBE(s_texCubeIrr, IBL_IRRADIANCE_SLOT);
 SAMPLERCUBE(s_texCubeRad, IBL_RADIANCE_SLOT);
 SAMPLER2D(s_texLUT, BRDF_LUT_SLOT);
 
+uniform vec4 u_iblStrength;
+
 vec3 SampleEnvIrradiance(vec3 normal, float mip) {
 	// We use the HDR texture which in linear space.
 	vec3 cubeNormalDir = normalize(fixCubeLookup(normal, mip, 256.0));
@@ -74,6 +76,8 @@ vec3 GetIBL(Material material, vec3 vertexNormal, vec3 viewDir) {
 	
 	// Specular
 	envColor += (envSpecularBRDF * envRadiance * finalSpecularOcclusion);
+	
+	envColor *= vec3_splat(u_iblStrength.x);
 #endif
 	
 	return envColor;

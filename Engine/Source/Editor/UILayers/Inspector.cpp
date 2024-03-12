@@ -306,11 +306,25 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 			ImGui::PopStyleVar();
 		}
 
-			// Shaders
+		// Ambient
+		{
+			bool isOpen = ImGui::CollapsingHeader("Ambient", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Separator();
+			if (isOpen)
 			{
-				bool isOpen = ImGui::CollapsingHeader("Shader", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
-				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-				ImGui::Separator();
+				ImGuiUtils::ImGuiFloatProperty("iblStrength", pMaterialComponent->GetIblStrengeth(), cd::Unit::None, 0.01f, 10.0f, false, 0.02f);
+			}
+
+			ImGui::Separator();
+			ImGui::PopStyleVar();
+		}
+
+		// Shaders
+		{
+			bool isOpen = ImGui::CollapsingHeader("Shader", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Separator();
 
 			if (isOpen)
 			{
@@ -616,6 +630,9 @@ void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld
 				}
 			}
 		}
+
+		ImGui::Separator();
+		ImGuiUtils::ImGuiFloatProperty("Skybox Strength", pSkyComponent->GetSkyboxStrength(), cd::Unit::None, 0.01f, 10.0f, false, 0.02f);
 
 		if (pSkyComponent->GetAtmophericScatteringEnable())
 		{

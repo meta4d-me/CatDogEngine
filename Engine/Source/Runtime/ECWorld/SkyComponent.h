@@ -33,6 +33,10 @@ public:
 	SkyType& GetSkyType() { return m_type; }
 	const SkyType& GetSkyType() const { return m_type; }
 
+	void SetSkyboxStrength(float strength) { m_skyboxStrength = strength; }
+	float& GetSkyboxStrength() { return m_skyboxStrength; }
+	float GetSkyboxStrength() const { return m_skyboxStrength; }
+
 	void SetAtmophericScatteringEnable(bool state) { m_isAtmophericScatteringEnable = state; }
 	bool& GetAtmophericScatteringEnable() { return m_isAtmophericScatteringEnable; }
 	const bool& GetAtmophericScatteringEnable() const { return m_isAtmophericScatteringEnable; }
@@ -75,6 +79,7 @@ public:
 
 private:
 	SkyType m_type = SkyType::SkyBox;
+	float m_skyboxStrength = 0.5f;
 	bool m_isAtmophericScatteringEnable = false;
 	
 	StringCrc m_ATMTransmittanceCrc;
