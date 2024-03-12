@@ -617,6 +617,9 @@ void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld
 			}
 		}
 
+		ImGui::Separator();
+		ImGuiUtils::ImGuiFloatProperty("Skybox Strength", pSkyComponent->GetSkyboxStrength(), cd::Unit::None, 0.01f, 10.0f, false, 0.02f);
+
 		if (pSkyComponent->GetAtmophericScatteringEnable())
 		{
 			ImGui::Separator();
