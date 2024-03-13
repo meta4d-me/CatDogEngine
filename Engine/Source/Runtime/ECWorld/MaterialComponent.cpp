@@ -123,7 +123,6 @@ void MaterialComponent::Reset()
 	m_isShaderFeatureDirty = false;
 	m_shaderFeatures.clear();
 	m_featureCombine.clear();
-	m_cacheTextureBlobs.clear();
 	m_propertyGroups.clear();
 }
 

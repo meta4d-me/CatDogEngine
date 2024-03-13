@@ -136,7 +136,6 @@ void SceneWorld::CreateCelluloidMaterialType(std::string shaderProgramName)
 	m_pCelluloidMaterialType->AddOptionalTextureType(cd::MaterialTextureType::Emissive, EMISSIVE_MAP_SLOT);
 }
 
-
 void SceneWorld::CreateParticleMaterialType(std::string shaderProgramName)
 {
 	m_pParticleMaterialType = std::make_unique<MaterialType>();

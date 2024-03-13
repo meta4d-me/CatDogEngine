@@ -13,64 +13,64 @@
 #include "Rendering/Resources/MeshResource.h"
 #include "Rendering/Resources/TextureResource.h"
 #include "Scene/Texture.h"
-#include "U_IBL.sh"
 #include "U_AtmophericScattering.sh"
+#include "U_IBL.sh"
 
 namespace engine
 {
-	namespace
+
+namespace
+{
+
+constexpr const char* albedoUVOffsetAndScale = "u_albedoUVOffsetAndScale";
+constexpr const char* dividLine              = "u_dividLine";
+constexpr const char* specular               = "u_specular";
+constexpr const char* rimLight               = "u_rimLight";
+constexpr const char* firstShadowColor       = "u_firstShadowColor";
+constexpr const char* secondShadowColor      = "u_secondShadowColor";
+constexpr const char* rimLightColor          = "u_rimLightColor";
+
+constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
+constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
+
+}
+
+void CelluloidRenderer::Init()
+{
+	bgfx::setViewName(GetViewID(), "CelluloidRenderer");
+}
+
+void CelluloidRenderer::Warmup()
+{
+	GetRenderContext()->CreateUniform(dividLine, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(specular, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(firstShadowColor, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(secondShadowColor, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(rimLight, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(rimLightColor, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(albedoUVOffsetAndScale, bgfx::UniformType::Vec4, 1);
+}
+
+void CelluloidRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
+{
+	UpdateViewRenderTarget();
+	bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
+}
+
+void CelluloidRenderer::Render(float deltaTime)
+{
+	// TODO : Remove it. If every renderer need to submit camera related uniform, it should be done not inside Renderer class.
+	const cd::Transform& cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetTransform();
+	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
+
+	for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
 	{
-		constexpr const char* albedoUVOffsetAndScale = "u_albedoUVOffsetAndScale";
-		constexpr const char* dividLine = "u_dividLine";
-		constexpr const char* specular = "u_specular";
-		constexpr const char* rimLight = "u_rimLight";
-
-		constexpr const char* firstShadowColor = "u_firstShadowColor";
-		constexpr const char* secondShadowColor = "u_secondShadowColor";
-		constexpr const char* rimLightColor = "u_rimLightColor";
-
-		constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
-		constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
-
-	}
-
-	void CelluloidRenderer::Init()
-	{
-		bgfx::setViewName(GetViewID(), "CelluloidRenderer");
-	}
-
-	void CelluloidRenderer::Warmup()
-	{
-
-		GetRenderContext()->CreateUniform(dividLine, bgfx::UniformType::Vec4, 1);
-		GetRenderContext()->CreateUniform(specular, bgfx::UniformType::Vec4, 1);
-		GetRenderContext()->CreateUniform(firstShadowColor, bgfx::UniformType::Vec4, 1);
-		GetRenderContext()->CreateUniform(secondShadowColor, bgfx::UniformType:: Vec4, 1);
-		GetRenderContext()->CreateUniform(rimLight, bgfx::UniformType::Vec4, 1);
-		GetRenderContext()->CreateUniform(rimLightColor, bgfx::UniformType::Vec4, 1);
-		GetRenderContext()->CreateUniform(albedoUVOffsetAndScale, bgfx::UniformType::Vec4, 1);
-	}
-
-	void CelluloidRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
-	{
-		UpdateViewRenderTarget();
-		bgfx::setViewTransform(GetViewID(), pViewMatrix, pProjectionMatrix);
-	}
-
-	void CelluloidRenderer::Render(float deltaTime)
-	{
-		// TODO : Remove it. If every renderer need to submit camera related uniform, it should be done not inside Renderer class.
-		const cd::Transform& cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetTransform();
-		SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
-
-		for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
+		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
+		if (!pMaterialComponent || pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetCelluloidMaterialType())
 		{
-			MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
-			if (!pMaterialComponent || pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetCelluloidMaterialType())
-			{
-				continue;
-			}
-				bool textureSlotBindTable[32] = { false };
+			continue;
+		}
+		bool textureSlotBindTable[32] = { false };
 		for (const auto& [textureType, propertyGroup] : pMaterialComponent->GetPropertyGroups())
 		{
 			const MaterialComponent::TextureInfo& textureInfo = propertyGroup.textureInfo;
@@ -118,7 +118,7 @@ namespace engine
 		GetRenderContext()->FillUniform(rimLightCrc, pMaterialComponent->GetToonParameters().rimLight.begin(), 1);
 
 		GetRenderContext()->Submit(GetViewID(), pMaterialComponent->GetShaderProgramName(), pMaterialComponent->GetFeaturesCombine());
-		}
 	}
+}
 
 }

@@ -184,20 +184,10 @@ public:
 
 private:
 	// Input
+	std::string m_name;
 	const cd::Material* m_pMaterialData = nullptr;
 	const engine::MaterialType* m_pMaterialType = nullptr;
 
-	std::string m_name;
-
-	cd::Vec3f m_outLineColor = cd::Vec3f::Zero();
-	float m_outLineSize = 0.5f;
-	cd::Vec4f m_rimLight;
-	cd::Vec4f m_dividLine;
-	cd::Vec4f m_specular;
-	cd::Vec3f m_baseColor;
-	cd::Vec3f m_firstShadowColor;
-	cd::Vec3f m_SecondShadowColor;
-	cd::Vec3f m_rimLightColor;
 	bool m_twoSided;
 	bool m_isOpenOutLine;
 	cd::BlendMode m_blendMode;
@@ -206,8 +196,6 @@ private:
 	bool m_isShaderFeatureDirty = false;
 	std::set<ShaderFeature> m_shaderFeatures;
 	std::string m_featureCombine;
-
-	std::vector<TextureBlob> m_cacheTextureBlobs;
 
 	// Output
 	float m_iblStrength = 0.5f;

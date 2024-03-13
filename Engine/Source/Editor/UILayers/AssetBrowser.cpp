@@ -980,7 +980,7 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 	// Step 3 : Convert cd::SceneDatabase to entities and components
 	{
 		ECWorldConsumer ecConsumer(pSceneWorld, pCurrentRenderContext);
-		ecConsumer.SetDefaultMaterialType(pSceneWorld->GetCelluloidMaterialType());
+		ecConsumer.SetDefaultMaterialType(pSceneWorld->GetPBRMaterialType());
 		ecConsumer.SetSceneDatabaseIDs(oldNodeCount, oldMeshCount);
 #ifdef ENABLE_DDGI
 		if (m_importOptions.AssetType == IOAssetType::DDGIModel)

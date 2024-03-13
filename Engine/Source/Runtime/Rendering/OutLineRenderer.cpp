@@ -9,10 +9,13 @@
 
 namespace engine
 {
+
 namespace
 {
+
 constexpr const char* outLineColor = "u_outLineColor";
-constexpr const char* outLineSize = "u_outLineSize";
+constexpr const char* outLineSize  = "u_outLineSize";
+
 }
 
 void OutLineRenderer::Init()
@@ -68,10 +71,10 @@ void OutLineRenderer::Render(float deltaTime)
 		}
 
 		constexpr StringCrc outLineColorCrc(outLineColor);
-		GetRenderContext()->FillUniform(outLineColorCrc, pMaterialComponent->GetToonParameters().outLineColor.begin(), 1);
+		GetRenderContext()->FillUniform(outLineColorCrc, pMaterialComponent->GetToonParameters().outLineColor.begin());
 
 		constexpr StringCrc outLineSizeCrc(outLineSize);
-		GetRenderContext()->FillUniform(outLineSizeCrc, &pMaterialComponent->GetToonParameters().outLineSize, 1);
+		GetRenderContext()->FillUniform(outLineSizeCrc, &pMaterialComponent->GetToonParameters().outLineSize);
 
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_CULL_CW;
 		bgfx::setState(state);
