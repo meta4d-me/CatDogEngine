@@ -106,9 +106,9 @@ public:
 
 	U_Light* GetLightUniformData() { return &m_lightUniformData; }
 
-	void SetIsCastShadow(bool isCastShadow) { m_isCastShadow = isCastShadow; };
-	bool& IsCastShadow() { return m_isCastShadow; }
-	bool IsCastShadow() const { return m_isCastShadow; }
+	void SetCastShadowIntensity(float isCastShadow) { m_castShadowIntensity = isCastShadow; };
+	float& GetCastShadowIntensity() { return m_castShadowIntensity; }
+	float GetCastShadowIntensity() const { return m_castShadowIntensity; }
 
 	bool& GetIsCastVolume() { return m_isCastVolume; }
 	bool IsCastVolume() const { return m_isCastVolume; }
@@ -145,7 +145,7 @@ public:
 private:
 	U_Light m_lightUniformData;
 
-	bool m_isCastShadow;
+	float m_castShadowIntensity;
 	bool m_isCastVolume;
 	uint16_t m_shadowMapSize;
 

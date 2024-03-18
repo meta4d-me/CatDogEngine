@@ -182,6 +182,10 @@ public:
 	float& GetIblStrengeth() { return m_iblStrength; }
 	float GetIblStrengeth() const { return m_iblStrength; }
 
+	void SetIsCastShadow(bool value) { m_isCastShadow = value; }
+	bool& GetIsCastShadow() { return m_isCastShadow; }
+	bool GetIsCastShadow() const { return m_isCastShadow; }
+
 private:
 	// Input
 	std::string m_name;
@@ -190,6 +194,7 @@ private:
 
 	bool m_twoSided;
 	bool m_isOpenOutLine;
+	bool m_isCastShadow = true;
 	cd::BlendMode m_blendMode;
 	float m_alphaCutOff;
 

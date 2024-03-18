@@ -177,6 +177,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 				// TODO : generic cull mode.
 				ImGuiUtils::ImGuiBoolProperty("TwoSided", pMaterialComponent->GetTwoSided());
 				ImGuiUtils::ImGuiEnumProperty("BlendMode", pMaterialComponent->GetBlendMode());
+				ImGuiUtils::ImGuiBoolProperty("CastShadow", pMaterialComponent->GetIsCastShadow());
 			}
 
 			ImGui::Separator();
@@ -447,7 +448,7 @@ void UpdateComponentWidget<engine::LightComponent>(engine::SceneWorld* pSceneWor
 		std::string lightTypeName(nameof::nameof_enum(lightType));
 
 		ImGuiUtils::ImGuiStringProperty("Type", lightTypeName);
-		ImGuiUtils::ImGuiBoolProperty("Cast Shadow", pLightComponent->IsCastShadow());
+		ImGuiUtils::ImGuiFloatProperty("Cast Shadow", pLightComponent->GetCastShadowIntensity(), cd::Unit::None, 0.0f, 1.0f);
 		ImGuiUtils::ColorPickerProperty("Color", pLightComponent->GetColor());
 
 		float s_spotInnerAngle = 8.0f;

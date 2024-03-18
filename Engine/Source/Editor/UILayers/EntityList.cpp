@@ -77,14 +77,14 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         transformComponent.Build();
     };
 
-    auto CreateLightComponents = [&pWorld](engine::Entity entity, cd::LightType lightType, float intensity, cd::Vec3f color, bool isCastShadow = false) -> engine::LightComponent&
+    auto CreateLightComponents = [&pWorld](engine::Entity entity, cd::LightType lightType, float intensity, cd::Vec3f color, float castShadowIntensity = 1.0f) -> engine::LightComponent&
     {
         auto& lightComponent = pWorld->CreateComponent<engine::LightComponent>(entity);
         lightComponent.SetType(lightType);
         lightComponent.SetIntensity(intensity);
         lightComponent.SetColor(color);
         lightComponent.SetShadowMapSize(1024U);
-        lightComponent.SetIsCastShadow(isCastShadow);
+        lightComponent.SetCastShadowIntensity(castShadowIntensity);
         lightComponent.SetShadowBias(0.0f);
 
         auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);

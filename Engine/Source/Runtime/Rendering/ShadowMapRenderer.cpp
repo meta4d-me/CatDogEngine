@@ -94,7 +94,7 @@ void ShadowMapRenderer::Render(float deltaTime)
 			LightComponent* lightComponent = m_pCurrentSceneWorld->GetLightComponent(lightEntity);
 
 			// Non-shadow-casting lights(include area lights) are excluded
-			if (!lightComponent->IsCastShadow())
+			if (0 == lightComponent->GetCastShadowIntensity())
 			{
 				continue;
 			}
@@ -258,7 +258,11 @@ void ShadowMapRenderer::Render(float deltaTime)
 						}
 
 						// Mesh
-						SubmitStaticMeshDrawCall(pMeshComponent, viewId, "ShadowMapProgram");
+						MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
+						if (pMaterialComponent->GetIsCastShadow())
+						{
+							SubmitStaticMeshDrawCall(pMeshComponent, viewId, "ShadowMapProgram");
+						}
 					}
 				}
 			}
@@ -336,7 +340,11 @@ void ShadowMapRenderer::Render(float deltaTime)
 							bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 						}
 
-						SubmitStaticMeshDrawCall(pMeshComponent, viewId, "LinearShadowMapProgram");
+						MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
+						if (pMaterialComponent->GetIsCastShadow())
+						{
+							SubmitStaticMeshDrawCall(pMeshComponent, viewId, "LinearShadowMapProgram");
+						}
 					}
 				}
 			}
@@ -403,7 +411,11 @@ void ShadowMapRenderer::Render(float deltaTime)
 					}
 
 					// Mesh
-					SubmitStaticMeshDrawCall(pMeshComponent, viewId, "ShadowMapProgram");
+					MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
+					if (pMaterialComponent->GetIsCastShadow())
+					{
+						SubmitStaticMeshDrawCall(pMeshComponent, viewId, "ShadowMapProgram");
+					}
 				}
 			}
 			break;
