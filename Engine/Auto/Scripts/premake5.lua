@@ -170,7 +170,7 @@ function CopyDllAutomatically()
 
 	-- copy dll into binary folder automatically.
 	postbuildcommands {
-		"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Debug/SDL2*.*").."\" \""..BinariesPath.."\"",
+		"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/%{cfg.buildcfg}/SDL2*.*").."\" \""..BinariesPath.."\"",
 		"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/%{cfg.buildcfg}/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
 		"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/%{cfg.buildcfg}/CDProducer.*").."\" \""..BinariesPath.."\"",
 		"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/%{cfg.buildcfg}/CDConsumer.*").."\" \""..BinariesPath.."\"",
@@ -179,7 +179,7 @@ function CopyDllAutomatically()
 	if not USE_CLANG_TOOLSET then
 		postbuildcommands {
 			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/%{cfg.buildcfg}/GenericProducer.*").."\" \""..BinariesPath.."\"",
-			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/%{cfg.buildcfg}/assimp-*-mtd.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/%{cfg.buildcfg}/assimp-*-mt*.*").."\" \""..BinariesPath.."\"",
 		}
 	end
 
