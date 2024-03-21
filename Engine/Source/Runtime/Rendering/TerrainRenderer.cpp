@@ -34,6 +34,7 @@ constexpr const char* elevationTexture = "Terrain";
 constexpr const char* lutSampler = "s_texLUT";
 constexpr const char* cubeIrradianceSampler = "s_texCubeIrr";
 constexpr const char* cubeRadianceSampler = "s_texCubeRad";
+constexpr const char* iblStrength = "u_iblStrength";
 
 constexpr const char* lutTexture = "Textures/lut/ibl_brdf_lut.dds";
 
@@ -76,6 +77,7 @@ void TerrainRenderer::Warmup()
 	GetRenderContext()->CreateTexture(lutTexture);
 	GetRenderContext()->CreateTexture(pSkyComponent->GetIrradianceTexturePath().c_str(), samplerFlags);
 	GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), samplerFlags);
+	GetRenderContext()->CreateUniform(iblStrength, bgfx::UniformType::Vec4, 1);
 
 	GetRenderContext()->CreateUniform(cameraPos, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(cameraNearFarPlane, bgfx::UniformType::Vec4, 1);
@@ -173,6 +175,9 @@ void TerrainRenderer::Render(float deltaTime)
 			bgfx::setTexture(IBL_RADIANCE_SLOT,
 				GetRenderContext()->GetUniform(radSamplerCrc),
 				GetRenderContext()->GetTexture(StringCrc(pSkyComponent->GetRadianceTexturePath())));
+
+			constexpr StringCrc iblStrengthCrc{ iblStrength };
+			GetRenderContext()->FillUniform(iblStrengthCrc, &(pMaterialComponent->GetIblStrengeth()));
 
 			constexpr StringCrc lutsamplerCrc(lutSampler);
 			constexpr StringCrc luttextureCrc(lutTexture);

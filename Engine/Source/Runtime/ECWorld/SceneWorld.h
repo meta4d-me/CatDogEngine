@@ -40,8 +40,8 @@ class SceneWorld
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Name);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Sky);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(StaticMesh);
-	DEFINE_COMPONENT_STORAGE_WITH_APIS(Particle);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(ParticleEmitter);
+	DEFINE_COMPONENT_STORAGE_WITH_APIS(ParticleForceField);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Terrain);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Transform);
 
@@ -98,8 +98,8 @@ public:
 		DeleteNameComponent(entity);
 		DeleteSkyComponent(entity);
 		DeleteStaticMeshComponent(entity);
-		DeleteParticleComponent(entity);
 		DeleteParticleEmitterComponent(entity);
+		DeleteParticleForceFieldComponent(entity);
 		DeleteTerrainComponent(entity);
 		DeleteTransformComponent(entity);
 	}
@@ -112,6 +112,12 @@ public:
 
 	void CreateTerrainMaterialType(std::string shaderProgramName);
 	CD_FORCEINLINE engine::MaterialType* GetTerrainMaterialType() const { return m_pTerrainMaterialType.get(); }
+
+	void CreateParticleMaterialType(std::string shaderProgramName);
+	CD_FORCEINLINE engine::MaterialType* GetParticleMaterialType() const { return m_pParticleMaterialType.get(); }
+
+	void CreateCelluloidMaterialType(std::string shaderProgramName);
+	CD_FORCEINLINE engine::MaterialType* GetCelluloidMaterialType() const { return m_pCelluloidMaterialType.get(); }
 
 #ifdef ENABLE_DDGI
 	void CreateDDGIMaterialType(std::string shaderProgramName);
@@ -134,8 +140,11 @@ private:
 
 	std::unique_ptr<engine::MaterialType> m_pPBRMaterialType;
 	std::unique_ptr<engine::MaterialType> m_pAnimationMaterialType;
+	std::unique_ptr<engine::MaterialType> m_pCelluloidMaterialType;
 	std::unique_ptr<engine::MaterialType> m_pTerrainMaterialType;
 	std::unique_ptr<engine::MaterialType> m_pDDGIMaterialType;
+	std::unique_ptr<engine::MaterialType> m_pPRMaterialType;
+	std::unique_ptr<engine::MaterialType> m_pParticleMaterialType;
 
 	// TODO : wrap them into another class?
 	engine::Entity m_selectedEntity = engine::INVALID_ENTITY;

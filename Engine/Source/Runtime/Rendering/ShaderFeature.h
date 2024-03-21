@@ -22,6 +22,7 @@ enum class ShaderFeature : uint32_t
 
 	// Techniques
 	IBL,
+	PARTICLE_INSTANCE,
 	ATM,
 	AREAL_LIGHT,
 
@@ -37,6 +38,7 @@ constexpr const char* ShaderFeatureNames[] =
 	"ORMMAP;",
 	"EMISSIVEMAP;",
 	"IBL;",
+	"PARTICLEINSTANCE;",
 	"ATM;",
 	"AREALLIGHT;",
 };

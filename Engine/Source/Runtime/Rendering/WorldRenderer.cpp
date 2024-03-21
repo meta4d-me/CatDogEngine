@@ -13,8 +13,8 @@
 #include "Rendering/Resources/MeshResource.h"
 #include "Rendering/Resources/TextureResource.h"
 #include "Scene/Texture.h"
-#include "U_IBL.sh"
 #include "U_AtmophericScattering.sh"
+#include "U_IBL.sh"
 #include "U_Shadow.sh"
 
 namespace engine
@@ -30,6 +30,7 @@ constexpr const char* cubeRadianceSampler         = "s_texCubeRad";
 constexpr const char* lutTexture                  = "Textures/lut/ibl_brdf_lut.dds";
 											      
 constexpr const char* cameraPos                   = "u_cameraPos";
+constexpr const char* iblStrength                 = "u_iblStrength";
 constexpr const char* albedoColor                 = "u_albedoColor";
 constexpr const char* emissiveColorAndFactor      = "u_emissiveColorAndFactor";
 constexpr const char* metallicRoughnessFactor     = "u_metallicRoughnessFactor";
@@ -43,20 +44,20 @@ constexpr const char* lightParams                 = "u_lightParams";
 constexpr const char* LightDir                    = "u_LightDir";
 constexpr const char* HeightOffsetAndshadowLength = "u_HeightOffsetAndshadowLength";
 
-constexpr const char* lightViewProjs= "u_lightViewProjs";
-constexpr const char* cubeShadowMapSamplers[3] = { "s_texCubeShadowMap_1", "s_texCubeShadowMap_2" ,  "s_texCubeShadowMap_3" };
+constexpr const char* lightViewProjs              = "u_lightViewProjs";
+constexpr const char* cubeShadowMapSamplers[3]    = { "s_texCubeShadowMap_1", "s_texCubeShadowMap_2" ,  "s_texCubeShadowMap_3" };
 
-constexpr const char* cameraNearFarPlane = "u_cameraNearFarPlane";
-constexpr const char* cameraLookAt = "u_cameraLookAt";
-constexpr const char* clipFrustumDepth = "u_clipFrustumDepth";
+constexpr const char* cameraNearFarPlane          = "u_cameraNearFarPlane";
+constexpr const char* cameraLookAt                = "u_cameraLookAt";
+constexpr const char* clipFrustumDepth            = "u_clipFrustumDepth";
 
-constexpr const char* directionShadowMapTexture = "DirectionShadowMapTexture";
-constexpr const char* pointShadowMapTexture = "PointShadowMapTexture";
-constexpr const char* spotShadowMapTexture = "SpotShadowMapTexture";
+constexpr const char* directionShadowMapTexture   = "DirectionShadowMapTexture";
+constexpr const char* pointShadowMapTexture       = "PointShadowMapTexture";
+constexpr const char* spotShadowMapTexture        = "SpotShadowMapTexture";
 
-constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
+constexpr uint64_t samplerFlags          = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
-constexpr uint64_t blitDstTextureFlags = BGFX_TEXTURE_BLIT_DST | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
+constexpr uint64_t blitDstTextureFlags   = BGFX_TEXTURE_BLIT_DST | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
 
 }
 
@@ -78,6 +79,7 @@ void WorldRenderer::Warmup()
 	GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), samplerFlags);
 
 	GetRenderContext()->CreateUniform(cameraPos, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(iblStrength, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(albedoColor, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(emissiveColorAndFactor, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(metallicRoughnessFactor, bgfx::UniformType::Vec4, 1);
@@ -178,7 +180,7 @@ void WorldRenderer::Render(float deltaTime)
 	{
 		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
 		if (!pMaterialComponent ||
-			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetPBRMaterialType() ||
+			(pMaterialComponent->GetMaterialType() == m_pCurrentSceneWorld->GetPBRMaterialType() && pMaterialComponent->GetMaterialType() == m_pCurrentSceneWorld->GetCelluloidMaterialType()) ||
 			!GetRenderContext()->IsShaderProgramValid(pMaterialComponent->GetShaderProgramName(), pMaterialComponent->GetFeaturesCombine()))
 		{
 			// TODO : improve this condition. As we want to skip some feature-specified entities to render.
@@ -265,8 +267,11 @@ void WorldRenderer::Render(float deltaTime)
 				GetRenderContext()->GetUniform(radSamplerCrc),
 				GetRenderContext()->GetTexture(StringCrc(pSkyComponent->GetRadianceTexturePath())));
 
-			constexpr StringCrc lutsamplerCrc(lutSampler);
-			constexpr StringCrc luttextureCrc(lutTexture);
+			constexpr StringCrc iblStrengthCrc{ iblStrength };
+			GetRenderContext()->FillUniform(iblStrengthCrc, &(pMaterialComponent->GetIblStrengeth()));
+
+			constexpr StringCrc lutsamplerCrc{ lutSampler };
+			constexpr StringCrc luttextureCrc{ lutTexture };
 			bgfx::setTexture(BRDF_LUT_SLOT, GetRenderContext()->GetUniform(lutsamplerCrc), GetRenderContext()->GetTexture(luttextureCrc));
 		}
 		else if (SkyType::AtmosphericScattering == crtSkyType)

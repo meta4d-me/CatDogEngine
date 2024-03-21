@@ -275,6 +275,51 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 			ImGui::PopStyleVar();
 		}
 
+		// Cartoon
+		{
+			bool isOpen = ImGui::CollapsingHeader("Cartoon Material", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_Selected);
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Separator();
+			if (isOpen)
+			{
+				ImGuiUtils::ImGuiBoolProperty("OutLine", pMaterialComponent->GetToonParameters().isOpenOutLine);
+				ImGuiUtils::ColorPickerProperty("OutLineColor", pMaterialComponent->GetToonParameters().outLineColor);
+				ImGuiUtils::ImGuiFloatProperty("OutLineSize", pMaterialComponent->GetToonParameters().outLineSize, cd::Unit::None, 0.0f, 100.0f, false, 0.1f);
+				ImGuiUtils::ColorPickerProperty("First Shadow Color", pMaterialComponent->GetToonParameters().firstShadowColor);
+				ImGuiUtils::ColorPickerProperty("Second Color", pMaterialComponent->GetToonParameters().secondShadowColor);
+				ImGuiUtils::ImGuiFloatProperty("FirsrShadow", pMaterialComponent->GetToonParameters().dividLine.x(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+				ImGuiUtils::ImGuiFloatProperty("FirstShadow Feather", pMaterialComponent->GetToonParameters().dividLine.y(), cd::Unit::None, 0.0001f, 1.0f, false, 0.01f);
+				ImGuiUtils::ImGuiFloatProperty("SecondShadow", pMaterialComponent->GetToonParameters().dividLine.z(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+				ImGuiUtils::ImGuiFloatProperty("SecondShadow Feather", pMaterialComponent->GetToonParameters().dividLine.w(), cd::Unit::None, 0.01f, 1.0f, false, 0.01f);
+				ImGuiUtils::ImGuiFloatProperty("Specular Size", pMaterialComponent->GetToonParameters().specular.x(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+				ImGuiUtils::ImGuiFloatProperty("Specular Power", pMaterialComponent->GetToonParameters().specular.y(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+				ImGuiUtils::ImGuiFloatProperty("Specular Mask", pMaterialComponent->GetToonParameters().specular.z(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+				ImGuiUtils::ImGuiFloatProperty("High Light Halo", pMaterialComponent->GetToonParameters().specular.w(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+				ImGuiUtils::ColorPickerProperty("Rim Light Color", pMaterialComponent->GetToonParameters().rimLightColor);
+				ImGuiUtils::ImGuiFloatProperty("Rim Light Range", pMaterialComponent->GetToonParameters().rimLight.x(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+				ImGuiUtils::ImGuiFloatProperty("Rim Light Feather", pMaterialComponent->GetToonParameters().rimLight.y(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+				ImGuiUtils::ImGuiFloatProperty("Rim Light Itensity", pMaterialComponent->GetToonParameters().rimLight.z(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+				ImGuiUtils::ImGuiFloatProperty("Rim Light Mask", pMaterialComponent->GetToonParameters().rimLight.w(), cd::Unit::None, 0.0f, 1.0f, false, 0.01f);
+			}
+
+			ImGui::Separator();
+			ImGui::PopStyleVar();
+		}
+
+		// Ambient
+		{
+			bool isOpen = ImGui::CollapsingHeader("Ambient", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Separator();
+			if (isOpen)
+			{
+				ImGuiUtils::ImGuiFloatProperty("iblStrength", pMaterialComponent->GetIblStrengeth(), cd::Unit::None, 0.01f, 10.0f, false, 0.02f);
+			}
+
+			ImGui::Separator();
+			ImGui::PopStyleVar();
+		}
+
 		// Shaders
 		{
 			bool isOpen = ImGui::CollapsingHeader("Shader", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
@@ -586,6 +631,9 @@ void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld
 			}
 		}
 
+		ImGui::Separator();
+		ImGuiUtils::ImGuiFloatProperty("Skybox Strength", pSkyComponent->GetSkyboxStrength(), cd::Unit::None, 0.01f, 10.0f, false, 0.02f);
+
 		if (pSkyComponent->GetAtmophericScatteringEnable())
 		{
 			ImGui::Separator();
@@ -600,10 +648,10 @@ void UpdateComponentWidget<engine::SkyComponent>(engine::SceneWorld* pSceneWorld
 }
 
 template<>
-void UpdateComponentWidget<engine::ParticleComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+void UpdateComponentWidget<engine::ParticleEmitterComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
 {
-	auto* pParticleComponent = pSceneWorld->GetParticleComponent(entity);
-	if (!pParticleComponent)
+	auto* pParticleEmitterComponent = pSceneWorld->GetParticleEmitterComponent(entity);
+	if (!pParticleEmitterComponent)
 	{
 		return;
 	}
@@ -614,7 +662,49 @@ void UpdateComponentWidget<engine::ParticleComponent>(engine::SceneWorld* pScene
 
 	if (isOpen)
 	{
+		ImGuiUtils::ImGuiEnumProperty("Render  Mode", pParticleEmitterComponent->GetRenderMode());
+		ImGuiUtils::ImGuiEnumProperty("Particle Type", pParticleEmitterComponent->GetEmitterParticleType());
+		//ImGuiUtils::ImGuiEnumProperty("Emitter Shape", pParticleEmitterComponent->GetEmitterShape());
+		ImGuiUtils::ImGuiVectorProperty("Emitter Range", pParticleEmitterComponent->GetEmitterShapeRange());
+		ImGuiUtils::ImGuiBoolProperty("Random Emit Pos", pParticleEmitterComponent->GetRandomPosState());
+		ImGuiUtils::ImGuiIntProperty("Max Count", pParticleEmitterComponent->GetSpawnCount(), cd::Unit::None, 1, 300);
+		ImGuiUtils::ImGuiVectorProperty("Velocity", pParticleEmitterComponent->GetEmitterVelocity());
+		ImGuiUtils::ImGuiVectorProperty("Random Velocity", pParticleEmitterComponent->GetRandomVelocity());
+		ImGuiUtils::ImGuiBoolProperty("RandomVelocity", pParticleEmitterComponent->GetRandomVelocityState());
+		ImGuiUtils::ImGuiVectorProperty("Acceleration", pParticleEmitterComponent->GetEmitterAcceleration());
+		ImGuiUtils::ColorPickerProperty("Color", pParticleEmitterComponent->GetEmitterColor());
+		ImGuiUtils::ImGuiFloatProperty("LifeTime", pParticleEmitterComponent->GetLifeTime());
+		if (ImGuiUtils::ImGuiBoolProperty("Instance State", pParticleEmitterComponent->GetInstanceState()))
+		{
+			pParticleEmitterComponent->ActivateShaderFeature(engine::ShaderFeature::PARTICLE_INSTANCE);
+		}
+		else
+		{
+			pParticleEmitterComponent->DeactivateShaderFeature(engine::ShaderFeature::PARTICLE_INSTANCE);
+		}
+	}
 
+	ImGui::Separator();
+	ImGui::PopStyleVar();
+}
+
+template<>
+void UpdateComponentWidget<engine::ParticleForceFieldComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+{
+	auto* pParticleForceFieldComponent = pSceneWorld->GetParticleForceFieldComponent(entity);
+	if (!pParticleForceFieldComponent)
+	{
+		return;
+	}
+
+	bool isOpen = ImGui::CollapsingHeader("ParticleForceField Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+	ImGui::Separator();
+
+	if (isOpen)
+	{
+		//ImGuiUtils::ImGuiVectorProperty("ForceFieldRange", pParticleForceFieldComponent->GetForceFieldRange());
+		ImGuiUtils::ImGuiBoolProperty("RotationForceValue", pParticleForceFieldComponent->GetRotationForce());
 	}
 
 	ImGui::Separator();
@@ -660,7 +750,6 @@ void Inspector::Update()
 	}
 
 	ImGui::BeginChild("Inspector");
-
 	details::UpdateComponentWidget<engine::NameComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::TransformComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::CameraComponent>(pSceneWorld, m_lastSelectedEntity);
@@ -669,7 +758,8 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::TerrainComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::StaticMeshComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, m_lastSelectedEntity);
-	details::UpdateComponentWidget<engine::ParticleComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::ParticleEmitterComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::ParticleForceFieldComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::CollisionMeshComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::BlendShapeComponent>(pSceneWorld, m_lastSelectedEntity);
 

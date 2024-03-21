@@ -16,6 +16,7 @@
 #include "Log/Log.h"
 #include "Material/MaterialType.h"
 #include "Producers/CDProducer/CDProducer.h"
+#include "Producers/EffekseerProducer/EffekseerProducer.h"
 #ifdef ENABLE_FBX_PRODUCER
 #include "Producers/FbxProducer/FbxProducer.h"
 #endif
@@ -91,6 +92,21 @@ bool IsModelInputFile(const char* pFileExtension)
 bool IsLightInputFile(const char* pFileExtension)
 {
 	constexpr const char* pFileExtensions[] = { ".json" };
+	constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
+	for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
+	{
+		if (0 == strcmp(pFileExtensions[extensionIndex], pFileExtension))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool IsParticleInputFile(const char* pFileExtension)
+{
+	constexpr const char* pFileExtensions[] = { ".efkefc" };
 	constexpr const int fileExtensionsSize = sizeof(pFileExtensions) / sizeof(pFileExtensions[0]);
 	for (int extensionIndex = 0; extensionIndex < fileExtensionsSize; ++extensionIndex)
 	{
@@ -369,6 +385,15 @@ void AssetBrowser::UpdateAssetFolderTree()
 		{
 			m_importOptions.AssetType = IOAssetType::Model;
 			m_pImportFileBrowser->SetTitle("ImportAssets - Model");
+			//m_pImportFileBrowser->SetTypeFilters({ ".fbx", ".gltf" }); // ".obj", ".dae", ".ogex"
+			m_pImportFileBrowser->Open();
+
+			CD_INFO("Import asset type: {}", nameof::nameof_enum(m_importOptions.AssetType));
+		}
+		else if (ImGui::Selectable("Celluloid Model"))
+		{
+			m_importOptions.AssetType = IOAssetType::Model;
+			m_pImportFileBrowser->SetTitle("ImportAssets - Celluloid Model");
 			//m_pImportFileBrowser->SetTypeFilters({ ".fbx", ".gltf" }); // ".obj", ".dae", ".ogex"
 			m_pImportFileBrowser->Open();
 
@@ -785,6 +810,10 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 		{
 			m_importOptions.AssetType = IOAssetType::Light;
 		}
+		else if (IsParticleInputFile(pFileExtension.c_str()))
+		{
+			m_importOptions.AssetType = IOAssetType::Particle;
+		}
 		else
 		{
 			// Still unknown, exit.
@@ -856,6 +885,10 @@ void AssetBrowser::ImportAssetFile(const char* pFilePath)
 	else if (IOAssetType::Light == m_importOptions.AssetType)
 	{
 		ImportJson(pFilePath);
+	}
+	else if (IOAssetType::Particle == m_importOptions.AssetType)
+	{
+		ImportParticleEffect(pFilePath);
 	}
 }
 
@@ -1104,6 +1137,36 @@ void AssetBrowser::ImportJson(const char* pFilePath)
 	{
 		CD_INFO("Open Joson file failed");
 	}
+}
+
+void AssetBrowser::ImportParticleEffect(const char* pFilePath)
+{
+	////engine::RenderContext* pCurrentRenderContext = GetRenderContext();
+	//engine::SceneWorld* pSceneWorld = GetImGuiContextInstance()->GetSceneWorld();
+
+	//cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
+	////uint32_t oldNodeCount = pSceneDatabase->GetNodeCount();
+	////uint32_t oldMeshCount = pSceneDatabase->GetMeshCount();
+	//uint32_t oldParticleEmitterCount = pSceneDatabase->GetParticleEmitterCount();
+
+	//// Step 1 : Convert model file to cd::SceneDatabase
+	//std::filesystem::path inputFilePath(pFilePath);
+	//std::filesystem::path inputFileExtension = inputFilePath.extension();
+	//if (0 == inputFileExtension.compare(".efkefc"))
+	//{
+	///*	cdtools::CDProducer cdProducer(pFilePath);
+	//	cd::SceneDatabase newSceneDatabase;
+	//	cdtools::Processor processor(&cdProducer, nullptr, &newSceneDatabase);
+	//	proce qssor.Run();
+	//	pSceneDatabase->Merge(cd::MoveTemp(newSceneDatabase));*/
+	//	std::string filePath = pFilePath;
+	//	int size = MultiByteToWideChar(CP_UTF8, 0, filePath.c_str(), -1, nullptr, 0);
+	//	std::wstring wstr(size, 0);
+	//	MultiByteToWideChar(CP_UTF8, 0, filePath.c_str(), -1, &wstr[0], size);
+	//	std::wstring wFilePath = wstr;
+	//	const char16_t* u16_cstr = reinterpret_cast<const char16_t*>(wFilePath.c_str());
+	//	cdtools::EffekseerProducer efkProducer(u16_cstr);
+	//}
 }
 
 void AssetBrowser::ExportAssetFile(const char* pFilePath)
