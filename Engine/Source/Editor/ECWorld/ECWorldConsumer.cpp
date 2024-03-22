@@ -205,14 +205,19 @@ void ECWorldConsumer::AddAnimation(engine::Entity entity, const cd::Animation& a
 
 void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMaterial, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase)
 {
-	std::set<uint8_t> compiledTextureSlot;
-	std::vector<std::tuple<cd::MaterialTextureType, std::string, const cd::Texture*>> outputTypeToData;
-
 	engine::MaterialComponent& materialComponent = m_pSceneWorld->GetWorld()->CreateComponent<engine::MaterialComponent>(entity);
 	materialComponent.Init();
 	materialComponent.SetMaterialType(pMaterialType);
 	materialComponent.SetMaterialData(pMaterial);
 	materialComponent.ActivateShaderFeature(engine::GetSkyTypeShaderFeature(m_pSceneWorld->GetSkyComponent(m_pSceneWorld->GetSkyEntity())->GetSkyType()));
+
+	if (!pMaterial)
+	{
+		return;
+	}
+
+	std::set<uint8_t> compiledTextureSlot;
+	std::vector<std::tuple<cd::MaterialTextureType, std::string, const cd::Texture*>> outputTypeToData;
 
 	// Expected textures are ready to build. Add more optional texture data.
 	for (cd::MaterialTextureType optionalTextureType : pMaterialType->GetOptionalTextureTypes())

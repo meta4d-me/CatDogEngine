@@ -1,6 +1,9 @@
 #include "AssetBrowser.h"
 
 #include "Consumers/CDConsumer/CDConsumer.h"
+#ifdef ENABLE_FBX_CONSUMER
+#include "Consumers/FbxConsumer/FbxConsumer.h"
+#endif
 #include "ECWorld/ECWorldConsumer.h"
 #include "ECWorld/MaterialComponent.h"
 #include "ECWorld/SceneWorld.h"
@@ -14,14 +17,16 @@
 #include "Material/MaterialType.h"
 #include "Producers/CDProducer/CDProducer.h"
 #include "Producers/EffekseerProducer/EffekseerProducer.h"
+#ifdef ENABLE_FBX_PRODUCER
+#include "Producers/FbxProducer/FbxProducer.h"
+#endif
+#ifdef ENABLE_GENERIC_PRODUCER
+#include "Producers/GenericProducer/GenericProducer.h"
+#endif
 #include "Rendering/WorldRenderer.h"
 #include "Rendering/RenderContext.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ResourceLoader.h"
-
-#ifdef ENABLE_GENERIC_PRODUCER
-#include "Producers/GenericProducer/GenericProducer.h"
-#endif
 
 #include <json/json.hpp>
 
@@ -942,15 +947,28 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 	// Step 1 : Convert model file to cd::SceneDatabase
 	std::filesystem::path inputFilePath(pFilePath);
 	std::filesystem::path inputFileExtension = inputFilePath.extension();
+	bool importedModel = false;
+	auto newSceneDatabase = std::make_unique<cd::SceneDatabase>();
 	if (0 == inputFileExtension.compare(".cdbin"))
 	{
 		cdtools::CDProducer cdProducer(pFilePath);
-		cd::SceneDatabase newSceneDatabase;
-		cdtools::Processor processor(&cdProducer, nullptr, &newSceneDatabase);
+		cdtools::Processor processor(&cdProducer, nullptr, newSceneDatabase.get());
 		processor.Run();
-		pSceneDatabase->Merge(cd::MoveTemp(newSceneDatabase));
+		importedModel = true;
 	}
-	else
+	else if (0 == inputFileExtension.compare(".fbx"))
+	{
+#ifdef ENABLE_FBX_PRODUCER
+		cdtools::FbxProducer fbxProducer(pFilePath);
+		fbxProducer.EnableOption(cdtools::FbxProducerOptions::Triangulate);
+		cdtools::Processor processor(&fbxProducer, nullptr, newSceneDatabase.get());
+		processor.Run();
+		importedModel = true;
+#endif
+	}
+
+	// Try generic producer only if specialized import workflow is not ready.
+	if (!importedModel)
 	{
 #ifdef ENABLE_GENERIC_PRODUCER
 		cdtools::GenericProducer genericProducer(pFilePath);
@@ -963,15 +981,18 @@ void AssetBrowser::ImportModelFile(const char* pFilePath)
 			genericProducer.EnableOption(cdtools::GenericProducerOptions::FlattenTransformHierarchy);
 		}
 
-		cd::SceneDatabase newSceneDatabase;
-		cdtools::Processor processor(&genericProducer, nullptr, &newSceneDatabase);
+		cdtools::Processor processor(&genericProducer, nullptr, newSceneDatabase.get());
 		processor.EnableOption(cdtools::ProcessorOptions::Dump);
 		processor.Run();
-		pSceneDatabase->Merge(cd::MoveTemp(newSceneDatabase));
 #else
 		assert("Unable to import this file format.");
+		return;
 #endif
 	}
+
+	// Move contents in temp scene database to SceneWorld.
+	pSceneDatabase->Merge(cd::MoveTemp(*newSceneDatabase));
+	newSceneDatabase.reset();
 
 	// Step 2 : Process generated cd::SceneDatabase
 	ProcessSceneDatabase(pSceneDatabase, m_importOptions.ImportMesh, m_importOptions.ImportMaterial, m_importOptions.ImportTexture,

@@ -99,9 +99,9 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     if (ImGui::MenuItem("Add Cube Mesh"))
     {
         engine::Entity entity = AddNamedEntity("CubeMesh");
-        // TODO : manage temp asset.
-        static std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Box(cd::Point(-10.0f), cd::Point(10.0f)), pPBRMaterialType->GetRequiredVertexFormat());
+        std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Box(cd::Point(-10.0f), cd::Point(10.0f)), pPBRMaterialType->GetRequiredVertexFormat());
         assert(optMesh.has_value());
+        optMesh->SetName(pSceneWorld->GetNameComponent(entity)->GetName());
         CreateShapeComponents(entity, cd::MoveTemp(optMesh.value()), pPBRMaterialType);
     }
 
@@ -110,15 +110,16 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         engine::Entity entity = AddNamedEntity("Celluloid Cube");
         std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Box(cd::Point(-10.0f), cd::Point(10.0f)), pCelluloidMaterialType->GetRequiredVertexFormat());
         assert(optMesh.has_value());
+        optMesh->SetName(pSceneWorld->GetNameComponent(entity)->GetName());
         CreateShapeComponents(entity, cd::MoveTemp(optMesh.value()), pCelluloidMaterialType);
     }
 
     else if (ImGui::MenuItem("Add Sphere Mesh"))
     {
         engine::Entity entity = AddNamedEntity("Sphere");
-        // TODO : manage temp asset.
-        static std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Sphere(cd::Point(0.0f), 10.0f), 100U, 100U, pPBRMaterialType->GetRequiredVertexFormat());
+        std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Sphere(cd::Point(0.0f), 10.0f), 100U, 100U, pPBRMaterialType->GetRequiredVertexFormat());
         assert(optMesh.has_value());
+        optMesh->SetName(pSceneWorld->GetNameComponent(entity)->GetName());
         CreateShapeComponents(entity, cd::MoveTemp(optMesh.value()), pPBRMaterialType);
     }
 
@@ -127,6 +128,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         engine::Entity entity = AddNamedEntity("Celluloid Sphere");
         std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Sphere(cd::Point(0.0f), 10.0f), 100U, 100U, pCelluloidMaterialType->GetRequiredVertexFormat());
         assert(optMesh.has_value());
+        optMesh->SetName(pSceneWorld->GetNameComponent(entity)->GetName());
         CreateShapeComponents(entity, cd::MoveTemp(optMesh.value()), pCelluloidMaterialType);
     }
     else if (ImGui::MenuItem("Add Terrain Mesh"))
