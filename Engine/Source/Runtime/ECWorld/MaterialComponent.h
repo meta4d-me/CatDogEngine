@@ -32,6 +32,7 @@ namespace engine
 
 class MaterialType;
 class RenderContext;
+class ShaderResource;
 class TextureResource;
 
 class MaterialComponent final
@@ -89,6 +90,7 @@ public:
 	~MaterialComponent() = default;
 
 	void Init();
+	void Reset();
 
 	void SetMaterialData(const cd::Material* pMaterialData);
 	cd::Material* GetMaterialData() { return const_cast<cd::Material*>(m_pMaterialData); }
@@ -97,21 +99,25 @@ public:
 	void SetMaterialType(const engine::MaterialType* pMaterialType) { m_pMaterialType = pMaterialType; }
 	const engine::MaterialType* GetMaterialType() const { return m_pMaterialType; }
 
-	void Reset();
-
 	// Basic data.
 	void SetName(std::string name) { m_name = cd::MoveTemp(name); }
 	std::string& GetName() { return m_name; }
 	const std::string& GetName() const { return m_name; }
 	const std::string& GetShaderProgramName() const;
 
-	// Uber shader data.
+	// Uber shader
+	// Activa one Feature will erase all conflicting Features.
 	void ActivateShaderFeature(ShaderFeature feature);
 	void DeactivateShaderFeature(ShaderFeature feature);
-	void SetShaderFeatures(std::set<ShaderFeature> options) { m_shaderFeatures = cd::MoveTemp(m_shaderFeatures); }
+	const std::string& GetFeaturesCombine();
+
+	void SetShaderFeatures(std::set<ShaderFeature> features);
 	std::set<ShaderFeature>& GetShaderFeatures() { return m_shaderFeatures; }
 	const std::set<ShaderFeature>& GetShaderFeatures() const { return m_shaderFeatures; }
-	const std::string& GetFeaturesCombine();
+
+	bool IsShaderResourceDirty() const { return m_isShaderResourceDirty; }
+	void SetShaderResource(ShaderResource* pShaderResource);
+	ShaderResource* GetShaderResource() const;
 
 	// Texture data.
 	TextureResource* GetTextureResource(cd::MaterialTextureType textureType) const;
@@ -174,13 +180,13 @@ public:
 	float& GetAlphaCutOff() { return m_alphaCutOff; }
 	float GetAlphaCutOff() const { return m_alphaCutOff; }
 
-	void SetToonParameters(ToonParameters toonParameters) { m_toonParameters = toonParameters; }
-	ToonParameters& GetToonParameters() { return m_toonParameters; }
-	ToonParameters GetToonParameters() const { return m_toonParameters; }
-
 	void SetIblStrengeth(float strength) { m_iblStrength = strength; }
 	float& GetIblStrengeth() { return m_iblStrength; }
 	float GetIblStrengeth() const { return m_iblStrength; }
+
+	void SetToonParameters(ToonParameters toonParameters) { m_toonParameters = toonParameters; }
+	ToonParameters& GetToonParameters() { return m_toonParameters; }
+	ToonParameters GetToonParameters() const { return m_toonParameters; }
 
 private:
 	// Input
@@ -188,16 +194,16 @@ private:
 	const cd::Material* m_pMaterialData = nullptr;
 	const engine::MaterialType* m_pMaterialType = nullptr;
 
-	bool m_twoSided;
-	bool m_isOpenOutLine;
-	cd::BlendMode m_blendMode;
-	float m_alphaCutOff;
-
-	bool m_isShaderFeatureDirty = false;
-	std::set<ShaderFeature> m_shaderFeatures;
+	bool m_isShaderFeaturesDirty = true;
+	bool m_isShaderResourceDirty = true;
 	std::string m_featureCombine;
+	std::set<ShaderFeature> m_shaderFeatures;
+	ShaderResource* m_pShaderResource = nullptr;
 
 	// Output
+	bool m_twoSided;
+	cd::BlendMode m_blendMode;
+	float m_alphaCutOff;
 	float m_iblStrength = 0.5f;
 	ToonParameters m_toonParameters;
 	std::map<cd::MaterialTextureType, PropertyGroup> m_propertyGroups;

@@ -6,6 +6,7 @@
 #include "ECWorld/TransformComponent.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/Resources/MeshResource.h"
+#include "Rendering/Resources/ShaderResource.h"
 #include "Scene/Texture.h"
 
 namespace engine
@@ -13,15 +14,9 @@ namespace engine
 
 void WhiteModelRenderer::Init()
 {
-	constexpr StringCrc programCrc = StringCrc("WhiteModelProgram");
-	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_whiteModel", "fs_whiteModel" });
+	AddDependentShaderResource(GetRenderContext()->RegisterShaderProgram("WhiteModelProgram", "vs_whiteModel", "fs_whiteModel"));
 
 	bgfx::setViewName(GetViewID(), "WhiteModelRenderer");
-}
-
-void WhiteModelRenderer::Warmup()
-{
-	GetRenderContext()->UploadShaderProgram("WhiteModelProgram");
 }
 
 void WhiteModelRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -32,6 +27,15 @@ void WhiteModelRenderer::UpdateView(const float* pViewMatrix, const float* pProj
 
 void WhiteModelRenderer::Render(float deltaTime)
 {
+	for (const auto pResource : m_dependentShaderResources)
+	{
+		if (ResourceStatus::Ready != pResource->GetStatus() &&
+			ResourceStatus::Optimized != pResource->GetStatus())
+		{
+			return;
+		}
+	}
+
 	for (Entity entity : m_pCurrentSceneWorld->GetStaticMeshEntities())
 	{
 		if (m_pCurrentSceneWorld->GetSkyEntity() == entity)
@@ -68,7 +72,8 @@ void WhiteModelRenderer::Render(float deltaTime)
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
 		bgfx::setState(state);
 
-		SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), "WhiteModelProgram");
+		constexpr StringCrc programHandleIndex{ "WhiteModelProgram" };
+		SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), programHandleIndex);
 	}
 }
 

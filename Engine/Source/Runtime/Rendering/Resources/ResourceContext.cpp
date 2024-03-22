@@ -2,6 +2,7 @@
 
 #include "Base/NameOf.h"
 #include "MeshResource.h"
+#include "ShaderResource.h"
 #include "TextureResource.h"
 
 namespace engine
@@ -31,6 +32,11 @@ MeshResource* ResourceContext::AddMeshResource(StringCrc nameCrc)
 	return static_cast<MeshResource*>(AddResourceImpl<ResourceType::Mesh>(nameCrc));
 }
 
+ShaderResource* ResourceContext::AddShaderResource(StringCrc nameCrc)
+{
+	return static_cast<ShaderResource*>(AddResourceImpl<ResourceType::Shader>(nameCrc));
+}
+
 TextureResource* ResourceContext::AddTextureResource(StringCrc nameCrc)
 {
 	return static_cast<TextureResource*>(AddResourceImpl<ResourceType::Texture>(nameCrc));
@@ -39,6 +45,11 @@ TextureResource* ResourceContext::AddTextureResource(StringCrc nameCrc)
 MeshResource* ResourceContext::GetMeshResource(StringCrc nameCrc)
 {
 	return static_cast<MeshResource*>(GetResourceImpl<ResourceType::Mesh>(nameCrc));
+}
+
+ShaderResource* ResourceContext::GetShaderResource(StringCrc nameCrc)
+{
+	return static_cast<ShaderResource*>(GetResourceImpl<ResourceType::Shader>(nameCrc));
 }
 
 TextureResource* ResourceContext::GetTextureResource(StringCrc nameCrc)
@@ -59,6 +70,10 @@ IResource* ResourceContext::AddResourceImpl(StringCrc nameCrc)
 	if constexpr (ResourceType::Mesh == RT)
 	{
 		m_resources[resourceCrc] = std::make_unique<MeshResource>();
+	}
+	else if constexpr (ResourceType::Shader == RT)
+	{
+		m_resources[resourceCrc] = std::make_unique<ShaderResource>();
 	}
 	else if constexpr (ResourceType::Texture == RT)
 	{

@@ -5,6 +5,7 @@
 #include "ECWorld/SkyComponent.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/Resources/MeshResource.h"
+#include "Rendering/Resources/ShaderResource.h"
 
 namespace engine
 {
@@ -23,21 +24,14 @@ constexpr uint64_t renderState = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | B
 
 void SkyboxRenderer::Init()
 {
-	constexpr StringCrc programCrc = StringCrc(skyboxProgram);
-	GetRenderContext()->RegisterShaderProgram(programCrc, {"vs_skybox", "fs_skybox"});
+	AddDependentShaderResource(GetRenderContext()->RegisterShaderProgram("skyboxProgram", "vs_skybox", "fs_skybox"));
 
-	bgfx::setViewName(GetViewID(), "SkyboxRenderer");
-}
-
-void SkyboxRenderer::Warmup()
-{
-	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
-
-	GetRenderContext()->CreateUniform(skyboxSampler, bgfx::UniformType::Sampler);
+	GetRenderContext()->CreateUniform("s_texSkybox", bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform(skyboxStrength, bgfx::UniformType::Vec4, 1);
+	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 	GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), sampleFalg);
 
-	GetRenderContext()->UploadShaderProgram(skyboxProgram);
+	bgfx::setViewName(GetViewID(), "SkyboxRenderer");
 }
 
 void SkyboxRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -68,6 +62,15 @@ void SkyboxRenderer::Render(float deltaTime)
 		return;
 	}
 
+	for (const auto pResource : m_dependentShaderResources)
+	{
+		if (ResourceStatus::Ready != pResource->GetStatus() &&
+			ResourceStatus::Optimized != pResource->GetStatus())
+		{
+			return;
+		}
+	}
+
 	StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(m_pCurrentSceneWorld->GetSkyEntity());
 	if (!pMeshComponent)
 	{
@@ -95,7 +98,9 @@ void SkyboxRenderer::Render(float deltaTime)
 		GetRenderContext()->GetTexture(StringCrc(pSkyComponent->GetRadianceTexturePath())));
 
 	bgfx::setState(renderState);
-	SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), skyboxProgram);
+
+	constexpr StringCrc programHandleIndex{ "skyboxProgram" };
+	SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), programHandleIndex);
 }
 
 bool SkyboxRenderer::IsEnable() const

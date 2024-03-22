@@ -224,8 +224,17 @@ void MainMenu::BuildMenu()
 
 		if (ImGui::MenuItem(CD_TEXT("TEXT_BUILD_PBR_VARIANT")))
 		{
-			ShaderBuilder::CompileUberShaderAllVariants(GetRenderContext(), pSceneWorld->GetPBRMaterialType());
+			ShaderBuilder::RegisterUberShaderAllVariants(GetRenderContext(), pSceneWorld->GetPBRMaterialType());
+			ResourceBuilder::Get().Update();
 		}
+
+#ifdef ENABLE_DDGI
+		if (ImGui::MenuItem(CD_TEXT("TEXT_BUILD_PBR_VARIANT")))
+		{
+			ShaderBuilder::RegisterUberShaderAllVariants(m_pRenderContext.get(), m_pSceneWorld->GetDDGIMaterialType());
+			ResourceBuilder::Get().Update();
+		}
+#endif
 
 		ImGui::EndMenu();
 	}

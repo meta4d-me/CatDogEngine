@@ -20,7 +20,6 @@ class ResourceContext;
 class AABBRenderer;
 class RenderTarget;
 class SceneWorld;
-class ShaderCollections;
 
 }
 
@@ -57,9 +56,6 @@ public:
 	void InitEditorRenderers();
 	void InitEngineRenderers();
 
-	void EditorRenderersWarmup();
-	void EngineRenderersWarmup();
-
 	void InitShaderPrograms(bool compileAllShaders = false) const;
 	void AddEditorRenderer(std::unique_ptr<engine::Renderer> pRenderer);
 	void AddEngineRenderer(std::unique_ptr<engine::Renderer> pRenderer);
@@ -87,10 +83,7 @@ private:
 
 	void InitFileWatcher();
 	void OnShaderHotModifiedCallback(const char* rootDir, const char* filePath);
-
 	void UpdateMaterials();
-	void CompileAndLoadShaders();
-	void OnShaderCompileFailed(uint32_t handle, std::span<const char> str);
 
 	bool m_crtInputFocus = true;
 	bool m_preInputFocus = true;
@@ -123,7 +116,6 @@ private:
 	// Rendering
 	std::unique_ptr<engine::RenderContext> m_pRenderContext;
 	std::unique_ptr<engine::ResourceContext> m_pResourceContext;
-	std::unique_ptr<engine::ShaderCollections> m_pShaderCollections;
 
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEditorRenderers;
 	std::vector<std::unique_ptr<engine::Renderer>> m_pEngineRenderers;

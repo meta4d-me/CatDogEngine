@@ -12,7 +12,6 @@ public:
 	virtual ~BlitRenderTargetPass();
 
 	virtual void Init() override;
-	virtual void Warmup() override;
 	virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) override;
 	virtual void Render(float deltaTime) override;
 

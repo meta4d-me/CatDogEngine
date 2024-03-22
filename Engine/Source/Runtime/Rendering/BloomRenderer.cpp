@@ -1,29 +1,50 @@
 #include "BloomRenderer.h"
 
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/ShaderResource.h"
 
 #include <format>
 
 namespace engine
 {
 
+namespace
+{
+
+constexpr const char* CapTureBrightnessProgram = "CapTureBrightnessProgram";
+constexpr const char* DownSampleProgram = "DownSampleProgram";
+constexpr const char* BlurVerticalProgram = "BlurVerticalProgram";
+constexpr const char* BlurHorizontalProgram = "BlurHorizontalProgram";
+constexpr const char* UpSampleProgram = "UpSampleProgram";
+constexpr const char* KawaseBlurProgram = "KawaseBlurProgram";
+constexpr const char* CombineProgram = "CombineProgram";
+
+constexpr StringCrc CapTureBrightnessProgramCrc{ CapTureBrightnessProgram };
+constexpr StringCrc DownSampleProgramCrc{ DownSampleProgram };
+constexpr StringCrc BlurVerticalProgramCrc{ BlurVerticalProgram };
+constexpr StringCrc BlurHorizontalProgramCrc{ BlurHorizontalProgram };
+constexpr StringCrc UpSampleProgramCrc{ UpSampleProgram };
+constexpr StringCrc KawaseBlurProgramCrc{ KawaseBlurProgram };
+constexpr StringCrc CombineProgramCrc{ CombineProgram };
+
+}
+
 void BloomRenderer::Init()
 {
-	constexpr StringCrc CapTureBrightnessProgramCrc = StringCrc("CapTureBrightnessProgram");
-	constexpr StringCrc DownSampleProgramCrc = StringCrc("DownSampleProgram");
-	constexpr StringCrc BlurVerticalProgramCrc = StringCrc("BlurVerticalProgram");
-	constexpr StringCrc BlurHorizontalProgramCrc = StringCrc("BlurHorizontalProgram");
-	constexpr StringCrc UpSampleProgramCrc = StringCrc("UpSampleProgram");
-	constexpr StringCrc KawaseBlurProgramCrc = StringCrc("KawaseBlurProgram");
-	constexpr StringCrc CombineProgramCrc = StringCrc("CombineProgram");
+	AddDependentShaderResource(GetRenderContext()->RegisterShaderProgram(CapTureBrightnessProgram, "vs_fullscreen", "fs_captureBrightness"));
+	AddDependentShaderResource(GetRenderContext()->RegisterShaderProgram(DownSampleProgram, "vs_fullscreen", "fs_dowmsample"));
+	AddDependentShaderResource(GetRenderContext()->RegisterShaderProgram(BlurVerticalProgram, "vs_fullscreen", "fs_blurvertical"));
+	AddDependentShaderResource(GetRenderContext()->RegisterShaderProgram(BlurHorizontalProgram, "vs_fullscreen", "fs_blurhorizontal"));
+	AddDependentShaderResource(GetRenderContext()->RegisterShaderProgram(UpSampleProgram, "vs_fullscreen", "fs_upsample"));
+	AddDependentShaderResource(GetRenderContext()->RegisterShaderProgram(KawaseBlurProgram, "vs_fullscreen", "fs_kawaseblur"));
+	AddDependentShaderResource(GetRenderContext()->RegisterShaderProgram(CombineProgram, "vs_fullscreen", "fs_bloom"));
 
-	GetRenderContext()->RegisterShaderProgram(CapTureBrightnessProgramCrc, { "vs_fullscreen", "fs_captureBrightness" });
-	GetRenderContext()->RegisterShaderProgram(DownSampleProgramCrc, { "vs_fullscreen", "fs_dowmsample" });
-	GetRenderContext()->RegisterShaderProgram(BlurVerticalProgramCrc, { "vs_fullscreen", "fs_blurvertical" });
-	GetRenderContext()->RegisterShaderProgram(BlurHorizontalProgramCrc, { "vs_fullscreen", "fs_blurhorizontal" });
-	GetRenderContext()->RegisterShaderProgram(UpSampleProgramCrc, { "vs_fullscreen", "fs_upsample" });
-	GetRenderContext()->RegisterShaderProgram(KawaseBlurProgramCrc, { "vs_fullscreen", "fs_kawaseblur" });
-	GetRenderContext()->RegisterShaderProgram(CombineProgramCrc, { "vs_fullscreen", "fs_bloom" });
+	GetRenderContext()->CreateUniform("s_texture", bgfx::UniformType::Sampler);
+	GetRenderContext()->CreateUniform("s_bloom", bgfx::UniformType::Sampler);
+	GetRenderContext()->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
+	GetRenderContext()->CreateUniform("u_textureSize", bgfx::UniformType::Vec4);
+	GetRenderContext()->CreateUniform("u_bloomIntensity", bgfx::UniformType::Vec4);
+	GetRenderContext()->CreateUniform("u_luminanceThreshold", bgfx::UniformType::Vec4);
 
 	bgfx::setViewName(GetViewID(), "BloomRenderer");
 
@@ -66,24 +87,6 @@ void BloomRenderer::AllocateViewIDs()
 	}
 	m_combinePassID = GetRenderContext()->CreateView();
 	m_blitColorPassID = GetRenderContext()->CreateView();
-}
-
-void BloomRenderer::Warmup()
-{
-	GetRenderContext()->CreateUniform("s_texture", bgfx::UniformType::Sampler);
-	GetRenderContext()->CreateUniform("s_bloom", bgfx::UniformType::Sampler);
-	GetRenderContext()->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
-	GetRenderContext()->CreateUniform("u_textureSize", bgfx::UniformType::Vec4);
-	GetRenderContext()->CreateUniform("u_bloomIntensity", bgfx::UniformType::Vec4);
-	GetRenderContext()->CreateUniform("u_luminanceThreshold", bgfx::UniformType::Vec4);
-
-	GetRenderContext()->UploadShaderProgram("CapTureBrightnessProgram");
-	GetRenderContext()->UploadShaderProgram("DownSampleProgram");
-	GetRenderContext()->UploadShaderProgram("BlurVerticalProgram");
-	GetRenderContext()->UploadShaderProgram("BlurHorizontalProgram");
-	GetRenderContext()->UploadShaderProgram("UpSampleProgram");
-	GetRenderContext()->UploadShaderProgram("KawaseBlurProgram");
-	GetRenderContext()->UploadShaderProgram("CombineProgram");
 }
 
 void BloomRenderer::SetEnable(bool value)
@@ -148,6 +151,15 @@ void BloomRenderer::UpdateView(const float* pViewMatrix, const float* pProjectio
 
 void BloomRenderer::Render(float deltaTime)
 {
+	for (const auto pResource : m_dependentShaderResources)
+	{
+		if (ResourceStatus::Ready != pResource->GetStatus() &&
+			ResourceStatus::Optimized != pResource->GetStatus())
+		{
+			return;
+		}
+	}
+
 	constexpr StringCrc sceneRenderTarget("SceneRenderTarget");
 
 	const RenderTarget* pInputRT = GetRenderContext()->GetRenderTarget(sceneRenderTarget);
@@ -188,7 +200,7 @@ void BloomRenderer::Render(float deltaTime)
 	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 	Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
-	GetRenderContext()->Submit(GetViewID(), "CapTureBrightnessProgram");
+	GetRenderContext()->Submit(GetViewID(), CapTureBrightnessProgramCrc);
 
 	// downsample
 	int sampleTimes = std::min(pCameraComponent->GetBloomDownSampleTimes(), pCameraComponent->GetBloomDownSampleMaxTimes());
@@ -218,7 +230,7 @@ void BloomRenderer::Render(float deltaTime)
 		bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 		Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
-		GetRenderContext()->Submit(m_startDowmSamplePassID + sampleIndex, "DownSampleProgram");
+		GetRenderContext()->Submit(m_startDowmSamplePassID + sampleIndex, DownSampleProgramCrc);
 	}
 
 	if (pCameraComponent->GetIsBlurEnable() && pCameraComponent->GetBlurTimes() != 0)
@@ -261,7 +273,7 @@ void BloomRenderer::Render(float deltaTime)
 		bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_BLEND_ADD);
 		Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
-		GetRenderContext()->Submit(m_startUpSamplePassID + sampleIndex, "UpSampleProgram");
+		GetRenderContext()->Submit(m_startUpSamplePassID + sampleIndex, UpSampleProgramCrc);
 	}
 
 	// combine 
@@ -279,7 +291,7 @@ void BloomRenderer::Render(float deltaTime)
 	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 	Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
-	GetRenderContext()->Submit(m_combinePassID, "CombineProgram");
+	GetRenderContext()->Submit(m_combinePassID, CombineProgramCrc);
 
 	bgfx::blit(m_blitColorPassID, screenTextureHandle, 0, 0, bgfx::getTexture(m_combineFB));
 }
@@ -322,7 +334,7 @@ void BloomRenderer::Blur(uint16_t width, uint16_t height, int iteration, float b
 		bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 		Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
-		GetRenderContext()->Submit(verticalViewID, "KawaseBlurProgram");
+		GetRenderContext()->Submit(verticalViewID, KawaseBlurProgramCrc);
 
 		//constexpr StringCrc BlurHorizontalprogramName("BlurVerticalProgram"); // use Gaussian Blur
 		//bgfx::submit(horizontal, GetRenderContext()->GetProgram(BlurHorizontalprogramName));
@@ -340,7 +352,7 @@ void BloomRenderer::Blur(uint16_t width, uint16_t height, int iteration, float b
 		bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 		Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
-		GetRenderContext()->Submit(horizontalViewID, "KawaseBlurProgram");
+		GetRenderContext()->Submit(horizontalViewID, KawaseBlurProgramCrc);
 
 		//constexpr StringCrc BlurVerticalprogramName("BlurVerticalProgram");  // use Gaussian Blur
 		//bgfx::submit(horizontal, GetRenderContext()->GetProgram(BlurVerticalprogramName));

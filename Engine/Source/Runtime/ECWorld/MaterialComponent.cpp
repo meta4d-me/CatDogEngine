@@ -2,6 +2,8 @@
 
 #include "Log/Log.h"
 #include "Material/MaterialType.h"
+#include "Rendering/Resources/ShaderResource.h"
+#include "Rendering/Resources/TextureResource.h"
 #include "Scene/Material.h"
 
 #include <cassert>
@@ -37,6 +39,22 @@ void MaterialComponent::Init()
 	propertyGroup.useTexture = false;
 	propertyGroup.factor = cd::Vec4f{ 1.0f, 1.0f, 1.0f, 1.0f };
 	m_propertyGroups[cd::MaterialPropertyGroup::Emissive] = cd::MoveTemp(propertyGroup);
+}
+
+void MaterialComponent::Reset()
+{
+	m_pMaterialData = nullptr;
+	m_pMaterialType = nullptr;
+	m_name.clear();
+	m_twoSided = false;
+	m_blendMode = cd::BlendMode::Opaque;
+	m_alphaCutOff = 1.0f;
+	m_isShaderFeaturesDirty = true;
+	m_isShaderResourceDirty = true;
+	m_pShaderResource = nullptr;
+	m_shaderFeatures.clear();
+	m_featureCombine.clear();
+	m_propertyGroups.clear();
 }
 
 void MaterialComponent::SetMaterialData(const cd::Material* pMaterialData)
@@ -82,48 +100,62 @@ void MaterialComponent::ActivateShaderFeature(ShaderFeature feature)
 		return;
 	}
 
-	for (const auto& conflict : m_pMaterialType->GetShaderSchema().GetConflictFeatureSet(feature))
+	if (const auto& optConflictFeatureSet = m_pMaterialType->GetShaderSchema().GetConflictFeatureSet(feature); optConflictFeatureSet.has_value())
 	{
-		m_shaderFeatures.erase(conflict);
+		for (const auto& conflictFeature : optConflictFeatureSet.value())
+		{
+			m_shaderFeatures.erase(conflictFeature);
+		}
 	}
 
 	m_shaderFeatures.insert(cd::MoveTemp(feature));
-
-	m_isShaderFeatureDirty = true;
+	m_isShaderFeaturesDirty = true;
+	m_isShaderResourceDirty = true;
 }
 
 void MaterialComponent::DeactivateShaderFeature(ShaderFeature feature)
 {
 	m_shaderFeatures.erase(feature);
-
-	m_isShaderFeatureDirty = true;
+	m_isShaderFeaturesDirty = true;
+	m_isShaderResourceDirty = true;
 }
 
 const std::string& MaterialComponent::GetFeaturesCombine()
 {
-	if (false == m_isShaderFeatureDirty)
+	if (false == m_isShaderFeaturesDirty)
 	{
 		return m_featureCombine;
 	}
 
+	m_isShaderFeaturesDirty = false;
 	m_featureCombine = m_pMaterialType->GetShaderSchema().GetFeaturesCombine(m_shaderFeatures);
-	m_isShaderFeatureDirty = false;
 
 	return m_featureCombine;
 }
 
-void MaterialComponent::Reset()
+void MaterialComponent::SetShaderFeatures(std::set<ShaderFeature> features)
 {
-	m_pMaterialData = nullptr;
-	m_pMaterialType = nullptr;
-	m_name.clear();
-	m_twoSided = false;
-	m_blendMode = cd::BlendMode::Opaque;
-	m_alphaCutOff = 1.0f;
-	m_isShaderFeatureDirty = false;
-	m_shaderFeatures.clear();
-	m_featureCombine.clear();
-	m_propertyGroups.clear();
+	m_shaderFeatures = cd::MoveTemp(features);
+	m_isShaderFeaturesDirty = true;
+	m_isShaderResourceDirty = true;
+}
+
+void MaterialComponent::SetShaderResource(ShaderResource* pShaderResource)
+{
+	if (m_pShaderResource)
+	{
+		m_pShaderResource->SetActive(false);
+	}
+	m_pShaderResource = pShaderResource;
+	m_pShaderResource->SetActive(true);
+
+	m_isShaderResourceDirty = false;
+}
+
+ShaderResource* MaterialComponent::GetShaderResource() const
+{
+	assert(!m_isShaderResourceDirty);
+	return m_pShaderResource;
 }
 
 TextureResource* MaterialComponent::GetTextureResource(cd::MaterialTextureType textureType) const

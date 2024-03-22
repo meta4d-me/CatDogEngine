@@ -11,6 +11,7 @@
 #include "Math/Transform.hpp"
 #include "Rendering/RenderContext.h"
 #include "Rendering/Resources/MeshResource.h"
+#include "Rendering/Resources/ShaderResource.h"
 #include "Rendering/Resources/TextureResource.h"
 #include "Scene/Texture.h"
 #include "U_AtmophericScattering.sh"
@@ -37,11 +38,6 @@ constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MS
 
 void CelluloidRenderer::Init()
 {
-	bgfx::setViewName(GetViewID(), "CelluloidRenderer");
-}
-
-void CelluloidRenderer::Warmup()
-{
 	GetRenderContext()->CreateUniform(dividLine, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(specular, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(firstShadowColor, bgfx::UniformType::Vec4, 1);
@@ -49,6 +45,8 @@ void CelluloidRenderer::Warmup()
 	GetRenderContext()->CreateUniform(rimLight, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(rimLightColor, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(albedoUVOffsetAndScale, bgfx::UniformType::Vec4, 1);
+
+	bgfx::setViewName(GetViewID(), "CelluloidRenderer");
 }
 
 void CelluloidRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -70,6 +68,14 @@ void CelluloidRenderer::Render(float deltaTime)
 		{
 			continue;
 		}
+
+		const ShaderResource* pShaderResource = pMaterialComponent->GetShaderResource();
+		if (ResourceStatus::Ready != pShaderResource->GetStatus() &&
+			ResourceStatus::Optimized != pShaderResource->GetStatus())
+		{
+			continue;
+		}
+
 		bool textureSlotBindTable[32] = { false };
 		for (const auto& [textureType, propertyGroup] : pMaterialComponent->GetPropertyGroups())
 		{
@@ -117,7 +123,7 @@ void CelluloidRenderer::Render(float deltaTime)
 		constexpr StringCrc rimLightCrc(rimLight);
 		GetRenderContext()->FillUniform(rimLightCrc, pMaterialComponent->GetToonParameters().rimLight.begin(), 1);
 
-		GetRenderContext()->Submit(GetViewID(), pMaterialComponent->GetShaderProgramName(), pMaterialComponent->GetFeaturesCombine());
+		GetRenderContext()->Submit(GetViewID(), pShaderResource->GetHandle());
 	}
 }
 

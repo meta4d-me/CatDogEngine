@@ -20,6 +20,7 @@ enum class ResourceStatus
 enum class ResourceType
 {
 	Mesh,
+	Shader,
 	Texture,
 };
 

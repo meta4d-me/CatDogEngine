@@ -5,6 +5,7 @@
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/ShaderResource.h"
 #include "Scene/Texture.h"
 
 namespace engine
@@ -20,16 +21,12 @@ constexpr const char* outLineSize  = "u_outLineSize";
 
 void OutLineRenderer::Init()
 {
-	constexpr StringCrc programCrc = StringCrc("OutLineProgram");
-	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_outline", "fs_outline" });
-	bgfx::setViewName(GetViewID(), "OutLineRenderer");
-}
+	AddDependentShaderResource(GetRenderContext()->RegisterShaderProgram("OutLineProgram", "vs_outline", "fs_outline"));
 
-void OutLineRenderer::Warmup()
-{
 	GetRenderContext()->CreateUniform(outLineColor, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(outLineSize, bgfx::UniformType::Vec4, 1);
-	GetRenderContext()->UploadShaderProgram("OutLineProgram");
+
+	bgfx::setViewName(GetViewID(), "OutLineRenderer");
 }
 
 void OutLineRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -40,6 +37,15 @@ void OutLineRenderer::UpdateView(const float* pViewMatrix, const float* pProject
 
 void OutLineRenderer::Render(float deltaTime)
 {
+	for (const auto pResource : m_dependentShaderResources)
+	{
+		if (ResourceStatus::Ready != pResource->GetStatus() &&
+			ResourceStatus::Optimized != pResource->GetStatus())
+		{
+			return;
+		}
+	}
+
 	for (Entity entity : m_pCurrentSceneWorld->GetStaticMeshEntities())
 	{
 		StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
@@ -79,7 +85,8 @@ void OutLineRenderer::Render(float deltaTime)
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_CULL_CW;
 		bgfx::setState(state);
 
-		SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), "OutLineProgram", pMaterialComponent->GetFeaturesCombine());
+		constexpr StringCrc programHandleIndex{ "OutLineProgram" };
+		SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), programHandleIndex);
 	}
 }
 

@@ -2,6 +2,7 @@
 
 #include "base/Platform.h"
 
+#include <map>
 #include <string>
 
 namespace engine
@@ -10,12 +11,25 @@ namespace engine
 enum class ShaderType
 {
 	None,
-	Compute,
 	Vertex,
-	Fragment
+	Fragment,
+	Compute,
 };
 
-CD_FORCEINLINE static const ShaderType GetShaderType(const std::string& fileName)
+enum class ShaderProgramType
+{
+	None,
+	Standard,
+	VertexOnly,
+	Compute,
+};
+
+inline const std::map<ShaderProgramType, ShaderType> ProgramTypeToSingleShaderType = {
+	{ ShaderProgramType::VertexOnly, ShaderType::Vertex },
+	{ ShaderProgramType::Compute, ShaderType::Compute },
+};
+
+inline ShaderType GetShaderType(const std::string& fileName)
 {
 	if (fileName._Starts_with("vs_") || fileName._Starts_with("VS_"))
 	{

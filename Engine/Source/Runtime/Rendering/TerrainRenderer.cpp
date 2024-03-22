@@ -11,6 +11,7 @@
 #include "Math/Transform.hpp"
 #include "Rendering/RenderContext.h"
 #include "Rendering/Resources/MeshResource.h"
+#include "Rendering/Resources/ShaderResource.h"
 #include "Scene/Texture.h"
 #include "U_IBL.sh"
 #include "U_Terrain.sh"
@@ -57,11 +58,6 @@ constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MS
 
 void TerrainRenderer::Init()
 {
-	bgfx::setViewName(GetViewID(), "TerrainRenderer");
-}
-
-void TerrainRenderer::Warmup()
-{
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
 	GetRenderContext()->CreateUniform(snowSampler, bgfx::UniformType::Sampler);
@@ -92,6 +88,8 @@ void TerrainRenderer::Warmup()
 	GetRenderContext()->CreateUniform(lightParams, bgfx::UniformType::Vec4, LightUniform::VEC4_COUNT);
 
 	GetRenderContext()->CreateTexture(elevationTexture, 129U, 129U, 1, bgfx::TextureFormat::Enum::R32F, samplerFlags, nullptr, 0);
+
+	bgfx::setViewName(GetViewID(), "TerrainRenderer");
 }
 
 void TerrainRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -111,8 +109,7 @@ void TerrainRenderer::Render(float deltaTime)
 	{		
 		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
 		if (!pMaterialComponent ||
-			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetTerrainMaterialType() ||
-			!GetRenderContext()->IsShaderProgramValid(pMaterialComponent->GetShaderProgramName(), pMaterialComponent->GetFeaturesCombine()))
+			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetTerrainMaterialType())
 		{
 			// TODO : improve this condition. As we want to skip some feature-specified entities to render.
 			// For example, terrain/particle/...
@@ -129,6 +126,13 @@ void TerrainRenderer::Render(float deltaTime)
 		const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
 		if (ResourceStatus::Ready != pMeshResource->GetStatus() &&
 			ResourceStatus::Optimized != pMeshResource->GetStatus())
+		{
+			continue;
+		}
+
+		const ShaderResource* pShaderResource = pMaterialComponent->GetShaderResource();
+		if (ResourceStatus::Ready != pShaderResource->GetStatus() &&
+			ResourceStatus::Optimized != pShaderResource->GetStatus())
 		{
 			continue;
 		}
@@ -229,7 +233,7 @@ void TerrainRenderer::Render(float deltaTime)
 
 		bgfx::setState(state);
 
-		SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), pMaterialComponent->GetShaderProgramName());
+		SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), pShaderResource->GetHandle());
 	}
 }
 

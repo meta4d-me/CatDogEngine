@@ -1,14 +1,14 @@
 ﻿#include "Inspector.h"
 
-#include "Rendering/RenderContext.h"
-#include "Rendering/ShaderCollections.h"
-#include "Resources/ResourceBuilder.h"
-#include "Resources/ResourceLoader.h"
-#include "Rendering/Resources/ResourceContext.h"
-#include "Rendering/Resources/TextureResource.h"
 #include "Graphics/GraphicsBackend.h"
 #include "ImGui/ImGuiUtils.hpp"
 #include "Path/Path.h"
+#include "Rendering/RenderContext.h"
+#include "Rendering/Resources/ResourceContext.h"
+#include "Rendering/Resources/ShaderResource.h"
+#include "Rendering/Resources/TextureResource.h"
+#include "Resources/ResourceBuilder.h"
+#include "Resources/ResourceLoader.h"
 
 #include "ImGui/imfilebrowser.h"
 
@@ -228,7 +228,7 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 					ImGui::SetCursorScreenPos(ImVec2{ currentPos.x, currentPos.y + 66});
 				}
 
-				ImGuiUtils::ImGuiBoolProperty("Use texture", pPropertyGroup->useTexture);
+				bool isPropertyGroupChanded = ImGuiUtils::ImGuiBoolProperty("Use texture", pPropertyGroup->useTexture);
 				ImGui::SameLine(130.0f);
 				if (ImGui::Button("Select..."))
 				{
@@ -239,15 +239,18 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 				ImGuiUtils::ImGuiVectorProperty("UV Offset", textureInfo.GetUVOffset(), cd::Unit::None, cd::Vec2f::Zero(), cd::Vec2f::One(), false, 0.01f);
 				ImGuiUtils::ImGuiVectorProperty("UV Scale", textureInfo.GetUVScale());
 
-				if (pPropertyGroup->useTexture)
+				if (isPropertyGroupChanded)
 				{
-					pMaterialComponent->ActivateShaderFeature(engine::MaterialTextureTypeToShaderFeature.at(textureType));
+					if (pPropertyGroup->useTexture)
+					{
+						pMaterialComponent->ActivateShaderFeature(engine::MaterialTextureTypeToShaderFeature.at(textureType));
+					}
+					else
+					{
+						pMaterialComponent->DeactivateShaderFeature(engine::MaterialTextureTypeToShaderFeature.at(textureType));
+					}
 				}
-				else
-				{
-					pMaterialComponent->DeactivateShaderFeature(engine::MaterialTextureTypeToShaderFeature.at(textureType));
-				}
-
+				
 				if (cd::MaterialTextureType::BaseColor == textureType)
 				{
 					ImGuiUtils::ColorPickerProperty("Factor", *(pMaterialComponent->GetFactor<cd::Vec3f>(textureType)));
@@ -328,13 +331,14 @@ void UpdateComponentWidget<engine::MaterialComponent>(engine::SceneWorld* pScene
 
 			if (isOpen)
 			{
-				const auto& shaderProgramName = pMaterialComponent->GetShaderProgramName();
-				ImGuiUtils::ImGuiStringProperty("Shader Program", shaderProgramName);
-
 				engine::RenderContext* pRenderContext = static_cast<engine::RenderContext*>(ImGui::GetIO().BackendRendererUserData);
-				for (const auto& shaderFileName : pRenderContext->GetShaderCollections()->GetShaders(engine::StringCrc{ shaderProgramName }))
+				const engine::ShaderResource* pShaderResource = pMaterialComponent->GetShaderResource();
+
+				ImGuiUtils::ImGuiStringProperty("Shader Program", pShaderResource->GetName());
+				ImGuiUtils::ImGuiStringProperty("Shader", pShaderResource->GetShaderInfo(0).name);
+				if (engine::ShaderProgramType::Standard == pShaderResource->GetType())
 				{
-					ImGuiUtils::ImGuiStringProperty("Shader", shaderFileName);
+					ImGuiUtils::ImGuiStringProperty("Shader", pShaderResource->GetShaderInfo(1).name);
 				}
 				ImGui::Separator();
 

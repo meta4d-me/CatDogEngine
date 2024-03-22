@@ -5,10 +5,10 @@
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/ShaderResource.h"
 #include "Scene/Texture.h"
 
 #include <cmath>
-//#include <format>
 
 namespace engine
 {
@@ -136,13 +136,9 @@ void CalculateBoneTransform(std::vector<cd::Matrix4x4>& boneMatrices, const cd::
 void AnimationRenderer::Init()
 {
 	bgfx::setViewName(GetViewID(), "AnimationRenderer");
-}
 
-void AnimationRenderer::Warmup()
-{
 #ifdef VISUALIZE_BONE_WEIGHTS
 	m_pRenderContext->CreateUniform("u_debugBoneIndex", bgfx::UniformType::Vec4, 1);
-	m_pRenderContext->CreateProgram("AnimationProgram", "vs_visualize_bone_weight", "fs_visualize_bone_weight");
 #endif
 }
 
@@ -187,8 +183,14 @@ void AnimationRenderer::Render(float deltaTime)
 
 		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
 		if (!pMaterialComponent ||
-			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetAnimationMaterialType() ||
-			!GetRenderContext()->IsShaderProgramValid(pMaterialComponent->GetShaderProgramName(), pMaterialComponent->GetFeaturesCombine()))
+			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetAnimationMaterialType())
+		{
+			continue;
+		}
+
+		const ShaderResource* pShaderResource = pMaterialComponent->GetShaderResource();
+		if (ResourceStatus::Ready != pShaderResource->GetStatus() &&
+			ResourceStatus::Optimized != pShaderResource->GetStatus())
 		{
 			continue;
 		}
@@ -218,7 +220,7 @@ void AnimationRenderer::Render(float deltaTime)
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);
 
-		GetRenderContext()->Submit(GetViewID(), pMaterialComponent->GetShaderProgramName());
+		GetRenderContext()->Submit(GetViewID(), pShaderResource->GetHandle());
 	}
 }
 

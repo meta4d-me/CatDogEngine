@@ -168,7 +168,7 @@ void MeshResource::Reset()
 {
 	DestroyVertexBufferHandle();
 	DestroyIndexBufferHandle();
-	FreeMeshData();
+	ClearMeshData();
 	SetStatus(ResourceStatus::Loading);
 }
 
@@ -276,10 +276,17 @@ void MeshResource::SubmitIndexBuffer()
 	}
 }
 
-void MeshResource::FreeMeshData()
+void MeshResource::ClearMeshData()
 {
 	m_vertexBuffer.clear();
 	m_indexBuffers.clear();
+}
+
+void MeshResource::FreeMeshData()
+{
+	ClearMeshData();
+	VertexBuffer().swap(m_vertexBuffer);
+	std::vector<IndexBuffer>().swap(m_indexBuffers);
 }
 
 void MeshResource::DestroyVertexBufferHandle()
