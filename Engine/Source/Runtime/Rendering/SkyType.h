@@ -15,16 +15,15 @@ enum class SkyType
 	AtmosphericScattering,
 };
 
-static const std::map<engine::SkyType, engine::ShaderFeature> SkyTypeToShaderFeature
-{
-	{ engine::SkyType::None, engine::ShaderFeature::DEFAULT},
-	{ engine::SkyType::SkyBox, engine::ShaderFeature::IBL},
-	{ engine::SkyType::AtmosphericScattering, engine::ShaderFeature::ATM },
+constexpr engine::ShaderFeature SkyTypeToShaderFeature[] = {
+	ShaderFeature::DEFAULT,
+	ShaderFeature::IBL,
+	ShaderFeature::ATM
 };
 
-CD_FORCEINLINE engine::ShaderFeature GetSkyTypeShaderFeature(engine::SkyType type)
+constexpr engine::ShaderFeature GetSkyTypeShaderFeature(engine::SkyType type)
 {
-	return SkyTypeToShaderFeature.at(type);
+	return SkyTypeToShaderFeature[static_cast<size_t>(type)];
 }
 
 }

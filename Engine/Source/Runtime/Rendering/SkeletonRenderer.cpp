@@ -5,6 +5,7 @@
 #include "ECWorld/TransformComponent.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/Utility/VertexLayoutUtility.h"
+#include "Rendering/Resources/ShaderResource.h"
 
 namespace engine
 {
@@ -56,15 +57,9 @@ void TraverseBone(const cd::Bone& bone, const cd::SceneDatabase* pSceneDatabase,
 
 void SkeletonRenderer::Init()
 {
-	constexpr StringCrc programCrc = StringCrc("SkeletonProgram");
-	GetRenderContext()->RegisterShaderProgram(programCrc, {"vs_AABB", "fs_AABB"});
+	AddDependentShaderResource(GetRenderContext()->RegisterShaderProgram("SkeletonProgram", "vs_AABB", "fs_AABB"));
 
 	bgfx::setViewName(GetViewID(), "SkeletonRenderer");
-}
-
-void SkeletonRenderer::Warmup()
-{
-	GetRenderContext()->UploadShaderProgram("SkeletonProgram");
 }
 
 void SkeletonRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -114,6 +109,15 @@ void SkeletonRenderer::Build()
 
 void SkeletonRenderer::Render(float delataTime)
 {
+	for (const auto pResource : m_dependentShaderResources)
+	{
+		if (ResourceStatus::Ready != pResource->GetStatus() &&
+			ResourceStatus::Optimized != pResource->GetStatus())
+		{
+			return;
+		}
+	}
+
 	for (Entity entity : m_pCurrentSceneWorld->GetAnimationEntities())
 	{
 		auto pAnimationComponent = m_pCurrentSceneWorld->GetAnimationComponent(entity);
@@ -135,7 +139,8 @@ void SkeletonRenderer::Render(float delataTime)
 
 		bgfx::setState(state);
 
-		GetRenderContext()->Submit(GetViewID(), "SkeletonProgram");
+		constexpr StringCrc programHandleIndex{ "SkeletonProgram" };
+		GetRenderContext()->Submit(GetViewID(), programHandleIndex);
 	}
 	
 }

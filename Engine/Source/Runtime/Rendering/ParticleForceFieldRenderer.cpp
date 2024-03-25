@@ -4,21 +4,16 @@
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/TransformComponent.h"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/ShaderResource.h"
 
 namespace engine
 {
 
 void ParticleForceFieldRenderer::Init()
 {
-	constexpr StringCrc programCrc = StringCrc("ParticleForceFieldProgram");
-	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_particleforcefield", "fs_particleforcefield" });
+	AddDependentShaderResource(GetRenderContext()->RegisterShaderProgram("ParticleForceFieldProgram", "vs_particleforcefield", "fs_particleforcefield"));
 
 	bgfx::setViewName(GetViewID(), "ParticleForceFieldRenderer");
-}
-
-void ParticleForceFieldRenderer::Warmup()
-{
-	GetRenderContext()->UploadShaderProgram("ParticleForceFieldProgram");
 }
 
 void ParticleForceFieldRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -29,6 +24,15 @@ void ParticleForceFieldRenderer::UpdateView(const float* pViewMatrix, const floa
 
 void ParticleForceFieldRenderer::Render(float deltaTime)
 {
+	for (const auto pResource : m_dependentShaderResources)
+	{
+		if (ResourceStatus::Ready != pResource->GetStatus() &&
+			ResourceStatus::Optimized != pResource->GetStatus())
+		{
+			return;
+		}
+	}
+
 	for (Entity entity : m_pCurrentSceneWorld->GetParticleForceFieldEntities())
 	{
 		if (auto* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity))
@@ -44,7 +48,8 @@ void ParticleForceFieldRenderer::Render(float deltaTime)
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_LINES;
 		bgfx::setState(state);
 
-		GetRenderContext()->Submit(GetViewID(), "ParticleForceFieldProgram");
+		constexpr StringCrc programHandleIndex{ "ParticleForceFieldProgram" };
+		GetRenderContext()->Submit(GetViewID(), programHandleIndex);
 	}
 }
 

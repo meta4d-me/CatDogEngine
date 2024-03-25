@@ -51,6 +51,7 @@ private:
 	void BuildSamplerHandle();
 	void BuildTextureHandle();
 
+	void ClearTextureData();
 	void FreeTextureData();
 
 	void DestroySamplerHandle();

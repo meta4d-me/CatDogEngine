@@ -116,6 +116,9 @@ public:
 	void CreateParticleMaterialType(std::string shaderProgramName);
 	CD_FORCEINLINE engine::MaterialType* GetParticleMaterialType() const { return m_pParticleMaterialType.get(); }
 
+	void CreateCelluloidMaterialType(std::string shaderProgramName);
+	CD_FORCEINLINE engine::MaterialType* GetCelluloidMaterialType() const { return m_pCelluloidMaterialType.get(); }
+
 #ifdef ENABLE_DDGI
 	void CreateDDGIMaterialType(std::string shaderProgramName);
 	CD_FORCEINLINE engine::MaterialType* GetDDGIMaterialType() const { return m_pDDGIMaterialType.get(); }
@@ -137,8 +140,10 @@ private:
 
 	std::unique_ptr<engine::MaterialType> m_pPBRMaterialType;
 	std::unique_ptr<engine::MaterialType> m_pAnimationMaterialType;
+	std::unique_ptr<engine::MaterialType> m_pCelluloidMaterialType;
 	std::unique_ptr<engine::MaterialType> m_pTerrainMaterialType;
 	std::unique_ptr<engine::MaterialType> m_pDDGIMaterialType;
+	std::unique_ptr<engine::MaterialType> m_pPRMaterialType;
 	std::unique_ptr<engine::MaterialType> m_pParticleMaterialType;
 
 	// TODO : wrap them into another class?

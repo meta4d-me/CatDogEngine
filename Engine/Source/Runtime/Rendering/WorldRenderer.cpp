@@ -11,10 +11,11 @@
 #include "Math/Transform.hpp"
 #include "Rendering/RenderContext.h"
 #include "Rendering/Resources/MeshResource.h"
+#include "Rendering/Resources/ShaderResource.h"
 #include "Rendering/Resources/TextureResource.h"
 #include "Scene/Texture.h"
-#include "U_IBL.sh"
 #include "U_AtmophericScattering.sh"
+#include "U_IBL.sh"
 #include "U_Shadow.sh"
 
 namespace engine
@@ -30,6 +31,7 @@ constexpr const char* cubeRadianceSampler         = "s_texCubeRad";
 constexpr const char* lutTexture                  = "Textures/lut/ibl_brdf_lut.dds";
 											      
 constexpr const char* cameraPos                   = "u_cameraPos";
+constexpr const char* iblStrength                 = "u_iblStrength";
 constexpr const char* albedoColor                 = "u_albedoColor";
 constexpr const char* emissiveColorAndFactor      = "u_emissiveColorAndFactor";
 constexpr const char* metallicRoughnessFactor     = "u_metallicRoughnessFactor";
@@ -43,29 +45,24 @@ constexpr const char* lightParams                 = "u_lightParams";
 constexpr const char* LightDir                    = "u_LightDir";
 constexpr const char* HeightOffsetAndshadowLength = "u_HeightOffsetAndshadowLength";
 
-constexpr const char* lightViewProjs= "u_lightViewProjs";
-constexpr const char* cubeShadowMapSamplers[3] = { "s_texCubeShadowMap_1", "s_texCubeShadowMap_2" ,  "s_texCubeShadowMap_3" };
+constexpr const char* lightViewProjs              = "u_lightViewProjs";
+constexpr const char* cubeShadowMapSamplers[3]    = { "s_texCubeShadowMap_1", "s_texCubeShadowMap_2" ,  "s_texCubeShadowMap_3" };
 
-constexpr const char* cameraNearFarPlane = "u_cameraNearFarPlane";
-constexpr const char* cameraLookAt = "u_cameraLookAt";
-constexpr const char* clipFrustumDepth = "u_clipFrustumDepth";
+constexpr const char* cameraNearFarPlane          = "u_cameraNearFarPlane";
+constexpr const char* cameraLookAt                = "u_cameraLookAt";
+constexpr const char* clipFrustumDepth            = "u_clipFrustumDepth";
 
-constexpr const char* directionShadowMapTexture = "DirectionShadowMapTexture";
-constexpr const char* pointShadowMapTexture = "PointShadowMapTexture";
-constexpr const char* spotShadowMapTexture = "SpotShadowMapTexture";
+constexpr const char* directionShadowMapTexture   = "DirectionShadowMapTexture";
+constexpr const char* pointShadowMapTexture       = "PointShadowMapTexture";
+constexpr const char* spotShadowMapTexture        = "SpotShadowMapTexture";
 
-constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
+constexpr uint64_t samplerFlags          = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
 constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
-constexpr uint64_t blitDstTextureFlags = BGFX_TEXTURE_BLIT_DST | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
+constexpr uint64_t blitDstTextureFlags   = BGFX_TEXTURE_BLIT_DST | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
 
 }
 
 void WorldRenderer::Init()
-{
-	bgfx::setViewName(GetViewID(), "WorldRenderer");
-}
-
-void WorldRenderer::Warmup()
 {
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
@@ -78,6 +75,7 @@ void WorldRenderer::Warmup()
 	GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), samplerFlags);
 
 	GetRenderContext()->CreateUniform(cameraPos, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(iblStrength, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(albedoColor, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(emissiveColorAndFactor, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(metallicRoughnessFactor, bgfx::UniformType::Vec4, 1);
@@ -97,6 +95,8 @@ void WorldRenderer::Warmup()
 
 	GetRenderContext()->CreateUniform(cameraNearFarPlane, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(clipFrustumDepth, bgfx::UniformType::Vec4, 1);
+
+	bgfx::setViewName(GetViewID(), "WorldRenderer");
 }
 
 void WorldRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -112,13 +112,13 @@ void WorldRenderer::Render(float deltaTime)
 	const cd::Transform& cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetTransform();
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
-	auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();
+	const auto lightEntities = m_pCurrentSceneWorld->GetLightEntities();
 	size_t lightEntityCount = lightEntities.size();
 
 	// Blit RTV to SRV to update light shadow map
 	for (int i = 0; i < lightEntityCount; i++)
 	{
-		auto lightComponent = m_pCurrentSceneWorld->GetLightComponent(lightEntities[i]);
+		LightComponent* lightComponent = m_pCurrentSceneWorld->GetLightComponent(lightEntities[i]);
 		cd::LightType lightType = lightComponent->GetType();
 		if (cd::LightType::Directional == lightType)
 		{
@@ -177,12 +177,17 @@ void WorldRenderer::Render(float deltaTime)
 	for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
 	{
 		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
-		if (!pMaterialComponent ||
-			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetPBRMaterialType() ||
-			!GetRenderContext()->IsShaderProgramValid(pMaterialComponent->GetShaderProgramName(), pMaterialComponent->GetFeaturesCombine()))
+		if (!pMaterialComponent)
 		{
 			// TODO : improve this condition. As we want to skip some feature-specified entities to render.
 			// For example, terrain/particle/...
+			continue;
+		}
+
+		// TODO : Temporary solution for CelluloidRenderer, remove it.
+		if (pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetPBRMaterialType() &&
+			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetCelluloidMaterialType())
+		{
 			continue;
 		}
 
@@ -196,6 +201,13 @@ void WorldRenderer::Render(float deltaTime)
 		const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
 		if (ResourceStatus::Ready != pMeshResource->GetStatus() &&
 			ResourceStatus::Optimized != pMeshResource->GetStatus())
+		{
+			continue;
+		}
+
+		const ShaderResource* pShaderResource = pMaterialComponent->GetShaderResource();
+		if (ResourceStatus::Ready != pShaderResource->GetStatus() &&
+			ResourceStatus::Optimized != pShaderResource->GetStatus())
 		{
 			continue;
 		}
@@ -265,8 +277,11 @@ void WorldRenderer::Render(float deltaTime)
 				GetRenderContext()->GetUniform(radSamplerCrc),
 				GetRenderContext()->GetTexture(StringCrc(pSkyComponent->GetRadianceTexturePath())));
 
-			constexpr StringCrc lutsamplerCrc(lutSampler);
-			constexpr StringCrc luttextureCrc(lutTexture);
+			constexpr StringCrc iblStrengthCrc{ iblStrength };
+			GetRenderContext()->FillUniform(iblStrengthCrc, &(pMaterialComponent->GetIblStrengeth()));
+
+			constexpr StringCrc lutsamplerCrc{ lutSampler };
+			constexpr StringCrc luttextureCrc{ lutTexture };
 			bgfx::setTexture(BRDF_LUT_SLOT, GetRenderContext()->GetUniform(lutsamplerCrc), GetRenderContext()->GetTexture(luttextureCrc));
 		}
 		else if (SkyType::AtmosphericScattering == crtSkyType)
@@ -353,7 +368,7 @@ void WorldRenderer::Render(float deltaTime)
 			if (cd::LightType::Directional == lightType)
 			{
 				bgfx::TextureHandle blitDstShadowMapTexture = static_cast<bgfx::TextureHandle>(lightComponent->GetShadowMapTexture());
-				bgfx::setTexture(SHADOW_MAP_CUBE_FIRST_SLOT+lightIndex, GetRenderContext()->GetUniform(shadowMapSamplerCrcs[lightIndex]), blitDstShadowMapTexture);
+				bgfx::setTexture(SHADOW_MAP_CUBE_FIRST_SLOT + lightIndex, GetRenderContext()->GetUniform(shadowMapSamplerCrcs[lightIndex]), blitDstShadowMapTexture);
 				// TODO : manual 
 				constexpr StringCrc clipFrustumDepthCrc(clipFrustumDepth);
 				GetRenderContext()->FillUniform(clipFrustumDepthCrc, lightComponent->GetComputedCascadeSplit(), 1);
@@ -361,13 +376,13 @@ void WorldRenderer::Render(float deltaTime)
 			else if (cd::LightType::Point == lightType)
 			{
 				bgfx::TextureHandle blitDstShadowMapTexture = static_cast<bgfx::TextureHandle>(lightComponent->GetShadowMapTexture());
-				bgfx::setTexture(SHADOW_MAP_CUBE_FIRST_SLOT+lightIndex, GetRenderContext()->GetUniform(shadowMapSamplerCrcs[lightIndex]), blitDstShadowMapTexture);
+				bgfx::setTexture(SHADOW_MAP_CUBE_FIRST_SLOT + lightIndex, GetRenderContext()->GetUniform(shadowMapSamplerCrcs[lightIndex]), blitDstShadowMapTexture);
 			}
 			else if (cd::LightType::Spot == lightType)
 			{
 				// Blit RTV(FrameBuffer Texture) to SRV(Texture)
 				bgfx::TextureHandle blitDstShadowMapTexture = static_cast<bgfx::TextureHandle>(lightComponent->GetShadowMapTexture());
-				bgfx::setTexture(SHADOW_MAP_CUBE_FIRST_SLOT+lightIndex, GetRenderContext()->GetUniform(shadowMapSamplerCrcs[lightIndex]), blitDstShadowMapTexture);
+				bgfx::setTexture(SHADOW_MAP_CUBE_FIRST_SLOT + lightIndex, GetRenderContext()->GetUniform(shadowMapSamplerCrcs[lightIndex]), blitDstShadowMapTexture);
 			}
 		}
 
@@ -392,11 +407,11 @@ void WorldRenderer::Render(float deltaTime)
 			bgfx::setVertexBuffer(1, bgfx::VertexBufferHandle{ pBlendShapeComponent->GetNonMorphAffectedVB() });
 			// TODO : BlendShape + multiple index buffers.
 			bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pMeshComponent->GetMeshResource()->GetIndexBufferHandle(0U) });
-			GetRenderContext()->Submit(GetViewID(), pMaterialComponent->GetShaderProgramName(), pMaterialComponent->GetFeaturesCombine());
+			GetRenderContext()->Submit(GetViewID(), pShaderResource->GetHandle());
 		}
 		else
 		{
-			SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), pMaterialComponent->GetShaderProgramName(), pMaterialComponent->GetFeaturesCombine());
+			SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), pShaderResource->GetHandle());
 		}
 	}
 }

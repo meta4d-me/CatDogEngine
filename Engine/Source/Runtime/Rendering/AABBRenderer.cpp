@@ -5,6 +5,7 @@
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/ShaderResource.h"
 #include "Scene/Texture.h"
 
 namespace engine
@@ -12,15 +13,9 @@ namespace engine
 
 void AABBRenderer::Init()
 {
-	constexpr StringCrc programCrc = StringCrc("AABBProgram");
-	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_AABB", "fs_AABB" });
+	AddDependentShaderResource(GetRenderContext()->RegisterShaderProgram("AABBProgram", "vs_AABB", "fs_AABB"));
 
 	bgfx::setViewName(GetViewID(), "AABBRenderer");
-}
-
-void AABBRenderer::Warmup()
-{
-	GetRenderContext()->UploadShaderProgram("AABBProgram");
 }
 
 void AABBRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -31,6 +26,15 @@ void AABBRenderer::UpdateView(const float* pViewMatrix, const float* pProjection
 
 void AABBRenderer::Render(float deltaTime)
 {
+	for (const auto pResource : m_dependentShaderResources)
+	{
+		if (ResourceStatus::Ready != pResource->GetStatus() &&
+			ResourceStatus::Optimized != pResource->GetStatus())
+		{
+			return;
+		}
+	}
+
 	for (Entity entity : m_pCurrentSceneWorld->GetCollisionMeshEntities())
 	{
 		auto* pCollisionMesh = m_pCurrentSceneWorld->GetCollisionMeshComponent(entity);
@@ -52,7 +56,8 @@ void AABBRenderer::Render(float deltaTime)
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_LINES;
 		bgfx::setState(state);
 
-		GetRenderContext()->Submit(GetViewID(), "AABBProgram");
+		constexpr StringCrc programHandleIndex{ "AABBProgram" };
+		GetRenderContext()->Submit(GetViewID(), programHandleIndex);
 	}
 }
 

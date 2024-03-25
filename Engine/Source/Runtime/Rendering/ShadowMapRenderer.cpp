@@ -1,15 +1,16 @@
 #include "ShadowMapRenderer.h"
 
 #include "ECWorld/CameraComponent.h"
+#include "ECWorld/LightComponent.h"
 #include "ECWorld/SceneWorld.h"
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
-#include "ECWorld/LightComponent.h"
 #include "LightUniforms.h"
 #include "Material/ShaderSchema.h"
 #include "Math/Transform.hpp"
 #include "Rendering/RenderContext.h"
 #include "Rendering/Resources/MeshResource.h"
+#include "Rendering/Resources/ShaderResource.h"
 
 #include <string>
 
@@ -18,18 +19,16 @@ namespace engine
 
 namespace
 {
-// uniform name
-constexpr const char* cameraPos = "u_cameraPos";
-constexpr const char* lightCountAndStride = "u_lightCountAndStride";
-constexpr const char* lightParams = "u_lightParams";
-constexpr const char* lightPosAndFarPlane = "u_lightWorldPos_farPlane";
-constexpr const char* lightDir = "u_LightDir";
+
+constexpr const char* cameraPos                   = "u_cameraPos";
+constexpr const char* lightCountAndStride         = "u_lightCountAndStride";
+constexpr const char* lightParams                 = "u_lightParams";
+constexpr const char* lightPosAndFarPlane         = "u_lightWorldPos_farPlane";
+constexpr const char* lightDir                    = "u_LightDir";
 constexpr const char* heightOffsetAndshadowLength = "u_HeightOffsetAndshadowLength";
 
-//
 constexpr uint64_t samplerFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_W_CLAMP;
-constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z
-| BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
+constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_WRITE_MASK | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 constexpr uint64_t depthBufferFlags = BGFX_TEXTURE_RT | BGFX_SAMPLER_COMPARE_LEQUAL;
 constexpr uint64_t linearDepthBufferFlags = BGFX_TEXTURE_RT | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
 
@@ -37,10 +36,8 @@ constexpr uint64_t linearDepthBufferFlags = BGFX_TEXTURE_RT | BGFX_SAMPLER_U_CLA
 
 void ShadowMapRenderer::Init()
 {
-	constexpr StringCrc shadowMapProgramCrc = StringCrc("ShadowMapProgram");
-	GetRenderContext()->RegisterShaderProgram(shadowMapProgramCrc, { "vs_shadowMap", "fs_shadowMap" });
-	constexpr StringCrc linearshadowMapProgramCrc = StringCrc("LinearShadowMapProgram");
-	GetRenderContext()->RegisterShaderProgram(linearshadowMapProgramCrc, { "vs_shadowMap", "fs_shadowMap_linear" });
+	AddDependentShaderResource(GetRenderContext()->RegisterShaderProgram("ShadowMapProgram", "vs_shadowMap", "fs_shadowMap"));
+	AddDependentShaderResource(GetRenderContext()->RegisterShaderProgram("LinearShadowMapProgram", "vs_shadowMap", "fs_shadowMap_linear"));
 
 	for (int lightIndex = 0; lightIndex < shadowLightMaxNum; lightIndex++)
 	{
@@ -50,12 +47,7 @@ void ShadowMapRenderer::Init()
 			bgfx::setViewName(m_renderPassID[lightIndex * shadowTexturePassMaxNum + mapId], "ShadowMapRenderer");
 		}
 	}
-}
 
-void ShadowMapRenderer::Warmup()
-{
-	GetRenderContext()->UploadShaderProgram("ShadowMapProgram");
-	GetRenderContext()->UploadShaderProgram("LinearShadowMapProgram");
 	GetRenderContext()->CreateUniform(lightPosAndFarPlane, bgfx::UniformType::Vec4, 1);
 }
 
@@ -66,6 +58,15 @@ void ShadowMapRenderer::UpdateView(const float* pViewMatrix, const float* pProje
 
 void ShadowMapRenderer::Render(float deltaTime)
 {
+	for (const auto pResource : m_dependentShaderResources)
+	{
+		if (ResourceStatus::Ready != pResource->GetStatus() &&
+			ResourceStatus::Optimized != pResource->GetStatus())
+		{
+			return;
+		}
+	}
+
 	// TODO : Remove it. If every renderer need to submit camera related uniform, it should be done not inside Renderer class.
 	const cd::Transform& cameraTransform = m_pCurrentSceneWorld->GetTransformComponent(m_pCurrentSceneWorld->GetMainCameraEntity())->GetTransform();
 
@@ -206,7 +207,7 @@ void ShadowMapRenderer::Render(float deltaTime)
 					for (const auto& corner : cascadeFrustum)
 					{
 						const auto lightSpaceCorner = lightView * cd::Vec4f(corner.x(), corner.y(), corner.z(), 1.0);
-						minX	= std::min(minX, lightSpaceCorner.x());
+						minX = std::min(minX, lightSpaceCorner.x());
 						maxX = std::max(maxX, lightSpaceCorner.x());
 						minY = std::min(minY, lightSpaceCorner.y());
 						maxY = std::max(maxY, lightSpaceCorner.y());
@@ -229,7 +230,7 @@ void ShadowMapRenderer::Render(float deltaTime)
 					cd::Matrix4x4 lightCSMViewProj = lightProjection * lightView;
 					lightComponent->AddLightViewProjMatrix(lightCSMViewProj);
 
-					// Submit draw call (TODO : one pass MRT 
+					// Submit draw call (TODO : one pass MRT
 					for (Entity entity : m_pCurrentSceneWorld->GetMaterialEntities())
 					{
 						// No mesh attached?
@@ -258,7 +259,8 @@ void ShadowMapRenderer::Render(float deltaTime)
 						}
 
 						// Mesh
-						SubmitStaticMeshDrawCall(pMeshComponent, viewId, "ShadowMapProgram");
+						constexpr StringCrc programHandleIndex{ "ShadowMapProgram" };
+						SubmitStaticMeshDrawCall(pMeshComponent, viewId, programHandleIndex);
 					}
 				}
 			}
@@ -336,7 +338,8 @@ void ShadowMapRenderer::Render(float deltaTime)
 							bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 						}
 
-						SubmitStaticMeshDrawCall(pMeshComponent, viewId, "LinearShadowMapProgram");
+						constexpr StringCrc programHandleIndex{ "LinearShadowMapProgram" };
+						SubmitStaticMeshDrawCall(pMeshComponent, viewId, programHandleIndex);
 					}
 				}
 			}
@@ -403,7 +406,8 @@ void ShadowMapRenderer::Render(float deltaTime)
 					}
 
 					// Mesh
-					SubmitStaticMeshDrawCall(pMeshComponent, viewId, "ShadowMapProgram");
+					constexpr StringCrc programHandleIndex{ "ShadowMapProgram" };
+					SubmitStaticMeshDrawCall(pMeshComponent, viewId, programHandleIndex);
 				}
 			}
 			break;

@@ -1,31 +1,19 @@
 #include "PostProcessRenderer.h"
 
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/ShaderResource.h"
 
 namespace engine
 {
 
-namespace
-{
-
-constexpr const char *PostProcessProgram = "PostProcessProgram";
-constexpr StringCrc PostProcessProgramCrc = StringCrc(PostProcessProgram);
-
-}
-
 void PostProcessRenderer::Init()
 {
-	GetRenderContext()->RegisterShaderProgram(PostProcessProgramCrc, { "vs_fullscreen", "fs_PBR_postProcessing" });
+	AddDependentShaderResource(GetRenderContext()->RegisterShaderProgram("PostProcessProgram", "vs_fullscreen", "fs_PBR_postProcessing"));
 
-	bgfx::setViewName(GetViewID(), "PostProcessRenderer");
-}
-
-void PostProcessRenderer::Warmup()
-{
 	GetRenderContext()->CreateUniform("s_lightingColor", bgfx::UniformType::Sampler);
 	GetRenderContext()->CreateUniform("u_postProcessingParams", bgfx::UniformType::Vec4);
 
-	GetRenderContext()->UploadShaderProgram(PostProcessProgram);
+	bgfx::setViewName(GetViewID(), "PostProcessRenderer");
 }
 
 void PostProcessRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -38,8 +26,16 @@ void PostProcessRenderer::UpdateView(const float* pViewMatrix, const float* pPro
 
 void PostProcessRenderer::Render(float deltaTime)
 {
-	constexpr StringCrc sceneRenderTarget("SceneRenderTarget");
+	for (const auto pResource : m_dependentShaderResources)
+	{
+		if (ResourceStatus::Ready != pResource->GetStatus() &&
+			ResourceStatus::Optimized != pResource->GetStatus())
+		{
+			return;
+		}
+	}
 
+	constexpr StringCrc sceneRenderTarget("SceneRenderTarget");
 	const RenderTarget* pInputRT = GetRenderContext()->GetRenderTarget(sceneRenderTarget);
 	const RenderTarget* pOutputRT = GetRenderTarget();
 
@@ -70,7 +66,8 @@ void PostProcessRenderer::Render(float deltaTime)
 	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
 	Renderer::ScreenSpaceQuad(GetRenderTarget(), false);
 
-	GetRenderContext()->Submit(GetViewID(), PostProcessProgram);
+	constexpr StringCrc programHandleIndex{ "PostProcessProgram" };
+	GetRenderContext()->Submit(GetViewID(), programHandleIndex);
 }
 
 }

@@ -49,6 +49,7 @@ private:
 	bool BuildIndexBuffer();
 	void SubmitVertexBuffer();
 	void SubmitIndexBuffer();
+	void ClearMeshData();
 	void FreeMeshData();
 	void DestroyVertexBufferHandle();
 	void DestroyIndexBufferHandle();

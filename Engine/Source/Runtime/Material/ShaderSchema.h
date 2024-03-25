@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Core/StringCrc.h"
+#include "Base/Template.h"
 #include "Rendering/ShaderFeature.h"
 
 #include <map>
@@ -40,32 +41,29 @@ public:
 	ShaderSchema& operator=(ShaderSchema&&) = default;
 	~ShaderSchema() = default;
 
-	void SetShaderProgramName(std::string name);
+	void SetShaderProgramName(std::string name) { m_shaderProgramName = cd::MoveTemp(name); }
 	std::string& GetShaderProgramName() { return m_shaderProgramName; }
 	const std::string& GetShaderProgramName() const { return m_shaderProgramName; }
-
-	void AddFeatureSet(ShaderFeatureSet featureSet);
 
 	void Build();
 	void CleanBuild();
 	void CleanAll();
 
-	const ShaderFeatureSet GetConflictFeatureSet(const ShaderFeature feature) const;
-
+	void AddFeatureSet(ShaderFeatureSet featureSet);
+	std::optional<ShaderFeatureSet> GetConflictFeatureSet(const ShaderFeature feature) const;
 	std::string GetFeaturesCombine(const ShaderFeatureSet& featureSet) const;
-	StringCrc GetFeaturesCombineCrc(const ShaderFeatureSet& featureSet) const;
 
-	std::set<ShaderFeatureSet>& GetFeatures() { return m_shaderFeatureSets; }
-	const std::set<ShaderFeatureSet>& GetFeatures() const { return m_shaderFeatureSets; }
+	std::set<ShaderFeatureSet>& GetFeatureSets() { return m_shaderFeatureSets; }
+	const std::set<ShaderFeatureSet>& GetFeatureSets() const { return m_shaderFeatureSets; }
 
-	std::set<std::string>& GetAllFeatureCombines() { return m_allFeatureCombines; }
-	const std::set<std::string>& GetAllFeatureCombines() const { return m_allFeatureCombines; }
+	std::set<std::string>& GetAllFeatureCombines();
+	const std::set<std::string>& GetAllFeatureCombines() const;
 
 private:
 	std::string m_shaderProgramName;
 
 	bool m_isDirty = false;
-	// Registration order of shader features.
+	// Registration order of shader feature sets.
 	std::set<ShaderFeatureSet> m_shaderFeatureSets;
 	// All permutations matching the registered shader features.
 	std::set<std::string> m_allFeatureCombines;

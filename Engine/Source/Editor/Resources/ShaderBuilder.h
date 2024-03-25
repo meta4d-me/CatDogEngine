@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Material/MaterialType.h"
+#include "Rendering/Resources/ShaderResource.h"
 #include "Resources/ResourceBuilder.h"
-#include "Rendering/ShaderCompileInfo.h"
 
 #include <map>
 #include <string>
@@ -20,12 +20,11 @@ namespace editor
 class ShaderBuilder
 {
 public:
-	static void CompileRegisteredNonUberShader(engine::RenderContext* pRenderContext);
-	static void CompileRegisteredUberShader(engine::RenderContext* pRenderContext, engine::MaterialType* pMaterialType);
-	static void CompileUberShaderAllVariants(engine::RenderContext* pRenderContext, engine::MaterialType* pMaterialType);
+	static void RegisterUberShaderAllVariants(engine::RenderContext *pRenderContext, engine::MaterialType *pMaterialType);
 
-	// Compile specified shader program/program variant.
-	static void BuildShaderInfos(engine::RenderContext* pRenderContext, TaskOutputCallbacks callbacks = {});
+	static void BuildRegisteredShaderResources(engine::RenderContext* pRenderContext, TaskOutputCallbacks callbacks = {});
+	static void BuildRecompileShaderResources(engine::RenderContext* pRenderContext, TaskOutputCallbacks callbacks = {});
+	static void BuildShaderResource(engine::RenderContext* pRenderContext, engine::ShaderResource* pShaderResource, TaskOutputCallbacks callbacks = {});
 };
 
 } // namespace editor
