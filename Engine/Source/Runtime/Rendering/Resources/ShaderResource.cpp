@@ -100,8 +100,7 @@ void ShaderResource::SetShaders(const std::string& vsName, const std::string& fs
 	m_shaders[0].type = ShaderType::Vertex;
 	m_shaders[0].name = vsName;
 	m_shaders[0].scPath = engine::Path::GetBuiltinShaderInputPath(vsName.c_str());
-	// TODO : Uber Vertex Shader
-	m_shaders[0].binPath = engine::Path::GetShaderOutputPath(vsName.c_str());
+	m_shaders[0].binPath = engine::Path::GetShaderOutputPath(vsName.c_str(), combine);
 	
 	m_shaders[1].type = ShaderType::Fragment;
 	m_shaders[1].name = fsName;
