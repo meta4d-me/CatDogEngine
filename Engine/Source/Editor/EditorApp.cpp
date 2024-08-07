@@ -35,6 +35,7 @@
 #include "Rendering/TerrainRenderer.h"
 #include "Rendering/WorldRenderer.h"
 #include "Rendering/ParticleForceFieldRenderer.h"
+#include "Rendering/GaussianRenderer.h"
 #include "Rendering/OutLineRenderer.h"
 #include "Rendering/ParticleRenderer.h"
 #include "Resources/FileWatcher.h"
@@ -539,6 +540,10 @@ void EditorApp::InitEngineRenderers()
 	auto pParticleForceFieldRenderer = std::make_unique<engine::ParticleForceFieldRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
 	pParticleForceFieldRenderer->SetSceneWorld(m_pSceneWorld.get());
 	AddEngineRenderer(cd::MoveTemp(pParticleForceFieldRenderer));
+
+	auto pGaussianRenderer = std::make_unique<engine::GaussianRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);
+	pGaussianRenderer->SetSceneWorld(m_pSceneWorld.get());
+	AddEngineRenderer(cd::MoveTemp(pGaussianRenderer));
 
 #ifdef ENABLE_DDGI
 	auto pDDGIRenderer = std::make_unique<engine::DDGIRenderer>(m_pRenderContext->CreateView(), pSceneRenderTarget);

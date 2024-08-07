@@ -45,6 +45,7 @@ class SceneWorld
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(ParticleEmitter);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(ParticleRibbon);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(ParticleForceField);
+	DEFINE_COMPONENT_STORAGE_WITH_APIS(GaussianRender);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Terrain);
 	DEFINE_COMPONENT_STORAGE_WITH_APIS(Transform);
 
@@ -106,6 +107,7 @@ public:
 		DeleteParticleEmitterComponent(entity);
 		DeleteParticleRibbonComponent(entity);
 		DeleteParticleForceFieldComponent(entity);
+		DeleteGaussianRenderComponent(entity);
 		DeleteTerrainComponent(entity);
 		DeleteTransformComponent(entity);
 	}

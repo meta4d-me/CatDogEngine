@@ -691,6 +691,28 @@ void UpdateComponentWidget<engine::ParticleEmitterComponent>(engine::SceneWorld*
 }
 
 template<>
+void UpdateComponentWidget<engine::GaussianRenderComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
+{
+	auto* pGaussianRenderComponent = pSceneWorld->GetGaussianRenderComponent(entity);
+	if (!pGaussianRenderComponent)
+	{
+		return;
+	}
+
+	bool isHeaderOpen = ImGui::CollapsingHeader("GaussianRender Component", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+	ImGui::Separator();
+
+	if (isHeaderOpen)
+	{
+
+	}
+
+	ImGui::Separator();
+	ImGui::PopStyleVar();
+}
+
+template<>
 void UpdateComponentWidget<engine::ParticleForceFieldComponent>(engine::SceneWorld* pSceneWorld, engine::Entity entity)
 {
 	auto* pParticleForceFieldComponent = pSceneWorld->GetParticleForceFieldComponent(entity);
@@ -788,6 +810,7 @@ void Inspector::Update()
 	details::UpdateComponentWidget<engine::MaterialComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::ParticleEmitterComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::ParticleForceFieldComponent>(pSceneWorld, m_lastSelectedEntity);
+	details::UpdateComponentWidget<engine::GaussianRenderComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::CollisionMeshComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::BlendShapeComponent>(pSceneWorld, m_lastSelectedEntity);
 	details::UpdateComponentWidget<engine::AnimationComponent>(pSceneWorld, m_lastSelectedEntity);

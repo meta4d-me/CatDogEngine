@@ -39,6 +39,7 @@ enum class IOAssetType
 	Terrain,
 	Light,
 	Particle,
+	GaussianSplatting,
 	Unknown,
 };
 
@@ -97,6 +98,7 @@ private:
 	void ProcessSceneDatabase(cd::SceneDatabase* pSceneDatabase, bool keepMesh, bool keepMaterial, bool keepTexture, bool keepCamera, bool keepLight);
 	void ImportModelFile(const char* pFilePath);
 	void ImportParticleEffect(const char* pFilePath);
+	void ImportGaussianSplattingFile(const char* pFilePath);
 	void ImportJson(const char* pFilePath);
 	void DrawFolder(const std::shared_ptr<DirectoryInformation>& dirInfo, bool defaultOpen = false);
 	void ChangeDirectory(std::shared_ptr<DirectoryInformation>& directory);

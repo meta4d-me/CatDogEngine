@@ -20,3 +20,4 @@
 #include "ECWorld/ParticleEmitterComponent.h"
 #include "ECWorld/ParticleRibbonComponent.h"
 #include "ECWorld/ParticleForceFieldComponent.h"
+#include "ECWorld/GaussianRenderComponent.h"

@@ -42,6 +42,7 @@ SceneWorld::SceneWorld()
 	m_pParticleForceFieldComponentStorage = m_pWorld->Register<engine::ParticleForceFieldComponent>();
 	m_pTerrainComponentStorage = m_pWorld->Register<engine::TerrainComponent>();
 	m_pTransformComponentStorage = m_pWorld->Register<engine::TransformComponent>();
+	m_pGaussianRenderComponentStorage = m_pWorld->Register<engine::GaussianRenderComponent>();
 	
 #ifdef ENABLE_DDGI
 	CreateDDGIMaterialType();
