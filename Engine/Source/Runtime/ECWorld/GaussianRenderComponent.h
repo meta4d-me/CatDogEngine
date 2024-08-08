@@ -42,6 +42,8 @@ public:
 	void SetPlyData(std::vector<std::byte>& buffer) { m_readBuffer = buffer; }
 
 	void ProcessingPlyBuffer();
+
+
 private:
 	std::vector<std::byte> m_vertexBuffer;
 	std::vector<std::byte> m_indexBuffer;
@@ -53,6 +55,9 @@ private:
 
 	std::vector<float> m_sizeList;
 	std::vector<uint32_t> m_sizeIndex;
+
+	//gaussian
+	std::vector<std::byte> GausianAttributesBuffer;
 };
 
 }
