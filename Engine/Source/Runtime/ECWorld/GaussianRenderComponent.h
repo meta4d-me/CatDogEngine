@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/StringCrc.h"
 #include <vector>
+#include <bgfx/bgfx.h>
 
 namespace engine
 {
@@ -43,6 +44,7 @@ public:
 
 	void ProcessingPlyBuffer();
 
+	void GenerateTexture();
 
 private:
 	std::vector<std::byte> m_vertexBuffer;
@@ -55,9 +57,13 @@ private:
 
 	std::vector<float> m_sizeList;
 	std::vector<uint32_t> m_sizeIndex;
-
+	int m_vertextCount;
 	//gaussian
 	std::vector<std::byte> GausianAttributesBuffer;
+
+	//texture
+	std::vector<std::byte> m_textureBuffer;
+	bgfx::TextureHandle m_textureHandle;
 };
 
 }

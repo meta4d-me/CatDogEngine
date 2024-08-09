@@ -67,6 +67,7 @@ void GaussianRenderComponent::ProcessingPlyBuffer()
 
 	const std::string vertexCountStr = header.substr(header.find("element vertex ") + 15, header_end_index - header.find("element vertex ") - 15);
 	const int vertexCount = std::stoi(vertexCountStr);
+	m_vertextCount = vertexCount;
 	CD_ERROR("Vertex Count: ");
 	CD_ERROR(vertexCount);
 
@@ -234,9 +235,141 @@ void GaussianRenderComponent::ProcessingPlyBuffer()
 
 	GausianAttributesBuffer = buffer;
 	CD_ERROR("ReadBuffer Over");
-
 }
 
+uint16_t floatToHalf(float value)
+{
+	uint32_t f = *reinterpret_cast<uint32_t*>(&value);
+	uint32_t sign = (f >> 16) & 0x8000;
+	uint32_t exponent = ((f >> 23) & 0xff) - (127 - 15);
+	uint32_t mantissa = f & 0x007fffff;
+
+	if (exponent <= 0)
+	{
+		if (exponent < -10)
+		{
+			return static_cast<uint16_t>(sign);
+		}
+		mantissa = (mantissa | 0x00800000) >> (1 - exponent);
+		return static_cast<uint16_t>(sign | (mantissa >> 13));
+	}
+	else if (exponent == 0xff - (127 - 15))
+	{
+		if (mantissa == 0)
+		{
+			return static_cast<uint16_t>(sign | 0x7c00);
+		}
+		else
+		{
+			mantissa >>= 13;
+			return static_cast<uint16_t>(sign | 0x7c00 | mantissa | (mantissa == 0));
+		}
+	}
+	else
+	{
+		if (exponent > 30)
+		{
+			return static_cast<uint16_t>(sign | 0x7c00);
+		}
+		return static_cast<uint16_t>(sign | (exponent << 10) | (mantissa >> 13));
+	}
+}
+
+
+uint32_t packHalf2x16(float v1, float v2)
+{
+	uint16_t half1 = floatToHalf(v1);
+	uint16_t half2 = floatToHalf(v2);
+	return (static_cast<uint32_t>(half1) << 16) | static_cast<uint32_t>(half2);
+}
+
+void GaussianRenderComponent::GenerateTexture()
+{
+	if (GausianAttributesBuffer.empty()) return;
+
+	const float* f_buffer = reinterpret_cast<const float*>(GausianAttributesBuffer.data());
+	const uint8_t* u_buffer = reinterpret_cast<const uint8_t*>(GausianAttributesBuffer.data());
+
+	size_t  texwidth = 1024 * 2;
+	size_t  texheight = static_cast<int>(std::ceil((2 * m_vertextCount) / static_cast<float>(texwidth)));
+	m_textureBuffer.resize(texwidth * texheight * 4 * sizeof(uint32_t));
+	const bgfx::Caps* caps = bgfx::getCaps();
+	uint16_t maxTextureSize = caps->limits.maxTextureSize;
+	CD_ERROR("maxTextureSize");
+	CD_ERROR(maxTextureSize);
+	CD_ERROR(m_textureBuffer.size());
+
+	uint8_t* texdata_c = reinterpret_cast<uint8_t*>(m_textureBuffer.data());
+	float* texdata_f = reinterpret_cast<float*>(m_textureBuffer.data());
+
+	for (int i = 0; i < m_vertextCount; ++i)
+	{
+		texdata_f[8 * i + 0] = f_buffer[8 * i + 0];
+		texdata_f[8 * i + 1] = f_buffer[8 * i + 1];
+		texdata_f[8 * i + 2] = f_buffer[8 * i + 2];
+
+		texdata_c[4 * (8 * i + 7) + 0] = u_buffer[32 * i + 24 + 0];
+		texdata_c[4 * (8 * i + 7) + 1] = u_buffer[32 * i + 24 + 1];
+		texdata_c[4 * (8 * i + 7) + 2] = u_buffer[32 * i + 24 + 2];
+		texdata_c[4 * (8 * i + 7) + 3] = u_buffer[32 * i + 24 + 3];
+
+		float scale[3] = {
+			f_buffer[8 * i + 3 + 0],
+			f_buffer[8 * i + 3 + 1],
+			f_buffer[8 * i + 3 + 2]
+		};
+		float rot[4] = {
+			(u_buffer[32 * i + 28 + 0] - 128) / 128.0f,
+			(u_buffer[32 * i + 28 + 1] - 128) / 128.0f,
+			(u_buffer[32 * i + 28 + 2] - 128) / 128.0f,
+			(u_buffer[32 * i + 28 + 3] - 128) / 128.0f
+		};
+
+		float M[9] = {
+			1.0f - 2.0f * (rot[2] * rot[2] + rot[3] * rot[3]),
+			2.0f * (rot[1] * rot[2] + rot[0] * rot[3]),
+			2.0f * (rot[1] * rot[3] - rot[0] * rot[2]),
+
+			2.0f * (rot[1] * rot[2] - rot[0] * rot[3]),
+			1.0f - 2.0f * (rot[1] * rot[1] + rot[3] * rot[3]),
+			2.0f * (rot[2] * rot[3] + rot[0] * rot[1]),
+
+			2.0f * (rot[1] * rot[3] + rot[0] * rot[2]),
+			2.0f * (rot[2] * rot[3] - rot[0] * rot[1]),
+			1.0f - 2.0f * (rot[1] * rot[1] + rot[2] * rot[2])
+		};
+
+		for (int j = 0; j < 9; ++j)
+		{
+			M[j] *= scale[j / 3];
+		}
+
+		float sigma[6] = {
+			M[0] * M[0] + M[3] * M[3] + M[6] * M[6],
+			M[0] * M[1] + M[3] * M[4] + M[6] * M[7],
+			M[0] * M[2] + M[3] * M[5] + M[6] * M[8],
+			M[1] * M[1] + M[4] * M[4] + M[7] * M[7],
+			M[1] * M[2] + M[4] * M[5] + M[7] * M[8],
+			M[2] * M[2] + M[5] * M[5] + M[8] * M[8]
+		};
+
+		uint32_t packed1 = packHalf2x16(4 * sigma[0], 4 * sigma[1]);
+		uint32_t packed2 = packHalf2x16(4 * sigma[2], 4 * sigma[3]);
+		uint32_t packed3 = packHalf2x16(4 * sigma[4], 4 * sigma[5]);
+
+		std::memcpy(&m_textureBuffer[8 * i + 4 * sizeof(uint32_t)], &packed1, sizeof(uint32_t));
+		std::memcpy(&m_textureBuffer[8 * i + 5 * sizeof(uint32_t)], &packed2, sizeof(uint32_t));
+		std::memcpy(&m_textureBuffer[8 * i + 6 * sizeof(uint32_t)], &packed3, sizeof(uint32_t));
+	}
+
+	bool hasMips = false;  //if-mip-map
+	uint16_t numLayers = 1;
+	bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA32U; // fomat
+
+	const bgfx::Memory* mem = bgfx::copy(m_textureBuffer.data(), static_cast<uint32_t>(m_textureBuffer.size()));
+	m_textureHandle = bgfx::createTexture2D(static_cast<uint16_t>(texwidth), static_cast<uint16_t>(texheight), hasMips, numLayers, format, BGFX_TEXTURE_NONE | BGFX_SAMPLER_NONE, mem);
+	CD_ERROR("Generate TextureHandle Over");
+}
 
 
 }

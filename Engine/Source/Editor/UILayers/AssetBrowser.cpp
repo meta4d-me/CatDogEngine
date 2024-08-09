@@ -1222,6 +1222,7 @@ void AssetBrowser::ImportGaussianSplattingFile(const char* pFilePath)
 	inFile.read(reinterpret_cast<char*>(buffer.data()), fileSize);
 	GaussianRenderComponent.SetPlyData(buffer);
 	GaussianRenderComponent.ProcessingPlyBuffer();
+	GaussianRenderComponent.GenerateTexture();
 	GaussianRenderComponent.Build();
 }
 
