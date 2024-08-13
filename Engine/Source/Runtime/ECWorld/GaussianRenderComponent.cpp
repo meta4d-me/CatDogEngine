@@ -14,13 +14,17 @@ void GaussianRenderComponent::Build()
 	vertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
 
 	const uint32_t vertexCount = 4;
-	std::vector<cd::Point> vertexArray
+	std::vector<cd::Point> vertexArray;
+	vertexArray.resize(vertexCount);
+	// pos 
+	for (uint32_t i = 0; i < vertexCount; i += 4)
 	{
-		cd::Point{-2, -2, 0},
-			cd::Point{2, -2, 0},
-			cd::Point{2, 2, 0},
-			cd::Point{-2, 2, 0},
-	};
+		vertexArray[i] = { cd::Point{-2, -2, 0} };
+		vertexArray[i + 1] = { cd::Point{2, -2, 0} };
+		vertexArray[i + 2] = { cd::Point{2, 2, 0} };
+		vertexArray[i + 3] = { cd::Point{-2, 2, 0} };
+	}
+
 	m_vertexBuffer.resize(vertexCount * vertexFormat.GetStride());
 	uint32_t currentDataSize = 0U;
 	auto currentDataPtr = m_vertexBuffer.data();
@@ -33,15 +37,14 @@ void GaussianRenderComponent::Build()
 		currentDataSize += posDataSize;
 	}
 
-	size_t indexTypeSize = sizeof(uint16_t);
-	m_indexBuffer.resize(6 * indexTypeSize);
+	const bool useU16Index = false;
+	const uint32_t indexTypeSize = useU16Index ? sizeof(uint16_t) : sizeof(uint32_t);
+	const uint32_t indicesCount = 6;
+	m_indexBuffer.resize(indicesCount * indexTypeSize);
 	currentDataSize = 0U;
 	currentDataPtr = m_indexBuffer.data();
 
-	std::vector<uint16_t> indexes =
-	{
-		0, 1,2,0,2,3
-	};
+	std::vector<uint16_t> indexes = { 0,1,2,0,3,2 };
 
 	for (const auto& index : indexes)
 	{
@@ -233,7 +236,7 @@ void GaussianRenderComponent::ProcessingPlyBuffer()
 		}
 	}
 
-	GausianAttributesBuffer = buffer;
+	m_gausianAttributesBuffer = buffer;
 	CD_ERROR("ReadBuffer Over");
 }
 
@@ -285,34 +288,34 @@ uint32_t packHalf2x16(float v1, float v2)
 
 void GaussianRenderComponent::GenerateTexture()
 {
-	if (GausianAttributesBuffer.empty()) return;
+	if (m_gausianAttributesBuffer.empty()) return;
 
-	const float* f_buffer = reinterpret_cast<const float*>(GausianAttributesBuffer.data());
-	const uint8_t* u_buffer = reinterpret_cast<const uint8_t*>(GausianAttributesBuffer.data());
+	const float* f_buffer = reinterpret_cast<const float*>(m_gausianAttributesBuffer.data());
+	const uint8_t* u_buffer = reinterpret_cast<const uint8_t*>(m_gausianAttributesBuffer.data());
 
 	size_t  texwidth = 1024 * 2;
 	size_t  texheight = static_cast<int>(std::ceil((2 * m_vertextCount) / static_cast<float>(texwidth)));
 	m_textureBuffer.resize(texwidth * texheight * 4 * sizeof(uint32_t));
 	const bgfx::Caps* caps = bgfx::getCaps();
 	uint16_t maxTextureSize = caps->limits.maxTextureSize;
-	CD_ERROR("maxTextureSize");
-	CD_ERROR(maxTextureSize);
-	CD_ERROR(m_textureBuffer.size());
 
 	uint8_t* texdata_c = reinterpret_cast<uint8_t*>(m_textureBuffer.data());
 	float* texdata_f = reinterpret_cast<float*>(m_textureBuffer.data());
 
-	for (int i = 0; i < m_vertextCount; ++i)
+	for (size_t i = 0; i < m_vertextCount; ++i)
 	{
+		// x, y, z
 		texdata_f[8 * i + 0] = f_buffer[8 * i + 0];
 		texdata_f[8 * i + 1] = f_buffer[8 * i + 1];
 		texdata_f[8 * i + 2] = f_buffer[8 * i + 2];
 
+		// r, g, b, a
 		texdata_c[4 * (8 * i + 7) + 0] = u_buffer[32 * i + 24 + 0];
 		texdata_c[4 * (8 * i + 7) + 1] = u_buffer[32 * i + 24 + 1];
 		texdata_c[4 * (8 * i + 7) + 2] = u_buffer[32 * i + 24 + 2];
 		texdata_c[4 * (8 * i + 7) + 3] = u_buffer[32 * i + 24 + 3];
 
+		// quaternions
 		float scale[3] = {
 			f_buffer[8 * i + 3 + 0],
 			f_buffer[8 * i + 3 + 1],
@@ -325,6 +328,7 @@ void GaussianRenderComponent::GenerateTexture()
 			(u_buffer[32 * i + 28 + 3] - 128) / 128.0f
 		};
 
+		// Compute the matrix product of S and R (M = Scale * Rotation)
 		float M[9] = {
 			1.0f - 2.0f * (rot[2] * rot[2] + rot[3] * rot[3]),
 			2.0f * (rot[1] * rot[2] + rot[0] * rot[3]),

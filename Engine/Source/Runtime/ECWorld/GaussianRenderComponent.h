@@ -38,6 +38,8 @@ public:
 	std::vector<std::byte>& GetVertexBuffer() { return m_vertexBuffer; }
 	std::vector<std::byte>& GetIndexBuffer() { return m_indexBuffer; }
 
+	
+	std::vector<std::byte>& GetGaussianBuffer() { return m_gausianAttributesBuffer; }
 
 	//ply
 	void SetPlyData(std::vector<std::byte>& buffer) { m_readBuffer = buffer; }
@@ -45,6 +47,8 @@ public:
 	void ProcessingPlyBuffer();
 
 	void GenerateTexture();
+
+	uint32_t& GetVertexCount() { return m_vertextCount; }
 
 private:
 	std::vector<std::byte> m_vertexBuffer;
@@ -57,9 +61,9 @@ private:
 
 	std::vector<float> m_sizeList;
 	std::vector<uint32_t> m_sizeIndex;
-	int m_vertextCount;
+	uint32_t m_vertextCount;
 	//gaussian
-	std::vector<std::byte> GausianAttributesBuffer;
+	std::vector<std::byte> m_gausianAttributesBuffer;
 
 	//texture
 	std::vector<std::byte> m_textureBuffer;

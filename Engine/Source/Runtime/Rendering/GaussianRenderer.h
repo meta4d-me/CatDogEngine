@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Renderer.h"
+#include <vector>
 
 namespace engine
 {
@@ -20,6 +21,13 @@ public:
 
 private:
 	SceneWorld* m_pCurrentSceneWorld = nullptr;
+
+	std::vector<float> f_buffer;
+	std::vector<int32_t> sizeList;
+	std::vector<uint32_t> counts0;
+	std::vector<uint32_t> starts0;
+	std::vector<uint32_t> depthIndex;
+
 };
 
 }
