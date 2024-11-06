@@ -25,24 +25,6 @@ function IsIOSPlatform()
 	return ChoosePlatform == "IOS"
 end
 
-USE_CLANG_TOOLSET = false
-if os.getenv("USE_CLANG_TOOLSET") then
-	USE_CLANG_TOOLSET = true
-end
-
-DDGI_SDK_PATH = os.getenv("DDGI_SDK_PATH") or ""
-if not os.isdir(DDGI_SDK_PATH) then
-	DDGI_SDK_PATH = ""
-end
-
-ENABLE_FREETYPE = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndroidPlatform()
-ENABLE_SPDLOG = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndroidPlatform()
-ENABLE_SUBPROCESS = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndroidPlatform()
-ENABLE_TRACY = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndroidPlatform()
-ENABLE_DDGI = DDGI_SDK_PATH ~= ""
-
-ShouldTreatWaringAsError = not (ENABLE_DDGI or USE_CLANG_TOOLSET)
-
 PlatformSettings = {}
 PlatformSettings["Windows"] = {
 	DisplayName = "Win64",
@@ -77,6 +59,33 @@ function GetPlatformMacroName()
 	return PlatformSettings[ChoosePlatform].MacroName
 end
 
+dofile("path.lua")
+
+--------------------------------------------------------------------------------------------------------
+-- Build Options
+--------------------------------------------------------------------------------------------------------
+USE_CLANG_TOOLSET = false
+if os.getenv("USE_CLANG_TOOLSET") then
+	USE_CLANG_TOOLSET = true
+end
+
+DDGI_SDK_PATH = os.getenv("DDGI_SDK_PATH") or ""
+if not os.isdir(DDGI_SDK_PATH) then
+	DDGI_SDK_PATH = ""
+end
+
+FBX_SDK_DEBUG_PATH = path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/libfbxsdk.dll")
+FBX_SDK_RELEASE_PATH = path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/libfbxsdk.dll")
+
+ENABLE_DDGI = DDGI_SDK_PATH ~= ""
+ENABLE_FBX_WORKFLOW = os.isfile(FBX_SDK_DEBUG_PATH) and os.isfile(FBX_SDK_RELEASE_PATH)
+ENABLE_FREETYPE = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndroidPlatform()
+ENABLE_SPDLOG = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndroidPlatform()
+ENABLE_SUBPROCESS = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndroidPlatform()
+ENABLE_TRACY = not USE_CLANG_TOOLSET and not IsLinuxPlatform() and not IsAndroidPlatform()
+
+ShouldTreatWaringAsError = not (ENABLE_DDGI or USE_CLANG_TOOLSET)
+
 IDEConfigs = {}
 IDEConfigs.BuildIDEName = os.getenv("BUILD_IDE_NAME")
 
@@ -92,8 +101,7 @@ function SetLanguageAndToolset(projectName)
 	targetdir(BinariesPath)
 end
 
--- Parse folder path
-dofile("path.lua")
+-- Information about make
 print("================================================================")
 print("EngineBuildLibKind = "..EngineBuildLibKind)
 print("CurrentWorkingDirectory = "..CurrentWorkingDirectory)
@@ -105,7 +113,12 @@ print("EngineSourcePath = "..EngineSourcePath)
 print("GameSourcePath = "..GameSourcePath)
 print("RuntimeSourcePath = "..RuntimeSourcePath)
 print("IDEConfigs.BuildIDEName = "..IDEConfigs.BuildIDEName)
-print("DDGI_SDK_PATH = "..DDGI_SDK_PATH)
+print("================================================================")
+print("ENABLE_FBX_WORKFLOW = "..tostring(ENABLE_FBX_WORKFLOW))
+print("ENABLE_FREETYPE = "..tostring(ENABLE_FREETYPE))
+print("ENABLE_SPDLOG = "..tostring(ENABLE_SPDLOG))
+print("ENABLE_SUBPROCESS = "..tostring(ENABLE_SUBPROCESS))
+print("ENABLE_TRACY = "..tostring(ENABLE_TRACY))
 print("================================================================")
 
 -- workspace means solution in Visual Studio
@@ -156,53 +169,27 @@ function CopyDllAutomatically()
 	end
 
 	-- copy dll into binary folder automatically.
-	filter { "configurations:Debug" }
-		if IsAndroidPlatform() then
-			postbuildcommands {
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Debug/SDL2d.*").."\" \""..BinariesPath.."\"",
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/ARM64/Debug/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/ARM64/Debug/CDProducer.*").."\" \""..BinariesPath.."\"",
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/ARM64/Debug/CDConsumer.*").."\" \""..BinariesPath.."\"",
-			}
-		else
-			postbuildcommands {
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Debug/SDL2d.*").."\" \""..BinariesPath.."\"",
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDProducer.*").."\" \""..BinariesPath.."\"",
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/CDConsumer.*").."\" \""..BinariesPath.."\"",
-			}
-		end
+	postbuildcommands {
+		"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/%{cfg.buildcfg}/SDL2*.*").."\" \""..BinariesPath.."\"",
+		"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/%{cfg.buildcfg}/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
+		"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/%{cfg.buildcfg}/CDProducer.*").."\" \""..BinariesPath.."\"",
+		"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/%{cfg.buildcfg}/CDConsumer.*").."\" \""..BinariesPath.."\"",
+	}
 
-		if not USE_CLANG_TOOLSET then
-			postbuildcommands {
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/GenericProducer.*").."\" \""..BinariesPath.."\"",
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug/assimp-*-mtd.*").."\" \""..BinariesPath.."\"",
-			}
-		end
-	filter { "configurations:Release" }
-		if IsAndroidPlatform() then
-			postbuildcommands {
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Release/SDL2.*").."\" \""..BinariesPath.."\"",
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/ARM64/Release/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/ARM64/Release/CDProducer.*").."\" \""..BinariesPath.."\"",
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/ARM64/Release/CDConsumer.*").."\" \""..BinariesPath.."\"",
-			}
-		else
-			postbuildcommands {
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "sdl/build/Release/SDL2.*").."\" \""..BinariesPath.."\"",
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/AssetPipelineCore.*").."\" \""..BinariesPath.."\"",
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CDProducer.*").."\" \""..BinariesPath.."\"",
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/CDConsumer.*").."\" \""..BinariesPath.."\"",
-			}
-		end
+	if not USE_CLANG_TOOLSET then
+		postbuildcommands {
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/%{cfg.buildcfg}/GenericProducer.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/%{cfg.buildcfg}/assimp-*-mt*.*").."\" \""..BinariesPath.."\"",
+		}
+	end
 
-		if not USE_CLANG_TOOLSET then
-			postbuildcommands {
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/GenericProducer.*").."\" \""..BinariesPath.."\"",
-				"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release/assimp-*-mt.*").."\" \""..BinariesPath.."\"",
-			}
-		end
-	filter {}
+	if ENABLE_FBX_WORKFLOW then
+		postbuildcommands {
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/%{cfg.buildcfg}/FbxConsumer.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/%{cfg.buildcfg}/FbxProducer.*").."\" \""..BinariesPath.."\"",
+			"{COPYFILE} \""..path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/%{cfg.buildcfg}/libfbxsdk.*").."\" \""..BinariesPath.."\"",
+		}
+	end
 
 	if ENABLE_DDGI then
 		postbuildcommands {

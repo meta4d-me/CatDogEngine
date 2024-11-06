@@ -1,0 +1,1 @@
+#define PT_RIBBON_VERTEX_STAGE 1

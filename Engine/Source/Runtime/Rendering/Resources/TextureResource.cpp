@@ -128,7 +128,7 @@ void TextureResource::Update()
 		constexpr uint32_t recycleDelayFrames = 30U;
 		if (m_recycleCount++ >= recycleDelayFrames)
 		{
-			FreeTextureData();
+			ClearTextureData();
 
 			m_recycleCount = 0U;
 			SetStatus(ResourceStatus::Optimized);
@@ -213,16 +213,21 @@ void TextureResource::BuildTextureHandle()
 	assert(m_textureHandle != UINT16_MAX);
 }
 
-void TextureResource::FreeTextureData()
+void TextureResource::ClearTextureData()
 {
 	m_textureRawData.clear();
-
 	if (m_textureImageData)
 	{
 		auto* pImageContainer = reinterpret_cast<bimg::ImageContainer*>(m_textureImageData);
 		bimg::imageFree(pImageContainer);
 		m_textureImageData = nullptr;
 	}
+}
+
+void TextureResource::FreeTextureData()
+{
+	ClearTextureData();
+	TextureRawData().swap(m_textureRawData);
 }
 
 void TextureResource::DestroySamplerHandle()

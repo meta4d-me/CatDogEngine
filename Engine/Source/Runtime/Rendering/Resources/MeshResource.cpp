@@ -74,6 +74,16 @@ void MeshResource::SetMeshAsset(const cd::Mesh* pMeshAsset)
 	m_pMeshAsset = pMeshAsset;
 }
 
+void MeshResource::SetSkinAsset(const cd::Skin* pSkinAsset)
+{
+	m_pSkinAsset.push_back(pSkinAsset);
+}
+
+void MeshResource::AddBonesAsset(const cd::Bone& bone)
+{
+	m_pBonesAsset.push_back(&bone);
+}
+
 void MeshResource::UpdateVertexFormat(const cd::VertexFormat& vertexFormat)
 {
 	// Set mesh asset at first so that MeshResource can analyze if it is suitable.
@@ -168,15 +178,23 @@ void MeshResource::Reset()
 {
 	DestroyVertexBufferHandle();
 	DestroyIndexBufferHandle();
-	FreeMeshData();
+	ClearMeshData();
 	SetStatus(ResourceStatus::Loading);
 }
 
 bool MeshResource::BuildVertexBuffer()
 {
 	assert(m_pMeshAsset && m_vertexCount > 3U);
+	std::optional<cd::VertexBuffer> optVertexBuffer;
+	if (!m_pSkinAsset.empty())
+	{
+		optVertexBuffer = cd::BuildVertexBufferForSkeletalMesh(*m_pMeshAsset, m_currentVertexFormat, *m_pSkinAsset[0], m_pBonesAsset);
+	}
+	else
+	{
+		optVertexBuffer = cd::BuildVertexBufferForStaticMesh(*m_pMeshAsset, m_currentVertexFormat);
+	}
 
-	std::optional<cd::VertexBuffer> optVertexBuffer = cd::BuildVertexBufferForStaticMesh(*m_pMeshAsset, m_currentVertexFormat);
 	if (!optVertexBuffer.has_value())
 	{
 		CD_ERROR("Failed to build mesh vertex buffer.");
@@ -239,7 +257,6 @@ void MeshResource::SubmitVertexBuffer()
 	{
 		return;
 	}
-
 	m_vertexBufferHandle = details::SubmitVertexBuffer(m_vertexBuffer, m_currentVertexFormat);
 }
 
@@ -276,10 +293,17 @@ void MeshResource::SubmitIndexBuffer()
 	}
 }
 
-void MeshResource::FreeMeshData()
+void MeshResource::ClearMeshData()
 {
 	m_vertexBuffer.clear();
 	m_indexBuffers.clear();
+}
+
+void MeshResource::FreeMeshData()
+{
+	ClearMeshData();
+	VertexBuffer().swap(m_vertexBuffer);
+	std::vector<IndexBuffer>().swap(m_indexBuffers);
 }
 
 void MeshResource::DestroyVertexBufferHandle()

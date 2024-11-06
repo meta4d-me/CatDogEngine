@@ -53,11 +53,6 @@ std::filesystem::path Path::GetPlatformAppDataPath(const char* pRootPath)
 #endif
 }
 
-std::string Path::Join(std::filesystem::path path)
-{
-    return path.generic_string();
-}
-
 std::filesystem::path Path::GetEngineBuiltinShaderPath()
 {
     return std::filesystem::path(CDENGINE_BUILTIN_SHADER_PATH);

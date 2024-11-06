@@ -2,6 +2,8 @@
 
 #include "Core/StringCrc.h"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/ResourceContext.h"
+#include "Rendering/Resources/ShaderResource.h"
 
 #include <imgui/imgui.h>
 
@@ -10,14 +12,8 @@ namespace engine
 
 void ImGuiRenderer::Init()
 {
-	constexpr StringCrc programCrc = StringCrc("ImGuiProgram");
-	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_imgui", "fs_imgui" });
+	AddDependentShaderResource(GetRenderContext()->RegisterShaderProgram("ImGuiProgram", "vs_imgui", "fs_imgui"));
 
-	bgfx::setViewName(GetViewID(), "ImGuiRenderer");
-}
-
-void ImGuiRenderer::Warmup()
-{
 	constexpr StringCrc imguiVertexLayoutName("imgui_vertex_layout");
 	if (0 == GetRenderContext()->GetVertexAttributeLayouts(imguiVertexLayoutName).m_stride)
 	{
@@ -31,7 +27,8 @@ void ImGuiRenderer::Warmup()
 	}
 
 	GetRenderContext()->CreateUniform("s_tex", bgfx::UniformType::Sampler);
-	GetRenderContext()->UploadShaderProgram("ImGuiProgram");
+
+	bgfx::setViewName(GetViewID(), "ImGuiRenderer");
 }
 
 void ImGuiRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -79,6 +76,15 @@ void ImGuiRenderer::UpdateView(const float* pViewMatrix, const float* pProjectio
 
 void ImGuiRenderer::Render(float deltaTime)
 {
+	for (const auto pResource : m_dependentShaderResources)
+	{
+		if (ResourceStatus::Ready != pResource->GetStatus() &&
+			ResourceStatus::Optimized != pResource->GetStatus())
+		{
+			return;
+		}
+	}
+
 	ImDrawData* pImGuiDrawData = ImGui::GetDrawData();
 
 	int frameBufferWidth = static_cast<int>(pImGuiDrawData->DisplaySize.x * pImGuiDrawData->FramebufferScale.x);
@@ -172,7 +178,8 @@ void ImGuiRenderer::Render(float deltaTime)
 					pEncoder->setVertexBuffer(0, &vertexBuffer, cmd->VtxOffset, numVertices);
 					pEncoder->setIndexBuffer(&indexBuffer, cmd->IdxOffset, cmd->ElemCount);
 
-					pEncoder->submit(GetViewID(), GetRenderContext()->GetShaderProgramHandle("ImGuiProgram"));
+					constexpr StringCrc programHandleIndex{ "ImGuiProgram" };
+					pEncoder->submit(GetViewID(), bgfx::ProgramHandle{ GetRenderContext()->GetResourceContext()->GetShaderResource(programHandleIndex)->GetHandle()});
 				}
 			}
 		}

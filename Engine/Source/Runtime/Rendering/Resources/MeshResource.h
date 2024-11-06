@@ -8,7 +8,9 @@
 namespace cd
 {
 
+class Bone;
 class Mesh;
+class Skin;
 
 }
 
@@ -34,6 +36,12 @@ public:
 
 	const cd::Mesh* GetMeshAsset() const { return m_pMeshAsset; }
 	void SetMeshAsset(const cd::Mesh* pMeshAsset);
+
+	const cd::Skin* GetSkinAsset(int skinIndex) const { return m_pSkinAsset[skinIndex]; }
+	void SetSkinAsset(const cd::Skin* pSkinAsset);
+
+	const std::vector<const cd::Bone*> GetBonesAsset() const { return m_pBonesAsset; }
+	void AddBonesAsset(const cd::Bone&);
 	
 	void UpdateVertexFormat(const cd::VertexFormat& vertexFormat);
 	
@@ -49,6 +57,7 @@ private:
 	bool BuildIndexBuffer();
 	void SubmitVertexBuffer();
 	void SubmitIndexBuffer();
+	void ClearMeshData();
 	void FreeMeshData();
 	void DestroyVertexBufferHandle();
 	void DestroyIndexBufferHandle();
@@ -56,6 +65,8 @@ private:
 private:
 	// Asset
 	const cd::Mesh* m_pMeshAsset = nullptr;
+	std::vector<const cd::Skin*> m_pSkinAsset;
+	std::vector<const cd::Bone*> m_pBonesAsset;
 	uint32_t m_vertexCount = 0U;
 	uint32_t m_polygonCount = 0U;
 	uint32_t m_polygonGroupCount = 0U;

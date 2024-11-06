@@ -51,7 +51,7 @@ struct AssetImportOptions
 	bool ImportMaterial = true;
 	bool ImportMesh = true;
 	bool ImportTexture = true;
-	bool ImportAnimation = false;
+	bool ImportAnimation = true;
 };
 
 struct AssetExportOptions

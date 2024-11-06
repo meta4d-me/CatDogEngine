@@ -23,7 +23,7 @@ public:
 
 	int AllocateParticleIndex();
 	Particle& GetParticle(int index) { return m_particles[index]; }
-	int GetParticleCount() { return m_currentActiveCount; }
+	int GetParticleActiveCount() { return m_currentActiveCount; }
 	int& GetParticleMaxCount() { return m_maxParticleCount; }
 	void SetParticleMaxCount(int count) { m_maxParticleCount = count; }
 

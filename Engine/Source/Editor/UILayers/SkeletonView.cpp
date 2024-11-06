@@ -44,12 +44,17 @@ void SkeletonView::DrawBone(cd::SceneDatabase* pSceneDatabase, const cd::Bone& B
 void SkeletonView::DrawSkeleton(engine::SceneWorld* pSceneWorld)
 {
     cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
-    if (0 == pSceneDatabase->GetBoneCount())
+    if (0 == pSceneDatabase->GetSkeletonCount())
     {
         return;
     }
-    const cd::Bone& rootBone = pSceneDatabase->GetBone(0);
-    DrawBone(pSceneDatabase, rootBone);
+    for (uint32_t skeletonIndex = 0; skeletonIndex < pSceneDatabase->GetSkeletonCount(); skeletonIndex++)
+    {
+        const cd::Skeleton& skeleton = pSceneDatabase->GetSkeleton(skeletonIndex);
+        auto rootBoneID = skeleton.GetRootBoneID();
+        const cd::Bone& rootBone = pSceneDatabase->GetBone(rootBoneID.Data());
+        DrawBone(pSceneDatabase, rootBone);
+    }
 }
 
 void SkeletonView::Update()
@@ -63,11 +68,7 @@ void SkeletonView::Update()
         ImGui::End();
         return;
     }
-    engine::AnimationComponent* pAnimationConponent = pSceneWorld->GetAnimationComponent(selectedEntity);
-    if (pAnimationConponent)
-    { 
-        DrawSkeleton(pSceneWorld);
-    }
+    DrawSkeleton(pSceneWorld);
 
     ImGui::End();
 }

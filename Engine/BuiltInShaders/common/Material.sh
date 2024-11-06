@@ -21,7 +21,7 @@ struct Material {
 };
 
 uniform vec4 u_albedoColor;
-uniform vec4 u_metallicRoughnessFactor;
+uniform vec4 u_metallicRoughnessRefectanceFactor;
 uniform vec4 u_albedoUVOffsetAndScale;
 uniform vec4 u_alphaCutOff;
 
@@ -110,15 +110,16 @@ Material GetMaterial(vec2 uv, vec3 normal, mat3 TBN) {
 	material.roughness = orm.y;
 	material.metallic = orm.z;
 #else
-	material.roughness = u_metallicRoughnessFactor.y;
-	material.metallic = u_metallicRoughnessFactor.x;
+	material.roughness = u_metallicRoughnessRefectanceFactor.y;
+	material.metallic = u_metallicRoughnessRefectanceFactor.x;
 #endif
 
 #if defined(EMISSIVEMAP)
 	material.emissive = SampleEmissiveTexture(uv);
 #endif
 	
-	material.F0 = mix(vec3_splat(0.04), material.albedo, material.metallic);
+	float refectance = u_metallicRoughnessRefectanceFactor.z;
+	material.F0 = mix(0.16 * refectance * refectance, material.albedo, material.metallic);
 	
 	return material;
 }

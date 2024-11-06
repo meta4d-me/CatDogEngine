@@ -9,11 +9,13 @@
 #include "Rendering/RenderContext.h"
 #include "Rendering/Resources/MeshResource.h"
 #include "Rendering/Resources/ResourceContext.h"
+#include "Rendering/Resources/SkeletonResource.h"
 #include "Rendering/Resources/TextureResource.h"
 #include "Rendering/ShaderFeature.h"
 #include "Resources/ResourceBuilder.h"
 #include "Resources/ResourceLoader.h"
 #include "Resources/ShaderBuilder.h"
+#include "Rendering/Utility/VertexLayoutUtility.h"
 #include "Scene/SceneDatabase.h"
 
 #include <algorithm>
@@ -57,13 +59,17 @@ void ECWorldConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 		bool hasSkin = mesh.GetSkinIDCount() > 0U;
 		if (hasSkin)
 		{
-			engine::MaterialType* pMaterialType = m_pSceneWorld->GetAnimationMaterialType();
-			AddSkinMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat());
-
 			// TODO : Use a standalone .cdanim file to play animation.
 			// Currently, we assume that imported SkinMesh will play animation automatically for testing.
-			AddAnimation(meshEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
-			AddMaterial(meshEntity, nullptr, pMaterialType, pSceneDatabase);
+			//TODO : depens on skeleton to match animation
+			if (pSceneDatabase->GetAnimationCount() <= 1U)
+			{
+				engine::MaterialType* pMaterialType = m_pSceneWorld->GetAnimationMaterialType();
+				AddSkinMesh(meshEntity, mesh, pMaterialType->GetRequiredVertexFormat(), pSceneDatabase);
+				AddAnimation(meshEntity, pSceneDatabase->GetAnimation(0), pSceneDatabase);
+				AddMaterial(meshEntity, nullptr, pMaterialType, pSceneDatabase);
+				AddSkeleton(meshEntity, pSceneDatabase);
+			}
 		}
 		else
 		{
@@ -185,9 +191,39 @@ void ECWorldConsumer::AddStaticMesh(engine::Entity entity, const cd::Mesh& mesh,
 	staticMeshComponent.SetMeshResource(pMeshResource);
 }
 
-void ECWorldConsumer::AddSkinMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat)
+void ECWorldConsumer::AddSkinMesh(engine::Entity entity, const cd::Mesh& mesh, const cd::VertexFormat& vertexFormat, const cd::SceneDatabase* pSceneDatabase)
 {
-	AddStaticMesh(entity, mesh, vertexFormat);
+	assert(mesh.GetVertexCount() > 0 && mesh.GetPolygonCount() > 0);
+
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+	auto& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
+	std::string meshName(mesh.GetName());
+	engine::StringCrc meshNameCrc(meshName);
+	nameComponent.SetName(cd::MoveTemp(meshName));
+
+	auto& collisionMeshComponent = pWorld->CreateComponent<engine::CollisionMeshComponent>(entity);
+	collisionMeshComponent.SetType(engine::CollisonMeshType::AABB);
+	collisionMeshComponent.SetAABB(mesh.GetAABB());
+	collisionMeshComponent.Build();
+
+	auto& staticMeshComponent = pWorld->CreateComponent<engine::StaticMeshComponent>(entity);
+	engine::MeshResource* pMeshResource = m_pResourceContext->AddMeshResource(meshNameCrc);
+	pMeshResource->SetMeshAsset(&mesh);
+
+	//auto& skinMeshComponent = pWorld->CreateComponent<engine::SkinMeshComponent>(entity);
+	for (auto skinID : mesh.GetSkinIDs())
+	{
+		pMeshResource->SetSkinAsset(&pSceneDatabase->GetSkin(skinID.Data()));
+		auto skeletonID = pSceneDatabase->GetSkin(skinID.Data()).GetSkeletonID();
+		auto& skeleton = pSceneDatabase->GetSkeleton(skeletonID.Data());
+		for (auto boneID : skeleton.GetBoneIDs())
+		{
+			pMeshResource->AddBonesAsset(pSceneDatabase->GetBone(boneID.Data()));
+		}
+	}
+
+	pMeshResource->UpdateVertexFormat(vertexFormat);
+	staticMeshComponent.SetMeshResource(pMeshResource);
 }
 
 void ECWorldConsumer::AddAnimation(engine::Entity entity, const cd::Animation& animation, const cd::SceneDatabase* pSceneDatabase)
@@ -205,14 +241,19 @@ void ECWorldConsumer::AddAnimation(engine::Entity entity, const cd::Animation& a
 
 void ECWorldConsumer::AddMaterial(engine::Entity entity, const cd::Material* pMaterial, engine::MaterialType* pMaterialType, const cd::SceneDatabase* pSceneDatabase)
 {
-	std::set<uint8_t> compiledTextureSlot;
-	std::vector<std::tuple<cd::MaterialTextureType, std::string, const cd::Texture*>> outputTypeToData;
-
 	engine::MaterialComponent& materialComponent = m_pSceneWorld->GetWorld()->CreateComponent<engine::MaterialComponent>(entity);
 	materialComponent.Init();
 	materialComponent.SetMaterialType(pMaterialType);
 	materialComponent.SetMaterialData(pMaterial);
 	materialComponent.ActivateShaderFeature(engine::GetSkyTypeShaderFeature(m_pSceneWorld->GetSkyComponent(m_pSceneWorld->GetSkyEntity())->GetSkyType()));
+
+	if (!pMaterial)
+	{
+		return;
+	}
+
+	std::set<uint8_t> compiledTextureSlot;
+	std::vector<std::tuple<cd::MaterialTextureType, std::string, const cd::Texture*>> outputTypeToData;
 
 	// Expected textures are ready to build. Add more optional texture data.
 	for (cd::MaterialTextureType optionalTextureType : pMaterialType->GetOptionalTextureTypes())
@@ -397,6 +438,7 @@ void ECWorldConsumer::AddParticleEmitter(engine::Entity entity, const cd::Mesh& 
 	engine::NameComponent& nameComponent = pWorld->CreateComponent<engine::NameComponent>(entity);
 	nameComponent.SetName(emitter.GetName());
 	auto& particleEmitterComponent = pWorld->CreateComponent<engine::ParticleEmitterComponent>(entity);
+	auto& particleMaterialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
 	// TODO : Some initialization here.
 	auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
 	cd::Vec3f pos = emitter.GetPosition();
@@ -424,9 +466,23 @@ void ECWorldConsumer::AddParticleEmitter(engine::Entity entity, const cd::Mesh& 
 	particleEmitterComponent.SetEmitterVelocity(emitter.GetVelocity());
 	particleEmitterComponent.SetEmitterAcceleration(emitter.GetAccelerate());
 	particleEmitterComponent.SetMeshData(&mesh); 
-	particleEmitterComponent.SetMaterialType(pMaterialType);
-	particleEmitterComponent.ActivateShaderFeature(engine::ShaderFeature::PARTICLE_INSTANCE);
+	particleMaterialComponent.SetMaterialType(pMaterialType);
+	//particleMaterialComponent.ActivateShaderFeature(engine::ShaderFeature::PARTICLE_INSTANCE);
 	particleEmitterComponent.Build();
+}
+
+void ECWorldConsumer::AddSkeleton(engine::Entity entity, const cd::SceneDatabase* pSceneDatabase)
+{
+	engine::World* pWorld = m_pSceneWorld->GetWorld();
+	auto& SkeletonComponent = pWorld->CreateComponent<engine::SkeletonComponent>(entity);
+	
+	auto& skeleton = pSceneDatabase->GetSkeleton(0);
+	std::string meshName(skeleton.GetName());
+	engine::StringCrc meshNameCrc(meshName);
+	engine::SkeletonResource* pSkeletonResource = m_pResourceContext->AddSkeletonResource(meshNameCrc);
+	pSkeletonResource->SetSceneDataBase(pSceneDatabase);
+	SkeletonComponent.SetSkeletonAsset(pSkeletonResource);
+	
 }
 
 }

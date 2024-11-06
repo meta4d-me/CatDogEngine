@@ -14,10 +14,6 @@ BlitRenderTargetPass::~BlitRenderTargetPass()
 {
 }
 
-void BlitRenderTargetPass::Warmup()
-{
-}
-
 void BlitRenderTargetPass::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
 {
 }

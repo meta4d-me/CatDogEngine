@@ -5,13 +5,22 @@
 #include "ECWorld/StaticMeshComponent.h"
 #include "ECWorld/TransformComponent.h"
 #include "Rendering/RenderContext.h"
+#include "Rendering/Resources/MeshResource.h"
+#include "Rendering/Resources/ShaderResource.h"
 #include "Scene/Texture.h"
 
 #include <cmath>
-//#include <format>
 
+//#define VISUALIZE_BONE_WEIGHTS
 namespace engine
 {
+
+namespace
+{
+
+constexpr const char* debugBoneIndex = "u_debugBoneIndex";
+
+}
 
 namespace details
 {
@@ -136,13 +145,9 @@ void CalculateBoneTransform(std::vector<cd::Matrix4x4>& boneMatrices, const cd::
 void AnimationRenderer::Init()
 {
 	bgfx::setViewName(GetViewID(), "AnimationRenderer");
-}
 
-void AnimationRenderer::Warmup()
-{
 #ifdef VISUALIZE_BONE_WEIGHTS
-	m_pRenderContext->CreateUniform("u_debugBoneIndex", bgfx::UniformType::Vec4, 1);
-	m_pRenderContext->CreateProgram("AnimationProgram", "vs_visualize_bone_weight", "fs_visualize_bone_weight");
+	GetRenderContext()->CreateUniform(debugBoneIndex, bgfx::UniformType::Vec4, 1);
 #endif
 }
 
@@ -169,15 +174,15 @@ void AnimationRenderer::Render(float deltaTime)
 		passedTime -= changeTime;
 	}
 
-	constexpr StringCrc boneIndexUniform("u_debugBoneIndex");
-	bgfx::setUniform(m_pRenderContext->GetUniform(boneIndexUniform), selectedBoneIndex, 1);
+	constexpr StringCrc boneIndexCrc(debugBoneIndex);
+	GetRenderContext()->FillUniform(boneIndexCrc, selectedBoneIndex, 1);
 #endif
 
 	static float animationRunningTime = 0.0f;
 	animationRunningTime += deltaTime;
 
 	const cd::SceneDatabase* pSceneDatabase = m_pCurrentSceneWorld->GetSceneDatabase();
-	for (Entity entity : m_pCurrentSceneWorld->GetAnimationEntities())
+	for (Entity entity : m_pCurrentSceneWorld->GetStaticMeshEntities())
 	{
 		StaticMeshComponent* pMeshComponent = m_pCurrentSceneWorld->GetStaticMeshComponent(entity);
 		if (!pMeshComponent)
@@ -187,8 +192,14 @@ void AnimationRenderer::Render(float deltaTime)
 
 		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
 		if (!pMaterialComponent ||
-			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetAnimationMaterialType() ||
-			!GetRenderContext()->IsShaderProgramValid(pMaterialComponent->GetShaderProgramName(), pMaterialComponent->GetFeaturesCombine()))
+			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetAnimationMaterialType())
+		{
+			continue;
+		}
+
+		const ShaderResource* pShaderResource = pMaterialComponent->GetShaderResource();
+		if (ResourceStatus::Ready != pShaderResource->GetStatus() &&
+			ResourceStatus::Optimized != pShaderResource->GetStatus())
 		{
 			continue;
 		}
@@ -196,29 +207,10 @@ void AnimationRenderer::Render(float deltaTime)
 		TransformComponent* pTransformComponent = m_pCurrentSceneWorld->GetTransformComponent(entity);
 		bgfx::setTransform(pTransformComponent->GetWorldMatrix().begin());
 
-		AnimationComponent* pAnimationComponent = m_pCurrentSceneWorld->GetAnimationComponent(entity);
-
-		const cd::Animation* pAnimation = pAnimationComponent->GetAnimationData();
-		float ticksPerSecond = pAnimation->GetTicksPerSecond();
-		assert(ticksPerSecond > 1.0f);
-		float animationTime = details::CustomFModf(animationRunningTime * ticksPerSecond, pAnimation->GetDuration());
-
-		static std::vector<cd::Matrix4x4> boneMatrices;
-		boneMatrices.clear();
-		for (uint16_t boneIndex = 0; boneIndex < 128; ++boneIndex)
-		{
-			boneMatrices.push_back(cd::Matrix4x4::Identity());
-		}
-
-		const cd::Bone& rootBone = pSceneDatabase->GetBone(0);
-		details::CalculateBoneTransform(boneMatrices, pSceneDatabase, animationTime, rootBone,
-			cd::Matrix4x4::Identity(), pTransformComponent->GetWorldMatrix().Inverse());
-		bgfx::setUniform(bgfx::UniformHandle{pAnimationComponent->GetBoneMatrixsUniform()}, boneMatrices.data(), static_cast<uint16_t>(boneMatrices.size()));
-
 		constexpr uint64_t state = BGFX_STATE_WRITE_MASK | BGFX_STATE_CULL_CCW | BGFX_STATE_MSAA | BGFX_STATE_DEPTH_TEST_LESS;
 		bgfx::setState(state);
 
-		GetRenderContext()->Submit(GetViewID(), pMaterialComponent->GetShaderProgramName());
+		GetRenderContext()->Submit(GetViewID(), pShaderResource->GetHandle());
 	}
 }
 

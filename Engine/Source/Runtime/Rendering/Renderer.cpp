@@ -4,6 +4,8 @@
 #include "Rendering/RenderContext.h"
 #include "Rendering/RenderTarget.h"
 #include "Rendering/Resources/MeshResource.h"
+#include "Rendering/Resources/ResourceContext.h"
+#include "Rendering/Resources/ShaderResource.h"
 
 #include <bgfx/bgfx.h>
 
@@ -141,7 +143,7 @@ void Renderer::ScreenSpaceQuad(const RenderTarget* pRenderTarget, bool _originBo
 	}
 }
 
-void Renderer::SubmitStaticMeshDrawCall(StaticMeshComponent* pMeshComponent, uint16_t viewID, const std::string& programName, const std::string& featuresCombine)
+void Renderer::SubmitStaticMeshDrawCall(StaticMeshComponent* pMeshComponent, uint16_t viewID, uint16_t programHandle)
 {
 	const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
 	assert(ResourceStatus::Ready == pMeshResource->GetStatus() || ResourceStatus::Optimized == pMeshResource->GetStatus());
@@ -150,9 +152,13 @@ void Renderer::SubmitStaticMeshDrawCall(StaticMeshComponent* pMeshComponent, uin
 	{
 		bgfx::setIndexBuffer(bgfx::IndexBufferHandle{ pMeshResource->GetIndexBufferHandle(indexBufferIndex) }, pMeshComponent->GetStartIndex(), pMeshComponent->GetIndexCount());
 
-		// TODO : Submit interface requires runtime string construction which may hurt performance.
-		GetRenderContext()->Submit(viewID, programName, featuresCombine);
+		GetRenderContext()->Submit(viewID, programHandle);
 	}
+}
+
+void Renderer::SubmitStaticMeshDrawCall(StaticMeshComponent* pMeshComponent, uint16_t viewID, StringCrc programHandleIndex)
+{
+	SubmitStaticMeshDrawCall(pMeshComponent, viewID, m_pRenderContext->GetResourceContext()->GetShaderResource(programHandleIndex)->GetHandle());
 }
 
 }

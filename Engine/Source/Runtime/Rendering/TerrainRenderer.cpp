@@ -11,6 +11,7 @@
 #include "Math/Transform.hpp"
 #include "Rendering/RenderContext.h"
 #include "Rendering/Resources/MeshResource.h"
+#include "Rendering/Resources/ShaderResource.h"
 #include "Scene/Texture.h"
 #include "U_IBL.sh"
 #include "U_Terrain.sh"
@@ -34,6 +35,7 @@ constexpr const char* elevationTexture = "Terrain";
 constexpr const char* lutSampler = "s_texLUT";
 constexpr const char* cubeIrradianceSampler = "s_texCubeIrr";
 constexpr const char* cubeRadianceSampler = "s_texCubeRad";
+constexpr const char* iblStrength = "u_iblStrength";
 
 constexpr const char* lutTexture = "Textures/lut/ibl_brdf_lut.dds";
 
@@ -41,7 +43,7 @@ constexpr const char* cameraPos = "u_cameraPos";
 constexpr const char* cameraNearFarPlane = "u_cameraNearFarPlane";
 
 constexpr const char* albedoColor = "u_albedoColor";
-constexpr const char* metallicRoughnessFactor = "u_metallicRoughnessFactor";
+constexpr const char* metallicRoughnessRefectanceFactor = "u_metallicRoughnessRefectanceFactor";
 constexpr const char* albedoUVOffsetAndScale = "u_albedoUVOffsetAndScale";
 constexpr const char* alphaCutOff = "u_alphaCutOff";
 constexpr const char* emissiveColor = "u_emissiveColor";
@@ -55,11 +57,6 @@ constexpr uint64_t defaultRenderingState = BGFX_STATE_WRITE_MASK | BGFX_STATE_MS
 }
 
 void TerrainRenderer::Init()
-{
-	bgfx::setViewName(GetViewID(), "TerrainRenderer");
-}
-
-void TerrainRenderer::Warmup()
 {
 	SkyComponent* pSkyComponent = m_pCurrentSceneWorld->GetSkyComponent(m_pCurrentSceneWorld->GetSkyEntity());
 
@@ -76,13 +73,14 @@ void TerrainRenderer::Warmup()
 	GetRenderContext()->CreateTexture(lutTexture);
 	GetRenderContext()->CreateTexture(pSkyComponent->GetIrradianceTexturePath().c_str(), samplerFlags);
 	GetRenderContext()->CreateTexture(pSkyComponent->GetRadianceTexturePath().c_str(), samplerFlags);
+	GetRenderContext()->CreateUniform(iblStrength, bgfx::UniformType::Vec4, 1);
 
 	GetRenderContext()->CreateUniform(cameraPos, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(cameraNearFarPlane, bgfx::UniformType::Vec4, 1);
 
 	GetRenderContext()->CreateUniform(albedoColor, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(emissiveColor, bgfx::UniformType::Vec4, 1);
-	GetRenderContext()->CreateUniform(metallicRoughnessFactor, bgfx::UniformType::Vec4, 1);
+	GetRenderContext()->CreateUniform(metallicRoughnessRefectanceFactor, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(albedoUVOffsetAndScale, bgfx::UniformType::Vec4, 1);
 	GetRenderContext()->CreateUniform(alphaCutOff, bgfx::UniformType::Vec4, 1);
 
@@ -90,6 +88,8 @@ void TerrainRenderer::Warmup()
 	GetRenderContext()->CreateUniform(lightParams, bgfx::UniformType::Vec4, LightUniform::VEC4_COUNT);
 
 	GetRenderContext()->CreateTexture(elevationTexture, 129U, 129U, 1, bgfx::TextureFormat::Enum::R32F, samplerFlags, nullptr, 0);
+
+	bgfx::setViewName(GetViewID(), "TerrainRenderer");
 }
 
 void TerrainRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -109,8 +109,7 @@ void TerrainRenderer::Render(float deltaTime)
 	{		
 		MaterialComponent* pMaterialComponent = m_pCurrentSceneWorld->GetMaterialComponent(entity);
 		if (!pMaterialComponent ||
-			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetTerrainMaterialType() ||
-			!GetRenderContext()->IsShaderProgramValid(pMaterialComponent->GetShaderProgramName(), pMaterialComponent->GetFeaturesCombine()))
+			pMaterialComponent->GetMaterialType() != m_pCurrentSceneWorld->GetTerrainMaterialType())
 		{
 			// TODO : improve this condition. As we want to skip some feature-specified entities to render.
 			// For example, terrain/particle/...
@@ -127,6 +126,13 @@ void TerrainRenderer::Render(float deltaTime)
 		const MeshResource* pMeshResource = pMeshComponent->GetMeshResource();
 		if (ResourceStatus::Ready != pMeshResource->GetStatus() &&
 			ResourceStatus::Optimized != pMeshResource->GetStatus())
+		{
+			continue;
+		}
+
+		const ShaderResource* pShaderResource = pMaterialComponent->GetShaderResource();
+		if (ResourceStatus::Ready != pShaderResource->GetStatus() &&
+			ResourceStatus::Optimized != pShaderResource->GetStatus())
 		{
 			continue;
 		}
@@ -174,6 +180,9 @@ void TerrainRenderer::Render(float deltaTime)
 				GetRenderContext()->GetUniform(radSamplerCrc),
 				GetRenderContext()->GetTexture(StringCrc(pSkyComponent->GetRadianceTexturePath())));
 
+			constexpr StringCrc iblStrengthCrc{ iblStrength };
+			GetRenderContext()->FillUniform(iblStrengthCrc, &(pMaterialComponent->GetIblStrengeth()));
+
 			constexpr StringCrc lutsamplerCrc(lutSampler);
 			constexpr StringCrc luttextureCrc(lutTexture);
 			bgfx::setTexture(BRDF_LUT_SLOT, GetRenderContext()->GetUniform(lutsamplerCrc), GetRenderContext()->GetTexture(luttextureCrc));
@@ -191,12 +200,13 @@ void TerrainRenderer::Render(float deltaTime)
 		constexpr StringCrc albedoColorCrc(albedoColor);
 		GetRenderContext()->FillUniform(albedoColorCrc, pMaterialComponent->GetFactor<cd::Vec3f>(cd::MaterialPropertyGroup::BaseColor), 1);
 
-		cd::Vec4f metallicRoughnessFactorData(
+		cd::Vec4f u_metallicRoughnessRefectanceFactorData(
 			*(pMaterialComponent->GetFactor<float>(cd::MaterialPropertyGroup::Metallic)),
 			*(pMaterialComponent->GetFactor<float>(cd::MaterialPropertyGroup::Roughness)),
-			1.0f, 1.0f);
-		constexpr StringCrc mrFactorCrc(metallicRoughnessFactor);
-		GetRenderContext()->FillUniform(mrFactorCrc, metallicRoughnessFactorData.begin(), 1);
+			pMaterialComponent->GetReflectance(),
+			1.0f);
+		constexpr StringCrc mrrFactorCrc(metallicRoughnessRefectanceFactor);
+		GetRenderContext()->FillUniform(mrrFactorCrc, u_metallicRoughnessRefectanceFactorData.begin(), 1);
 
 		constexpr StringCrc emissiveColorCrc(emissiveColor);
 		GetRenderContext()->FillUniform(emissiveColorCrc, pMaterialComponent->GetFactor<cd::Vec4f>(cd::MaterialPropertyGroup::Emissive), 1);
@@ -224,7 +234,7 @@ void TerrainRenderer::Render(float deltaTime)
 
 		bgfx::setState(state);
 
-		SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), pMaterialComponent->GetShaderProgramName());
+		SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), pShaderResource->GetHandle());
 	}
 }
 

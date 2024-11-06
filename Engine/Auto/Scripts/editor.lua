@@ -62,8 +62,7 @@ project("Editor")
 
 	if ENABLE_SPDLOG then
 		defines {
-			-- TODO : Remove _SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING after spdlog updates the format to the right version.
-			"SPDLOG_ENABLE", "SPDLOG_NO_EXCEPTIONS", "FMT_USE_NONTYPE_TEMPLATE_ARGS=0", "_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING",
+			"SPDLOG_ENABLE", "SPDLOG_NO_EXCEPTIONS",
 		}
 
 		includedirs {
@@ -112,17 +111,14 @@ project("Editor")
 	staticruntime "on"
 	filter { "configurations:Debug" }
 		runtime "Debug" -- /MTd
-		libdirs {
-			BinariesPath,
-			path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Debug"),
-		}
 	filter { "configurations:Release" }
 		runtime "Release" -- /MT
-		libdirs {
-			BinariesPath,
-			path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/Release"),
-		}
 	filter {}
+
+	libdirs {
+		BinariesPath,
+		path.join(ThirdPartySourcePath, "AssetPipeline/build/bin/%{cfg.buildcfg}"),
+	}
 
 	links {
 		"Engine",
@@ -138,6 +134,18 @@ project("Editor")
 
 		defines {
 			"ENABLE_GENERIC_PRODUCER",
+		}
+	end
+
+	if ENABLE_FBX_WORKFLOW then
+		links {
+			"FbxConsumer",
+			"FbxProducer",
+		}
+
+		defines {
+			"ENABLE_FBX_CONSUMER",
+			"ENABLE_FBX_PRODUCER",
 		}
 	end
 

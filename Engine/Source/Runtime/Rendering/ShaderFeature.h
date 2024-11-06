@@ -46,7 +46,7 @@ constexpr const char* ShaderFeatureNames[] =
 static_assert(static_cast<int>(ShaderFeature::COUNT) == sizeof(ShaderFeatureNames) / sizeof(char*),
 	"Shader features and names mismatch.");
 
-CD_FORCEINLINE constexpr const char* GetFeatureName(ShaderFeature feature)
+constexpr const char* GetFeatureName(ShaderFeature feature)
 {
 	return ShaderFeatureNames[static_cast<size_t>(feature)];
 }

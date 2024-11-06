@@ -1,6 +1,5 @@
 ﻿#include "ShaderSchema.h"
 
-#include "Base/Template.h"
 #include "Log/Log.h"
 
 #include <algorithm>
@@ -9,29 +8,6 @@
 
 namespace engine
 {
-
-void ShaderSchema::SetShaderProgramName(std::string name)
-{
-	m_shaderProgramName = cd::MoveTemp(name);
-}
-
-void ShaderSchema::AddFeatureSet(ShaderFeatureSet featureSet)
-{
-	for (const auto& existingFeatureSet : m_shaderFeatureSets)
-	{
-		for (const auto& newFeature : featureSet)
-		{
-			if (existingFeatureSet.find(newFeature) != existingFeatureSet.end())
-			{
-				CD_ENGINE_WARN("Shader feature {0} repetitive, skip current feature set adding!", GetFeatureName(newFeature));
-				return;
-			}
-		}
-	}
-
-	m_isDirty = true;
-	m_shaderFeatureSets.insert(cd::MoveTemp(featureSet));
-}
 
 void ShaderSchema::Build()
 {
@@ -42,7 +18,6 @@ void ShaderSchema::Build()
 	}
 
 	CleanBuild();
-	m_isDirty = false;
 
 	for (const auto& featureSet : m_shaderFeatureSets)
 	{
@@ -76,8 +51,9 @@ void ShaderSchema::Build()
 		}
 	}
 
-	// Should ShaderSchema handle uber shader without shader feature?
+	// ShaderScheme also handles case without ShaderFeature.
 	m_allFeatureCombines.insert("");
+	m_isDirty = false;
 }
 
 void ShaderSchema::CleanBuild()
@@ -94,7 +70,26 @@ void ShaderSchema::CleanAll()
 	m_shaderFeatureSets.clear();
 }
 
-const ShaderFeatureSet ShaderSchema::GetConflictFeatureSet(const ShaderFeature feature) const
+void ShaderSchema::AddFeatureSet(ShaderFeatureSet featureSet)
+{
+	// We trate shader features as set to handel mutually exclusive keywords.
+	for (const auto& existingFeatureSet : m_shaderFeatureSets)
+	{
+		for (const auto& newFeature : featureSet)
+		{
+			if (existingFeatureSet.find(newFeature) != existingFeatureSet.end())
+			{
+				CD_ENGINE_WARN("Shader feature {0} repetitive, skip current feature set adding!", GetFeatureName(newFeature));
+				return;
+			}
+		}
+	}
+
+	m_isDirty = true;
+	m_shaderFeatureSets.insert(cd::MoveTemp(featureSet));
+}
+
+std::optional<ShaderFeatureSet> ShaderSchema::GetConflictFeatureSet(const ShaderFeature feature) const
 {
 	for (const auto& shaderFeatureSet : m_shaderFeatureSets)
 	{
@@ -104,7 +99,7 @@ const ShaderFeatureSet ShaderSchema::GetConflictFeatureSet(const ShaderFeature f
 		}
 	}
 
-	return ShaderFeatureSet{};
+	return std::nullopt;
 }
 
 std::string ShaderSchema::GetFeaturesCombine(const ShaderFeatureSet& featureSet) const
@@ -115,30 +110,34 @@ std::string ShaderSchema::GetFeaturesCombine(const ShaderFeatureSet& featureSet)
 	}
 
 	std::stringstream ss;
-	// Use the option order in m_shaderFeatureSets to ensure that inputs in different orders can get a same StringCrc.
+	// Use the Shader Feature order in m_shaderFeatureSets to ensure that inputs in different orders can get a same StringCrc.
 	for (const auto& registeredSet : m_shaderFeatureSets)
 	{
-		// Ignore option which contain in parameter but not contain in m_shaderFeatureSets.
+		// Ignore Shader Feature which contain in parameter but not contain in m_shaderFeatureSets.
 		for (const auto& registeredFeature : registeredSet)
 		{
 			if (featureSet.find(registeredFeature) != featureSet.end())
 			{
+				// We assume that theres no conflicting Features in the incoming featureSet parameter.
 				ss << GetFeatureName(registeredFeature);
+				continue;
 			}
 		}
-
 	}
+
 	return ss.str();
 }
 
-StringCrc ShaderSchema::GetFeaturesCombineCrc(const ShaderFeatureSet& featureSet) const
+std::set<std::string>& ShaderSchema::GetAllFeatureCombines()
 {
-	if (m_shaderFeatureSets.empty() || featureSet.empty())
-	{
-		return DefaultUberShaderCrc;
-	}
+	assert(!m_isDirty);
+	return m_allFeatureCombines;
+}
 
-	return StringCrc(GetFeaturesCombine(featureSet));
+const std::set<std::string>& ShaderSchema::GetAllFeatureCombines() const
+{
+	assert(!m_isDirty);
+	return m_allFeatureCombines;
 }
 
 }

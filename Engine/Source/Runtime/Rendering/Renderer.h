@@ -1,6 +1,9 @@
 #pragma once
 
+#include "Core/StringCrc.h"
+
 #include <cstdint>
+#include <set>
 #include <string>
 
 namespace engine
@@ -9,7 +12,7 @@ namespace engine
 class Camera;
 class RenderContext;
 class RenderTarget;
-class ShaderCollections;
+class ShaderResource;
 class StaticMeshComponent;
 
 class Renderer
@@ -27,8 +30,6 @@ public:
 	static RenderContext* GetRenderContext();
 
 	virtual void Init() = 0;
-	// All registered shaders are compiled in the App::Init stage, simply create the GPU resource here.
-	virtual void Warmup() = 0;
 	virtual void UpdateView(const float* pViewMatrix, const float* pProjectionMatrix) = 0;
 	virtual void Render(float deltaTime) = 0;
 
@@ -41,15 +42,20 @@ public:
 	virtual void SetEnable(bool value) { m_isEnable = value; }
 	virtual bool IsEnable() const { return m_isEnable; }
 
-	void SubmitStaticMeshDrawCall(StaticMeshComponent* pMeshComponent, uint16_t viewID, const std::string& programName, const std::string& featuresCombine = "");
+	void SubmitStaticMeshDrawCall(StaticMeshComponent* pMeshComponent, uint16_t viewID, uint16_t programHandle);
+	void SubmitStaticMeshDrawCall(StaticMeshComponent* pMeshComponent, uint16_t viewID, StringCrc programHandleIndex);
 
 public:
 	static void ScreenSpaceQuad(const RenderTarget* pRenderTarget, bool _originBottomLeft = false, float _width = 1.0f, float _height = 1.0f);
+	void AddDependentShaderResource(ShaderResource *shaderResource) { m_dependentShaderResources.insert(shaderResource); }
 
 protected:
+	bool m_isEnable = true;
 	uint16_t m_viewID = 0;
 	RenderTarget* m_pRenderTarget = nullptr;
-	bool m_isEnable = true;
+
+	// TODO : Need a generic way to manage the Renderer's dependency on shader resources, improve it.
+	std::set<ShaderResource*> m_dependentShaderResources;
 };
 
 }

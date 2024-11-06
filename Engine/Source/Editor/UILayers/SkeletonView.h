@@ -2,6 +2,7 @@
 
 #include "Scene/Bone.h"
 #include "Scene/SceneDatabase.h"
+#include "Scene/Skeleton.h"
 
 namespace editor
 {

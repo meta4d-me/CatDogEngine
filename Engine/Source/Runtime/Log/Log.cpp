@@ -9,24 +9,9 @@
 namespace engine
 {
 
-std::shared_ptr<spdlog::logger> Log::s_engineLogger;
-std::shared_ptr<spdlog::logger> Log::s_applicationLogger;
+std::shared_ptr<spdlog::logger> Log::s_pEngineLogger;
+std::shared_ptr<spdlog::logger> Log::s_pApplicationLogger;
 std::ostringstream Log::m_oss;
-
-std::shared_ptr<spdlog::logger>& Log::GetEngineLogger()
-{
-	return s_engineLogger;
-}
-
-std::shared_ptr<spdlog::logger>& Log::GetApplicationLogger()
-{
-	return s_applicationLogger;
-}
-
-const std::ostringstream& Log::GetSpdOutput()
-{
-	return m_oss;
-}
 
 void Log::ClearBuffer()
 {
@@ -45,15 +30,15 @@ void Log::Init() {
 
 	std::vector<spdlog::sink_ptr> sinks{ consoleSink, fileSink, ossSink };
 
-	s_engineLogger = std::make_shared<spdlog::logger>("ENGINE", sinks.begin(), sinks.end());
-	spdlog::register_logger(s_engineLogger);
-	s_engineLogger->set_level(spdlog::level::trace);
-	s_engineLogger->flush_on(spdlog::level::trace);
+	s_pEngineLogger = std::make_shared<spdlog::logger>("ENGINE", sinks.begin(), sinks.end());
+	spdlog::register_logger(s_pEngineLogger);
+	s_pEngineLogger->set_level(spdlog::level::trace);
+	s_pEngineLogger->flush_on(spdlog::level::trace);
 
-	s_applicationLogger = std::make_shared<spdlog::logger>("EDITOR", sinks.begin(), sinks.end());
-	spdlog::register_logger(s_applicationLogger);
-	s_applicationLogger->set_level(spdlog::level::trace);
-	s_applicationLogger->flush_on(spdlog::level::trace);
+	s_pApplicationLogger = std::make_shared<spdlog::logger>("EDITOR", sinks.begin(), sinks.end());
+	spdlog::register_logger(s_pApplicationLogger);
+	s_pApplicationLogger->set_level(spdlog::level::trace);
+	s_pApplicationLogger->flush_on(spdlog::level::trace);
 }
 
 }

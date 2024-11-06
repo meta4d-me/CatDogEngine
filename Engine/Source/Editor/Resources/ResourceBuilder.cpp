@@ -297,6 +297,7 @@ TaskHandle ResourceBuilder::AddRadianceCubeMapBuildTask(const char* pInputFilePa
 	}
 
 	std::string pathWithoutExtension = std::filesystem::path(pOutputFilePath).replace_extension().generic_string();
+	// TODO : mipCount should be affected by dstFaceSize, need to parameterize them in the future.
 	std::vector<std::string> radianceCommandArguments{"--input", pInputFilePath,
 		"--filter", "radiance", "--lightingModel", "phongbrdf", "--excludeBase", "true", "--mipCount", "7",
 		"--dstFaceSize", "256",

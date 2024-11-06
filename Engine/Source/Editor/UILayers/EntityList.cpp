@@ -32,6 +32,7 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     cd::SceneDatabase* pSceneDatabase = pSceneWorld->GetSceneDatabase();
     engine::MaterialType* pPBRMaterialType = pSceneWorld->GetPBRMaterialType();
     engine::MaterialType* pTerrainMaterialType = pSceneWorld->GetTerrainMaterialType();
+    engine::MaterialType* pCelluloidMaterialType = pSceneWorld->GetCelluloidMaterialType();
     engine::MaterialType* pParticleMaterialType = pSceneWorld->GetParticleMaterialType();
     engine::ResourceContext* pResourceContext = GetRenderContext()->GetResourceContext();
 
@@ -98,18 +99,37 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     if (ImGui::MenuItem("Add Cube Mesh"))
     {
         engine::Entity entity = AddNamedEntity("CubeMesh");
-        // TODO : manage temp asset.
-        static std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Box(cd::Point(-10.0f), cd::Point(10.0f)), pPBRMaterialType->GetRequiredVertexFormat());
+        std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Box(cd::Point(-10.0f), cd::Point(10.0f)), pPBRMaterialType->GetRequiredVertexFormat());
         assert(optMesh.has_value());
+        optMesh->SetName(pSceneWorld->GetNameComponent(entity)->GetName());
         CreateShapeComponents(entity, cd::MoveTemp(optMesh.value()), pPBRMaterialType);
     }
+
+    else if (ImGui::MenuItem("Add Celluloid Cube Mesh"))
+    {
+        engine::Entity entity = AddNamedEntity("Celluloid Cube");
+        std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Box(cd::Point(-10.0f), cd::Point(10.0f)), pCelluloidMaterialType->GetRequiredVertexFormat());
+        assert(optMesh.has_value());
+        optMesh->SetName(pSceneWorld->GetNameComponent(entity)->GetName());
+        CreateShapeComponents(entity, cd::MoveTemp(optMesh.value()), pCelluloidMaterialType);
+    }
+
     else if (ImGui::MenuItem("Add Sphere Mesh"))
     {
         engine::Entity entity = AddNamedEntity("Sphere");
-        // TODO : manage temp asset.
-        static std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Sphere(cd::Point(0.0f), 10.0f), 100U, 100U, pPBRMaterialType->GetRequiredVertexFormat());
+        std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Sphere(cd::Point(0.0f), 10.0f), 100U, 100U, pPBRMaterialType->GetRequiredVertexFormat());
         assert(optMesh.has_value());
+        optMesh->SetName(pSceneWorld->GetNameComponent(entity)->GetName());
         CreateShapeComponents(entity, cd::MoveTemp(optMesh.value()), pPBRMaterialType);
+    }
+
+    else if (ImGui::MenuItem("Add Celluloid Sphere Mesh"))
+    {
+        engine::Entity entity = AddNamedEntity("Celluloid Sphere");
+        std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Sphere(cd::Point(0.0f), 10.0f), 100U, 100U, pCelluloidMaterialType->GetRequiredVertexFormat());
+        assert(optMesh.has_value());
+        optMesh->SetName(pSceneWorld->GetNameComponent(entity)->GetName());
+        CreateShapeComponents(entity, cd::MoveTemp(optMesh.value()), pCelluloidMaterialType);
     }
     else if (ImGui::MenuItem("Add Terrain Mesh"))
     {
@@ -241,16 +261,18 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
     {
         engine::Entity entity = AddNamedEntity("ParticleEmitter");
         auto& particleEmitterComponent = pWorld->CreateComponent<engine::ParticleEmitterComponent>(entity);
+        auto& particleRibbonComponent = pWorld->CreateComponent<engine::ParticleRibbonComponent>(entity);
+        auto& particleMaterialComponent = pWorld->CreateComponent<engine::MaterialComponent>(entity);
         // TODO : Some initialization here.
         auto& transformComponent = pWorld->CreateComponent<engine::TransformComponent>(entity);
         transformComponent.SetTransform(cd::Transform::Identity());
         transformComponent.Build();
         particleEmitterComponent.SetRequiredVertexFormat(&pParticleMaterialType->GetRequiredVertexFormat());//to do : modify vertexFormat
-        particleEmitterComponent.SetMaterialType(pParticleMaterialType);
-        particleEmitterComponent.ActivateShaderFeature(engine::ShaderFeature::PARTICLE_INSTANCE);
+        particleMaterialComponent.Init();
+        particleMaterialComponent.SetMaterialType(pParticleMaterialType);
+        //particleMaterialComponent.ActivateShaderFeature(engine::ShaderFeature::PARTICLE_INSTANCE);
         particleEmitterComponent.Build();
-        //auto& particleForceFieldComponent = pWorld->CreateComponent<engine::ParticleForceFieldComponent>(entity);
-        //particleForceFieldComponent.Build();
+        particleRibbonComponent.Build();
     }
     else if (ImGui::MenuItem("Add Particle ForceField"))
     {
@@ -262,6 +284,40 @@ void EntityList::AddEntity(engine::SceneWorld* pSceneWorld)
         transformComponent.Build();
 
         particleForceFieldComponent.Build();
+    }
+    
+    else if (ImGui::MenuItem("PBR Demo"))
+    {
+        engine::Entity entity = AddNamedEntity("DirectionalLight");
+        auto& lightComponent = CreateLightComponents(entity, cd::LightType::Directional, 4.0f, cd::Vec3f(1.0f, 1.0f, 1.0f), true);
+        lightComponent.SetDirection(cd::Direction(0.65f, -0.65f, 0.3f));
+        lightComponent.SetCascadeNum(4);
+        lightComponent.SetIsCastShadow(false);
+        lightComponent.SetFrustumClips(cd::Vec4f(0.0f, 0.0f, 0.0f, 0.0f));
+        lightComponent.SetShadowMapTexture(BGFX_INVALID_HANDLE);
+
+        for (int horizontalIndex = 0 ; horizontalIndex < 7; ++horizontalIndex)
+        {
+            for (int verticalIndex = 0; verticalIndex < 7; ++verticalIndex)
+            {
+                engine::Entity entity = AddNamedEntity("Sphere");
+                std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(cd::Sphere(cd::Point(0.0f), 10.0f), 100U, 100U, pPBRMaterialType->GetRequiredVertexFormat());
+                assert(optMesh.has_value());
+                optMesh->SetName("Sphere");
+                CreateShapeComponents(entity, cd::MoveTemp(optMesh.value()), pPBRMaterialType);
+
+                auto* pTransformComponent = pSceneWorld->GetTransformComponent(entity);
+                cd::Transform transform = cd::Transform::Identity();
+                transform.SetTranslation(cd::Vec3f(26.0f * (horizontalIndex - 4), 26.0f * (verticalIndex - 4), 0.0f));
+                pTransformComponent->SetTransform(transform);
+                pTransformComponent->Build();
+
+                auto* pMaterialComponent = pSceneWorld->GetMaterialComponent(entity);
+                pMaterialComponent->SetFactor<float>(cd::MaterialPropertyGroup::Metallic, horizontalIndex * (1.0f / 6.0f));
+                pMaterialComponent->SetFactor<float>(cd::MaterialPropertyGroup::Roughness, verticalIndex * (1.0f / 6.0f));
+            }
+        }
+
     }
 }
 

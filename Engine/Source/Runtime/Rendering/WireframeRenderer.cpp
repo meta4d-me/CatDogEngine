@@ -6,6 +6,7 @@
 #include "ECWorld/TransformComponent.h"
 #include "Rendering/RenderContext.h"
 #include "Rendering/Resources/MeshResource.h"
+#include "Rendering/Resources/ShaderResource.h"
 #include "Scene/Texture.h"
 
 #undef EDITOR_MODE
@@ -15,15 +16,9 @@ namespace engine
 
 void WireframeRenderer::Init()
 {
-	constexpr StringCrc programCrc = StringCrc("WireframeLineProgram");
-	GetRenderContext()->RegisterShaderProgram(programCrc, { "vs_wireframe_line", "fs_wireframe_line" });
+	AddDependentShaderResource(GetRenderContext()->RegisterShaderProgram("WireframeLineProgram", "vs_wireframe_line", "fs_wireframe_line"));
 
 	bgfx::setViewName(GetViewID(), "WireframeRenderer");
-}
-
-void WireframeRenderer::Warmup()
-{
-	GetRenderContext()->UploadShaderProgram("WireframeLineProgram");
 }
 
 void WireframeRenderer::UpdateView(const float* pViewMatrix, const float* pProjectionMatrix)
@@ -34,6 +29,15 @@ void WireframeRenderer::UpdateView(const float* pViewMatrix, const float* pProje
 
 void WireframeRenderer::Render(float deltaTime)
 {
+	for (const auto pResource : m_dependentShaderResources)
+	{
+		if (ResourceStatus::Ready != pResource->GetStatus() &&
+			ResourceStatus::Optimized != pResource->GetStatus())
+		{
+			return;
+		}
+	}
+
 	for (Entity entity : m_pCurrentSceneWorld->GetStaticMeshEntities())
 	{
 		if (!m_enableGlobalWireframe && m_pCurrentSceneWorld->GetSelectedEntity() != entity)
@@ -75,7 +79,8 @@ void WireframeRenderer::Render(float deltaTime)
 			BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA) | BGFX_STATE_PT_LINES;
 		bgfx::setState(state);
 
-		SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), "WireframeLineProgram");
+		constexpr StringCrc programHandleIndex{ "ImGuiProgram" };
+		SubmitStaticMeshDrawCall(pMeshComponent, GetViewID(), programHandleIndex);
 	}
 }
 
