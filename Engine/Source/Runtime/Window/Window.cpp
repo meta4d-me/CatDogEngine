@@ -33,14 +33,12 @@ Window::Window(const char* pTitle, uint16_t width, uint16_t height, bool useFull
 	// If you want to implement window like Visual Studio without titlebar provided by system OS, open SDL_WINDOW_BORDERLESS.
 	// But the issue is that you can't drag it unless you provide an implementation about hit test.
 	// Then you also need to simulate minimize and maxmize buttons.
-	m_pSDLWindow = SDL_CreateWindow(pTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		width, height, SDL_WINDOW_SHOWN);
-	SDL_SetWindowFullscreen(m_pSDLWindow, useFullScreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
-	SDL_WarpMouseInWindow(m_pSDLWindow, static_cast<int>(width * 0.5f), static_cast<int>(height * 0.5f));
+	m_pSDLWindow = SDL_CreateWindow(pTitle, width, height, SDL_WINDOW_RESIZABLE);
+	SDL_SetWindowFullscreen(m_pSDLWindow, static_cast<SDL_bool>(useFullScreen));
+	SDL_WarpMouseInWindow(m_pSDLWindow, width * 0.5f, height * 0.5f);
 
 	SDL_SysWMinfo wmi;
-	SDL_VERSION(&wmi.version);
-	SDL_GetWindowWMInfo(m_pSDLWindow, &wmi);
+	SDL_GetWindowWMInfo(m_pSDLWindow, &wmi, SDL_SYSWM_CURRENT_VERSION);
 
 #if CD_PLATFORM_OSX || CD_PLATFORM_IOS
 	m_pNativeWindowHandle = wmi.info.cocoa.window;
@@ -68,7 +66,7 @@ void Window::Close(bool bPushSdlEvent)
 
 	SDL_Event sdlEvent;
 	SDL_QuitEvent& quitEvent = sdlEvent.quit;
-	quitEvent.type = SDL_QUIT;
+	quitEvent.type = SDL_EVENT_QUIT;
 	SDL_PushEvent(&sdlEvent);
 }
 
@@ -81,38 +79,30 @@ void Window::Update()
 	{
 		switch (sdlEvent.type)
 		{
-		case SDL_QUIT:
+		case SDL_EVENT_QUIT:
 		{
 			Close(false);
 		}
 		break;
 
-		case SDL_WINDOWEVENT:
+		case SDL_EVENT_WINDOW_RESIZED:
 		{
 			const SDL_WindowEvent& wev = sdlEvent.window;
-			switch (wev.event)
+			int currentWindowWidth;
+			int currentWindowHeight;
+			SDL_GetWindowSize(m_pSDLWindow, &currentWindowWidth, &currentWindowHeight);
+			if (currentWindowWidth != m_width || currentWindowHeight != m_height)
 			{
-			case SDL_WINDOWEVENT_RESIZED:
-			case SDL_WINDOWEVENT_SIZE_CHANGED:
-			{
-				int currentWindowWidth;
-				int currentWindowHeight;
-				SDL_GetWindowSize(m_pSDLWindow, &currentWindowWidth, &currentWindowHeight);
-				if (currentWindowWidth != m_width || currentWindowHeight != m_height)
-				{
-					m_width = currentWindowWidth;
-					m_height = currentWindowHeight;
-					SDL_SetWindowSize(m_pSDLWindow, m_width, m_height);
+				m_width = currentWindowWidth;
+				m_height = currentWindowHeight;
+				SDL_SetWindowSize(m_pSDLWindow, m_width, m_height);
 
-					OnResize.Invoke(m_width, m_height);
-				}
-			}
-			break;
+				OnResize.Invoke(m_width, m_height);
 			}
 		}
 		break;
 
-		case SDL_MOUSEMOTION:
+		case SDL_EVENT_MOUSE_MOTION:
 		{
 			// Top left is (0,0) for (x, y)
 			// xrel is positive to the right, negative to the left
@@ -125,7 +115,7 @@ void Window::Update()
 		}
 		break;
 
-		case SDL_MOUSEBUTTONDOWN:
+		case SDL_EVENT_MOUSE_BUTTON_DOWN:
 		{
 			switch (sdlEvent.button.button)
 			{
@@ -142,7 +132,7 @@ void Window::Update()
 		}
 		break;
 
-		case SDL_MOUSEBUTTONUP:
+		case SDL_EVENT_MOUSE_BUTTON_UP:
 		{
 			switch (sdlEvent.button.button)
 			{
@@ -159,27 +149,28 @@ void Window::Update()
 		}
 		break;
 
-		case SDL_MOUSEWHEEL:
+		case SDL_EVENT_MOUSE_WHEEL:
 		{
-			Input::Get().SetMouseScrollOffsetY(sdlEvent.wheel.preciseY);
+			Input::Get().SetMouseScrollOffsetY(sdlEvent.wheel.y);
 		}
 		break;
 
-		case SDL_TEXTINPUT:
+		case SDL_EVENT_TEXT_INPUT:
 		{   
 			const size_t inputLen = strlen(sdlEvent.text.text);
 			Input::Get().AppendInputCharacter(sdlEvent.text.text, inputLen);
 		}
 		break;
 
-		case SDL_KEYDOWN:
+		case SDL_EVENT_KEY_DOWN:
 		{
 			Sint32 sdlKeyCode = sdlEvent.key.keysym.sym;
 			KeyMod keyMod = static_cast<KeyMod>(sdlEvent.key.keysym.mod);
-			if (keyMod != KeyMod::KMOD_NONE)
+			if (sdlEvent.key.keysym.mod != SDL_KMOD_NONE)
 			{
 				Input::Get().SetModifier(keyMod);
 			}
+
 			if (sdlKeyCode >= Input::MaxKeyCode)
 			{
 				return;
@@ -190,11 +181,11 @@ void Window::Update()
 		}
 		break;
 
-		case SDL_KEYUP:
+		case SDL_EVENT_KEY_UP:
 		{
 			Sint32 sdlKeyCode = sdlEvent.key.keysym.sym;
 			KeyMod keyMod = static_cast<KeyMod>(sdlEvent.key.keysym.mod);
-			if (keyMod != KeyMod::KMOD_NONE)
+			if (sdlEvent.key.keysym.mod != SDL_KMOD_NONE)
 			{
 				Input::Get().ClearModifier(keyMod);
 			}
@@ -210,7 +201,7 @@ void Window::Update()
 		}
 		break;
 
-		case SDL_DROPFILE:
+		case SDL_EVENT_DROP_FILE:
 		{
 			OnDropFile.Invoke(sdlEvent.drop.file);
 		}
@@ -259,70 +250,70 @@ void Window::SetSize(uint16_t width, uint16_t height)
 	SDL_SetWindowSize(m_pSDLWindow, width, height);
 
 	// Center the window
-	SDL_DisplayMode dm;
-	SDL_GetDesktopDisplayMode(0, &dm);
-	int screenWidth = dm.w;
-	int screenHeight = dm.h;
-	int windowX = (screenWidth - width) / 2;
-	int windowY = (screenHeight - height) / 2;
-	SDL_SetWindowPosition(m_pSDLWindow, windowX, windowY);
+	//const SDL_DisplayMode* dm = SDL_GetCurrentDisplayMode();
+	//int screenWidth = dm->w;
+	//int screenHeight = dm->h;
+	//int windowX = (screenWidth - width) / 2;
+	//int windowY = (screenHeight - height) / 2;
+	//SDL_SetWindowPosition(m_pSDLWindow, windowX, windowY);
 
 	OnResize.Invoke(width, height);
 }
 
 void Window::SetWindowIcon(const char* pFilePath) const
 {
-	if (!pFilePath)
-	{
-		return;
-	}
-
-	std::string iconFilePath = CDEDITOR_RESOURCES_ROOT_PATH;
-	iconFilePath += pFilePath;
-
-	int width, height, originFormat;
-	int depth = 32;
-	int channels = STBI_rgb_alpha;
-	void* pImageData = stbi_load(iconFilePath.c_str(), &width, &height, &originFormat, STBI_rgb_alpha);
-	if (nullptr == pImageData)
-	{
-		return;
-	}
-
-	uint32_t maskR, maskG, maskB, maskA;
-	if constexpr(SDL_BYTEORDER == SDL_BIG_ENDIAN)
-	{
-		maskR = 0xff000000;
-		maskG = 0x00ff0000;
-		maskB = 0x0000ff00;
-		maskA = 0x000000ff;
-	}
-	else
-	{
-		maskR = 0x000000ff;
-		maskG = 0x0000ff00;
-		maskB = 0x00ff0000;
-		maskA = 0xff000000;
-	}
-	
-	SDL_Surface* pSDLSurface = SDL_CreateRGBSurfaceFrom(pImageData, width, height, depth,
-		channels * width, maskR, maskG, maskB, maskA);
-
-	SDL_SetWindowIcon(m_pSDLWindow, pSDLSurface);
-	SDL_FreeSurface(pSDLSurface);
-	stbi_image_free(pImageData);
+	//if (!pFilePath)
+	//{
+	//	return;
+	//}
+	//
+	//std::string iconFilePath = CDEDITOR_RESOURCES_ROOT_PATH;
+	//iconFilePath += pFilePath;
+	//
+	//int width, height, originFormat;
+	//int depth = 32;
+	//int channels = STBI_rgb_alpha;
+	//void* pImageData = stbi_load(iconFilePath.c_str(), &width, &height, &originFormat, STBI_rgb_alpha);
+	//if (nullptr == pImageData)
+	//{
+	//	return;
+	//}
+	//
+	//uint32_t maskR, maskG, maskB, maskA;
+	//if constexpr(SDL_BYTEORDER == SDL_BIG_ENDIAN)
+	//{
+	//	maskR = 0xff000000;
+	//	maskG = 0x00ff0000;
+	//	maskB = 0x0000ff00;
+	//	maskA = 0x000000ff;
+	//}
+	//else
+	//{
+	//	maskR = 0x000000ff;
+	//	maskG = 0x0000ff00;
+	//	maskB = 0x00ff0000;
+	//	maskA = 0xff000000;
+	//}
+	//
+	//SDL_Surface* pSDLSurface = SDL_CreateRGBSurfaceFrom(pImageData, width, height, depth,
+	//	channels * width, maskR, maskG, maskB, maskA);
+	//
+	//SDL_SetWindowIcon(m_pSDLWindow, pSDLSurface);
+	//SDL_FreeSurface(pSDLSurface);
+	//stbi_image_free(pImageData);
 }
 
-void Window::SetMouseVisible(bool isVisible, uint32_t x, uint32_t y)
+void Window::SetMouseVisible(bool isVisible, float x, float y)
 {
-	SDL_ShowCursor(isVisible);
 	if (!isVisible)
 	{
+		SDL_HideCursor();
 		SDL_SetRelativeMouseMode(SDL_TRUE);
 		SDL_WarpMouseInWindow(m_pSDLWindow, x, y);
 	}
 	else
 	{
+		SDL_ShowCursor();
 		SDL_SetRelativeMouseMode(SDL_FALSE);
 	}
 }

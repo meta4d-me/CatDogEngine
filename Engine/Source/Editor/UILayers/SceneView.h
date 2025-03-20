@@ -66,8 +66,8 @@ public:
 
 	bool IsFirstClick() const { return m_isMouseDownFirstTime; }
 	bool IsShowMouse() { return m_isMouseShow; }
-	uint32_t GetMouseFixedPositionX() const { return m_mouseFixedPositionX; }
-	uint32_t GetMouseFixedPositionY() const { return m_mouseFixedPositionY; }
+	float GetMouseFixedPositionX() const { return m_mouseFixedPositionX; }
+	float GetMouseFixedPositionY() const { return m_mouseFixedPositionY; }
 
 	void SetCameraController(engine::CameraController* pCameraController) { m_pCameraController = pCameraController; }
 
@@ -102,8 +102,8 @@ private:
 	engine::RenderTarget* m_pRenderTarget = nullptr;
 	bool m_isMouseDownFirstTime = true;
 
-	int32_t m_mouseFixedPositionX = 0;
-	int32_t m_mouseFixedPositionY = 0;
+	float m_mouseFixedPositionX = 0.0f;
+	float m_mouseFixedPositionY = 0.0f;
 
 	engine::CameraController* m_pCameraController = nullptr;
 };

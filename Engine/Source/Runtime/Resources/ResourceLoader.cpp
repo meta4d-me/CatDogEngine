@@ -34,7 +34,7 @@ std::vector<unsigned char> ResourceLoader::LoadFileFromResourceRoot(const char* 
 	SDL_RWops* pRWops = SDL_RWFromFile(pFilePath, "rb");
 	Sint64 dataSize = SDL_RWsize(pRWops);
 	fileData.resize(dataSize);
-	SDL_RWread(pRWops, fileData.data(), sizeof(char), fileData.size());
+	SDL_RWread(pRWops, fileData.data(), fileData.size());
 
 	return fileData;
 }

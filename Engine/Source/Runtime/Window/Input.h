@@ -65,17 +65,17 @@ public:
 	float GetMouseScrollOffsetY() const { return m_mouseScrollOffsetY; }
 	void SetMouseScrollOffsetY(float offset) { m_mouseScrollOffsetY = offset; }
 
-	int32_t GetMousePositionX() const { return m_mousePositionX; }
-	void SetMousePositionX(int32_t x) { m_mousePositionX = x; }
+	float GetMousePositionX() const { return m_mousePositionX; }
+	void SetMousePositionX(float x) { m_mousePositionX = x; }
 
-	int32_t GetMousePositionY() const { return m_mousePositionY; }
-	void SetMousePositionY(int32_t y) { m_mousePositionY = y; }
+	float GetMousePositionY() const { return m_mousePositionY; }
+	void SetMousePositionY(float y) { m_mousePositionY = y; }
 
-	int32_t GetMousePositionOffsetX() const { return m_mousePositionOffsetX; }
-	void SetMousePositionOffsetX(int32_t x) { m_mousePositionOffsetX = x; }
+	float GetMousePositionOffsetX() const { return m_mousePositionOffsetX; }
+	void SetMousePositionOffsetX(float x) { m_mousePositionOffsetX = x; }
 
-	int32_t GetMousePositionOffsetY() const { return m_mousePositionOffsetY; }
-	void SetMousePositionOffsetY(int32_t y) { m_mousePositionOffsetY = y; }
+	float GetMousePositionOffsetY() const { return m_mousePositionOffsetY; }
+	void SetMousePositionOffsetY(float y) { m_mousePositionOffsetY = y; }
 
 	// Keyboard device
 	bool IsKeyPressed(KeyCode code) const { return m_keyPressed[static_cast<uint8_t>(code)]; }
@@ -98,10 +98,10 @@ private:
 
 private:
 	// Mouse device
-	int32_t m_mousePositionX = 0;
-	int32_t m_mousePositionY = 0;
-	int32_t m_mousePositionOffsetX = 0;
-	int32_t m_mousePositionOffsetY = 0;
+	float m_mousePositionX = 0.0f;
+	float m_mousePositionY = 0.0f;
+	float m_mousePositionOffsetX = 0.0f;
+	float m_mousePositionOffsetY = 0.0f;
 	float m_mouseScrollOffsetY = 0.0f;
 	bool m_mouseLBPressed = false;
 	bool m_mouseRBPressed = false;
